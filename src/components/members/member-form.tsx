@@ -31,38 +31,41 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Невалиден имейл адрес.' }).optional().or(z.literal('')),
   phone: z.string().optional(),
   phoneType: z.enum(['personal', 'parent']).optional(),
-  dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
+  birthDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
   address: z.string().optional(),
-  status: z.enum(['active', 'inactive']),
+  isActive: z.boolean(),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
   personalId: z.string().optional(),
-  registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
+  joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
 });
 
 interface MemberFormProps {
   member?: Member;
-  onSave: (data: Omit<Member, 'id'>) => void;
+  onSave: (data: Omit<Member, 'id'>) => Promise<void> | void;
   onClose: () => void;
 }
 
 export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: member || {
+    defaultValues: member ? {
+        ...member,
+        isActive: member.isActive ?? true,
+    } : {
       firstName: '',
       middleName: '',
       lastName: '',
       email: '',
       phone: '',
       phoneType: 'personal',
-      dateOfBirth: '',
+      birthDate: '',
       address: '',
-      status: 'active',
+      isActive: true,
       educationInstitution: '',
       notes: '',
       personalId: '',
-      registrationDate: new Date().toISOString().split('T')[0], // Днешна дата по подразбиране
+      joinDate: new Date().toISOString().split('T')[0],
     },
   });
 
@@ -169,7 +172,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="dateOfBirth"
+            name="birthDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Дата на раждане</FormLabel>
@@ -182,19 +185,19 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
           />
            <FormField
             control={form.control}
-            name="status"
+            name="isActive"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Статус</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Избери статус" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="active">Активен</SelectItem>
-                    <SelectItem value="inactive">Неактивен</SelectItem>
+                    <SelectItem value="true">Активен</SelectItem>
+                    <SelectItem value="false">Неактивен</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
