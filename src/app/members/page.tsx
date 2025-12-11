@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 import { Member } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -32,23 +33,33 @@ const MembersPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
   const { toast } = useToast();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const membersData = await getMembers();
-        setMembers(membersData);
-      } catch (error) {
-        console.error("Firebase Error: ", error);
-        toast({ title: "Грешка при зареждане на членовете", description: "Моля, опитайте отново.", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // If the authentication state is determined and there's no user, redirect.
+    if (user === null) {
+      router.replace('/login');
+      return;
+    }
 
-    fetchMembers();
-  }, [toast]);
+    // Only fetch data if the user is authenticated.
+    if (user) {
+      const fetchMembers = async () => {
+        setIsLoading(true);
+        try {
+          const membersData = await getMembers();
+          setMembers(membersData);
+        } catch (error) {
+          console.error("Firebase Error: ", error);
+          toast({ title: "Грешка при зареждане на членовете", description: "Моля, опитайте отново.", variant: "destructive" });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchMembers();
+    }
+  }, [user, router, toast]);
 
   const handleSaveMember = async (data: Omit<Member, 'id'>) => {
     try {
@@ -58,6 +69,7 @@ const MembersPage = () => {
         toast({ title: "Успешно обновяване", description: "Данните на члена бяха актуализирани." });
       } else {
         const newId = await addMember(data);
+        // Note: The full member object might need to be re-fetched to be perfectly accurate
         const newMember = { ...data, id: newId, registrationDate: new Date().toISOString() };
         setMembers([...members, newMember]);
         toast({ title: "Членът е добавен", description: "Новият член беше успешно създаден." });
@@ -97,6 +109,16 @@ const MembersPage = () => {
     setIsFormOpen(true);
   }
 
+  // Show a loader while authentication is resolving or data is being fetched.
+  if (isLoading || !user) {
+    return (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="ml-2 text-muted-foreground">Зареждане на данни...</p>
+        </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -121,64 +143,57 @@ const MembersPage = () => {
         </Dialog>
       </div>
       
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-2 text-muted-foreground">Зареждане на данни...</p>
-        </div>
-      ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Име</TableHead>
-                <TableHead>Имейл</TableHead>
-                <TableHead>Телефон</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Дата на регистрация</TableHead>
-                <TableHead><span className="sr-only">Действия</span></TableHead>
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Име</TableHead>
+              <TableHead>Имейл</TableHead>
+              <TableHead>Телефон</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead>Дата на регистрация</TableHead>
+              <TableHead><span className="sr-only">Действия</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {members.length > 0 ? members.map((member) => (
+              <TableRow key={member.id}>
+                <TableCell className="font-medium">{`${member.firstName} ${member.lastName}`}</TableCell>
+                <TableCell>{member.email}</TableCell>
+                <TableCell>{member.phone}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                  </span>
+                </TableCell>
+                <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Отвори меню</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member.id)}>Изтрий</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.length > 0 ? members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{`${member.firstName} ${member.lastName}`}</TableCell>
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell>{member.phone}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {member.status === 'active' ? 'Активен' : 'Неактивен'}
-                    </span>
+            )) : (
+              <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                  Няма намерени членове. Започнете, като добавите нов член.
                   </TableCell>
-                  <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Отвори меню</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member.id)}>Изтрий</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                    Няма намерени членове. Започнете, като добавите нов член.
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
