@@ -105,7 +105,7 @@ const MembersPage = () => {
           <DialogTrigger asChild>
             <Button onClick={openFormForCreate}>Добави член</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedMember ? 'Редактиране на член' : 'Добавяне на нов член'}</DialogTitle>
               <DialogDescription>
