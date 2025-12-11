@@ -133,7 +133,7 @@ const ReceiptPage = () => {
                             <div>
                                 <h2 className="text-lg font-semibold border-b pb-1 mb-2">ПОЛУЧАТЕЛ:</h2>
                                 <p className="font-bold">{sale.customerName}</p>
-                                <p>{sale.customerType === 'member' ? 'Редовен член на клуба' : 'Външен клиент'}</p>
+                                <p>{sale.memberId ? 'Редовен член на клуба' : 'Външен клиент'}</p>
                             </div>
                         </div>
 

@@ -61,7 +61,7 @@ const SalesListPage = () => {
                                 <TableRow key={sale.id} onClick={() => handleRowClick(sale.id)} className="cursor-pointer">
                                     <TableCell>{new Date(sale.date).toLocaleString('bg-BG')}</TableCell>
                                     <TableCell>{sale.customerName}</TableCell>
-                                    <TableCell>{sale.customerType === 'member' ? 'Член' : 'Външен'}</TableCell>
+                                    <TableCell>{sale.memberId ? 'Член' : 'Външен'}</TableCell>
                                     <TableCell className="text-right">{sale.totalAmount.toFixed(2)} лв.</TableCell>
                                 </TableRow>
                             ))}
