@@ -1,9 +1,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/layout/sidebar';
-import { AuthProvider } from '@/context/auth-context'; // Import AuthProvider
+import { AuthProvider } from '@/context/auth-context';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
@@ -24,18 +22,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider> {/* Wrap everything with AuthProvider */}
-          <SidebarProvider>
-            <div className="flex min-h-screen">
-              <AppSidebar />
-              <SidebarInset>
-                <main className="flex-1 p-6">
-                  {children}
-                </main>
-              </SidebarInset>
-            </div>
-          </SidebarProvider>
-          <Toaster />
+        <AuthProvider>
+            {children}
+            <Toaster />
         </AuthProvider>
       </body>
     </html>

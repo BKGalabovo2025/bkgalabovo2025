@@ -1,0 +1,45 @@
+[debug] [2025-12-11T06:34:30.165Z] ----------------------------------------------------------------------
+[debug] [2025-12-11T06:34:30.168Z] Command:       /nix/store/ws50yvm6vzlzf7jzz6n7xh4szddrack1-nodejs-20.19.1/bin/node /nix/store/c776mhyhgykcld7p90ajrka149ifn61a-firebase-tools-14.26.0/lib/node_modules/firebase-tools/lib/bin/firebase.js init hosting
+[debug] [2025-12-11T06:34:30.168Z] CLI Version:   14.26.0
+[debug] [2025-12-11T06:34:30.168Z] Platform:      linux
+[debug] [2025-12-11T06:34:30.169Z] Node Version:  v20.19.1
+[debug] [2025-12-11T06:34:30.169Z] Time:          Thu Dec 11 2025 06:34:30 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-12-11T06:34:30.169Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-11T06:34:30.176Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:30.177Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:30.182Z] >>> [apiv2][query] GET https://monospace-pa.googleapis.com/v1/workspaces/studio-2342783372 [none]
+[debug] [2025-12-11T06:34:30.946Z] <<< [apiv2][status] GET https://monospace-pa.googleapis.com/v1/workspaces/studio-2342783372 200
+[debug] [2025-12-11T06:34:30.946Z] <<< [apiv2][body] GET https://monospace-pa.googleapis.com/v1/workspaces/studio-2342783372 {"workspaceId":"studio-2342783372","name":"BKGalabovo2025","workspaceRedirectUrl":"firebase-studio-1764924832659.cluster-bbaw5ubmyzaeiswfik7bsgqew2.cloudworkstations.dev","status":"WORKSPACE_STATUS_RUNNING","lastAccessDatetime":"2025-12-11T06:34:27.217845Z","failureReason":"an internal error has occurred","workspaceTemplate":"WORKSPACE_TEMPLATE_CAPRA_BUILDER","owner":"SELF","serviceAccountEmail":"msp-6183345830239534236@monospace-4.iam.gserviceaccount.com","ownerEmail":"bkgalabovo2014@gmail.com","workspaceImageUrl":"https://www.gstatic.com/monospace/250314/workspace-prototype-192.png","templateArgs":"{}","templateRepoUrl":"file:///usr/local/monospace/templates/private/_capra_next","workstationAccessToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2Nsb3VkLmdvb2dsZS5jb20vd29ya3N0YXRpb25zIiwiYXVkIjoiZmlyZWJhc2Utc3R1ZGlvLTE3NjQ5MjQ4MzI2NTkuY2x1c3Rlci1iYmF3NXVibXl6YWVpc3dmaWs3YnNncWV3Mi5jbG91ZHdvcmtzdGF0aW9ucy5kZXYiLCJpYXQiOjE3NjU0MzQ4NzAsImV4cCI6MTc2NTUyMTI3MH0.3seibPAai82D8D_6i6b2VVO-wKBtx_7NjjpYUQq4iDY1AZ_nJDiONRREUcnssTLf320__XlZl2CPrTfThEMY-uZmX2-zfr4gQfFAwi-kxedrn2pdPObmTDxsCs5i7DjbKoNctPMHZrgsxeZ8kJALgHq8M-RD-sgPlo6N-w-EEqX70w_wMq3-Fk96oTGxC-IW7gsJbR0zoYXwE_JBiccF8R2OTJ1_vBoFocd44JWokMZOcD7hycYMIKHuNHMGx-IeDRrj8nqKhGsDdGKNZUn-ymt1C315yX--0uk1P1aWp-YRaBLrXmllFOAwA6PgcUYzFo-EZNRrO9mB-BGsWZ0b2g","firebaseProjectId":"bkgalabovo2025"}
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /home/user/studio
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2025-12-11T06:34:30.959Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2025-12-11T06:34:30.960Z] > authorizing via signed-in user (bkgalabovo2014@gmail.com)
+[debug] [2025-12-11T06:34:30.960Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:30.961Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:30.961Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 [none]
+[debug] [2025-12-11T06:34:31.190Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 200
+[debug] [2025-12-11T06:34:31.190Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 {"projectId":"bkgalabovo2025","projectNumber":"580356814576","displayName":"BKGalabovo2025","name":"projects/bkgalabovo2025","resources":{"hostingSite":"bkgalabovo2025"},"state":"ACTIVE","etag":"1_f70775a0-d5fd-497c-ab12-3415843b985e"}
+[info] i  Using project bkgalabovo2025 (BKGalabovo2025) . 
+[info] 
+=== Hosting Setup
+[debug] [2025-12-11T06:34:31.211Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:31.211Z] Checked if tokens are valid: true, expires at: 1765438207567
+[debug] [2025-12-11T06:34:31.211Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 [none]
+[debug] [2025-12-11T06:34:31.399Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 200
+[debug] [2025-12-11T06:34:31.400Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/bkgalabovo2025 {"projectId":"bkgalabovo2025","projectNumber":"580356814576","displayName":"BKGalabovo2025","name":"projects/bkgalabovo2025","resources":{"hostingSite":"bkgalabovo2025"},"state":"ACTIVE","etag":"1_f70775a0-d5fd-497c-ab12-3415843b985e"}
