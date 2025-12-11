@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SaleFormValues {
-    customerId?: string;
+    memberId?: string;
     customerName: string;
     customerType: 'member' | 'external';
 }
@@ -111,16 +111,16 @@ export default function SalesPage() {
         }
 
         let customerName = data.customerName;
-        let customerId = undefined;
+        let memberId = undefined;
 
         if (data.customerType === 'member') {
-            const selectedMember = members.find(m => m.id === data.customerId);
+            const selectedMember = members.find(m => m.id === data.memberId);
             if (!selectedMember) {
                 toast({ title: 'Грешка', description: 'Моля, изберете валиден член на клуба.', variant: 'destructive' });
                 return;
             }
             customerName = `${selectedMember.firstName} ${selectedMember.lastName}`;
-            customerId = selectedMember.id;
+            memberId = selectedMember.id;
         }
 
         if (!customerName.trim()) {
@@ -131,8 +131,7 @@ export default function SalesPage() {
         setIsLoading(true);
         try {
             const newSaleId = await createSale({
-                customerType: data.customerType,
-                customerId,
+                memberId,
                 customerName,
                 items: cart,
                 totalAmount
@@ -219,18 +218,18 @@ export default function SalesPage() {
 
                             {customerType === 'member' ? (
                                 <div>
-                                    <label htmlFor="customerId" className="block mb-1">Избери член:</label>
+                                    <label htmlFor="memberId" className="block mb-1">Избери член:</label>
                                     <select 
-                                        id="customerId"
-                                        {...register('customerId', { required: 'Моля изберете член' })}
+                                        id="memberId"
+                                        {...register('memberId', { required: 'Моля изберете член' })}
                                         className="w-full p-2 border rounded-md"
                                     >
                                         <option value="">-- Изберете --</option>
-                                        {members.filter(member => member.status === 'active').map(member => (
+                                        {members.filter(member => member.isActive).map(member => (
                                             <option key={member.id} value={member.id}>{`${member.firstName} ${member.lastName}`}</option>
                                         ))}
                                     </select>
-                                    {errors.customerId && <p className="text-red-500 text-sm">{errors.customerId.message}</p>}
+                                    {errors.memberId && <p className="text-red-500 text-sm">{errors.memberId.message}</p>}
                                 </div>
                             ) : (
                                 <div>
