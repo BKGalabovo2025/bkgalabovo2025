@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useForm } from "react-hook-form";
@@ -8,18 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { bg } from 'date-fns/locale/bg';
+import { Loader2 } from 'lucide-react';
 import { Member, Payment } from "@/types";
 
 const paymentFormSchema = z.object({
   memberId: z.string({ required_error: "Моля, изберете член." }),
   amount: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
-  paymentDate: z.date({ required_error: "Моля, изберете дата." }),
+  paymentDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна дата." }),
   type: z.enum(['membership_fee', 'donation', 'other'], { required_error: "Моля, изберете тип." }),
   notes: z.string().optional(),
 });
@@ -37,16 +31,13 @@ export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
         type: 'membership_fee', 
-        notes: ''
+        notes: '',
+        paymentDate: new Date().toISOString().split('T')[0], // Днешна дата по подразбиране
     }
   });
 
   const onSubmit = (data: PaymentFormValues) => {
-    const paymentData = {
-        ...data,
-        paymentDate: data.paymentDate.toISOString(),
-    };
-    onSave(paymentData);
+    onSave(data);
   };
 
   return (
@@ -119,36 +110,11 @@ export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
           control={form.control}
           name="paymentDate"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Дата на плащане</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP", { locale: bg })
-                      ) : (
-                        <span>Изберете дата</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

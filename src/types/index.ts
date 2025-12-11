@@ -21,3 +21,13 @@ export interface Payment {
     type: 'membership_fee' | 'donation' | 'other'; // Тип на плащането
     notes?: string;
 }
+
+export type Subscription = {
+    id: string;
+    memberId: string;
+    type: 'annual' | 'monthly';
+    startDate: string;
+    endDate: string;
+    status: 'paid' | 'pending' | 'overdue';
+    amount: number;
+};
