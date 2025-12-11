@@ -17,6 +17,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -107,6 +108,9 @@ const MembersPage = () => {
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>{selectedMember ? 'Редактиране на член' : 'Добавяне на нов член'}</DialogTitle>
+              <DialogDescription>
+                Попълнете данните в полетата по-долу. Натиснете "Запази", когато сте готови.
+              </DialogDescription>
             </DialogHeader>
             <MemberForm 
               member={selectedMember} 

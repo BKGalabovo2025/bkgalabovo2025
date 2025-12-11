@@ -31,41 +31,17 @@ export function AppSidebar() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <Link href="/members" passHref>
-            <SidebarMenuButton isActive={pathname === '/members'}>
+            <SidebarMenuButton isActive={pathname.startsWith('/members')}>
               <Users className="w-4 h-4" />
               <span>Членове</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <Link href="/finances" passHref>
-            <SidebarMenuButton isActive={pathname === '/finances'}>
+          <Link href="/finance" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/finance')}>
               <DollarSign className="w-4 h-4" />
               <span>Финанси</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <Link href="/schedule" passHref>
-            <SidebarMenuButton isActive={pathname === '/schedule'}>
-              <Calendar className="w-4 h-4" />
-              <span>График</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <Link href="/inventory" passHref>
-            <SidebarMenuButton isActive={pathname === '/inventory'}>
-              <ShoppingCart className="w-4 h-4" />
-              <span>Инвентар</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <Link href="/reports" passHref>
-            <SidebarMenuButton isActive={pathname === '/reports'}>
-              <FileText className="w-4 h-4" />
-              <span>Справки</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
