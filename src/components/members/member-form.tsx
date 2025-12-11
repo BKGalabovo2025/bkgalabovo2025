@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-// Схема за валидация с Zod
+// Схема за валидация с Zod, съобразена с актуалния Member тип
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Името трябва да е поне 2 символа.' }),
   middleName: z.string().optional(),
@@ -31,18 +31,18 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Невалиден имейл адрес.' }).optional().or(z.literal('')),
   phone: z.string().optional(),
   phoneType: z.enum(['personal', 'parent']).optional(),
-  birthDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
+  dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
   address: z.string().optional(),
-  isActive: z.boolean(),
+  status: z.enum(['active', 'inactive']),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
   personalId: z.string().optional(),
-  joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
+  registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
 });
 
 interface MemberFormProps {
   member?: Member;
-  onSave: (data: Omit<Member, 'id'>) => Promise<void> | void;
+  onSave: (data: Omit<Member, 'id'>) => Promise<void> | void; // Позволява и async функции
   onClose: () => void;
 }
 
@@ -51,7 +51,8 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: member ? {
         ...member,
-        isActive: member.isActive ?? true,
+        dateOfBirth: member.dateOfBirth.split('T')[0], // Форматиране на датите
+        registrationDate: member.registrationDate.split('T')[0],
     } : {
       firstName: '',
       middleName: '',
@@ -59,18 +60,19 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
       email: '',
       phone: '',
       phoneType: 'personal',
-      birthDate: '',
+      dateOfBirth: '',
       address: '',
-      isActive: true,
+      status: 'active',
       educationInstitution: '',
       notes: '',
       personalId: '',
-      joinDate: new Date().toISOString().split('T')[0],
+      registrationDate: new Date().toISOString().split('T')[0],
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave(values);
+    // Zod вече гарантира, че values е съвместим с Omit<Member, 'id'>
+    onSave(values as Omit<Member, 'id'>);
   };
 
   return (
@@ -172,7 +174,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="birthDate"
+            name="dateOfBirth"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Дата на раждане</FormLabel>
@@ -185,19 +187,19 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
           />
            <FormField
             control={form.control}
-            name="isActive"
+            name="status"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Статус</FormLabel>
-                <Select onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)}>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Избери статус" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="true">Активен</SelectItem>
-                    <SelectItem value="false">Неактивен</SelectItem>
+                    <SelectItem value="active">Активен</SelectItem>
+                    <SelectItem value="inactive">Неактивен</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

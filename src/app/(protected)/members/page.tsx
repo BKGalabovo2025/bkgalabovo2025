@@ -62,8 +62,8 @@ const MembersPage = () => {
   const handleSaveMember = async (data: Omit<Member, 'id'>) => {
     try {
       if (selectedMember) {
-        await updateMember(selectedMember.id, data);
-        setMembers(members.map(m => m.id === selectedMember.id ? { ...m, ...data } : m));
+        await updateMember(selectedMember.id, data as Omit<Member, 'id'>);
+        setMembers(members.map(m => m.id === selectedMember.id ? { ...m, ...data, id: selectedMember.id } : m));
         toast({ title: "Успешно обновяване", description: "Данните на члена бяха актуализирани." });
       } else {
         const newId = await addMember(data);
