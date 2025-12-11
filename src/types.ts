@@ -5,13 +5,13 @@
  * Represents a club member.
  */
 export interface Member {
-  id: string;          
-  firstName: string;   
-  lastName: string;    
-  email?: string;      
-  phone?: string;      
-  joinDate: string;    
-  isActive: boolean;   
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  joinDate: string;
+  isActive: boolean;
 }
 
 /**
@@ -26,34 +26,46 @@ export interface Payment {
 }
 
 /**
+* Represents a recurring subscription.
+*/
+export interface Subscription {
+  id: string;
+  memberId: string;
+  type: 'monthly_fee' | 'yearly_fee' | 'other';
+  amount: number;
+  startDate: string; // ISO string
+  status: 'active' | 'inactive' | 'cancelled';
+}
+
+/**
  * Represents a product in the inventory.
  */
 export interface Product {
-    id: string;        
-    name: string;      
-    price: number;     
-    stock: number;     
-    imageUrl?: string; 
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    imageUrl?: string;
 }
 
 /**
  * Represents an individual item within a sale.
  */
 export interface SaleItem {
-  productId: string; 
-  name: string;      
-  price: number;     
-  quantity: number;  
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
 }
 
 /**
  * Represents a completed sale transaction.
  */
 export interface Sale {
-  id: string;                  
-  date: string;                
-  items: SaleItem[];           
-  totalAmount: number;         
-  memberId?: string;         
-  customerName: string;      
+  id: string;
+  date: string;
+  items: SaleItem[];
+  totalAmount: number;
+  memberId?: string;
+  customerName: string;
 }
