@@ -2,15 +2,18 @@
 export interface Member {
     id: string;
     firstName: string;
+    middleName?: string;
     lastName: string;
-    email: string;
-    phone: string;
+    email?: string;
+    phone?: string;
+    phoneType?: 'personal' | 'parent';
     registrationDate: string;
     status: 'active' | 'inactive';
-    address: string;
+    address?: string;
     dateOfBirth: string;
     personalId?: string;
     notes?: string;
+    educationInstitution?: string;
 }
 
 export interface Payment {
