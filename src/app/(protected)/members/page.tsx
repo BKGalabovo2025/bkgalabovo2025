@@ -158,11 +158,11 @@ const MembersPage = () => {
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.phone}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {member.isActive ? 'Активен' : 'Неактивен'}
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
                   </span>
                 </TableCell>
-                <TableCell>{new Date(member.joinDate).toLocaleDateString('bg-BG')}</TableCell>
+                <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
