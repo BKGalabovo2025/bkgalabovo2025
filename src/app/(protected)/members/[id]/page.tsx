@@ -33,13 +33,20 @@ const MemberDetailsPage = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const memberData: Member = {
-              id: docSnap.id,
-              firstName: data.firstName || '',
-              lastName: data.lastName || '',
-              email: data.email,
-              phone: data.phone,
-              joinDate: data.registrationDate ? new Date(data.registrationDate).toISOString() : new Date().toISOString(),
-              isActive: data.status === 'active',
+            id: docSnap.id,
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            middleName: data.middleName || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            phoneType: data.phoneType || 'personal',
+            registrationDate: data.registrationDate || new Date().toISOString(),
+            dateOfBirth: data.dateOfBirth || '',
+            address: data.address || '',
+            status: data.status || 'inactive',
+            educationInstitution: data.educationInstitution || '',
+            notes: data.notes || '',
+            personalId: data.personalId || '',
           };
           setMember(memberData);
         } else {
@@ -90,8 +97,8 @@ const MemberDetailsPage = () => {
                     <AvatarFallback className="text-3xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-3xl">{fullName}</CardTitle>
-                 <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${member.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {member.isActive ? 'Активен' : 'Неактивен'}
+                 <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
                   </span>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -105,7 +112,16 @@ const MemberDetailsPage = () => {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <CalendarIcon className="mr-3 h-5 w-5" />
-                    <span>Регистриран на: {new Date(member.joinDate).toLocaleDateString('bg-BG')}</span>
+                    <span>Регистриран на: {new Date(member.registrationDate).toLocaleDateString('bg-BG')}</span>
+                </div>
+                 <div className="flex items-center text-muted-foreground">
+                    <Cake className="mr-3 h-5 w-5" />
+                    <span>Дата на раждане: {member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString('bg-BG') : 'Няма'}
+                    </span>
+                </div>
+                <div className="flex items-center text-muted-foreground">
+                    <Home className="mr-3 h-5 w-5" />
+                    <span>{member.address || 'Няма адрес'}</span>
                 </div>
             </CardContent>
         </Card>
