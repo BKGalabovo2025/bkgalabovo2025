@@ -225,7 +225,7 @@ export default function SalesPage() {
                                         className="w-full p-2 border rounded-md"
                                     >
                                         <option value="">-- Изберете --</option>
-                                        {members.filter(member => member.isActive).map(member => (
+                                        {members.filter(member => member.status === 'active').map(member => (
                                             <option key={member.id} value={member.id}>{`${member.firstName} ${member.lastName}`}</option>
                                         ))}
                                     </select>
