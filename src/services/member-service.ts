@@ -15,7 +15,8 @@ type UpdateMemberData = Partial<CreateMemberData>;
  * Извлича всички членове от Firestore.
  */
 export const getMembers = async (): Promise<Member[]> => {
-  const querySnapshot = await getDocs(collection(db, MEMBERS_COLLECTION));
+  const membersCollection = collection(db, MEMBERS_COLLECTION);
+  const querySnapshot = await getDocs(membersCollection);
   const members: Member[] = [];
   querySnapshot.forEach((doc) => {
     members.push({ id: doc.id, ...doc.data() } as Member);
@@ -29,7 +30,8 @@ export const getMembers = async (): Promise<Member[]> => {
  * @returns ID на новосъздадения документ.
  */
 export const addMember = async (memberData: CreateMemberData): Promise<string> => {
-  const docRef = await addDoc(collection(db, MEMBERS_COLLECTION), memberData);
+  const membersCollection = collection(db, MEMBERS_COLLECTION);
+  const docRef = await addDoc(membersCollection, memberData);
   return docRef.id;
 };
 
