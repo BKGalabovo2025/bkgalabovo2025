@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, ArrowLeft, Mail, Phone, Home, Cake, Info, User, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { SalesHistory } from '@/components/sales/sales-history'; // Импортираме новия компонент
+import { SalesHistory } from '@/components/sales/sales-history';
 
 const MemberDetailsPage = () => {
   const params = useParams();
@@ -31,11 +31,11 @@ const MemberDetailsPage = () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          // ВАЖНО: Тук допускаме, че тези полета съществуват, за да избегнем грешки
           const data = docSnap.data();
           const memberData: Member = {
               id: docSnap.id,
-              name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Няма име',
+              firstName: data.firstName || '',
+              lastName: data.lastName || '',
               email: data.email,
               phone: data.phone,
               joinDate: data.registrationDate ? new Date(data.registrationDate).toISOString() : new Date().toISOString(),
@@ -57,8 +57,10 @@ const MemberDetailsPage = () => {
     fetchMember();
   }, [id, router, toast]);
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (firstName: string, lastName: string) => {
+    const firstInitial = firstName ? firstName[0] : '';
+    const lastInitial = lastName ? lastName[0] : '';
+    return `${firstInitial}${lastInitial}`.toUpperCase();
   }
 
   if (isLoading) {
@@ -70,8 +72,10 @@ const MemberDetailsPage = () => {
   }
 
   if (!member) {
-    return null; // Ще бъде пренасочен от useEffect
+    return null; 
   }
+  
+  const fullName = `${member.firstName} ${member.lastName}`.trim();
 
   return (
     <div className="p-4 sm:p-6">
@@ -82,10 +86,10 @@ const MemberDetailsPage = () => {
         <Card>
             <CardHeader className="flex flex-col items-center text-center">
                 <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`} alt="Avatar" />
-                    <AvatarFallback className="text-3xl">{getInitials(member.name)}</AvatarFallback>
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`} alt="Avatar" />
+                    <AvatarFallback className="text-3xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-3xl">{member.name}</CardTitle>
+                <CardTitle className="text-3xl">{fullName}</CardTitle>
                  <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${member.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {member.isActive ? 'Активен' : 'Неактивен'}
                   </span>
@@ -106,7 +110,6 @@ const MemberDetailsPage = () => {
             </CardContent>
         </Card>
 
-        {/* Добавяме историята на покупките тук */}
         <SalesHistory memberId={id} />
 
     </div>

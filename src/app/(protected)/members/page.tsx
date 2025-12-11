@@ -37,13 +37,11 @@ const MembersPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // If the authentication state is determined and there's no user, redirect.
     if (user === null) {
       router.replace('/login');
       return;
     }
 
-    // Only fetch data if the user is authenticated.
     if (user) {
       const fetchMembers = async () => {
         setIsLoading(true);
@@ -69,8 +67,7 @@ const MembersPage = () => {
         toast({ title: "Успешно обновяване", description: "Данните на члена бяха актуализирани." });
       } else {
         const newId = await addMember(data);
-        // Note: The full member object might need to be re-fetched to be perfectly accurate
-        const newMember = { ...data, id: newId, registrationDate: new Date().toISOString() };
+        const newMember: Member = { ...data, id: newId };
         setMembers([...members, newMember]);
         toast({ title: "Членът е добавен", description: "Новият член беше успешно създаден." });
       }
@@ -109,7 +106,6 @@ const MembersPage = () => {
     setIsFormOpen(true);
   }
 
-  // Show a loader while authentication is resolving or data is being fetched.
   if (isLoading || !user) {
     return (
         <div className="flex items-center justify-center py-12">
@@ -162,11 +158,11 @@ const MembersPage = () => {
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.phone}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {member.isActive ? 'Активен' : 'Неактивен'}
                   </span>
                 </TableCell>
-                <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
+                <TableCell>{new Date(member.joinDate).toLocaleDateString('bg-BG')}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
