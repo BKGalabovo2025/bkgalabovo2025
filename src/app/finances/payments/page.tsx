@@ -27,7 +27,7 @@ import { getMembers } from '@/services/member-service';
 import { PaymentForm } from '@/components/finance/payment-form';
 
 
-const FinancePage = () => {
+const PaymentsPage = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,8 +96,7 @@ const FinancePage = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Управление на финанси</h1>
+      <div className="flex justify-end mb-4">
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -173,4 +172,4 @@ const FinancePage = () => {
   );
 };
 
-export default FinancePage;
+export default PaymentsPage;

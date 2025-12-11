@@ -38,8 +38,8 @@ export function AppSidebar() {
           </Link>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <Link href="/finance" passHref>
-            <SidebarMenuButton isActive={pathname.startsWith('/finance')}>
+          <Link href="/finances" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/finances')}>
               <DollarSign className="w-4 h-4" />
               <span>Финанси</span>
             </SidebarMenuButton>
