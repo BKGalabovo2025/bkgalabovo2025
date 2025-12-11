@@ -2,6 +2,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context'; // Import useAuth
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, DollarSign, ListChecks, UserPlus, Loader2 } from "lucide-react";
@@ -20,9 +22,22 @@ const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats>(initialStats);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth(); // Get user from auth context
+  const router = useRouter();
 
   useEffect(() => {
+    // If auth is still loading, do nothing yet.
+    if (user === undefined) return;
+
+    // If user is not logged in, redirect to login page.
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+
+    // If user is logged in, fetch stats.
     const fetchStats = async () => {
+      setIsLoading(true);
       try {
         const data = await getDashboardStats();
         setStats(data);
@@ -33,10 +48,12 @@ const DashboardPage = () => {
         setIsLoading(false);
       }
     };
-    fetchStats();
-  }, [toast]);
 
-  if (isLoading) {
+    fetchStats();
+  }, [user, router, toast]); // Dependency array includes user
+
+  // This loading state is for the data fetching, not auth
+  if (isLoading || user === undefined) {
     return (
         <div className="flex items-center justify-center h-full">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
