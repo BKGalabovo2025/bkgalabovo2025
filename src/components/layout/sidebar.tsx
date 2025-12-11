@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Users, DollarSign, LogOut } from 'lucide-react';
+import { Home, Users, DollarSign, LogOut, ShoppingCart, Receipt } from 'lucide-react'; // Добавяме икони
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -31,7 +31,7 @@ export function AppSidebar() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <Link href="/members" passHref>
-            <SidebarMenuButton isActive={pathname.startsWith('/members')}>
+            <SidebarMenuButton isActive={pathname.startsWith('/members')}> 
               <Users className="w-4 h-4" />
               <span>Членове</span>
             </SidebarMenuButton>
@@ -42,6 +42,23 @@ export function AppSidebar() {
             <SidebarMenuButton isActive={pathname.startsWith('/finances')}>
               <DollarSign className="w-4 h-4" />
               <span>Финанси</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Link href="/inventory" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/inventory')}>
+              <ShoppingCart className="w-4 h-4" />
+              <span>Инвентар</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        {/* Нов линк за Продажби */}
+        <SidebarMenuItem>
+          <Link href="/sales" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/sales')}>
+              <Receipt className="w-4 h-4" />
+              <span>Продажби</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
