@@ -34,15 +34,16 @@ export interface Payment {
 }
 
 /**
-* Represents a recurring subscription.
+* Represents a recurring subscription or a single financial obligation.
 */
 export interface Subscription {
   id: string;
   memberId: string;
-  type: 'monthly_fee' | 'yearly_fee' | 'other';
+  type: 'monthly' | 'quarterly' | 'yearly' | 'single_visit';
   amount: number;
-  startDate: string; // ISO string
-  status: 'active' | 'inactive' | 'cancelled';
+  startDate: string; // ISO string for the period start
+  endDate: string;   // ISO string for the period end
+  status: 'paid' | 'pending' | 'overdue';
 }
 
 /**

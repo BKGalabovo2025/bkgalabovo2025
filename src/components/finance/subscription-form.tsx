@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 
 const subscriptionSchema = z.object({
   memberId: z.string().min(1, 'Моля, изберете член'),
-  type: z.enum(['annual', 'monthly'], { required_error: 'Моля, изберете тип на абонамента' }),
+  type: z.enum(['yearly', 'monthly', 'quarterly', 'single_visit'], { required_error: 'Моля, изберете тип на абонамента' }),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
   amount: z.coerce.number().min(0.01, 'Сумата трябва да е положително число'),
@@ -92,8 +92,10 @@ export const SubscriptionForm = ({ members, onSave, onClose }: SubscriptionFormP
                       </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                      <SelectItem value="annual">Годишен</SelectItem>
+                      <SelectItem value="yearly">Годишен</SelectItem>
                       <SelectItem value="monthly">Месечен</SelectItem>
+                      <SelectItem value="quarterly">Тримесечен</SelectItem>
+                      <SelectItem value="single_visit">Еднократно посещение</SelectItem>
                   </SelectContent>
               </Select>
               <FormMessage />

@@ -23,13 +23,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-
-// Схема за валидация
+// Схема за валидация - вече е в синхрон с глобалния Subscription тип
 const formSchema = z.object({
-  memberId: z.string({ required_error: "Моля, изберете член." }),
-  type: z.enum(['monthly', 'quarterly', 'yearly', 'single_visit'], { required_error: "Моля, изберете тип на абонамента." }),
-  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна начална дата.' }),
-  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна крайна дата.' }),
+  memberId: z.string().min(1, "Моля, изберете член."),
+  type: z.enum(['monthly', 'quarterly', 'yearly', 'single_visit'], { required_error: "Моля, изберете тип." }),
+  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Невалидна начална дата.' }),
+  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Невалидна крайна дата.' }),
   amount: z.preprocess(
     (a) => parseFloat(z.string().parse(a)),
     z.number().positive({ message: 'Сумата трябва да е положително число.' })
@@ -37,27 +36,51 @@ const formSchema = z.object({
   status: z.enum(['paid', 'pending', 'overdue'], { required_error: "Моля, изберете статус." }),
 });
 
+// Дефинираме типа на данните за формата, за да е по-ясно
+type SubscriptionFormData = z.infer<typeof formSchema>;
+
 interface SubscriptionFormProps {
   subscription?: Subscription;
-  members: Member[]; // Списък с всички членове
+  members: Member[];
   onSave: (data: Omit<Subscription, 'id'>) => void;
   onClose: () => void;
 }
 
+// Помощна функция за форматиране на дата към YYYY-MM-DD
+const formatDateForInput = (dateStr: string | Date) => {
+    if (!dateStr) return '';
+    try {
+        return new Date(dateStr).toISOString().split('T')[0];
+    } catch (e) {
+        return '';
+    }
+}
+
 export const SubscriptionForm = ({ subscription, members, onSave, onClose }: SubscriptionFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: subscription || {
+    
+  const defaultValues: Partial<SubscriptionFormData> = subscription 
+    ? {
+        ...subscription,
+        startDate: formatDateForInput(subscription.startDate),
+        endDate: formatDateForInput(subscription.endDate)
+      } 
+    : {
         memberId: '',
         type: 'monthly',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: formatDateForInput(new Date()),
         endDate: '',
         amount: 50,
         status: 'pending',
-    },
+    };
+
+  const form = useForm<SubscriptionFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  // Типът 'values' вече е ясен - SubscriptionFormData
+  // Той е съвместим с Omit<Subscription, 'id'>, защото схемата и типът са синхронизирани
+  const onSubmit = (values: SubscriptionFormData) => {
     onSave(values);
   };
 
@@ -79,7 +102,7 @@ export const SubscriptionForm = ({ subscription, members, onSave, onClose }: Sub
                 <SelectContent>
                   {members.map(member => (
                     <SelectItem key={member.id} value={member.id}>
-                      {`${member.firstName} ${member.lastName}`}
+                      {member.firstName} {member.lastName}
                     </SelectItem>
                   ))}
                 </SelectContent>

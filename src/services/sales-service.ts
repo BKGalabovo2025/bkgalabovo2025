@@ -49,10 +49,10 @@ export const createSale = async (saleData: Omit<Sale, 'id' | 'date'>): Promise<s
     }
 
     // 2. Създаване на записа за продажба
-    // Гарантираме, че customerId е null, а не undefined
+    // Гарантираме, че memberId е null, а не undefined
     transaction.set(saleRef, {
       ...saleData,
-      customerId: saleData.customerId || null,
+      memberId: saleData.memberId || null,
       date: Timestamp.now(),
     });
 
@@ -68,7 +68,7 @@ export const createSale = async (saleData: Omit<Sale, 'id' | 'date'>): Promise<s
         description: `Продажба #${saleRef.id.substring(0, 6)} на ${saleData.customerName}`,
         amount: saleData.totalAmount,
         type: 'income',
-        memberId: saleData.customerId || null,
+        memberId: saleData.memberId || null,
     });
   });
 
@@ -109,7 +109,7 @@ export const getSales = async (): Promise<Sale[]> => {
  */
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     const salesCollection = collection(db, 'sales');
-    const q = query(salesCollection, where('customerId', '==', memberId), orderBy('date', 'desc'));
+    const q = query(salesCollection, where('memberId', '==', memberId), orderBy('date', 'desc'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docToSale);
 };
