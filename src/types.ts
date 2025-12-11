@@ -2,59 +2,58 @@
 // src/types.ts
 
 /**
- * Представлява член на клуба.
+ * Represents a club member.
  */
 export interface Member {
-  id: string;          // Уникален идентификатор
-  name: string;        // Име на члена
-  email?: string;      // Имейл (опционално)
-  phone?: string;      // Телефон (опционално)
-  joinDate: string;    // Дата на присъединяване (ISO string)
-  isActive: boolean;   // Дали членството е активно
+  id: string;          
+  firstName: string;   
+  lastName: string;    
+  email?: string;      
+  phone?: string;      
+  joinDate: string;    
+  isActive: boolean;   
 }
 
 /**
- * Представлява финансов запис.
+ * Represents a single payment record, typically for membership fees or other one-off payments.
  */
-export interface FinanceRecord {
-  id: string;              // Уникален идентификатор
-  date: string;            // Дата на транзакцията (ISO string)
-  description: string;     // Описание
-  amount: number;          // Сума (положителна за приход, отрицателна за разход)
-  type: 'income' | 'expense'; // Тип на транзакцията
-  memberId?: string;       // ID на свързан член (опционално)
+export interface Payment {
+  id: string;
+  memberId: string;
+  amount: number;
+  paymentDate: string; // ISO string
+  type: 'membership_fee' | 'donation' | 'other';
 }
 
 /**
- * Представлява продукт от инвентара.
+ * Represents a product in the inventory.
  */
 export interface Product {
-    id: string;              // Уникален идентификатор
-    name: string;            // Име на продукта
-    price: number;           // Цена
-    stock: number;           // Наличност
-    imageUrl?: string;       // URL на снимката (опционално)
+    id: string;        
+    name: string;      
+    price: number;     
+    stock: number;     
+    imageUrl?: string; 
 }
 
 /**
- * Представлява отделен артикул в рамките на една продажба.
+ * Represents an individual item within a sale.
  */
 export interface SaleItem {
-  productId: string;   // ID на продукта
-  name: string;        // Име на продукта (денормализирано за лесно показване)
-  price: number;       // Цена на продукта към момента на продажбата
-  quantity: number;    // Продадено количество
+  productId: string; 
+  name: string;      
+  price: number;     
+  quantity: number;  
 }
 
 /**
- * Представлява продажба.
+ * Represents a completed sale transaction.
  */
 export interface Sale {
-  id: string;                    // Уникален идентификатор на продажбата
-  date: string;                  // Дата на продажбата (ISO string)
-  items: SaleItem[];             // Масив с продадените артикули
-  totalAmount: number;           // Обща сума на продажбата
-  customerType: 'member' | 'external'; // Тип на клиента
-  customerId?: string;           // ID на члена (ако е член на клуба)
-  customerName: string;          // Име на клиента (име на члена или въведено име)
+  id: string;                  
+  date: string;                
+  items: SaleItem[];           
+  totalAmount: number;         
+  memberId?: string;         
+  customerName: string;      
 }
