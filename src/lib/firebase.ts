@@ -1,15 +1,14 @@
-
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// TODO: Заменете тези стойности с реалните от вашия Firebase проект!
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCtSQyDPUolZDDgtpwvUH02UZU2wynq1cQ",
+  authDomain: "bkgalabovo2025.firebaseapp.com",
+  projectId: "bkgalabovo2025",
+  storageBucket: "bkgalabovo2025.appspot.com",
+  messagingSenderId: "580356814576",
+  appId: "1:580356814576:web:7bf7d6847f6a8d9431b435",
+  measurementId: "G-ZZ52PG2NMX"
 };
 
 // Инициализация на Firebase
