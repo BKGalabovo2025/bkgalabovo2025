@@ -53,7 +53,7 @@ const MemberDetailsPage = () => {
             personalId: data.personalId || '',
           };
           setMember(memberData);
-          setCurrentNotes(memberData.notes);
+          setCurrentNotes(memberData.notes || '');
         } else {
           toast({ title: "Грешка", description: "Член с такова ID не е намерен.", variant: "destructive" });
           router.push('/members');

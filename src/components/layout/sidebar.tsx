@@ -17,7 +17,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="w-full text-center py-4">
-          <h1 className="text-xl font-bold">Badminton Club</h1>
+          <h1 className="text-xl font-bold">Badminton Club Galabovo</h1>
         </div>
       </SidebarHeader>
       <SidebarMenu>
