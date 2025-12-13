@@ -119,7 +119,7 @@ const DashboardPage = () => {
                                 <div>
                                   <p className="font-semibold">{sale.customerName}</p>
                                   <p className="text-sm text-muted-foreground">
-                                      {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.totalAmount.toFixed(2)} лв.</span>
+                                      {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
                                   </p>
                                 </div>
                                 <Link href={`/sales/${sale.id}`} passHref>
