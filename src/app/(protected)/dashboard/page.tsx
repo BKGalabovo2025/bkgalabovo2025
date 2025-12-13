@@ -144,15 +144,12 @@ const DashboardPage = () => {
             <CardContent>
                   {stats.recentMembers.length > 0 ? (
                     <div className="space-y-4">
-                        {stats.recentMembers.map((member: Member) => (
+                        {stats.recentMembers.map((member) => (
                             <div key={member.id} className="flex items-center justify-between">
                                 <div className="space-y-1">
                                     <Link href={`/members/${member.id}`} className="text-sm font-medium leading-none text-primary hover:underline">
                                         {`${member.firstName} ${member.lastName}`}
                                     </Link>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {member.createdAt ? new Date(member.createdAt).toLocaleDateString('bg-BG') : ''}
                                 </div>
                             </div>
                         ))}
