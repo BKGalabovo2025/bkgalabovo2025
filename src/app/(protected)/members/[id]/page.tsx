@@ -85,9 +85,10 @@ const MemberDetailsPage = () => {
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
+  const getInitials = (firstName: string, middleName: string, lastName: string) => {
     const firstInitial = firstName ? firstName[0] : '';
     const lastInitial = lastName ? lastName[0] : '';
+    // Middle name initial can be added if needed
     return `${firstInitial}${lastInitial}`.toUpperCase();
   }
 
@@ -103,7 +104,7 @@ const MemberDetailsPage = () => {
     return null; 
   }
   
-  const fullName = `${member.firstName} ${member.lastName}`.trim();
+  const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
   const ageGroup = getAgeGroup(member.dateOfBirth);
 
   return (
@@ -116,7 +117,7 @@ const MemberDetailsPage = () => {
             <CardHeader className="flex flex-col items-center text-center">
                 <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
                     <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`} alt="Avatar" />
-                    <AvatarFallback className="text-3xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+                    <AvatarFallback className="text-3xl">{getInitials(member.firstName, member.middleName, member.lastName)}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-3xl">{fullName}</CardTitle>
                 <div className="flex items-center gap-4 mt-2">
@@ -137,7 +138,14 @@ const MemberDetailsPage = () => {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <Phone className="mr-3 h-5 w-5" />
-                    <span>{member.phone || 'Няма телефон'}</span>
+                    {member.phone ? (
+                      <span>
+                        {member.phone}
+                        <span className="text-muted-foreground ml-1">({member.phoneType === 'parent' ? 'родител' : 'личен'})</span>
+                      </span>
+                    ) : (
+                      <span>Няма телефон</span>
+                    )}
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <CalendarIcon className="mr-3 h-5 w-5" />

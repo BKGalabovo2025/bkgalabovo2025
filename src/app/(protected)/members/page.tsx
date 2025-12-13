@@ -154,36 +154,48 @@ const MembersPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {members.length > 0 ? members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="font-medium">{`${member.firstName} ${member.lastName}`}</TableCell>
-                <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.phone}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
+            {members.length > 0 ? members.map((member) => {
+              const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
+              const phoneInfo = member.phone ? (
+                <span>
+                  {member.phone}
+                  <span className="text-muted-foreground ml-1">
+                    ({member.phoneType === 'parent' ? 'родител' : 'личен'})
                   </span>
-                </TableCell>
-                <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Отвори меню</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member.id)}>Изтрий</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            )) : (
+                </span>
+              ) : null;
+
+              return (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{fullName}</TableCell>
+                  <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{phoneInfo}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                    </span>
+                  </TableCell>
+                  <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Отвори меню</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member.id)}>Изтрий</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            }) : (
               <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center">
                   Няма намерени членове. Започнете, като добавите нов член.
