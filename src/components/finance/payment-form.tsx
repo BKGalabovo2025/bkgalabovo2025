@@ -22,23 +22,28 @@ type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 interface PaymentFormProps {
   members: Member[];
-  onSave: (data: Omit<Payment, 'id'>) => void;
+  payment?: Payment;
+  onSave: (data: Omit<Payment, 'id'>) => Promise<void> | void;
   onClose: () => void;
 }
 
-export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
+export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormProps) {
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
-    defaultValues: {
-        type: 'membership_fee', 
+    defaultValues: payment 
+      ? { ...payment, paymentDate: payment.paymentDate.split('T')[0] }
+      : {
+        type: 'membership_fee',
         notes: '',
-        paymentDate: new Date().toISOString().split('T')[0], // Днешна дата по подразбиране
-    }
+        paymentDate: new Date().toISOString().split('T')[0],
+      }
   });
 
   const onSubmit = (data: PaymentFormValues) => {
     onSave(data);
   };
+
+  const isEditing = !!payment;
 
   return (
     <Form {...form}>
@@ -49,7 +54,7 @@ export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Член</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Изберете член..." />
@@ -127,7 +132,7 @@ export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
             <FormItem>
               <FormLabel>Бележки (опционално)</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="Допълнителна информация..."/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,7 +145,7 @@ export function PaymentForm({ members, onSave, onClose }: PaymentFormProps) {
           </Button>
           <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
-            Запази плащане
+            {isEditing ? 'Запази промените' : 'Запази плащане'}
           </Button>
         </div>
       </form>

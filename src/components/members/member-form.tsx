@@ -36,13 +36,13 @@ const formSchema = z.object({
   status: z.enum(['active', 'inactive']),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
-  personalId: z.string().optional(),
+  personalId: z.string().optional(), // Остава в схемата, но не и във формата
   registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
 });
 
 interface MemberFormProps {
   member?: Member;
-  onSave: (data: Omit<Member, 'id'>) => Promise<void> | void; // Позволява и async функции
+  onSave: (data: Omit<Member, 'id'>) => Promise<void> | void;
   onClose: () => void;
 }
 
@@ -51,7 +51,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: member ? {
         ...member,
-        dateOfBirth: member.dateOfBirth.split('T')[0], // Форматиране на датите
+        dateOfBirth: member.dateOfBirth.split('T')[0],
         registrationDate: member.registrationDate.split('T')[0],
     } : {
       firstName: '',
@@ -71,13 +71,11 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Zod вече гарантира, че values е съвместим с Omit<Member, 'id'>
     onSave(values as Omit<Member, 'id'>);
   };
 
   return (
     <Form {...form}>
-        <p>Попълнете данните в полетата по-долу. Натиснете "Запази", когато сте готови.</p>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
@@ -171,13 +169,26 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
                 )}
             />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="dateOfBirth"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Дата на раждане</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="registrationDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Дата на регистрация</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -212,7 +223,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
             name="educationInstitution"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Образователна институция (Училище или детска градина)</FormLabel>
+                <FormLabel>Образователна институция</FormLabel>
                 <FormControl>
                   <Input placeholder="СУ Св. Климент Охридски" {...field} />
                 </FormControl>

@@ -1,6 +1,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
+import './print.css'; // Import the new print styles
 import { AuthProvider } from '@/context/auth-context';
 import { Toaster } from "@/components/ui/toaster";
 

@@ -1,256 +1,237 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useToast } from '@/components/ui/use-toast';
 
 import { getProducts } from '@/services/inventory-service';
 import { getMembers } from '@/services/member-service';
-import { createSale } from '@/services/sales-service';
-import { Product, Member, SaleItem } from '@/types';
+import { addSale } from '@/services/sales-service';
+import { Product, Member, SaleItem, Sale } from '@/types';
 
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Loader2, ArrowLeft, PlusCircle, XCircle, ShoppingCart, UserPlus } from 'lucide-react';
 
-interface SaleFormValues {
-    memberId?: string;
-    customerName: string;
-    customerType: 'member' | 'external';
-}
-
-export default function SalesPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [members, setMembers] = useState<Member[]>([]);
-    const [cart, setCart] = useState<SaleItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
+const NewSalePage = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<SaleFormValues>({
-        defaultValues: { customerType: 'external', customerName: '' }
-    });
 
-    const customerType = watch('customerType');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [members, setMembers] = useState<Member[]>([]);
+    
+    const [cart, setCart] = useState<SaleItem[]>([]);
+    const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+    const [paymentStatus, setPaymentStatus] = useState<Sale['status']>('completed');
+    const [total, setTotal] = useState(0);
+    
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        async function loadInitialData() {
+        const fetchData = async () => {
             try {
-                setIsLoading(true);
                 const [productsData, membersData] = await Promise.all([
                     getProducts(),
                     getMembers()
                 ]);
-                setProducts(productsData.filter(p => p.stock > 0)); // Показваме само продукти с наличност
+                setProducts(productsData);
                 setMembers(membersData);
-            } catch (err) {
-                setError('Възникна грешка при зареждането на данните.');
-                console.error(err);
+            } catch (error) {
+                console.error("Грешка при зареждане на данни:", error);
+                toast({ title: "Грешка", description: "Неуспешно зареждане на продукти или членове.", variant: "destructive" });
             } finally {
                 setIsLoading(false);
             }
-        }
-        loadInitialData();
-    }, []);
+        };
+        fetchData();
+    }, [toast]);
 
-    const addToCart = (product: Product) => {
+    useEffect(() => {
+        const newTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setTotal(newTotal);
+    }, [cart]);
+
+    const addToCart = (productId: string) => {
+        const productToAdd = products.find(p => p.id === productId);
+        if (!productToAdd) return;
+
         setCart(prevCart => {
-            const existingItem = prevCart.find(item => item.productId === product.id);
+            const existingItem = prevCart.find(item => item.productId === productId);
             if (existingItem) {
-                // Увеличаване на количеството, ако не надвишава наличността
-                if (existingItem.quantity < product.stock) {
-                  return prevCart.map(item => 
-                      item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
-                  );
-                }
-                toast({
-                    title: 'Внимание',
-                    description: `Не можете да добавите повече от наличните ${product.stock} бр. за "${product.name}".`,
-                    variant: 'destructive'
-                });
-                return prevCart;
+                return prevCart.map(item => 
+                    item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item
+                );
+            } else {
+                return [...prevCart, { productId: productToAdd.id, name: productToAdd.name, price: productToAdd.price, quantity: 1 }];
             }
-            // Добавяне на нов артикул
-            return [...prevCart, { productId: product.id, name: product.name, price: product.price, quantity: 1 }];
         });
     };
 
     const removeFromCart = (productId: string) => {
-        setCart(prevCart => prevCart.filter(item => item.productId !== productId));
+        setCart(cart.filter(item => item.productId !== productId));
     };
 
     const updateQuantity = (productId: string, quantity: number) => {
-        const product = products.find(p => p.id === productId);
-        if (!product) return;
-
-        if (quantity > product.stock) {
-             toast({
-                title: 'Внимание',
-                description: `Максимална наличност за "${product.name}" е ${product.stock} бр.`,
-                variant: 'destructive'
-            });
-            quantity = product.stock;
-        }
-
         if (quantity <= 0) {
             removeFromCart(productId);
         } else {
-            setCart(prevCart => prevCart.map(item => 
-                item.productId === productId ? { ...item, quantity } : item
-            ));
+            setCart(cart.map(item => item.productId === productId ? { ...item, quantity } : item));
         }
     };
 
-    const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    const onSubmit = async (data: SaleFormValues) => {
+    const handleCreateSale = async () => {
         if (cart.length === 0) {
-            toast({ title: 'Грешка', description: 'Количката е празна.', variant: 'destructive' });
+            toast({ title: "Празна количка", description: "Добавете поне един продукт.", variant: "destructive" });
             return;
         }
 
-        let customerName = data.customerName;
-        let memberId = undefined;
-
-        if (data.customerType === 'member') {
-            const selectedMember = members.find(m => m.id === data.memberId);
-            if (!selectedMember) {
-                toast({ title: 'Грешка', description: 'Моля, изберете валиден член на клуба.', variant: 'destructive' });
-                return;
-            }
-            customerName = `${selectedMember.firstName} ${selectedMember.lastName}`;
-            memberId = selectedMember.id;
-        }
-
-        if (!customerName.trim()) {
-             toast({ title: 'Грешка', description: 'Моля, въведете име на клиента.', variant: 'destructive' });
-            return;
-        }
-
-        setIsLoading(true);
+        setIsSubmitting(true);
         try {
-            const newSaleId = await createSale({
-                memberId,
-                customerName,
+            await addSale({
+                date: new Date().toISOString(),
                 items: cart,
-                totalAmount
+                total: total,
+                memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : null,
+                status: paymentStatus, // Use the selected payment status
             });
-            toast({ title: 'Успех!', description: 'Продажбата е регистрирана успешно.' });
-            // Пренасочваме към страницата за касова бележка
-            router.push(`/sales/${newSaleId}`);
-        } catch (error: any) {
-            console.error(error);
-            toast({ title: 'Грешка при продажба', description: error.message, variant: 'destructive' });
-            setIsLoading(false);
+
+            toast({ title: "Успех!", description: "Продажбата е създадена успешно." });
+            router.push('/sales');
+        } catch (error) {
+            console.error("Грешка при създаване на продажба:", error);
+            toast({ title: "Грешка", description: "Възникна проблем при създаването на продажбата.", variant: "destructive" });
+            setIsSubmitting(false);
         }
     };
 
-    if (isLoading && products.length === 0) return <div>Зареждане...</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin" /></div>;
+    }
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Нова Продажба (POS)</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Списък с продукти */}
-                <div className="md:col-span-1">
-                    <h2 className="text-xl font-semibold mb-2">Продукти</h2>
-                    <div className="space-y-2 max-h-screen overflow-y-auto">
-                        {products.map(product => (
-                            <div key={product.id} className="p-2 border rounded-md flex justify-between items-center">
-                                <div>
-                                    <p className='font-bold'>{product.name}</p>
-                                    <p>{(product.price || 0).toFixed(2)} лв. (Наличност: {product.stock || 0})</p>
-                                </div>
-                                <Button onClick={() => addToCart(product)} size='sm'>Добави</Button>
-                            </div>
-                        ))}
-                    </div>
+        <div className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+                <Button variant="outline" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Обратно</Button>
+                <h1 className="text-2xl font-bold">Нова продажба</h1>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Продукти</CardTitle>
+                            <CardDescription>Изберете продукти, които да добавите към продажбата.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Продукт</TableHead>
+                                        <TableHead className="text-right">Цена</TableHead>
+                                        <TableHead className="text-right">Наличност</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {products.map(product => (
+                                        <TableRow key={product.id}>
+                                            <TableCell className="font-medium">{product.name}</TableCell>
+                                            <TableCell className="text-right">{product.price.toFixed(2)} лв.</TableCell>
+                                            <TableCell className="text-right">{product.stock}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={product.stock === 0}>
+                                                    <PlusCircle className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Количка и формуляр за клиент */}
-                <div className="md:col-span-2">
-                    <h2 className="text-xl font-semibold mb-2">Количка и Клиент</h2>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Количка */}
-                        <div className="space-y-2 p-4 border rounded-lg min-h-[150px]">
-                           {cart.length === 0 ? (
-                               <p>Количката е празна</p>
-                           ) : (
-                               cart.map(item => (
-                                   <div key={item.productId} className="flex justify-between items-center">
-                                       <div>
-                                           <p className='font-semibold'>{item.name}</p>
-                                           <p>{(item.price || 0).toFixed(2)} лв.</p>
-                                       </div>
-                                       <div className='flex items-center gap-2'>
-                                           <input 
-                                                type="number"
-                                                value={item.quantity}
-                                                onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value, 10))}
-                                                className='w-16 p-1 border rounded-md'
-                                            />
-                                           <Button variant='destructive' size='sm' onClick={() => removeFromCart(item.productId)}>X</Button>
-                                       </div>
-                                   </div>
-                               ))
-                           )}
-                        </div>
-                        
-                        <div className='text-right font-bold text-lg'>
-                            Общо: {totalAmount.toFixed(2)} лв.
-                        </div>
-
-                        {/* Информация за клиента */}
-                        <div className="p-4 border rounded-lg space-y-4">
-                             <h3 className="text-lg font-semibold">Клиент</h3>
-                             <div>
-                                 <label className="flex items-center gap-2">
-                                     <input type="radio" value="external" {...register('customerType')} />
-                                     Външен клиент
-                                 </label>
-                                 <label className="flex items-center gap-2">
-                                     <input type="radio" value="member" {...register('customerType')} />
-                                     Член на клуба
-                                 </label>
-                             </div>
-
-                            {customerType === 'member' ? (
-                                <div>
-                                    <label htmlFor="memberId" className="block mb-1">Избери член:</label>
-                                    <select 
-                                        id="memberId"
-                                        {...register('memberId', { required: 'Моля изберете член' })}
-                                        className="w-full p-2 border rounded-md"
-                                    >
-                                        <option value="">-- Изберете --</option>
-                                        {members.filter(member => member.status === 'active').map(member => (
-                                            <option key={member.id} value={member.id}>{`${member.firstName} ${member.lastName}`}</option>
+                <div>
+                    <Card className="sticky top-6">
+                        <CardHeader>
+                            <CardTitle className="flex items-center"><ShoppingCart className="mr-2"/>Количка</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <div className="flex items-center gap-2 mb-4">
+                                <UserPlus className="h-5 w-5"/>
+                                <Select onValueChange={setSelectedMemberId} defaultValue={selectedMemberId || 'none'}>
+                                    <SelectTrigger><SelectValue placeholder="Избери член (по желание)" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Външен клиент</SelectItem>
+                                        {members.map(member => (
+                                            <SelectItem key={member.id} value={member.id}>{member.firstName} {member.lastName}</SelectItem>
                                         ))}
-                                    </select>
-                                    {errors.memberId && <p className="text-red-500 text-sm">{errors.memberId.message}</p>}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                {cart.length === 0 ? (
+                                    <p className="text-center text-muted-foreground py-4">Количката е празна.</p>
+                                ) : (
+                                    cart.map(item => (
+                                        <div key={item.productId} className="flex items-center justify-between">
+                                            <div>
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">{(item.price || 0).toFixed(2)} лв.</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Input 
+                                                    type="number"
+                                                    value={item.quantity}
+                                                    onChange={e => updateQuantity(item.productId, parseInt(e.target.value))}
+                                                    className="w-16 h-8"
+                                                />
+                                                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.productId)}>
+                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </CardContent>
+                        {cart.length > 0 && (
+                            <CardFooter className="flex-col items-start gap-4">
+                                <div className="space-y-2 w-full">
+                                    <Label>Статус на плащане</Label>
+                                    <RadioGroup defaultValue="completed" value={paymentStatus} onValueChange={(value: "completed" | "pending") => setPaymentStatus(value)} className="flex space-x-4">
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="completed" id="r-completed" />
+                                            <Label htmlFor="r-completed">Платено</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="pending" id="r-pending" />
+                                            <Label htmlFor="r-pending">Отложено</Label>
+                                        </div>
+                                    </RadioGroup>
                                 </div>
-                            ) : (
-                                <div>
-                                    <label htmlFor="customerName" className="block mb-1">Име на клиент:</label>
-                                    <input 
-                                        id="customerName" 
-                                        type="text" 
-                                        {...register('customerName', { required: 'Името е задължително' })}
-                                        className="w-full p-2 border rounded-md"
-                                    />
-                                     {errors.customerName && <p className="text-red-500 text-sm">{errors.customerName.message}</p>}
-                                </div>
-                            )}
-                        </div>
 
-                        <Button type="submit" disabled={isLoading || cart.length === 0} className='w-full'>
-                            {isLoading ? 'Обработка...' : 'Завърши продажбата'}
-                        </Button>
-                    </form>
+                                <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
+                                    <span>Общо:</span>
+                                    <span>{total.toFixed(2)} лв.</span>
+                                </div>
+                                <Button onClick={handleCreateSale} className="w-full" disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Завърши продажбата
+                                </Button>
+                            </CardFooter>
+                        )}
+                    </Card>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default NewSalePage;

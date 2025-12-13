@@ -1,9 +1,7 @@
 
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Payment, Subscription } from '@/types';
-
-// const paymentsCollection = collection(db, 'payments'); // Преместено във функциите, за да се избегнат грешки при билд
 
 /**
  * Добавя ново плащане в базата данни.
@@ -15,6 +13,18 @@ export const addPayment = async (paymentData: Omit<Payment, 'id'>): Promise<stri
     const docRef = await addDoc(paymentsCollection, paymentData);
     return docRef.id;
 };
+
+/**
+ * Обновява съществуващо плащане в базата данни.
+ * @param paymentId - ID на плащането за обновяване.
+ * @param paymentData - Обект с полетата за обновяване.
+ * @returns Promise, което завършва, когато обновяването е приключило.
+ */
+export const updatePayment = async (paymentId: string, paymentData: Partial<Omit<Payment, 'id'>>): Promise<void> => {
+    const paymentDoc = doc(db, 'payments', paymentId);
+    await updateDoc(paymentDoc, paymentData);
+};
+
 
 /**
  * Извлича всички плащания, направени от конкретен член.

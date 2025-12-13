@@ -8,6 +8,7 @@ import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
 import { Home, Users, DollarSign, LogOut, ShoppingCart, Receipt } from 'lucide-react'; // Добавяме икони
+import { clubInfo } from '@/config/club';
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -16,8 +17,8 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="w-full text-center py-4">
-          <h1 className="text-xl font-bold">Badminton Club Galabovo</h1>
+        <div className="w-full text-center py-4 px-2">
+          <h1 className="text-lg font-bold">{clubInfo.name}</h1>
         </div>
       </SidebarHeader>
       <SidebarMenu>
@@ -31,7 +32,7 @@ export function AppSidebar() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <Link href="/members" passHref>
-            <SidebarMenuButton isActive={pathname.startsWith('/members')}> 
+            <SidebarMenuButton isActive={pathname.startsWith('/members')}>
               <Users className="w-4 h-4" />
               <span>Членове</span>
             </SidebarMenuButton>

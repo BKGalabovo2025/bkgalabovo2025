@@ -1,199 +1,187 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Member } from '@/types';
+import { getMemberById } from '@/services/member-service';
+import { getSalesByMemberId, markSaleAsPaid } from '@/services/sales-service'; // Correctly import markSaleAsPaid
+import { Member, Sale } from '@/types';
+import { useToast } from "@/components/ui/use-toast";
+
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, ArrowLeft, Mail, Phone, Home, Cake, Info, User, Calendar as CalendarIcon, Edit, Users } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { SalesHistory } from '@/components/sales/sales-history';
-import { Textarea } from '@/components/ui/textarea';
-import { getAgeGroup } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ArrowLeft, Pencil, User, Phone, Mail, Home, Cake, ShoppingBag, Receipt, CheckCircle } from 'lucide-react';
 
 const MemberDetailsPage = () => {
+  const [member, setMember] = useState<Member | null>(null);
+  const [sales, setSales] = useState<Sale[]>([]); 
+  const [loading, setLoading] = useState(true);
+  
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const id = params.id as string;
-
-  const [member, setMember] = useState<Member | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [currentNotes, setCurrentNotes] = useState('');
+  const memberId = params.id as string;
 
   useEffect(() => {
-    if (!id) return;
-
-    const fetchMember = async () => {
-      try {
-        const docRef = doc(db, 'members', id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const memberData: Member = {
-            id: docSnap.id,
-            firstName: data.firstName || '',
-            lastName: data.lastName || '',
-            middleName: data.middleName || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            phoneType: data.phoneType || 'personal',
-            registrationDate: data.registrationDate || new Date().toISOString(),
-            dateOfBirth: data.dateOfBirth || '',
-            address: data.address || '',
-            status: data.status || 'inactive',
-            educationInstitution: data.educationInstitution || '',
-            notes: data.notes || '',
-            personalId: data.personalId || '',
-          };
+    if (memberId) {
+      const fetchMemberData = async () => {
+        setLoading(true);
+        try {
+          const memberData = await getMemberById(memberId);
           setMember(memberData);
-          setCurrentNotes(memberData.notes || '');
-        } else {
-          toast({ title: "Грешка", description: "Член с такова ID не е намерен.", variant: "destructive" });
-          router.push('/members');
+
+          const salesData = await getSalesByMemberId(memberId);
+          setSales(salesData);
+
+        } catch (error) {
+          console.error("Грешка при зареждане на данните за члена:", error);
+          toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Firebase Error: ", error);
-        toast({ title: "Грешка при зареждане", description: "Възникна проблем при извличането на данните.", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      };
+      fetchMemberData();
+    }
+  }, [memberId, toast]);
 
-    fetchMember();
-  }, [id, router, toast]);
-
-  const handleSaveNotes = async () => {
-    if (!id) return;
+  const handleMarkAsPaid = async (saleId: string) => {
     try {
-      const memberRef = doc(db, 'members', id);
-      await updateDoc(memberRef, {
-        notes: currentNotes
-      });
-      setMember(prevMember => prevMember ? { ...prevMember, notes: currentNotes } : null);
-      setIsEditingNotes(false);
-      toast({ title: "Успех", description: "Бележките бяха успешно запазени." });
+        await markSaleAsPaid(saleId);
+        // Update the state locally to reflect the change immediately
+        setSales(prevSales => 
+            prevSales.map(sale => 
+                sale.id === saleId ? { ...sale, status: 'completed' } : sale
+            )
+        );
+        toast({ title: "Успех!", description: "Продажбата беше маркирана като платена." });
     } catch (error) {
-      console.error("Error updating notes: ", error);
-      toast({ title: "Грешка", description: "Неуспешно запазване на бележките.", variant: "destructive" });
+        console.error("Грешка при маркиране като платено:", error);
+        toast({ title: "Грешка", description: "Възникна проблем при обновяването на продажбата.", variant: "destructive" });
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    const firstInitial = firstName ? firstName[0] : '';
-    const lastInitial = lastName ? lastName[0] : '';
-    return `${firstInitial}${lastInitial}`.toUpperCase();
-  }
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Зареждане на досие...</p>
       </div>
     );
   }
 
   if (!member) {
-    return null; 
+    return <div className="text-center py-10">Досието на члена не е намерено.</div>;
   }
-  
-  const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
-  const ageGroup = getAgeGroup(member.dateOfBirth);
+
+  const getStatusVariant = (status: Sale['status']) => {
+    switch (status) {
+        case 'completed':
+        case 'paid':
+            return 'success';
+        case 'pending':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
+  };
+
+  const getStatusText = (status: Sale['status']) => {
+      switch (status) {
+        case 'completed':
+        case 'paid':
+            return 'Платено';
+        case 'pending':
+            return 'Неплатено';
+        default:
+            return status;
+    }
+  }
 
   return (
     <div className="p-4 sm:p-6">
-        <Button variant="outline" onClick={() => router.push('/members')} className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Всички членове
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+            <Button variant="outline" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Обратно към членове
+            </Button>
+            <Button onClick={() => router.push(`/members/edit/${memberId}`)}>
+                <Pencil className="mr-2 h-4 w-4" /> Редактирай
+            </Button>
+      </div>
 
-        <Card>
-            <CardHeader className="flex flex-col items-center text-center">
-                <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`} alt="Avatar" />
-                    <AvatarFallback className="text-3xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader className="items-center text-center">
+                <Avatar className="h-24 w-24 mb-2">
+                    <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.lastName}`} />
+                    <AvatarFallback className="text-3xl">{member.firstName?.[0]}{member.lastName?.[0]}</AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-3xl">{fullName}</CardTitle>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {member.status === 'active' ? 'Активен' : 'Неактивен'}
-                  </span>
-                  {ageGroup !== 'Н/Д' && (
-                     <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {ageGroup}
-                      </span>
-                  )}
-                </div>
+                <CardTitle className="text-2xl">{member.firstName} {member.lastName}</CardTitle>
+                 <Badge variant={member.status === 'active' ? 'success' : 'secondary'}>
+                    {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                </Badge>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center text-muted-foreground">
-                    <Mail className="mr-3 h-5 w-5" />
-                    {member.email ? <a href={`mailto:${member.email}`} className="text-primary hover:underline">{member.email}</a> : <span>Няма имейл</span>}
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                    <Phone className="mr-3 h-5 w-5" />
-                    {member.phone ? (
-                      <span>
-                        {member.phone}
-                        <span className="text-muted-foreground ml-1">({member.phoneType === 'parent' ? 'родител' : 'личен'})</span>
-                      </span>
+            <CardContent className="text-sm text-gray-700 space-y-3">
+                <div className="flex items-center"><User className="h-4 w-4 mr-3 text-gray-500"/> {member.middleName ? `${member.firstName} ${member.middleName} ${member.lastName}` : ''}</div>
+                <div className="flex items-center"><Mail className="h-4 w-4 mr-3 text-gray-500"/> {member.email || 'Няма данни'}</div>
+                <div className="flex items-center"><Phone className="h-4 w-4 mr-3 text-gray-500"/> {member.phone || 'Няма данни'}</div>
+                <div className="flex items-center"><Cake className="h-4 w-4 mr-3 text-gray-500"/> {new Date(member.dateOfBirth).toLocaleDateString('bg-BG')}</div>
+                <div className="flex items-center"><Home className="h-4 w-4 mr-3 text-gray-500"/> {member.address || 'Няма данни'}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <ShoppingBag className="h-5 w-5 mr-2"/>
+                        История на покупките
+                    </CardTitle>
+                    <CardDescription>Списък с всички покупки на стоки от клуба.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {sales.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Дата</TableHead>
+                                    <TableHead className="text-center">Статус</TableHead>
+                                    <TableHead className="text-right">Сума</TableHead>
+                                    <TableHead className="w-48 text-right">Действия</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {sales.map(sale => (
+                                    <TableRow key={sale.id}>
+                                        <TableCell>{new Date(sale.date).toLocaleDateString('bg-BG')}</TableCell>
+                                        <TableCell className="text-center">
+                                            <Badge variant={getStatusVariant(sale.status)}>{getStatusText(sale.status)}</Badge>
+                                        </TableCell>
+                                        <TableCell className="font-medium text-right">{sale.total.toFixed(2)} лв.</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            {sale.status === 'pending' && (
+                                                <Button variant="outline-success" size="sm" onClick={() => handleMarkAsPaid(sale.id)}>
+                                                    <CheckCircle className="h-4 w-4 mr-1"/> Плати
+                                                </Button>
+                                            )}
+                                            <Button variant="outline" size="sm" onClick={() => router.push(`/sales/${sale.id}/receipt`)}>
+                                                <Receipt className="h-4 w-4"/>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     ) : (
-                      <span>Няма телефон</span>
+                        <p className="text-center text-muted-foreground py-4">Няма регистрирани покупки.</p>
                     )}
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                    <CalendarIcon className="mr-3 h-5 w-5" />
-                    <span>Регистриран на: {new Date(member.registrationDate).toLocaleDateString('bg-BG')}</span>
-                </div>
-                 <div className="flex items-center text-muted-foreground">
-                    <Cake className="mr-3 h-5 w-5" />
-                    <span>Дата на раждане: {member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString('bg-BG') : 'Няма'}
-                    </span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                    <Home className="mr-3 h-5 w-5" />
-                    <span>{member.address || 'Няма адрес'}</span>
-                </div>
-            </CardContent>
-        </Card>
-
-        <Card className="mt-6">
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center"><Info className="mr-2 h-5 w-5"/> Бележки</CardTitle>
-                {!isEditingNotes ? (
-                    <Button variant="outline" size="sm" onClick={() => setIsEditingNotes(true)}>
-                        <Edit className="mr-2 h-4 w-4" /> Редактирай
-                    </Button>
-                ) : (
-                    <Button size="sm" onClick={handleSaveNotes}>
-                        Запази
-                    </Button>
-                )}
-            </CardHeader>
-            <CardContent>
-                {isEditingNotes ? (
-                    <Textarea
-                        value={currentNotes}
-                        onChange={(e) => setCurrentNotes(e.target.value)}
-                        placeholder="Добавете бележки тук..."
-                        rows={5}
-                        className="text-sm"
-                    />
-                ) : (
-                    <p className="text-sm text-muted-foreground min-h-[100px]">
-                        {member.notes || 'Няма добавени бележки.'}
-                    </p>
-                )}
-            </CardContent>
-        </Card>
-
-        <SalesHistory memberId={id} />
-
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 };

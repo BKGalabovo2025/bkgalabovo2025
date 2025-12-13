@@ -1,0 +1,28 @@
+@page {
+  size: auto;
+  margin: 0;
+}
+
+@media print {
+  /* Hide elements that should not be printed */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove padding from the main page wrapper */
+  #page-wrapper {
+    padding: 0 !important;
+  }
+
+  /* Remove shadow and border from the card for a cleaner print */
+  .card-print {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure the body has no extra margins */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}

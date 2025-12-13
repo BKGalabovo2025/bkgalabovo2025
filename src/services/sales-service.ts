@@ -1,155 +1,145 @@
 
-import { db } from '@/lib/firebase';
-import { collection, doc, runTransaction, Timestamp, getDocs, query, where, orderBy, getDoc } from 'firebase/firestore';
-import { Sale, Product } from '@/types';
+import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, query, where, orderBy, updateDoc, runTransaction, increment } from "firebase/firestore";
+import { Sale, SaleItem } from '@/types';
 
-// Помощна функция за конвертиране на документ от Firestore в обект Sale
-const docToSale = (doc: any): Sale => {
-    const data = doc.data();
-    // Конвертираме Timestamp към ISO низ, за да съвпада с типа
-    const date = data.date instanceof Timestamp ? data.date.toDate().toISOString() : data.date;
-    return {
-        id: doc.id,
-        ...data,
-        date,
-    } as Sale;
-};
+const salesCollection = collection(db, 'sales');
+const productsCollection = collection(db, 'products');
 
-
-/**
- * Регистрира нова продажба, актуализира наличностите на продуктите и записва финансовата транзакция.
- * Използва транзакция, за да гарантира атомарност.
- * @param saleData - Данни за продажбата, без ID и дата.
- * @returns Promise, което връща ID-то на новосъздадената продажба.
- */
-export const createSale = async (saleData: Omit<Sale, 'id' | 'date'>): Promise<string> => {
-
-  const saleRef = doc(collection(db, 'sales'));
-
-  await runTransaction(db, async (transaction) => {
-    // 1. Проверка на наличностите и подготовка за актуализация
-    const productUpdates: { ref: any, newStock: number }[] = [];
-
-    for (const item of saleData.items) {
-      const productRef = doc(db, 'products', item.productId);
-      const productDoc = await transaction.get(productRef);
-
-      if (!productDoc.exists()) {
-        throw new Error(`Продукт с ID ${item.productId} не беше намерен.`);
-      }
-
-      const product = productDoc.data() as Product;
-      const newStock = product.stock - item.quantity;
-
-      if (newStock < 0) {
-        throw new Error(`Няма достатъчна наличност за продукта "${product.name}". Налични: ${product.stock}, Искани: ${item.quantity}`);
-      }
-      
-      productUpdates.push({ ref: productRef, newStock });
-    }
-
-    // 2. Създаване на записа за продажба
-    // Гарантираме, че memberId е null, а не undefined
-    transaction.set(saleRef, {
-      ...saleData,
-      memberId: saleData.memberId || null,
-      date: Timestamp.now(),
-    });
-
-    // 3. Актуализиране на наличностите на продуктите
-    for (const update of productUpdates) {
-      transaction.update(update.ref, { stock: update.newStock });
-    }
-
-    // 4. Създаване на финансов запис
-    const financeRef = doc(collection(db, 'finances'));
-    transaction.set(financeRef, {
-        date: Timestamp.now(),
-        description: `Продажба #${saleRef.id.substring(0, 6)} на ${saleData.customerName}`,
-        amount: saleData.totalAmount,
-        type: 'income',
-        memberId: saleData.memberId || null,
-    });
-  });
-
-  return saleRef.id;
-};
-
-/**
- * Връща конкретна продажба по нейното ID.
- * @param saleId - ID на продажбата.
- * @returns Promise, което връща обект Sale или null, ако не е намерена.
- */
-export const getSaleById = async (saleId: string): Promise<Sale | null> => {
-    const saleDocRef = doc(db, 'sales', saleId);
-    const saleDoc = await getDoc(saleDocRef);
-
-    if (!saleDoc.exists()) {
-        return null;
-    }
-
-    return docToSale(saleDoc);
-};
-
-/**
- * Връща всички продажби, сортирани по дата в низходящ ред.
- * @returns Promise, което връща масив с всички продажби.
- */
+// Fetches all sales
 export const getSales = async (): Promise<Sale[]> => {
-    const salesCollection = collection(db, 'sales');
-    const q = query(salesCollection, orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docToSale);
-};
-
-/**
- * Връща всички продажби за конкретен член.
- * @param memberId - ID на члена.
- * @returns Promise, което връща масив с продажбите на члена.
- */
-export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
-    const salesCollection = collection(db, 'sales');
-    const q = query(salesCollection, where('memberId', '==', memberId), orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docToSale);
-};
-
-/**
- * Изтрива продажба, възстановява наличностите и премахва свързания финансов запис.
- * @param saleId - ID на продажбата за изтриване.
- * @param sale - Обектът на продажбата, съдържащ продуктите и сумата.
- */
-export const deleteSale = async (saleId: string, sale: Sale): Promise<void> => {
-    const saleRef = doc(db, 'sales', saleId);
-
-    await runTransaction(db, async (transaction) => {
-        // 1. Възстановяване на наличностите на продуктите
-        for (const item of sale.items) {
-            const productRef = doc(db, 'products', item.productId);
-            const productDoc = await transaction.get(productRef);
-
-            if (productDoc.exists()) {
-                const currentStock = productDoc.data().stock || 0;
-                transaction.update(productRef, { stock: currentStock + item.quantity });
+    const snapshot = await getDocs(query(salesCollection, orderBy("date", "desc")));
+    const sales: Sale[] = [];
+    for (const saleDoc of snapshot.docs) { 
+        const saleData = saleDoc.data();
+        let customerName = 'Външен клиент';
+        if (saleData.memberId) {
+             try {
+                const memberDoc = await getDoc(doc(db, 'members', saleData.memberId));
+                if (memberDoc.exists()) {
+                    const memberData = memberDoc.data();
+                    customerName = `${memberData.firstName} ${memberData.lastName}`;
+                }
+            } catch (e) {
+                console.error("Error fetching member name:", e)
             }
         }
+        sales.push({ id: saleDoc.id, ...saleData, customerName: customerName } as Sale);
+    }
+    return sales;
+};
 
-        // 2. Намиране и изтриване на свързания финансов запис
-        // Това е по-сложно, тъй като нямаме директна връзка.
-        // Ще използваме заявка, за да го намерим по описание и сума.
-        const financeQuery = query(
-            collection(db, 'finances'),
-            where('description', '==', `Продажба #${saleId.substring(0, 6)} на ${sale.customerName}`),
-            where('amount', '==', sale.totalAmount),
-            where('type', '==', 'income')
-        );
-        
-        const financeDocs = await getDocs(financeQuery);
-        financeDocs.forEach(doc => {
-            transaction.delete(doc.ref);
+// Fetches a single sale by its ID
+export const getSaleById = async (id: string): Promise<Sale | null> => {
+    const docRef = doc(db, 'sales', id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
+
+    const saleData = docSnap.data();
+    let customerName = 'Външен клиент';
+    if (saleData.memberId) {
+        try {
+            const memberDoc = await getDoc(doc(db, 'members', saleData.memberId));
+            if (memberDoc.exists()) {
+                const memberData = memberDoc.data();
+                customerName = `${memberData.firstName} ${memberData.lastName}`;
+            }
+        } catch (e) {
+            console.error("Error fetching member name:", e);
+        }
+    }
+
+    return { id: docSnap.id, ...saleData, customerName } as Sale;
+};
+
+// Fetches all sales for a specific member
+export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
+    const q = query(salesCollection, where("memberId", "==", memberId), orderBy("date", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(saleDoc => ({ id: saleDoc.id, ...saleDoc.data() } as Sale));
+};
+
+/**
+ * Adds a new sale and updates product stock in a transaction.
+ * @param saleData The data for the new sale.
+ * @returns The ID of the newly created sale document.
+ */
+export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Promise<string> => {
+    try {
+        const newSaleId = await runTransaction(db, async (transaction) => {
+            // 1. Check for stock availability
+            for (const item of saleData.items) {
+                const productRef = doc(productsCollection, item.productId);
+                const productDoc = await transaction.get(productRef);
+                if (!productDoc.exists() || productDoc.data().stock < item.quantity) {
+                    throw new Error(`Недостатъчна наличност за ${item.name}. Налични: ${productDoc.data().stock}, Искани: ${item.quantity}`);
+                }
+            }
+
+            // 2. Decrease stock for each product
+            for (const item of saleData.items) {
+                const productRef = doc(productsCollection, item.productId);
+                transaction.update(productRef, { 
+                    stock: increment(-item.quantity) 
+                });
+            }
+
+            // 3. Create the new sale document
+            const newSaleRef = doc(salesCollection); // Automatically generate a new ID
+            transaction.set(newSaleRef, saleData);
+            
+            return newSaleRef.id;
         });
+        return newSaleId;
+    } catch (error) {
+        console.error("Транзакцията за създаване на продажба се провали: ", error);
+        // Re-throw the error to be handled by the calling UI
+        throw error; 
+    }
+};
 
-        // 3. Изтриване на самата продажба
-        transaction.delete(saleRef);
+/**
+ * Deletes a sale and restores product stock in a transaction.
+ * @param saleId The ID of the sale to delete.
+ */
+export const deleteSale = async (saleId: string): Promise<void> => {
+    try {
+        await runTransaction(db, async (transaction) => {
+            const saleRef = doc(salesCollection, saleId);
+            const saleDoc = await transaction.get(saleRef);
+
+            if (!saleDoc.exists()) {
+                throw new Error("Продажбата не е намерена.");
+            }
+
+            const saleItems = saleDoc.data().items as SaleItem[];
+
+            // 1. Restore stock for each product
+            for (const item of saleItems) {
+                const productRef = doc(productsCollection, item.productId);
+                // We need to check if product exists before incrementing
+                const productDoc = await transaction.get(productRef);
+                if(productDoc.exists()) {
+                    transaction.update(productRef, { 
+                        stock: increment(item.quantity) 
+                    });
+                }
+            }
+
+            // 2. Delete the sale document
+            transaction.delete(saleRef);
+        });
+    } catch (error) {
+        console.error("Транзакцията за изтриване на продажба се провали: ", error);
+        throw error; // Re-throw to be handled by UI
+    }
+};
+
+
+// Marks a sale as paid by updating its status to 'completed'
+export const markSaleAsPaid = async (saleId: string): Promise<void> => {
+    const saleRef = doc(db, 'sales', saleId);
+    await updateDoc(saleRef, {
+        status: 'completed'
     });
 };

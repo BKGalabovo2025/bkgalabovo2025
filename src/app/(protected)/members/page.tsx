@@ -23,6 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { MemberForm } from '@/components/members/member-form';
 import { getMembers, addMember, updateMember, deleteMember } from '@/services/member-service';
 import { useToast } from "@/components/ui/use-toast";
@@ -33,6 +44,7 @@ const MembersPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
@@ -50,7 +62,7 @@ const MembersPage = () => {
           const membersData = await getMembers();
           setMembers(membersData);
         } catch (error) {
-          console.error("Firebase Error: ", error);
+          console.error("Грешка от Firebase: ", error);
           toast({ title: "Грешка при зареждане на членовете", description: "Моля, опитайте отново.", variant: "destructive" });
         } finally {
           setIsLoading(false);
@@ -75,20 +87,21 @@ const MembersPage = () => {
       setIsFormOpen(false);
       setSelectedMember(undefined);
     } catch (error) {
-        console.error("Firebase Error: ", error);
+        console.error("Грешка от Firebase: ", error);
         toast({ title: "Грешка при запис", description: "Възникна грешка при запазването на данните.", variant: "destructive" });
     }
   };
 
-  const handleDeleteMember = async (id: string) => {
-    if (!window.confirm("Сигурни ли сте, че искате да изтриете този член?")) return;
+  const handleDeleteConfirm = async () => {
+    if (!memberToDelete) return;
 
     try {
-      await deleteMember(id);
-      setMembers(members.filter(m => m.id !== id));
+      await deleteMember(memberToDelete.id);
+      setMembers(members.filter(m => m.id !== memberToDelete.id));
       toast({ title: "Членът е изтрит", description: "Данните бяха успешно изтрити от системата." });
+      setMemberToDelete(null);
     } catch (error) {
-      console.error("Firebase Error: ", error);
+      console.error("Грешка от Firebase: ", error);
       toast({ title: "Грешка при изтриване", description: "Възникна грешка при изтриването на члена.", variant: "destructive" });
     }
   }
@@ -140,71 +153,88 @@ const MembersPage = () => {
         </Dialog>
       </div>
       
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Име</TableHead>
-              <TableHead>Възрастова група</TableHead>
-              <TableHead>Имейл</TableHead>
-              <TableHead>Телефон</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Дата на регистрация</TableHead>
-              <TableHead><span className="sr-only">Действия</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.length > 0 ? members.map((member) => {
-              const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
-              const phoneInfo = member.phone ? (
-                <span>
-                  {member.phone}
-                  <span className="text-muted-foreground ml-1">
-                    ({member.phoneType === 'parent' ? 'родител' : 'личен'})
-                  </span>
-                </span>
-              ) : null;
-
-              return (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{fullName}</TableCell>
-                  <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell>{phoneInfo}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {member.status === 'active' ? 'Активен' : 'Неактивен'}
-                    </span>
-                  </TableCell>
-                  <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Отвори меню</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member.id)}>Изтрий</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            }) : (
+      <AlertDialog>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
               <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                  Няма намерени членове. Започнете, като добавите нов член.
-                  </TableCell>
+                <TableHead>Име</TableHead>
+                <TableHead>Възрастова група</TableHead>
+                <TableHead>Имейл</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Дата на регистрация</TableHead>
+                <TableHead><span className="sr-only">Действия</span></TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {members.length > 0 ? members.map((member) => {
+                const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
+                const phoneInfo = member.phone ? (
+                  <span>
+                    {member.phone}
+                    <span className="text-muted-foreground ml-1">
+                      ({member.phoneType === 'parent' ? 'родител' : 'личен'})
+                    </span>
+                  </span>
+                ) : null;
+
+                return (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">{fullName}</TableCell>
+                    <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell>{phoneInfo}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                      </span>
+                    </TableCell>
+                    <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Отвори меню</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()} onClick={() => setMemberToDelete(member)}>Изтрий</DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              }) : (
+                <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                    Няма намерени членове. Започнете, като добавите нов член.
+                    </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Наистина ли искате да изтриете този член?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Това действие е необратимо. Данните за {memberToDelete && `${memberToDelete.firstName} ${memberToDelete.lastName}`} ще бъдат изтрити завинаги от сървърите.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setMemberToDelete(null)}>Отказ</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Изтрий</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
