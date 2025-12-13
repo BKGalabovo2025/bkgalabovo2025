@@ -26,6 +26,7 @@ import {
 import { MemberForm } from '@/components/members/member-form';
 import { getMembers, addMember, updateMember, deleteMember } from '@/services/member-service';
 import { useToast } from "@/components/ui/use-toast";
+import { getAgeGroup } from '@/lib/utils';
 
 const MembersPage = () => {
   const [members, setMembers] = useState<Member[]>([]);
@@ -144,6 +145,7 @@ const MembersPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Име</TableHead>
+              <TableHead>Възрастова група</TableHead>
               <TableHead>Имейл</TableHead>
               <TableHead>Телефон</TableHead>
               <TableHead>Статус</TableHead>
@@ -155,6 +157,7 @@ const MembersPage = () => {
             {members.length > 0 ? members.map((member) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">{`${member.firstName} ${member.lastName}`}</TableCell>
+                <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.phone}</TableCell>
                 <TableCell>
@@ -182,7 +185,7 @@ const MembersPage = () => {
               </TableRow>
             )) : (
               <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                   Няма намерени членове. Започнете, като добавите нов член.
                   </TableCell>
               </TableRow>
