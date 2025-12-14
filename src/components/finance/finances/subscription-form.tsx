@@ -26,7 +26,7 @@ import {
 // Схема за валидация - вече е в синхрон с глобалния Subscription тип
 const formSchema = z.object({
   memberId: z.string().min(1, "Моля, изберете член."),
-  type: z.enum(['monthly', 'quarterly', 'yearly', 'single_visit'], { required_error: "Моля, изберете тип." }),
+  type: z.enum(['monthly', 'quarterly', 'yearly', 'single_visit', 'annual'], { required_error: "Моля, изберете тип." }),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Невалидна начална дата.' }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Невалидна крайна дата.' }),
   amount: z.preprocess(

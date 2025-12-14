@@ -20,6 +20,7 @@ export interface Member {
     notes?: string;
     educationInstitution?: string;
     avatarUrl?: string; // URL for the member's avatar image
+    createdAt?: string; // Added for dashboard
 }
 
 /**
@@ -40,7 +41,7 @@ export interface Payment {
 export type Subscription = {
     id: string;
     memberId: string;
-    type: 'annual' | 'monthly';
+    type: 'annual' | 'monthly' | 'yearly' | 'quarterly' | 'single_visit';
     startDate: string;
     endDate: string;
     status: 'paid' | 'pending' | 'overdue';
@@ -57,6 +58,7 @@ export interface Product {
     price: number;
     stock: number;
     category: string;
+    imageUrl?: string;
 }
 
 /**
@@ -81,3 +83,36 @@ export interface Sale {
     total: number;           // Using 'total' for consistency
     status: 'pending' | 'paid' | 'completed' | 'refunded';
 }
+
+// Schedule related types
+export interface BaseEvent {
+    id: string;
+    title: string;
+    date: string;
+    description?: string;
+}
+
+export interface Training extends BaseEvent {
+    type: 'training';
+    coach: string;
+}
+
+export interface Competition extends BaseEvent {
+    type: 'competition';
+    location: string;
+}
+
+export interface Camp extends BaseEvent {
+    type: 'camp';
+    location: string;
+    startDate: string;
+    endDate: string;
+}
+
+export interface ClubEvent extends BaseEvent {
+    type: 'event';
+    location?: string;
+}
+
+// Union type for any event that can appear on the schedule
+export type ScheduleEvent = Training | Competition | Camp | ClubEvent;

@@ -71,8 +71,12 @@ export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Prom
             for (const item of saleData.items) {
                 const productRef = doc(productsCollection, item.productId);
                 const productDoc = await transaction.get(productRef);
-                if (!productDoc.exists() || productDoc.data().stock < item.quantity) {
-                    throw new Error(`Недостатъчна наличност за ${item.name}. Налични: ${productDoc.data().stock}, Искани: ${item.quantity}`);
+                if (!productDoc.exists()) {
+                    throw new Error(`Продуктът '${item.name}' не е намерен.`);
+                }
+                const productData = productDoc.data();
+                if (productData.stock < item.quantity) {
+                    throw new Error(`Недостатъчна наличност за ${item.name}. Налични: ${productData.stock}, Искани: ${item.quantity}`);
                 }
             }
 

@@ -79,7 +79,7 @@ const MemberDetailsPage = () => {
     switch (status) {
         case 'completed':
         case 'paid':
-            return 'success';
+            return 'secondary';
         case 'pending':
             return 'destructive';
         default:
@@ -119,7 +119,7 @@ const MemberDetailsPage = () => {
                     <AvatarFallback className="text-3xl">{member.firstName?.[0]}{member.lastName?.[0]}</AvatarFallback>
                 </Avatar>
                 <CardTitle className="text-2xl">{member.firstName} {member.lastName}</CardTitle>
-                 <Badge variant={member.status === 'active' ? 'success' : 'secondary'}>
+                 <Badge variant={member.status === 'active' ? 'secondary' : 'secondary'}>
                     {member.status === 'active' ? 'Активен' : 'Неактивен'}
                 </Badge>
             </CardHeader>
@@ -163,7 +163,7 @@ const MemberDetailsPage = () => {
                                         <TableCell className="font-medium text-right">{sale.total.toFixed(2)} лв.</TableCell>
                                         <TableCell className="text-right space-x-2">
                                             {sale.status === 'pending' && (
-                                                <Button variant="outline-success" size="sm" onClick={() => handleMarkAsPaid(sale.id)}>
+                                                <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(sale.id)}>
                                                     <CheckCircle className="h-4 w-4 mr-1"/> Плати
                                                 </Button>
                                             )}

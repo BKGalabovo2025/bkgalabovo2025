@@ -6,12 +6,15 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, ExternalLink } from 'lucide-react';
 import { Product } from "@/types";
 
 // Схема за валидация с Zod
 const productFormSchema = z.object({
   name: z.string().min(3, { message: "Името на продукта трябва да е поне 3 символа." }),
+  description: z.string().min(10, { message: "Описанието трябва да е поне 10 символа." }),
+  category: z.string().min(3, { message: "Категорията трябва да е поне 3 символа." }),
   price: z.coerce.number().positive({ message: "Цената трябва да е положително число." }),
   stock: z.coerce.number().int().min(0, { message: "Наличността не може да е отрицателна." }),
   imageUrl: z.string().url({ message: "Моля, въведете валиден URL." }).or(z.literal('')).optional(),
@@ -31,7 +34,7 @@ const isValidUrl = (urlString: string): boolean => {
 
 interface ProductFormProps {
   product?: Product | null;
-  onSave: (data: Omit<Product, 'id' | 'productId'>) => Promise<void> | void;
+  onSave: (data: Omit<Product, 'id'>) => Promise<void> | void;
   onClose: () => void;
 }
 
@@ -40,6 +43,8 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: product ? { ...product, price: product.price || 0, stock: product.stock || 0 } : {
         name: '',
+        description: '',
+        category: '',
         price: 0,
         stock: 0,
         imageUrl: '',
@@ -63,6 +68,32 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
               <FormLabel>Име на продукта</FormLabel>
               <FormControl>
                 <Input placeholder="Напр. Тениска, бутилка вода..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Описание</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Описание на продукта..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Категория</FormLabel>
+              <FormControl>
+                <Input placeholder="Напр. Облекло, напитки..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -60,7 +60,7 @@ const InventoryPage = () => {
     setEditingProduct(null);
   };
 
-  const handleSaveProduct = async (data: Omit<Product, 'id' | 'productId'>) => {
+  const handleSaveProduct = async (data: Omit<Product, 'id'>) => {
     try {
       if (editingProduct) {
         await updateProduct(editingProduct.id, data);
