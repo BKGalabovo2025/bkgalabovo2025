@@ -139,12 +139,12 @@ const InventoryPage = () => {
                 <TableRow key={product.id}>
                   <TableCell>
                       {product.imageUrl ? (
-                          <div className="relative w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
+                          <div className="relative w-16 h-16 bg-muted rounded-md overflow-hidden">
                               <Image src={product.imageUrl} alt={product.name} fill sizes="64px" className="object-cover" />
                           </div>
                       ) : (
-                          <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
-                              <ImageIcon className="w-8 h-8 text-gray-400" />
+                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                              <ImageIcon className="w-8 h-8 text-muted-foreground" />
                           </div>
                       )}
                   </TableCell>
@@ -154,7 +154,7 @@ const InventoryPage = () => {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => openDialog(product)}><Edit className="h-4 w-4" /></Button>
                     <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setProductToDelete(product)}><Trash className="h-4 w-4 text-red-500" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setProductToDelete(product)}><Trash className="h-4 w-4 text-destructive" /></Button>
                     </AlertDialogTrigger>
                   </TableCell>
                 </TableRow>

@@ -84,7 +84,7 @@ const SaleReceiptPage = () => {
     }
 
     return (
-        <div className="bg-gray-50 print:bg-white">
+        <div className="bg-muted/50 print:bg-white">
             <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center justify-between mb-6 print:hidden">
                     <Button variant="outline" onClick={() => router.push('/sales')}>
@@ -100,32 +100,32 @@ const SaleReceiptPage = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-8 border border-gray-200 shadow-sm print:border-none print:shadow-none">
-                    <header className="flex justify-between items-start pb-6 border-b-2 border-gray-100">
+                <div className="bg-white p-8 border border-border shadow-sm print:border-none print:shadow-none">
+                    <header className="flex justify-between items-start pb-6 border-b-2 border-border">
                         <div className="flex items-center gap-4">
                             <Image src="/logo.png" alt="Club Logo" width={60} height={60} />
                         </div>
                         <div className="text-right">
                             <h1 className="text-3xl font-bold tracking-wider">СТОКОВА РАЗПИСКА</h1>
-                            <p className="text-sm text-gray-500 mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
+                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
 
                     <section className="mt-8 grid grid-cols-2 gap-8">
                         <div>
-                            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">ИЗДАЛ:</h2>
+                            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ИЗДАЛ:</h2>
                             <p className="font-bold mt-2">{clubInfo.name}</p>
-                            <p className="text-sm text-gray-600">{clubInfo.address}</p>
-                            <p className="text-sm text-gray-600">тел: {clubInfo.contact}</p>
-                            <p className="text-sm text-gray-600">e-mail: {clubInfo.email}</p>
-                            <p className="text-sm text-gray-600">{clubInfo.website}</p>
+                            <p className="text-sm text-muted-foreground">{clubInfo.address}</p>
+                            <p className="text-sm text-muted-foreground">тел: {clubInfo.contact}</p>
+                            <p className="text-sm text-muted-foreground">e-mail: {clubInfo.email}</p>
+                            <p className="text-sm text-muted-foreground">{clubInfo.website}</p>
                         </div>
                         <div className="text-right">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">ПОЛУЧАТЕЛ:</h2>
+                            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ПОЛУЧАТЕЛ:</h2>
                             {member ? (
                                 <>
                                     <p className="font-bold mt-2">{member.firstName} {member.lastName}</p>
-                                    <p className="text-sm text-gray-600">Редовен член на клуба</p>
+                                    <p className="text-sm text-muted-foreground">Редовен член на клуба</p>
                                 </>
                             ) : (
                                 <p className="font-bold mt-2">Външен клиент</p>
@@ -135,12 +135,12 @@ const SaleReceiptPage = () => {
 
                     <section className="mt-10">
                         <table className="w-full text-sm">
-                            <thead className="border-b border-gray-200">
+                            <thead className="border-b border-border">
                                 <tr>
-                                    <th className="text-left font-semibold text-gray-500 p-2">Артикул</th>
-                                    <th className="text-center font-semibold text-gray-500 p-2">Кол.</th>
-                                    <th className="text-right font-semibold text-gray-500 p-2">Ед. цена</th>
-                                    <th className="text-right font-semibold text-gray-500 p-2">Общо</th>
+                                    <th className="text-left font-semibold text-muted-foreground p-2">Артикул</th>
+                                    <th className="text-center font-semibold text-muted-foreground p-2">Кол.</th>
+                                    <th className="text-right font-semibold text-muted-foreground p-2">Ед. цена</th>
+                                    <th className="text-right font-semibold text-muted-foreground p-2">Общо</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -153,9 +153,9 @@ const SaleReceiptPage = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot className="border-t-2 border-gray-200">
+                            <tfoot className="border-t-2 border-border">
                                 <tr>
-                                    <td colSpan={3} className="text-right p-3 font-bold text-gray-700">ОБЩО ЗА ПЛАЩАНЕ:</td>
+                                    <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНЕ:</td>
                                     <td className="text-right p-3 font-bold text-lg">{(sale.total || 0).toFixed(2)} лв.</td>
                                 </tr>
                             </tfoot>
@@ -164,18 +164,18 @@ const SaleReceiptPage = () => {
 
                     <section className="mt-20 grid grid-cols-2 gap-8 text-center">
                         <div>
-                            <p className="text-sm text-gray-500">Издал:</p>
+                            <p className="text-sm text-muted-foreground">Издал:</p>
                             <p className="text-sm mt-1">(Подпис и печат)</p>
                             <p className="mt-8">/СНЦ "Бадминтон клуб Гълъбово"/</p>
                         </div>
                         <div>
-                             <p className="text-sm text-gray-500">Получил:</p>
+                             <p className="text-sm text-muted-foreground">Получил:</p>
                              <p className="text-sm mt-1">(Подпис)</p>
                              <p className="mt-8">/{member ? `${member.firstName} ${member.lastName}` : '................................'}/</p>
                         </div>
                     </section>
 
-                    <footer className="mt-12 pt-6 border-t border-gray-100 text-center text-xs text-gray-500">
+                    <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
                         <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
                         <p>Той удостоверява предаването и приемането на описаните артикули и служи за целите на вътрешния контрол и отчетност.</p>
                     </footer>

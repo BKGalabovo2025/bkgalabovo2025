@@ -107,15 +107,15 @@ const DashboardPage = () => {
 
       {stats.deferredExternalSales.length > 0 && (
         <div className="mt-6">
-            <Card className="border-amber-500">
+            <Card className="border-warning">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><AlertTriangle className="text-amber-500"/>Отложени плащания (Външни)</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><AlertTriangle className="text-warning"/>Отложени плащания (Външни)</CardTitle>
                     <CardDescription>Това са неплатени продажби от клиенти, които не са членове.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
                         {stats.deferredExternalSales.map((sale: Sale) => (
-                            <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50">
+                            <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                                 <div>
                                   <p className="font-semibold">{sale.customerName}</p>
                                   <p className="text-sm text-muted-foreground">

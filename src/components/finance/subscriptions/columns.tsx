@@ -15,16 +15,34 @@ import {
 import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 
-const statusMap: { [key: string]: { text: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } } = {
-    paid: { text: 'Платен', variant: 'default' },
-    pending: { text: 'Чакащ', variant: 'secondary' },
-    overdue: { text: 'Просрочен', variant: 'destructive' },
+// Defines the shape of the status object, including text and a color variant.
+interface StatusInfo {
+  text: string;
+  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+}
+
+/**
+ * Determines the subscription status based on the end date.
+ * @param endDateString - The end date of the subscription as an ISO string.
+ * @returns A status object with text and a corresponding color variant.
+ */
+const getStatusInfo = (endDateString: string): StatusInfo => {
+  const endDate = new Date(endDateString);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize today to the start of the day for accurate comparison
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+  if (endDate < today) {
+    return { text: 'Изтекъл', variant: 'destructive' }; // Red for expired
+  } else if (endDate <= thirtyDaysFromNow) {
+    return { text: 'Изтичащ', variant: 'outline' }; // Use outline for expiring soon to stand out
+  } else {
+    return { text: 'Активен', variant: 'default' }; // Primary color for active
+  }
 };
 
-const typeMap: { [key: string]: string } = {
-    annual: 'Годишен',
-    monthly: 'Месечен',
-};
 
 export const getSubscriptionColumns = (
     memberMap: Map<string, string>,
@@ -45,30 +63,6 @@ export const getSubscriptionColumns = (
         },
     },
     {
-        accessorKey: "type",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Тип" />
-        ),
-        cell: ({ row }) => {
-            const type = row.getValue("type") as string;
-            return typeMap[type] || type;
-        },
-    },
-    {
-        accessorKey: "amount",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Сума" />
-        ),
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("amount"));
-            const formatted = new Intl.NumberFormat("bg-BG", {
-                style: "currency",
-                currency: "BGN",
-            }).format(amount);
-            return <div className="text-right font-medium">{formatted}</div>;
-        },
-    },
-    {
         accessorKey: "startDate",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Начална дата" />
@@ -83,14 +77,14 @@ export const getSubscriptionColumns = (
         cell: ({ row }) => new Date(row.getValue("endDate")).toLocaleDateString('bg-BG'),
     },
     {
-        accessorKey: "status",
+        id: "status",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Статус" />
         ),
         cell: ({ row }) => {
-            const status = row.getValue("status") as string;
-            const statusInfo = statusMap[status];
-            return <Badge variant={statusInfo?.variant || 'outline'}>{statusInfo?.text || status}</Badge>;
+            const endDate = row.original.endDate;
+            const statusInfo = getStatusInfo(endDate);
+            return <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>;
         },
     },
     {
@@ -108,10 +102,9 @@ export const getSubscriptionColumns = (
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        {/* <DropdownMenuItem>Редактирай</DropdownMenuItem> */}
                         <DropdownMenuItem
                             onClick={() => onDelete(subscription.id)}
-                            className="text-red-600"
+                            className="text-destructive"
                         >
                             Изтрий
                         </DropdownMenuItem>

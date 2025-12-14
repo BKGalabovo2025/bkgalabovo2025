@@ -1,13 +1,29 @@
 
-// src/app/reports/page.tsx
+import LiabilitiesReport from '@/components/reports/liabilities-report';
+import FinancialReport from '@/components/reports/financial-report';
+import RestockReport from '@/components/reports/restock-report'; // Import the new component
 
 const ReportsPage = () => {
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Документи и справки</h1>
-      {/* Reports generation interface will go here */}
-      <p>Генериране на финансови и други справки.</p>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold">Документи и справки</h1>
+      
+      {/* Restock Report Section */}
+      <section>
+        <RestockReport />
+      </section>
+
+      {/* Financial Report Section */}
+      <section>
+        <FinancialReport />
+      </section>
+
+      {/* Liability Report Section */}
+      <section>
+        <LiabilitiesReport />
+      </section>
+
     </div>
   );
 };

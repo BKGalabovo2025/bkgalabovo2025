@@ -64,7 +64,7 @@ const SalesListPage = () => {
                              <p className="ml-4 text-lg text-muted-foreground">Зареждане...</p>
                         </div>
                     ) : error ? (
-                        <div className="text-center py-10 text-red-600 flex flex-col items-center">
+                        <div className="text-center py-10 text-destructive flex flex-col items-center">
                              <AlertTriangle className="h-8 w-8 mb-2" />
                             <p>{error}</p>
                         </div>

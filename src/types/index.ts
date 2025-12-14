@@ -31,7 +31,7 @@ export interface Payment {
     memberId: string; // Link to a Member
     amount: number;
     paymentDate: string;
-    type: 'membership_fee' | 'donation' | 'other'; // Type of payment
+    type: 'Членски внос' | 'Дарение' | 'Друго'; // Type of payment
     notes?: string;
 }
 
@@ -41,7 +41,7 @@ export interface Payment {
 export type Subscription = {
     id: string;
     memberId: string;
-    type: 'annual' | 'monthly' | 'yearly' | 'quarterly' | 'single_visit';
+    type: 'annual' | 'monthly' | 'quarterly' | 'single_visit';
     startDate: string;
     endDate: string;
     status: 'paid' | 'pending' | 'overdue';
@@ -57,6 +57,7 @@ export interface Product {
     description: string;
     price: number;
     stock: number;
+    restockThreshold: number; // The minimum stock level before a restock is needed
     category: string;
     imageUrl?: string;
 }
@@ -84,7 +85,25 @@ export interface Sale {
     status: 'pending' | 'paid' | 'completed' | 'refunded';
 }
 
-// Schedule related types
+/**
+ * Represents a single, unified event for the schedule calendar.
+ */
+export interface ScheduleEvent {
+    id: string;
+    title: string;
+    start: string; // Full ISO 8601 date-time string
+    end: string;   // Full ISO 8601 date-time string
+    type: 'training' | 'competition' | 'camp' | 'event';
+    
+    // Optional fields based on event type
+    description?: string;
+    coach?: string;      // For 'training'
+    location?: string;   // For 'competition', 'camp', or 'event'
+}
+
+// The old, separate types (Training, Competition, etc.) are now replaced by the unified ScheduleEvent.
+// Keeping them commented out for reference, but they should be considered deprecated.
+/*
 export interface BaseEvent {
     id: string;
     title: string;
@@ -114,5 +133,5 @@ export interface ClubEvent extends BaseEvent {
     location?: string;
 }
 
-// Union type for any event that can appear on the schedule
-export type ScheduleEvent = Training | Competition | Camp | ClubEvent;
+export type ScheduleEventUnion = Training | Competition | Camp | ClubEvent;
+*/

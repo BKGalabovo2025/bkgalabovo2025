@@ -193,7 +193,7 @@ const NewSalePage = () => {
                                                     className="w-16 h-8"
                                                 />
                                                 <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.productId)}>
-                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                    <XCircle className="h-4 w-4 text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>

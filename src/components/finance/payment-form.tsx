@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useForm } from "react-hook-form";
@@ -10,40 +11,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from 'lucide-react';
 import { Member, Payment } from "@/types";
 
-const paymentFormSchema = z.object({
+const paymentSchema = z.object({
   memberId: z.string({ required_error: "Моля, изберете член." }),
   amount: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
   paymentDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна дата." }),
-  type: z.enum(['membership_fee', 'donation', 'other'], { required_error: "Моля, изберете тип." }),
+  type: z.enum(["Членски внос", "Дарение", "Друго"], { required_error: "Моля, изберете тип на плащането." }),
   notes: z.string().optional(),
 });
 
-type PaymentFormValues = z.infer<typeof paymentFormSchema>;
-
 interface PaymentFormProps {
   members: Member[];
-  payment?: Payment;
-  onSave: (data: Omit<Payment, 'id'>) => Promise<void> | void;
+  onSave: (data: Omit<Payment, 'id'>) => void;
   onClose: () => void;
+  initialData?: Payment;
+  isSaving?: boolean;
 }
 
-export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormProps) {
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentFormSchema),
-    defaultValues: payment 
-      ? { ...payment, paymentDate: payment.paymentDate.split('T')[0] }
-      : {
-        type: 'membership_fee',
-        notes: '',
-        paymentDate: new Date().toISOString().split('T')[0],
-      }
+export function PaymentForm({ members, onSave, onClose, initialData, isSaving }: PaymentFormProps) {
+  const form = useForm<z.infer<typeof paymentSchema>>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: initialData ? { ...initialData } : {
+      paymentDate: new Date().toISOString().split('T')[0],
+    },
   });
 
-  const onSubmit = (data: PaymentFormValues) => {
+  const onSubmit = (data: z.infer<typeof paymentSchema>) => {
     onSave(data);
   };
-
-  const isEditing = !!payment;
 
   return (
     <Form {...form}>
@@ -54,10 +48,10 @@ export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormPr
           render={({ field }) => (
             <FormItem>
               <FormLabel>Член</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Изберете член..." />
+                    <SelectValue placeholder="Изберете член" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -73,43 +67,42 @@ export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormPr
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-            <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Сума (лв.)</FormLabel>
-                    <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Тип на плащането</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="membership_fee">Членски внос</SelectItem>
-                                <SelectItem value="donation">Дарение</SelectItem>
-                                <SelectItem value="other">Друго</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-        </div>
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Тип на плащането</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Изберете тип" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Членски внос">Членски внос</SelectItem>
+                  <SelectItem value="Дарение">Дарение</SelectItem>
+                  <SelectItem value="Друго">Друго</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Сума</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.01" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -124,15 +117,15 @@ export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormPr
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Бележки (опционално)</FormLabel>
+              <FormLabel>Бележки</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Допълнителна информация..."/>
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,12 +133,10 @@ export function PaymentForm({ members, payment, onSave, onClose }: PaymentFormPr
         />
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Отказ
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
-            {isEditing ? 'Запази промените' : 'Запази плащане'}
+          <Button type="button" variant="ghost" onClick={onClose}>Отказ</Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+            Запис
           </Button>
         </div>
       </form>

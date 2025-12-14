@@ -70,6 +70,17 @@ export const addSubscription = async (subscriptionData: Omit<Subscription, 'id'>
 };
 
 /**
+ * Обновява съществуващ абонамент в базата данни.
+ * @param subscriptionId - ID на абонамента за обновяване.
+ * @param subscriptionData - Обект с полетата за обновяване.
+ * @returns Promise, което завършва, когато обновяването е приключило.
+ */
+export const updateSubscription = async (subscriptionId: string, subscriptionData: Partial<Omit<Subscription, 'id'>>): Promise<void> => {
+    const subscriptionDoc = doc(db, 'subscriptions', subscriptionId);
+    await updateDoc(subscriptionDoc, subscriptionData);
+};
+
+/**
  * Извлича всички абонаменти от системата, сортирани по начална дата.
  * @returns Promise, което връща масив с всички абонаменти.
  */

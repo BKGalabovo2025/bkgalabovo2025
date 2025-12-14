@@ -186,7 +186,7 @@ const MembersPage = () => {
                     <TableCell>{member.email}</TableCell>
                     <TableCell>{phoneInfo}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
                         {member.status === 'active' ? 'Активен' : 'Неактивен'}
                       </span>
                     </TableCell>
@@ -204,7 +204,7 @@ const MembersPage = () => {
                           <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Преглед</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()} onClick={() => setMemberToDelete(member)}>Изтрий</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()} onClick={() => setMemberToDelete(member)}>Изтрий</DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuContent>
                       </DropdownMenu>

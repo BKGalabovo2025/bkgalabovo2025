@@ -17,6 +17,7 @@ const productFormSchema = z.object({
   category: z.string().min(3, { message: "Категорията трябва да е поне 3 символа." }),
   price: z.coerce.number().positive({ message: "Цената трябва да е положително число." }),
   stock: z.coerce.number().int().min(0, { message: "Наличността не може да е отрицателна." }),
+  restockThreshold: z.coerce.number().int().min(0, { message: "Прагът не може да е отрицателен." }),
   imageUrl: z.string().url({ message: "Моля, въведете валиден URL." }).or(z.literal('')).optional(),
 });
 
@@ -41,12 +42,13 @@ interface ProductFormProps {
 export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: product ? { ...product, price: product.price || 0, stock: product.stock || 0 } : {
+    defaultValues: product ? { ...product, price: product.price || 0, stock: product.stock || 0, restockThreshold: product.restockThreshold || 0 } : {
         name: '',
         description: '',
         category: '',
         price: 0,
         stock: 0,
+        restockThreshold: 0,
         imageUrl: '',
     }
   });
@@ -100,7 +102,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <FormField
                 control={form.control}
                 name="price"
@@ -120,6 +122,19 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>Наличност (бр.)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="1" placeholder="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="restockThreshold"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Праг за презареждане</FormLabel>
                         <FormControl>
                             <Input type="number" step="1" placeholder="0" {...field} />
                         </FormControl>

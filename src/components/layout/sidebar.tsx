@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Users, DollarSign, LogOut, ShoppingCart, Receipt } from 'lucide-react'; // Добавяме икони
+import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
 export function AppSidebar() {
@@ -15,7 +15,7 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
 
   return (
-    <Sidebar>
+    <Sidebar className="bg-sidebar-background text-sidebar-foreground">
       <SidebarHeader>
         <div className="w-full text-center py-4 px-2">
           <h1 className="text-lg font-bold">{clubInfo.name}</h1>
@@ -41,7 +41,7 @@ export function AppSidebar() {
         <SidebarMenuItem>
           <Link href="/finances" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances')}>
-              <DollarSign className="w-4 h-4" />
+              <CreditCard className="w-4 h-4" />
               <span>Финанси</span>
             </SidebarMenuButton>
           </Link>
@@ -54,7 +54,6 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
-        {/* Нов линк за Продажби */}
         <SidebarMenuItem>
           <Link href="/sales" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/sales')}>

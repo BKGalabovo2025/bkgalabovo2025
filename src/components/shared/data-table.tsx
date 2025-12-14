@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue> {
   filterPlaceholder: string,
   isLoading: boolean,
   emptyStateMessage: string,
+  getCellValue?: (row: TData, columnId: string) => any;
 }
  
 export function DataTable<TData, TValue>({
@@ -44,6 +45,7 @@ export function DataTable<TData, TValue>({
   filterPlaceholder,
   isLoading,
   emptyStateMessage,
+  getCellValue,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -116,10 +118,12 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {getCellValue 
+                        ? getCellValue(row.original, cell.column.id)
+                        : flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                     </TableCell>
                   ))}
                 </TableRow>
