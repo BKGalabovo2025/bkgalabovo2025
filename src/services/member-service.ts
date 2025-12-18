@@ -44,7 +44,7 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 /**
  * Fetches all members from Firestore.
  */
-export const getMembers = async (): Promise<Member[]> => {
+export const getAllMembers = async (): Promise<Member[]> => {
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   const querySnapshot = await getDocs(membersCollection);
   return querySnapshot.docs.map(docToMember);

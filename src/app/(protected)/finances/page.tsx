@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Member, Subscription, Payment } from '@/types';
-import { getMembers } from '@/services/member-service';
+import { getAllMembers } from '@/services/member-service'; // Corrected import
 import { addPayment, addSubscription, getAllSubscriptions, deleteSubscription, updateSubscription } from '@/services/finance-service';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -23,7 +23,7 @@ const FinancesPage = () => {
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [subs, mems] = await Promise.all([getAllSubscriptions(), getMembers()]);
+      const [subs, mems] = await Promise.all([getAllSubscriptions(), getAllMembers()]); // Corrected function call
       setSubscriptions(subs);
       setMembers(mems);
     } catch (error) {
