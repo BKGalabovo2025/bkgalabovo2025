@@ -139,7 +139,6 @@ const MembersPage = () => {
                   member={selectedMember} 
                   onSave={handleSaveMember} 
                   onClose={() => setIsFormOpen(false)} 
-                  onFamilyUpdate={() => {}} // No longer needed, but prop can remain for now
                 />
             </DialogContent>
             </Dialog>
@@ -230,7 +229,7 @@ const MembersPage = () => {
                     <TableRow>
                         <TableCell colSpan={7} className="h-24 text-center">
                         Няма намерени членове. Започнете, като добавите нов член.
-                        </TableCell
+                        </TableCell>
                     </TableRow>
                 )}
                 </TableBody>
