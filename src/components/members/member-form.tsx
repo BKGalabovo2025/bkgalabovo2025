@@ -141,7 +141,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSaving(true);
     try {
-        await onSave({ ...values, familyId: member?.familyId } as Omit<Member, 'id'>);
+        await onSave({ ...values, familyId: member?.familyId || null } as Omit<Member, 'id'>);
     } finally {
         setIsSaving(false);
     }
