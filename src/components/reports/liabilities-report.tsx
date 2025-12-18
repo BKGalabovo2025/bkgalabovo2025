@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Member, Subscription } from '@/types';
 import { getAllSubscriptions } from '@/services/finance-service'; // Corrected function name
-import { getMembers } from '@/services/member-service';
+import { getAllMembers } from '@/services/member-service';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -23,7 +23,7 @@ const LiabilitiesReport = () => {
       setIsLoading(true);
       try {
         const allSubscriptions = await getAllSubscriptions(); // Corrected function call
-        const allMembers = await getMembers();
+        const allMembers = await getAllMembers();
         
         const unpaidSubscriptions = allSubscriptions.filter(
           (sub) => sub.status === 'pending' || sub.status === 'overdue'

@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Payment, Member } from '@/types';
 import { getAllPayments } from '@/services/finance-service';
-import { getMembers } from '@/services/member-service';
+import { getAllMembers } from '@/services/member-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +29,7 @@ const FinancialReport = () => {
       try {
         const [allPayments, allMembers] = await Promise.all([
           getAllPayments(),
-          getMembers(),
+          getAllMembers(),
         ]);
         setPayments(allPayments);
         setMembers(allMembers);

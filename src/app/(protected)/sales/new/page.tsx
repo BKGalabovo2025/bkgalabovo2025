@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 
 import { getProducts } from '@/services/inventory-service';
-import { getMembers } from '@/services/member-service';
+import { getAllMembers } from '@/services/member-service';
 import { addSale } from '@/services/sales-service';
 import { Product, Member, SaleItem, Sale } from '@/types';
 
@@ -38,7 +38,7 @@ const NewSalePage = () => {
             try {
                 const [productsData, membersData] = await Promise.all([
                     getProducts(),
-                    getMembers()
+                    getAllMembers()
                 ]);
                 setProducts(productsData);
                 setMembers(membersData);
