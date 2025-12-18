@@ -111,30 +111,24 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
 
         if (!currentFamilyId && selectedMemberIds.length > 0) {
             const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
-            member.familyId = newFamilyId;
+            // This update will be automatically picked up by the snapshot listener
+            // We might need to update the local member object if it affects the form
         } else if (currentFamilyId) {
-            const initialMemberIds = familyMembers.map(m => m.id);
+            const initialMemberIds = familyMembers.map(m => m.id).filter(id => id !== member.id);
             const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
             for (const id of membersToAdd) {
                 await addMemberToFamily(currentFamilyId, id);
             }
 
-            const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id) && id !== memberId);
+            const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id));
             for (const id of membersToRemove) {
                 await removeMemberFromFamily(currentFamilyId, id);
             }
         }
-
-        const updatedFamily = member.familyId ? await getFamilyById(member.familyId) : null;
-        if (updatedFamily) {
-            const membersInFamily = allMembers.filter(m => updatedFamily.memberIds.includes(m.id));
-            setFamilyMembers(membersInFamily);
-        } else {
-            setFamilyMembers([]);
-        }
     } finally {
         setIsSaving(false);
         setFamilyDialogOpen(false);
+        // No manual refetch needed!
     }
   };
 

@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { useMembers } from '@/hooks/useMembers';
 import { Member } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -41,13 +42,12 @@ import {
     TooltipTrigger,
   } from "@/components/ui/tooltip";
 import { MemberForm } from '@/components/members/member-form';
-import { getMembers, addMember, updateMember, deleteMember } from '@/services/member-service';
+import { addMember, updateMember, deleteMember } from '@/services/member-service';
 import { useToast } from "@/components/ui/use-toast";
 import { getAgeGroup } from '@/lib/utils';
 
 const MembersPage = () => {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { members, loading: isLoading, error } = useMembers(); // Use the hook
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
@@ -55,30 +55,14 @@ const MembersPage = () => {
   const { user } = useAuth();
   const router = useRouter();
 
-  const fetchMembers = async () => {
-    setIsLoading(true);
-    try {
-      const membersData = await getMembers();
-      setMembers(membersData);
-    } catch (error) {
-      console.error("Грешка от Firebase: ", error);
-      toast({ title: "Грешка при зареждане на членовете", description: "Моля, опитайте отново.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (user === null) {
       router.replace('/login');
-      return;
     }
-
-    if (user) {
-      fetchMembers();
+    if (error) {
+        toast({ title: "Грешка при зареждане на членовете", description: error.message, variant: "destructive" });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router]);
+  }, [user, error, router, toast]);
 
   const handleSaveMember = async (data: Omit<Member, 'id'>) => {
     try {
@@ -91,7 +75,7 @@ const MembersPage = () => {
       }
       setIsFormOpen(false);
       setSelectedMember(undefined);
-      await fetchMembers(); // Re-fetch data to reflect all changes
+      // No manual refetch needed!
     } catch (error) {
         console.error("Грешка от Firebase: ", error);
         toast({ title: "Грешка при запис", description: "Възникна грешка при запазването на данните.", variant: "destructive" });
@@ -103,9 +87,9 @@ const MembersPage = () => {
 
     try {
       await deleteMember(memberToDelete.id);
-      setMembers(members.filter(m => m.id !== memberToDelete.id));
       toast({ title: "Членът е изтрит", description: "Данните бяха успешно изтрити от системата." });
       setMemberToDelete(null);
+      // No manual state update needed!
     } catch (error) {
       console.error("Грешка от Firebase: ", error);
       toast({ title: "Грешка при изтриване", description: "Възникна грешка при изтриването на члена.", variant: "destructive" });
@@ -152,9 +136,10 @@ const MembersPage = () => {
                 </DialogDescription>
                 </DialogHeader>
                 <MemberForm 
-                member={selectedMember} 
-                onSave={handleSaveMember} 
-                onClose={() => setIsFormOpen(false)} 
+                  member={selectedMember} 
+                  onSave={handleSaveMember} 
+                  onClose={() => setIsFormOpen(false)} 
+                  onFamilyUpdate={() => {}} // No longer needed, but prop can remain for now
                 />
             </DialogContent>
             </Dialog>
@@ -245,7 +230,7 @@ const MembersPage = () => {
                     <TableRow>
                         <TableCell colSpan={7} className="h-24 text-center">
                         Няма намерени членове. Започнете, като добавите нов член.
-                        </TableCell>
+                        </TableCell
                     </TableRow>
                 )}
                 </TableBody>
