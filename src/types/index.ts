@@ -21,6 +21,7 @@ export interface Member {
     educationInstitution?: string;
     avatarUrl?: string; // URL for the member's avatar image
     createdAt?: string; // Added for dashboard
+    familyId?: string; // ID of the family group
 }
 
 /**
@@ -98,4 +99,12 @@ export interface ScheduleEvent {
     description?: string;
     color?: string; // Color is determined dynamically, but can be here
     attendees?: string[]; // Array of member IDs
+}
+
+/**
+ * Represents a family group of members.
+ */
+export interface Family {
+    id: string;
+    memberIds: string[]; // List of member IDs belonging to this family
 }

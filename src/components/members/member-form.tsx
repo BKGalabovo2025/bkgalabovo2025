@@ -1,9 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Member } from '@/types';
+import { useMembers } from '@/hooks/useMembers';
+import { getFamilyById, createFamily, addMemberToFamily, removeMemberFromFamily } from '@/services/family-service';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -22,8 +26,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { ManageFamilyDialog } from './manage-family-dialog'; // Assuming the dialog is in the same folder
 
-// Схема за валидация с Zod, съобразена с актуалния Member тип
+// Form schema remains the same
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Името трябва да е поне 2 символа.' }),
   middleName: z.string().optional(),
@@ -36,7 +48,7 @@ const formSchema = z.object({
   status: z.enum(['active', 'inactive']),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
-  personalId: z.string().optional(), // Остава в схемата, но не и във формата
+  personalId: z.string().optional(),
   registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
 });
 
@@ -47,6 +59,10 @@ interface MemberFormProps {
 }
 
 export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
+  const [isFamilyDialogOpen, setFamilyDialogOpen] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
+  const { members: allMembers, loading: loadingMembers } = useMembers(); // Hook to get all members
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: member ? {
@@ -70,199 +86,138 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave(values as Omit<Member, 'id'>);
+  useEffect(() => {
+    if (member && member.familyId && allMembers.length > 0) {
+        const fetchFamily = async () => {
+            const family = await getFamilyById(member.familyId!);
+            if (family) {
+                const membersInFamily = allMembers.filter(m => family.memberIds.includes(m.id));
+                setFamilyMembers(membersInFamily);
+            }
+        };
+        fetchFamily();
+    }
+  }, [member, allMembers]);
+
+
+  const handleSaveFamily = async (selectedMemberIds: string[]) => {
+    if (!member) return;
+
+    const currentFamilyId = member.familyId;
+    const memberId = member.id;
+
+    if (!currentFamilyId && selectedMemberIds.length > 0) {
+        // Case 1: Create a new family
+        const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
+        member.familyId = newFamilyId; // Update local member object
+    } else if (currentFamilyId) {
+        // Case 2: Modify an existing family
+        const initialMemberIds = familyMembers.map(m => m.id);
+
+        // Find members to add
+        const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
+        for (const id of membersToAdd) {
+            await addMemberToFamily(currentFamilyId, id);
+        }
+
+        // Find members to remove
+        const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id));
+        for (const id of membersToRemove) {
+            await removeMemberFromFamily(currentFamilyId, id);
+        }
+    }
+
+    // Refresh family members list after changes
+    const updatedFamily = member.familyId ? await getFamilyById(member.familyId) : null;
+    if (updatedFamily) {
+        const membersInFamily = allMembers.filter(m => updatedFamily.memberIds.includes(m.id));
+        setFamilyMembers(membersInFamily);
+    } else {
+        setFamilyMembers([]);
+    }
+    setFamilyDialogOpen(false);
   };
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // We pass the updated member data (with familyId) to the onSave function
+    onSave({ ...values, familyId: member?.familyId } as Omit<Member, 'id'>);
+  };
+
+  const otherFamilyMembers = familyMembers.filter(m => m.id !== member?.id);
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+        {/* ... All other form fields ... */}
+        
+        {/* All the existing form fields are here. They are omitted for brevity */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Име</FormLabel>
-                <FormControl>
-                  <Input placeholder="Иван" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="middleName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Презиме</FormLabel>
-                <FormControl>
-                  <Input placeholder="Иванов" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Фамилия</FormLabel>
-                <FormControl>
-                  <Input placeholder="Петров" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>Име</FormLabel><FormControl><Input placeholder="Иван" {...field} /></FormControl><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="middleName" render={({ field }) => (<FormItem><FormLabel>Презиме</FormLabel><FormControl><Input placeholder="Иванов" {...field} /></FormControl><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Фамилия</FormLabel><FormControl><Input placeholder="Петров" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Имейл (опционално)</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="ivan.petrov@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Имейл (опционално)</FormLabel><FormControl><Input type="email" placeholder="ivan.petrov@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
-                <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Телефон (опционално)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="0888123456" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
+                <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Телефон (опционално)</FormLabel><FormControl><Input placeholder="0888123456" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
-            <FormField
-                control={form.control}
-                name="phoneType"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Тип на телефона</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="personal">Личен</SelectItem>
-                        <SelectItem value="parent">На родител</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
+            <FormField control={form.control} name="phoneType" render={({ field }) => (<FormItem><FormLabel>Тип на телефона</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="personal">Личен</SelectItem><SelectItem value="parent">На родител</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Дата на раждане</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="registrationDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Дата на регистрация</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Статус</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Избери статус" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="active">Активен</SelectItem>
-                    <SelectItem value="inactive">Неактивен</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Дата на раждане</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="registrationDate" render={({ field }) => (<FormItem><FormLabel>Дата на регистрация</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Статус</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Избери статус" /></SelectTrigger></FormControl><SelectContent><SelectItem value="active">Активен</SelectItem><SelectItem value="inactive">Неактивен</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
         </div>
-        <FormField
-            control={form.control}
-            name="educationInstitution"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Образователна институция</FormLabel>
-                <FormControl>
-                  <Input placeholder="СУ Св. Климент Охридски" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Адрес (опционално)</FormLabel>
-                <FormControl>
-                  <Input placeholder="гр. София, ул. Примерна 1" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Бележки</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Допълнителна информация..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField control={form.control} name="educationInstitution" render={({ field }) => (<FormItem><FormLabel>Образователна институция</FormLabel><FormControl><Input placeholder="СУ Св. Климент Охридски" {...field} /></FormControl><FormMessage /></FormItem>)} />
+        <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Адрес (опционално)</FormLabel><FormControl><Input placeholder="гр. София, ул. Примерна 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
+        <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Бележки</FormLabel><FormControl><Textarea placeholder="Допълнителна информация..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+        {/* --- Family Section --- */}
+        {member && (
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Семейство</CardTitle>
+                    <CardDescription>
+                        Свържете този член с други членове от същото семейство (братя, сестри).
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-md border p-4 min-h-[60px]">
+                        {otherFamilyMembers.length > 0 ? (
+                            <ul className="space-y-1">
+                                {otherFamilyMembers.map(m => (
+                                    <li key={m.id} className="text-sm font-medium">{m.firstName} {m.lastName}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground text-center">
+                                Няма свързани членове на семейството.
+                            </p>
+                        )}
+                    </div>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => setFamilyDialogOpen(true)}>
+                        Управление на семейство
+                    </Button>
+                </CardContent>
+            </Card>
+        )}
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button type="button" variant="ghost" onClick={onClose}>Отказ</Button>
           <Button type="submit">Запази</Button>
         </div>
       </form>
+
+      {member && (
+        <ManageFamilyDialog 
+            isOpen={isFamilyDialogOpen}
+            onClose={() => setFamilyDialogOpen(false)}
+            onSave={handleSaveFamily}
+            currentMember={member}
+            allMembers={allMembers}
+        />
+      )}
+
     </Form>
   );
 };
