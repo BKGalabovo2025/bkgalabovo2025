@@ -1,81 +1,157 @@
-# Badminton Club Management System
+# Система за управление на бадминтон клуб
 
-This project is an administrative application for a badminton club, designed to be managed by a single administrative user.
+Този проект е административно приложение за бадминтон клуб, предназначено за управление от един администратор. Системата е изградена с Next.js, TypeScript, Firebase и е публикувана на Vercel.
 
-## Project Plan
+---
 
-This plan outlines the main modules, functions, and data requirements for the club's administrative system.
+## ✅ Какво сме постигнали досега
 
-### I. Core Modules
+Тази секция обобщава функционалностите, които са успешно имплементирани и работят в момента.
 
-| Module | Main Purpose | Target Users |
+### Основна инфраструктура
+*   **Автентикация:** Сигурен вход за един администраторски акаунт чрез Firebase Authentication.
+*   **База данни:** Cloud Firestore е интегрирана за съхранение на всички данни.
+*   **Стилизиране и UI:** Интерфейсът е изграден с Tailwind CSS и библиотеката от компоненти Shadcn/ui за модерен и адаптивен дизайн.
+*   **Публикуване (Deployment):** Приложението се публикува автоматично на Vercel.
+
+### Функционални модули
+*   **👤 Членове (CRM):**
+    *   Пълна функционалност за **добавяне, преглед, редакция и изтриване** на профили на членове.
+    *   Таблица с данни с възможност за търсене и филтриране за лесно намиране на членове.
+    *   Специализирана **страница с детайли** за всеки член, показваща пълната му информация и история на покупките.
+
+*   **📦 Инвентар и магазин:**
+    *   Пълна CRUD (Създаване, Четене, Актуализиране, Изтриване) функционалност за продуктите в клубния магазин.
+    *   Управление на детайлите на продуктите, включително име, цена и наличност.
+
+*   **🛒 Продажби:**
+    *   POS (Point-of-Sale) интерфейс за **създаване на нови продажби**, с избор от наличните продукти.
+    *   Възможност за асоцииране на продажби с член на клуба или обработването им за външен клиент.
+    *   Проследяване на статуса на плащане (**Платено / Отложено**).
+    *   Пълен списък с всички минали трансакции.
+
+*   **💳 Финанси и абонаменти:**
+    *   Система за записване на плащания, включително **членски внос, дарения и други**.
+    *   **Автоматична обработка на годишни абонаменти:** При плащане на "Членски внос", системата автоматично създава нов годишен абонамент или удължава съществуващия.
+    *   Таблица с данни, показваща всички абонаменти на членовете, техния статус (платен, чакащ, просрочен) и периоди на валидност.
+
+*   **📊 Справки:**
+    *   **Финансова справка:** Динамично генериране на отчети за приходите, с възможност за филтриране по период и тип на плащането.
+    *   **Справка задължения:** Автоматично генериране на списък с всички членове с неплатени абонаменти.
+
+---
+
+## 🚀 Какво предстои (за обсъждане)
+
+Тази секция очертава потенциални модули и функционалности за бъдещо развитие. Тези идеи са отправна точка за дискусия, за да определим най-добрия път за развитие на проекта.
+
+*   **🗓️ Модул "График и събития":**
+    *   **Цел:** Да се управлява графика на клуба за тренировки, състезания и други събития.
+    *   **Възможни функционалности:**
+        *   Визуален календар със седмичен/месечен изглед.
+        *   Възможност за добавяне, редакция и изтриване на събития (редовни тренировки, еднократни събития, турнири, лагери).
+        *   Система за отчитане на присъствията на членовете в тренировките.
+
+*   **📈 Подобрено табло и анализи (Dashboard):**
+    *   **Цел:** Да предоставя обобщена информация за състоянието на клуба на главната страница.
+    *   **Възможни функционалности:**
+        *   Показване на ключови метрики като месечен приход, нови членове, общ брой активни членове.
+        *   Известия за продукти с ниска наличност или абонаменти, които скоро изтичат.
+        *   Визуализация на данни с графики (напр. приходи във времето).
+
+*   **📄 Генериране на документи:**
+    *   **Цел:** Да се автоматизира създаването на официални документи.
+    *   **Възможни функционалности:**
+        *   Генериране на PDF фактури или касови бележки за продажби от магазина.
+        *   Създаване на протоколи за презареждане на инвентара за поръчка от доставчици.
+
+*   **🔔 Система за известия:**
+    *   **Цел:** Да уведомява администратора проактивно за важни събития.
+    *   **Възможни функционалности:**
+        *   Известия в приложението за просрочени плащания или ниски наличности.
+        *   Опционални имейл напомняния за членове, чиито абонаменти са напът да изтекат.
+
+*   **✨ UI/UX подобрения:**
+    *   **Цел:** Непрекъснато подобряване на използваемостта и усещането при работа с приложението.
+    *   **Възможни функционалности:**
+        *   Събиране на обратна връзка за текущия работен процес и идентифициране на зони за подобрение.
+        *   Подобряване на работата на мобилни устройства.
+
+---
+
+## Първоначален план на проекта
+
+Този план очертава основните модули, функции и изисквания към данните за административната система на клуба.
+
+### I. Основни модули
+
+| Модул | Основна цел | Целеви потребители |
 | --- | --- | --- |
-| 1. Members (CRM) | Manage the profiles of all members and players. | Administrator |
-| 2. Finances | Track income (subscriptions, visits, contributions) and generate reports. | Administrator |
-| 3. Schedule & Events| Manage the monthly schedule, training, competitions, and special events. | Administrator |
-| 4. Shop & Inventory | Manage stock, prices, and sales of club inventory. | Administrator |
-| 5. Documents & Reports| Automatically generate financial reports and sales documents. | Administrator |
+| 1. Членове (CRM) | Управление на профилите на всички членове и играчи. | Администратор |
+| 2. Финанси | Проследяване на приходи (абонаменти, посещения, дарения) и генериране на отчети. | Администратор |
+| 3. График и събития| Управление на месечния график, тренировки, състезания и специални събития. | Администратор |
+| 4. Магазин и инвентар | Управление на наличности, цени и продажби на клубния инвентар. | Администратор |
+| 5. Документи и справки| Автоматично генериране на финансови отчети и документи за продажби. | Администратор |
 
-### II. Detailed Module Descriptions
+### II. Детайлно описание на модулите
 
-#### 1. Members (CRM) Module
-*   **Purpose:** Maintain an up-to-date database of all members (active and inactive).
-*   **Features:**
-    *   **Add Member:** Create a new profile.
-        *   **Edit Member:** Update existing information.
-            *   **Delete/Archive Member:** Deactivate or permanently delete a profile.
-                *   **Search & Filter:** Search by name, filter by status (Active/Inactive).
-                    *   **Payment History:** Link to the finance module to view all member payments.
-                    *   **Data Fields:** First Name, Last Name, Personal ID (optional), Date of Birth, Phone, Email, Address, Registration Date, Active/Inactive Status, Notes.
+#### 1. Модул "Членове" (CRM)
+*   **Цел:** Поддържане на актуална база данни с всички членове (активни и неактивни).
+*   **Функции:**
+    *   **Добавяне на член:** Създаване на нов профил.
+    *   **Редакция на член:** Актуализиране на съществуваща информация.
+    *   **Изтриване/Архивиране на член:** Деактивиране или перманентно изтриване на профил.
+    *   **Търсене и филтриране:** Търсене по име, филтриране по статус (Активен/Неактивен).
+    *   **История на плащанията:** Връзка към финансовия модул за преглед на всички плащания на члена.
+    *   **Полета с данни:** Име, Фамилия, ЕГН (опционално), Дата на раждане, Телефон, Имейл, Адрес, Дата на регистрация, Статус (Активен/Неактивен), Бележки.
 
-                    #### 2. Finances Module
-                    *   **Purpose:** Track and manage all income from club activities.
-                    *   **Features:**
-                        *   **Manage Subscriptions (Monthly):** Handle different types of subscriptions (e.g., "Full Access", 12 visits, Kids Group).
-                            *   **Log Individual Visits:** Register payment for a single training session/court usage.
-                                *   **Log Membership Fees (Annual):** Register the mandatory annual membership fee.
-                                    *   **Generate Reports:** Create financial reports by period (month/year) and income type. List unpaid subscriptions.
-                                    *   **Payment Data:** Subscription Name, Price, Validity Period, Status (Paid/Unpaid), Member ID, Payment Date.
+#### 2. Модул "Финанси"
+*   **Цел:** Проследяване и управление на всички приходи от клубни дейности.
+*   **Функции:**
+    *   **Управление на абонаменти (месечни):** Обработка на различни видове абонаменти (напр. "Пълен достъп", 12 посещения, Детска група).
+    *   **Регистриране на индивидуални посещения:** Записване на плащане за единична тренировка/използване на корт.
+    *   **Регистриране на членски внос (годишен):** Записване на задължителния годишен членски внос.
+    *   **Генериране на справки:** Създаване на финансови справки по период (месец/година) и тип приход. Списък с неплатени абонаменти.
+    *   **Данни за плащане:** Име на абонамент, Цена, Период на валидност, Статус (Платен/Неплатен), ID на член, Дата на плащане.
 
-                                    #### 3. Schedule & Events Module
-                                    *   **Purpose:** Organize and manage all planned club activities.
-                                    *   **Features:**
-                                        *   **Monthly Schedule:** Create regular training sessions.
-                                            *   **Additional Training:** Add extra or substitute training sessions.
-                                                *   **Competitions:** Plan internal and external tournaments.
-                                                    *   **Camps:** Manage sports camps.
-                                                        *   **Other Events:** Register club events like demonstrations, meetings, parties.
-                                                        *   **Event Data:** Title, Date, Start/End Time, Coach, Location (Court), Target Group, Price (if applicable).
+#### 3. Модул "График и събития"
+*   **Цел:** Организиране и управление на всички планирани клубни дейности.
+*   **Функции:**
+    *   **Месечен график:** Създаване на редовни тренировки.
+    *   **Допълнителни тренировки:** Добавяне на извънредни или заместващи тренировки.
+    *   **Състезания:** Планиране на вътрешни и външни турнири.
+    *   **Лагери:** Управление на спортни лагери.
+    *   **Други събития:** Регистриране на клубни събития като демонстрации, събрания, партита.
+    *   **Данни за събитие:** Заглавие, Дата, Начален/Краен час, Треньор, Място (корт), Целева група, Цена (ако е приложимо).
 
-                                                        #### 4. Shop & Inventory Module
-                                                        *   **Purpose:** Manage the stock and sales of club inventory (rackets, shuttles, apparel, etc.).
-                                                        *   **Features:**
-                                                            *   **Product Management:** Add, edit, and delete items.
-                                                                *   **Stock Management:** Track the number of available items.
-                                                                    *   **Price Management:** Set and change selling prices.
-                                                                        *   **Register Sale:** Record the sale of an item.
-                                                                            *   **Stock Report:** Report on current stock levels and sales.
-                                                                            *   **Item Data:** Item Name, Category, Supplier, Description, Stock Quantity, Reorder Level, Sale Price.
+#### 4. Модул "Магазин и инвентар"
+*   **Цел:** Управление на наличностите и продажбите на клубния инвентар (ракети, пера, екипировка и др.).
+*   **Функции:**
+    *   **Управление на продукти:** Добавяне, редакция и изтриване на артикули.
+    *   **Управление на наличности:** Проследяване на броя налични артикули.
+    *   **Управление на цени:** Задаване и промяна на продажните цени.
+    *   **Регистриране на продажба:** Записване на продажбата на артикул.
+    *   **Справка за наличности:** Отчет за текущите наличности и продажби.
+    *   **Данни за артикул:** Име на артикул, Категория, Доставчик, Описание, Количество на склад, Ниво за презареждане, Продажна цена.
 
-                                                                            #### 5. Documents & Reports Module
-                                                                            *   **Purpose:** Generate official documents based on data from other modules.
-                                                                            *   **Documents:**
-                                                                                *   **Financial Report:** Monthly or annual income report, grouped by type.
-                                                                                    *   **Liabilities Report:** List of members with unpaid subscriptions/fees.
-                                                                                        *   **Invoice / Receipt:** Document for inventory sales.
-                                                                                            *   **Restock Protocol:** List of items below the minimum stock level for supplier orders.
+#### 5. Модул "Документи и справки"
+*   **Цел:** Генериране на официални документи въз основа на данни от другите модули.
+*   **Документи:**
+    *   **Финансова справка:** Месечен или годишен отчет за приходите, групиран по тип.
+    *   **Справка задължения:** Списък на членовете с неплатени абонаменти/такси.
+    *   **Фактура / Касова бележка:** Документ за продажби на инвентар.
+    *   **Протокол за презареждане:** Списък с артикули под минималното ниво на наличност за поръчка към доставчици.
 
-                                                                                            ### III. Technology Stack
-                                                                                            The choice of technologies is focused on platforms with generous free tiers to ensure no monthly costs for the club.
+### III. Технологичен стек
+Изборът на технологии е фокусиран върху платформи с щедри безплатни планове, за да се гарантира липсата на месечни разходи за клуба.
 
-                                                                                            | Component | Recommended Technology | Justification (Free Plan) |
-                                                                                            | --- | --- | --- |
-                                                                                            | **Backend/Database** | Google Firebase (Firestore) or Supabase (PostgreSQL) | Provides a fast backend and database with generous free tier limits suitable for a small club. |
-                                                                                            | **Frontend** | React, Vue, or Svelte (using Next.js) | Free and open-source JavaScript frameworks for a modern UI. |
-                                                                                            | **Hosting** | Vercel or Netlify | Free hosting for static and server-side rendered client applications. |
-                                                                                            | **Authentication** | Firebase Authentication or Supabase Auth | Included in the free plan. Used for managing the single Administrator account. |
-                                                                                            | **Document Generation** | Client-side PDF Generation (e.g., `jsPDF`) | Free libraries. Generation is done directly in the browser. |
+| Компонент | Препоръчителна технология | Обосновка (безплатен план) |
+| --- | --- | --- |
+| **Бекенд/База данни** | Google Firebase (Firestore) | Предоставя бърз бекенд и база данни с щедри лимити в безплатния план, подходящи за малък клуб. |
+| **Фронтенд** | React (с Next.js) | Безплатна JavaScript библиотека с отворен код за модерен потребителски интерфейс. |
+| **Хостинг** | Vercel | Безплатен хостинг за статични и сървърно рендирани клиентски приложения. |
+| **Автентикация** | Firebase Authentication | Включена в безплатния план. Използва се за управление на единствения администраторски акаунт. |
+| **Генериране на документи** | Клиентски PDF библиотеки (напр. `jsPDF`) | Безплатни библиотеки. Генерирането се извършва директно в браузъра. |
 
-                                                                                            ### 🔑 Security
-                                                                                            The system will use a single "Administrator" role. Database access rules will be configured to ensure that only an authenticated Administrator has full read and write access to all data.
-                                                                                            
+### 🔑 Сигурност
+Системата ще използва една-единствена роля "Администратор". Правилата за достъп до базата данни ще бъдат конфигурирани така, че само удостоверен администратор да има пълен достъп за четене и запис на всички данни.
