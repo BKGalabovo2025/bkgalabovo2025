@@ -205,9 +205,18 @@ const MembersPage = () => {
                         <TableCell>{member.email}</TableCell>
                         <TableCell>{phoneInfo}</TableCell>
                         <TableCell>
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${member.status === 'active' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-                            {member.status === 'active' ? 'Активен' : 'Неактивен'}
-                        </span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ 
+                                member.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}>
+                                <svg className={`-ml-0.5 mr-1.5 h-2 w-2 ${ 
+                                    member.status === 'active' ? 'text-green-500' : 'text-gray-500' 
+                                }`} fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="3" />
+                                </svg>
+                                {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                            </span>
                         </TableCell>
                         <TableCell>{formatDate(member.registrationDate)}</TableCell>
                         <TableCell>
