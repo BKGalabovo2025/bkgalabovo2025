@@ -1,135 +1,117 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Member } from '@/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getFamilyById } from '@/services/family-service';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { X, Plus } from 'lucide-react';
 
 interface ManageFamilyDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  // The onSave function expects the list of OTHER member IDs, excluding the current one.
-  onSave: (otherMemberIds: string[]) => void;
+  onSave: (selectedMemberIds: string[]) => void;
   currentMember: Member;
   allMembers: Member[];
 }
 
 export const ManageFamilyDialog = ({ isOpen, onClose, onSave, currentMember, allMembers }: ManageFamilyDialogProps) => {
-  // This state holds the full list of members that will be in the family.
-  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // Effect to initialize the selected members when the dialog opens.
   useEffect(() => {
     if (isOpen) {
-        // Always start with the current member in the list.
-        const initialSelection = [currentMember];
-
-        const fetchFamily = async () => {
-            if (currentMember.familyId) {
-                const family = await getFamilyById(currentMember.familyId);
-                if (family) {
-                    const familyMembers = allMembers.filter(m => 
-                        family.memberIds.includes(m.id) && m.id !== currentMember.id
-                    );
-                    setSelectedMembers([...initialSelection, ...familyMembers]);
-                } else {
-                    setSelectedMembers(initialSelection);
-                }
-            } else {
-                setSelectedMembers(initialSelection);
-            }
-        };
-
-        fetchFamily();
+        const familyMembers = allMembers.filter(m => m.familyId === currentMember.familyId && m.id !== currentMember.id);
+        setSelectedIds(familyMembers.map(m => m.id));
     }
   }, [isOpen, currentMember, allMembers]);
 
-  const addMember = (member: Member) => {
-    setSelectedMembers(prev => [...prev, member]);
+  const filteredMembers = useMemo(() => {
+    const otherMembers = allMembers.filter(m => m.id !== currentMember.id && !selectedIds.includes(m.id));
+    if (!searchTerm) {
+        return otherMembers;
+    }
+    return otherMembers.filter(m => 
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, allMembers, currentMember.id, selectedIds]);
+
+  const handleAddMember = (memberId: string) => {
+    setSelectedIds(prev => [...prev, memberId]);
   };
 
-  const removeMember = (memberId: string) => {
-    // Prevent the current member from being removed.
-    if (memberId === currentMember.id) return;
-    setSelectedMembers(prev => prev.filter(m => m.id !== memberId));
+  const handleRemoveMember = (memberId: string) => {
+    setSelectedIds(prev => prev.filter(id => id !== memberId));
   };
 
   const handleSave = () => {
-    // Extract IDs, excluding the current member as the parent logic handles it.
-    const otherMemberIds = selectedMembers
-        .filter(m => m.id !== currentMember.id)
-        .map(m => m.id);
-    onSave(otherMemberIds);
+    onSave(selectedIds);
     onClose();
   };
 
-  // Filter members available for adding: not the current one, not already selected, and matches search.
-  const availableMembers = allMembers.filter(m => 
-    !selectedMembers.some(sm => sm.id === m.id) &&
-    (m.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     m.lastName.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const selectedMembersDetails = useMemo(() => {
+      return selectedIds.map(id => allMembers.find(m => m.id === id)).filter(Boolean) as Member[];
+  }, [selectedIds, allMembers]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Управление на семейство</DialogTitle>
+          <DialogDescription>
+            Търсете и добавяйте членове към семейството на {currentMember.firstName}.
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
+        <div className="mt-4">
             <Input 
                 placeholder="Търсене на член по име..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
+        </div>
 
-            <h3 className="text-sm font-medium text-muted-foreground">Налични членове</h3>
-            <ScrollArea className="rounded-md border p-2 h-32">
-                {searchTerm && availableMembers.length > 0 ? (
-                    availableMembers.map(member => (
-                        <div key={member.id} className="flex items-center justify-between p-2 hover:bg-muted rounded-md">
+        <div className="mt-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Налични членове</h3>
+            <div className="rounded-md border min-h-[120px] max-h-[200px] overflow-y-auto p-2">
+                {filteredMembers.length > 0 ? (
+                    filteredMembers.map(member => (
+                        <div key={member.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md">
                             <span>{member.firstName} {member.lastName}</span>
-                            <Button size="sm" variant="outline" onClick={() => addMember(member)}>+</Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleAddMember(member.id)}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
                         </div>
                     ))
                 ) : (
-                    <p className="text-sm text-muted-foreground text-center p-4">
-                        {searchTerm ? 'Няма намерени членове.' : 'Започнете да пишете, за да търсите.'}
+                    <p className="text-sm text-muted-foreground text-center py-10">
+                        {searchTerm ? "Няма намерени членове." : "Всички налични членове са добавени."}
                     </p>
                 )}
-            </ScrollArea>
-
-            <h3 className="text-sm font-medium text-muted-foreground">Избрани членове в семейството</h3>
-            <ScrollArea className="rounded-md border p-2 h-32">
-                 {selectedMembers.length > 0 ? (
-                    selectedMembers.map(member => (
-                        <div key={member.id} className="flex items-center justify-between p-2 hover:bg-muted rounded-md">
-                            <span className="flex items-center">
-                                {member.firstName} {member.lastName}
-                                {member.id === currentMember.id && <Badge variant="secondary" className="ml-2">Текущ</Badge>}
-                            </span>
-                            {member.id !== currentMember.id && (
-                                <Button size="sm" variant="ghost" className="text-red-500" onClick={() => removeMember(member.id)}>X</Button>
-                            )}
-                        </div>
-                    ))
-                 ) : (
-                    <p className="text-sm text-muted-foreground text-center p-4">Няма избрани членове.</p>
-                 )}
-            </ScrollArea>
+            </div>
         </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="ghost">Отказ</Button>
-          </DialogClose>
-          <Button type="button" onClick={handleSave}>Запази промените</Button>
+        <div className="mt-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Избрани членове в семейството</h3>
+            <div className="rounded-md border min-h-[120px] max-h-[200px] overflow-y-auto p-2 space-y-2">
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                    <span>{currentMember.firstName} {currentMember.lastName}</span>
+                    <Badge variant="secondary">Текущ</Badge>
+                </div>
+                {selectedMembersDetails.map(member => (
+                    <div key={member.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md">
+                        <span>{member.firstName} {member.lastName}</span>
+                        <Button size="icon" variant="ghost" onClick={() => handleRemoveMember(member.id)}>
+                            <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        <DialogFooter className="mt-6">
+          <Button variant="outline" onClick={onClose}>Отказ</Button>
+          <Button onClick={handleSave}>Запази промените</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
