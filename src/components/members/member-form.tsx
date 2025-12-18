@@ -33,9 +33,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { ManageFamilyDialog } from './manage-family-dialog'; // Assuming the dialog is in the same folder
+import { ManageFamilyDialog } from './manage-family-dialog';
+import { Loader2 } from 'lucide-react';
 
-// Form schema remains the same
 const formSchema = z.object({
   firstName: z.string().min(2, { message: 'Името трябва да е поне 2 символа.' }),
   middleName: z.string().optional(),
@@ -61,7 +61,8 @@ interface MemberFormProps {
 export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   const [isFamilyDialogOpen, setFamilyDialogOpen] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
-  const { members: allMembers, loading: loadingMembers } = useMembers(); // Hook to get all members
+  const [isSaving, setIsSaving] = useState(false);
+  const { members: allMembers, loading: loadingMembers } = useMembers();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,55 +103,56 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
 
   const handleSaveFamily = async (selectedMemberIds: string[]) => {
     if (!member) return;
+    setIsSaving(true);
 
-    const currentFamilyId = member.familyId;
-    const memberId = member.id;
+    try {
+        const currentFamilyId = member.familyId;
+        const memberId = member.id;
 
-    if (!currentFamilyId && selectedMemberIds.length > 0) {
-        // Case 1: Create a new family
-        const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
-        member.familyId = newFamilyId; // Update local member object
-    } else if (currentFamilyId) {
-        // Case 2: Modify an existing family
-        const initialMemberIds = familyMembers.map(m => m.id);
+        if (!currentFamilyId && selectedMemberIds.length > 0) {
+            const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
+            member.familyId = newFamilyId;
+        } else if (currentFamilyId) {
+            const initialMemberIds = familyMembers.map(m => m.id);
+            const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
+            for (const id of membersToAdd) {
+                await addMemberToFamily(currentFamilyId, id);
+            }
 
-        // Find members to add
-        const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
-        for (const id of membersToAdd) {
-            await addMemberToFamily(currentFamilyId, id);
+            const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id) && id !== memberId);
+            for (const id of membersToRemove) {
+                await removeMemberFromFamily(currentFamilyId, id);
+            }
         }
 
-        // Find members to remove
-        const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id));
-        for (const id of membersToRemove) {
-            await removeMemberFromFamily(currentFamilyId, id);
+        const updatedFamily = member.familyId ? await getFamilyById(member.familyId) : null;
+        if (updatedFamily) {
+            const membersInFamily = allMembers.filter(m => updatedFamily.memberIds.includes(m.id));
+            setFamilyMembers(membersInFamily);
+        } else {
+            setFamilyMembers([]);
         }
+    } finally {
+        setIsSaving(false);
+        setFamilyDialogOpen(false);
     }
-
-    // Refresh family members list after changes
-    const updatedFamily = member.familyId ? await getFamilyById(member.familyId) : null;
-    if (updatedFamily) {
-        const membersInFamily = allMembers.filter(m => updatedFamily.memberIds.includes(m.id));
-        setFamilyMembers(membersInFamily);
-    } else {
-        setFamilyMembers([]);
-    }
-    setFamilyDialogOpen(false);
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // We pass the updated member data (with familyId) to the onSave function
-    onSave({ ...values, familyId: member?.familyId } as Omit<Member, 'id'>);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSaving(true);
+    try {
+        await onSave({ ...values, familyId: member?.familyId } as Omit<Member, 'id'>);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const otherFamilyMembers = familyMembers.filter(m => m.id !== member?.id);
+  const isButtonDisabled = isSaving || loadingMembers;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-        {/* ... All other form fields ... */}
-        
-        {/* All the existing form fields are here. They are omitted for brevity */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>Име</FormLabel><FormControl><Input placeholder="Иван" {...field} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="middleName" render={({ field }) => (<FormItem><FormLabel>Презиме</FormLabel><FormControl><Input placeholder="Иванов" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -172,7 +174,6 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
         <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Адрес (опционално)</FormLabel><FormControl><Input placeholder="гр. София, ул. Примерна 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
         <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Бележки</FormLabel><FormControl><Textarea placeholder="Допълнителна информация..." {...field} /></FormControl><FormMessage /></FormItem>)} />
 
-        {/* --- Family Section --- */}
         {member && (
             <Card className="mt-6">
                 <CardHeader>
@@ -195,7 +196,8 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
                             </p>
                         )}
                     </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => setFamilyDialogOpen(true)}>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => setFamilyDialogOpen(true)} disabled={isButtonDisabled}>
+                        {loadingMembers ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Управление на семейство
                     </Button>
                 </CardContent>
@@ -203,8 +205,11 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
         )}
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="ghost" onClick={onClose}>Отказ</Button>
-          <Button type="submit">Запази</Button>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSaving}>Отказ</Button>
+          <Button type="submit" disabled={isButtonDisabled}>
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Запази
+          </Button>
         </div>
       </form>
 
