@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,7 +6,7 @@ import { useAuth } from '@/context/auth-context';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt } from 'lucide-react';
+import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
 export function AppSidebar() {
@@ -59,6 +58,22 @@ export function AppSidebar() {
             <SidebarMenuButton isActive={pathname.startsWith('/sales')}>
               <Receipt className="w-4 h-4" />
               <span>Продажби</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Link href="/schedule" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/schedule')}>
+              <Calendar className="w-4 h-4" />
+              <span>График</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Link href="/reports" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/reports')}>
+              <FileText className="w-4 h-4" />
+              <span>Справки</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>

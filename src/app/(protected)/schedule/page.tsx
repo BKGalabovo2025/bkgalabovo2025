@@ -1,176 +1,186 @@
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin, { EventDropArg } from '@fullcalendar/interaction';
-import { ScheduleEvent } from '@/types';
-import { getScheduleEvents, addScheduleEvent, updateScheduleEvent, deleteScheduleEvent } from '@/services/schedule-service';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { EventForm, EventFormData } from '@/components/schedule/event-form';
-import { useToast } from '@/hooks/use-toast';
-import { DateSelectArg, EventClickArg } from '@fullcalendar/core/index.js';
+import React, { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { useEvents } from '@/hooks/useEvents';
+import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { PlusCircle, CalendarPlus, Loader2 } from 'lucide-react';
+import { EventCard } from '@/components/schedule/EventCard';
+import { CreateEventDialog } from '@/components/schedule/CreateEventDialog';
+import { EditEventDialog } from '@/components/schedule/EditEventDialog';
+import { AttendeesDialog } from '@/components/schedule/AttendeesDialog';
+import { MonthlyScheduleDialog } from '@/components/schedule/MonthlyScheduleDialog';
+import { PrintableEvent } from '@/components/schedule/PrintableEvent'; // Import the printable component
+import { ScheduleEvent, Member } from '@/types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
-const SchedulePage = () => {
-  const { toast } = useToast();
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Partial<ScheduleEvent> | undefined>(undefined);
+export default function SchedulePage() {
+    const { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading: isLoadingEvents, error: eventsError } = useEvents();
+    const { members, isLoading: isLoadingMembers, error: membersError } = useMembers();
+    
+    const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+    const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+    const [isAttendeesDialogOpen, setAttendeesDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isMonthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
 
-  const fetchEvents = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const fetchedEvents = await getScheduleEvents();
-      setEvents(fetchedEvents);
-    } catch (error) {
-      toast({ title: 'Грешка при зареждане на събитията', description: (error as Error).message, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+    const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
+    const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    // --- Print Logic ---
+    const printRef = useRef<HTMLDivElement>(null);
+    const [eventToPrint, setEventToPrint] = useState<ScheduleEvent | null>(null);
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    setSelectedEvent({
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        onAfterPrint: () => setEventToPrint(null), // Clean up after printing
     });
-    setIsModalOpen(true);
-  };
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    const event = events.find(e => e.id === clickInfo.event.id);
-    if (event) {
+    const triggerPrint = (event: ScheduleEvent) => {
+        setEventToPrint(event);
+        // The `useReactToPrint` hook needs a moment for the state to update
+        // and the component to render before it can be triggered.
+        setTimeout(handlePrint, 100);
+    };
+
+    // --- Event Handlers ---
+    const handleAddEvent = async (newEvent: Omit<ScheduleEvent, 'id' | 'color'>) => {
+        await addEvent(newEvent as ScheduleEvent);
+    };
+
+    const handleGenerateMonthly = async (newEvents: Omit<ScheduleEvent, 'id'>[]) => {
+        await addMultipleEvents(newEvents as ScheduleEvent[]);
+    };
+
+    const handleUpdateEvent = async (eventId: string, eventData: Partial<ScheduleEvent>) => {
+        await updateEvent(eventId, eventData);
+    };
+    
+    const handleUpdateAttendees = async (eventId: string, attendeeIds: string[]) => {
+        await updateAttendees(eventId, attendeeIds);
+    };
+
+    // --- Dialog Openers ---
+    const openEditDialog = (event: ScheduleEvent) => {
         setSelectedEvent(event);
-        setIsModalOpen(true);
-    }
-  };
+        setEditDialogOpen(true);
+    };
 
-  const handleEventDrop = async (dropInfo: EventDropArg) => {
-    const { event } = dropInfo;
-    try {
-        await updateScheduleEvent(event.id, { start: event.startStr, end: event.endStr });
-        toast({ title: 'Събитието е актуализирано успешно!' });
-        fetchEvents();
-    } catch (error) {
-        toast({ title: 'Грешка при актуализация', description: (error as Error).message, variant: 'destructive' });
-        dropInfo.revert(); // Revert the change on failure
-    }
-  };
+    const openAttendeesDialog = (event: ScheduleEvent) => {
+        setSelectedEvent(event);
+        setAttendeesDialogOpen(true);
+    };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(undefined);
-  };
+    const openDeleteDialog = (eventId: string) => {
+        setEventToDeleteId(eventId);
+        setDeleteDialogOpen(true);
+    };
 
-  const handleSaveEvent = async (data: EventFormData) => {
-    setIsSaving(true);
-    try {
-      if (selectedEvent?.id) {
-        // Update existing event
-        await updateScheduleEvent(selectedEvent.id, data);
-        toast({ title: 'Събитието е записано успешно!' });
-      } else {
-        // Create new event
-        await addScheduleEvent(data);
-        toast({ title: 'Събитието е създадено успешно!' });
-      }
-      handleCloseModal();
-      fetchEvents();
-    } catch (error) {
-      toast({ title: 'Грешка при запис', description: (error as Error).message, variant: 'destructive' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteEvent = async () => {
-    if (selectedEvent?.id) {
-        setIsSaving(true);
-        try {
-            await deleteScheduleEvent(selectedEvent.id);
-            toast({ title: 'Събитието е изтрито.' });
-            handleCloseModal();
-            fetchEvents();
-        } catch (error) {
-            toast({ title: 'Грешка при изтриване', description: (error as Error).message, variant: 'destructive' });
-        } finally {
-            setIsSaving(false);
+    const confirmDelete = async () => {
+        if (eventToDeleteId) {
+            await deleteEvent(eventToDeleteId);
         }
-    }
-  }
+        setDeleteDialogOpen(false);
+        setEventToDeleteId(null);
+    };
+    
+    const isLoading = isLoadingEvents || isLoadingMembers;
+    const error = eventsError || membersError;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">График и събития</h1>
-        <Button onClick={() => {
-            setSelectedEvent({ start: new Date().toISOString() });
-            setIsModalOpen(true);
-        }}>Добави събитие</Button>
-      </div>
+    return (
+        <div className="container mx-auto p-4">
+            <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+                <h1 className="text-3xl font-bold">График на събитията</h1>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setMonthlyDialogOpen(true)}>
+                        <CalendarPlus className="mr-2 h-4 w-4" />
+                        Генерирай месечен
+                    </Button>
+                     <Button onClick={() => setCreateDialogOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Създай събитие
+                    </Button>
+                </div>
+            </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin" />
+            {/* Hidden component for printing */}
+            <div className="hidden">
+                {eventToPrint && <PrintableEvent ref={printRef} event={eventToPrint} members={members as Member[]} />}
+            </div>
+
+            {isLoading && (
+                <div className="flex items-center justify-center py-10">
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                    <span>Зареждане на данни...</span>
+                </div>
+            )}
+            {error && <p className="text-red-500">Грешка при зареждане: {error.message}</p>}
+
+            {!isLoading && events.length === 0 && (
+                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                    <h3 className="text-xl font-semibold">Няма предстоящи събития</h3>
+                    <p className="text-muted-foreground mt-2">Натиснете бутоните, за да създадете ново събитие или да генерирате график.</p>
+                </div>
+            )}
+
+            {!isLoading && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {events.map(event => (
+                        <EventCard 
+                            key={event.id} 
+                            event={event} 
+                            members={members as Member[]}
+                            onEdit={openEditDialog}
+                            onDelete={openDeleteDialog}
+                            onManageAttendees={openAttendeesDialog}
+                            onPrint={triggerPrint} // Pass print handler
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* Dialogs */}
+            <CreateEventDialog 
+                isOpen={isCreateDialogOpen} 
+                onClose={() => setCreateDialogOpen(false)} 
+                onAddEvent={handleAddEvent} 
+            />
+            <EditEventDialog 
+                isOpen={isEditDialogOpen} 
+                onClose={() => setEditDialogOpen(false)} 
+                event={selectedEvent}
+                onUpdateEvent={handleUpdateEvent}
+            />
+            <AttendeesDialog
+                isOpen={isAttendeesDialogOpen}
+                onClose={() => setAttendeesDialogOpen(false)}
+                event={selectedEvent}
+                onUpdateAttendees={handleUpdateAttendees}
+                allMembers={members as Member[]} // Pass all members to the dialog
+            />
+            <MonthlyScheduleDialog
+                isOpen={isMonthlyDialogOpen}
+                onClose={() => setMonthlyDialogOpen(false)}
+                onGenerate={handleGenerateMonthly}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Наистина ли искате да изтриете това събитие?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Това действие не може да бъде отменено. Данните за събитието ще бъдат изтрити перманентно.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Отказ</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">Изтрий</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
-      ) : (
-        <div className="p-4 bg-white rounded-lg shadow">
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            }}
-            events={events}
-            editable={true}
-            selectable={true}
-            select={handleDateSelect}
-            eventClick={handleEventClick}
-            eventDrop={handleEventDrop}
-            height="auto"
-            locale="bg"
-            buttonText={{
-              today: 'Днес',
-              month: 'Месец',
-              week: 'Седмица',
-              day: 'Ден',
-            }}
-          />
-        </div>
-      )}
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedEvent?.id ? 'Редакция на събитие' : 'Ново събитие'}</DialogTitle>
-          </DialogHeader>
-          <EventForm 
-            event={selectedEvent} 
-            onSave={handleSaveEvent} 
-            onClose={handleCloseModal} 
-            isSaving={isSaving}
-          />
-          {selectedEvent?.id && (
-            <DialogFooter className='pt-4'>
-                <Button variant="destructive" onClick={handleDeleteEvent} disabled={isSaving}>Изтрий</Button>
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default SchedulePage;
+    );
+}

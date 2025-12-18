@@ -8,24 +8,19 @@ import { getMembers } from '@/services/member-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DateRange } from 'react-day-picker';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { addDays, format } from 'date-fns';
-import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2 } from 'lucide-react';
 
 const FinancialReport = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Filters
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+
+  // Filters - state now holds Date objects
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(addDays(new Date(), -30));
+  const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
   const [paymentType, setPaymentType] = useState<string>('all');
 
   useEffect(() => {
@@ -40,7 +35,6 @@ const FinancialReport = () => {
         setMembers(allMembers);
       } catch (error) {
         console.error('Failed to fetch financial data:', error);
-        // You should add a toast notification here for the user
       } finally {
         setIsLoading(false);
       }
@@ -51,19 +45,42 @@ const FinancialReport = () => {
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
   const filteredPayments = useMemo(() => {
+    // Create new Date objects for comparison to avoid mutating state
+    const startDate = dateFrom ? new Date(dateFrom) : null;
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+
+    const endDate = dateTo ? new Date(dateTo) : null;
+    if (endDate) endDate.setHours(23, 59, 59, 999);
+
     return payments.filter(p => {
       const paymentDate = new Date(p.paymentDate);
+      
       const isInDateRange = 
-        (!dateRange?.from || paymentDate >= dateRange.from) &&
-        (!dateRange?.to || paymentDate <= dateRange.to);
+        (!startDate || paymentDate >= startDate) &&
+        (!endDate || paymentDate <= endDate);
+
       const isTypeMatch = paymentType === 'all' || p.type === paymentType;
       return isInDateRange && isTypeMatch;
     });
-  }, [payments, dateRange, paymentType]);
+  }, [payments, dateFrom, dateTo, paymentType]);
 
   const totalAmount = useMemo(() => 
     filteredPayments.reduce((acc, p) => acc + p.amount, 0), 
   [filteredPayments]);
+
+  // Handler to convert string from input to Date object
+  const handleDateChange = (setter: (date: Date | undefined) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateString = e.target.value;
+    // Input type=date returns '' if empty, and a 'yyyy-mm-dd' string if a date is selected.
+    // new Date('') is an invalid date, so we must handle it.
+    // We also need to add the timezone offset to avoid being off by one day.
+    if (dateString) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        setter(new Date(year, month - 1, day));
+    } else {
+        setter(undefined);
+    }
+  };
 
   return (
     <Card>
@@ -72,57 +89,50 @@ const FinancialReport = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          {/* Date Range Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={"outline"}
-                className={cn('w-[300px] justify-start text-left font-normal', !dateRange && 'text-muted-foreground')}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>{format(dateRange.from, 'LLL dd, y')} - {format(dateRange.to, 'LLL dd, y')}</>
-                  ) : (
-                    format(dateRange.from, 'LLL dd, y')
-                  )
-                ) : (
-                  <span>Изберете период</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
+          {/* Date Pickers as standard date inputs */}
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor='dateFrom'>От дата</Label>
+            <Input
+              id='dateFrom'
+              type="date"
+              value={dateFrom ? format(dateFrom, 'yyyy-MM-dd') : ''}
+              onChange={handleDateChange(setDateFrom)}
+              className="w-[200px]"
+            />
+          </div>
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor='dateTo'>До дата</Label>
+            <Input
+              id='dateTo'
+              type="date"
+              value={dateTo ? format(dateTo, 'yyyy-MM-dd') : ''}
+              onChange={handleDateChange(setDateTo)}
+              className="w-[200px]"
+            />
+          </div>
 
           {/* Payment Type Selector */}
-          <Select value={paymentType} onValueChange={setPaymentType}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Тип плащане" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всички</SelectItem>
-              <SelectItem value="Членски внос">Членски внос</SelectItem>
-              <SelectItem value="Дарение">Дарение</SelectItem>
-              <SelectItem value="Друго">Друго</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col space-y-1.5">
+            <Label>Тип плащане</Label>
+            <Select value={paymentType} onValueChange={setPaymentType}>
+                <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Тип плащане" />
+                </SelectTrigger>
+                <SelectContent>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="Членски внос">Членски внос</SelectItem>
+                <SelectItem value="Дарение">Дарение</SelectItem>
+                <SelectItem value="Друго">Друго</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {isLoading ? (
             <div className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Зареждане на данните...</div>
         ) : (
           <Table>
-            <TableHeader>
+             <TableHeader>
               <TableRow>
                 <TableHead>Дата</TableHead>
                 <TableHead>Член</TableHead>

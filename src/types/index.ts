@@ -86,52 +86,16 @@ export interface Sale {
 }
 
 /**
- * Represents a single, unified event for the schedule calendar.
+ * Represents a single, unified event for the schedule.
  */
 export interface ScheduleEvent {
     id: string;
     title: string;
-    start: string; // Full ISO 8601 date-time string
-    end: string;   // Full ISO 8601 date-time string
-    type: 'training' | 'competition' | 'camp' | 'event';
-    
-    // Optional fields based on event type
-    description?: string;
-    coach?: string;      // For 'training'
-    location?: string;   // For 'competition', 'camp', or 'event'
-}
-
-// The old, separate types (Training, Competition, etc.) are now replaced by the unified ScheduleEvent.
-// Keeping them commented out for reference, but they should be considered deprecated.
-/*
-export interface BaseEvent {
-    id: string;
-    title: string;
-    date: string;
-    description?: string;
-}
-
-export interface Training extends BaseEvent {
-    type: 'training';
-    coach: string;
-}
-
-export interface Competition extends BaseEvent {
-    type: 'competition';
-    location: string;
-}
-
-export interface Camp extends BaseEvent {
-    type: 'camp';
-    location: string;
-    startDate: string;
-    endDate: string;
-}
-
-export interface ClubEvent extends BaseEvent {
-    type: 'event';
+    type: 'тренировка' | 'състезание' | 'лагер' | 'събитие';
+    startDate: string; // Full ISO 8601 date-time string
+    endDate?: string | null;  // Full ISO 8601 date-time string (optional, can be null)
     location?: string;
+    description?: string;
+    color?: string; // Color is determined dynamically, but can be here
+    attendees?: string[]; // Array of member IDs
 }
-
-export type ScheduleEventUnion = Training | Competition | Camp | ClubEvent;
-*/
