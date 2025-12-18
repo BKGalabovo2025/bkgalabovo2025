@@ -75,7 +75,6 @@ const MembersPage = () => {
       }
       setIsFormOpen(false);
       setSelectedMember(undefined);
-      // No manual refetch needed!
     } catch (error) {
         console.error("Грешка от Firebase: ", error);
         toast({ title: "Грешка при запис", description: "Възникна грешка при запазването на данните.", variant: "destructive" });
@@ -89,7 +88,6 @@ const MembersPage = () => {
       await deleteMember(memberToDelete.id);
       toast({ title: "Членът е изтрит", description: "Данните бяха успешно изтрити от системата." });
       setMemberToDelete(null);
-      // No manual state update needed!
     } catch (error) {
       console.error("Грешка от Firebase: ", error);
       toast({ title: "Грешка при изтриване", description: "Възникна грешка при изтриването на члена.", variant: "destructive" });
@@ -108,6 +106,13 @@ const MembersPage = () => {
   const openFormForCreate = () => {
     setSelectedMember(undefined);
     setIsFormOpen(true);
+  }
+
+  const formatDate = (dateString: string) => {
+    if (!dateString || isNaN(new Date(dateString).getTime())) {
+        return 'N/A';
+    }
+    return new Date(dateString).toLocaleDateString('bg-BG');
   }
 
   if (isLoading || !user) {
@@ -204,7 +209,7 @@ const MembersPage = () => {
                             {member.status === 'active' ? 'Активен' : 'Неактивен'}
                         </span>
                         </TableCell>
-                        <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
+                        <TableCell>{formatDate(member.registrationDate)}</TableCell>
                         <TableCell>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
