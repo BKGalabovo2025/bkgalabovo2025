@@ -1,6 +1,7 @@
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { DocumentData, DocumentSnapshot } from "firebase/firestore";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -56,4 +57,23 @@ export const getAgeGroup = (dateOfBirth: string): string => {
   }
 
   return 'Н/Д'; // Резервен вариант, ако не попадне в никоя група
+};
+
+export const processSubscription = (doc: DocumentSnapshot<DocumentData>) => {
+  const data = doc.data();
+  const sub = {
+    id: doc.id,
+    name: data?.name || 'Н/Д',
+    status: data?.status || 'неактивен',
+    plan: data?.plan?.name || 'Н/Д',
+    price: data?.plan?.price || 0,
+    startDate: data?.startDate
+      ? new Date(data.startDate.seconds * 1000).toLocaleDateString('bg-BG')
+      : 'Н/Д',
+    endDate: data?.endDate
+      ? new Date(data.endDate.seconds * 1000).toLocaleDateString('bg-BG')
+      : 'Н/Д',
+    email: data?.email || 'Н/Д',
+  };
+  return sub;
 };
