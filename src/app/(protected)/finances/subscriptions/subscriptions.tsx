@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase/firebase';
+import { db } from '@/lib/firebase';
 import { DocumentData, QuerySnapshot } from '@firebase/firestore';
 import { processSubscription } from '@/lib/utils';
 import ReceiptEmail from '@/components/emails/receipt-email';
