@@ -4,9 +4,8 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
-    const { to, subject, text } = await request.json();
+    const { to, subject, text, html } = await request.json();
 
-    // Ensure environment variables are loaded
     const user = process.env.GMAIL_EMAIL;
     const pass = process.env.GMAIL_APP_PASSWORD;
 
@@ -27,7 +26,8 @@ export async function POST(request: Request) {
       from: `"БК Гълъбово" <${user}>`,
       to: to,
       subject: subject,
-      html: `<p>${text}</p>`,
+      text: text,
+      html: html,
     };
 
     await transporter.sendMail(mailOptions);

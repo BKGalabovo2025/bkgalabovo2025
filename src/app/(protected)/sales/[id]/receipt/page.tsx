@@ -7,7 +7,7 @@ import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Printer, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
 import {
@@ -19,7 +19,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogClose
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 const SaleReceiptPage = () => {
@@ -27,6 +38,9 @@ const SaleReceiptPage = () => {
     const [member, setMember] = useState<Member | null>(null);
     const [loading, setLoading] = useState(true);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showEmailDialog, setShowEmailDialog] = useState(false);
+    const [emailToSend, setEmailToSend] = useState('');
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
     
     const params = useParams();
     const router = useRouter();
@@ -43,6 +57,9 @@ const SaleReceiptPage = () => {
                     if (saleData && saleData.memberId) {
                         const memberData = await getMemberById(saleData.memberId);
                         setMember(memberData);
+                        if (memberData && memberData.email) {
+                            setEmailToSend(memberData.email);
+                        }
                     }
                 } catch (error) {
                     console.error("Грешка при зареждане на продажбата:", error);
@@ -71,6 +88,104 @@ const SaleReceiptPage = () => {
         }
     };
 
+    const generateReceiptHtml = (currentSale: Sale, currentMember: Member | null): string => {
+        const styles = {
+            body: `font-family: Arial, sans-serif; color: #333;`,
+            header: `border-bottom: 2px solid #eee; padding-bottom: 15px;`,
+            h1: `font-size: 24px; font-weight: bold; margin: 0;`,
+            table: `width: 100%; border-collapse: collapse; margin-top: 20px;`,
+            th: `text-align: left; padding: 8px; border-bottom: 1px solid #ddd;`,
+            td: `padding: 8px; border-bottom: 1px solid #ddd;`,
+            total: `font-size: 1.2em; font-weight: bold;`,
+        };
+
+        const itemsHtml = currentSale.items.map(item => `
+            <tr>
+                <td style="${styles.td}">${item.name}</td>
+                <td style="${styles.td}; text-align: center;">${item.quantity}</td>
+                <td style="${styles.td}; text-align: right;">${(item.price || 0).toFixed(2)} лв.</td>
+                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.price || 0)).toFixed(2)} лв.</td>
+            </tr>
+        `).join('');
+
+        return `
+            <div style="${styles.body}">
+                <div style="${styles.header}">
+                    <h1 style="${styles.h1}">Разписка за продажба</h1>
+                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.date).toLocaleDateString('bg-BG')}</p>
+                </div>
+                <p><strong>Издал:</strong> ${clubInfo.name}</p>
+                <p><strong>Получател:</strong> ${currentMember ? `${currentMember.firstName} ${currentMember.lastName}` : 'Външен клиент'}</p>
+                <table style="${styles.table}">
+                    <thead>
+                        <tr>
+                            <th style="${styles.th}">Артикул</th>
+                            <th style="${styles.th}; text-align: center;">Количество</th>
+                            <th style="${styles.th}; text-align: right;">Ед. цена</th>
+                            <th style="${styles.th}; text-align: right;">Общо</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="${styles.td}; text-align: right; font-weight: bold;">ОБЩО:</td>
+                            <td style="${styles.td}; text-align: right; ${styles.total}">${(currentSale.total || 0).toFixed(2)} лв.</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Благодарим Ви!</p>
+            </div>
+        `;
+    };
+
+    const handleSendEmail = async () => {
+        if (!sale) return;
+        if (!emailToSend || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToSend)) {
+             toast({ title: "Грешка", description: "Моля, въведете валиден имейл адрес.", variant: "destructive" });
+             return;
+        }
+        setIsSendingEmail(true);
+        try {
+            const receiptHtml = generateReceiptHtml(sale, member);
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    to: emailToSend,
+                    subject: `Разписка от ${clubInfo.name}`,
+                    html: receiptHtml,
+                }),
+            });
+
+            if (!response.ok) {
+                let errorDetails = 'Network response was not ok.';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorDetails = errorData.error;
+                    }
+                } catch (e) {
+                    console.error("Could not parse error response:", e);
+                }
+                throw new Error(errorDetails);
+            }
+            
+            toast({ title: "Успех!", description: "Разписката беше изпратена успешно." });
+            setShowEmailDialog(false);
+
+        } catch (error: any) {
+            console.error("Грешка при изпращане на имейл:", error);
+            toast({ title: "Грешка", description: error.message, variant: "destructive" });
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
+
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -91,6 +206,9 @@ const SaleReceiptPage = () => {
                         <ArrowLeft className="mr-2 h-4 w-4" /> Всички продажби
                     </Button>
                     <div className="flex items-center gap-2">
+                         <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
+                            <Mail className="mr-2 h-4 w-4" /> Изпрати по имейл
+                        </Button>
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="mr-2 h-4 w-4" /> Принтирай
                         </Button>
@@ -100,6 +218,7 @@ const SaleReceiptPage = () => {
                     </div>
                 </div>
 
+                {/* Receipt Content */}
                 <div className="bg-white p-8 border border-border shadow-sm print:border-none print:shadow-none">
                     <header className="flex justify-between items-start pb-6 border-b-2 border-border">
                         <div className="flex items-center gap-4">
@@ -110,7 +229,6 @@ const SaleReceiptPage = () => {
                             <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
-
                     <section className="mt-8 grid grid-cols-2 gap-8">
                         <div>
                             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ИЗДАЛ:</h2>
@@ -132,7 +250,6 @@ const SaleReceiptPage = () => {
                             )}
                         </div>
                     </section>
-
                     <section className="mt-10">
                         <table className="w-full text-sm">
                             <thead className="border-b border-border">
@@ -161,7 +278,6 @@ const SaleReceiptPage = () => {
                             </tfoot>
                         </table>
                     </section>
-
                     <section className="mt-20 grid grid-cols-2 gap-8 text-center">
                         <div>
                             <p className="text-sm text-muted-foreground">Издал:</p>
@@ -174,7 +290,6 @@ const SaleReceiptPage = () => {
                              <p className="mt-8">/{member ? `${member.firstName} ${member.lastName}` : '................................'}/</p>
                         </div>
                     </section>
-
                     <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
                         <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
                         <p>Той удостоверява предаването и приемането на описаните артикули и служи за целите на вътрешния контрол и отчетност.</p>
@@ -182,6 +297,42 @@ const SaleReceiptPage = () => {
                 </div>
             </div>
 
+            {/* Email Dialog */}
+            <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Изпращане на разписка по имейл</DialogTitle>
+                        <DialogDescription>
+                            Въведете имейл адреса на получателя.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="email" className="text-right">
+                                Имейл
+                            </Label>
+                            <Input
+                                id="email"
+                                value={emailToSend}
+                                onChange={(e) => setEmailToSend(e.target.value)}
+                                className="col-span-3"
+                                placeholder="name@example.com"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">Отказ</Button>
+                        </DialogClose>
+                        <Button type="submit" onClick={handleSendEmail} disabled={isSendingEmail}>
+                            {isSendingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Изпрати
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -196,7 +347,6 @@ const SaleReceiptPage = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
         </div>
     );
 };
