@@ -2,9 +2,6 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// ДИАГНОСТИЧЕН ЛОГ: Изписваме ключа, който Vercel вижда по време на build
-console.log("Vercel Build - Using API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
