@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
@@ -118,7 +116,7 @@ const DashboardPage = () => {
                         {stats.deferredExternalSales.map((sale: Sale) => (
                             <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                                 <div>
-                                  <p className="font-semibold">{sale.customerName}</p>
+                                  <div className="font-semibold">{sale.customerName}</div>
                                   <p className="text-sm text-muted-foreground">
                                       {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
                                   </p>
