@@ -9,10 +9,16 @@ export async function POST(request: Request) {
     const user = process.env.GMAIL_EMAIL;
     const pass = process.env.GMAIL_APP_PASSWORD;
 
+    // === НОВА ПО-ДЕТАЙЛНА ПРОВЕРКА ===
     if (!user || !pass) {
-      console.error('Missing GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables');
-      return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
+      let errorMessage = "Грешка в конфигурацията на Vercel. ";
+      if (!user) errorMessage += "Променливата GMAIL_EMAIL липсва или е грешна. ";
+      if (!pass) errorMessage += "Променливата GMAIL_APP_PASSWORD липсва или е грешна.";
+      
+      console.error(errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
+    // === КРАЙ НА НОВАТА ПРОВЕРКА ===
     
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -26,15 +32,17 @@ export async function POST(request: Request) {
       from: `"БК Гълъбово" <${user}>`,
       to: to,
       subject: subject,
-      text: text,
       html: html,
+      text: text, // Добавям и текстова версия за съвместимост
     };
 
     await transporter.sendMail(mailOptions);
 
     return NextResponse.json({ message: 'Email sent successfully' }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send email:', error);
-    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+    // Връщаме оригиналната грешка от nodemailer, ако има такава
+    const errorMessage = error.message || 'Failed to send email';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
