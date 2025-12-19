@@ -1,4 +1,3 @@
-'''
 import {
   Body,
   Container,
@@ -111,5 +110,3 @@ const footer = {
   lineHeight: "16px",
   padding: "0 20px",
 };
-
-'''
