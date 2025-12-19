@@ -6,19 +6,18 @@ export async function POST(request: Request) {
   try {
     const { to, subject, text, html } = await request.json();
 
-    const user = process.env.GMAIL_EMAIL;
-    const pass = process.env.GMAIL_APP_PASSWORD;
+    // === ИЗПОЛЗВАНЕ НА НОВИ ИМЕНА НА ПРОМЕНЛИВИТЕ ===
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASS;
 
-    // === НОВА ПО-ДЕТАЙЛНА ПРОВЕРКА ===
     if (!user || !pass) {
       let errorMessage = "Грешка в конфигурацията на Vercel. ";
-      if (!user) errorMessage += "Променливата GMAIL_EMAIL липсва или е грешна. ";
-      if (!pass) errorMessage += "Променливата GMAIL_APP_PASSWORD липсва или е грешна.";
+      if (!user) errorMessage += "Променливата EMAIL_USER липсва. ";
+      if (!pass) errorMessage += "Променливата EMAIL_PASS липсва.";
       
       console.error(errorMessage);
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
-    // === КРАЙ НА НОВАТА ПРОВЕРКА ===
     
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -33,7 +32,7 @@ export async function POST(request: Request) {
       to: to,
       subject: subject,
       html: html,
-      text: text, // Добавям и текстова версия за съвместимост
+      text: text,
     };
 
     await transporter.sendMail(mailOptions);
@@ -41,7 +40,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Email sent successfully' }, { status: 200 });
   } catch (error: any) {
     console.error('Failed to send email:', error);
-    // Връщаме оригиналната грешка от nodemailer, ако има такава
     const errorMessage = error.message || 'Failed to send email';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
