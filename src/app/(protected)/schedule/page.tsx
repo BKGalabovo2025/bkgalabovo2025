@@ -1,7 +1,5 @@
-
+'use client';
 export const dynamic = 'force-dynamic';
-
-"use client";
 
 import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
