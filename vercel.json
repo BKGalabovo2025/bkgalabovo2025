@@ -1,3 +1,0 @@
-{
-  "buildCommand": "echo \"NEXT_PUBLIC_FIREBASE_API_KEY: $NEXT_PUBLIC_FIREBASE_API_KEY\" && npm run build"
-}
