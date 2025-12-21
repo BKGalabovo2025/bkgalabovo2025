@@ -1,7 +1,6 @@
+'use client';
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
