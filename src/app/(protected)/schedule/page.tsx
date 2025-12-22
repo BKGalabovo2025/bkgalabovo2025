@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, CalendarPlus, Loader2 } from 'lucide-react';
+import { PlusCircle, Repeat, Loader2 } from 'lucide-react';
 import { EventCard } from '@/components/schedule/EventCard';
 import { CreateEventDialog } from '@/components/schedule/CreateEventDialog';
 import { EditEventDialog } from '@/components/schedule/EditEventDialog';
@@ -119,7 +119,7 @@ export default function SchedulePage() {
             .sort((a, b) => {
                 const dateA = new Date(a.startDate).getTime();
                 const dateB = new Date(b.startDate).getTime();
-                return activeTab === 'upcoming' ? dateA - dateB : dateB - dateA;
+                return activeTab === 'upcoming' ? dateA - dateB : dateB - a;
             });
     }, [events, activeTab, filterType]);
     
@@ -132,8 +132,8 @@ export default function SchedulePage() {
                 <h1 className="text-3xl font-bold">График на събитията</h1>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => setMonthlyDialogOpen(true)}>
-                        <CalendarPlus className="mr-2 h-4 w-4" />
-                        Генерирай месечен
+                        <Repeat className="mr-2 h-4 w-4" />
+                        Шаблонен график
                     </Button>
                      <Button onClick={() => setCreateDialogOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />

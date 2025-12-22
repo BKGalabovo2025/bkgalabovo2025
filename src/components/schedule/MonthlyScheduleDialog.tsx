@@ -21,14 +21,16 @@ const daysOfWeek = [
     { id: 4, label: 'Четвъртък' }, { id: 5, label: 'Петък' }, { id: 6, label: 'Събота' }, { id: 0, label: 'Неделя' },
 ];
 
+const monthNames = Array.from({ length: 12 }, (_, i) => new Date(0, i).toLocaleString('bg', { month: 'long' }));
+
 export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlyScheduleDialogProps) {
     const currentYear = new Date().getFullYear();
     const [year, setYear] = useState(currentYear.toString());
     const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
-    const [startTime, setStartTime] = useState('18:00');
-    const [endTime, setEndTime] = useState('20:00');
-    const [location, setLocation] = useState('');
+    const [startTime, setStartTime] = useState('17:00');
+    const [endTime, setEndTime] = useState('18:30');
+    const [location, setLocation] = useState('Спортна зала "Енергетик" град Гълъбово');
     const [isSubmitting, setSubmitting] = useState(false);
 
     const handleDayToggle = (dayId: number) => {
@@ -39,6 +41,8 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
 
     const handleSubmit = async () => {
         if (selectedDays.length === 0) {
+            // Using a toast or a more subtle notification could be better
+            // but for now, an alert is fine based on the original code.
             alert('Моля, изберете поне един ден от седмицата.');
             return;
         }
@@ -46,6 +50,7 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
         setSubmitting(true);
         const generatedEvents: Omit<ScheduleEvent, 'id'>[] = [];
         const numDays = new Date(parseInt(year), parseInt(month), 0).getDate();
+        const selectedMonthName = monthNames[parseInt(month) - 1];
 
         for (let day = 1; day <= numDays; day++) {
             const date = new Date(parseInt(year), parseInt(month) - 1, day);
@@ -60,21 +65,22 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
                 endDate.setHours(endHour, endMinute);
 
                 generatedEvents.push({
-                    title: 'Тренировка',
-                    type: 'тренировка',
+                    title: `Тренировка - месец ${selectedMonthName}`,
+                    type: 'trening', // BUG FIX: Using the correct system key 'trening'
                     startDate: startDate.toISOString(),
                     endDate: endDate.toISOString(),
                     location: location,
-                    description: 'Автоматично генерирана тренировка.',
+                    description: `Автоматично генериран график за тренировки за месец ${selectedMonthName}`,
                 });
             }
         }
         
         try {
             await onGenerate(generatedEvents);
-            onClose();
+            onClose(); // Close the dialog on success
         } catch (error) {
             console.error("Failed to generate monthly schedule", error);
+            // Optionally, show an error toast to the user
         } finally {
             setSubmitting(false);
         }
@@ -82,9 +88,9 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
-                    <DialogTitle>Генериране на месечен график</DialogTitle>
+                    <DialogTitle>Създаване на шаблонен график</DialogTitle>
                     <DialogDescription>Автоматично създайте тренировки за избран месец и дни.</DialogDescription>
                 </DialogHeader>
 
@@ -94,7 +100,7 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
                         <Select value={month} onValueChange={setMonth}>
                             <SelectTrigger><SelectValue placeholder="Месец" /></SelectTrigger>
                             <SelectContent>
-                                {Array.from({ length: 12 }, (_, i) => <SelectItem key={i+1} value={(i + 1).toString()}>{new Date(0, i).toLocaleString('bg', { month: 'long' })}</SelectItem>)}
+                                {monthNames.map((name, i) => <SelectItem key={i+1} value={(i + 1).toString()}>{name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -105,7 +111,7 @@ export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlySc
                             {daysOfWeek.map(day => (
                                 <div key={day.id} className="flex items-center space-x-2">
                                     <Checkbox id={`day-${day.id}`} checked={selectedDays.includes(day.id)} onCheckedChange={() => handleDayToggle(day.id)} />
-                                    <Label htmlFor={`day-${day.id}`} className="font-normal">{day.label}</Label>
+                                    <Label htmlFor={`day-${day.id}`} className="font-normal cursor-pointer">{day.label}</Label>
                                 </div>
                             ))}
                         </div>
