@@ -14,19 +14,27 @@ interface PrintableReceiptProps {
 export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member }) => {
   if (!sale) return null;
 
+  const isDeferred = sale.paymentStatus === 'deferred';
+  const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
+  const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
+  const statusColor = isDeferred ? 'text-red-600' : 'text-green-600';
+  const footerText = isDeferred
+    ? 'Това е проформа документ, който не удостоверява плащане. Той служи за целите на бъдещо плащане.'
+    : 'Този документ удостоверява извършено плащане и служи като касова бележка.';
+
+
   return (
     <div className="bg-white p-8">
         <header className="flex justify-between items-start pb-6 border-b-2 border-border">
             <div className="flex items-center gap-4">
-                {/* Note: In a print-only context, Next.js Image optimization might not be ideal. A standard <img> might be better if issues arise. */}
-                {/* For now, we assume the CSS handles it. */}
                 <Image src="/logo.png" alt="Club Logo" width={60} height={60} />
             </div>
             <div className="text-right">
-                <h1 className="text-3xl font-bold tracking-wider">СТОКОВА РАЗПИСКА</h1>
+                <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
                 <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
             </div>
         </header>
+        
         <section className="mt-8 grid grid-cols-2 gap-8">
             <div>
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ИЗДАЛ:</h2>
@@ -48,6 +56,11 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member
                 )}
             </div>
         </section>
+
+        <div className={`mt-8 text-center text-3xl font-bold ${statusColor}`}>
+            {statusText}
+        </div>
+
         <section className="mt-10">
             <table className="w-full text-sm">
                 <thead className="border-b border-border">
@@ -90,7 +103,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member
         </section>
         <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
             <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
-            <p>Той удостоверява предаването и приемането на описаните артикули и служи за целите на вътрешния контрол и отчетност.</p>
+            <p>{footerText}</p>
         </footer>
     </div>
   );

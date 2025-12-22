@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
-import { PrintableReceipt } from '@/components/sales/PrintableReceipt'; // Import the new printable component
+import { PrintableReceipt } from '@/components/sales/PrintableReceipt';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +33,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
 const SaleReceiptPage = () => {
     const [sale, setSale] = useState<Sale | null>(null);
     const [member, setMember] = useState<Member | null>(null);
@@ -47,7 +46,6 @@ const SaleReceiptPage = () => {
     const router = useRouter();
     const { toast } = useToast();
     const saleId = params.id as string;
-    // receiptRef is no longer needed
 
     useEffect(() => {
         if (saleId) {
@@ -74,51 +72,35 @@ const SaleReceiptPage = () => {
         }
     }, [saleId, toast]);
 
-    // --- The new, reliable print handler ---
     const handlePrint = async () => {
         if (!sale) return;
-
         try {
-            // Dynamically import renderToString to avoid module conflicts
             const { renderToString } = await import('react-dom/server');
-
-            // Generate HTML string in memory
             const printableComponent = <PrintableReceipt sale={sale} member={member} />;
             const printContent = renderToString(printableComponent);
-
-            // Open a new window
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра. Моля, разрешете изскачащите прозорци.", variant: "destructive" });
+                toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра.", variant: "destructive" });
                 return;
             }
-
-            // Gather styles
             const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));
             const stylesHTML = styles.map(style => style.outerHTML).join('');
-
-            // Write content and styles
+            const receiptTitle = sale.paymentStatus === 'deferred' ? 'Проформа Стокова Разписка' : 'Стокова Разписка';
             printWindow.document.write(`
                 <html>
                     <head>
-                        <title>Разписка</title>
+                        <title>${receiptTitle}</title>
                         ${stylesHTML}
                     </head>
-                    <body>
-                        ${printContent}
-                    </body>
+                    <body>${printContent}</body>
                 </html>
             `);
-
             printWindow.document.close();
             printWindow.focus();
-
-            // Trigger print
             setTimeout(() => {
                 printWindow.print();
                 printWindow.close();
             }, 250);
-
         } catch (error) {
             console.error("Error during printing:", error);
             toast({ title: "Грешка при принтиране", description: "Възникна неочаквана грешка.", variant: "destructive" });
@@ -138,14 +120,21 @@ const SaleReceiptPage = () => {
     };
 
     const generateReceiptHtml = (currentSale: Sale, currentMember: Member | null): string => {
+        const isDeferred = currentSale.paymentStatus === 'deferred';
+        const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
+        const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
+        const statusColor = isDeferred ? '#ef4444' : '#22c55e';
+
         const styles = {
             body: `font-family: Arial, sans-serif; color: #333;`,
             header: `border-bottom: 2px solid #eee; padding-bottom: 15px;`,
             h1: `font-size: 24px; font-weight: bold; margin: 0;`,
+            status: `font-size: 1.5em; font-weight: bold; color: ${statusColor}; margin-top: 10px;`,
             table: `width: 100%; border-collapse: collapse; margin-top: 20px;`,
-            th: `text-align: left; padding: 8px; border-bottom: 1px solid #ddd;`,
+            th: `text-align: left; padding: 8px; border-bottom: 1px solid #ddd; background-color: #f9f9f9;`,
             td: `padding: 8px; border-bottom: 1px solid #ddd;`,
             total: `font-size: 1.2em; font-weight: bold;`,
+            footer: `margin-top: 20px; font-size: 0.8em; color: #777; text-align: center;`
         };
 
         const itemsHtml = currentSale.items.map(item => `
@@ -160,9 +149,10 @@ const SaleReceiptPage = () => {
         return `
             <div style="${styles.body}">
                 <div style="${styles.header}">
-                    <h1 style="${styles.h1}">Разписка за продажба</h1>
+                    <h1 style="${styles.h1}">${receiptTitle}</h1>
                     <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.date).toLocaleDateString('bg-BG')}</p>
                 </div>
+                 <div style="${styles.status}">${statusText}</div>
                 <p><strong>Издал:</strong> ${clubInfo.name}</p>
                 <p><strong>Получател:</strong> ${currentMember ? `${currentMember.firstName} ${currentMember.lastName}` : 'Външен клиент'}</p>
                 <table style="${styles.table}">
@@ -174,9 +164,7 @@ const SaleReceiptPage = () => {
                             <th style="${styles.th}; text-align: right;">Общо</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
+                    <tbody>${itemsHtml}</tbody>
                     <tfoot>
                         <tr>
                             <td colspan="3" style="${styles.td}; text-align: right; font-weight: bold;">ОБЩО:</td>
@@ -184,7 +172,10 @@ const SaleReceiptPage = () => {
                         </tr>
                     </tfoot>
                 </table>
-                <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Благодарим Ви!</p>
+                <div style="${styles.footer}">
+                    <p>Настоящият документ удостоверява предаването на описаните артикули.</p>
+                    ${isDeferred ? '<p>Това е проформа документ и не удостоверява плащане.</p>' : '<p>Този документ удостоверява извършено плащане.</p>'}
+                </div>
             </div>
         `;
     };
@@ -198,29 +189,19 @@ const SaleReceiptPage = () => {
         setIsSendingEmail(true);
         try {
             const receiptHtml = generateReceiptHtml(sale, member);
+            const subject = sale.paymentStatus === 'deferred' 
+                ? `Проформа разписка от ${clubInfo.name}` 
+                : `Разписка от ${clubInfo.name}`;
+
             const response = await fetch('/api/send-email', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    to: emailToSend,
-                    subject: `Разписка от ${clubInfo.name}`,
-                    html: receiptHtml,
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: emailToSend, subject, html: receiptHtml }),
             });
 
             if (!response.ok) {
-                let errorDetails = 'Network response was not ok.';
-                try {
-                    const errorData = await response.json();
-                    if (errorData && errorData.error) {
-                        errorDetails = errorData.error;
-                    }
-                } catch (e) {
-                    console.error("Could not parse error response:", e);
-                }
-                throw new Error(errorDetails);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Грешка при изпращането на имейл.');
             }
             
             toast({ title: "Успех!", description: "Разписката беше изпратена успешно." });
@@ -234,18 +215,18 @@ const SaleReceiptPage = () => {
         }
     };
 
-
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            </div>
-        );
+        return <div className="flex items-center justify-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
     }
 
     if (!sale) {
         return <div className="text-center py-10">Продажбата не е намерена.</div>;
     }
+
+    const isDeferred = sale.paymentStatus === 'deferred';
+    const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
+    const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
+    const statusColor = isDeferred ? 'text-red-600' : 'text-green-600';
 
     return (
         <div className="bg-muted/50 print:bg-white">
@@ -256,7 +237,7 @@ const SaleReceiptPage = () => {
                     </Button>
                     <div className="flex items-center gap-2">
                          <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-                            <Mail className="mr-2 h-4 w-4" /> Изпрати по имейл
+                            <Mail className="mr-2 h-4 w-4" /> Изпрати
                         </Button>
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="mr-2 h-4 w-4" /> Принтирай
@@ -267,17 +248,17 @@ const SaleReceiptPage = () => {
                     </div>
                 </div>
 
-                {/* The on-screen receipt content, ref is removed */}
                 <div className="bg-white p-8 border border-border shadow-sm print:border-none print:shadow-none">
                     <header className="flex justify-between items-start pb-6 border-b-2 border-border">
                         <div className="flex items-center gap-4">
                             <Image src="/logo.png" alt="Club Logo" width={60} height={60} />
                         </div>
                         <div className="text-right">
-                            <h1 className="text-3xl font-bold tracking-wider">СТОКОВА РАЗПИСКА</h1>
+                            <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
                             <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
+
                     <section className="mt-8 grid grid-cols-2 gap-8">
                         <div>
                             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ИЗДАЛ:</h2>
@@ -299,6 +280,11 @@ const SaleReceiptPage = () => {
                             )}
                         </div>
                     </section>
+
+                     <div className={`mt-8 text-center text-3xl font-bold ${statusColor}`}>
+                        {statusText}
+                    </div>
+
                     <section className="mt-10">
                         <table className="w-full text-sm">
                             <thead className="border-b border-border">
@@ -327,6 +313,7 @@ const SaleReceiptPage = () => {
                             </tfoot>
                         </table>
                     </section>
+
                     <section className="mt-20 grid grid-cols-2 gap-8 text-center">
                         <div>
                             <p className="text-sm text-muted-foreground">Издал:</p>
@@ -339,9 +326,12 @@ const SaleReceiptPage = () => {
                              <p className="mt-8">/{member ? `${member.firstName} ${member.lastName}` : '................................'}/</p>
                         </div>
                     </section>
+
                     <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
                         <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
-                        <p>Той удостоверява предаването и приемането на описаните артикули и служи за целите на вътрешния контрол и отчетност.</p>
+                         {isDeferred 
+                            ? <p>Това е проформа документ, който не удостоверява плащане. Той служи за целите на бъдещо плащане.</p>
+                            : <p>Този документ удостоверява извършено плащане и служи като касова бележка.</p>}
                     </footer>
                 </div>
             </div>

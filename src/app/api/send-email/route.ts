@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     });
 
     const mailOptions = {
-      from: `"БК Гълъбово" <${user}>`,
+      from: `"Бадминтон Клуб Гълъбово" <${user}>`,
       to: to,
       subject: subject,
       html: html,
