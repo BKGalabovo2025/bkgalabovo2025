@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getSales } from '@/services/sales-service';
 import { useToast } from '@/components/ui/use-toast';
 import { Sale } from '@/types';
+import { formatCurrency, formatBgnCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -26,13 +27,12 @@ const SalesListPage = () => {
                 setError(null);
                 const salesData = await getSales();
                 
-                // Sort by status (unpaid first), then by date descending
                 salesData.sort((a, b) => {
                     const aIsUnpaid = a.status === 'pending';
                     const bIsUnpaid = b.status === 'pending';
-                    if (aIsUnpaid && !bIsUnpaid) return -1; // a (unpaid) comes first
-                    if (!aIsUnpaid && bIsUnpaid) return 1;  // b (unpaid) comes first
-                    return new Date(b.date).getTime() - new Date(a.date).getTime(); // then sort by date
+                    if (aIsUnpaid && !bIsUnpaid) return -1;
+                    if (!aIsUnpaid && bIsUnpaid) return 1;
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
                 });
 
                 setSales(salesData);
@@ -107,7 +107,12 @@ const SalesListPage = () => {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{sale.memberId ? 'Член на клуба' : 'Външен клиент'}</TableCell>
-                                                <TableCell className="text-right font-mono">{(sale.total || 0).toFixed(2)} лв.</TableCell>
+                                                <TableCell className="text-right font-mono">
+                                                    {/* -- Currency Logic -- */}
+                                                    {sale.currency === 'EUR' 
+                                                        ? formatCurrency(sale.total)
+                                                        : formatBgnCurrency(sale.total)}
+                                                </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getSaleById, deleteSale } from '@/services/sales-service';
+import { deleteSale, getSaleById } from '@/services/sales-service';
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
+import { formatCurrency, formatBgnCurrency } from '@/lib/currency';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -97,6 +98,7 @@ const SaleReceiptPage = () => {
         const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
         const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
         const statusColor = paid ? '#22c55e' : '#ef4444';
+        const currencyLabel = currentSale.currency === 'EUR' ? 'EUR' : 'лв.';
 
         const styles = {
             body: `font-family: Arial, sans-serif; color: #333;`,
@@ -114,10 +116,12 @@ const SaleReceiptPage = () => {
             <tr>
                 <td style="${styles.td}">${item.name}</td>
                 <td style="${styles.td}; text-align: center;">${item.quantity}</td>
-                <td style="${styles.td}; text-align: right;">${(item.price || 0).toFixed(2)} лв.</td>
-                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.price || 0)).toFixed(2)} лв.</td>
+                <td style="${styles.td}; text-align: right;">${(item.price || 0).toFixed(2)} ${currencyLabel}</td>
+                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.price || 0)).toFixed(2)} ${currencyLabel}</td>
             </tr>
         `).join('');
+
+        const totalFormatted = currentSale.currency === 'EUR' ? formatCurrency(currentSale.total) : formatBgnCurrency(currentSale.total);
 
         return `
             <div style="${styles.body}">
@@ -141,7 +145,7 @@ const SaleReceiptPage = () => {
                     <tfoot>
                         <tr>
                             <td colspan="3" style="${styles.td}; text-align: right; font-weight: bold;">ОБЩО:</td>
-                            <td style="${styles.td}; text-align: right; ${styles.total}">${(currentSale.total || 0).toFixed(2)} лв.</td>
+                            <td style="${styles.td}; text-align: right; ${styles.total}">${totalFormatted}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -200,6 +204,8 @@ const SaleReceiptPage = () => {
     const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
     const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
     const statusColor = paid ? 'text-green-600' : 'text-red-600';
+    const currencyLabel = sale.currency === 'EUR' ? 'EUR' : 'лв.';
+    const totalFormatted = sale.currency === 'EUR' ? formatCurrency(sale.total) : formatBgnCurrency(sale.total);
 
     return (
         <div className="bg-muted/50 print:bg-white">
@@ -273,15 +279,15 @@ const SaleReceiptPage = () => {
                                     <tr key={item.productId}>
                                         <td className="p-2 font-medium">{item.name}</td>
                                         <td className="text-center p-2">{item.quantity}</td>
-                                        <td className="text-right p-2">{(item.price || 0).toFixed(2)} лв.</td>
-                                        <td className="text-right p-2">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} лв.</td>
+                                        <td className="text-right p-2">{(item.price || 0).toFixed(2)} {currencyLabel}</td>
+                                        <td className="text-right p-2">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} {currencyLabel}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="border-t-2 border-border">
                                 <tr>
                                     <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНЕ:</td>
-                                    <td className="text-right p-3 font-bold text-lg">{(sale.total || 0).toFixed(2)} лв.</td>
+                                    <td className="text-right p-3 font-bold text-lg">{totalFormatted}</td>
                                 </tr>
                             </tfoot>
                         </table>

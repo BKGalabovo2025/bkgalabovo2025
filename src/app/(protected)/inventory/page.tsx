@@ -9,8 +9,9 @@ import { EditProductDialog } from '@/components/inventory/EditProductDialog';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InventoryHistory from '@/components/inventory/InventoryHistory';
-import { useAuth } from '@/context/auth-context'; // Corrected import path
+import { useAuth } from '@/context/auth-context';
 import { User } from 'firebase/auth';
+import { formatCurrency } from '@/lib/currency'; // <-- ИМПОРТИРАНЕ НА ФУНКЦИЯТА
 
 // A self-contained component for the product list for better organization
 const ProductList = ({ user }: { user: User | null }) => {
@@ -86,7 +87,8 @@ const ProductList = ({ user }: { user: User | null }) => {
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
                         <div className="col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{product.price.toFixed(2)} лв.</div>
+                             {/* -- ПРОМЯНА ТУК -- */}
+                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatCurrency(product.price)}</div>
                              <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock} бр.</div>
                         </div>
                         <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">

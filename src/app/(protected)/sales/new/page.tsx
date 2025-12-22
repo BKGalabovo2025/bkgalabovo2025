@@ -9,6 +9,7 @@ import { getProducts } from '@/services/inventory-service';
 import { getAllMembers } from '@/services/member-service';
 import { addSale } from '@/services/sales-service';
 import { Product, Member, SaleItem, Sale } from '@/types';
+import { formatCurrency } from '@/lib/currency';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -28,7 +29,6 @@ const NewSalePage = () => {
     
     const [cart, setCart] = useState<SaleItem[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-    // --- FIX: Use correct type and initial value ---
     const [paymentStatus, setPaymentStatus] = useState<'paid' | 'deferred'>('paid');
     const [total, setTotal] = useState(0);
     
@@ -95,14 +95,14 @@ const NewSalePage = () => {
 
         setIsSubmitting(true);
         try {
-            // --- FIX: Send correct property to the service ---
             await addSale({
                 date: new Date().toISOString(),
                 items: cart,
                 total: total,
                 memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : null,
-                paymentStatus: paymentStatus, // Corrected from `status`
-            });
+                status: paymentStatus === 'paid' ? 'completed' : 'pending', 
+                currency: 'EUR', // <-- SET CURRENCY TO EUR
+            } as Omit<Sale, 'id'>);
 
             toast({ title: "Успех!", description: "Продажбата е създадена успешно." });
             router.push('/sales');
@@ -145,7 +145,7 @@ const NewSalePage = () => {
                                     {products.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{product.price.toFixed(2)} лв.</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(product.price)}</TableCell>
                                             <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button size="sm" onClick={() => addToCart(product.id)} disabled={product.stock === 0}>
@@ -186,7 +186,7 @@ const NewSalePage = () => {
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
                                                 <p className="font-medium">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">{(item.price || 0).toFixed(2)} лв.</p>
+                                                <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -208,7 +208,6 @@ const NewSalePage = () => {
                             <CardFooter className="flex-col items-start gap-4">
                                 <div className="space-y-2 w-full">
                                     <Label>Статус на плащане</Label>
-                                    {/* --- FIX: Use correct values and type for the RadioGroup --- */}
                                     <RadioGroup defaultValue="paid" value={paymentStatus} onValueChange={(value: 'paid' | 'deferred') => setPaymentStatus(value)} className="flex space-x-4">
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="paid" id="r-paid" />
@@ -223,7 +222,7 @@ const NewSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Общо:</span>
-                                    <span>{total.toFixed(2)} лв.</span>
+                                    <span>{formatCurrency(total)}</span>
                                 </div>
                                 <Button onClick={handleCreateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

@@ -34,6 +34,7 @@ export interface Payment {
     paymentDate: string;
     type: 'Членски внос' | 'Дарение' | 'Друго'; // Type of payment
     notes?: string;
+    currency?: 'BGN' | 'EUR'; // The currency of the payment amount
 }
 
 /**
@@ -51,12 +52,13 @@ export type Subscription = {
 
 /**
  * Represents an inventory product available for sale.
+ * The price is now stored in EUR.
  */
 export interface Product {
     id: string;
     name: string;
     description: string;
-    price: number;
+    price: number; // Price is in EUR
     stock: number;
     restockThreshold: number; // The minimum stock level before a restock is needed
     category: string;
@@ -68,9 +70,9 @@ export interface Product {
  */
 export interface SaleItem {
     productId: string;
-    name: string;      // Using 'name' for consistency across the app
+    name: string;
     quantity: number;
-    price: number;     // Price per unit at the time of sale
+    price: number; // Price per unit at the time of sale, in the currency of the parent Sale
 }
 
 /**
@@ -80,11 +82,30 @@ export interface Sale {
     id: string;
     date: string;
     memberId?: string | null; // Can be null for guest sales
-    customerName?: string;    // Denormalized customer name for quick display
+    customerName?: string;
     items: SaleItem[];
-    total: number;           // Using 'total' for consistency
+    total: number;
     status: 'pending' | 'paid' | 'completed' | 'refunded';
+    currency?: 'BGN' | 'EUR'; // The currency of the entire sale
 }
+
+/**
+ * Represents an inventory event log.
+ */
+export interface InventoryEvent {
+    id: string;
+    productId: string;
+    productName: string;
+    type: 'INITIAL' | 'RESTOCK' | 'PRICE_UPDATE' | 'SALE' | 'ADJUSTMENT';
+    quantityChange?: number; // e.g., +10 for restock, -2 for sale
+    oldPrice?: number;
+    newPrice?: number;
+    createdAt: any; // Firestore Timestamp
+    userId: string;
+    userName: string;
+    notes?: string;
+}
+
 
 /**
  * Represents a single, unified event for the schedule.

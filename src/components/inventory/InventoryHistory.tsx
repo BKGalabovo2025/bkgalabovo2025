@@ -34,7 +34,7 @@ const InventoryHistory = () => {
             case 'RESTOCK':
                 return <span className="text-green-600">+{event.quantityChange} бр.</span>;
             case 'PRICE_UPDATE':
-                return `стара: ${event.oldPrice?.toFixed(2)} лв. -> нова: ${event.newPrice?.toFixed(2)} лв.`;
+                return `стара: ${event.oldPrice?.toFixed(2)} лв. -> нова: ${event.newPrice?.toFixed(2)} EUR`;
             case 'SALE': // Assuming you might add sales later
                 return <span className="text-red-600">{event.quantityChange} бр.</span>;
             case 'ADJUSTMENT': // For manual corrections

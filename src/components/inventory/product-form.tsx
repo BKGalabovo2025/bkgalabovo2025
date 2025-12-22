@@ -108,7 +108,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                 name="price"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Цена (лв.)</FormLabel>
+                    <FormLabel>Цена (EUR)</FormLabel>
                     <FormControl>
                         <Input type="number" step="0.01" placeholder="0.00" {...field} />
                     </FormControl>

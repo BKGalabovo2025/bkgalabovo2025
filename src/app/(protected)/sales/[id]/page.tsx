@@ -7,6 +7,7 @@ import { deleteSale, getSaleById, markSaleAsPaid } from '@/services/sales-servic
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { formatCurrency, formatBgnCurrency } from '@/lib/currency';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -151,10 +152,10 @@ const SaleDetailsPage = () => {
                                 <div>
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {(item.price || 0).toFixed(2)} лв.
+                                        {item.quantity} x {(item.price || 0).toFixed(2)} {sale.currency === 'EUR' ? 'EUR' : 'лв.'}
                                     </p>
                                 </div>
-                                <p className="font-semibold">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} лв.</p>
+                                <p className="font-semibold">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} {sale.currency === 'EUR' ? 'EUR' : 'лв.'}</p>
                             </li>
                         ))}
                     </ul>
@@ -163,7 +164,7 @@ const SaleDetailsPage = () => {
             <CardFooter className="bg-muted/40 p-4 flex justify-end">
                  <div className="text-right">
                     <p className="text-sm text-muted-foreground">Общо</p>
-                    <p className="font-bold text-2xl">{(sale.total || 0).toFixed(2)} лв.</p>
+                     <p className="font-bold text-2xl">{sale.currency === 'EUR' ? formatCurrency(sale.total) : formatBgnCurrency(sale.total)}</p>
                 </div>
             </CardFooter>
           </Card>
