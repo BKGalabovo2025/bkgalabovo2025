@@ -21,7 +21,7 @@ const trainingSchema = z.object({
   start: z.string().min(1, 'Моля, въведете начална дата и час.'),
   end: z.string().min(1, 'Моля, въведете крайна дата и час.'),
   location: z.string().min(1, 'Моля, въведете локация.'),
-  type: z.literal('training').default('training'),
+  type: z.literal('trening').default('trening'),
 }).refine(data => new Date(data.start) < new Date(data.end), {
   message: 'Краят трябва да е след началото.',
   path: ['end'], 
@@ -50,7 +50,7 @@ export default function TrainingForm({ event, onSave, onDelete, onClose, isSavin
             start: start ? toLocalISOString(new Date(start)) : '',
             end: end ? toLocalISOString(new Date(end)) : '',
             location: event?.location || 'Спортна зала "Енергетик" град Гълъбово',
-            type: 'training',
+            type: 'trening',
         });
     }, [event, form.reset]);
 

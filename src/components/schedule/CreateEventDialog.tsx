@@ -18,7 +18,7 @@ interface CreateEventDialogProps {
 
 export function CreateEventDialog({ isOpen, onClose, onAddEvent }: CreateEventDialogProps) {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState<ScheduleEvent['type']>('тренировка');
+    const [type, setType] = useState<ScheduleEvent['type']>('trening');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [location, setLocation] = useState('');
@@ -28,7 +28,7 @@ export function CreateEventDialog({ isOpen, onClose, onAddEvent }: CreateEventDi
 
     const resetForm = () => {
         setTitle('');
-        setType('тренировка');
+        setType('trening');
         setStartDate('');
         setEndDate('');
         setLocation('');
@@ -90,10 +90,10 @@ export function CreateEventDialog({ isOpen, onClose, onAddEvent }: CreateEventDi
                                 <SelectValue placeholder="Изберете тип" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="тренировка">Тренировка</SelectItem>
-                                <SelectItem value="състезание">Състезание</SelectItem>
-                                <SelectItem value="лагер">Лагер</SelectItem>
-                                <SelectItem value="събитие">Събитие</SelectItem>
+                                <SelectItem value="trening">Тренировка</SelectItem>
+                                <SelectItem value="sastezanie">Състезание</SelectItem>
+                                <SelectItem value="lager">Лагер</SelectItem>
+                                <SelectItem value="sabitie">Събитие</SelectItem>
                             </SelectContent>
                         </Select>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

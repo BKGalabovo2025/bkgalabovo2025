@@ -23,7 +23,7 @@ const campSchema = z.object({
   start: z.string().min(1, 'Моля, въведете начална дата.'),
   end: z.string().min(1, 'Моля, въведете крайна дата.'),
   description: z.string().optional(),
-  type: z.literal('camp').default('camp'),
+  type: z.literal('lager').default('lager'),
 }).refine(data => new Date(data.start) < new Date(data.end), {
   message: 'Крайната дата трябва да е след началната.',
   path: ['end'],
@@ -53,7 +53,7 @@ export default function CampForm({ event, onSave, onDelete, onClose, isSaving }:
       start: start ? toLocalISOString(new Date(start)) : '',
       end: end ? toLocalISOString(new Date(end)) : '',
       description: event?.description || '',
-      type: 'camp',
+      type: 'lager',
     });
   }, [event, form.reset]);
 
@@ -113,7 +113,7 @@ export default function CampForm({ event, onSave, onDelete, onClose, isSaving }:
             name="end"
             render={({ field }) => (
               <FormItem className="flex-1">
-                <FormLabel>Крайна дата</Label>
+                <FormLabel>Крайна дата</FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>

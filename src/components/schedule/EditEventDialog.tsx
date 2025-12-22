@@ -112,10 +112,10 @@ export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditE
                                     <SelectValue placeholder="Изберете тип" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="тренировка">Тренировка</SelectItem>
-                                    <SelectItem value="състезание">Състезание</SelectItem>
-                                    <SelectItem value="лагер">Лагер</SelectItem>
-                                    <SelectItem value="събитие">Събитие</SelectItem>
+                                    <SelectItem value="trening">Тренировка</SelectItem>
+                                    <SelectItem value="sastezanie">Състезание</SelectItem>
+                                    <SelectItem value="lager">Лагер</SelectItem>
+                                    <SelectItem value="sabitie">Събитие</SelectItem>
                                 </SelectContent>
                             </Select>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

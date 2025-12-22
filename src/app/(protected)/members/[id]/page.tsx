@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ArrowLeft, Pencil } from 'lucide-react';
 import { MemberDetailsCard } from '@/components/members/member-details-card';
 import { MemberSalesHistory } from '@/components/members/member-sales-history';
+import { MemberAttendanceHistory } from '@/components/members/MemberAttendanceHistory';
 
 const MemberDetailsPage = () => {
   const [member, setMember] = useState<Member | null>(null);
@@ -93,16 +94,19 @@ const MemberDetailsPage = () => {
       </div>
 
       <Tabs defaultValue="personal-info" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="personal-info">Лична информация</TabsTrigger>
             <TabsTrigger value="financial-history">Финансова история</TabsTrigger>
+            <TabsTrigger value="attendance-history">История на присъствията</TabsTrigger>
         </TabsList>
         <TabsContent value="personal-info" className="mt-6">
             <MemberDetailsCard member={member} familyMembers={familyMembers} />
         </TabsContent>
         <TabsContent value="financial-history" className="mt-6">
             <MemberSalesHistory sales={sales} onMarkAsPaid={handleMarkAsPaid} />
-            {/* Future subscriptions component will go here */}
+        </TabsContent>
+         <TabsContent value="attendance-history" className="mt-6">
+            <MemberAttendanceHistory memberId={memberId} />
         </TabsContent>
     </Tabs>
 

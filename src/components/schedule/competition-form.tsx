@@ -23,7 +23,7 @@ const competitionSchema = z.object({
   start: z.string().min(1, 'Моля, въведете начална дата.'),
   end: z.string().min(1, 'Моля, въведете крайна дата.'),
   description: z.string().optional(),
-  type: z.literal('competition').default('competition'),
+  type: z.literal('sastezanie').default('sastezanie'),
 }).refine(data => new Date(data.start) < new Date(data.end), {
   message: 'Крайната дата трябва да е след началната.',
   path: ['end'],
@@ -53,7 +53,7 @@ export default function CompetitionForm({ event, onSave, onDelete, onClose, isSa
       start: start ? toLocalISOString(new Date(start)) : '',
       end: end ? toLocalISOString(new Date(end)) : '',
       description: event?.description || '',
-      type: 'competition',
+      type: 'sastezanie',
     });
   }, [event, form.reset]);
 

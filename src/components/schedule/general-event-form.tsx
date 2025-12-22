@@ -23,7 +23,7 @@ const generalEventSchema = z.object({
   end: z.string().min(1, 'Моля, въведете крайна дата и час.'),
   location: z.string().optional(),
   description: z.string().optional(),
-  type: z.literal('event').default('event'),
+  type: z.literal('sabitie').default('sabitie'),
 }).refine(data => new Date(data.start) < new Date(data.end), {
   message: 'Краят трябва да е след началото.',
   path: ['end'],
@@ -53,7 +53,7 @@ export default function GeneralEventForm({ event, onSave, onDelete, onClose, isS
         end: end ? toLocalISOString(new Date(end)) : '',
         location: event?.location || '',
         description: event?.description || '',
-        type: 'event',
+        type: 'sabitie',
     });
   }, [event, form.reset]);
 
