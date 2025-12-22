@@ -25,13 +25,11 @@ export const getSales = async (): Promise<Sale[]> => {
             }
         }
 
-        // --- FIX --- 
-        // Default missing paymentStatus to 'paid' for older documents
         const finalSaleData = {
             id: saleDoc.id,
             ...saleData,
             customerName: customerName,
-            paymentStatus: saleData.paymentStatus || 'paid', 
+            status: saleData.status || 'pending', // Default to pending
         };
 
         sales.push(finalSaleData as Sale);
@@ -59,13 +57,11 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
         }
     }
     
-    // --- FIX ---
-    // Also apply default for single sale fetching
     const finalSaleData = {
         id: docSnap.id,
         ...saleData,
         customerName,
-        paymentStatus: saleData.paymentStatus || 'paid',
+        status: saleData.status || 'pending', // Default to pending
     };
 
     return finalSaleData as Sale;
@@ -75,14 +71,12 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     const q = query(salesCollection, where("memberId", "==", memberId), orderBy("date", "desc"));
     const snapshot = await getDocs(q);
-    // --- FIX ---
-    // Also apply default here for consistency
     return snapshot.docs.map(saleDoc => {
         const saleData = saleDoc.data();
         return {
             id: saleDoc.id,
             ...saleData,
-            paymentStatus: saleData.paymentStatus || 'paid'
+            status: saleData.status || 'pending' // Default to pending
         } as Sale;
     });
 };
@@ -169,12 +163,10 @@ export const deleteSale = async (saleId: string): Promise<void> => {
 };
 
 
-// Marks a sale as paid by updating its paymentStatus to 'paid'
+// Marks a sale as paid by updating its status to 'paid'
 export const markSaleAsPaid = async (saleId: string): Promise<void> => {
     const saleRef = doc(db, 'sales', saleId);
-    // --- FIX ---
-    // Update the correct field: paymentStatus to 'paid'
     await updateDoc(saleRef, {
-        paymentStatus: 'paid'
+        status: 'paid' // Corrected from paymentStatus to status
     });
 };

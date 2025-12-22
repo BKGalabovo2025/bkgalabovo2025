@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
-import { PrintableReceipt } from '@/components/sales/PrintableReceipt';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,39 +72,12 @@ const SaleReceiptPage = () => {
         }
     }, [saleId, toast]);
 
-    const handlePrint = async () => {
-        if (!sale) return;
-        try {
-            const { renderToString } = await import('react-dom/server');
-            const printableComponent = <PrintableReceipt sale={sale} member={member} />;
-            const printContent = renderToString(printableComponent);
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра.", variant: "destructive" });
-                return;
-            }
-            const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));
-            const stylesHTML = styles.map(style => style.outerHTML).join('');
-            const receiptTitle = sale.paymentStatus === 'deferred' ? 'Проформа Стокова Разписка' : 'Стокова Разписка';
-            printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>${receiptTitle}</title>
-                        ${stylesHTML}
-                    </head>
-                    <body>${printContent}</body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 250);
-        } catch (error) {
-            console.error("Error during printing:", error);
-            toast({ title: "Грешка при принтиране", description: "Възникна неочаквана грешка.", variant: "destructive" });
-        }
+    const isPaid = (status: Sale['status']) => {
+        return status === 'paid' || status === 'completed';
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     const handleDelete = async () => {
@@ -120,10 +93,10 @@ const SaleReceiptPage = () => {
     };
 
     const generateReceiptHtml = (currentSale: Sale, currentMember: Member | null): string => {
-        const isDeferred = currentSale.paymentStatus === 'deferred';
-        const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
-        const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
-        const statusColor = isDeferred ? '#ef4444' : '#22c55e';
+        const paid = isPaid(currentSale.status);
+        const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
+        const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
+        const statusColor = paid ? '#22c55e' : '#ef4444';
 
         const styles = {
             body: `font-family: Arial, sans-serif; color: #333;`,
@@ -174,7 +147,7 @@ const SaleReceiptPage = () => {
                 </table>
                 <div style="${styles.footer}">
                     <p>Настоящият документ удостоверява предаването на описаните артикули.</p>
-                    ${isDeferred ? '<p>Това е проформа документ и не удостоверява плащане.</p>' : '<p>Този документ удостоверява извършено плащане.</p>'}
+                    ${!paid ? '<p>Това е проформа документ и не удостоверява плащане.</p>' : '<p>Този документ удостоверява извършено плащане.</p>'}
                 </div>
             </div>
         `;
@@ -189,9 +162,9 @@ const SaleReceiptPage = () => {
         setIsSendingEmail(true);
         try {
             const receiptHtml = generateReceiptHtml(sale, member);
-            const subject = sale.paymentStatus === 'deferred' 
-                ? `Проформа разписка от ${clubInfo.name}` 
-                : `Разписка от ${clubInfo.name}`;
+            const subject = isPaid(sale.status) 
+                ? `Разписка от ${clubInfo.name}`
+                : `Проформа разписка от ${clubInfo.name}`;
 
             const response = await fetch('/api/send-email', {
                 method: 'POST',
@@ -223,10 +196,10 @@ const SaleReceiptPage = () => {
         return <div className="text-center py-10">Продажбата не е намерена.</div>;
     }
 
-    const isDeferred = sale.paymentStatus === 'deferred';
-    const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
-    const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
-    const statusColor = isDeferred ? 'text-red-600' : 'text-green-600';
+    const paid = isPaid(sale.status);
+    const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
+    const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
+    const statusColor = paid ? 'text-green-600' : 'text-red-600';
 
     return (
         <div className="bg-muted/50 print:bg-white">
@@ -329,7 +302,7 @@ const SaleReceiptPage = () => {
 
                     <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
                         <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
-                         {isDeferred 
+                         {!paid 
                             ? <p>Това е проформа документ, който не удостоверява плащане. Той служи за целите на бъдещо плащане.</p>
                             : <p>Този документ удостоверява извършено плащане и служи като касова бележка.</p>}
                     </footer>

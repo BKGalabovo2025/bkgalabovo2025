@@ -25,12 +25,16 @@ const SalesListPage = () => {
                 setIsLoading(true);
                 setError(null);
                 const salesData = await getSales();
-                // Сортираме първо по статус (неплатените първи), след това по дата
+                
+                // Sort by status (unpaid first), then by date descending
                 salesData.sort((a, b) => {
-                    if (a.paymentStatus === 'deferred' && b.paymentStatus !== 'deferred') return -1;
-                    if (a.paymentStatus !== 'deferred' && b.paymentStatus === 'deferred') return 1;
-                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                    const aIsUnpaid = a.status === 'pending';
+                    const bIsUnpaid = b.status === 'pending';
+                    if (aIsUnpaid && !bIsUnpaid) return -1; // a (unpaid) comes first
+                    if (!aIsUnpaid && bIsUnpaid) return 1;  // b (unpaid) comes first
+                    return new Date(b.date).getTime() - new Date(a.date).getTime(); // then sort by date
                 });
+
                 setSales(salesData);
             } catch (err) {
                 console.error("Грешка при зареждане на продажбите:", err);
@@ -50,6 +54,10 @@ const SalesListPage = () => {
     const handleRowClick = (saleId: string) => {
         router.push(`/sales/${saleId}`);
     };
+
+    const isPaid = (status: Sale['status']) => {
+        return status === 'paid' || status === 'completed';
+    }
 
     return (
         <div className="p-4 sm:p-6">
@@ -94,8 +102,8 @@ const SalesListPage = () => {
                                                 <TableCell>{new Date(sale.date).toLocaleString('bg-BG')}</TableCell>
                                                 <TableCell className="font-medium">{sale.customerName}</TableCell>
                                                 <TableCell>
-                                                    <Badge variant={sale.paymentStatus === 'paid' ? 'success' : 'destructive'}>
-                                                        {sale.paymentStatus === 'paid' ? 'Платено' : 'Неплатено'}
+                                                    <Badge variant={isPaid(sale.status) ? 'success' : 'destructive'}>
+                                                        {isPaid(sale.status) ? 'Платено' : 'Неплатено'}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{sale.memberId ? 'Член на клуба' : 'Външен клиент'}</TableCell>

@@ -1,184 +1,145 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { getProducts, addProduct, updateProduct, deleteProduct } from '@/services/inventory-service';
-import { Product } from '@/types';
-import { PlusCircle, Edit, Trash, Loader2, ImageIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useToast } from '@/components/ui/use-toast';
-import { ProductForm } from '@/components/inventory/product-form';
+import { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { getProducts, deleteProduct } from "@/services/inventory-service";
+import { Product } from "@/types";
+import { PlusCircle, Edit, Trash2, ImageIcon } from 'lucide-react';
+import { EditProductDialog } from '@/components/inventory/EditProductDialog';
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import InventoryHistory from '@/components/inventory/InventoryHistory';
+import { useAuth } from '@/context/auth-context'; // Corrected import path
+import { User } from 'firebase/auth';
+
+// A self-contained component for the product list for better organization
+const ProductList = ({ user }: { user: User | null }) => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const { toast } = useToast();
+
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+            setError(null);
+        } catch (err) {
+            setError("Грешка при зареждането на продуктите.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const handleEdit = (product: Product) => {
+        setSelectedProduct(product);
+        setIsDialogOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (confirm("Сигурни ли сте, че искате да изтриете този продукт?")) {
+            try {
+                await deleteProduct(id);
+                toast({ title: "Успех!", description: "Продуктът беше изтрит." });
+                await fetchProducts(); // Refresh the list
+            } catch (err) {
+                toast({ title: "Грешка", description: "Възникна грешка при изтриването.", variant: "destructive" });
+                console.error(err);
+            }
+        }
+    };
+    
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+        setSelectedProduct(null);
+    }
+
+    return (
+         <>
+             {/* Header for larger screens */}
+            <div className="hidden md:grid grid-cols-12 gap-4 items-center font-semibold text-gray-500 border-b pb-2 mb-2">
+                <div className="col-span-1">Снимка</div>
+                <div className="col-span-5">Име</div>
+                <div className="col-span-2 text-right">Цена</div>
+                <div className="col-span-2 text-right">Наличност</div>
+                <div className="col-span-2 text-center">Действия</div>
+            </div>
+
+            {/* Product List */}
+            <div className="space-y-3">
+                {loading && <p className="text-center py-4">Зареждане...</p>}
+                {error && <p className="text-red-500 text-center py-4">{error}</p>}
+                {!loading && !error && products.map((product) => (
+                    <div key={product.id} className="grid grid-cols-3 md:grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-white shadow-sm">
+                        <div className="col-span-1 md:col-span-1 flex items-center">
+                             <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                 {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-md" /> : <ImageIcon className="text-gray-400" />}
+                             </div>
+                        </div>
+                        <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
+                        <div className="col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
+                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{product.price.toFixed(2)} лв.</div>
+                             <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock} бр.</div>
+                        </div>
+                        <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">
+                             <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}><Edit className="h-5 w-5 text-gray-600" /></Button>
+                             <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}><Trash2 className="h-5 w-5 text-red-500" /></Button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* The Edit Dialog */}
+            {selectedProduct && (
+                 <EditProductDialog
+                    isOpen={isDialogOpen}
+                    onClose={handleDialogClose}
+                    product={selectedProduct}
+                    onProductUpdate={fetchProducts} // This will refresh the product list
+                    user={user} // Pass the user object to the dialog
+                 />
+            )}
+        </>
+    )
+}
 
 const InventoryPage = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth(); // Get the authenticated user
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const productsData = await getProducts();
-      setProducts(productsData);
-    } catch (error) {
-      console.error('Грешка при зареждане на продуктите:', error);
-      toast({ title: "Грешка при зареждане", description: "Неуспешно зареждане на продуктите от базата данни.", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  const closeDialog = () => {
-    setIsDialogOpen(false);
-    setEditingProduct(null);
+  const handleAdd = () => {
+    toast({ title: "Информация", description: "Функцията за добавяне ще бъде имплементирана скоро." });
   };
-
-  const handleSaveProduct = async (data: Omit<Product, 'id'>) => {
-    try {
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, data);
-        toast({ title: "Продуктът е обновен", description: "Данните бяха успешно актуализирани." });
-      } else {
-        await addProduct(data);
-        toast({ title: "Продуктът е добавен", description: "Новият продукт беше успешно записан." });
-      }
-      fetchProducts(); // Re-fetch to get the latest list
-      closeDialog();
-    } catch (error) {
-      console.error('Грешка при запис на продукт:', error);
-      toast({ title: "Грешка при запис", description: "Възникна грешка при запазването на продукта.", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!productToDelete) return;
-    try {
-      await deleteProduct(productToDelete.id);
-      setProducts(products.filter(p => p.id !== productToDelete.id)); // Optimistic update is fine here after confirmation
-      toast({ title: "Продуктът е изтрит", description: "Избраният продукт беше успешно изтрит." });
-      setProductToDelete(null);
-    } catch (error) {
-      console.error('Грешка при изтриване на продукт:', error);
-      toast({ title: "Грешка при изтриване", description: "Възникна грешка при изтриването на продукта.", variant: "destructive" });
-    }
-  };
-
-  const openDialog = (product: Product | null = null) => {
-    setEditingProduct(product);
-    setIsDialogOpen(true);
-  };
-
-  if (loading && products.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-lg text-muted-foreground">Зареждане на продукти...</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Магазин и инвентар</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => openDialog()}> <PlusCircle className="mr-2 h-4 w-4" /> Добави продукт</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[525px]">
-            <DialogHeader>
-              <DialogTitle>{editingProduct ? 'Редактиране на продукт' : 'Добавяне на нов продукт'}</DialogTitle>
-              <DialogDescription>Попълнете информацията по-долу. Натиснете "Запази", когато сте готови.</DialogDescription>
-            </DialogHeader>
-            <ProductForm product={editingProduct} onSave={handleSaveProduct} onClose={closeDialog} />
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      <AlertDialog>
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">Снимка</TableHead>
-                <TableHead>Име</TableHead>
-                <TableHead className="text-right">Цена</TableHead>
-                <TableHead className="text-right">Наличност</TableHead>
-                <TableHead className="w-[150px] text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map(product => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                      {product.imageUrl ? (
-                          <div className="relative w-16 h-16 bg-muted rounded-md overflow-hidden">
-                              <Image src={product.imageUrl} alt={product.name} fill sizes="64px" className="object-cover" />
-                          </div>
-                      ) : (
-                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                              <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                      )}
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-right">{(product.price || 0).toFixed(2)} лв.</TableCell>
-                  <TableCell className="text-right">{product.stock || 0} бр.</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openDialog(product)}><Edit className="h-4 w-4" /></Button>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setProductToDelete(product)}><Trash className="h-4 w-4 text-destructive" /></Button>
-                    </AlertDialogTrigger>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {products.length === 0 && !loading && (
-                  <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">Няма добавени продукти.</TableCell>
-                  </TableRow>
-              )}
-            </TableBody>
-          </Table>
+    <div className="container mx-auto p-4">
+        <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold">Управление на инвентара</h1>
+            <Button onClick={handleAdd}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Добави продукт
+            </Button>
         </div>
 
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Наистина ли искате да изтриете този продукт?</AlertDialogTitle>
-                <AlertDialogDescription>Това действие е необратимо. Продуктът ще бъде изтрит завинаги от инвентара.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setProductToDelete(null)}>Отказ</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Изтрий</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <Tabs defaultValue="stock" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="stock">Наличности</TabsTrigger>
+                <TabsTrigger value="history">История на инвентара</TabsTrigger>
+            </TabsList>
+            <TabsContent value="stock" className="mt-4">
+                <ProductList user={user} />
+            </TabsContent>
+            <TabsContent value="history" className="mt-4">
+                <InventoryHistory />
+            </TabsContent>
+        </Tabs>
     </div>
   );
 };

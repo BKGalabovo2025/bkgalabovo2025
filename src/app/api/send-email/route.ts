@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   try {
     const { to, subject, text, html } = await request.json();
 
-    // === ИЗПОЛЗВАНЕ НА НОВИ ИМЕНА НА ПРОМЕНЛИВИТЕ ===
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
 
@@ -28,8 +27,9 @@ export async function POST(request: Request) {
     });
 
     const mailOptions = {
-      from: `"Бадминтон Клуб Гълъбово" <${user}>`,
+      from: `Администратор\"Бадминтон Клуб Гълъбово\" <${user}>`,
       to: to,
+      bcc: 'bkgalabovo2014@gmail.com',
       subject: subject,
       html: html,
       text: text,

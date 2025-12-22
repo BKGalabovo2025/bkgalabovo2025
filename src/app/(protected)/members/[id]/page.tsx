@@ -1,9 +1,9 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getAllMembers, getMemberById } from '@/services/member-service'; // Import getAllMembers
+import { getAllMembers, getMemberById } from '@/services/member-service';
 import { getSalesByMemberId, markSaleAsPaid } from '@/services/sales-service';
 import { Member, Sale } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -25,42 +25,42 @@ const MemberDetailsPage = () => {
   const { toast } = useToast();
   const memberId = params.id as string;
 
-  useEffect(() => {
-    if (memberId) {
-      const fetchMemberData = async () => {
-        setLoading(true);
-        try {
-          const memberData = await getMemberById(memberId);
-          setMember(memberData);
+  const fetchMemberData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const memberData = await getMemberById(memberId);
+      setMember(memberData);
 
-          if (memberData && memberData.familyId) {
-            const allMembers = await getAllMembers();
-            const relatedMembers = allMembers.filter(m => m.familyId === memberData.familyId && m.id !== memberData.id);
-            setFamilyMembers(relatedMembers);
-          }
+      if (memberData && memberData.familyId) {
+        const allMembers = await getAllMembers();
+        const relatedMembers = allMembers.filter(m => m.familyId === memberData.familyId && m.id !== memberData.id);
+        setFamilyMembers(relatedMembers);
+      }
 
-          const salesData = await getSalesByMemberId(memberId);
-          setSales(salesData);
+      const salesData = await getSalesByMemberId(memberId);
+      setSales(salesData);
 
-        } catch (error) {
-          console.error("Грешка при зареждане на данните за члена:", error);
-          toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchMemberData();
+    } catch (error) {
+      console.error("Грешка при зареждане на данните за члена:", error);
+      toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   }, [memberId, toast]);
+
+  useEffect(() => {
+    if (memberId) {
+      fetchMemberData();
+    }
+  }, [memberId, fetchMemberData]);
 
   const handleMarkAsPaid = async (saleId: string) => {
     try {
         await markSaleAsPaid(saleId);
-        setSales(prevSales => 
-            prevSales.map(sale => 
-                sale.id === saleId ? { ...sale, status: 'completed' } : sale
-            )
-        );
+        // Refetch sales to ensure data consistency
+        const updatedSalesData = await getSalesByMemberId(memberId);
+        setSales(updatedSalesData);
+
         toast({ title: "Успех!", description: "Продажбата беше маркирана като платена." });
     } catch (error) {
         console.error("Грешка при маркиране като платено:", error);
