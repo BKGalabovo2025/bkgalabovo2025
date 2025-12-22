@@ -66,7 +66,7 @@ const ProductList = ({ user }: { user: User | null }) => {
     return (
          <>
              {/* Header for larger screens */}
-            <div className="hidden md:grid grid-cols-12 gap-4 items-center font-semibold text-gray-500 border-b pb-2 mb-2">
+            <div className="hidden md:grid grid-cols-12 gap-4 items-center font-semibold text-muted-foreground border-b pb-2 mb-2">
                 <div className="col-span-1">Снимка</div>
                 <div className="col-span-5">Име</div>
                 <div className="col-span-2 text-right">Цена</div>
@@ -77,12 +77,12 @@ const ProductList = ({ user }: { user: User | null }) => {
             {/* Product List */}
             <div className="space-y-3">
                 {loading && <p className="text-center py-4">Зареждане...</p>}
-                {error && <p className="text-red-500 text-center py-4">{error}</p>}
+                {error && <p className="text-destructive text-center py-4">{error}</p>}
                 {!loading && !error && products.map((product) => (
-                    <div key={product.id} className="grid grid-cols-3 md:grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-white shadow-sm">
+                    <div key={product.id} className="grid grid-cols-3 md:grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-card shadow-sm">
                         <div className="col-span-1 md:col-span-1 flex items-center">
-                             <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
-                                 {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-md" /> : <ImageIcon className="text-gray-400" />}
+                             <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                                 {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-md" /> : <ImageIcon className="text-muted-foreground" />}
                              </div>
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
@@ -92,8 +92,8 @@ const ProductList = ({ user }: { user: User | null }) => {
                              <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock} бр.</div>
                         </div>
                         <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">
-                             <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}><Edit className="h-5 w-5 text-gray-600" /></Button>
-                             <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}><Trash2 className="h-5 w-5 text-red-500" /></Button>
+                             <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}><Edit className="h-5 w-5 text-muted-foreground" /></Button>
+                             <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}><Trash2 className="h-5 w-5 text-destructive" /></Button>
                         </div>
                     </div>
                 ))}

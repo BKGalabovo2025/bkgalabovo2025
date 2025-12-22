@@ -3,7 +3,7 @@ import { Member } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, Mail, Home, Cake, Briefcase, Info, Users } from 'lucide-react'; // Added Users icon
+import { User, Phone, Mail, Home, Cake, Briefcase, Info, Users } from 'lucide-react';
 import { getAgeGroup } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -14,11 +14,11 @@ interface MemberDetailsCardProps {
 
 const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | undefined | null }) => (
     value ? (
-        <div className="flex items-start py-3 border-b border-gray-100 last:border-b-0">
-            <Icon className="h-5 w-5 mr-4 text-gray-500 mt-1"/> 
+        <div className="flex items-start py-3 border-b last:border-b-0">
+            <Icon className="h-5 w-5 mr-4 text-muted-foreground mt-1"/> 
             <div>
-                <p className="text-sm text-gray-500">{label}</p>
-                <p className="font-semibold text-gray-800">{value}</p>
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <p className="font-semibold">{value}</p>
             </div>
         </div>
     ) : null
@@ -47,9 +47,9 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                 {member.status === 'active' ? 'Активен' : 'Неактивен'}
             </Badge>
         </CardHeader>
-        <CardContent className="divide-y divide-gray-100 p-0">
+        <CardContent className="divide-y p-0">
             <div className="p-6">
-              <h3 className="font-semibold text-lg mb-4 text-gray-800">Лични данни</h3>
+              <h3 className="font-semibold text-lg mb-4">Лични данни</h3>
               <DetailRow icon={User} label="Пълно име" value={fullName} />
               <DetailRow icon={Mail} label="Имейл" value={member.email} />
               <DetailRow icon={Phone} label="Телефон" value={member.phone ? `${member.phone} (${member.phoneType === 'parent' ? 'родител' : 'личен'})` : null} />
@@ -63,17 +63,17 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
             
             {familyMembers && familyMembers.length > 0 && (
               <div className="p-6">
-                <h3 className="font-semibold text-lg mb-4 flex items-center text-gray-800"><Users className="h-5 w-5 mr-3"/> Семейство</h3>
+                <h3 className="font-semibold text-lg mb-4 flex items-center"><Users className="h-5 w-5 mr-3"/> Семейство</h3>
                 <div className="space-y-3">
                   {familyMembers.map(fm => (
-                      <div key={fm.id} onClick={() => handleFamilyMemberClick(fm.id)} className="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <div key={fm.id} onClick={() => handleFamilyMemberClick(fm.id)} className="flex items-center p-2 rounded-md hover:bg-muted cursor-pointer">
                           <Avatar className="h-10 w-10 mr-3">
                               <AvatarImage src={fm.avatarUrl} />
                               <AvatarFallback>{fm.firstName?.[0]}{fm.lastName?.[0]}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold text-gray-700">{[fm.firstName, fm.lastName].join(' ')}</p>
-                            <p className="text-sm text-gray-500">{getAgeGroup(fm.dateOfBirth)}</p>
+                            <p className="font-semibold">{[fm.firstName, fm.lastName].join(' ')}</p>
+                            <p className="text-sm text-muted-foreground">{getAgeGroup(fm.dateOfBirth)}</p>
                           </div>
                       </div>
                   ))}

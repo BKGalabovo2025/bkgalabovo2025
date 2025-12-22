@@ -55,7 +55,6 @@
   }
 
   .dark {
-    /* Dark theme remains, but could be adjusted to match purple scheme */
     --background: 262 15% 10%;
     --foreground: 0 0% 98%;
     --card: 262 15% 12%;
@@ -77,7 +76,6 @@
     --border: 262 20% 25%;
     --input: 262 20% 25%;
     --ring: 255 44% 71%;
-
     --sidebar-background: 262 15% 10%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-accent: 255 44% 81%;
