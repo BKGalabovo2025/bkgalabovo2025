@@ -28,7 +28,8 @@ const NewSalePage = () => {
     
     const [cart, setCart] = useState<SaleItem[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-    const [paymentStatus, setPaymentStatus] = useState<Sale['status']>('completed');
+    // --- FIX: Use correct type and initial value ---
+    const [paymentStatus, setPaymentStatus] = useState<'paid' | 'deferred'>('paid');
     const [total, setTotal] = useState(0);
     
     const [isLoading, setIsLoading] = useState(true);
@@ -94,12 +95,13 @@ const NewSalePage = () => {
 
         setIsSubmitting(true);
         try {
+            // --- FIX: Send correct property to the service ---
             await addSale({
                 date: new Date().toISOString(),
                 items: cart,
                 total: total,
                 memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : null,
-                status: paymentStatus, // Use the selected payment status
+                paymentStatus: paymentStatus, // Corrected from `status`
             });
 
             toast({ title: "Успех!", description: "Продажбата е създадена успешно." });
@@ -206,14 +208,15 @@ const NewSalePage = () => {
                             <CardFooter className="flex-col items-start gap-4">
                                 <div className="space-y-2 w-full">
                                     <Label>Статус на плащане</Label>
-                                    <RadioGroup defaultValue="completed" value={paymentStatus} onValueChange={(value: "completed" | "pending") => setPaymentStatus(value)} className="flex space-x-4">
+                                    {/* --- FIX: Use correct values and type for the RadioGroup --- */}
+                                    <RadioGroup defaultValue="paid" value={paymentStatus} onValueChange={(value: 'paid' | 'deferred') => setPaymentStatus(value)} className="flex space-x-4">
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="completed" id="r-completed" />
-                                            <Label htmlFor="r-completed">Платено</Label>
+                                            <RadioGroupItem value="paid" id="r-paid" />
+                                            <Label htmlFor="r-paid">Платено</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="pending" id="r-pending" />
-                                            <Label htmlFor="r-pending">Отложено</Label>
+                                            <RadioGroupItem value="deferred" id="r-deferred" />
+                                            <Label htmlFor="r-deferred">Отложено</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>

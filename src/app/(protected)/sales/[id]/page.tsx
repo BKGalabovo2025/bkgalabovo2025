@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { deleteSale, getSaleById } from '@/services/sales-service';
+import { deleteSale, getSaleById, markSaleAsPaid } from '@/services/sales-service'; // Import markSaleAsPaid
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,15 +11,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-
-import { Loader2, ArrowLeft, Receipt, User, ShoppingCart, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Loader2, ArrowLeft, Receipt, User, ShoppingCart, Trash2, CheckCheck } from 'lucide-react'; // Import CheckCheck
 
 const SaleDetailsPage = () => {
   const [sale, setSale] = useState<Sale | null>(null);
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false); // State for payment status update
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -59,6 +60,29 @@ const SaleDetailsPage = () => {
         setIsDeleting(false);
     }
   }
+
+  // Handler to mark the sale as paid
+  const handleMarkAsPaid = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      await markSaleAsPaid(saleId);
+      // Optimistically update the UI
+      setSale(prevSale => prevSale ? { ...prevSale, paymentStatus: 'paid' } : null);
+      toast({
+        title: "Успех!",
+        description: "Плащането е регистрирано.",
+      });
+    } catch (error) {
+      console.error("Грешка при обновяване на статуса:", error);
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем при обновяване на статуса.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -169,6 +193,25 @@ const SaleDetailsPage = () => {
                         <Button variant="outline" className="w-full" onClick={() => router.push(`/members/${member.id}`)}>Преглед на профила</Button>
                     </CardFooter>
                 )}
+            </Card>
+            
+            {/* Payment Status Card */}
+            <Card className="mt-6">
+                 <CardHeader>
+                    <CardTitle>Статус на плащане</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-start gap-4">
+                     <Badge variant={sale.paymentStatus === 'paid' ? 'success' : 'destructive'} className="text-base px-4 py-1">
+                        {sale.paymentStatus === 'paid' ? 'Платено' : 'Неплатено'}
+                    </Badge>
+
+                    {sale.paymentStatus === 'deferred' && (
+                        <Button onClick={handleMarkAsPaid} disabled={isUpdatingStatus} className="w-full mt-2">
+                            {isUpdatingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <CheckCheck className="mr-2 h-4 w-4" />}
+                            Маркирай като платено
+                        </Button>
+                    )}
+                </CardContent>
             </Card>
         </div>
 

@@ -12,12 +12,14 @@ import { getDashboardStats, DashboardStats } from '@/services/dashboard-service'
 import { useToast } from '@/components/ui/use-toast';
 import { Sale, Member } from '@/types';
 
+// Разширяваме интерфейса, за да включва и задълженията на членове
 const initialStats: DashboardStats = {
     activeMembers: 0,
     monthlyRevenue: 0,
     pendingSubscriptions: 0,
     recentMembers: [],
     deferredExternalSales: [],
+    deferredMemberSales: [], // Ново поле за задължения на членове
 };
 
 const DashboardPage = () => {
@@ -64,6 +66,7 @@ const DashboardPage = () => {
              <h1 className="text-3xl font-bold">Табло за управление</h1>
         </div>
      
+      {/* Статистически карти */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -99,36 +102,66 @@ const DashboardPage = () => {
         </Card>
       </div>
 
-      {stats.deferredExternalSales.length > 0 && (
-        <div className="mt-6">
-            <Card className="border-warning">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><AlertTriangle className="text-warning"/>Отложени плащания (Външни)</CardTitle>
-                    <CardDescription>Това са неплатени продажби от клиенти, които не са членове.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {stats.deferredExternalSales.map((sale: Sale) => (
-                            <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                <div>
-                                  <div className="font-semibold">{sale.customerName}</div>
-                                  <p className="text-sm text-muted-foreground">
-                                      {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
-                                  </p>
+      {/* Секция за неплатени задължения */}
+       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+            {stats.deferredMemberSales?.length > 0 && (
+                <Card className="border-destructive">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle />Неплатени задължения (Членове)</CardTitle>
+                        <CardDescription>Списък на членове с една или повече неплатени продажби.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {stats.deferredMemberSales.map((sale: Sale) => (
+                                <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                    <div>
+                                        <Link href={`/members/${sale.memberId}`} className="font-semibold text-primary hover:underline">{sale.customerName}</Link>
+                                        <p className="text-sm text-muted-foreground">
+                                            От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
+                                        </p>
+                                    </div>
+                                    <Link href={`/sales/${sale.id}`} passHref>
+                                        <Button variant="secondary" size="sm">
+                                            Към продажбата <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <Link href={`/sales/${sale.id}`} passHref>
-                                    <Button variant="outline" size="sm">
-                                        Преглед <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-      )}
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
+            {stats.deferredExternalSales?.length > 0 && (
+                <Card className="border-orange-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-orange-600"><AlertTriangle/>Отложени плащания (Външни)</CardTitle>
+                        <CardDescription>Това са неплатени продажби от клиенти, които не са членове.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {stats.deferredExternalSales.map((sale: Sale) => (
+                                <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                    <div>
+                                    <div className="font-semibold">{sale.customerName}</div>
+                                    <p className="text-sm text-muted-foreground">
+                                        От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
+                                    </p>
+                                    </div>
+                                    <Link href={`/sales/${sale.id}`} passHref>
+                                        <Button variant="secondary" size="sm">
+                                            Към продажбата <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+      </div>
+
+      {/* Секция за последни регистрации */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card>
             <CardHeader>
@@ -136,7 +169,7 @@ const DashboardPage = () => {
                 <CardDescription>Списък на последните няколко регистрирани членове.</CardDescription>
             </CardHeader>
             <CardContent>
-                  {stats.recentMembers.length > 0 ? (
+                  {stats.recentMembers?.length > 0 ? (
                     <div className="space-y-4">
                         {stats.recentMembers.map((member) => (
                             <div key={member.id} className="flex items-center justify-between">

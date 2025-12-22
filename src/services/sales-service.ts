@@ -24,7 +24,17 @@ export const getSales = async (): Promise<Sale[]> => {
                 console.error("Error fetching member name:", e)
             }
         }
-        sales.push({ id: saleDoc.id, ...saleData, customerName: customerName } as Sale);
+
+        // --- FIX --- 
+        // Default missing paymentStatus to 'paid' for older documents
+        const finalSaleData = {
+            id: saleDoc.id,
+            ...saleData,
+            customerName: customerName,
+            paymentStatus: saleData.paymentStatus || 'paid', 
+        };
+
+        sales.push(finalSaleData as Sale);
     }
     return sales;
 };
@@ -48,16 +58,35 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
             console.error("Error fetching member name:", e);
         }
     }
+    
+    // --- FIX ---
+    // Also apply default for single sale fetching
+    const finalSaleData = {
+        id: docSnap.id,
+        ...saleData,
+        customerName,
+        paymentStatus: saleData.paymentStatus || 'paid',
+    };
 
-    return { id: docSnap.id, ...saleData, customerName } as Sale;
+    return finalSaleData as Sale;
 };
 
 // Fetches all sales for a specific member
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     const q = query(salesCollection, where("memberId", "==", memberId), orderBy("date", "desc"));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(saleDoc => ({ id: saleDoc.id, ...saleDoc.data() } as Sale));
+    // --- FIX ---
+    // Also apply default here for consistency
+    return snapshot.docs.map(saleDoc => {
+        const saleData = saleDoc.data();
+        return {
+            id: saleDoc.id,
+            ...saleData,
+            paymentStatus: saleData.paymentStatus || 'paid'
+        } as Sale;
+    });
 };
+
 
 /**
  * Adds a new sale and updates product stock in a transaction.
@@ -140,10 +169,12 @@ export const deleteSale = async (saleId: string): Promise<void> => {
 };
 
 
-// Marks a sale as paid by updating its status to 'completed'
+// Marks a sale as paid by updating its paymentStatus to 'paid'
 export const markSaleAsPaid = async (saleId: string): Promise<void> => {
     const saleRef = doc(db, 'sales', saleId);
+    // --- FIX ---
+    // Update the correct field: paymentStatus to 'paid'
     await updateDoc(saleRef, {
-        status: 'completed'
+        paymentStatus: 'paid'
     });
 };
