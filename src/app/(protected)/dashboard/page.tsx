@@ -62,12 +62,6 @@ const DashboardPage = () => {
     <div className="p-4 sm:p-6">
         <div className="flex justify-between items-center mb-6">
              <h1 className="text-3xl font-bold">Табло за управление</h1>
-             <Link href="/sales/new" passHref>
-                <Button>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Нова продажба
-                </Button>
-             </Link>
         </div>
      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
