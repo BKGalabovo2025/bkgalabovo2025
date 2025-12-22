@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
+import { PrintableReceipt } from '@/components/sales/PrintableReceipt'; // Import the new printable component
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,7 @@ const SaleReceiptPage = () => {
     const router = useRouter();
     const { toast } = useToast();
     const saleId = params.id as string;
+    // receiptRef is no longer needed
 
     useEffect(() => {
         if (saleId) {
@@ -72,8 +74,55 @@ const SaleReceiptPage = () => {
         }
     }, [saleId, toast]);
 
-    const handlePrint = () => {
-        window.print();
+    // --- The new, reliable print handler ---
+    const handlePrint = async () => {
+        if (!sale) return;
+
+        try {
+            // Dynamically import renderToString to avoid module conflicts
+            const { renderToString } = await import('react-dom/server');
+
+            // Generate HTML string in memory
+            const printableComponent = <PrintableReceipt sale={sale} member={member} />;
+            const printContent = renderToString(printableComponent);
+
+            // Open a new window
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра. Моля, разрешете изскачащите прозорци.", variant: "destructive" });
+                return;
+            }
+
+            // Gather styles
+            const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));
+            const stylesHTML = styles.map(style => style.outerHTML).join('');
+
+            // Write content and styles
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Разписка</title>
+                        ${stylesHTML}
+                    </head>
+                    <body>
+                        ${printContent}
+                    </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+            printWindow.focus();
+
+            // Trigger print
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+
+        } catch (error) {
+            console.error("Error during printing:", error);
+            toast({ title: "Грешка при принтиране", description: "Възникна неочаквана грешка.", variant: "destructive" });
+        }
     };
 
     const handleDelete = async () => {
@@ -218,7 +267,7 @@ const SaleReceiptPage = () => {
                     </div>
                 </div>
 
-                {/* Receipt Content */}
+                {/* The on-screen receipt content, ref is removed */}
                 <div className="bg-white p-8 border border-border shadow-sm print:border-none print:shadow-none">
                     <header className="flex justify-between items-start pb-6 border-b-2 border-border">
                         <div className="flex items-center gap-4">

@@ -1,4 +1,3 @@
-
 // This component is designed specifically for printing.
 import React from 'react';
 import { ScheduleEvent, Member } from '@/types';
@@ -6,7 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { bg } from 'date-fns/locale';
 
 interface PrintableEventProps {
-    event: ScheduleEvent | null;
+    event: ScheduleEvent;
     members: Member[];
 }
 
@@ -19,7 +18,8 @@ const formatDate = (dateStr?: string | null) => {
     }
 };
 
-export const PrintableEvent = React.forwardRef<HTMLDivElement, PrintableEventProps>(({ event, members }, ref) => {
+// This is now a simple functional component, no need for forwardRef.
+export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members }) => {
     if (!event) return null;
 
     const attendeeNames = (event.attendees || [])
@@ -31,62 +31,32 @@ export const PrintableEvent = React.forwardRef<HTMLDivElement, PrintableEventPro
         .join(', ');
 
     return (
-        <div ref={ref} className="p-8 font-sans">
-            <style type="text/css" media="print">
-                {`
-                    @page {
-                        size: A4;
-                        margin: 20mm;
-                    }
-                    body {
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                    }
-                `}
-            </style>
-            <header className="mb-8 text-center">
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">{event.title}</h1>
-                <p className="text-lg text-gray-500">Информация за събитие</p>
-            </header>
+        <div className="p-4 font-sans text-sm">
+            <h1 className="text-xl font-bold mb-4 border-b pb-2">Детайли за събитието</h1>
+            <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+                <p className="font-semibold col-span-1">Заглавие:</p>
+                <p className="col-span-2">{event.title}</p>
 
-            <div className="grid grid-cols-3 gap-x-8 text-sm">
-                <div className="col-span-3 sm:col-span-1 mb-6">
-                    <h3 className="font-semibold text-gray-600 border-b pb-2 mb-3">Тип на събитието</h3>
-                    <p className="text-gray-800 capitalize">{event.type}</p>
-                </div>
-                <div className="col-span-3 sm:col-span-2 mb-6">
-                    <h3 className="font-semibold text-gray-600 border-b pb-2 mb-3">Период</h3>
-                    <p className="text-gray-800">
-                        <strong className="font-medium">От:</strong> {formatDate(event.startDate)}<br/>
-                        {event.endDate && <><strong className="font-medium">До:</strong> {formatDate(event.endDate)}</>}
-                    </p>
-                </div>
+                <p className="font-semibold col-span-1">Начало:</p>
+                <p className="col-span-2">{formatDate(event.start)}</p>
+
+                <p className="font-semibold col-span-1">Край:</p>
+                <p className="col-span-2">{formatDate(event.end)}</p>
+
+                <p className="font-semibold col-span-1">Място:</p>
+                <p className="col-span-2">{event.location || 'Няма посочено'}</p>
+
+                <p className="font-semibold col-span-1">Тип:</p>
+                <p className="col-span-2">{event.type || 'Няма посочен'}</p>
+
+                {attendeeNames && (
+                    <>
+                        <p className="font-semibold col-span-1 mt-2">Присъстващи:</p>
+                        <p className="col-span-2 mt-2">{attendeeNames}</p>
+                    </>
+                )}
             </div>
-
-            {event.location && (
-                 <div className="mb-6">
-                    <h3 className="font-semibold text-gray-600 border-b pb-2 mb-3">Място</h3>
-                    <p className="text-gray-800">{event.location}</p>
-                </div>
-            )}
-
-            {event.description && (
-                <div className="mb-6">
-                    <h3 className="font-semibold text-gray-600 border-b pb-2 mb-3">Описание</h3>
-                    <div className="prose prose-sm max-w-none text-gray-800">
-                       {event.description}
-                    </div>
-                </div>
-            )}
-
-            {attendeeNames && (
-                <div className="mb-6">
-                    <h3 className="font-semibold text-gray-600 border-b pb-2 mb-3">Присъстващи</h3>
-                    <p className="text-gray-700 text-xs">{attendeeNames}</p>
-                </div>
-            )}
+            <p className="text-xs text-gray-500 mt-6 pt-2 border-t">Генерирано на: {format(new Date(), "d MMMM yyyy 'г.' HH:mm 'ч.'", { locale: bg })}</p>
         </div>
     );
-});
-
-PrintableEvent.displayName = 'PrintableEvent';
+};

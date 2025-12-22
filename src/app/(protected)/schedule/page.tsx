@@ -1,8 +1,8 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState } from 'react';
+// renderToString is now loaded dynamically
 import { useEvents } from '@/hooks/useEvents';
 import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
@@ -12,13 +12,15 @@ import { CreateEventDialog } from '@/components/schedule/CreateEventDialog';
 import { EditEventDialog } from '@/components/schedule/EditEventDialog';
 import { AttendeesDialog } from '@/components/schedule/AttendeesDialog';
 import { MonthlyScheduleDialog } from '@/components/schedule/MonthlyScheduleDialog';
-import { PrintableEvent } from '@/components/schedule/PrintableEvent'; // Import the printable component
+import { PrintableEvent } from '@/components/schedule/PrintableEvent';
 import { ScheduleEvent, Member } from '@/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from "@/components/ui/use-toast";
 
 export default function SchedulePage() {
     const { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading: isLoadingEvents, error: eventsError } = useEvents();
     const { members, isLoading: isLoadingMembers, error: membersError } = useMembers();
+    const { toast } = useToast();
     
     const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -29,23 +31,50 @@ export default function SchedulePage() {
     const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
     const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
 
-    // --- Print Logic ---
-    const printRef = useRef<HTMLDivElement>(null);
-    const [eventToPrint, setEventToPrint] = useState<ScheduleEvent | null>(null);
+    // --- Final, Correct, DOM-less, Dynamically Imported Print Logic ---
+    const triggerPrint = async (event: ScheduleEvent) => {
+        // 1. Dynamically import renderToString to avoid CJS/ESM conflicts.
+        const { renderToString } = await import('react-dom/server');
 
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current,
-        onAfterPrint: () => setEventToPrint(null), // Clean up after printing
-    });
+        // 2. Generate HTML string directly from the component, in memory.
+        const printableComponent = <PrintableEvent event={event} members={members as Member[]} />;
+        const printContent = renderToString(printableComponent);
 
-    const triggerPrint = (event: ScheduleEvent) => {
-        setEventToPrint(event);
-        // The `useReactToPrint` hook needs a moment for the state to update
-        // and the component to render before it can be triggered.
-        setTimeout(handlePrint, 100);
+        // 3. Open a new window.
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра. Моля, разрешете изскачащите прозорци.", variant: "destructive" });
+            return;
+        }
+
+        // 4. Gather all current styles from the main document.
+        const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));
+        const stylesHTML = styles.map(style => style.outerHTML).join('');
+
+        // 5. Write the styles and the generated HTML to the new window.
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Печат на събитие</title>
+                    ${stylesHTML}
+                </head>
+                <body style="margin: 20px;">
+                    ${printContent}
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+
+        // 6. Trigger the browser's print dialog and then close the window.
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
     };
 
-    // --- Event Handlers ---
+    // --- Event Handlers & Dialog Openers ---
     const handleAddEvent = async (newEvent: Omit<ScheduleEvent, 'id' | 'color'>) => {
         await addEvent(newEvent as ScheduleEvent);
     };
@@ -62,7 +91,6 @@ export default function SchedulePage() {
         await updateAttendees(eventId, attendeeIds);
     };
 
-    // --- Dialog Openers ---
     const openEditDialog = (event: ScheduleEvent) => {
         setSelectedEvent(event);
         setEditDialogOpen(true);
@@ -91,6 +119,8 @@ export default function SchedulePage() {
 
     return (
         <div className="container mx-auto p-4">
+            {/* No hidden print container is needed anymore. */}
+
             <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
                 <h1 className="text-3xl font-bold">График на събитията</h1>
                 <div className="flex gap-2">
@@ -103,11 +133,6 @@ export default function SchedulePage() {
                         Създай събитие
                     </Button>
                 </div>
-            </div>
-
-            {/* Hidden component for printing */}
-            <div className="hidden">
-                {eventToPrint && <PrintableEvent ref={printRef} event={eventToPrint} members={members as Member[]} />}
             </div>
 
             {isLoading && (
@@ -135,7 +160,7 @@ export default function SchedulePage() {
                             onEdit={openEditDialog}
                             onDelete={openDeleteDialog}
                             onManageAttendees={openAttendeesDialog}
-                            onPrint={triggerPrint} // Pass print handler
+                            onPrint={triggerPrint}
                         />
                     ))}
                 </div>
@@ -158,7 +183,7 @@ export default function SchedulePage() {
                 onClose={() => setAttendeesDialogOpen(false)}
                 event={selectedEvent}
                 onUpdateAttendees={handleUpdateAttendees}
-                allMembers={members as Member[]} // Pass all members to the dialog
+                allMembers={members as Member[]} 
             />
             <MonthlyScheduleDialog
                 isOpen={isMonthlyDialogOpen}
@@ -166,7 +191,6 @@ export default function SchedulePage() {
                 onGenerate={handleGenerateMonthly}
             />
 
-            {/* Delete Confirmation Dialog */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
