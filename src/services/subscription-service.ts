@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MemberSubscription, ClubService } from '@/types';
 import servicesData from '@/lib/data/services.json';
@@ -8,7 +8,50 @@ const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
 
 // =============================================================================
-// READ OPERATIONS
+// SERVICE (CRUD) OPERATIONS
+// =============================================================================
+
+export const getAllClubServices = async (): Promise<ClubService[]> => {
+    const servicesCollection = collection(db, SERVICES_COLLECTION);
+    const querySnapshot = await getDocs(servicesCollection);
+
+    if (querySnapshot.empty) {
+        console.warn("Club services collection is empty!");
+        return [];
+    }
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+    }) as ClubService);
+}
+
+export const getClubServiceById = async (id: string): Promise<ClubService | null> => {
+    const serviceRef = doc(db, SERVICES_COLLECTION, id);
+    const serviceDoc = await getDoc(serviceRef);
+    if (serviceDoc.exists()) {
+        return { id: serviceDoc.id, ...serviceDoc.data() } as ClubService;
+    }
+    return null;
+};
+
+export const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
+    return await addDoc(collection(db, SERVICES_COLLECTION), service);
+};
+
+export const updateClubService = async (id: string, service: Partial<ClubService>): Promise<void> => {
+    const serviceRef = doc(db, SERVICES_COLLECTION, id);
+    return await updateDoc(serviceRef, service);
+};
+
+export const deleteClubService = async (id: string): Promise<void> => {
+    const serviceRef = doc(db, SERVICES_COLLECTION, id);
+    await deleteDoc(serviceRef);
+};
+
+
+// =============================================================================
+// MEMBER SUBSCRIPTION OPERATIONS
 // =============================================================================
 
 export const getSubscriptionsByMemberId = async (memberId: string): Promise<MemberSubscription[]> => {
@@ -23,25 +66,6 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Memb
   }) as MemberSubscription);
 };
 
-export const getAllClubServices = async (): Promise<ClubService[]> => {
-    const servicesCollection = collection(db, SERVICES_COLLECTION);
-    const querySnapshot = await getDocs(servicesCollection);
-
-    if (querySnapshot.empty) {
-        console.warn("Club services collection is empty! Please seed the database.");
-        return [];
-    }
-
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-    }) as ClubService);
-}
-
-// =============================================================================
-// WRITE OPERATIONS
-// =============================================================================
-
 export const assignSubscriptionToMember = async (memberId: string, serviceId: string, startDate: Date): Promise<string> => {
   const serviceRef = doc(db, SERVICES_COLLECTION, serviceId);
   const serviceDoc = await getDoc(serviceRef);
@@ -55,14 +79,12 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   endDate.setHours(23, 59, 59, 999); // Default end of day
 
   if (service.billingPeriod === "Месечен") {
-    // End date is the last day of the same month as the start date.
     const year = startDate.getFullYear();
     const month = startDate.getMonth();
     endDate = new Date(year, month + 1, 0); 
     endDate.setHours(23, 59, 59, 999);
 
   } else if (service.billingPeriod === "Годишен") {
-    // Correct Logic: End date is the last day of the same year as the start date.
     const year = startDate.getFullYear();
     endDate = new Date(year, 11, 31); // Month 11 is December, Day 31.
     endDate.setHours(23, 59, 59, 999);
@@ -96,9 +118,10 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   return docRef.id;
 };
 
-/**
- * Seeds the `clubServices` collection from the local `src/lib/data/services.json` file.
- */
+// =============================================================================
+// DATABASE SEEDING (ONE-TIME OPERATION)
+// =============================================================================
+
 export const seedClubServices = async (): Promise<{count: number, status: string}> => {
     const servicesCollection = collection(db, SERVICES_COLLECTION);
     const querySnapshot = await getDocs(servicesCollection);
