@@ -1,10 +1,52 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Разреши четене и писане на всички документи
-    // само за аутентикирани потребители.
+
+    // Helper function to check if a user is an authenticated admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Users: Only admins can read/write all user data. Users can read their own data.
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+      allow read: if request.auth.uid == userId;
+    }
+
+    // Members: Authenticated users (admins) can perform all operations.
+    match /members/{memberId} {
+      allow read, write, create, delete: if isAdmin();
+    }
+
+    // Families: Authenticated users (admins) can perform all operations.
+    match /families/{familyId} {
+      allow read, write, create, delete: if isAdmin();
+    }
+
+    // Inventory: Authenticated users (admins) can perform all operations.
+    match /inventory/{productId} {
+      allow read, write, create, delete: if isAdmin();
+    }
+    
+    // Sales: Authenticated users (admins) can perform all operations.
+    match /sales/{saleId} {
+      allow read, write, create, delete: if isAdmin();
+    }
+
+    // Member Subscriptions: Authenticated users (admins) can perform all operations.
+    match /memberSubscriptions/{subscriptionId} {
+      allow read, write, create, delete: if isAdmin();
+    }
+
+    // Club Services: Authenticated users (admins) can read/write.
+    match /clubServices/{serviceId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny all other collections
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,7 @@ import { Loader2, ArrowLeft, Pencil } from 'lucide-react';
 import { MemberDetailsCard } from '@/components/members/member-details-card';
 import { MemberSalesHistory } from '@/components/members/member-sales-history';
 import { MemberAttendanceHistory } from '@/components/members/MemberAttendanceHistory';
+import { MemberSubscriptionsTab } from '@/components/members/member-subscriptions-tab';
 
 const MemberDetailsPage = () => {
   const [member, setMember] = useState<Member | null>(null);
@@ -94,13 +96,17 @@ const MemberDetailsPage = () => {
       </div>
 
       <Tabs defaultValue="personal-info" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="personal-info">Лична информация</TabsTrigger>
+            <TabsTrigger value="subscriptions">Абонаменти</TabsTrigger>
             <TabsTrigger value="financial-history">Финансова история</TabsTrigger>
             <TabsTrigger value="attendance-history">История на присъствията</TabsTrigger>
         </TabsList>
         <TabsContent value="personal-info" className="mt-6">
             <MemberDetailsCard member={member} familyMembers={familyMembers} />
+        </TabsContent>
+        <TabsContent value="subscriptions" className="mt-6">
+            <MemberSubscriptionsTab memberId={memberId} />
         </TabsContent>
         <TabsContent value="financial-history" className="mt-6">
             <MemberSalesHistory sales={sales} onMarkAsPaid={handleMarkAsPaid} />

@@ -1,6 +1,10 @@
 
 // This file is the single source of truth for all data types in the application.
 
+// =============================================================================
+// CORE DATA MODELS (Members, Products, Sales, etc.)
+// =============================================================================
+
 /**
  * Represents a club member.
  */
@@ -22,6 +26,7 @@ export interface Member {
     avatarUrl?: string; // URL for the member's avatar image
     createdAt?: string; // Added for dashboard
     familyId?: string; // ID of the family group
+    // subscriptions?: MemberSubscription[]; // Coming soon
 }
 
 /**
@@ -36,19 +41,6 @@ export interface Payment {
     notes?: string;
     currency?: 'BGN' | 'EUR'; // The currency of the payment amount
 }
-
-/**
- * Represents a member's subscription status.
- */
-export type Subscription = {
-    id: string;
-    memberId: string;
-    type: 'annual' | 'monthly' | 'quarterly' | 'single_visit';
-    startDate: string;
-    endDate: string;
-    status: 'paid' | 'pending' | 'overdue';
-    amount: number;
-};
 
 /**
  * Represents an inventory product available for sale.
@@ -88,6 +80,84 @@ export interface Sale {
     status: 'pending' | 'paid' | 'completed' | 'refunded';
     currency?: 'BGN' | 'EUR'; // The currency of the entire sale
 }
+
+// =============================================================================
+// CLUB SERVICES & SUBSCRIPTIONS
+// =============================================================================
+
+/**
+ * Represents a purchasable club service or subscription plan.
+ * This is the template for a subscription.
+ */
+export type ClubService = {
+  id: string; // Уникален идентификатор (напр. svc_12345)
+  name: string; // Име на услугата
+  description?: string; // По-дълго описание (по желание)
+  price: number; // Цена в най-малката валутна единица (напр. стотинки/центове)
+  currency: 'BGN' | 'EUR'; // Валута
+  
+  targetGroups: ('Деца' | 'Любители')[]; // Целева група
+  type: 'Абонамент' | 'Еднократно плащане'; // Тип на плащането
+
+  // Специфики на абонамент
+  billingPeriod?: 'Месечен' | 'Годишен'; // Период на таксуване (само за абонаменти)
+
+  // Общи характеристики
+  isCoachLed?: boolean; // Дали е водена от треньор
+  durationMinutes?: number; // Продължителност в минути
+  requiresBooking?: boolean; // Дали изисква предварително записване
+  cancellationPolicy?: string; // Политика за анулиране
+
+  // Характеристики на пакет/групова услуга
+  minMembers: number; // Минимален брой членове за тази услуга
+  maxMembers?: number; // Максимален брой членове (ако е празно, значи няма горен лимит)
+
+  // Условия за специални права
+  grantsLicense: boolean; // Дава ли право на картотека
+  licenseCondition?: 'Веднага' | 'След N плащания';
+  licensePaymentCount?: number; // Брой плащания за картотека
+
+  grantsApparel: boolean; // Дава ли право на екипировка
+  apparelCondition?: 'Веднага' | 'След N плащания';
+  apparelPaymentCount?: number; // Брой плащания за екипировка
+};
+
+
+/**
+ * Represents an instance of a member being subscribed to a ClubService.
+ * This is the actual link between a member and a service.
+ */
+export type MemberSubscription = {
+    id: string; // Unique ID for this specific subscription instance
+    memberId: string; // ID of the member
+    serviceId: string; // ID of the ClubService they are subscribed to
+
+    startDate: string; // ISO Date string when the subscription becomes active
+    endDate: string;   // ISO Date string when the subscription expires
+    
+    // Status of THIS specific subscription period
+    status: 'active' | 'expired' | 'cancelled' | 'pending_payment'; 
+
+    // Financial details for this subscription instance
+    pricePaid: number; // The actual price paid for this period
+    currency: 'BGN' | 'EUR';
+    paymentDate?: string; // When the payment was made
+    paymentHistory: {
+        date: string;
+        amount: number;
+        notes?: string;
+    }[];
+
+    // Tracking progress towards special grants
+    paymentsMadeCount: number; // How many payments have been made for this sub
+    licenseGranted: boolean; // Has the license been granted based on this sub?
+    apparelGranted: boolean; // Has the apparel been granted based on this sub?
+};
+
+
+// =============================================================================
+// OTHER TYPES
+// =============================================================================
 
 /**
  * Represents an inventory event log.

@@ -1,266 +1,118 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
-import { useMembers } from '@/hooks/useMembers';
+import { getAllMembers } from '@/services/member-service';
 import { Member } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, Loader2, Users } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "@/components/ui/tooltip";
-import { MemberForm } from '@/components/members/member-form';
-import { useToast } from "@/components/ui/use-toast";
-import { getAgeGroup } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Loader2 } from 'lucide-react';
 
 const MembersPage = () => {
-  const { members, isLoading, error, addMember, updateMember, deleteMember } = useMembers();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
-  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (user === null) {
-      router.replace('/login');
-    }
-    if (error) {
-        toast({ title: "Грешка при зареждане на членовете", description: error.message, variant: "destructive" });
-    }
-  }, [user, error, router, toast]);
-
-  const handleSaveMember = async (data: Omit<Member, 'id'>) => {
-    try {
-      if (selectedMember) {
-        await updateMember(selectedMember.id, data as Omit<Member, 'id'>);
-      } else {
-        await addMember(data);
+    const fetchMembers = async () => {
+      try {
+        setLoading(true);
+        const allMembers = await getAllMembers();
+        // Сортираме членовете по дата на регистрация, най-новите първи
+        allMembers.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
+        setMembers(allMembers);
+      } catch (error) {
+        console.error("Failed to fetch members:", error);
+      } finally {
+        setLoading(false);
       }
-      setIsFormOpen(false);
-      setSelectedMember(undefined);
-    } catch (error) {
-        // The hook handles the error toast, so we just log it here
-        console.error("Failed to save member: ", error);
-    }
+    };
+    fetchMembers();
+  }, []);
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!memberToDelete) return;
-
-    try {
-      await deleteMember(memberToDelete.id);
-      setMemberToDelete(null);
-    } catch (error) {
-      // The hook handles the error toast, so we just log it here
-      console.error("Failed to delete member: ", error);
-    }
-  }
-  
-  const handleViewDetails = (id: string) => {
-    router.push(`/members/${id}`);
-  }
-
-  const openFormForEdit = (member: Member) => {
-    setSelectedMember(member);
-    setIsFormOpen(true);
-  };
-
-  const openFormForCreate = () => {
-    setSelectedMember(undefined);
-    setIsFormOpen(true);
-  }
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || isNaN(new Date(dateString).getTime())) {
-        return 'N/A';
-    }
-    return new Date(dateString).toLocaleDateString('bg-BG');
-  }
-
-  if (isLoading || !user) {
+  if (loading) {
     return (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-2 text-muted-foreground">Зареждане на данни...</p>
-        </div>
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Зареждане на членове...</p>
+      </div>
     );
   }
 
   return (
-    <TooltipProvider>
+    <div className="p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
-        <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Управление на членове</h1>
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-                <Button onClick={openFormForCreate}>Добави член</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                <DialogTitle>{selectedMember ? 'Редактиране на член' : 'Добавяне на нов член'}</DialogTitle>
-                <DialogDescription>
-                    Попълнете данните в полетата по-долу. Натиснете "Запази", когато сте готови.
-                </DialogDescription>
-                </DialogHeader>
-                <MemberForm 
-                  member={selectedMember} 
-                  onSave={handleSaveMember} 
-                  onClose={() => setIsFormOpen(false)} 
-                />
-            </DialogContent>
-            </Dialog>
+          <h1 className="text-2xl font-bold">Членове на клуба</h1>
+          <p className="text-muted-foreground">Списък с всички регистрирани членове.</p>
         </div>
-        
-        <AlertDialog>
-            <div className="border rounded-lg">
-            <Table>
-                <TableHeader>
+        {/* Този бутон временно ще води към несъществуваща страница, докато не я създадем */}
+        <Button onClick={() => router.push('/members/new')}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Добави нов член
+        </Button>
+      </div>
+      
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="hidden md:table-cell w-[80px]">Аватар</TableHead>
+                <TableHead>Име</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead className="hidden md:table-cell">Дата на регистрация</TableHead>
+                <TableHead className="text-right">Действия</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.length > 0 ? (
+                members.map((member) => (
+                  <TableRow key={member.id} className="cursor-pointer" onClick={() => router.push(`/members/${member.id}`)}>
+                    <TableCell className="hidden md:table-cell">
+                      <Avatar>
+                        <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.lastName}`} />
+                        <AvatarFallback>{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{member.firstName} {member.lastName}</div>
+                      <div className="text-sm text-muted-foreground break-all">{member.email || 'Няма имейл'}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={member.status === 'active' ? 'default' : 'destructive'}>
+                        {member.status === 'active' ? 'Активен' : 'Неактивен'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {new Date(member.registrationDate).toLocaleDateString('bg-BG')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/members/${member.id}`); }}>
+                        Преглед
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
-                    <TableHead>Име</TableHead>
-                    <TableHead>Възрастова група</TableHead>
-                    <TableHead>Имейл</TableHead>
-                    <TableHead>Телефон</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Дата на регистрация</TableHead>
-                    <TableHead><span className="sr-only">Действия</span></TableHead>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    Няма намерени членове. Натиснете бутона горе, за да добавите първия.
+                  </TableCell>
                 </TableRow>
-                </TableHeader>
-                <TableBody>
-                {members.length > 0 ? members.map((member) => {
-                    const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
-                    const phoneInfo = member.phone ? (
-                    <span>
-                        {member.phone}
-                        <span className="text-muted-foreground ml-1">
-                        ({member.phoneType === 'parent' ? 'родител' : 'личен'})
-                        </span>
-                    </span>
-                    ) : null;
-
-                    const familyMembers = member.familyId
-                        ? members.filter(m => m.id !== member.id && m.familyId === member.familyId)
-                        : [];
-
-                    return (
-                    <TableRow key={member.id}>
-                        <TableCell className="font-medium">
-                            <div className='flex items-center gap-2'>
-                                <span>{fullName}</span>
-                                {familyMembers.length > 0 && (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Users className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className='font-semibold'>Свързани членове:</p>
-                                            <ul className='list-inside list-disc'>
-                                                {familyMembers.map(fm => (
-                                                    <li key={fm.id}>{`${fm.firstName} ${fm.lastName}`}</li>
-                                                ))}
-                                            </ul>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                            </div>
-                        </TableCell>
-                        <TableCell>{getAgeGroup(member.dateOfBirth)}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>{phoneInfo}</TableCell>
-                        <TableCell>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ 
-                                member.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}>
-                                <svg className={`-ml-0.5 mr-1.5 h-2 w-2 ${ 
-                                    member.status === 'active' ? 'text-green-500' : 'text-gray-500' 
-                                }`} fill="currentColor" viewBox="0 0 8 8">
-                                    <circle cx="4" cy="4" r="3" />
-                                </svg>
-                                {member.status === 'active' ? 'Активен' : 'Неактивен'}
-                            </span>
-                        </TableCell>
-                        <TableCell>{formatDate(member.registrationDate)}</TableCell>
-                        <TableCell>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Отвори меню</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleViewDetails(member.id)}>Досие</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openFormForEdit(member)}>Редактирай</DropdownMenuItem>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()} onClick={() => setMemberToDelete(member)}>Изтрий</DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                    );
-                }) : (
-                    <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
-                        Няма намерени членове. Започнете, като добавите нов член.
-                        </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
-            </div>
-
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Наистина ли искате да изтриете този член?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Това действие е необратимо. Данните за {memberToDelete && `${memberToDelete.firstName} ${memberToDelete.lastName}`} ще бъдат изтрити завинаги от сървърите.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setMemberToDelete(null)}>Отказ</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Изтрий</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-    </TooltipProvider>
   );
 };
 
