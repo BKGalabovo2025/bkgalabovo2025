@@ -6,20 +6,20 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, ListChecks, UserPlus, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
+import { Users, DollarSign, ListChecks, AlertTriangle, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getDashboardStats, DashboardStats } from '@/services/dashboard-service';
+import { getDashboardStats } from '@/services/dashboard-service';
 import { useToast } from '@/components/ui/use-toast';
-import { Sale, Member } from '@/types';
+import { DashboardStats, Sale, Member } from '@/types';
 
-// Разширяваме интерфейса, за да включва и задълженията на членове
+// Define the initial state with the full structure of DashboardStats
 const initialStats: DashboardStats = {
     activeMembers: 0,
     monthlyRevenue: 0,
     pendingSubscriptions: 0,
     recentMembers: [],
     deferredExternalSales: [],
-    deferredMemberSales: [], // Ново поле за задължения на членове
+    deferredMemberSales: [],
 };
 
 const DashboardPage = () => {
@@ -30,7 +30,7 @@ const DashboardPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (user === undefined) return;
+    if (user === undefined) return; // Wait until auth state is resolved
     if (!user) {
       router.replace('/login');
       return;
@@ -42,7 +42,7 @@ const DashboardPage = () => {
         const data = await getDashboardStats();
         setStats(data);
       } catch (error) {
-        console.error("Грешка в таблото за управление:", error);
+        console.error("Error fetching dashboard stats:", error);
         toast({ title: "Грешка при зареждане на статистиките", variant: "destructive" });
       } finally {
         setIsLoading(false);
@@ -66,7 +66,7 @@ const DashboardPage = () => {
              <h1 className="text-3xl font-bold">Табло за управление</h1>
         </div>
      
-      {/* Статистически карти */}
+      {/* Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,7 +102,7 @@ const DashboardPage = () => {
         </Card>
       </div>
 
-      {/* Секция за неплатени задължения */}
+      {/* Deferred Sales Section */}
        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
             {stats.deferredMemberSales?.length > 0 && (
                 <Card className="border-destructive">
@@ -161,7 +161,7 @@ const DashboardPage = () => {
             )}
       </div>
 
-      {/* Секция за последни регистрации */}
+      {/* Recent Members Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card>
             <CardHeader>

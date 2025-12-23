@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScheduleEvent } from '@/types';
+import { ScheduleEvent, ScheduleEventType } from '@/types';
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
 
@@ -18,21 +18,19 @@ interface EditEventDialogProps {
     onUpdateEvent: (eventId: string, eventData: Partial<ScheduleEvent>) => Promise<void>;
 }
 
-// Helper to format ISO string to yyyy-MM-ddTHH:mm format for the input
 const toInputFormat = (isoString?: string | null) => {
     if (!isoString) return '';
     try {
-        // The format required by datetime-local input is YYYY-MM-DDTHH:mm
         return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
     } catch (error) {
         console.error("Error formatting date:", error);
-        return ''; // Return empty string if date is invalid
+        return '';
     }
 };
 
 export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditEventDialogProps) {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState('');
+    const [type, setType] = useState<ScheduleEventType>('trening');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [location, setLocation] = useState('');
@@ -49,9 +47,8 @@ export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditE
             setLocation(event.location || '');
             setDescription(event.description || '');
         } else {
-            // Reset if no event is provided
             setTitle('');
-            setType('');
+            setType('trening');
             setStartDate('');
             setEndDate('');
             setLocation('');
@@ -70,16 +67,19 @@ export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditE
 
         setSubmitting(true);
         try {
-            // Construct the payload carefully to avoid `undefined` values
             const updateData: Partial<ScheduleEvent> = {
                 title,
-                type: type as ScheduleEvent['type'],
+                type,
                 startDate: new Date(startDate).toISOString(),
-                endDate: endDate ? new Date(endDate).toISOString() : null, // Use null for empty endDate
                 location,
                 description,
-                attendees: event.attendees || [], // Ensure attendees is an array
             };
+
+            if (endDate) {
+                updateData.endDate = new Date(endDate).toISOString();
+            } else {
+                updateData.endDate = null;
+            }
 
             await onUpdateEvent(event.id, updateData);
             onClose();
@@ -107,7 +107,7 @@ export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditE
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
                             />
-                            <Select onValueChange={setType} value={type}>
+                            <Select onValueChange={(value) => setType(value as ScheduleEventType)} value={type}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Изберете тип" />
                                 </SelectTrigger>

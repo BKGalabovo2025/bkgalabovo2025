@@ -14,11 +14,11 @@ interface PrintableReceiptProps {
 export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member }) => {
   if (!sale) return null;
 
-  const isDeferred = sale.paymentStatus === 'deferred';
-  const receiptTitle = isDeferred ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
-  const statusText = isDeferred ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
-  const statusColor = isDeferred ? 'text-red-600' : 'text-green-600';
-  const footerText = isDeferred
+  const isPending = sale.status === 'pending';
+  const receiptTitle = isPending ? 'ПРОФОРМА СТОКОВА РАЗПИСКА' : 'СТОКОВА РАЗПИСКА';
+  const statusText = isPending ? 'НЕПЛАТЕНО' : 'ПЛАТЕНО';
+  const statusColor = isPending ? 'text-red-600' : 'text-green-600';
+  const footerText = isPending
     ? 'Това е проформа документ, който не удостоверява плащане. Той служи за целите на бъдещо плащане.'
     : 'Този документ удостоверява извършено плащане и служи като касова бележка.';
 

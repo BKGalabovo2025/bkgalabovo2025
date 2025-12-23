@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -60,6 +59,7 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
     const monthOptions = useMemo(() => {
         const months = new Set<string>();
         allEvents.forEach(event => {
+            if (!event.startDate) return;
             const eventDate = new Date(event.startDate);
             const monthKey = `${getYear(eventDate)}-${getMonth(eventDate)}`;
             months.add(monthKey);
@@ -80,6 +80,7 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
         if (selectedMonth !== 'all') {
             const [year, month] = selectedMonth.split('-').map(Number);
             events = events.filter(event => {
+                if (!event.startDate) return false;
                 const eventDate = new Date(event.startDate);
                 return getYear(eventDate) === year && getMonth(eventDate) === month;
             });
@@ -94,14 +95,18 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
 
 
     const currentMonthAttendances = allEvents.filter(event => {
+        if (!event.startDate) return false;
         const eventDate = new Date(event.startDate);
         const currentDate = new Date();
         return eventDate.getFullYear() === currentDate.getFullYear() && eventDate.getMonth() === currentDate.getMonth();
     }).length;
 
-    const formatEventDate = (startDate: string, endDate: string) => {
+    const formatEventDate = (startDate?: string | null, endDate?: string | null) => {
+        if (!startDate || !endDate) return 'Няма данни за дата';
         const start = new Date(startDate);
         const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Невалидна дата";
+
         if (format(start, 'ddMMyyyy') === format(end, 'ddMMyyyy')) {
             return `${format(start, 'dd MMM yyyy, HH:mm', { locale: bg })} - ${format(end, 'HH:mm', { locale: bg })} ч.`;
         }

@@ -56,8 +56,6 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
               <DetailRow icon={Cake} label="Дата на раждане" value={dateOfBirthFormatted} />
               <DetailRow icon={Info} label="Възрастова група" value={getAgeGroup(member.dateOfBirth)} />
               <DetailRow icon={Home} label="Адрес" value={member.address} />
-              <DetailRow icon={Briefcase} label="Професия" value={member.occupation} />
-              <DetailRow icon={Info} label="ЕГН" value={member.egn} />
               <DetailRow icon={Info} label="Дата на регистрация" value={registrationDateFormatted} />
             </div>
             

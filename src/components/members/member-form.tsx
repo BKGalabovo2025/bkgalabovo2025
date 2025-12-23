@@ -62,7 +62,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   const [isFamilyDialogOpen, setFamilyDialogOpen] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const { members: allMembers, loading: loadingMembers } = useMembers();
+  const { members: allMembers, isLoading: loadingMembers } = useMembers();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

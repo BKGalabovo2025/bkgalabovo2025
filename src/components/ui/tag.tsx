@@ -6,7 +6,7 @@ const tagVariants = cva(
     'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
     {
         variants: {
-            color: {
+            variant: {
                 gray: 'border-transparent bg-gray-200 text-gray-800',
                 blue: 'border-transparent bg-blue-100 text-blue-800',
                 red: 'border-transparent bg-red-100 text-red-800',
@@ -15,15 +15,15 @@ const tagVariants = cva(
             },
         },
         defaultVariants: {
-            color: 'gray',
+            variant: 'gray',
         },
     }
 );
 
 export interface TagProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof tagVariants> {}
 
-export function Tag({ className, color, ...props }: TagProps) {
+export function Tag({ className, variant, ...props }: TagProps) {
     return (
-        <div className={tagVariants({ color, className })} {...props} />
+        <div className={tagVariants({ variant, className })} {...props} />
     );
 }

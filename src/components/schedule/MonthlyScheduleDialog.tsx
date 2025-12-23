@@ -4,11 +4,11 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { getDaysInMonth, set, getDay, addMonths, format } from 'date-fns';
+import { ScheduleEvent, ScheduleEventType } from '@/types';
 import { Label } from '@/components/ui/label';
-import { ScheduleEvent } from '@/types';
 
 interface MonthlyScheduleDialogProps {
     isOpen: boolean;
@@ -16,124 +16,112 @@ interface MonthlyScheduleDialogProps {
     onGenerate: (events: Omit<ScheduleEvent, 'id'>[]) => Promise<void>;
 }
 
-const daysOfWeek = [
-    { id: 1, label: 'Понеделник' }, { id: 2, label: 'Вторник' }, { id: 3, label: 'Сряда' },
-    { id: 4, label: 'Четвъртък' }, { id: 5, label: 'Петък' }, { id: 6, label: 'Събота' }, { id: 0, label: 'Неделя' },
+const weekDays = [
+    { id: 1, name: 'Понеделник' },
+    { id: 2, name: 'Вторник' },
+    { id: 3, name: 'Сряда' },
+    { id: 4, name: 'Четвъртък' },
+    { id: 5, name: 'Петък' },
+    { id: 6, name: 'Събота' },
+    { id: 0, name: 'Неделя' },
 ];
 
-const monthNames = Array.from({ length: 12 }, (_, i) => new Date(0, i).toLocaleString('bg', { month: 'long' }));
-
 export function MonthlyScheduleDialog({ isOpen, onClose, onGenerate }: MonthlyScheduleDialogProps) {
-    const currentYear = new Date().getFullYear();
-    const [year, setYear] = useState(currentYear.toString());
-    const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
-    const [selectedDays, setSelectedDays] = useState<number[]>([]);
-    const [startTime, setStartTime] = useState('17:00');
-    const [endTime, setEndTime] = useState('18:30');
-    const [location, setLocation] = useState('Спортна зала "Енергетик" град Гълъбово');
+    const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
+    const [selectedDay, setSelectedDay] = useState(1); // Monday
+    const [time, setTime] = useState('18:00');
+    const [title, setTitle] = useState('Тренировка');
+    const [type, setType] = useState<ScheduleEventType>('trening');
     const [isSubmitting, setSubmitting] = useState(false);
 
-    const handleDayToggle = (dayId: number) => {
-        setSelectedDays(prev => 
-            prev.includes(dayId) ? prev.filter(id => id !== dayId) : [...prev, dayId]
-        );
-    };
-
     const handleSubmit = async () => {
-        if (selectedDays.length === 0) {
-            // Using a toast or a more subtle notification could be better
-            // but for now, an alert is fine based on the original code.
-            alert('Моля, изберете поне един ден от седмицата.');
-            return;
-        }
-        
         setSubmitting(true);
-        const generatedEvents: Omit<ScheduleEvent, 'id'>[] = [];
-        const numDays = new Date(parseInt(year), parseInt(month), 0).getDate();
-        const selectedMonthName = monthNames[parseInt(month) - 1];
+        const [year, month] = selectedMonth.split('-').map(Number);
+        const monthDate = new Date(year, month - 1);
+        const daysInMonth = getDaysInMonth(monthDate);
+        const newEvents: Omit<ScheduleEvent, 'id'>[] = [];
 
-        for (let day = 1; day <= numDays; day++) {
-            const date = new Date(parseInt(year), parseInt(month) - 1, day);
-            if (selectedDays.includes(date.getDay())) {
-                const [startHour, startMinute] = startTime.split(':').map(Number);
-                const [endHour, endMinute] = endTime.split(':').map(Number);
+        for (let i = 1; i <= daysInMonth; i++) {
+            let currentDate = new Date(year, month - 1, i);
+            if (getDay(currentDate) === selectedDay) {
+                const [hours, minutes] = time.split(':').map(Number);
+                const eventDate = set(currentDate, { hours, minutes });
 
-                const startDate = new Date(date);
-                startDate.setHours(startHour, startMinute);
-
-                const endDate = new Date(date);
-                endDate.setHours(endHour, endMinute);
-
-                generatedEvents.push({
-                    title: `Тренировка - месец ${selectedMonthName}`,
-                    type: 'trening', // BUG FIX: Using the correct system key 'trening'
-                    startDate: startDate.toISOString(),
-                    endDate: endDate.toISOString(),
-                    location: location,
-                    description: `Автоматично генериран график за тренировки за месец ${selectedMonthName}`,
+                newEvents.push({
+                    title: title || 'Тренировка',
+                    type: type,
+                    startDate: eventDate.toISOString(),
+                    endDate: set(eventDate, { hours: hours + 1 }).toISOString(), // Assuming 1 hour duration
                 });
             }
         }
-        
-        try {
-            await onGenerate(generatedEvents);
-            onClose(); // Close the dialog on success
-        } catch (error) {
-            console.error("Failed to generate monthly schedule", error);
-            // Optionally, show an error toast to the user
-        } finally {
-            setSubmitting(false);
-        }
+
+        await onGenerate(newEvents);
+        setSubmitting(false);
+        onClose();
     };
+
+    const availableMonths = Array.from({ length: 6 }, (_, i) => addMonths(new Date(), i));
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[480px]">
+            <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Създаване на шаблонен график</DialogTitle>
-                    <DialogDescription>Автоматично създайте тренировки за избран месец и дни.</DialogDescription>
+                    <DialogTitle>Генериране на месечен график</DialogTitle>
+                    <DialogDescription>Изберете ден от седмицата и час, за да генерирате събития за избрания месец.</DialogDescription>
                 </DialogHeader>
-
-                <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input type="number" placeholder="Година" value={year} onChange={e => setYear(e.target.value)} />
-                        <Select value={month} onValueChange={setMonth}>
-                            <SelectTrigger><SelectValue placeholder="Месец" /></SelectTrigger>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="month" className="text-right">Месец</Label>
+                        <Select onValueChange={setSelectedMonth} defaultValue={selectedMonth}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue />
+                            </SelectTrigger>
                             <SelectContent>
-                                {monthNames.map((name, i) => <SelectItem key={i+1} value={(i + 1).toString()}>{name}</SelectItem>)}
+                                {availableMonths.map(month => (
+                                    <SelectItem key={format(month, 'yyyy-MM')} value={format(month, 'yyyy-MM')}>
+                                        {format(month, 'MMMM yyyy')}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
-                    
-                    <div>
-                        <Label>Дни от седмицата</Label>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
-                            {daysOfWeek.map(day => (
-                                <div key={day.id} className="flex items-center space-x-2">
-                                    <Checkbox id={`day-${day.id}`} checked={selectedDays.includes(day.id)} onCheckedChange={() => handleDayToggle(day.id)} />
-                                    <Label htmlFor={`day-${day.id}`} className="font-normal cursor-pointer">{day.label}</Label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="day" className="text-right">Ден от седмицата</Label>
+                        <Select onValueChange={(val) => setSelectedDay(parseInt(val, 10))} defaultValue={String(selectedDay)}>
+                             <SelectTrigger className="col-span-3">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {weekDays.map(day => (
+                                    <SelectItem key={day.id} value={String(day.id)}>{day.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                           <Label htmlFor="start-time">Начален час</Label>
-                           <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-                        </div>
-                        <div>
-                           <Label htmlFor="end-time">Краен час</Label>
-                           <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
-                        </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="time" className="text-right">Час</Label>
+                        <Input id="time" type="time" value={time} onChange={e => setTime(e.target.value)} className="col-span-3" />
                     </div>
-
-                    <div>
-                        <Label htmlFor="location">Локация</Label>
-                        <Input id="location" placeholder="Зала..." value={location} onChange={e => setLocation(e.target.value)} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="title" className="text-right">Заглавие</Label>
+                        <Input id="title" value={title} onChange={e => setTitle(e.target.value)} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="type" className="text-right">Тип</Label>
+                         <Select onValueChange={(val) => setType(val as ScheduleEventType)} value={type}>
+                             <SelectTrigger className="col-span-3">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                               <SelectItem value="trening">Тренировка</SelectItem>
+                                <SelectItem value="sastezanie">Състезание</SelectItem>
+                                <SelectItem value="lager">Лагер</SelectItem>
+                                <SelectItem value="sabitie">Събитие</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
-
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose}>Отказ</Button>
                     <Button onClick={handleSubmit} disabled={isSubmitting}>

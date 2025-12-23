@@ -42,12 +42,11 @@ import {
     TooltipTrigger,
   } from "@/components/ui/tooltip";
 import { MemberForm } from '@/components/members/member-form';
-import { addMember, updateMember, deleteMember } from '@/services/member-service';
 import { useToast } from "@/components/ui/use-toast";
 import { getAgeGroup } from '@/lib/utils';
 
 const MembersPage = () => {
-  const { members, loading: isLoading, error } = useMembers(); // Use the hook
+  const { members, isLoading, error, addMember, updateMember, deleteMember } = useMembers();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | undefined>(undefined);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
@@ -68,16 +67,14 @@ const MembersPage = () => {
     try {
       if (selectedMember) {
         await updateMember(selectedMember.id, data as Omit<Member, 'id'>);
-        toast({ title: "Успешно обновяване", description: "Данните на члена бяха актуализирани." });
       } else {
         await addMember(data);
-        toast({ title: "Членът е добавен", description: "Новият член беше успешно създаден." });
       }
       setIsFormOpen(false);
       setSelectedMember(undefined);
     } catch (error) {
-        console.error("Грешка от Firebase: ", error);
-        toast({ title: "Грешка при запис", description: "Възникна грешка при запазването на данните.", variant: "destructive" });
+        // The hook handles the error toast, so we just log it here
+        console.error("Failed to save member: ", error);
     }
   };
 
@@ -86,11 +83,10 @@ const MembersPage = () => {
 
     try {
       await deleteMember(memberToDelete.id);
-      toast({ title: "Членът е изтрит", description: "Данните бяха успешно изтрити от системата." });
       setMemberToDelete(null);
     } catch (error) {
-      console.error("Грешка от Firebase: ", error);
-      toast({ title: "Грешка при изтриване", description: "Възникна грешка при изтриването на члена.", variant: "destructive" });
+      // The hook handles the error toast, so we just log it here
+      console.error("Failed to delete member: ", error);
     }
   }
   

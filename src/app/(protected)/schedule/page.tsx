@@ -103,9 +103,10 @@ export default function SchedulePage() {
 
     const filteredAndSortedEvents = useMemo(() => {
         const now = new Date();
-        now.setHours(0, 0, 0, 0); // Set to the beginning of today for accurate comparison
+        now.setHours(0, 0, 0, 0);
 
         return events
+            .filter(event => event.startDate && !isNaN(new Date(event.startDate).getTime()))
             .filter(event => {
                 const eventStartDate = new Date(event.startDate);
                 const isUpcoming = eventStartDate >= now;
@@ -119,7 +120,7 @@ export default function SchedulePage() {
             .sort((a, b) => {
                 const dateA = new Date(a.startDate).getTime();
                 const dateB = new Date(b.startDate).getTime();
-                return activeTab === 'upcoming' ? dateA - dateB : dateB - a;
+                return activeTab === 'upcoming' ? dateA - dateB : dateB - dateA;
             });
     }, [events, activeTab, filterType]);
     
@@ -174,7 +175,7 @@ export default function SchedulePage() {
             {/* Dialogs */}
             <CreateEventDialog isOpen={isCreateDialogOpen} onClose={() => setCreateDialogOpen(false)} onAddEvent={handleAddEvent} />
             <EditEventDialog isOpen={isEditDialogOpen} onClose={() => setEditDialogOpen(false)} event={selectedEvent} onUpdateEvent={handleUpdateEvent} />
-            <AttendeesDialog isOpen={isAttendeesDialogOpen} onClose={() => setAttendeesDialogOpen(false)} event={selectedEvent} onUpdateAttendees={handleUpdateAttendees} allMembers={members as Member[]} />
+            <AttendeesDialog isOpen={isAttendeesDialogOpen} onClose={() => setAttendeesDialogOpen(false)} event={selectedEvent} onUpdateAttendees={handleUpdateAttendees} members={members as Member[]} />
             <MonthlyScheduleDialog isOpen={isMonthlyDialogOpen} onClose={() => setMonthlyDialogOpen(false)} onGenerate={handleGenerateMonthly} />
 
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

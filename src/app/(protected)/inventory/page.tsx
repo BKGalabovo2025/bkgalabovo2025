@@ -1,71 +1,52 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { getProducts, deleteProduct } from "@/services/inventory-service";
+import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
-import { PlusCircle, Edit, Trash2, ImageIcon } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ImageIcon, Loader2 } from 'lucide-react';
 import { EditProductDialog } from '@/components/inventory/EditProductDialog';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { formatCurrency } from '@/lib/currency';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InventoryHistory from '@/components/inventory/InventoryHistory';
-import { useAuth } from '@/context/auth-context';
-import { User } from 'firebase/auth';
-import { formatCurrency } from '@/lib/currency'; // <-- ИМПОРТИРАНЕ НА ФУНКЦИЯТА
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-// A self-contained component for the product list for better organization
-const ProductList = ({ user }: { user: User | null }) => {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+const ProductList = () => {
+    const { products, isLoading, error, deleteProduct } = useProducts();
+    const { user } = useAuth();
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const { toast } = useToast();
-
-    const fetchProducts = async () => {
-        try {
-            setLoading(true);
-            const fetchedProducts = await getProducts();
-            setProducts(fetchedProducts);
-            setError(null);
-        } catch (err) {
-            setError("Грешка при зареждането на продуктите.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
 
     const handleEdit = (product: Product) => {
         setSelectedProduct(product);
-        setIsDialogOpen(true);
+        setIsEditOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (confirm("Сигурни ли сте, че искате да изтриете този продукт?")) {
-            try {
-                await deleteProduct(id);
-                toast({ title: "Успех!", description: "Продуктът беше изтрит." });
-                await fetchProducts(); // Refresh the list
-            } catch (err) {
-                toast({ title: "Грешка", description: "Възникна грешка при изтриването.", variant: "destructive" });
-                console.error(err);
-            }
+    const handleDeleteConfirm = async () => {
+        if (productToDelete) {
+            await deleteProduct(productToDelete.id);
+            setProductToDelete(null);
         }
     };
-    
-    const handleDialogClose = () => {
-        setIsDialogOpen(false);
+
+    // This handler will be passed to the dialog to close it on successful update.
+    const handleProductUpdate = () => {
+        setIsEditOpen(false);
         setSelectedProduct(null);
+    };
+
+    if (isLoading) {
+        return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /><p className="ml-2 text-muted-foreground">Зареждане...</p></div>;
+    }
+
+    if (error) {
+        return <p className="text-destructive text-center py-4">Грешка при зареждането на продуктите.</p>;
     }
 
     return (
-         <>
-             {/* Header for larger screens */}
+         <AlertDialog>
             <div className="hidden md:grid grid-cols-12 gap-4 items-center font-semibold text-muted-foreground border-b pb-2 mb-2">
                 <div className="col-span-1">Снимка</div>
                 <div className="col-span-5">Име</div>
@@ -74,11 +55,8 @@ const ProductList = ({ user }: { user: User | null }) => {
                 <div className="col-span-2 text-center">Действия</div>
             </div>
 
-            {/* Product List */}
             <div className="space-y-3">
-                {loading && <p className="text-center py-4">Зареждане...</p>}
-                {error && <p className="text-destructive text-center py-4">{error}</p>}
-                {!loading && !error && products.map((product) => (
+                {products.length > 0 ? products.map((product) => (
                     <div key={product.id} className="grid grid-cols-3 md:grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-card shadow-sm">
                         <div className="col-span-1 md:col-span-1 flex items-center">
                              <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
@@ -87,45 +65,61 @@ const ProductList = ({ user }: { user: User | null }) => {
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
                         <div className="col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                             {/* -- ПРОМЯНА ТУК -- */}
                              <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatCurrency(product.price)}</div>
                              <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock} бр.</div>
                         </div>
                         <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">
                              <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}><Edit className="h-5 w-5 text-muted-foreground" /></Button>
-                             <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}><Trash2 className="h-5 w-5 text-destructive" /></Button>
+                             <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setProductToDelete(product)}><Trash2 className="h-5 w-5 text-destructive" /></Button>
+                             </AlertDialogTrigger>
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div className="text-center py-12 text-muted-foreground">Няма намерени продукти.</div>
+                )}
             </div>
 
-            {/* The Edit Dialog */}
-            {selectedProduct && (
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Наистина ли искате да изтриете продукта "{productToDelete?.name}"? Това действие е необратимо.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setProductToDelete(null)}>Отказ</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Изтрий</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+            
+            {(isEditOpen || selectedProduct) && (
                  <EditProductDialog
-                    isOpen={isDialogOpen}
-                    onClose={handleDialogClose}
+                    isOpen={isEditOpen}
+                    onClose={() => {setIsEditOpen(false); setSelectedProduct(null)}}
                     product={selectedProduct}
-                    onProductUpdate={fetchProducts} // This will refresh the product list
-                    user={user} // Pass the user object to the dialog
+                    user={user}
+                    onProductUpdate={handleProductUpdate} // <-- Prop is now provided
                  />
             )}
-        </>
+         </AlertDialog>
     )
 }
 
 const InventoryPage = () => {
-  const { toast } = useToast();
-  const { user } = useAuth(); // Get the authenticated user
+  const { user } = useAuth();
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const handleAdd = () => {
-    toast({ title: "Информация", description: "Функцията за добавяне ще бъде имплементирана скоро." });
+  // This handler will be passed to the dialog to close it on successful creation.
+  const handleProductAdded = () => {
+      setIsAddOpen(false);
   };
 
   return (
     <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl md:text-3xl font-bold">Управление на инвентара</h1>
-            <Button onClick={handleAdd}>
+            <Button onClick={() => setIsAddOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Добави продукт
             </Button>
         </div>
@@ -136,12 +130,20 @@ const InventoryPage = () => {
                 <TabsTrigger value="history">История на инвентара</TabsTrigger>
             </TabsList>
             <TabsContent value="stock" className="mt-4">
-                <ProductList user={user} />
+                <ProductList />
             </TabsContent>
             <TabsContent value="history" className="mt-4">
                 <InventoryHistory />
             </TabsContent>
         </Tabs>
+        
+        <EditProductDialog
+            isOpen={isAddOpen}
+            onClose={() => setIsAddOpen(false)}
+            product={null}
+            user={user}
+            onProductUpdate={handleProductAdded} // <-- Prop is now provided
+        />
     </div>
   );
 };

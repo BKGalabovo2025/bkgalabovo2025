@@ -106,6 +106,10 @@ export interface InventoryEvent {
     notes?: string;
 }
 
+/**
+ * Defines the programmatic types for schedule events.
+ */
+export type ScheduleEventType = 'trening' | 'sastezanie' | 'lager' | 'sabitie';
 
 /**
  * Represents a single, unified event for the schedule.
@@ -113,7 +117,7 @@ export interface InventoryEvent {
 export interface ScheduleEvent {
     id: string;
     title: string;
-    type: 'тренировка' | 'състезание' | 'лагер' | 'събитие';
+    type: ScheduleEventType;
     startDate: string; // Full ISO 8601 date-time string
     endDate?: string | null;  // Full ISO 8601 date-time string (optional, can be null)
     location?: string;
@@ -128,4 +132,16 @@ export interface ScheduleEvent {
 export interface Family {
     id: string;
     memberIds: string[]; // List of member IDs belonging to this family
+}
+
+/**
+ * Represents the summary statistics for the main dashboard.
+ */
+export interface DashboardStats {
+    activeMembers: number;
+    monthlyRevenue: number;
+    pendingSubscriptions: number;
+    recentMembers: Pick<Member, 'id' | 'firstName' | 'lastName'>[];
+    deferredExternalSales: Sale[];
+    deferredMemberSales: Sale[];
 }

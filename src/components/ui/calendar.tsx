@@ -26,8 +26,7 @@ function Calendar({
         months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
         month: 'space-y-4',
         caption: 'flex justify-center pt-1 relative items-center',
-        caption_label: 'text-sm font-medium hidden', // Hide default label with dropdowns
-        caption_dropdowns: 'flex justify-center gap-2', // Use gap for spacing
+        caption_label: 'text-sm font-medium',
         nav: 'space-x-1 flex items-center',
         nav_button: cn(
           buttonVariants({ variant: 'outline' }),
@@ -57,12 +56,9 @@ function Calendar({
         day_hidden: 'invisible',
         ...classNames,
       }}
-      captionLayout="dropdown-buttons"
-      fromYear={new Date().getFullYear() - 100}
-      toYear={new Date().getFullYear()}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
     />
