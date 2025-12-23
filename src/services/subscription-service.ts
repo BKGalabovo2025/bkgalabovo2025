@@ -52,18 +52,20 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   const service = serviceDoc.data() as ClubService;
   
   let endDate = new Date(startDate);
-  // Set time to the end of the day for consistency
-  endDate.setHours(23, 59, 59, 999);
+  endDate.setHours(23, 59, 59, 999); // Default end of day
 
   if (service.billingPeriod === "Месечен") {
-    // Correct Logic: End date is the last day of the same month as the start date.
+    // End date is the last day of the same month as the start date.
     const year = startDate.getFullYear();
     const month = startDate.getMonth();
-    endDate = new Date(year, month + 1, 0); // Day 0 of next month gives last day of current month
-    endDate.setHours(23, 59, 59, 999); // Ensure it's the end of the day
+    endDate = new Date(year, month + 1, 0); 
+    endDate.setHours(23, 59, 59, 999);
 
   } else if (service.billingPeriod === "Годишен") {
-    endDate.setFullYear(startDate.getFullYear() + 1);
+    // Correct Logic: End date is the last day of the same year as the start date.
+    const year = startDate.getFullYear();
+    endDate = new Date(year, 11, 31); // Month 11 is December, Day 31.
+    endDate.setHours(23, 59, 59, 999);
 
   } else {
     if (service.durationMinutes) {
@@ -71,7 +73,6 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
     } 
   }
 
-  // Ensure startDate is also set to the beginning of the day for consistency
   const finalStartDate = new Date(startDate);
   finalStartDate.setHours(0, 0, 0, 0);
 
