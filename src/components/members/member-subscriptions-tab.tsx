@@ -169,7 +169,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
                         </div>
                      ) : (
                         <div className='text-center text-sm text-muted-foreground p-4 border rounded-md'>
-                            Няма създадени услуги. Моля, първо добавете услуга от секция "Финанси" -> "Услуги".
+                            Няма създадени услуги. Моля, първо добавете услуга от секция "Финанси" -&gt; "Услуги".
                         </div>
                      )}
                 </div>
