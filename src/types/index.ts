@@ -154,6 +154,21 @@ export type MemberSubscription = {
     apparelGranted: boolean; // Has the apparel been granted based on this sub?
 };
 
+/**
+ * Represents a historical log of a change made to a ClubService.
+ * Each instance is an immutable record of a single update event.
+ */
+export interface ClubServiceHistory {
+  id: string;          // Unique ID of the history entry itself
+  serviceId: string;   // ID of the ClubService that was changed
+  serviceName: string; // Name of the service at the time of change (for context)
+  timestamp: string;     // ISO string of when the change was made
+  userId: string;        // ID of the admin user who made the change
+  userName: string;      // Name of the admin user who made the change
+  changes: string;       // A human-readable summary of what was changed
+  note?: string;         // The optional note provided by the admin during the update
+}
+
 
 // =============================================================================
 // OTHER TYPES

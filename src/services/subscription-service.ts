@@ -1,11 +1,39 @@
 
-import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { MemberSubscription, ClubService } from '@/types';
-import servicesData from '@/lib/data/services.json';
+import { MemberSubscription, ClubService, ClubServiceHistory } from '@/types';
+import { getAuth } from 'firebase/auth';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
+const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
+
+const generateChangeSummary = (oldData: Partial<ClubService>, newData: Partial<ClubService>): string => {
+    const changes: string[] = [];
+    const allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
+
+    allKeys.forEach(key => {
+        const oldValue = oldData[key as keyof ClubService];
+        const newValue = newData[key as keyof ClubService];
+
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+             if (key === 'price') {
+                changes.push(`Цена е променена от ${(Number(oldValue) / 100).toFixed(2)} на ${(Number(newValue) / 100).toFixed(2)}.`);
+            } else if (key === 'name') {
+                 changes.push(`Име е променено от '${oldValue}' на '${newValue}'.`);
+            } else if (key === 'description') {
+                 changes.push(`Описанието е променено.`);
+            } else if (key === 'targetGroups') {
+                changes.push(`Целевите групи са променени от '${(oldValue as string[]).join(', ')}' на '${(newValue as string[]).join(', ')}'.`);
+            } else {
+                changes.push(`Поле '${key}' е променено от '${oldValue}' на '${newValue}'.`);
+            }
+        }
+    });
+
+    return changes.join('\n');
+};
+
 
 // =============================================================================
 // SERVICE (CRUD) OPERATIONS
@@ -39,16 +67,76 @@ export const createClubService = async (service: Omit<ClubService, 'id'>): Promi
     return await addDoc(collection(db, SERVICES_COLLECTION), service);
 };
 
-export const updateClubService = async (id: string, service: Partial<ClubService>): Promise<void> => {
+export const updateClubService = async (id: string, serviceUpdate: Partial<ClubService>, note?: string): Promise<void> => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+        throw new Error("Authentication required to update a service.");
+    }
+    
     const serviceRef = doc(db, SERVICES_COLLECTION, id);
-    return await updateDoc(serviceRef, service);
+    const historyCollection = collection(db, SERVICE_HISTORY_COLLECTION);
+
+    const batch = writeBatch(db);
+
+    // 1. Get the old document
+    const oldDocSnap = await getDoc(serviceRef);
+    if (!oldDocSnap.exists()) {
+        throw new Error("Service to update not found.");
+    }
+    const oldData = oldDocSnap.data() as ClubService;
+    
+    // 2. Generate summary of changes
+    const changes = generateChangeSummary(oldData, serviceUpdate);
+
+    if (changes.length === 0 && !note) {
+        console.log("No changes detected, skipping history creation.");
+        // Still update, as some fields might have been cleared
+        return await updateDoc(serviceRef, serviceUpdate);
+    }
+
+    // 3. Create history entry
+    const historyEntry: Omit<ClubServiceHistory, 'id'> = {
+        serviceId: id,
+        serviceName: oldData.name,
+        timestamp: new Date().toISOString(),
+        userId: currentUser.uid,
+        userName: currentUser.displayName || 'Admin',
+        changes,
+        note: note || undefined,
+    };
+    const historyRef = doc(historyCollection);
+    batch.set(historyRef, historyEntry);
+
+    // 4. Update the actual service document
+    batch.update(serviceRef, serviceUpdate);
+
+    // 5. Commit the batch
+    await batch.commit();
 };
+
 
 export const deleteClubService = async (id: string): Promise<void> => {
     const serviceRef = doc(db, SERVICES_COLLECTION, id);
     await deleteDoc(serviceRef);
 };
 
+// =============================================================================
+// SERVICE HISTORY OPERATIONS
+// =============================================================================
+
+export const getHistoryForService = async (serviceId: string): Promise<ClubServiceHistory[]> => {
+    const historyCollection = collection(db, SERVICE_HISTORY_COLLECTION);
+    const q = query(historyCollection, where("serviceId", "==", serviceId), orderBy("timestamp", "desc"));
+    
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+    }) as ClubServiceHistory);
+};
 
 // =============================================================================
 // MEMBER SUBSCRIPTION OPERATIONS
@@ -117,29 +205,3 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   
   return docRef.id;
 };
-
-// =============================================================================
-// DATABASE SEEDING (ONE-TIME OPERATION)
-// =============================================================================
-
-export const seedClubServices = async (): Promise<{count: number, status: string}> => {
-    const servicesCollection = collection(db, SERVICES_COLLECTION);
-    const querySnapshot = await getDocs(servicesCollection);
-
-    if (querySnapshot.empty) {
-        console.log("Seeding club services from src/lib/data/services.json...");
-        const batch = writeBatch(db);
-        
-        servicesData.forEach((service) => {
-            const docRef = doc(db, SERVICES_COLLECTION, service.id);
-            batch.set(docRef, service);
-        });
-        
-        await batch.commit();
-        console.log(`Seeding complete! ${servicesData.length} services added.`);
-        return { count: servicesData.length, status: "success" };
-    } else {
-        console.log("Club services collection is not empty. Skipping seed operation.");
-        return { count: querySnapshot.size, status: "skipped" };
-    }
-}
