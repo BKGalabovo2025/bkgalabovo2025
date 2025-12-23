@@ -67,6 +67,7 @@ export const processSubscription = (doc: DocumentSnapshot<DocumentData>) => {
     status: data?.status || 'неактивен',
     plan: data?.plan?.name || 'Н/Д',
     price: data?.plan?.price || 0,
+    currency: data?.plan?.currency || 'EUR', // Add currency, default to EUR
     startDate: data?.startDate
       ? new Date(data.startDate.seconds * 1000).toLocaleDateString('bg-BG')
       : 'Н/Д',

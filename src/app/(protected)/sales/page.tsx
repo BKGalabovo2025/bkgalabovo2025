@@ -96,9 +96,7 @@ const SalesListPage = () => {
                                                     </TableCell>
                                                     <TableCell onClick={() => handleRowClick(sale.id!)} className="cursor-pointer hover:bg-muted/50">{sale.memberId ? 'Член на клуба' : 'Външен клиент'}</TableCell>
                                                     <TableCell onClick={() => handleRowClick(sale.id!)} className="text-right font-mono cursor-pointer hover:bg-muted/50">
-                                                        {sale.currency === 'EUR' 
-                                                            ? formatCurrency(sale.total)
-                                                            : formatBgnCurrency(sale.total)}
+                                                        {formatCurrency(sale.total)}
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <DropdownMenu>
@@ -129,7 +127,6 @@ const SalesListPage = () => {
                         )}
                     </CardContent>
                 </Card>
-                {/* This is the dialog content, now correctly structured */}
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Потвърдете изтриването</AlertDialogTitle>

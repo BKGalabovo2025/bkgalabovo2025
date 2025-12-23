@@ -66,7 +66,7 @@ export const MemberSalesHistory = ({ sales, onMarkAsPaid }: MemberSalesHistoryPr
                                 <TableCell className="text-center">
                                     <Badge variant={getStatusVariant(sale.status)}>{getStatusText(sale.status)}</Badge>
                                 </TableCell>
-                                <TableCell className="font-medium text-right">{sale.total.toFixed(2)} лв.</TableCell>
+                                <TableCell className="font-medium text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
                                 <TableCell className="text-right space-x-2">
                                     {sale.status === 'pending' && (
                                         <Button variant="outline" size="sm" onClick={() => onMarkAsPaid(sale.id)}>
@@ -88,4 +88,3 @@ export const MemberSalesHistory = ({ sales, onMarkAsPaid }: MemberSalesHistoryPr
     </Card>
   );
 };
-

@@ -14,6 +14,7 @@ interface Subscription {
   status: string;
   plan: string;
   price: number;
+  currency: string;
   startDate: string;
   endDate: string;
   email: string;
@@ -129,7 +130,7 @@ const Subscriptions = () => {
                   <td className="py-2 px-4 border-b">{sub.name}</td>
                   <td className="py-2 px-4 border-b">{sub.email}</td>
                   <td className="py-2 px-4 border-b">{sub.plan}</td>
-                  <td className="py-2 px-4 border-b">{sub.price.toFixed(2)}лв.</td>
+                  <td className="py-2 px-4 border-b">{sub.price.toFixed(2)} {sub.currency}</td>
                   <td className="py-2 px-4 border-b">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

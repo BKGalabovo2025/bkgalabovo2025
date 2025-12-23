@@ -59,7 +59,7 @@ export function SalesHistory({ memberId }: SalesHistoryProps) {
                                 <td className="px-6 py-4 whitespace-normal">
                                     {sale.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right">{sale.total.toFixed(2)} лв.</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                    <Button variant="link" onClick={() => router.push(`/sales/${sale.id}`)}>
                                        Разписка

@@ -43,10 +43,11 @@ const FinancesPage = () => {
 
   const handleSavePayment = async (paymentData: Omit<Payment, 'id'>) => {
     try {
-      await addPayment(paymentData);
+      const paymentDataWithCurrency = { ...paymentData, currency: 'EUR' };
+      await addPayment(paymentDataWithCurrency);
 
       if (paymentData.type === 'Членски внос') {
-        await upsertSubscription(paymentData);
+        await upsertSubscription(paymentDataWithCurrency);
       }
       
       await fetchData(); 
@@ -66,7 +67,7 @@ const FinancesPage = () => {
     }
   };
 
-  const upsertSubscription = async (paymentData: Omit<Payment, 'id'>) => {
+  const upsertSubscription = async (paymentData: Omit<Payment, 'id'> & { currency: string }) => {
     const existingSubscription = subscriptions.find(sub => sub.memberId === paymentData.memberId);
     const paymentDate = new Date(paymentData.paymentDate);
 
@@ -89,6 +90,7 @@ const FinancesPage = () => {
         endDate: endDate.toISOString().split('T')[0],
         status: 'paid',
         amount: paymentData.amount,
+        currency: paymentData.currency,
       });
     }
   }
