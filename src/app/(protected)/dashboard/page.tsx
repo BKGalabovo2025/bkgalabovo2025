@@ -85,7 +85,7 @@ const DashboardPage = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} лв.</div>
+            <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} EUR</div>
              <Link href="/finances" className="text-xs text-muted-foreground hover:underline">Към финансите</Link>
           </CardContent>
         </Card>
@@ -117,7 +117,7 @@ const DashboardPage = () => {
                                     <div>
                                         <Link href={`/members/${sale.memberId}`} className="font-semibold text-primary hover:underline">{sale.customerName}</Link>
                                         <p className="text-sm text-muted-foreground">
-                                            От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
+                                            От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} EUR</span>
                                         </p>
                                     </div>
                                     <Link href={`/sales/${sale.id}`} passHref>
@@ -145,7 +145,7 @@ const DashboardPage = () => {
                                     <div>
                                     <div className="font-semibold">{sale.customerName}</div>
                                     <p className="text-sm text-muted-foreground">
-                                        От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} лв.</span>
+                                        От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} EUR</span>
                                     </p>
                                     </div>
                                     <Link href={`/sales/${sale.id}`} passHref>
