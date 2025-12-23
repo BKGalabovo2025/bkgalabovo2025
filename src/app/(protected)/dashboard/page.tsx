@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, ListChecks, AlertTriangle, Loader2, ArrowRight } from "lucide-react";
+import { Users, CreditCard, ListChecks, AlertTriangle, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getDashboardStats } from '@/services/dashboard-service';
 import { useToast } from '@/components/ui/use-toast';
@@ -82,7 +82,7 @@ const DashboardPage = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Приходи (текущ месец)</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} лв.</div>
