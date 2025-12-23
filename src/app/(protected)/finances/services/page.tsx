@@ -168,7 +168,7 @@ export default function ServicesPage() {
             maxMembers: Number(formData.maxMembers) || null,
             licensePaymentCount: Number(formData.licensePaymentCount) || null,
             apparelPaymentCount: Number(formData.apparelPaymentCount) || null,
-            billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null, // CORRECTED LINE
+            billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null,
         };
 
         if (selectedService) {
@@ -356,7 +356,7 @@ export default function ServicesPage() {
                 </div>
               </div>
               
-              <div class='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <Label htmlFor="minMembers">Мин. членове</Label>
                   <Input id="minMembers" name="minMembers" type="number" value={formData.minMembers} onChange={handleFormChange} />
@@ -371,7 +371,7 @@ export default function ServicesPage() {
                 </div>
               </div>
 
-              <div class='grid grid-cols-2 gap-4 items-center'>
+              <div className='grid grid-cols-2 gap-4 items-center'>
                   <div className='flex items-center space-x-2'>
                       <Checkbox id='isCoachLed' name='isCoachLed' checked={formData.isCoachLed} onCheckedChange={c => setFormData(p => ({...p, isCoachLed: c as boolean}))} />
                       <Label htmlFor='isCoachLed'>Водена от треньор</Label>
@@ -388,15 +388,15 @@ export default function ServicesPage() {
               </div>
 
               <div className='space-y-4 rounded-md border p-4'>
-                  <h4 class='text-sm font-medium mb-4'>Специални права</h4>
-                  <div class='grid gap-6'>
-                    <div class='flex flex-col space-y-4'>
+                  <h4 className='text-sm font-medium mb-4'>Специални права</h4>
+                  <div className='grid gap-6'>
+                    <div className='flex flex-col space-y-4'>
                         <div className='flex items-center space-x-2'>
                             <Checkbox id='grantsLicense' name='grantsLicense' checked={formData.grantsLicense} onCheckedChange={c => setFormData(p => ({...p, grantsLicense: c as boolean, licenseCondition: 'Веднага', licensePaymentCount: 0}))} />
                             <Label htmlFor='grantsLicense'>Дава право на картотека</Label>
                         </div>
                         {formData.grantsLicense && (
-                           <div class='grid grid-cols-2 gap-4 pl-6'>
+                           <div className='grid grid-cols-2 gap-4 pl-6'>
                                 <Select name='licenseCondition' value={formData.licenseCondition || 'Веднага'} onValueChange={v => handleSelectChange('licenseCondition', v)}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
@@ -410,13 +410,13 @@ export default function ServicesPage() {
                            </div>
                         )}
                     </div>
-                    <div class='flex flex-col space-y-4'>
+                    <div className='flex flex-col space-y-4'>
                         <div className='flex items-center space-x-2'>
                             <Checkbox id='grantsApparel' name='grantsApparel' checked={formData.grantsApparel} onCheckedChange={c => setFormData(p => ({...p, grantsApparel: c as boolean, apparelCondition: 'Веднага', apparelPaymentCount: 0}))} />
                             <Label htmlFor='grantsApparel'>Дава право на екипировка</Label>
                         </div>
                          {formData.grantsApparel && (
-                           <div class='grid grid-cols-2 gap-4 pl-6'>
+                           <div className='grid grid-cols-2 gap-4 pl-6'>
                                 <Select name='apparelCondition' value={formData.apparelCondition || 'Веднага'} onValueChange={v => handleSelectChange('apparelCondition', v)}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
