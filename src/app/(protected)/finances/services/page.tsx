@@ -160,36 +160,36 @@ export default function ServicesPage() {
 
   const handleSave = async () => {
     try {
-      const dataToSave: Omit<ClubService, 'id'> = {
-          ...formData,
-          price: Number(formData.price) || 0,
-          durationMinutes: Number(formData.durationMinutes) || null,
-          minMembers: Number(formData.minMembers) || 1,
-          maxMembers: Number(formData.maxMembers) || null,
-          licensePaymentCount: Number(formData.licensePaymentCount) || null,
-          apparelPaymentCount: Number(formData.apparelPaymentCount) || null,
-          billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : undefined,
-      };
+        const dataToSave: Partial<ClubService> = {
+            ...formData,
+            price: Number(formData.price) || 0,
+            durationMinutes: Number(formData.durationMinutes) || null,
+            minMembers: Number(formData.minMembers) || 1,
+            maxMembers: Number(formData.maxMembers) || null,
+            licensePaymentCount: Number(formData.licensePaymentCount) || null,
+            apparelPaymentCount: Number(formData.apparelPaymentCount) || null,
+            billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null, // CORRECTED LINE
+        };
 
-      if (selectedService) {
-        await updateClubService(selectedService.id, dataToSave);
-        toast({ title: 'Успех', description: 'Услугата е актуализирана.' });
-      } else {
-        // @ts-ignore
-        await createClubService(dataToSave);
-        toast({ title: 'Успех', description: 'Услугата е създадена.' });
-      }
-      fetchServices();
-      setIsDialogOpen(false);
+        if (selectedService) {
+            await updateClubService(selectedService.id, dataToSave);
+            toast({ title: 'Успех', description: 'Услугата е актуализирана.' });
+        } else {
+            await createClubService(dataToSave as Omit<ClubService, 'id'>);
+            toast({ title: 'Успех', description: 'Услугата е създадена.' });
+        }
+        fetchServices();
+        setIsDialogOpen(false);
     } catch (error) {
-      console.error('Error saving service:', error);
-      toast({
-        title: 'Грешка',
-        description: `Неуспешен запис на услугата: ${error.message}`,
-        variant: 'destructive',
-      });
+        console.error('Error saving service:', error);
+        toast({
+            title: 'Грешка',
+            description: `Неуспешен запис на услугата: ${error.message}`,
+            variant: 'destructive',
+        });
     }
-  };
+};
+
 
   const handleDelete = async () => {
     if (serviceToDeleteId) {
