@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getSubscriptionsByMemberId, getAllClubServices, assignSubscriptionToMember, seedClubServices } from '@/services/subscription-service';
+import { getSubscriptionsByMemberId, getAllClubServices, assignSubscriptionToMember } from '@/services/subscription-service';
 import { MemberSubscription, ClubService } from '@/types';
-import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle, UploadCloud } from 'lucide-react';
+import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
 
 const SubscriptionCard = ({ sub, service }: { sub: MemberSubscription, service?: ClubService }) => {
 
@@ -75,24 +73,19 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [needsSeeding, setNeedsSeeding] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
 
   const { toast } = useToast();
 
   const fetchData = async () => {
       try {
         setLoading(true);
-        const srvs = await getAllClubServices();
-        if (srvs.length === 0) {
-            setNeedsSeeding(true);
-        } else {
-            setNeedsSeeding(false);
-            const subs = await getSubscriptionsByMemberId(memberId);
-            subs.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-            setSubscriptions(subs);
-            setServices(srvs);
-        }
+        const [srvs, subs] = await Promise.all([
+            getAllClubServices(),
+            getSubscriptionsByMemberId(memberId)
+        ]);
+        subs.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+        setSubscriptions(subs);
+        setServices(srvs);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
@@ -104,25 +97,6 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
   useEffect(() => {
     fetchData();
   }, [memberId]);
-
-  const handleSeed = async () => {
-      setIsSeeding(true);
-      try {
-          const result = await seedClubServices();
-          if (result.status === "success") {
-              toast({ title: "Успех!", description: `${result.count} услуги бяха заредени в базата данни.` });
-          } else if (result.status === "skipped") {
-              toast({ title: "Пропуснато", description: "Базата данни вече съдържа услуги. Не са направени промени." });
-          }
-          // Refetch all data after seeding
-          await fetchData();
-      } catch (error) {
-          console.error("Failed to seed database:", error);
-          toast({ title: "Грешка", description: "Възникна проблем при зареждането на услугите.", variant: "destructive" });
-      } finally {
-          setIsSeeding(false);
-      }
-  }
 
   const handleAddSubscription = async () => {
     if (!selectedService || !startDate) {
@@ -154,27 +128,6 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
     );
   }
 
-  if (needsSeeding) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Липсващи данни</CardTitle>
-                <CardDescription>Колекцията с клубни услуги в базата данни е празна.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                    <p className="text-muted-foreground">За да продължите, трябва да заредите услугите от локалния файл.</p>
-                    <p className="text-sm text-muted-foreground mt-2">Това е еднократна операция.</p>
-                    <Button onClick={handleSeed} disabled={isSeeding} className="mt-4">
-                        {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4"/>}
-                        Зареди услугите в базата данни
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -199,20 +152,26 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
             <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                     <label className="text-sm font-medium">Услуга</label>
-                    <div className="max-h-64 overflow-y-auto rounded-md border bg-background">
-                        <div className="p-2 space-y-1">
-                        {services.map(service => (
-                            <div
-                                key={service.id}
-                                onClick={() => setSelectedService(service.id)}
-                                className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedService === service.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                            >
-                                <span className='font-medium'>{service.name}</span>
-                                <span className='font-bold'>{(service.price / 100).toFixed(2)} {service.currency}</span>
+                     {services.length > 0 ? (
+                        <div className="max-h-64 overflow-y-auto rounded-md border bg-background">
+                            <div className="p-2 space-y-1">
+                            {services.map(service => (
+                                <div
+                                    key={service.id}
+                                    onClick={() => setSelectedService(service.id)}
+                                    className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedService === service.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                                >
+                                    <span className='font-medium'>{service.name}</span>
+                                    <span className='font-bold'>{(service.price / 100).toFixed(2)} {service.currency}</span>
+                                </div>
+                            ))}
                             </div>
-                        ))}
                         </div>
-                    </div>
+                     ) : (
+                        <div className='text-center text-sm text-muted-foreground p-4 border rounded-md'>
+                            Няма създадени услуги. Моля, първо добавете услуга от секция "Финанси" -> "Услуги".
+                        </div>
+                     )}
                 </div>
                 <div className='grid gap-2'>
                     <label htmlFor='start-date' className="text-sm font-medium">Начална дата</label>
@@ -226,7 +185,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
             </div>
             <DialogFooter>
                 <Button onClick={() => setIsDialogOpen(false)} variant="outline">Отказ</Button>
-                <Button onClick={handleAddSubscription} disabled={!selectedService || !startDate}>
+                <Button onClick={handleAddSubscription} disabled={!selectedService || !startDate || services.length === 0}>
                     Добави абонамент
                 </Button>
             </DialogFooter>
