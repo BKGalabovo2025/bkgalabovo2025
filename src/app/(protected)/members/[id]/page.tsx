@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAllMembers, getMemberById } from '@/services/member-service';
 import { getSalesByMemberId, markSaleAsPaid } from '@/services/sales-service';
-import { analyzeMemberStatus } from '@/services/analyzer-service'; // ИМПОРТ НА АНАЛИЗАТОРА
+import { analyzeMemberStatus } from '@/services/analyzer-service';
 import { Member, Sale, MemberAnalysis } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,13 +17,13 @@ import { MemberDetailsCard } from '@/components/members/member-details-card';
 import { MemberSalesHistory } from '@/components/members/member-sales-history';
 import { MemberAttendanceHistory } from '@/components/members/MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from '@/components/members/member-subscriptions-tab';
-import { MemberAnalysisCard } from '@/components/members/MemberAnalysisCard'; // ИМПОРТ НА КАРТАТА
+import { MemberAnalysisCard } from '@/components/members/MemberAnalysisCard';
 
 const MemberDetailsPage = () => {
   const [member, setMember] = useState<Member | null>(null);
   const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
   const [sales, setSales] = useState<Sale[]>([]); 
-  const [analysis, setAnalysis] = useState<MemberAnalysis | null>(null); // СЪСТОЯНИЕ ЗА АНАЛИЗА
+  const [analysis, setAnalysis] = useState<MemberAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   
   const params = useParams();
@@ -38,7 +38,6 @@ const MemberDetailsPage = () => {
       setMember(memberData);
 
       if (memberData) {
-        // Извикваме анализатора, СЛЕД като имаме данните за члена
         const analysisData = await analyzeMemberStatus(memberData);
         setAnalysis(analysisData);
 
@@ -102,20 +101,13 @@ const MemberDetailsPage = () => {
             </Button>
       </div>
 
-      {/* ---- НОВАТА АНАЛИТИЧНА КАРТА ---- */}
-      {analysis && (
-          <div className="mb-6">
-              <MemberAnalysisCard analysis={analysis} />
-          </div>
-      )}
-      {/* ------------------------------------ */}
-
       <Tabs defaultValue="personal-info" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal-info">Лична информация</TabsTrigger>
             <TabsTrigger value="subscriptions">Абонаменти</TabsTrigger>
             <TabsTrigger value="financial-history">Финансова история</TabsTrigger>
             <TabsTrigger value="attendance-history">История на присъствията</TabsTrigger>
+            <TabsTrigger value="analysis">Анализ</TabsTrigger>
         </TabsList>
         <TabsContent value="personal-info" className="mt-6">
             <MemberDetailsCard member={member} familyMembers={familyMembers} />
@@ -128,6 +120,13 @@ const MemberDetailsPage = () => {
         </TabsContent>
          <TabsContent value="attendance-history" className="mt-6">
             <MemberAttendanceHistory memberId={memberId} />
+        </TabsContent>
+        <TabsContent value="analysis" className="mt-6">
+            {analysis ? (
+                <MemberAnalysisCard analysis={analysis} />
+            ) : (
+                <p>Анализът се зарежда или все още няма данни.</p>
+            )}
         </TabsContent>
     </Tabs>
 
