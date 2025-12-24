@@ -98,6 +98,22 @@ export type SpecialRight = {
 };
 
 /**
+ * Defines the payment window for a subscription service.
+ */
+export interface PaymentWindow {
+    startDay: number; // Day of the month, e.g., 1
+    endDay: number;   // Day of the month, e.g., 10
+}
+
+/**
+ * Encapsulates all payment-related rules for a service.
+ */
+export interface PaymentRules {
+    window: PaymentWindow;
+    description?: string; // e.g., "Плаща се за текущия месец."
+}
+
+/**
  * Represents a purchasable club service or subscription plan.
  * This is the template for a subscription.
  */
@@ -124,8 +140,9 @@ export type ClubService = {
   minMembers: number; // Минимален брой членове за тази услуга
   maxMembers?: number; // Максимален брой членове (ако е празно, значи няма горен лимит)
 
-  // НОВ СТРУКТУРИРАН НАЧИН ЗА УПРАВЛЕНИЕ НА СПЕЦИАЛНИ ПРАВА
+  // НОВИ СТРУКТУРИРАНИ ПРАВИЛА
   specialRights?: SpecialRight[]; 
+  paymentRules?: PaymentRules;
 };
 
 

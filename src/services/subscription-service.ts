@@ -26,6 +26,9 @@ const generateChangeSummary = (oldData: Partial<ClubService>, newData: Partial<C
                 changes.push(`Описанието е променено.`);
             } else if (key === 'targetGroups') {
                 changes.push(`Целевите групи са променени от '${(oldValue as string[])?.join(', ') || ''}' на '${(newValue as string[])?.join(', ') || ''}'.`);
+            } else if (key === 'paymentRules') {
+                // Handle this complex object specifically if needed, for now, a generic message
+                changes.push('Правилата за плащане са променени.');
             } else if (key === 'specialRights') {
                 const oldRights = (oldValue as SpecialRight[]) || [];
                 const newRights = (newValue as SpecialRight[]) || [];
@@ -93,12 +96,12 @@ export const getClubServiceById = async (id: string): Promise<ClubService | null
     return null;
 };
 
-// This function remains clean as it receives the final data structure
 export const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
+    // FIX: Remove undefined values before sending to Firestore
+    Object.keys(service).forEach(key => (service as any)[key] === undefined && delete (service as any)[key]);
     return await addDoc(collection(db, SERVICES_COLLECTION), service);
 };
 
-// This function remains clean as it receives the final data structure
 export const updateClubService = async (id: string, serviceUpdate: Partial<ClubService>, note?: string): Promise<void> => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -135,14 +138,14 @@ export const updateClubService = async (id: string, serviceUpdate: Partial<ClubS
         userId: currentUser.uid,
         userName: currentUser.displayName || 'Admin', // Or another identifiable name
         changes,
-        // FIX: Conditionally add the note field only if it's a non-empty string.
-        // This prevents writing `undefined` to Firestore, which is not allowed.
         ...(note && { note: note })
     };
     const historyRef = doc(historyCollection);
     batch.set(historyRef, historyEntry);
 
     // 4. Update the actual service document
+    // FIX: Remove undefined values from the update object before batching
+    Object.keys(serviceUpdate).forEach(key => (serviceUpdate as any)[key] === undefined && delete (serviceUpdate as any)[key]);
     batch.update(serviceRef, serviceUpdate);
 
     // 5. Commit the batch

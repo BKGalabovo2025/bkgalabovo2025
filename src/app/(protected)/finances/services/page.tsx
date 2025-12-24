@@ -66,6 +66,7 @@ const initialServiceState: Omit<ClubService, 'id'> = {
   minMembers: 1,
   maxMembers: 1,
   specialRights: [],
+  paymentRules: { window: { startDay: 1, endDay: 10 } },
 };
 
 const targetGroupOptions = ['Деца', 'Любители'];
@@ -182,17 +183,29 @@ export default function ServicesPage() {
     });
   };
 
+  const handlePaymentRulesChange = (field: 'startDay' | 'endDay', value: string) => {
+    const numValue = Number(value);
+    if (numValue >= 1 && numValue <= 31) {
+      setFormData(prev => ({
+        ...prev,
+        paymentRules: {
+          window: {
+            ...(prev.paymentRules?.window || { startDay: 1, endDay: 10 }),
+            [field]: numValue,
+          }
+        }
+      }));
+    }
+  };
+
   const openDialog = (service: ClubService | null) => {
     setSelectedService(service);
     setUpdateNote('');
     if (service) {
-      const serviceData: Partial<ClubService> = { ...service };
-      delete (serviceData as any).grantsLicense;
-      delete (serviceData as any).licenseCondition;
-      delete (serviceData as any).licensePaymentCount;
-      delete (serviceData as any).grantsApparel;
-      delete (serviceData as any).apparelCondition;
-      delete (serviceData as any).apparelPaymentCount;
+      const serviceData: Partial<ClubService> = { 
+        ...service, 
+        paymentRules: service.paymentRules || initialServiceState.paymentRules 
+      };
       setFormData(serviceData);
     } else {
       setFormData(initialServiceState);
@@ -229,6 +242,7 @@ export default function ServicesPage() {
             type: formData.type || 'Абонамент',
             targetGroups: formData.targetGroups || [],
             specialRights: formData.specialRights || [],
+            paymentRules: formData.type === 'Абонамент' ? formData.paymentRules : undefined,
             description: formData.description || '',
             billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null,
             isCoachLed: formData.isCoachLed || false,
@@ -290,6 +304,7 @@ export default function ServicesPage() {
                  <CardContent className="flex-grow">
                    <p className="text-2xl font-bold">{(service.price / 100).toFixed(2)} {service.currency}</p>
                    {service.billingPeriod && <p className="text-sm text-gray-500">Таксуване: {service.billingPeriod}</p>}
+                   {service.paymentRules?.window && <p className="text-xs text-gray-500">Плащане: {service.paymentRules.window.startDay} - {service.paymentRules.window.endDay} число</p>}
                    <div className="mt-4 pt-4 border-t">
                      {service.specialRights?.map(right => (
                         <p key={right.right} className="text-sm">✓ {right.description}</p>
@@ -330,7 +345,24 @@ export default function ServicesPage() {
                   <div className="space-y-2"><Label htmlFor="price">Цена</Label><Input id="price" name="price" type="number" value={(formData.price / 100).toFixed(2)} onChange={handlePriceChange} /></div>
                   <div className="space-y-2"><Label htmlFor='currency'>Валута</Label><Select name='currency' value={formData.currency} onValueChange={v => handleSelectChange('currency',v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='BGN'>BGN</SelectItem><SelectItem value='EUR'>EUR</SelectItem></SelectContent></Select></div>
                 </div>
-                {formData.type === 'Абонамент' && <div className="space-y-2"><Label htmlFor='billingPeriod'>Период на таксуване</Label><Select name='billingPeriod' value={formData.billingPeriod || ''} onValueChange={v => handleSelectChange('billingPeriod',v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='Месечен'>Месечен</SelectItem><SelectItem value='Годишен'>Годишен</SelectItem></SelectContent></Select></div>}
+                {formData.type === 'Абонамент' && (
+                  <div className="space-y-4 rounded-md border p-4">
+                    <h4 className='text-sm font-medium'>Настройки за абонамент</h4>
+                    <div className="grid gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor='billingPeriod'>Период на таксуване</Label>
+                        <Select name='billingPeriod' value={formData.billingPeriod || ''} onValueChange={v => handleSelectChange('billingPeriod',v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='Месечен'>Месечен</SelectItem><SelectItem value='Годишен'>Годишен</SelectItem></SelectContent></Select>
+                      </div>
+                      <div className='space-y-2'>
+                        <Label>Прозорец за плащане (ден от месеца)</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                           <Input type="number" placeholder="Начален ден" value={formData.paymentRules?.window?.startDay || ''} onChange={e => handlePaymentRulesChange('startDay', e.target.value)} />
+                           <Input type="number" placeholder="Краен ден" value={formData.paymentRules?.window?.endDay || ''} onChange={e => handlePaymentRulesChange('endDay', e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-2"><Label>Целеви групи</Label><div className='flex items-center space-x-4'>{targetGroupOptions.map(group => (<div key={group} className='flex items-center space-x-2'><Checkbox id={`group-${group}`} checked={(formData.targetGroups || []).includes(group)} onCheckedChange={c => handleTargetGroupChange(group, c as boolean)} /><Label htmlFor={`group-${group}`}>{group}</Label></div>))}</div></div>
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='space-y-2'><Label htmlFor="minMembers">Мин. членове</Label><Input id="minMembers" name="minMembers" type="number" value={formData.minMembers} onChange={handleFormChange} /></div>
