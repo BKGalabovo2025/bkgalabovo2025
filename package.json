@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check-all": "npm run lint && npx tsc --noEmit && npm run build",
+    "security-check": "npm audit"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.19",

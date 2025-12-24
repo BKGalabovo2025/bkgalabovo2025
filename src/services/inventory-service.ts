@@ -104,7 +104,7 @@ export const adjustProductStock = async (productId: string, quantityChange: numb
             productName: currentData.name,
             type: 'ADJUSTMENT',
             quantityChange,
-            notes: notes || null,
+            notes: notes || undefined,
             createdAt: Timestamp.now(),
             userId,
             userName,

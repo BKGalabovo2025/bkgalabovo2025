@@ -76,7 +76,7 @@ export interface SaleItem {
  */
 export interface Sale {
     id: string;
-    date: string; // ISO String. Main date for the transaction.
+    date: any; // ISO String or Firestore Timestamp. Main date for the transaction.
     memberId?: string | null; // Can be null for guest sales
     customerName?: string;
     items: SaleItem[];
@@ -133,6 +133,7 @@ export interface CancellationPolicy {
   feeType: 'percentage' | 'fixed' | 'none'; 
   feeValue?: number; // Стойност (процент или сума)
   description: string;
+  longTermSicknessDiscount?: number; // Percentage (0-1), corrected from boolean
 }
 
 export type TargetGroup = 'Деца' | 'Любители';
@@ -190,7 +191,7 @@ export type MemberSubscription = {
     endDate: string;   // ISO Date string when the subscription expires
     
     // Status of THIS specific subscription period
-    status: 'active' | 'expired' | 'cancelled' | 'pending_payment'; 
+    status: 'active' | 'expired' | 'cancelled' | 'pending_payment' | 'pending' | 'overdue'; // NEW: Added to fix report error
 
     // Financial details for this subscription instance
     pricePaid: number; // The actual price paid for this period
@@ -320,6 +321,7 @@ export type MemberAnalysis = {
     analysisDate: string;
     overallStatus: 'OK' | 'ACTION_NEEDED' | 'WARNING';
     analyzedSubscriptions: AnalyzedSubscription[];
+    activeSubscriptions?: any[];
     // Future additions could include attendance patterns, payment history, etc.
 };
 
@@ -339,6 +341,18 @@ export type AnalyzedSubscription = {
     };
     // Recommendations will be added in the next phase
     recommendations: string[]; 
+};
+
+/**
+ * Represents a locally declared SubscriptionData type.
+ */
+export type SubscriptionData = {
+    id: string;
+    member: string;
+    service: string;
+    status: string;
+    nextPayment: string;
+    amount: number;
 };
 
 

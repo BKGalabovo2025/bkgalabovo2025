@@ -23,7 +23,7 @@ const getStatusBadge = (status: string) => {
     case 'active':
       return <Badge variant="success">Активен</Badge>;
     case 'pending_payment':
-      return <Badge variant="warning">Чакащо плащане</Badge>;
+      return <Badge variant="secondary">Чакащо плащане</Badge>;
     case 'expired':
       return <Badge variant="destructive">Изтекъл</Badge>;
     case 'cancelled':

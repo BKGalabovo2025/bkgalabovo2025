@@ -222,8 +222,9 @@ export const analyzeMemberStatus = async (
 
     return {
         memberId: member.id,
+        memberName: `${member.firstName} ${member.lastName}`,
         analysisDate: new Date().toISOString(),
         overallStatus: overallStatus,
-        activeSubscriptions: analyzedSubscriptions, // Corrected from analyzedSubscriptions
+        analyzedSubscriptions: analyzedSubscriptions, // Corrected from activeSubscriptions to analyzedSubscriptions
     };
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { MemberAnalysis, AnalyzedSubscription } from "@/services/analyzer-service";
+import { MemberAnalysis, AnalyzedSubscription } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, Clock } from "lucide-react";
@@ -50,9 +50,9 @@ export const MemberAnalysisCard = ({ analysis }: MemberAnalysisCardProps) => {
                 </div>
             </CardHeader>
             <CardContent>
-                {analysis.activeSubscriptions.length > 0 ? (
+                {analysis.analyzedSubscriptions.length > 0 ? (
                     <div className="space-y-4">
-                        {analysis.activeSubscriptions.map(sub => (
+                        {analysis.analyzedSubscriptions.map((sub: AnalyzedSubscription) => (
                             <div key={sub.subscriptionId} className="p-3 bg-background rounded-lg border">
                                 <div className="flex justify-between items-center mb-2">
                                     <h4 className="font-semibold text-md">{sub.serviceName}</h4>

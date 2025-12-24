@@ -87,24 +87,14 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
  * @param saleData The data for the new sale.
  * @returns The ID of the newly created sale document.
  */
-export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName' | 'reporting'>): Promise<string> => {
+export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Promise<string> => {
     try {
-        // --- START REPORTING LOGIC ---
-        const saleDate = new Date(saleData.date);
-        const year = saleDate.getFullYear();
-        const month = saleDate.getMonth() + 1; // getMonth() is 0-11, so we add 1
-        const period = `${year}-${String(month).padStart(2, '0')}`;
+        const saleDate = new Date(saleData.date as any);
 
-        const dataToSave: Sale = {
+        const dataToSave = {
             ...saleData,
             date: Timestamp.fromDate(saleDate), // Convert date to Firestore Timestamp for consistency
-            reporting: {
-                year,
-                month,
-                period
-            }
         };
-        // --- END REPORTING LOGIC ---
 
         const newSaleId = await runTransaction(db, async (transaction) => {
             // 1. Check for stock availability
@@ -184,6 +174,6 @@ export const deleteSale = async (saleId: string): Promise<void> => {
 export const markSaleAsPaid = async (saleId: string): Promise<void> => {
     const saleRef = doc(db, 'sales', saleId);
     await updateDoc(saleRef, {
-        status: 'paid' // Corrected from paymentStatus to status
+        status: 'paid'
     });
 };

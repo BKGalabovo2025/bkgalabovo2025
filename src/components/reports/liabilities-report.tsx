@@ -2,16 +2,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Member, Subscription } from '@/types';
-import { getAllSubscriptions } from '@/services/finance-service'; // Corrected function name
+import { Member, MemberSubscription, ClubService } from '@/types';
+import { getAllSubscriptions } from '@/services/finance-service';
 import { getAllMembers } from '@/services/member-service';
+import { getAllClubServices } from '@/services/subscription-service';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 interface Liability {
   member: Member;
-  subscription: Subscription;
+  subscription: MemberSubscription;
+  service?: ClubService;
 }
 
 const LiabilitiesReport = () => {
@@ -22,19 +24,24 @@ const LiabilitiesReport = () => {
     const fetchLiabilities = async () => {
       setIsLoading(true);
       try {
-        const allSubscriptions = await getAllSubscriptions(); // Corrected function call
-        const allMembers = await getAllMembers();
+        const [allSubscriptions, allMembers, allServices] = await Promise.all([
+          getAllSubscriptions(),
+          getAllMembers(),
+          getAllClubServices(),
+        ]);
         
         const unpaidSubscriptions = allSubscriptions.filter(
-          (sub) => sub.status === 'pending' || sub.status === 'overdue'
+          (sub) => sub.status === 'pending_payment'
         );
 
         const memberMap = new Map(allMembers.map((m) => [m.id, m]));
+        const serviceMap = new Map(allServices.map((s) => [s.id, s]));
 
         const combinedLiabilities = unpaidSubscriptions.map((sub) => ({
           subscription: sub,
           member: memberMap.get(sub.memberId)!,
-        })).filter(item => item.member); // Filter out any subs with no matching member
+          service: serviceMap.get(sub.serviceId),
+        })).filter(item => item.member && item.service); // Ensure both member and service exist
 
         setLiabilities(combinedLiabilities);
       } catch (error) {
@@ -71,12 +78,12 @@ const LiabilitiesReport = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {liabilities.map(({ member, subscription }) => (
+              {liabilities.map(({ member, subscription, service }) => (
                 <TableRow key={subscription.id}>
                   <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
-                  <TableCell>{subscription.type}</TableCell>
+                  <TableCell>{service?.name || 'Няма име'}</TableCell>
                   <TableCell>{new Date(subscription.endDate).toLocaleDateString('bg-BG')}</TableCell>
-                  <TableCell className="text-right font-medium">{subscription.amount.toFixed(2)} лв.</TableCell>
+                  <TableCell className="text-right font-medium">{(subscription.pricePaid / 100).toFixed(2)} {subscription.currency}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -52,6 +52,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { History } from 'lucide-react';
 import { CheckedState } from '@radix-ui/react-checkbox';
 
+const initialCancellationPolicy: CancellationPolicy = {
+    isAllowed: true,
+    noticePeriodDays: 0,
+    feeType: 'none',
+    feeValue: 0,
+    description: '',
+    longTermSicknessDiscount: 0,
+};
+
 const initialServiceState: Omit<ClubService, 'id'> = {
   name: '',
   description: '',
@@ -67,7 +76,7 @@ const initialServiceState: Omit<ClubService, 'id'> = {
   maxMembers: 1,
   specialRights: [],
   paymentRules: { window: { startDay: 1, endDay: 10 } },
-  cancellationPolicy: { noticePeriodDays: 0, longTermSicknessDiscount: 0 },
+  cancellationPolicy: initialCancellationPolicy,
 };
 
 const targetGroupOptions: TargetGroup[] = ['Деца', 'Любители'];
@@ -144,6 +153,7 @@ export default function ServicesPage() {
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    // Regex to allow only numbers and a single decimal point with up to 2 decimal places
     if (/^\d*\.?\d{0,2}$/.test(value)) {
         setFormData(prev => ({ ...prev, price: Math.round(Number(value) * 100) }));
     }
@@ -153,6 +163,7 @@ export default function ServicesPage() {
     setFormData(prev => {
         const currentRights = prev.specialRights || [];
         if (checked) {
+            // Add the special right with a default trigger
             return {
                 ...prev,
                 specialRights: [
@@ -165,6 +176,7 @@ export default function ServicesPage() {
                 ]
             };
         } else {
+            // Remove the special right
             return { ...prev, specialRights: currentRights.filter(r => r.right !== rightId) };
         }
     });
@@ -199,22 +211,24 @@ export default function ServicesPage() {
     }
   };
 
-  const handleCancellationPolicyChange = (field: keyof CancellationPolicy, value: string) => {
+  const handleCancellationPolicyChange = (field: keyof CancellationPolicy, value: string | number) => {
     const numValue = Number(value);
     setFormData(prev => {
-      const isPolicyInvalid = typeof prev.cancellationPolicy !== 'object' 
-                              || prev.cancellationPolicy === null 
-                              || Object.prototype.hasOwnProperty.call(prev.cancellationPolicy, '0');
-      
-      const basePolicy = isPolicyInvalid ? {} : prev.cancellationPolicy;
+        const currentPolicy = prev.cancellationPolicy || initialCancellationPolicy;
+        let finalValue = numValue;
 
-      return {
-        ...prev,
-        cancellationPolicy: {
-          ...basePolicy,
-          [field]: field === 'longTermSicknessDiscount' ? numValue / 100 : numValue,
+        // Convert percentage to a decimal for storing
+        if (field === 'longTermSicknessDiscount') {
+            finalValue = numValue / 100;
         }
-      };
+
+        return {
+            ...prev,
+            cancellationPolicy: {
+                ...currentPolicy,
+                [field]: finalValue,
+            }
+        };
     });
   };
 
@@ -222,21 +236,20 @@ export default function ServicesPage() {
     setSelectedService(service);
     setUpdateNote('');
     if (service) {
-      const isPolicyInvalid = typeof service.cancellationPolicy !== 'object' 
-                            || service.cancellationPolicy === null 
-                            || Object.prototype.hasOwnProperty.call(service.cancellationPolicy, '0');
-
-      const policy = isPolicyInvalid
-        ? initialServiceState.cancellationPolicy 
-        : service.cancellationPolicy;
-
-      setFormData({
-        ...initialServiceState,
-        ...service,
-        paymentRules: service.paymentRules || initialServiceState.paymentRules,
-        cancellationPolicy: policy,
-      });
+        // Ensure that when editing, all parts of the state are well-defined
+        const safeCancellationPolicy = { 
+            ...initialCancellationPolicy, 
+            ...service.cancellationPolicy 
+        };
+        
+        setFormData({
+            ...initialServiceState, // Start with a clean slate
+            ...service, // Override with service data
+            paymentRules: service.paymentRules || initialServiceState.paymentRules, // Ensure payment rules are not null
+            cancellationPolicy: safeCancellationPolicy, // Use the sanitized policy
+        });
     } else {
+      // For a new service, use the initial clean state
       setFormData(initialServiceState);
     }
     setIsDialogOpen(true);
@@ -264,29 +277,37 @@ export default function ServicesPage() {
 
   const handleSave = async () => {
     try {
-        const dataToSave: Partial<ClubService> = {
-            name: formData.name || '',
+        // Construct a complete service object for saving
+        const dataToSave: Omit<ClubService, 'id'> = {
+            name: formData.name || 'Default Name',
             price: Number(formData.price) || 0,
             currency: formData.currency || 'BGN',
             type: formData.type || 'Абонамент',
             targetGroups: formData.targetGroups || [],
             specialRights: formData.specialRights || [],
             description: formData.description || '',
-            billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null,
+            billingPeriod: formData.type === 'Абонамент' ? (formData.billingPeriod || 'Месечен') : null,
             isCoachLed: formData.isCoachLed || false,
             durationMinutes: Number(formData.durationMinutes) || 0,
             requiresBooking: formData.requiresBooking || false,
             minMembers: Number(formData.minMembers) || 1,
             maxMembers: Number(formData.maxMembers) || 0,
-            paymentRules: formData.type === 'Абонамент' ? formData.paymentRules : undefined,
-            cancellationPolicy: formData.cancellationPolicy,
+            paymentRules: formData.type === 'Абонамент' ? (formData.paymentRules || initialServiceState.paymentRules) : undefined,
+            cancellationPolicy: formData.cancellationPolicy || initialCancellationPolicy,
+            // Ensure all other required fields are present
+            grantsLicense: formData.grantsLicense || false,
+            licenseCondition: formData.licenseCondition || 'Веднага',
+            licensePaymentCount: formData.licensePaymentCount || 0,
+            grantsApparel: formData.grantsApparel || false,
+            apparelCondition: formData.apparelCondition || 'Веднага',
+            apparelPaymentCount: formData.apparelPaymentCount || 0,
         };
 
         if (selectedService) {
             await updateClubService(selectedService.id, dataToSave, updateNote);
             toast({ title: 'Успех', description: 'Услугата е актуализирана.' });
         } else {
-            await createClubService(dataToSave as Omit<ClubService, 'id'>);
+            await createClubService(dataToSave);
             toast({ title: 'Успех', description: 'Услугата е създадена.' });
         }
         fetchServices();
@@ -435,7 +456,7 @@ export default function ServicesPage() {
                                         />
                                         <Label htmlFor={`right-${id}`}>{label}</Label>
                                     </div>
-                                    {isEnabled && (
+                                    {isEnabled && right && (
                                         <div className='grid grid-cols-2 gap-4 pl-6'>
                                             <Select 
                                                 value={right.trigger.condition}
