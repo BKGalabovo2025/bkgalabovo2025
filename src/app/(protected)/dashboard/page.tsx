@@ -10,9 +10,11 @@ import { Users, CreditCard, ListChecks, AlertTriangle, Loader2, ArrowRight } fro
 import Link from "next/link";
 import { getDashboardStats } from '@/services/dashboard-service';
 import { useToast } from '@/components/ui/use-toast';
-import { DashboardStats, Sale, Member } from '@/types';
+import { DashboardStats, Sale, Member, AssistantMessage } from '@/types';
+import { RemindersCard } from '@/components/reminders/reminders-card';
+import AssistantPanel from '@/components/dashboard/assistant-panel';
+import { getGlobalAssistantMessages } from '@/services/analyzer-service'; // The real brain!
 
-// Define the initial state with the full structure of DashboardStats
 const initialStats: DashboardStats = {
     activeMembers: 0,
     monthlyRevenue: 0,
@@ -20,39 +22,49 @@ const initialStats: DashboardStats = {
     recentMembers: [],
     deferredExternalSales: [],
     deferredMemberSales: [],
+    reminders: [],
 };
 
 const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats>(initialStats);
+  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAssistantLoading, setIsAssistantLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user === undefined) return; // Wait until auth state is resolved
+    if (user === undefined) return;
     if (!user) {
       router.replace('/login');
       return;
     }
 
-    const fetchStats = async () => {
+    const fetchAllData = async () => {
+      // Fetch stats and assistant messages in parallel
       setIsLoading(true);
+      setIsAssistantLoading(true);
       try {
-        const data = await getDashboardStats();
-        setStats(data);
+        const [statsData, assistantData] = await Promise.all([
+          getDashboardStats(),
+          getGlobalAssistantMessages()
+        ]);
+        setStats(statsData);
+        setAssistantMessages(assistantData);
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
-        toast({ title: "Грешка при зареждане на статистиките", variant: "destructive" });
+        console.error("Error fetching dashboard data:", error);
+        toast({ title: "Грешка при зареждане на данните за таблото", variant: "destructive" });
       } finally {
         setIsLoading(false);
+        setIsAssistantLoading(false);
       }
     };
 
-    fetchStats();
+    fetchAllData();
   }, [user, router, toast]);
 
-  if (isLoading || user === undefined) {
+  if (user === undefined) {
     return (
         <div className="flex items-center justify-center h-full">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -65,6 +77,11 @@ const DashboardPage = () => {
         <div className="flex justify-between items-center mb-6">
              <h1 className="text-3xl font-bold">Табло за управление</h1>
         </div>
+
+        {/* Assistant Panel - Now with real data! */}
+        <div className="mb-6">
+            <AssistantPanel messages={assistantMessages} isLoading={isAssistantLoading} />
+        </div>
      
       {/* Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -74,7 +91,7 @@ const DashboardPage = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeMembers}</div>
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{stats.activeMembers}</div>}
             <Link href="/members" className="text-xs text-muted-foreground hover:underline">Към членовете</Link>
           </CardContent>
         </Card>
@@ -85,7 +102,7 @@ const DashboardPage = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} EUR</div>
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} EUR</div>}
              <Link href="/finances" className="text-xs text-muted-foreground hover:underline">Към финансите</Link>
           </CardContent>
         </Card>
@@ -96,7 +113,7 @@ const DashboardPage = () => {
             <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{stats.pendingSubscriptions}</div>
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">+{stats.pendingSubscriptions}</div>}
              <Link href="/finances/subscriptions" className="text-xs text-muted-foreground hover:underline">Към абонаментите</Link>
           </CardContent>
         </Card>
@@ -111,6 +128,7 @@ const DashboardPage = () => {
                         <CardDescription>Списък на членове с една или повече неплатени продажби.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                      {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
                         <div className="space-y-4">
                             {stats.deferredMemberSales.map((sale: Sale) => (
                                 <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
@@ -128,6 +146,7 @@ const DashboardPage = () => {
                                 </div>
                             ))}
                         </div>
+                      )}
                     </CardContent>
                 </Card>
             )}
@@ -139,6 +158,7 @@ const DashboardPage = () => {
                         <CardDescription>Това са неплатени продажби от клиенти, които не са членове.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                       {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
                         <div className="space-y-4">
                             {stats.deferredExternalSales.map((sale: Sale) => (
                                 <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
@@ -156,33 +176,37 @@ const DashboardPage = () => {
                                 </div>
                             ))}
                         </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
       </div>
 
-      {/* Recent Members Section */}
+      {/* Recent Members & Reminders Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <RemindersCard reminders={stats.reminders} isLoading={isLoading} />
         <Card>
             <CardHeader>
                 <CardTitle>Последно регистрирани</CardTitle>
                 <CardDescription>Списък на последните няколко регистрирани членове.</CardDescription>
             </CardHeader>
             <CardContent>
-                  {stats.recentMembers?.length > 0 ? (
-                    <div className="space-y-4">
-                        {stats.recentMembers.map((member) => (
-                            <div key={member.id} className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Link href={`/members/${member.id}`} className="text-sm font-medium leading-none text-primary hover:underline">
-                                        {`${member.firstName} ${member.lastName}`}
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Няма наскоро регистрирани членове.</p>
+                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
+                    stats.recentMembers?.length > 0 ? (
+                      <div className="space-y-4">
+                          {stats.recentMembers.map((member) => (
+                              <div key={member.id} className="flex items-center justify-between">
+                                  <div className="space-y-1">
+                                      <Link href={`/members/${member.id}`} className="text-sm font-medium leading-none text-primary hover:underline">
+                                          {`${member.firstName} ${member.lastName}`}
+                                      </Link>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Няма наскоро регистрирани членове.</p>
+                    )
                   )}
             </CardContent>
         </Card>

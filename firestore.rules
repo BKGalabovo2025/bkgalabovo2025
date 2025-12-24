@@ -3,48 +3,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user is an authenticated admin
+    // -- Helper Functions --
     function isAdmin() {
+      // Чете собствения си user документ, за да провери ролята
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
 
-    // Users: Only admins can read/write all user data. Users can read their own data.
+    // -- Collections --
+    // Потребители (само админ може да променя роли)
     match /users/{userId} {
-      allow read, write: if isAdmin();
-      allow read: if request.auth.uid == userId;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
 
-    // Members: Authenticated users (admins) can perform all operations.
+    // Членове
     match /members/{memberId} {
-      allow read, write, create, delete: if isAdmin();
+      allow read, write: if isAdmin();
+      
+      // ЗАЩИТА: Забрани изтриването, ако има активни/дължащи абонаменти
+      // Забележка: Това изисква съществуването на колекция memberSubscriptions
+      allow delete: if isAdmin() && !exists(/databases/$(database)/documents/memberSubscriptions?query.where('memberId', '==', memberId).where('status', 'in', ['active', 'pending_payment', 'overdue']));
     }
 
-    // Families: Authenticated users (admins) can perform all operations.
-    match /families/{familyId} {
-      allow read, write, create, delete: if isAdmin();
-    }
-
-    // Inventory: Authenticated users (admins) can perform all operations.
-    match /inventory/{productId} {
-      allow read, write, create, delete: if isAdmin();
+    // Услуги
+    match /clubServices/{serviceId} {
+      allow read: if isAuthenticated(); // Всеки логнат може да ги види
+      allow create, update: if isAdmin() && 
+                               request.resource.data.price > 0 && // ВАЛИДАЦИЯ: Цената е положителна
+                               request.resource.data.name.size() > 3;
+      allow delete: if isAdmin();
     }
     
-    // Sales: Authenticated users (admins) can perform all operations.
-    match /sales/{saleId} {
-      allow read, write, create, delete: if isAdmin();
+    // Продукти (Инвентар)
+    match /products/{productId} {
+       allow read: if isAuthenticated();
+       allow create, update, delete: if isAdmin() &&
+                                        request.resource.data.price >= 0 && // Може да е 0, ако е подарък
+                                        request.resource.data.stock >= 0; // Наличността не може да е отрицателна
     }
 
-    // Member Subscriptions: Authenticated users (admins) can perform all operations.
+    // Абонаменти на членове
     match /memberSubscriptions/{subscriptionId} {
-      allow read, write, create, delete: if isAdmin();
-    }
-
-    // Club Services: Authenticated users (admins) can read/write.
-    match /clubServices/{serviceId} {
       allow read, write: if isAdmin();
+      
+      // ВАЛИДАЦИЯ: Платената цена не може да е отрицателна
+      allow create, update: if isAdmin() && request.resource.data.pricePaid >= 0;
+    }
+    
+    // Продажби
+    match /sales/{saleId} {
+      allow read, write: if isAdmin();
+
+      // ВАЛИДАЦИЯ: Общата сума не може да е отрицателна
+      allow create: if isAdmin() && request.resource.data.totalAmount > 0;
     }
 
-    // Default deny all other collections
+    // Защита за всички останали пътища
     match /{document=**} {
       allow read, write: if false;
     }

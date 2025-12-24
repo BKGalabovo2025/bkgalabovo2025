@@ -2,115 +2,103 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Subscription } from '@/types';
-import { MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { MemberSubscription } from '@/types';
 import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import Link from 'next/link';
 
-// Defines the shape of the status object, including text and a color variant.
-interface StatusInfo {
-  text: string;
-  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+// Define the shape of the data for the table
+interface SubscriptionData extends MemberSubscription {
+  serviceName: string;
+  memberFirstName: string;
+  memberLastName: string;
 }
 
-/**
- * Determines the subscription status based on the end date.
- * @param endDateString - The end date of the subscription as an ISO string.
- * @returns A status object with text and a corresponding color variant.
- */
-const getStatusInfo = (endDateString: string): StatusInfo => {
-  const endDate = new Date(endDateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize today to the start of the day for accurate comparison
-
-  const thirtyDaysFromNow = new Date();
-  thirtyDaysFromNow.setDate(today.getDate() + 30);
-
-  if (endDate < today) {
-    return { text: 'Изтекъл', variant: 'destructive' }; // Red for expired
-  } else if (endDate <= thirtyDaysFromNow) {
-    return { text: 'Изтичащ', variant: 'outline' }; // Use outline for expiring soon to stand out
-  } else {
-    return { text: 'Активен', variant: 'default' }; // Primary color for active
+// Helper function to determine badge color based on status
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'active':
+      return <Badge variant="success">Активен</Badge>;
+    case 'pending_payment':
+      return <Badge variant="warning">Чакащо плащане</Badge>;
+    case 'expired':
+      return <Badge variant="destructive">Изтекъл</Badge>;
+    case 'cancelled':
+      return <Badge variant="secondary">Отказан</Badge>;
+    default:
+      return <Badge>{status}</Badge>;
   }
 };
 
-
-export const getSubscriptionColumns = (
-    memberMap: Map<string, string>,
-    onDelete: (id: string) => Promise<void>
-): ColumnDef<Subscription>[] => [
-    {
-        accessorKey: "memberId",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Член" />
-        ),
-        cell: ({ row }) => {
-            const memberId = row.getValue("memberId") as string;
-            return memberMap.get(memberId) || 'Неизвестен член';
-        },
-        filterFn: (row, id, value) => {
-            const memberName = memberMap.get(row.getValue(id));
-            return memberName ? memberName.toLowerCase().includes(value.toLowerCase()) : false;
-        },
+// Define the columns for the DataTable
+export const columns: ColumnDef<SubscriptionData>[] = [
+  {
+    accessorKey: 'memberLastName',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Член" />
+    ),
+    cell: ({ row }) => {
+      const memberId = row.original.memberId;
+      return (
+          <Link href={`/members/${memberId}`} className="hover:underline text-primary font-medium">
+             {`${row.original.memberFirstName} ${row.original.memberLastName}`}
+          </Link>
+      );
     },
-    {
-        accessorKey: "startDate",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Начална дата" />
-        ),
-        cell: ({ row }) => new Date(row.getValue("startDate")).toLocaleDateString('bg-BG'),
+  },
+  {
+    accessorKey: 'serviceName',
+     header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Абонамент" />
+    ),
+  },
+  {
+    accessorKey: 'status',
+     header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Статус" />
+    ),
+    cell: ({ row }) => getStatusBadge(row.original.status),
+  },
+  {
+    accessorKey: 'startDate',
+     header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Начална дата" />
+    ),
+    cell: ({ row }) => new Date(row.original.startDate).toLocaleDateString('bg-BG'),
+  },
+  {
+    accessorKey: 'endDate',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Крайна дата" />
+    ),
+    cell: ({ row }) => new Date(row.original.endDate).toLocaleDateString('bg-BG'),
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const subscription = row.original;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Отвори меню</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Действия</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+               <Link href={`/members/${subscription.memberId}?tab=subscriptions`}>Преглед на абонамента</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+               <Link href={`/sales/new?memberId=${subscription.memberId}`}>Регистрирай плащане</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     },
-    {
-        accessorKey: "endDate",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Крайна дата" />
-        ),
-        cell: ({ row }) => new Date(row.getValue("endDate")).toLocaleDateString('bg-BG'),
-    },
-    {
-        id: "status",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Статус" />
-        ),
-        cell: ({ row }) => {
-            const endDate = row.original.endDate;
-            const statusInfo = getStatusInfo(endDate);
-            return <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>;
-        },
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            const subscription = row.original;
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Отвори меню</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => onDelete(subscription.id)}
-                            className="text-destructive"
-                        >
-                            Изтрий
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        },
-    },
+  },
 ];

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ClubService, ClubServiceHistory, SpecialRight, CancellationPolicy } from '@/types';
+import { ClubService, ClubServiceHistory, SpecialRight, CancellationPolicy, TargetGroup } from '@/types';
 import {
   getAllClubServices,
   createClubService,
@@ -50,6 +50,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { History } from 'lucide-react';
+import { CheckedState } from '@radix-ui/react-checkbox';
 
 const initialServiceState: Omit<ClubService, 'id'> = {
   name: '',
@@ -69,7 +70,7 @@ const initialServiceState: Omit<ClubService, 'id'> = {
   cancellationPolicy: { noticePeriodDays: 0, longTermSicknessDiscount: 0 },
 };
 
-const targetGroupOptions = ['Деца', 'Любители'];
+const targetGroupOptions: TargetGroup[] = ['Деца', 'Любители'];
 
 const specialRightsConfig: { id: SpecialRight['right']; label: string }[] = [
     { id: 'kartoteka', label: 'Дава право на картотека' },
@@ -130,7 +131,7 @@ export default function ServicesPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTargetGroupChange = (group: string, checked: boolean) => {
+  const handleTargetGroupChange = (group: TargetGroup, checked: boolean) => {
     setFormData(prev => {
         const currentGroups = prev.targetGroups || [];
         if (checked) {
@@ -415,7 +416,7 @@ export default function ServicesPage() {
                   <div className='space-y-2'><Label htmlFor="maxMembers">Макс. членове (0 за без лимит)</Label><Input id="maxMembers" name="maxMembers" type="number" value={formData.maxMembers || 0} onChange={handleFormChange} /></div>
                   <div className='space-y-2'><Label htmlFor="durationMinutes">Продължителност (мин.)</Label><Input id="durationMinutes" name="durationMinutes" type="number" value={formData.durationMinutes || 0} onChange={handleFormChange} /></div>
                 </div>
-                <div className='grid grid-cols-2 gap-4 items-center'><div className='flex items-center space-x-2'><Checkbox id='isCoachLed' name='isCoachLed' checked={formData.isCoachLed} onCheckedChange={c => setFormData(p => ({...p, isCoachLed: c as boolean}))} /><Label htmlFor='isCoachLed'>Водена от треньор</Label></div><div className='flex items-center space-x-2'><Checkbox id='requiresBooking' name='requiresBooking' checked={formData.requiresBooking} onCheckedChange={c => setFormData(p => ({...p, requiresBooking: c as boolean}))} /><Label htmlFor='requiresBooking'>Изисква записване</Label></div></div>
+                <div className='grid grid-cols-2 gap-4 items-center'><div className='flex items-center space-x-2'><Checkbox id='isCoachLed' name='isCoachLed' checked={formData.isCoachLed} onCheckedChange={(c: CheckedState) => setFormData(p => ({...p, isCoachLed: c === true}))} /><Label htmlFor='isCoachLed'>Водена от треньор</Label></div><div className='flex items-center space-x-2'><Checkbox id='requiresBooking' name='requiresBooking' checked={formData.requiresBooking} onCheckedChange={(c: CheckedState) => setFormData(p => ({...p, requiresBooking: c === true}))} /><Label htmlFor='requiresBooking'>Изисква записване</Label></div></div>
                 
                 <div className='space-y-4 rounded-md border p-4'>
                     <h4 className='text-sm font-medium mb-4'>Специални права</h4>
@@ -430,7 +431,7 @@ export default function ServicesPage() {
                                         <Checkbox 
                                             id={`right-${id}`}
                                             checked={isEnabled}
-                                            onCheckedChange={(c) => handleSpecialRightToggle(id, c as boolean)}
+                                            onCheckedChange={(c: CheckedState) => handleSpecialRightToggle(id, c === true)}
                                         />
                                         <Label htmlFor={`right-${id}`}>{label}</Label>
                                     </div>

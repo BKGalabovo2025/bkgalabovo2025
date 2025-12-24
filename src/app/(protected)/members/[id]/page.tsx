@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getAllMembers, getMemberById } from '@/services/member-service';
+import { getAllMembers, getMemberById, updateMember } from '@/services/member-service'; // Added updateMember
 import { getSalesByMemberId, markSaleAsPaid } from '@/services/sales-service';
 import { analyzeMemberStatus } from '@/services/analyzer-service';
 import { Member, Sale, MemberAnalysis } from '@/types';
@@ -18,6 +18,9 @@ import { MemberSalesHistory } from '@/components/members/member-sales-history';
 import { MemberAttendanceHistory } from '@/components/members/MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from '@/components/members/member-subscriptions-tab';
 import { MemberAnalysisCard } from '@/components/members/MemberAnalysisCard';
+import { getAllClubServices } from '@/lib/actions/services';
+import { getSubscriptionsByMemberId } from '@/services/subscription-service';
+import { getEventsByMemberId } from '@/services/schedule-service';
 
 const MemberDetailsPage = () => {
   const [member, setMember] = useState<Member | null>(null);
@@ -38,9 +41,35 @@ const MemberDetailsPage = () => {
       setMember(memberData);
 
       if (memberData) {
-        const analysisData = await analyzeMemberStatus(memberData);
-        setAnalysis(analysisData);
+        // --- START CACHING LOGIC ---
+        const cache = memberData.analysisCache;
+        const isCacheValid = cache && (new Date().getTime() - new Date(cache.generatedAt).getTime()) < 24 * 60 * 60 * 1000; // 24 hours validity
 
+        if (isCacheValid) {
+            setAnalysis(cache.result);
+            console.log("Analysis loaded from CACHE.");
+        } else {
+            console.log("Cache invalid or missing. Performing new analysis.");
+            const [allServices, memberSubscriptions, memberAttendances] = await Promise.all([
+              getAllClubServices(),
+              getSubscriptionsByMemberId(memberId),
+              getEventsByMemberId(memberId)
+            ]);
+    
+            const analysisData = await analyzeMemberStatus(memberData, allServices, memberSubscriptions, memberAttendances);
+            setAnalysis(analysisData);
+
+            // Asynchronously update the cache in the background
+            updateMember(memberId, {
+                analysisCache: {
+                    generatedAt: new Date().toISOString(),
+                    result: analysisData
+                }
+            }).catch(e => console.error("Failed to update analysis cache:", e));
+        }
+        // --- END CACHING LOGIC ---
+
+        // Fetch other data that is not part of the analysis
         if (memberData.familyId) {
             const allMembers = await getAllMembers();
             const relatedMembers = allMembers.filter(m => m.familyId === memberData.familyId && m.id !== memberData.id);

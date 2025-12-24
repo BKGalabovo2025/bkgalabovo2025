@@ -1,6 +1,6 @@
 
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, query, where, orderBy, updateDoc, runTransaction, increment } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, query, where, orderBy, updateDoc, runTransaction, increment, Timestamp } from "firebase/firestore";
 import { Sale, SaleItem } from '@/types';
 
 const salesCollection = collection(db, 'sales');
@@ -87,11 +87,28 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
  * @param saleData The data for the new sale.
  * @returns The ID of the newly created sale document.
  */
-export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Promise<string> => {
+export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName' | 'reporting'>): Promise<string> => {
     try {
+        // --- START REPORTING LOGIC ---
+        const saleDate = new Date(saleData.date);
+        const year = saleDate.getFullYear();
+        const month = saleDate.getMonth() + 1; // getMonth() is 0-11, so we add 1
+        const period = `${year}-${String(month).padStart(2, '0')}`;
+
+        const dataToSave: Sale = {
+            ...saleData,
+            date: Timestamp.fromDate(saleDate), // Convert date to Firestore Timestamp for consistency
+            reporting: {
+                year,
+                month,
+                period
+            }
+        };
+        // --- END REPORTING LOGIC ---
+
         const newSaleId = await runTransaction(db, async (transaction) => {
             // 1. Check for stock availability
-            for (const item of saleData.items) {
+            for (const item of dataToSave.items) {
                 const productRef = doc(productsCollection, item.productId);
                 const productDoc = await transaction.get(productRef);
                 if (!productDoc.exists()) {
@@ -104,7 +121,7 @@ export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Prom
             }
 
             // 2. Decrease stock for each product
-            for (const item of saleData.items) {
+            for (const item of dataToSave.items) {
                 const productRef = doc(productsCollection, item.productId);
                 transaction.update(productRef, { 
                     stock: increment(-item.quantity) 
@@ -113,7 +130,7 @@ export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Prom
 
             // 3. Create the new sale document
             const newSaleRef = doc(salesCollection); // Automatically generate a new ID
-            transaction.set(newSaleRef, saleData);
+            transaction.set(newSaleRef, dataToSave);
             
             return newSaleRef.id;
         });

@@ -26,7 +26,11 @@ export interface Member {
     avatarUrl?: string; // URL for the member's avatar image
     createdAt?: string; // Added for dashboard
     familyId?: string; // ID of the family group
-    // subscriptions?: MemberSubscription[]; // Coming soon
+    
+    analysisCache?: {
+      generatedAt: string; // ISO date string
+      result: MemberAnalysis;
+    }
 }
 
 /**
@@ -72,13 +76,20 @@ export interface SaleItem {
  */
 export interface Sale {
     id: string;
-    date: string;
+    date: string; // ISO String. Main date for the transaction.
     memberId?: string | null; // Can be null for guest sales
     customerName?: string;
     items: SaleItem[];
     total: number;
     status: 'pending' | 'paid' | 'completed' | 'refunded';
     currency?: 'BGN' | 'EUR'; // The currency of the entire sale
+
+    // NEW: Denormalized fields for efficient reporting queries
+    reporting?: {
+        year: number;
+        month: number; // 1-12
+        period: string; // YYYY-MM format
+    };
 }
 
 // =============================================================================
@@ -117,9 +128,15 @@ export interface PaymentRules {
  * Defines the cancellation policy for a service.
  */
 export interface CancellationPolicy {
-    noticePeriodDays?: number;      // e.g., 5 days notice required
-    longTermSicknessDiscount?: number; // e.g., 0.5 for 50% discount
+  isAllowed: boolean;
+  noticePeriodDays?: number; // Дни предизвестие
+  feeType: 'percentage' | 'fixed' | 'none'; 
+  feeValue?: number; // Стойност (процент или сума)
+  description: string;
 }
+
+export type TargetGroup = 'Деца' | 'Любители';
+
 
 /**
  * Represents a purchasable club service or subscription plan.
@@ -132,7 +149,7 @@ export type ClubService = {
   price: number; // Цена в най-малката валутна единица (напр. стотинки/центове)
   currency: 'BGN' | 'EUR'; // Валута
   
-  targetGroups: ('Деца' | 'Любители')[]; // Целева група
+  targetGroups: TargetGroup[]; // Целева група
   type: 'Абонамент' | 'Еднократно плащане'; // Тип на плащането
 
   // Специфики на абонамент
@@ -151,6 +168,12 @@ export type ClubService = {
   specialRights?: SpecialRight[]; 
   paymentRules?: PaymentRules;
   cancellationPolicy?: CancellationPolicy;
+  grantsLicense?: boolean;
+  licenseCondition?: 'Веднага' | 'След N плащания';
+  licensePaymentCount?: number;
+  grantsApparel?: boolean;
+  apparelCondition?: 'Веднага' | 'След N плащания';
+  apparelPaymentCount?: number;
 };
 
 
@@ -206,6 +229,16 @@ export interface ClubServiceHistory {
 // =============================================================================
 
 /**
+ * Represents a message for the dashboard assistant.
+ */
+export interface AssistantMessage {
+    id: string;
+    type: 'info' | 'warning' | 'suggestion';
+    title: string;
+    description: string;
+}
+
+/**
  * Represents an inventory event log.
  */
 export interface InventoryEvent {
@@ -251,6 +284,16 @@ export interface Family {
 }
 
 /**
+ * Represents a reminder for the admin on the dashboard.
+ */
+export interface Reminder {
+    memberId: string;
+    memberName: string;
+    reminderType: 'Subscription Expiring' | 'Payment Overdue';
+    details: string;
+}
+
+/**
  * Represents the summary statistics for the main dashboard.
  */
 export interface DashboardStats {
@@ -260,6 +303,7 @@ export interface DashboardStats {
     recentMembers: Pick<Member, 'id' | 'firstName' | 'lastName'>[];
     deferredExternalSales: Sale[];
     deferredMemberSales: Sale[];
+    reminders: Reminder[];
 }
 
 
@@ -272,9 +316,10 @@ export interface DashboardStats {
  */
 export type MemberAnalysis = {
     memberId: string;
+    memberName: string;
     analysisDate: string;
     overallStatus: 'OK' | 'ACTION_NEEDED' | 'WARNING';
-    activeSubscriptions: AnalyzedSubscription[];
+    analyzedSubscriptions: AnalyzedSubscription[];
     // Future additions could include attendance patterns, payment history, etc.
 };
 
@@ -295,3 +340,9 @@ export type AnalyzedSubscription = {
     // Recommendations will be added in the next phase
     recommendations: string[]; 
 };
+
+
+/**
+ * @deprecated Use `MemberSubscription` instead.
+ */
+export type Subscription = MemberSubscription;

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createService } from "@/lib/actions/services";
+import { createClubService } from "@/lib/actions/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckedState } from '@radix-ui/react-checkbox';
 
 
 export default function NewServicePage() {
@@ -23,7 +24,7 @@ export default function NewServicePage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Добавяне на нова услуга</h1>
-      <form action={createService} className="space-y-8 max-w-2xl">
+      <form action={createClubService} className="space-y-8 max-w-2xl">
         
         <Card>
           <CardHeader><CardTitle>Основна информация</CardTitle></CardHeader>
@@ -103,7 +104,7 @@ export default function NewServicePage() {
               <div className="space-y-4 rounded-md border p-4">
                   <div className="flex items-center justify-between">
                       <Label htmlFor="grantsLicense">Дава право на картотека</Label>
-                      <Checkbox id="grantsLicense" name="grantsLicense" checked={grantsLicense} onCheckedChange={setGrantsLicense} />
+                      <Checkbox id="grantsLicense" name="grantsLicense" checked={grantsLicense} onCheckedChange={(checked: CheckedState) => setGrantsLicense(checked === true)} />
                   </div>
                   {grantsLicense && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
@@ -128,7 +129,7 @@ export default function NewServicePage() {
               <div className="space-y-4 rounded-md border p-4">
                   <div className="flex items-center justify-between">
                       <Label htmlFor="grantsApparel">Дава право на екипировка</Label>
-                      <Checkbox id="grantsApparel" name="grantsApparel" checked={grantsApparel} onCheckedChange={setGrantsApparel} />
+                      <Checkbox id="grantsApparel" name="grantsApparel" checked={grantsApparel} onCheckedChange={(checked: CheckedState) => setGrantsApparel(checked === true)} />
                   </div>
                   {grantsApparel && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">

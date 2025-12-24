@@ -1,80 +1,76 @@
 
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { ClubService } from '@/lib/definitions';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { collection, getDocs, query, where, addDoc, DocumentReference } from 'firebase/firestore';
+import { db } from '@/lib/firebase'; 
+import { MemberSubscription, ClubService, Member } from '@/types';
 
-// Път до нашия временен "база данни" файл
-const dataFilePath = path.join(process.cwd(), 'src', 'lib', 'data', 'services.json');
+const MEMBERS_COLLECTION = 'members';
+const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
+const SERVICES_COLLECTION = 'clubServices';
 
-// --- Функции за работа с файла --- //
-async function readServices(): Promise<ClubService[]> {
-  try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    return [];
-  }
-}
+/**
+ * Fetches all member subscriptions from the database.
+ */
+export const getAllSubscriptions = async (): Promise<MemberSubscription[]> => {
+    try {
+        const subscriptionsCollection = collection(db, SUBSCRIPTIONS_COLLECTION);
+        const querySnapshot = await getDocs(subscriptionsCollection);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }) as MemberSubscription);
+    } catch (error) {
+        console.error("Error fetching all subscriptions:", error);
+        return [];
+    }
+};
 
-async function writeServices(services: ClubService[]): Promise<void> {
-  await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
-  await fs.writeFile(dataFilePath, JSON.stringify(services, null, 2), 'utf8');
-}
-// --- Край на функциите за работа с файла --- //
+/**
+ * Fetches all club services from the database.
+ */
+export const getAllClubServices = async (): Promise<ClubService[]> => {
+    try {
+        const servicesCollection = collection(db, SERVICES_COLLECTION);
+        const querySnapshot = await getDocs(servicesCollection);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }) as ClubService);
+    } catch (error) {
+        console.error("Error fetching all club services:", error);
+        return [];
+    }
+};
 
+/**
+ * Fetches all members from the database.
+ */
+export const getMembers = async (): Promise<Member[]> => {
+    try {
+        const membersCollection = collection(db, MEMBERS_COLLECTION);
+        const querySnapshot = await getDocs(membersCollection);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }) as Member);
+    } catch (error) {
+        console.error("Error fetching all members:", error);
+        return [];
+    }
+};
 
-export async function createService(formData: FormData) {
-  
-  const serviceType = formData.get('type') as 'Абонамент' | 'Еднократно плащане';
-  const grantsLicense = formData.get('grantsLicense') === 'on';
-  const grantsApparel = formData.get('grantsApparel') === 'on';
-  const licenseCondition = formData.get('licenseCondition') as 'Веднага' | 'След N плащания';
-  const apparelCondition = formData.get('apparelCondition') as 'Веднага' | 'След N плащания';
-
-  const newService: ClubService = {
-    id: `svc_${Date.now()}`,
-    name: formData.get('name') as string,
-    description: formData.get('description') as string || undefined,
-    price: Math.round(parseFloat(formData.get('price') as string) * 100),
-    currency: 'EUR',
-    targetGroups: formData.getAll('targetGroups') as ('Деца' | 'Любители')[],
-    type: serviceType,
-    minMembers: 1, // TODO: Add fields for this in the form
-
-    // Полета, специфични за услугата
-    isCoachLed: false, // Да приемем, че по подразбиране не са водени от треньор. Ще трябва да го добавим във формата.
-    requiresBooking: true, // Повечето услуги за любители го изискват
-
-    // --- Абонаментни полета --- //
-    billingPeriod: serviceType === 'Абонамент' ? formData.get('billingPeriod') as 'Месечен' | 'Годишен' : undefined,
-    
-    grantsLicense: grantsLicense,
-    licenseCondition: grantsLicense ? licenseCondition : undefined,
-    licensePaymentCount: grantsLicense && licenseCondition === 'След N плащания' 
-      ? parseInt(formData.get('licensePaymentCount') as string) 
-      : undefined,
-
-    grantsApparel: grantsApparel,
-    apparelCondition: grantsApparel ? apparelCondition : undefined,
-    apparelPaymentCount: grantsApparel && apparelCondition === 'След N плащания'
-      ? parseInt(formData.get('apparelPaymentCount') as string)
-      : undefined,
-
-    // --- Полета за еднократно плащане --- //
-    durationMinutes: serviceType === 'Еднократно плащане' 
-      ? parseInt(formData.get('durationMinutes') as string) 
-      : undefined,
-  };
-
-  const services = await readServices();
-  services.push(newService);
-  await writeServices(services);
-
-  // Опресняваме кеша и пренасочваме
-  revalidatePath('/finances/services');
-  redirect('/finances/services');
-}
+/**
+ * Creates a new club service in the database.
+ */
+export const createClubService = async (service: Omit<ClubService, 'id'>) => {
+    try {
+        // Remove undefined values before sending to Firestore
+        Object.keys(service).forEach(key => (service as any)[key] === undefined && delete (service as any)[key]);
+        const docRef = await addDoc(collection(db, SERVICES_COLLECTION), service);
+        return docRef.id;
+    } catch (error) {
+        console.error("Error creating club service:", error);
+        throw new Error("Could not create club service.");
+    }
+};

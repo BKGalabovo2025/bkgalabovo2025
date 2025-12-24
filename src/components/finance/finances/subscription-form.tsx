@@ -9,22 +9,32 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
-import { Member, Subscription } from "@/types";
+import { Member, MemberSubscription } from "@/types";
 
 const subscriptionSchema = z.object({
   memberId: z.string({ required_error: "Моля, изберете член." }),
-  type: z.enum(["annual", "monthly", "quarterly", "single_visit"], { required_error: "Моля, изберете тип." }),
-  status: z.enum(["paid", "pending", "overdue"], { required_error: "Моля, изберете статус." }),
-  amount: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
+  serviceId: z.string({ required_error: "Моля, изберете услуга." }),
+  status: z.enum(["active", "expired", "cancelled", "pending_payment"], { required_error: "Моля, изберете статус." }),
+  pricePaid: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна начална дата." }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна крайна дата." }),
+  currency: z.enum(["BGN", "EUR"]),
+  paymentHistory: z.array(z.object({
+    date: z.string(),
+    amount: z.number(),
+    notes: z.string().optional(),
+  })),
+  paymentsMadeCount: z.number(),
+  licenseGranted: z.boolean(),
+  apparelGranted: z.boolean(),
+
 });
 
 interface SubscriptionFormProps {
   members: Member[];
-  onSave: (data: Omit<Subscription, 'id'>) => void;
+  onSave: (data: Omit<MemberSubscription, 'id'>) => void;
   onClose: () => void;
-  initialData?: Subscription;
+  initialData?: MemberSubscription;
   isSaving?: boolean;
 }
 
@@ -72,36 +82,14 @@ export function SubscriptionForm({ members, onSave, onClose, initialData, isSavi
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Тип абонамент</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Изберете тип" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="annual">Годишен</SelectItem>
-                  <SelectItem value="monthly">Месечен</SelectItem>
-                  <SelectItem value="quarterly">Тримесечен</SelectItem>
-                  <SelectItem value="single_visit">Еднократно посещение</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* This needs to be adapted to select a service, not a subscription type */}
 
         <FormField
           control={form.control}
-          name="amount"
+          name="pricePaid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Сума</FormLabel>
+              <FormLabel>Платена сума</FormLabel>
               <FormControl>
                 <Input type="number" step="0.01" {...field} />
               </FormControl>
@@ -123,9 +111,10 @@ export function SubscriptionForm({ members, onSave, onClose, initialData, isSavi
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="paid">Платен</SelectItem>
-                  <SelectItem value="pending">Чакащ</SelectItem>
-                  <SelectItem value="overdue">Просрочен</SelectItem>
+                  <SelectItem value="active">Активен</SelectItem>
+                  <SelectItem value="pending_payment">Чакащо плащане</SelectItem>
+                  <SelectItem value="expired">Изтекъл</SelectItem>
+                  <SelectItem value="cancelled">Анулиран</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
