@@ -114,6 +114,14 @@ export interface PaymentRules {
 }
 
 /**
+ * Defines the cancellation policy for a service.
+ */
+export interface CancellationPolicy {
+    noticePeriodDays?: number;      // e.g., 5 days notice required
+    longTermSicknessDiscount?: number; // e.g., 0.5 for 50% discount
+}
+
+/**
  * Represents a purchasable club service or subscription plan.
  * This is the template for a subscription.
  */
@@ -134,7 +142,6 @@ export type ClubService = {
   isCoachLed?: boolean; // Дали е водена от треньор
   durationMinutes?: number; // Продължителност в минути
   requiresBooking?: boolean; // Дали изисква предварително записване
-  cancellationPolicy?: string; // Политика за анулиране
 
   // Характеристики на пакет/групова услуга
   minMembers: number; // Минимален брой членове за тази услуга
@@ -143,6 +150,7 @@ export type ClubService = {
   // НОВИ СТРУКТУРИРАНИ ПРАВИЛА
   specialRights?: SpecialRight[]; 
   paymentRules?: PaymentRules;
+  cancellationPolicy?: CancellationPolicy;
 };
 
 
