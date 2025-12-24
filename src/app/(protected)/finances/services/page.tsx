@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ClubService, ClubServiceHistory } from '@/types';
+import { useState, useEffect, useMemo } from 'react';
+import { ClubService, ClubServiceHistory, SpecialRight } from '@/types';
 import {
   getAllClubServices,
   createClubService,
@@ -65,15 +65,15 @@ const initialServiceState: Omit<ClubService, 'id'> = {
   cancellationPolicy: '',
   minMembers: 1,
   maxMembers: 1,
-  grantsLicense: false,
-  licenseCondition: 'Веднага',
-  licensePaymentCount: 0,
-  grantsApparel: false,
-  apparelCondition: 'Веднага',
-  apparelPaymentCount: 0,
+  specialRights: [],
 };
 
 const targetGroupOptions = ['Деца', 'Любители'];
+
+const specialRightsConfig: { id: SpecialRight['right']; label: string }[] = [
+    { id: 'kartoteka', label: 'Дава право на картотека' },
+    { id: 'equipment', label: 'Дава право на екипировка' },
+];
 
 export default function ServicesPage() {
   const [services, setServices] = useState<ClubService[]>([]);
@@ -86,7 +86,7 @@ export default function ServicesPage() {
   const [serviceToDeleteId, setServiceToDeleteId] = useState<string | null>(null);
   const [serviceForHistory, setServiceForHistory] = useState<ClubService | null>(null);
 
-  const [formData, setFormData] = useState<Omit<ClubService, 'id'>>(initialServiceState);
+  const [formData, setFormData] = useState<Partial<ClubService>>(initialServiceState);
   const [updateNote, setUpdateNote] = useState('');
   const [historyLogs, setHistoryLogs] = useState<ClubServiceHistory[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -147,11 +147,53 @@ export default function ServicesPage() {
     }
   };
 
+  const handleSpecialRightToggle = (rightId: SpecialRight['right'], checked: boolean) => {
+    setFormData(prev => {
+        const currentRights = prev.specialRights || [];
+        if (checked) {
+            return {
+                ...prev,
+                specialRights: [
+                    ...currentRights,
+                    {
+                        right: rightId,
+                        description: specialRightsConfig.find(r => r.id === rightId)?.label || '',
+                        trigger: { condition: 'IMMEDIATELY' }
+                    }
+                ]
+            };
+        } else {
+            return { ...prev, specialRights: currentRights.filter(r => r.right !== rightId) };
+        }
+    });
+  };
+
+  const handleSpecialRightChange = (rightId: SpecialRight['right'], newConfig: Partial<SpecialRight['trigger']>) => {
+    setFormData(prev => {
+        const currentRights = prev.specialRights || [];
+        return {
+            ...prev,
+            specialRights: currentRights.map(r => 
+                r.right === rightId 
+                ? { ...r, trigger: { ...r.trigger, ...newConfig } } 
+                : r
+            )
+        };
+    });
+  };
+
   const openDialog = (service: ClubService | null) => {
     setSelectedService(service);
     setUpdateNote('');
     if (service) {
-      setFormData({...initialServiceState, ...service});
+      const serviceData: Partial<ClubService> = { ...service };
+      delete (serviceData as any).grantsLicense;
+      delete (serviceData as any).licenseCondition;
+      delete (serviceData as any).licensePaymentCount;
+      delete (serviceData as any).grantsApparel;
+      delete (serviceData as any).apparelCondition;
+      delete (serviceData as any).apparelPaymentCount;
+      setFormData(serviceData);
     } else {
       setFormData(initialServiceState);
     }
@@ -180,29 +222,36 @@ export default function ServicesPage() {
 
   const handleSave = async () => {
     try {
-        const dataToSave: Partial<ClubService> = {
-            ...formData,
+        const dataToSave: Omit<ClubService, 'id'> = {
+            name: formData.name || '',
             price: Number(formData.price) || 0,
-            durationMinutes: Number(formData.durationMinutes) || null,
-            minMembers: Number(formData.minMembers) || 1,
-            maxMembers: Number(formData.maxMembers) || null,
-            licensePaymentCount: Number(formData.licensePaymentCount) || null,
-            apparelPaymentCount: Number(formData.apparelPaymentCount) || null,
+            currency: formData.currency || 'BGN',
+            type: formData.type || 'Абонамент',
+            targetGroups: formData.targetGroups || [],
+            specialRights: formData.specialRights || [],
+            description: formData.description || '',
             billingPeriod: formData.type === 'Абонамент' ? formData.billingPeriod : null,
+            isCoachLed: formData.isCoachLed || false,
+            durationMinutes: Number(formData.durationMinutes) || 0,
+            requiresBooking: formData.requiresBooking || false,
+            cancellationPolicy: formData.cancellationPolicy || '',
+            minMembers: Number(formData.minMembers) || 1,
+            maxMembers: Number(formData.maxMembers) || 0,
         };
 
         if (selectedService) {
             await updateClubService(selectedService.id, dataToSave, updateNote);
             toast({ title: 'Успех', description: 'Услугата е актуализирана.' });
         } else {
-            await createClubService(dataToSave as Omit<ClubService, 'id'>);
+            await createClubService(dataToSave);
             toast({ title: 'Успех', description: 'Услугата е създадена.' });
         }
         fetchServices();
         setIsDialogOpen(false);
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Възникна неизвестна грешка';
         console.error('Error saving service:', error);
-        toast({ title: 'Грешка', description: `Неуспешен запис на услугата: ${error.message}`, variant: 'destructive' });
+        toast({ title: 'Грешка', description: `Неуспешен запис: ${errorMessage}`, variant: 'destructive' });
     }
   };
 
@@ -236,14 +285,15 @@ export default function ServicesPage() {
               <Card key={service.id} className="flex flex-col">
                  <CardHeader>
                    <CardTitle>{service.name}</CardTitle>
-                   <CardDescription>{service.type} | {service.targetGroups.join(', ')}</CardDescription>
+                   <CardDescription>{service.type} | {(service.targetGroups || []).join(', ')}</CardDescription>
                  </CardHeader>
                  <CardContent className="flex-grow">
                    <p className="text-2xl font-bold">{(service.price / 100).toFixed(2)} {service.currency}</p>
                    {service.billingPeriod && <p className="text-sm text-gray-500">Таксуване: {service.billingPeriod}</p>}
                    <div className="mt-4 pt-4 border-t">
-                     {service.grantsLicense && <p className="text-sm">✓ Право на картотека</p>}
-                     {service.grantsApparel && <p className="text-sm">✓ Право на екипировка</p>}
+                     {service.specialRights?.map(right => (
+                        <p key={right.right} className="text-sm">✓ {right.description}</p>
+                     ))}
                    </div>
                  </CardContent>
                  <div className="flex justify-end space-x-2 p-4 bg-gray-50 border-t">
@@ -271,7 +321,6 @@ export default function ServicesPage() {
                 <DialogDescription>Попълнете всички детайли за услугата. Натиснете 'Запис', когато сте готови.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-6">
-                {/* Form fields... */}
                 <div className='grid grid-cols-2 gap-4'>
                   <div className="space-y-2"><Label htmlFor="name">Име на услугата</Label><Input id="name" name="name" value={formData.name} onChange={handleFormChange} /></div>
                   <div className="space-y-2"><Label htmlFor='type'>Тип на плащането</Label><Select name='type' value={formData.type} onValueChange={v => handleSelectChange('type',v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='Абонамент'>Абонамент</SelectItem><SelectItem value='Еднократно плащане'>Еднократно плащане</SelectItem></SelectContent></Select></div>
@@ -290,7 +339,52 @@ export default function ServicesPage() {
                 </div>
                 <div className='grid grid-cols-2 gap-4 items-center'><div className='flex items-center space-x-2'><Checkbox id='isCoachLed' name='isCoachLed' checked={formData.isCoachLed} onCheckedChange={c => setFormData(p => ({...p, isCoachLed: c as boolean}))} /><Label htmlFor='isCoachLed'>Водена от треньор</Label></div><div className='flex items-center space-x-2'><Checkbox id='requiresBooking' name='requiresBooking' checked={formData.requiresBooking} onCheckedChange={c => setFormData(p => ({...p, requiresBooking: c as boolean}))} /><Label htmlFor='requiresBooking'>Изисква записване</Label></div></div>
                 <div className="space-y-2"><Label htmlFor="cancellationPolicy">Политика за анулиране</Label><Textarea id="cancellationPolicy" name="cancellationPolicy" value={formData.cancellationPolicy || ''} onChange={handleFormChange} /></div>
-                <div className='space-y-4 rounded-md border p-4'><h4 className='text-sm font-medium mb-4'>Специални права</h4><div className='grid gap-6'><div className='flex flex-col space-y-4'><div className='flex items-center space-x-2'><Checkbox id='grantsLicense' name='grantsLicense' checked={formData.grantsLicense} onCheckedChange={c => setFormData(p => ({...p, grantsLicense: c as boolean, licenseCondition: 'Веднага', licensePaymentCount: 0}))} /><Label htmlFor='grantsLicense'>Дава право на картотека</Label></div>{formData.grantsLicense && <div className='grid grid-cols-2 gap-4 pl-6'><Select name='licenseCondition' value={formData.licenseCondition || 'Веднага'} onValueChange={v => handleSelectChange('licenseCondition', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='Веднага'>Веднага</SelectItem><SelectItem value='След N плащания'>След N плащания</SelectItem></SelectContent></Select>{formData.licenseCondition === 'След N плащания' && <Input name='licensePaymentCount' type='number' placeholder='Брой плащания' value={formData.licensePaymentCount || 1} onChange={handleFormChange} />}</div>}</div><div className='flex flex-col space-y-4'><div className='flex items-center space-x-2'><Checkbox id='grantsApparel' name='grantsApparel' checked={formData.grantsApparel} onCheckedChange={c => setFormData(p => ({...p, grantsApparel: c as boolean, apparelCondition: 'Веднага', apparelPaymentCount: 0}))} /><Label htmlFor='grantsApparel'>Дава право на екипировка</Label></div>{formData.grantsApparel && <div className='grid grid-cols-2 gap-4 pl-6'><Select name='apparelCondition' value={formData.apparelCondition || 'Веднага'} onValueChange={v => handleSelectChange('apparelCondition', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='Веднага'>Веднага</SelectItem><SelectItem value='След N плащания'>След N плащания</SelectItem></SelectContent></Select>{formData.apparelCondition === 'След N плащания' && <Input name='apparelPaymentCount' type='number' placeholder='Брой плащания' value={formData.apparelPaymentCount || 1} onChange={handleFormChange} />}</div>}</div></div></div>
+                
+                <div className='space-y-4 rounded-md border p-4'>
+                    <h4 className='text-sm font-medium mb-4'>Специални права</h4>
+                    <div className='grid gap-6'>
+                        {specialRightsConfig.map(({ id, label }) => {
+                            const right = formData.specialRights?.find(r => r.right === id);
+                            const isEnabled = !!right;
+
+                            return (
+                                <div key={id} className='flex flex-col space-y-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox 
+                                            id={`right-${id}`}
+                                            checked={isEnabled}
+                                            onCheckedChange={(c) => handleSpecialRightToggle(id, c as boolean)}
+                                        />
+                                        <Label htmlFor={`right-${id}`}>{label}</Label>
+                                    </div>
+                                    {isEnabled && (
+                                        <div className='grid grid-cols-2 gap-4 pl-6'>
+                                            <Select 
+                                                value={right.trigger.condition}
+                                                onValueChange={v => handleSpecialRightChange(id, { condition: v as SpecialRight['trigger']['condition'] })}
+                                            >
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='IMMEDIATELY'>Веднага</SelectItem>
+                                                    <SelectItem value='AFTER_N_PAYMENTS'>След N плащания</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            {right.trigger.condition === 'AFTER_N_PAYMENTS' && (
+                                                <Input 
+                                                    type='number' 
+                                                    placeholder='Брой плащания' 
+                                                    value={right.trigger.paymentCount || 1}
+                                                    onChange={e => handleSpecialRightChange(id, { paymentCount: Number(e.target.value) || 1})}
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {selectedService && <div className="space-y-2 pt-4 border-t mt-4"><Label htmlFor="updateNote">Бележка към промяната (описва причината)</Label><Textarea id="updateNote" name="updateNote" value={updateNote} onChange={(e) => setUpdateNote(e.target.value)} placeholder="Напр. Актуализация на цените за новия сезон..."/></div>}
               </div>
               <DialogFooter className='p-6 pt-2'><DialogClose asChild><Button variant="outline">Отказ</Button></DialogClose><Button onClick={handleSave}>Запис</Button></DialogFooter>
@@ -299,7 +393,20 @@ export default function ServicesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>{/* ... */}</AlertDialog>
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Наистина ли искате да изтриете тази услуга?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Това действие е необратимо. Всички данни за услугата ще бъдат изтрити. Свързаните абонаменти на членове НЯМА да бъдат изтрити, но може да се наложи да ги актуализирате ръчно.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Отказ</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Изтрий</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
         <DialogContent className="max-w-2xl">

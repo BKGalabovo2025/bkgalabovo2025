@@ -1,13 +1,14 @@
 
 import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { MemberSubscription, ClubService, ClubServiceHistory } from '@/types';
+import { MemberSubscription, ClubService, ClubServiceHistory, SpecialRight } from '@/types';
 import { getAuth } from 'firebase/auth';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
 const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
 
+// Enhanced change summary to understand the new specialRights structure
 const generateChangeSummary = (oldData: Partial<ClubService>, newData: Partial<ClubService>): string => {
     const changes: string[] = [];
     const allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
@@ -17,15 +18,44 @@ const generateChangeSummary = (oldData: Partial<ClubService>, newData: Partial<C
         const newValue = newData[key as keyof ClubService];
 
         if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
-             if (key === 'price') {
+            if (key === 'price') {
                 changes.push(`Цена е променена от ${(Number(oldValue) / 100).toFixed(2)} на ${(Number(newValue) / 100).toFixed(2)}.`);
             } else if (key === 'name') {
-                 changes.push(`Име е променено от '${oldValue}' на '${newValue}'.`);
+                changes.push(`Име е променено от '${oldValue}' на '${newValue}'.`);
             } else if (key === 'description') {
-                 changes.push(`Описанието е променено.`);
+                changes.push(`Описанието е променено.`);
             } else if (key === 'targetGroups') {
-                changes.push(`Целевите групи са променени от '${(oldValue as string[]).join(', ')}' на '${(newValue as string[]).join(', ')}'.`);
-            } else {
+                changes.push(`Целевите групи са променени от '${(oldValue as string[])?.join(', ') || ''}' на '${(newValue as string[])?.join(', ') || ''}'.`);
+            } else if (key === 'specialRights') {
+                const oldRights = (oldValue as SpecialRight[]) || [];
+                const newRights = (newValue as SpecialRight[]) || [];
+                const rightChanges: string[] = [];
+
+                const allRightIds = new Set([...oldRights.map(r => r.right), ...newRights.map(r => r.right)]);
+                
+                allRightIds.forEach(rightId => {
+                    const oldRight = oldRights.find(r => r.right === rightId);
+                    const newRight = newRights.find(r => r.right === rightId);
+                    if (!oldRight) {
+                        rightChanges.push(`- Добавено право: ${newRight?.description}`);
+                    } else if (!newRight) {
+                        rightChanges.push(`- Премахнато право: ${oldRight.description}`);
+                    } else if (JSON.stringify(oldRight.trigger) !== JSON.stringify(newRight.trigger)) {
+                        const oldTrigger = oldRight.trigger;
+                        const newTrigger = newRight.trigger;
+                        if (oldTrigger.condition !== newTrigger.condition) {
+                           rightChanges.push(`- ${newRight.description}: Условието е променено на '${newTrigger.condition}'`);
+                        } else if (oldTrigger.paymentCount !== newTrigger.paymentCount) {
+                           rightChanges.push(`- ${newRight.description}: Броят плащания е променен на ${newTrigger.paymentCount}`);
+                        }
+                    }
+                });
+
+                if (rightChanges.length > 0) {
+                     changes.push('Промени в специалните права:\n' + rightChanges.join('\n'));
+                }
+
+            } else if (!['id'].includes(key)) { // Ignore keys that we don't want to log
                 changes.push(`Поле '${key}' е променено от '${oldValue}' на '${newValue}'.`);
             }
         }
@@ -63,10 +93,12 @@ export const getClubServiceById = async (id: string): Promise<ClubService | null
     return null;
 };
 
+// This function remains clean as it receives the final data structure
 export const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
     return await addDoc(collection(db, SERVICES_COLLECTION), service);
 };
 
+// This function remains clean as it receives the final data structure
 export const updateClubService = async (id: string, serviceUpdate: Partial<ClubService>, note?: string): Promise<void> => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -91,20 +123,21 @@ export const updateClubService = async (id: string, serviceUpdate: Partial<ClubS
     const changes = generateChangeSummary(oldData, serviceUpdate);
 
     if (changes.length === 0 && !note) {
-        console.log("No changes detected, skipping history creation.");
-        // Still update, as some fields might have been cleared
-        return await updateDoc(serviceRef, serviceUpdate);
+        console.log("No changes detected, skipping update.");
+        return;
     }
 
     // 3. Create history entry
     const historyEntry: Omit<ClubServiceHistory, 'id'> = {
         serviceId: id,
-        serviceName: oldData.name,
+        serviceName: serviceUpdate.name || oldData.name, // Use the new name if it's changed
         timestamp: new Date().toISOString(),
         userId: currentUser.uid,
-        userName: currentUser.displayName || 'Admin',
+        userName: currentUser.displayName || 'Admin', // Or another identifiable name
         changes,
-        note: note || undefined,
+        // FIX: Conditionally add the note field only if it's a non-empty string.
+        // This prevents writing `undefined` to Firestore, which is not allowed.
+        ...(note && { note: note })
     };
     const historyRef = doc(historyCollection);
     batch.set(historyRef, historyEntry);
@@ -154,6 +187,7 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Memb
   }) as MemberSubscription);
 };
 
+// Updated to create subscriptions based on the new specialRights model
 export const assignSubscriptionToMember = async (memberId: string, serviceId: string, startDate: Date): Promise<string> => {
   const serviceRef = doc(db, SERVICES_COLLECTION, serviceId);
   const serviceDoc = await getDoc(serviceRef);
@@ -186,6 +220,10 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   const finalStartDate = new Date(startDate);
   finalStartDate.setHours(0, 0, 0, 0);
 
+  // Check for immediate rights when assigning a subscription
+  const kartotekaRight = service.specialRights?.find(r => r.right === 'kartoteka');
+  const equipmentRight = service.specialRights?.find(r => r.right === 'equipment');
+
   const newSubscription: Omit<MemberSubscription, 'id'> = {
     memberId,
     serviceId,
@@ -196,8 +234,9 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
     currency: service.currency,
     paymentHistory: [],
     paymentsMadeCount: 0,
-    licenseGranted: service.grantsLicense && (service.licenseCondition === null || service.licensePaymentCount === 0),
-    apparelGranted: service.grantsApparel && (service.apparelCondition === null || service.apparelPaymentCount === 0),
+    // Grant rights only if the trigger condition is 'IMMEDIATELY' upon assignment
+    licenseGranted: kartotekaRight?.trigger.condition === 'IMMEDIATELY',
+    apparelGranted: equipmentRight?.trigger.condition === 'IMMEDIATELY',
   };
 
   const subscriptionsCollection = collection(db, SUBSCRIPTIONS_COLLECTION);

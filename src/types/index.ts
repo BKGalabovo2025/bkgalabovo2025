@@ -86,6 +86,18 @@ export interface Sale {
 // =============================================================================
 
 /**
+ * Defines a specific right or perk that a service can grant.
+ */
+export type SpecialRight = {
+  right: 'kartoteka' | 'equipment'; // The unique identifier for the right
+  trigger: {
+      condition: 'IMMEDIATELY' | 'AFTER_N_PAYMENTS';
+      paymentCount?: number; // Required only if condition is 'AFTER_N_PAYMENTS'
+  };
+  description: string; // A user-friendly description of the right
+};
+
+/**
  * Represents a purchasable club service or subscription plan.
  * This is the template for a subscription.
  */
@@ -112,14 +124,8 @@ export type ClubService = {
   minMembers: number; // Минимален брой членове за тази услуга
   maxMembers?: number; // Максимален брой членове (ако е празно, значи няма горен лимит)
 
-  // Условия за специални права
-  grantsLicense: boolean; // Дава ли право на картотека
-  licenseCondition?: 'Веднага' | 'След N плащания';
-  licensePaymentCount?: number; // Брой плащания за картотека
-
-  grantsApparel: boolean; // Дава ли право на екипировка
-  apparelCondition?: 'Веднага' | 'След N плащания';
-  apparelPaymentCount?: number; // Брой плащания за екипировка
+  // НОВ СТРУКТУРИРАН НАЧИН ЗА УПРАВЛЕНИЕ НА СПЕЦИАЛНИ ПРАВА
+  specialRights?: SpecialRight[]; 
 };
 
 
