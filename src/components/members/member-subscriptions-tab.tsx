@@ -5,12 +5,84 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { getSubscriptionsByMemberId, getAllClubServices, assignSubscriptionToMember } from '@/services/subscription-service';
+import { registerPaymentForSubscription } from '@/services/payment-service'; // ИМПОРТ НА НОВАТА УСЛУГА
 import { MemberSubscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-const SubscriptionCard = ({ sub, service }: { sub: MemberSubscription, service?: ClubService }) => {
+// #region Payment Dialog Component
+// Отделяме диалога за плащане в собствен компонент, за да е по-чисто
+const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: MemberSubscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [amount, setAmount] = useState(((service?.price || 0) - sub.pricePaid) / 100);
+    const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+    const { toast } = useToast();
+
+    const handlePayment = async () => {
+        setIsLoading(true);
+        try {
+            await registerPaymentForSubscription(sub.id, {
+                amount: Math.round(amount * 100), // Преобразуване обратно в стотинки
+                paymentDate: new Date(paymentDate).toISOString(),
+            });
+            toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
+            onPaymentSuccess(); // Извикваме функцията за опресняване
+            setIsOpen(false); // Затваряме диалога
+        } catch (error) {
+            console.error("Failed to register payment:", error);
+            toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button size="sm" variant="secondary">Регистрирай плащане</Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Регистриране на плащане</DialogTitle>
+                    <DialogDescription>За абонамент: <strong>{service?.name || 'Неизвестна услуга'}</strong></DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="amount">Сума ({sub.currency})</Label>
+                        <Input 
+                            id="amount" 
+                            type="number" 
+                            value={amount} 
+                            onChange={(e) => setAmount(Number(e.target.value))} 
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="paymentDate">Дата на плащане</Label>
+                        <Input 
+                            id="paymentDate" 
+                            type="date" 
+                            value={paymentDate} 
+                            onChange={(e) => setPaymentDate(e.target.value)} 
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>Отказ</Button>
+                    <Button onClick={handlePayment} disabled={isLoading}>
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Потвърди плащането
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+// #endregion
+
+const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: MemberSubscription, service?: ClubService, onPaymentSuccess: () => void }) => {
 
     const getStatusInfo = (status: MemberSubscription['status']) => {
         switch (status) {
@@ -41,7 +113,7 @@ const SubscriptionCard = ({ sub, service }: { sub: MemberSubscription, service?:
                     <span className="font-semibold">{statusInfo.text}</span>
                 </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm items-center">
                 <div>
                     <p className="text-muted-foreground">Начална дата</p>
                     <p className="font-medium flex items-center"><CalendarIcon className="mr-2 h-4 w-4"/> {new Date(sub.startDate).toLocaleDateString('bg-BG')}</p>
@@ -55,7 +127,7 @@ const SubscriptionCard = ({ sub, service }: { sub: MemberSubscription, service?:
                     <p className="font-medium">{(sub.pricePaid / 100).toFixed(2)} {sub.currency}</p>
                 </div>
                 {sub.status === 'pending_payment' && (
-                     <Button size="sm" variant="secondary">Регистрирай плащане</Button>
+                    <RegisterPaymentDialog sub={sub} service={service} onPaymentSuccess={onPaymentSuccess} />
                 )}
             </div>
         </div>
@@ -70,7 +142,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
   const [subscriptions, setSubscriptions] = useState<MemberSubscription[]>([]); 
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
@@ -106,10 +178,10 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
     try {
         await assignSubscriptionToMember(memberId, selectedService, new Date(startDate));
         toast({ title: "Успех", description: "Абонаментът е добавен успешно." });
-        setIsDialogOpen(false);
+        setIsAddDialogOpen(false);
         setSelectedService(null);
         setStartDate(new Date().toISOString().split('T')[0]);
-        fetchData(); // Refetch subscriptions
+        fetchData(); // Опресняване на абонаментите
     } catch (error) {
         console.error("Failed to add subscription:", error);
         toast({ title: "Грешка", description: "Възникна проблем при добавянето на абонамента.", variant: "destructive" });
@@ -135,7 +207,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
           <CardTitle>Активни и изминали абонаменти</CardTitle>
           <CardDescription>Списък с всички услуги, за които членът е абониран.</CardDescription>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -184,7 +256,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
                 </div>
             </div>
             <DialogFooter>
-                <Button onClick={() => setIsDialogOpen(false)} variant="outline">Отказ</Button>
+                <Button onClick={() => setIsAddDialogOpen(false)} variant="outline">Отказ</Button>
                 <Button onClick={handleAddSubscription} disabled={!selectedService || !startDate || services.length === 0}>
                     Добави абонамент
                 </Button>
@@ -201,7 +273,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
         ) : (
           <div>
             {subscriptions.map(sub => (
-                <SubscriptionCard key={sub.id} sub={sub} service={getServiceForSubscription(sub)} />
+                <SubscriptionCard key={sub.id} sub={sub} service={getServiceForSubscription(sub)} onPaymentSuccess={fetchData} />
             ))}
           </div>
         )}

@@ -6,7 +6,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAllMembers, getMemberById } from '@/services/member-service';
 import { getSalesByMemberId, markSaleAsPaid } from '@/services/sales-service';
-import { Member, Sale } from '@/types';
+import { analyzeMemberStatus } from '@/services/analyzer-service'; // ИМПОРТ НА АНАЛИЗАТОРА
+import { Member, Sale, MemberAnalysis } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 
 import { Button } from '@/components/ui/button';
@@ -16,11 +17,13 @@ import { MemberDetailsCard } from '@/components/members/member-details-card';
 import { MemberSalesHistory } from '@/components/members/member-sales-history';
 import { MemberAttendanceHistory } from '@/components/members/MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from '@/components/members/member-subscriptions-tab';
+import { MemberAnalysisCard } from '@/components/members/MemberAnalysisCard'; // ИМПОРТ НА КАРТАТА
 
 const MemberDetailsPage = () => {
   const [member, setMember] = useState<Member | null>(null);
   const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
   const [sales, setSales] = useState<Sale[]>([]); 
+  const [analysis, setAnalysis] = useState<MemberAnalysis | null>(null); // СЪСТОЯНИЕ ЗА АНАЛИЗА
   const [loading, setLoading] = useState(true);
   
   const params = useParams();
@@ -34,14 +37,20 @@ const MemberDetailsPage = () => {
       const memberData = await getMemberById(memberId);
       setMember(memberData);
 
-      if (memberData && memberData.familyId) {
-        const allMembers = await getAllMembers();
-        const relatedMembers = allMembers.filter(m => m.familyId === memberData.familyId && m.id !== memberData.id);
-        setFamilyMembers(relatedMembers);
-      }
+      if (memberData) {
+        // Извикваме анализатора, СЛЕД като имаме данните за члена
+        const analysisData = await analyzeMemberStatus(memberData);
+        setAnalysis(analysisData);
 
-      const salesData = await getSalesByMemberId(memberId);
-      setSales(salesData);
+        if (memberData.familyId) {
+            const allMembers = await getAllMembers();
+            const relatedMembers = allMembers.filter(m => m.familyId === memberData.familyId && m.id !== memberData.id);
+            setFamilyMembers(relatedMembers);
+        }
+
+        const salesData = await getSalesByMemberId(memberId);
+        setSales(salesData);
+      }
 
     } catch (error) {
       console.error("Грешка при зареждане на данните за члена:", error);
@@ -60,10 +69,8 @@ const MemberDetailsPage = () => {
   const handleMarkAsPaid = async (saleId: string) => {
     try {
         await markSaleAsPaid(saleId);
-        // Refetch sales to ensure data consistency
         const updatedSalesData = await getSalesByMemberId(memberId);
         setSales(updatedSalesData);
-
         toast({ title: "Успех!", description: "Продажбата беше маркирана като платена." });
     } catch (error) {
         console.error("Грешка при маркиране като платено:", error);
@@ -94,6 +101,14 @@ const MemberDetailsPage = () => {
                 <Pencil className="mr-2 h-4 w-4" /> Редактирай
             </Button>
       </div>
+
+      {/* ---- НОВАТА АНАЛИТИЧНА КАРТА ---- */}
+      {analysis && (
+          <div className="mb-6">
+              <MemberAnalysisCard analysis={analysis} />
+          </div>
+      )}
+      {/* ------------------------------------ */}
 
       <Tabs defaultValue="personal-info" className="w-full">
         <TabsList className="grid w-full grid-cols-4">

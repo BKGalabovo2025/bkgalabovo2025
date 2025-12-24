@@ -261,3 +261,37 @@ export interface DashboardStats {
     deferredExternalSales: Sale[];
     deferredMemberSales: Sale[];
 }
+
+
+// =============================================================================
+// ANALYSIS TYPES
+// =============================================================================
+
+/**
+ * Represents the overall analysis status for a member.
+ */
+export type MemberAnalysis = {
+    memberId: string;
+    analysisDate: string;
+    overallStatus: 'OK' | 'ACTION_NEEDED' | 'WARNING';
+    activeSubscriptions: AnalyzedSubscription[];
+    // Future additions could include attendance patterns, payment history, etc.
+};
+
+/**
+ * Represents the detailed analysis of a single active subscription.
+ */
+export type AnalyzedSubscription = {
+    subscriptionId: string;
+    serviceName: string;
+    status: MemberSubscription['status'];
+    startDate: string;
+    endDate: string;
+    paymentStatus: 'PAID' | 'PENDING' | 'OVERDUE';
+    attendanceSummary: {
+        totalAttended: number;
+        // More details to be added, e.g., attended in billing period
+    };
+    // Recommendations will be added in the next phase
+    recommendations: string[]; 
+};
