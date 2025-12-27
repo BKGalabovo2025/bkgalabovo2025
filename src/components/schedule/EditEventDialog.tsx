@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -8,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScheduleEvent, ScheduleEventType } from '@/types';
-import { Label } from '@/components/ui/label';
-import { format, parseISO } from 'date-fns';
 
 interface EditEventDialogProps {
     isOpen: boolean;
@@ -18,149 +15,135 @@ interface EditEventDialogProps {
     onUpdateEvent: (eventId: string, eventData: Partial<ScheduleEvent>) => Promise<void>;
 }
 
-const toInputFormat = (isoString?: string | null) => {
-    if (!isoString) return '';
-    try {
-        return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
-    } catch (error) {
-        console.error("Error formatting date:", error);
-        return '';
-    }
+const eventTypeTranslations: Record<ScheduleEventType, string> = {
+    trening: 'Тренировка',
+    sastezanie: 'Състезание',
+    lager: 'Лагер',
+    sabitie: 'Събитие',
 };
 
-export function EditEventDialog({ isOpen, onClose, event, onUpdateEvent }: EditEventDialogProps) {
+export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClose, event, onUpdateEvent }) => {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState<ScheduleEventType>('trening');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [location, setLocation] = useState('');
+    const [type, setType] = useState<ScheduleEventType>('trening');
     const [description, setDescription] = useState('');
-    const [isSubmitting, setSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (event) {
             setTitle(event.title);
+            setStartDate(event.startDate ? new Date(new Date(event.startDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
+            setEndDate(event.endDate ? new Date(new Date(event.endDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
             setType(event.type);
-            setStartDate(toInputFormat(event.startDate));
-            setEndDate(toInputFormat(event.endDate));
-            setLocation(event.location || '');
             setDescription(event.description || '');
-        } else {
-            setTitle('');
-            setType('trening');
-            setStartDate('');
-            setEndDate('');
-            setLocation('');
-            setDescription('');
+            setError(null);
         }
     }, [event]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-
-        if (!event || !title || !type || !startDate) {
-            setError('Моля, попълнете заглавие, тип и начална дата.');
+        if (!event) return;
+        if (!title || !startDate || !endDate || !type) {
+            setError('Моля, попълнете всички задължителни полета.');
             return;
         }
 
-        setSubmitting(true);
+        setError(null);
+        setIsSubmitting(true);
+
         try {
-            const updateData: Partial<ScheduleEvent> = {
+            await onUpdateEvent(event.id, {
                 title,
+                startDate,
+                endDate,
                 type,
-                startDate: new Date(startDate).toISOString(),
-                location,
                 description,
-            };
-
-            if (endDate) {
-                updateData.endDate = new Date(endDate).toISOString();
-            } else {
-                updateData.endDate = null;
-            }
-
-            await onUpdateEvent(event.id, updateData);
+            });
             onClose();
         } catch (err) {
             setError('Възникна грешка при обновяването на събитието.');
             console.error(err);
         } finally {
-            setSubmitting(false);
+            setIsSubmitting(false);
         }
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[520px]">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[480px]">
+                 <DialogHeader>
                     <DialogTitle>Редактиране на събитие</DialogTitle>
-                    <DialogDescription>Променете детайлите по-долу.</DialogDescription>
+                     <DialogDescription>
+                        Променете детайлите на събитието и запазете промените.
+                    </DialogDescription>
                 </DialogHeader>
-                {event && (
-                    <form onSubmit={handleSubmit}>
-                        <div className="grid gap-5 py-4">
-                            <Input
-                                placeholder="Заглавие на събитието"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                required
-                            />
-                            <Select onValueChange={(value) => setType(value as ScheduleEventType)} value={type}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Изберете тип" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="trening">Тренировка</SelectItem>
-                                    <SelectItem value="sastezanie">Състезание</SelectItem>
-                                    <SelectItem value="lager">Лагер</SelectItem>
-                                    <SelectItem value="sabitie">Събитие</SelectItem>
-                                </SelectContent>
-                            </Select>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="start-date-edit">Начална дата и час</Label>
-                                    <Input
-                                        id="start-date-edit"
-                                        type="datetime-local"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="end-date-edit">Крайна дата и час (по желание)</Label>
-                                    <Input
-                                        id="end-date-edit"
-                                        type="datetime-local"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <Input
-                                placeholder="Място (по желание)"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                            />
-                            <Textarea
-                                placeholder="Описание (по желание)"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                        <label htmlFor="edit-title">Име на събитието</label>
+                        <Input 
+                            id="edit-title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                            <label htmlFor="edit-startDate">Начало</label>
+                            <Input 
+                                id="edit-startDate"
+                                type="datetime-local" 
+                                value={startDate} 
+                                onChange={(e) => setStartDate(e.target.value)} 
                             />
                         </div>
-                        {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-                                Отказ
-                            </Button>
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Запазване...' : 'Запази промените'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                )}
+                        <div className="space-y-2">
+                            <label htmlFor="edit-endDate">Край</label>
+                             <Input 
+                                id="edit-endDate"
+                                type="datetime-local" 
+                                value={endDate} 
+                                onChange={(e) => setEndDate(e.target.value)} 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="edit-type">Тип на събитието</label>
+                        <Select onValueChange={(value: ScheduleEventType) => setType(value)} value={type}>
+                            <SelectTrigger id="edit-type">
+                                <SelectValue placeholder="Изберете тип" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(eventTypeTranslations).map(([key, value]) => (
+                                    <SelectItem key={key} value={key as ScheduleEventType}>{value}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                     <div className="space-y-2">
+                        <label htmlFor="edit-description">Описание</label>
+                        <Textarea
+                            id="edit-description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
+                    </div>
+
+                    {error && <p className="text-sm text-red-500 !mt-2 text-center">{error}</p>}
+
+                    <DialogFooter className="!mt-6">
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+                            Отказ
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Запазване...</> : 'Запази промените'}
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     );

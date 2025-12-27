@@ -3,6 +3,8 @@
 export type Member = {
     // The unique identifier for the member, now guaranteed to be a string.
     id: string;
+    // The full name of the member, constructed from first, middle, and last names.
+    name: string;
     firstName: string;
     // Middle name is optional.
     middleName?: string | null;

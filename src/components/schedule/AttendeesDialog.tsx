@@ -1,13 +1,13 @@
-
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Member, ScheduleEvent } from '@/types';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2 } from 'lucide-react';
 
 interface AttendeesDialogProps {
     isOpen: boolean;
@@ -17,98 +17,102 @@ interface AttendeesDialogProps {
     onUpdateAttendees: (eventId: string, attendeeIds: string[]) => Promise<void>;
 }
 
-export function AttendeesDialog({ isOpen, onClose, event, members, onUpdateAttendees }: AttendeesDialogProps) {
+export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClose, event, members, onUpdateAttendees }) => {
     const [selectedAttendees, setSelectedAttendees] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isSubmitting, setSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (event?.attendees) {
-            setSelectedAttendees(event.attendees);
-        } else {
-            setSelectedAttendees([]);
+        if (event) {
+            setSelectedAttendees(event.attendees || []);
         }
     }, [event]);
 
-    const handleAttendeeToggle = (memberId: string) => {
+    const handleToggleAttendee = (memberId: string) => {
         setSelectedAttendees(prev => 
-            prev.includes(memberId) 
-                ? prev.filter(id => id !== memberId) 
-                : [...prev, memberId]
+            prev.includes(memberId) ? prev.filter(id => id !== memberId) : [...prev, memberId]
         );
     };
+    
+    const handleSelectAll = () => {
+        const allVisibleMemberIds = filteredMembers.map(m => m.id);
+        const allSelected = allVisibleMemberIds.every(id => selectedAttendees.includes(id));
+        if (allSelected) {
+            setSelectedAttendees(prev => prev.filter(id => !allVisibleMemberIds.includes(id)));
+        } else {
+            setSelectedAttendees(prev => [...new Set([...prev, ...allVisibleMemberIds])]);
+        }
+    };
 
-    const handleSave = async () => {
+    const handleSubmit = async () => {
         if (!event) return;
-        setSubmitting(true);
+        setIsSubmitting(true);
         try {
             await onUpdateAttendees(event.id, selectedAttendees);
             onClose();
         } catch (error) {
             console.error("Failed to update attendees", error);
-            // Optionally show a toast notification for the error
         } finally {
-            setSubmitting(false);
+            setIsSubmitting(false);
         }
     };
-
-    const filteredMembers = members.filter(member =>
-        `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const filteredMembers = members.filter(member => 
+        member.name && member.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const handleSelectAll = () => {
-        const allVisibleMemberIds = filteredMembers.map(m => m.id);
-        setSelectedAttendees(allVisibleMemberIds);
-    };
-
-    const handleDeselectAll = () => {
-        setSelectedAttendees([]);
-    };
-
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[480px]">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Управление на присъствия</DialogTitle>
+                    <DialogTitle>Управление на присъстващи</DialogTitle>
+                    <DialogDescription>
+                        Изберете членовете, които са присъствали на събитието "{event?.title || ''}".
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                     <Input 
-                        placeholder="Търсене на състезател..."
+                        placeholder="Търсене по име..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
-                    <div className="flex justify-between items-center">
-                        <p className="text-sm text-muted-foreground">
-                            {selectedAttendees.length} / {members.length} избрани
-                        </p>
-                        <div className="flex gap-2">
-                            <Button variant="link" size="sm" onClick={handleSelectAll} disabled={filteredMembers.length === 0}>Избери всички видими</Button>
-                            <Button variant="link" size="sm" onClick={handleDeselectAll} disabled={selectedAttendees.length === 0}>Премахни всички</Button>
-                        </div>
+                    <div className="flex items-center space-x-2">
+                         <Checkbox
+                            id="select-all"
+                            checked={filteredMembers.length > 0 && filteredMembers.every(m => selectedAttendees.includes(m.id))}
+                            onCheckedChange={handleSelectAll}
+                        />
+                        <label
+                            htmlFor="select-all"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Избери всички видими
+                        </label>
                     </div>
-                    <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-                        {filteredMembers.map(member => (
-                            <div key={member.id} className="flex items-center justify-between mb-2">
-                                <label htmlFor={member.id} className="flex items-center space-x-3 cursor-pointer">
-                                    <Checkbox 
-                                        id={member.id} 
+                    <ScrollArea className="h-64 border rounded-md">
+                        <div className="p-4 space-y-2">
+                            {filteredMembers.map(member => (
+                                <div key={member.id} className="flex items-center space-x-3">
+                                    <Checkbox
+                                        id={`member-${member.id}`}
                                         checked={selectedAttendees.includes(member.id)}
-                                        onCheckedChange={() => handleAttendeeToggle(member.id)}
+                                        onCheckedChange={() => handleToggleAttendee(member.id)}
                                     />
-                                    <span className="text-sm font-medium">{member.firstName} {member.lastName}</span>
-                                </label>
-                            </div>
-                        ))}
-                         {filteredMembers.length === 0 && (
-                            <p className="text-center text-sm text-muted-foreground py-4">Няма намерени състезатели.</p>
-                        )}
+                                    <label 
+                                        htmlFor={`member-${member.id}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                        {member.name || 'Име липсва'}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </ScrollArea>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Отказ</Button>
-                    <Button onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting ? 'Запазване...' : 'Запази'}
+                    <Button onClick={handleSubmit} disabled={isSubmitting}>
+                        {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Запазване...</> : 'Запази'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

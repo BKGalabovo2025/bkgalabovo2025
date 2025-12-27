@@ -13,11 +13,21 @@ const docToMember = (doc: DocumentSnapshot): Member | null => {
 
     const data = doc.data() || {};
 
+    const firstName = typeof data.firstName === 'string' ? data.firstName : '';
+    const middleName = typeof data.middleName === 'string' ? data.middleName : null;
+    const lastName = typeof data.lastName === 'string' ? data.lastName : '';
+
+    if (!firstName || !lastName) {
+        console.error(`docToMember: Document with ID ${doc.id} is missing essential fields (firstName, lastName) and will be skipped.`, { data });
+        return null;
+    }
+
     const member: Member = {
         id: doc.id,
-        firstName: typeof data.firstName === 'string' ? data.firstName : '',
-        middleName: typeof data.middleName === 'string' ? data.middleName : null,
-        lastName: typeof data.lastName === 'string' ? data.lastName : '',
+        name: [firstName, middleName, lastName].filter(Boolean).join(' '),
+        firstName,
+        middleName,
+        lastName,
         email: typeof data.email === 'string' ? data.email : null,
         phone: typeof data.phone === 'string' ? data.phone : null,
         phoneType: data.phoneType === 'personal' || data.phoneType === 'parent' ? data.phoneType : null,
@@ -32,16 +42,11 @@ const docToMember = (doc: DocumentSnapshot): Member | null => {
         analysisCache: typeof data.analysisCache === 'object' ? data.analysisCache : null,
     };
 
-    if (!member.firstName || !member.lastName) {
-        console.error(`docToMember: Document with ID ${doc.id} is missing essential fields (firstName, lastName) and will be skipped.`, { data });
-        return null;
-    }
-
     return member;
 }
 
-type CreateMemberData = Omit<Member, 'id'>;
-type UpdateMemberData = Partial<CreateMemberData>;
+type CreateMemberData = Omit<Member, 'id' | 'name'>;
+type UpdateMemberData = Partial<Omit<Member, 'id' | 'name'>>;
 
 export const getMemberById = async (id: string): Promise<Member | null> => {
     if (!id || id === 'undefined') {

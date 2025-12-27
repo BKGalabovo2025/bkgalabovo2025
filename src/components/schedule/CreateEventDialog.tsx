@@ -1,141 +1,158 @@
+'use client';
 
-"use client";
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScheduleEvent, ScheduleEventType } from '@/types';
-import { Label } from '@/components/ui/label';
 
 interface CreateEventDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onAddEvent: (event: Omit<ScheduleEvent, 'id' | 'color' | 'attendees'>) => Promise<void>;
+    onAddEvent: (newEvent: Omit<ScheduleEvent, 'id' | 'color'>) => Promise<void>;
 }
 
-export function CreateEventDialog({ isOpen, onClose, onAddEvent }: CreateEventDialogProps) {
+const eventTypeTranslations: Record<ScheduleEventType, string> = {
+    trening: 'Тренировка',
+    sastezanie: 'Състезание',
+    lager: 'Лагер',
+    sabitie: 'Събитие',
+};
+
+export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, onClose, onAddEvent }) => {
     const [title, setTitle] = useState('');
-    const [type, setType] = useState<ScheduleEventType>('trening');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [location, setLocation] = useState('');
+    const [type, setType] = useState<ScheduleEventType>('trening');
     const [description, setDescription] = useState('');
-    const [isSubmitting, setSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const resetForm = () => {
-        setTitle('');
-        setType('trening');
-        setStartDate('');
-        setEndDate('');
-        setLocation('');
-        setDescription('');
-        setError(null);
+    useEffect(() => {
+        if (isOpen) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const defaultStartTime = now.toISOString().slice(0, 16);
+
+            const defaultEndTime = new Date(now.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16);
+
+            setTitle('');
+            setStartDate(defaultStartTime);
+            setEndDate(defaultEndTime);
+            setType('trening');
+            setDescription('');
+            setError(null);
+        }
+    }, [isOpen]);
+    
+    const handleClose = () => {
+        if (isSubmitting) return;
+        onClose();
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-
-        if (!title || !type || !startDate) {
-            setError('Моля, попълнете заглавие, тип и начална дата.');
+        if (!title || !startDate || !endDate || !type) {
+            setError('Моля, попълнете всички задължителни полета.');
             return;
         }
 
-        setSubmitting(true);
+        setError(null);
+        setIsSubmitting(true);
+
         try {
-            const newEvent: Omit<ScheduleEvent, 'id' | 'color' | 'attendees'> = {
+            await onAddEvent({
                 title,
+                startDate,
+                endDate,
                 type,
-                startDate: new Date(startDate).toISOString(),
-                endDate: endDate ? new Date(endDate).toISOString() : null,
-                location,
                 description,
-            };
-            await onAddEvent(newEvent);
-            resetForm();
-            onClose();
+                attendees: [],
+            });
+            handleClose();
         } catch (err) {
             setError('Възникна грешка при създаването на събитието.');
             console.error(err);
         } finally {
-            setSubmitting(false);
+            setIsSubmitting(false);
         }
-    };
-
-    const handleClose = () => {
-        resetForm();
-        onClose();
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[520px]">
+            <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>Създаване на ново събитие</DialogTitle>
-                    <DialogDescription>Попълнете детайлите по-долу, за да добавите ново събитие към графика.</DialogDescription>
+                    <DialogDescription>
+                        Попълнете детайлите по-долу, за да създадете ново събитие в графика.
+                    </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-5 py-4">
-                        <Input
-                            placeholder="Заглавие на събитието"
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                        <label htmlFor="title">Име на събитието</label>
+                        <Input 
+                            id="title"
+                            placeholder="Например: Тренировка - Напреднали"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            required
                         />
-                        <Select onValueChange={(value) => setType(value as ScheduleEventType)} value={type}>
-                            <SelectTrigger>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label htmlFor="startDate">Начало</label>
+                            <Input 
+                                id="startDate"
+                                type="datetime-local" 
+                                value={startDate} 
+                                onChange={(e) => setStartDate(e.target.value)} 
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="endDate">Край</label>
+                             <Input 
+                                id="endDate"
+                                type="datetime-local" 
+                                value={endDate} 
+                                onChange={(e) => setEndDate(e.target.value)} 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="type">Тип на събитието</label>
+                        <Select onValueChange={(value: ScheduleEventType) => setType(value)} defaultValue={type}>
+                            <SelectTrigger id="type">
                                 <SelectValue placeholder="Изберете тип" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="trening">Тренировка</SelectItem>
-                                <SelectItem value="sastezanie">Състезание</SelectItem>
-                                <SelectItem value="lager">Лагер</SelectItem>
-                                <SelectItem value="sabitie">Събитие</SelectItem>
+                                {Object.entries(eventTypeTranslations).map(([key, value]) => (
+                                    <SelectItem key={key} value={key as ScheduleEventType}>{value}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-1.5">
-                                <Label htmlFor="start-date-create">Начална дата и час</Label>
-                                <Input
-                                    id="start-date-create"
-                                    type="datetime-local"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="grid gap-1.5">
-                                <Label htmlFor="end-date-create">Крайна дата и час (по желание)</Label>
-                                <Input
-                                    id="end-date-create"
-                                    type="datetime-local"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <Input
-                            placeholder="Място (по желание)"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="description">Описание</label>
                         <Textarea
-                            placeholder="Описание (по желание)"
+                            id="description"
+                            placeholder="Допълнителна информация (по желание)"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
                     </div>
-                    {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-                    <DialogFooter>
+
+                    {error && <p className="text-sm text-red-500 !mt-2 text-center">{error}</p>}
+
+                    <DialogFooter className="!mt-6">
                         <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
                             Отказ
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Създаване...' : 'Създай събитие'}
+                            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Създаване...</> : 'Създай събитие'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -6,7 +6,6 @@ import { useEvents } from '@/hooks/useEvents';
 import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Repeat, Loader2 } from 'lucide-react';
-import { EventCard } from '@/components/schedule/EventCard';
 import { CreateEventDialog } from '@/components/schedule/CreateEventDialog';
 import { EditEventDialog } from '@/components/schedule/EditEventDialog';
 import { AttendeesDialog } from '@/components/schedule/AttendeesDialog';
@@ -17,6 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EventListItem } from '@/components/schedule/EventListItem';
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
     trening: 'Тренировка',
@@ -25,13 +25,22 @@ const eventTypeTranslations: Record<ScheduleEventType, string> = {
     sabitie: 'Събитие',
 };
 
+const tabTranslations: Record<string, string> = {
+    current: 'текущи',
+    upcoming: 'предстоящи',
+    past: 'минали'
+};
+
+const EVENTS_PER_PAGE = 20;
+
 export default function SchedulePage() {
     const { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading: isLoadingEvents, error: eventsError } = useEvents();
     const { members, isLoading: isLoadingMembers, error: membersError } = useMembers();
     const { toast } = useToast();
     
-    const [activeTab, setActiveTab] = useState('upcoming');
+    const [activeTab, setActiveTab] = useState('current');
     const [filterType, setFilterType] = useState<ScheduleEventType | 'all'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
@@ -41,6 +50,11 @@ export default function SchedulePage() {
 
     const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
     const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
+
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab);
+        setCurrentPage(1);
+    };
 
     const triggerPrint = async (event: ScheduleEvent) => {
         const { renderToString } = await import('react-dom/server');
@@ -101,28 +115,43 @@ export default function SchedulePage() {
         setEventToDeleteId(null);
     };
 
-    const filteredAndSortedEvents = useMemo(() => {
+    const filteredEvents = useMemo(() => {
         const now = new Date();
-        now.setHours(0, 0, 0, 0);
+        const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endOfCurrentMonth.setHours(23, 59, 59, 999);
 
-        return events
+        const filtered = events
             .filter(event => event.startDate && !isNaN(new Date(event.startDate).getTime()))
             .filter(event => {
-                const eventStartDate = new Date(event.startDate);
-                const isUpcoming = eventStartDate >= now;
-
-                if (activeTab === 'upcoming' && !isUpcoming) return false;
-                if (activeTab === 'past' && isUpcoming) return false;
                 if (filterType !== 'all' && event.type !== filterType) return false;
 
-                return true;
-            })
-            .sort((a, b) => {
-                const dateA = new Date(a.startDate).getTime();
-                const dateB = new Date(b.startDate).getTime();
-                return activeTab === 'upcoming' ? dateA - dateB : dateB - dateA;
+                const eventDate = new Date(event.startDate);
+                switch (activeTab) {
+                    case 'current':
+                        return eventDate >= startOfCurrentMonth && eventDate <= endOfCurrentMonth;
+                    case 'upcoming':
+                        return eventDate > endOfCurrentMonth;
+                    case 'past':
+                        return eventDate < startOfCurrentMonth;
+                    default:
+                        return true;
+                }
             });
+
+        return filtered.sort((a, b) => {
+            const dateA = new Date(a.startDate).getTime();
+            const dateB = new Date(b.startDate).getTime();
+            return activeTab === 'past' ? dateB - dateA : dateA - dateB;
+        });
     }, [events, activeTab, filterType]);
+
+    const paginatedEvents = useMemo(() => {
+        if (activeTab !== 'past') return filteredEvents;
+        const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
+        const endIndex = startIndex + EVENTS_PER_PAGE;
+        return filteredEvents.slice(startIndex, endIndex);
+    }, [filteredEvents, currentPage, activeTab]);
     
     const isLoading = isLoadingEvents || isLoadingMembers;
     const error = eventsError || membersError;
@@ -143,9 +172,10 @@ export default function SchedulePage() {
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} defaultValue="current" className="w-full">
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                     <TabsList>
+                        <TabsTrigger value="current">Текущи</TabsTrigger>
                         <TabsTrigger value="upcoming">Предстоящи</TabsTrigger>
                         <TabsTrigger value="past">Минали</TabsTrigger>
                     </TabsList>
@@ -164,11 +194,14 @@ export default function SchedulePage() {
                     </div>
                 </div>
 
+                <TabsContent value="current">
+                   {renderEventsList(filteredEvents, isLoading, error)}
+                </TabsContent>
                 <TabsContent value="upcoming">
-                   {renderEventsGrid(filteredAndSortedEvents, isLoading, error)}
+                   {renderEventsList(filteredEvents, isLoading, error)}
                 </TabsContent>
                 <TabsContent value="past">
-                    {renderEventsGrid(filteredAndSortedEvents, isLoading, error)}
+                    {renderEventsList(paginatedEvents, isLoading, error, filteredEvents.length)}
                 </TabsContent>
             </Tabs>
             
@@ -193,7 +226,7 @@ export default function SchedulePage() {
         </div>
     );
 
-    function renderEventsGrid(eventsToShow: ScheduleEvent[], isLoading: boolean, error: Error | null) {
+    function renderEventsList(eventsToShow: ScheduleEvent[], isLoading: boolean, error: Error | null, totalEvents?: number) {
         if (isLoading) {
             return (
                 <div className="flex items-center justify-center py-10">
@@ -206,33 +239,73 @@ export default function SchedulePage() {
         if (error) {
             return <p className="text-red-500 text-center py-10">Грешка при зареждане: {error.message}</p>;
         }
+        
+        const finalTotalEvents = totalEvents ?? eventsToShow.length;
 
-        if (eventsToShow.length === 0) {
+        if (finalTotalEvents === 0) {
             return (
                 <div className="text-center py-10 border-2 border-dashed rounded-lg mt-4">
                     <h3 className="text-xl font-semibold">
                         {filterType === 'all' 
-                            ? `Няма ${activeTab === 'upcoming' ? 'предстоящи' : 'минали'} събития`
-                            : `Няма ${activeTab === 'upcoming' ? 'предстоящи' : 'минали'} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
+                            ? `Няма ${tabTranslations[activeTab]} събития`
+                            : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
                     </h3>
                     <p className="text-muted-foreground mt-2">Можете да промените филтрите или да създадете ново събитие.</p>
                 </div>
             );
         }
+        
+        const groupedEvents = eventsToShow.reduce((acc, event) => {
+            const month = new Date(event.startDate).toLocaleString('bg-BG', { month: 'long', year: 'numeric' });
+            if (!acc[month]) {
+                acc[month] = [];
+            }
+            acc[month].push(event);
+            return acc;
+        }, {} as Record<string, ScheduleEvent[]>);
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {eventsToShow.map(event => (
-                    <EventCard 
-                        key={event.id} 
-                        event={event} 
-                        members={members as Member[]}
-                        onEdit={openEditDialog}
-                        onDelete={openDeleteDialog}
-                        onManageAttendees={openAttendeesDialog}
-                        onPrint={triggerPrint}
-                    />
-                ))}
+            <div>
+                <div className="space-y-6">
+                    {Object.entries(groupedEvents).map(([month, monthEvents]) => (
+                        <div key={month}>
+                            <h2 className="text-xl font-semibold mb-3 capitalize">{month}</h2>
+                            <div className="space-y-2">
+                                {monthEvents.map(event => (
+                                    <EventListItem 
+                                        key={event.id} 
+                                        event={event} 
+                                        members={members as Member[]}
+                                        onEdit={openEditDialog}
+                                        onDelete={openDeleteDialog}
+                                        onManageAttendees={openAttendeesDialog}
+                                        onPrint={triggerPrint}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {activeTab === 'past' && finalTotalEvents > EVENTS_PER_PAGE && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                        <Button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Предишна
+                        </Button>
+                        <span>
+                            Страница {currentPage} от {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
+                        </span>
+                        <Button
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
+                        >
+                            Следваща
+                        </Button>
+                    </div>
+                )}
             </div>
         );
     }
