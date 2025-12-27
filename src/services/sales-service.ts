@@ -1,179 +1,214 @@
 
-import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, query, where, orderBy, updateDoc, runTransaction, increment, Timestamp } from "firebase/firestore";
-import { Sale, SaleItem } from '@/types';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, orderBy } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
+import { Sale } from '@/types';
 
-const salesCollection = collection(db, 'sales');
-const productsCollection = collection(db, 'products');
+import { Product } from '@/types';
+type SaleItem = Sale['items'][0];
 
-// Fetches all sales
-export const getSales = async (): Promise<Sale[]> => {
-    const snapshot = await getDocs(query(salesCollection, orderBy("date", "desc")));
-    const sales: Sale[] = [];
-    for (const saleDoc of snapshot.docs) { 
-        const saleData = saleDoc.data();
-        let customerName = 'Външен клиент';
-        if (saleData.memberId) {
-             try {
-                const memberDoc = await getDoc(doc(db, 'members', saleData.memberId));
-                if (memberDoc.exists()) {
-                    const memberData = memberDoc.data();
-                    customerName = `${memberData.firstName} ${memberData.lastName}`;
-                }
-            } catch (e) {
-                console.error("Error fetching member name:", e)
-            }
+const SALES_COLLECTION = 'sales';
+const PRODUCTS_COLLECTION = 'products';
+
+const docToSale = (doc: DocumentSnapshot): Sale | null => {
+    if (!doc.id || !doc.exists()) {
+        console.error("docToSale: Invalid document snapshot provided.", { id: doc.id });
+        return null;
+    }
+    const data = doc.data() || {};
+
+    const validatedItems = (Array.isArray(data.items) ? data.items : []).map((item: any): SaleItem | null => {
+        if (!item || typeof item !== 'object') {
+            console.warn("Skipping invalid item in sale:", { saleId: doc.id, item });
+            return null;
         }
-
-        const finalSaleData = {
-            id: saleDoc.id,
-            ...saleData,
-            customerName: customerName,
-            status: saleData.status || 'pending', // Default to pending
+        return {
+            productId: typeof item.productId === 'string' ? item.productId : 'unknown-product',
+            productName: typeof item.productName === 'string' && item.productName ? item.productName : 'Изтрит/невалиден продукт',
+            quantity: typeof item.quantity === 'number' ? item.quantity : 0,
+            unitPrice: typeof item.unitPrice === 'number' ? item.unitPrice : 0,
         };
+    }).filter(Boolean) as SaleItem[];
 
-        sales.push(finalSaleData as Sale);
-    }
-    return sales;
-};
-
-// Fetches a single sale by its ID
-export const getSaleById = async (id: string): Promise<Sale | null> => {
-    const docRef = doc(db, 'sales', id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return null;
-
-    const saleData = docSnap.data();
-    let customerName = 'Външен клиент';
-    if (saleData.memberId) {
-        try {
-            const memberDoc = await getDoc(doc(db, 'members', saleData.memberId));
-            if (memberDoc.exists()) {
-                const memberData = memberDoc.data();
-                customerName = `${memberData.firstName} ${memberData.lastName}`;
-            }
-        } catch (e) {
-            console.error("Error fetching member name:", e);
-        }
-    }
-    
-    const finalSaleData = {
-        id: docSnap.id,
-        ...saleData,
-        customerName,
-        status: saleData.status || 'pending', // Default to pending
+    const sale: Sale = {
+        id: doc.id,
+        memberId: typeof data.memberId === 'string' ? data.memberId : '',
+        memberName: typeof data.memberName === 'string' ? data.memberName : 'N/A',
+        saleDate: data.saleDate?.toDate?.() instanceof Date ? data.saleDate.toDate().toISOString() : new Date().toISOString(),
+        items: validatedItems,
+        totalAmount: typeof data.totalAmount === 'number' ? data.totalAmount : 0,
+        isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : false,
+        currency: (data.currency === 'BGN' || data.currency === 'EUR') ? data.currency : 'EUR',
     };
 
-    return finalSaleData as Sale;
+    return sale;
 };
 
-// Fetches all sales for a specific member
+export const getSales = async (): Promise<Sale[]> => {
+    const db = getDb();
+    const salesCollection = collection(db, SALES_COLLECTION);
+    const q = query(salesCollection, orderBy("saleDate", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+};
+
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
-    const q = query(salesCollection, where("memberId", "==", memberId), orderBy("date", "desc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(saleDoc => {
-        const saleData = saleDoc.data();
-        return {
-            id: saleDoc.id,
-            ...saleData,
-            status: saleData.status || 'pending' // Default to pending
-        } as Sale;
-    });
+    if (!memberId) return [];
+    
+    const db = getDb();
+    const salesCollection = collection(db, SALES_COLLECTION);
+    
+    const q = query(salesCollection, where("memberId", "==", memberId), orderBy("saleDate", "desc"));
+    
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => docToSale(doc)).filter(Boolean) as Sale[];
 };
 
+export const getSaleById = async (id: string): Promise<Sale | null> => {
+    if (!id) {
+        console.error("getSaleById called with an invalid ID.");
+        return null;
+    }
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+    const docSnap = await getDoc(saleRef);
+    return docToSale(docSnap);
+};
 
-/**
- * Adds a new sale and updates product stock in a transaction.
- * @param saleData The data for the new sale.
- * @returns The ID of the newly created sale document.
- */
-export const addSale = async (saleData: Omit<Sale, 'id' | 'customerName'>): Promise<string> => {
-    try {
-        const saleDate = new Date(saleData.date as any);
+export const addSale = async (saleData: Omit<Sale, 'id'>): Promise<string> => {
+    const db = getDb();
 
+    return await runTransaction(db, async (transaction) => {
+        const productUpdates: { ref: any, newStock: number }[] = [];
+
+        // --- READ PHASE ---
+        for (const item of saleData.items) {
+            const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
+            const productDoc = await transaction.get(productRef);
+            if (!productDoc.exists() || !('stock' in productDoc.data())) {
+                throw new Error(`Продукт с ID ${item.productId} не е намерен или няма информация за наличност.`);
+            }
+            const currentStock = productDoc.data().stock as number;
+            if (currentStock < item.quantity) {
+                throw new Error(`Няма достатъчно наличност за ${item.productName}. Налични: ${currentStock}, Нужни: ${item.quantity}`);
+            }
+            productUpdates.push({ ref: productRef, newStock: currentStock - item.quantity });
+        }
+
+        // --- WRITE PHASE ---
+        const newSaleRef = doc(collection(db, SALES_COLLECTION));
         const dataToSave = {
             ...saleData,
-            date: Timestamp.fromDate(saleDate), // Convert date to Firestore Timestamp for consistency
+            saleDate: Timestamp.fromDate(new Date(saleData.saleDate)),
+            currency: 'EUR',
         };
+        transaction.set(newSaleRef, dataToSave);
 
-        const newSaleId = await runTransaction(db, async (transaction) => {
-            // 1. Check for stock availability
-            for (const item of dataToSave.items) {
-                const productRef = doc(productsCollection, item.productId);
-                const productDoc = await transaction.get(productRef);
-                if (!productDoc.exists()) {
-                    throw new Error(`Продуктът '${item.name}' не е намерен.`);
-                }
-                const productData = productDoc.data();
-                if (productData.stock < item.quantity) {
-                    throw new Error(`Недостатъчна наличност за ${item.name}. Налични: ${productData.stock}, Искани: ${item.quantity}`);
-                }
-            }
+        for (const update of productUpdates) {
+            transaction.update(update.ref, { stock: update.newStock });
+        }
 
-            // 2. Decrease stock for each product
-            for (const item of dataToSave.items) {
-                const productRef = doc(productsCollection, item.productId);
-                transaction.update(productRef, { 
-                    stock: increment(-item.quantity) 
-                });
-            }
-
-            // 3. Create the new sale document
-            const newSaleRef = doc(salesCollection); // Automatically generate a new ID
-            transaction.set(newSaleRef, dataToSave);
-            
-            return newSaleRef.id;
-        });
-        return newSaleId;
-    } catch (error) {
-        console.error("Транзакцията за създаване на продажба се провали: ", error);
-        // Re-throw the error to be handled by the calling UI
-        throw error; 
-    }
-};
-
-/**
- * Deletes a sale and restores product stock in a transaction.
- * @param saleId The ID of the sale to delete.
- */
-export const deleteSale = async (saleId: string): Promise<void> => {
-    try {
-        await runTransaction(db, async (transaction) => {
-            const saleRef = doc(salesCollection, saleId);
-            const saleDoc = await transaction.get(saleRef);
-
-            if (!saleDoc.exists()) {
-                throw new Error("Продажбата не е намерена.");
-            }
-
-            const saleItems = saleDoc.data().items as SaleItem[];
-
-            // 1. Restore stock for each product
-            for (const item of saleItems) {
-                const productRef = doc(productsCollection, item.productId);
-                // We need to check if product exists before incrementing
-                const productDoc = await transaction.get(productRef);
-                if(productDoc.exists()) {
-                    transaction.update(productRef, { 
-                        stock: increment(item.quantity) 
-                    });
-                }
-            }
-
-            // 2. Delete the sale document
-            transaction.delete(saleRef);
-        });
-    } catch (error) {
-        console.error("Транзакцията за изтриване на продажба се провали: ", error);
-        throw error; // Re-throw to be handled by UI
-    }
-};
-
-
-// Marks a sale as paid by updating its status to 'paid'
-export const markSaleAsPaid = async (saleId: string): Promise<void> => {
-    const saleRef = doc(db, 'sales', saleId);
-    await updateDoc(saleRef, {
-        status: 'paid'
+        return newSaleRef.id;
     });
+};
+
+export const updateSale = async (id: string, saleData: Partial<Omit<Sale, 'id'>>): Promise<void> => {
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+
+    await runTransaction(db, async (transaction) => {
+        // --- READ PHASE ---
+        const saleDoc = await transaction.get(saleRef);
+        if (!saleDoc.exists()) {
+            throw new Error("Продажбата, която се опитвате да обновите, не съществува.");
+        }
+        const oldSale = docToSale(saleDoc) as Sale;
+
+        const stockAdjustments = new Map<string, number>();
+        oldSale.items.forEach(item => {
+            stockAdjustments.set(item.productId, (stockAdjustments.get(item.productId) || 0) + item.quantity);
+        });
+
+        const newItems = saleData.items || oldSale.items;
+        newItems.forEach(item => {
+            stockAdjustments.set(item.productId, (stockAdjustments.get(item.productId) || 0) - item.quantity);
+        });
+
+        const productUpdates: { ref: any, newStock: number }[] = [];
+        for (const [productId, quantityChange] of stockAdjustments.entries()) {
+            if (quantityChange === 0) continue;
+
+            const productRef = doc(db, PRODUCTS_COLLECTION, productId);
+            const productDoc = await transaction.get(productRef);
+
+            if (!productDoc.exists()) {
+                throw new Error(`Продукт с ID ${productId} не е намерен.`);
+            }
+
+            const currentStock = productDoc.data().stock as number;
+            const newStock = currentStock + quantityChange;
+
+            if (newStock < 0) {
+                const productName = productDoc.data().name || 'Unknown Product';
+                throw new Error(`Недостатъчна наличност за продукт ${productName}.`);
+            }
+            productUpdates.push({ ref: productRef, newStock });
+        }
+
+        // --- WRITE PHASE ---
+        const dataToUpdate: { [key: string]: any } = { ...saleData };
+        if (saleData.saleDate) {
+            dataToUpdate.saleDate = Timestamp.fromDate(new Date(saleData.saleDate as string));
+        }
+        transaction.update(saleRef, dataToUpdate);
+
+        for (const update of productUpdates) {
+            transaction.update(update.ref, { stock: update.newStock });
+        }
+    });
+};
+
+export const deleteSale = async (id: string): Promise<void> => {
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+
+    await runTransaction(db, async (transaction) => {
+        // --- READ PHASE ---
+        const saleDoc = await transaction.get(saleRef);
+        if (!saleDoc.exists()) {
+            console.warn(`Sale with ID ${id} not found for deletion.`);
+            return; 
+        }
+        const saleData = docToSale(saleDoc) as Sale;
+
+        const productUpdates = [];
+        for (const item of saleData.items) {
+            if (item.productId === 'unknown-product') continue;
+
+            const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
+            const productDoc = await transaction.get(productRef); 
+
+            if (productDoc.exists()) {
+                const currentStock = productDoc.data().stock || 0;
+                const newStock = currentStock + item.quantity;
+                productUpdates.push({ ref: productRef, stock: newStock }); 
+            } else {
+                console.warn(`Product with ID ${item.productId} not found. Cannot restore stock.`);
+            }
+        }
+
+        // --- WRITE PHASE ---
+        transaction.delete(saleRef);
+
+        for (const update of productUpdates) {
+            transaction.update(update.ref, { stock: update.stock });
+        }
+    });
+};
+
+
+export const markSaleAsPaid = async (id: string): Promise<void> => {
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+    await updateDoc(saleRef, { isPaid: true });
 };

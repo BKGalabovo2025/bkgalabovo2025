@@ -1,6 +1,8 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,10 +14,37 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+// --- Functions to get Firebase services ---
 
-// Инициализация на Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const storage = getStorage(app);
+// This function ensures the app is initialized only once.
+function getFirebaseApp(): FirebaseApp {
+    if (!getApps().length) {
+        return initializeApp(firebaseConfig);
+    }
+    return getApp();
+}
 
-export { app, db, storage };
+// Returns the Auth instance.
+function getFirebaseAuth(): Auth {
+    return getAuth(getFirebaseApp());
+}
+
+// Returns the Firestore instance.
+function getDb(): Firestore {
+    return getFirestore(getFirebaseApp());
+}
+
+// Returns the Storage instance.
+function getAppStorage(): FirebaseStorage {
+    return getStorage(getFirebaseApp());
+}
+
+// --- Exports ---
+
+// We export the functions instead of the instances themselves.
+export {
+    getFirebaseApp,
+    getFirebaseAuth,
+    getDb,
+    getAppStorage
+};

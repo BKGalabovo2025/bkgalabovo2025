@@ -1,6 +1,6 @@
 
 import { doc, writeBatch, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { MemberSubscription, ClubService } from '@/types';
 import { getClubServiceById } from './subscription-service';
 
@@ -21,6 +21,7 @@ export const registerPaymentForSubscription = async (
         notes?: string;
     }
 ): Promise<void> => {
+    const db = getDb();
     const batch = writeBatch(db);
     const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
 

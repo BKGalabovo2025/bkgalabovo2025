@@ -1,33 +1,36 @@
 
-export const BGN_TO_EUR_RATE = 1.95583;
-
 /**
- * Formats a price in EUR to the format "XX.XX EUR (XX.XX лв.)".
- * @param priceInEur The price in EUR.
- * @returns A formatted string with both currencies.
+ * Formats a numeric amount into a currency string based on the provided currency code.
+ * This utility ensures consistent currency formatting across the application.
+ *
+ * @param amount - The numeric value to be formatted.
+ * @param currency - The currency code ('BGN' or 'EUR'). Defaults to 'BGN' if not provided or invalid.
+ * @returns A formatted string, e.g., "10.00 лв." or "5.50 €".
  */
-export const formatCurrency = (priceInEur: number | null | undefined): string => {
-  if (priceInEur === null || priceInEur === undefined) {
-    return "0.00 EUR (0.00 лв.)";
+export const formatCurrency = (amount: number, currency: string = 'BGN'): string => {
+  const sanitizedAmount = typeof amount === 'number' ? amount : 0;
+
+  const options: Intl.NumberFormatOptions = {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  };
+
+  const formattedAmount = new Intl.NumberFormat('bg-BG', options).format(sanitizedAmount);
+
+  switch (currency) {
+    case 'EUR':
+      return `${formattedAmount} €`;
+    case 'BGN':
+    default:
+      return `${formattedAmount} лв.`;
   }
-
-  const priceInBgn = priceInEur * BGN_TO_EUR_RATE;
-
-  const eurString = `${priceInEur.toFixed(2)} EUR`;
-  const bgnString = `(${priceInBgn.toFixed(2)} лв.)`;
-
-  return `${eurString} ${bgnString}`;
 };
 
 /**
- * Formats a price in BGN to the format "XX.XX лв.".
- * This is for displaying historical data that was recorded in BGN.
- * @param priceInBgn The price in BGN.
- * @returns A formatted string.
+ * A simple mapping of currency codes to their symbols.
  */
-export const formatBgnCurrency = (priceInBgn: number | null | undefined): string => {
-    if (priceInBgn === null || priceInBgn === undefined) {
-        return "0.00 лв.";
-    }
-    return `${priceInBgn.toFixed(2)} лв.`;
-}
+export const CURRENCY_SYMBOLS: { [key: string]: string } = {
+    BGN: 'лв.',
+    EUR: '€',
+}; 

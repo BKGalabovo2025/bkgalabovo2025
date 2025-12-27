@@ -1,95 +1,99 @@
 
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, DocumentSnapshot } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
 import { Member } from '@/types';
 
 const MEMBERS_COLLECTION = 'members';
 
-// Helper to convert Firestore doc to Member object, handling Timestamps
-const docToMember = (doc: any): Member => {
-    const data = doc.data();
-    // Ensure date fields are converted from Timestamps to ISO strings
-    const dateOfBirth = data.dateOfBirth instanceof Timestamp ? data.dateOfBirth.toDate().toISOString() : data.dateOfBirth;
-    const registrationDate = data.registrationDate instanceof Timestamp ? data.registrationDate.toDate().toISOString() : data.registrationDate;
-    
-    return {
+/**
+ * Definitively converts a Firestore document into a fully validated, "bulletproof" Member object.
+ * This function is the single source of truth for Member object creation from Firestore.
+ * It ensures every field is of the correct type and defaults to a safe value if missing,
+ * corrupted, or of the wrong type. This prevents any downstream errors in the application.
+ * @param doc The Firestore document snapshot.
+ * @returns A valid Member object or null if the document is fundamentally invalid (e.g., no ID).
+ */
+const docToMember = (doc: DocumentSnapshot): Member | null => {
+    if (!doc.id || !doc.exists()) {
+        console.error("docToMember: Invalid document snapshot provided. It will be skipped.", { id: doc.id });
+        return null;
+    }
+
+    const data = doc.data() || {}; // Use an empty object as a fallback to prevent crashes.
+
+    const member: Member = {
         id: doc.id,
-        ...data,
-        dateOfBirth,
-        registrationDate,
-    } as Member;
+        firstName: typeof data.firstName === 'string' ? data.firstName : '',
+        lastName: typeof data.lastName === 'string' ? data.lastName : '',
+        email: typeof data.email === 'string' ? data.email : null,
+        phone: typeof data.phone === 'string' ? data.phone : null,
+        dateOfBirth: data.dateOfBirth?.toDate?.() instanceof Date ? data.dateOfBirth.toDate().toISOString() : new Date(0).toISOString(), // Default to Unix epoch if invalid
+        registrationDate: data.registrationDate?.toDate?.() instanceof Date ? data.registrationDate.toDate().toISOString() : new Date().toISOString(), // Default to now if invalid
+        status: data.status === 'active' || data.status === 'inactive' ? data.status : 'inactive',
+        avatarUrl: typeof data.avatarUrl === 'string' ? data.avatarUrl : null,
+        familyId: typeof data.familyId === 'string' ? data.familyId : null,
+        educationInstitution: typeof data.educationInstitution === 'string' ? data.educationInstitution : null,
+        personalId: typeof data.personalId === 'string' ? data.personalId : null,
+        analysisCache: typeof data.analysisCache === 'object' ? data.analysisCache : null,
+    };
+
+    // Final check for essential fields. If a name is missing, the record is considered invalid.
+    if (!member.firstName || !member.lastName) {
+        console.error(`docToMember: Document with ID ${doc.id} is missing essential fields (firstName, lastName) and will be skipped.`, { data });
+        return null;
+    }
+
+    return member;
 }
 
-// Type for data provided on creation (without id)
 type CreateMemberData = Omit<Member, 'id'>;
-
-// Type for data provided on update (can be partial)
 type UpdateMemberData = Partial<CreateMemberData>;
 
-/**
- * Fetches a single member by their ID from Firestore.
- * @param id The ID of the member to fetch.
- * @returns The member object or null if not found.
- */
 export const getMemberById = async (id: string): Promise<Member | null> => {
+    if (!id || id === 'undefined') {
+        console.error(`getMemberById was called with an invalid ID: ${id}`);
+        return null;
+    }
+    const db = getDb();
     const memberRef = doc(db, MEMBERS_COLLECTION, id);
     const docSnap = await getDoc(memberRef);
-
-    if (docSnap.exists()) {
-        return docToMember(docSnap);
-    }
-    return null;
+    return docToMember(docSnap);
 };
 
-/**
- * Fetches all members from Firestore.
- */
 export const getAllMembers = async (): Promise<Member[]> => {
+  const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   const querySnapshot = await getDocs(membersCollection);
-  return querySnapshot.docs.map(docToMember);
+  return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
-/**
- * Adds a new member to Firestore.
- * @param memberData The data for the new member.
- * @returns The ID of the newly created document.
- */
 export const addMember = async (memberData: CreateMemberData): Promise<string> => {
+  const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
-  // Ensure date strings are converted to Timestamps for Firestore
-  const dataWithTimestamps = {
+  const dataToAdd = {
     ...memberData,
     dateOfBirth: Timestamp.fromDate(new Date(memberData.dateOfBirth)),
     registrationDate: Timestamp.fromDate(new Date(memberData.registrationDate)),
   };
-  const docRef = await addDoc(membersCollection, dataWithTimestamps);
+  const docRef = await addDoc(membersCollection, dataToAdd);
   return docRef.id;
 };
 
-/**
- * Updates data for an existing member.
- * @param id The ID of the member to update.
- * @param memberData The new data for the member.
- */
 export const updateMember = async (id: string, memberData: UpdateMemberData): Promise<void> => {
+  const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
-  // Handle potential date updates by converting them to Timestamps
-  const dataWithTimestamps: { [key: string]: any } = { ...memberData };
+  const dataToUpdate: { [key: string]: any } = { ...memberData };
   if (memberData.dateOfBirth) {
-      dataWithTimestamps.dateOfBirth = Timestamp.fromDate(new Date(memberData.dateOfBirth));
+      dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(memberData.dateOfBirth as string));
   }
   if (memberData.registrationDate) {
-      dataWithTimestamps.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate));
+      dataToUpdate.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate as string));
   }
-  await updateDoc(memberRef, dataWithTimestamps);
+  await updateDoc(memberRef, dataToUpdate);
 };
 
-/**
- * Deletes a member from Firestore.
- * @param id The ID of the member to delete.
- */
 export const deleteMember = async (id: string): Promise<void> => {
+  const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
   await deleteDoc(memberRef);
 };

@@ -1,84 +1,126 @@
 
+'use client';
+
 import { Member } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from "@/components/ui/badge";
-import { User, Phone, Mail, Home, Cake, Briefcase, Info, Users } from 'lucide-react';
-import { getAgeGroup } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Mail, Phone, Calendar, Users, Building, BadgeInfo, ArrowLeft, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { MemberSalesHistory } from './member-sales-history';
+import { MemberAttendanceHistory } from './MemberAttendanceHistory'; // Assuming this component exists as per README
+import { MemberSubscriptionsTab } from './member-subscriptions-tab';
 
 interface MemberDetailsCardProps {
-  member: Member;
-  familyMembers: Member[];
+    member: Member;
+    familyMembers: Member[];
 }
 
-const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | undefined | null }) => (
-    value ? (
-        <div className="flex items-start py-3 border-b last:border-b-0">
-            <Icon className="h-5 w-5 mr-4 text-muted-foreground mt-1"/> 
-            <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="font-semibold">{value}</p>
-            </div>
-        </div>
-    ) : null
-);
-
+const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+};
 
 export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardProps) => {
-  const router = useRouter();
-  const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
-  const dateOfBirthFormatted = member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString('bg-BG') : 'Няма данни';
-  const registrationDateFormatted = member.registrationDate ? new Date(member.registrationDate).toLocaleDateString('bg-BG') : 'Няма данни';
+    const router = useRouter();
 
-  const handleFamilyMemberClick = (id: string) => {
-    router.push(`/members/${id}`);
-  };
-
-  return (
-    <Card>
-        <CardHeader className="items-center text-center pb-4 border-b">
-            <Avatar className="h-28 w-28 mb-3">
-                <AvatarImage src={member.avatarUrl} alt={fullName} />
-                <AvatarFallback className="text-4xl">{member.firstName?.[0]}{member.lastName?.[0]}</AvatarFallback>
-            </Avatar>
-            <CardTitle className="text-3xl font-bold">{fullName}</CardTitle>
-            <Badge variant={member.status === 'active' ? 'secondary' : 'destructive'} className="mt-2">
-                {member.status === 'active' ? 'Активен' : 'Неактивен'}
-            </Badge>
-        </CardHeader>
-        <CardContent className="divide-y p-0">
-            <div className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Лични данни</h3>
-              <DetailRow icon={User} label="Пълно име" value={fullName} />
-              <DetailRow icon={Mail} label="Имейл" value={member.email} />
-              <DetailRow icon={Phone} label="Телефон" value={member.phone ? `${member.phone} (${member.phoneType === 'parent' ? 'родител' : 'личен'})` : null} />
-              <DetailRow icon={Cake} label="Дата на раждане" value={dateOfBirthFormatted} />
-              <DetailRow icon={Info} label="Възрастова група" value={getAgeGroup(member.dateOfBirth)} />
-              <DetailRow icon={Home} label="Адрес" value={member.address} />
-              <DetailRow icon={Info} label="Дата на регистрация" value={registrationDateFormatted} />
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <Button variant="outline" onClick={() => router.push('/members')}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Всички членове
+                </Button>
+                <Button onClick={() => router.push(`/members/edit/${member.id}`)}>
+                    <Pencil className="mr-2 h-4 w-4" /> Редактирай
+                </Button>
             </div>
-            
-            {familyMembers && familyMembers.length > 0 && (
-              <div className="p-6">
-                <h3 className="font-semibold text-lg mb-4 flex items-center"><Users className="h-5 w-5 mr-3"/> Семейство</h3>
-                <div className="space-y-3">
-                  {familyMembers.map(fm => (
-                      <div key={fm.id} onClick={() => handleFamilyMemberClick(fm.id)} className="flex items-center p-2 rounded-md hover:bg-muted cursor-pointer">
-                          <Avatar className="h-10 w-10 mr-3">
-                              <AvatarImage src={fm.avatarUrl} />
-                              <AvatarFallback>{fm.firstName?.[0]}{fm.lastName?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold">{[fm.firstName, fm.lastName].join(' ')}</p>
-                            <p className="text-sm text-muted-foreground">{getAgeGroup(fm.dateOfBirth)}</p>
-                          </div>
-                      </div>
-                  ))}
-                </div>
-              </div>
-            )}
-        </CardContent>
-    </Card>
-  );
-}
+
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center space-x-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={member.avatarUrl ?? undefined} alt={`${member.firstName} ${member.lastName}`} />
+                            <AvatarFallback className="text-2xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <CardTitle className="text-3xl font-bold">{member.firstName} {member.lastName}</CardTitle>
+                            <CardDescription className="text-lg">Статус: {member.status === 'active' ? 'Активен' : 'Неактивен'}</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+            </Card>
+
+            <Tabs defaultValue="personal">
+                <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="personal">Лични данни</TabsTrigger>
+                    <TabsTrigger value="sales">Финансова история</TabsTrigger>
+                    <TabsTrigger value="subscriptions">Абонаменти</TabsTrigger>
+                    <TabsTrigger value="attendance">Присъствия</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="personal">
+                    <Card>
+                        <CardContent className="pt-6 space-y-4">
+                            <InfoRow icon={Mail} label="Имейл" value={member.email} />
+                            <InfoRow icon={Phone} label="Телефон" value={member.phone} />
+                            <InfoRow icon={Calendar} label="Дата на раждане" value={new Date(member.dateOfBirth).toLocaleDateString('bg-BG')} />
+                            <InfoRow icon={BadgeInfo} label="ЕГН" value={member.personalId} />
+                            <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
+                            
+                            {familyMembers && familyMembers.length > 0 && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mt-6 mb-3 flex items-center">
+                                        <Users className="mr-2 h-5 w-5" />
+                                        Членове на семейството
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {familyMembers.map(familyMember => (
+                                            <div 
+                                                key={familyMember.id} 
+                                                className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted cursor-pointer transition-colors"
+                                                onClick={() => router.push(`/members/${familyMember.id}`)}
+                                            >
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={familyMember.avatarUrl ?? undefined} alt={`${familyMember.firstName} ${familyMember.lastName}`} />
+                                                    <AvatarFallback>{getInitials(familyMember.firstName, familyMember.lastName)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="text-sm font-medium">{familyMember.firstName} {familyMember.lastName}</p>
+                                                    <p className="text-xs text-muted-foreground">{familyMember.email || 'Няма имейл'}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="sales">
+                    <MemberSalesHistory memberId={member.id} />
+                </TabsContent>
+                
+                <TabsContent value="subscriptions">
+                    <MemberSubscriptionsTab memberId={member.id} />
+                </TabsContent>
+
+                <TabsContent value="attendance">
+                    <MemberAttendanceHistory memberId={member.id} />
+                </TabsContent>
+
+            </Tabs>
+        </div>
+    );
+};
+
+const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | null | undefined }) => {
+    if (!value) return null;
+    return (
+        <div className="flex items-center text-sm py-2 border-b last:border-b-0">
+            <Icon className="h-4 w-4 mr-3 text-muted-foreground" />
+            <span className="font-semibold mr-2 w-40">{label}:</span>
+            <span className="text-muted-foreground break-all">{value}</span>
+        </div>
+    );
+};

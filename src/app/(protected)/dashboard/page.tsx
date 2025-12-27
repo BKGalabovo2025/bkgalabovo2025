@@ -1,218 +1,162 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, CreditCard, ListChecks, AlertTriangle, Loader2, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { getDashboardStats } from '@/services/dashboard-service';
-import { useToast } from '@/components/ui/use-toast';
-import { DashboardStats, Sale, Member, AssistantMessage } from '@/types';
-import { RemindersCard } from '@/components/reminders/reminders-card';
-import AssistantPanel from '@/components/dashboard/assistant-panel';
-import { getGlobalAssistantMessages } from '@/services/analyzer-service'; // The real brain!
-
-const initialStats: DashboardStats = {
-    activeMembers: 0,
-    monthlyRevenue: 0,
-    pendingSubscriptions: 0,
-    recentMembers: [],
-    deferredExternalSales: [],
-    deferredMemberSales: [],
-    reminders: [],
-};
+import { useDashboardData, DashboardStats } from '@/hooks/useDashboardData';
+import { Member, Sale } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, AlertCircle, Users, BarChart, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatCurrency } from '@/lib/currency';
 
 const DashboardPage = () => {
-  const [stats, setStats] = useState<DashboardStats>(initialStats);
-  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAssistantLoading, setIsAssistantLoading] = useState(true);
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const { stats, recentMembers, recentSales, loading, error } = useDashboardData();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user === undefined) return;
-    if (!user) {
-      router.replace('/login');
-      return;
-    }
-
-    const fetchAllData = async () => {
-      // Fetch stats and assistant messages in parallel
-      setIsLoading(true);
-      setIsAssistantLoading(true);
-      try {
-        const [statsData, assistantData] = await Promise.all([
-          getDashboardStats(),
-          getGlobalAssistantMessages()
-        ]);
-        setStats(statsData);
-        setAssistantMessages(assistantData);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        toast({ title: "Грешка при зареждане на данните за таблото", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-        setIsAssistantLoading(false);
-      }
-    };
-
-    fetchAllData();
-  }, [user, router, toast]);
-
-  if (user === undefined) {
+  if (loading) {
     return (
-        <div className="flex items-center justify-center h-full">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Зареждане на таблото...</p>
+      </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-destructive">
+        <AlertCircle className="h-12 w-12 mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Грешка при зареждане</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  const getInitials = (firstName?: string, lastName?: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+  };
+
   return (
     <div className="p-4 sm:p-6">
-        <div className="flex justify-between items-center mb-6">
-             <h1 className="text-3xl font-bold">Табло за управление</h1>
-        </div>
+      <h1 className="text-2xl font-bold mb-6">Табло за управление</h1>
+      
+      {stats && <StatsCards stats={stats} />}
 
-        {/* Assistant Panel - Now with real data! */}
-        <div className="mb-6">
-            <AssistantPanel messages={assistantMessages} isLoading={isAssistantLoading} />
-        </div>
-     
-      {/* Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Активни членове</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{stats.activeMembers}</div>}
-            <Link href="/members" className="text-xs text-muted-foreground hover:underline">Към членовете</Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Приходи (текущ месец)</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{stats.monthlyRevenue.toFixed(2)} EUR</div>}
-             <Link href="/finances" className="text-xs text-muted-foreground hover:underline">Към финансите</Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Чакащи абонаменти</CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">+{stats.pendingSubscriptions}</div>}
-             <Link href="/finances/subscriptions" className="text-xs text-muted-foreground hover:underline">Към абонаментите</Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Deferred Sales Section */}
-       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-            {stats.deferredMemberSales?.length > 0 && (
-                <Card className="border-destructive">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle />Неплатени задължения (Членове)</CardTitle>
-                        <CardDescription>Списък на членове с една или повече неплатени продажби.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
-                        <div className="space-y-4">
-                            {stats.deferredMemberSales.map((sale: Sale) => (
-                                <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                    <div>
-                                        <Link href={`/members/${sale.memberId}`} className="font-semibold text-primary hover:underline">{sale.customerName}</Link>
-                                        <p className="text-sm text-muted-foreground">
-                                            От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} EUR</span>
-                                        </p>
-                                    </div>
-                                    <Link href={`/sales/${sale.id}`} passHref>
-                                        <Button variant="secondary" size="sm">
-                                            Към продажбата <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                      )}
-                    </CardContent>
-                </Card>
-            )}
-
-            {stats.deferredExternalSales?.length > 0 && (
-                <Card className="border-orange-500">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-orange-600"><AlertTriangle/>Отложени плащания (Външни)</CardTitle>
-                        <CardDescription>Това са неплатени продажби от клиенти, които не са членове.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
-                        <div className="space-y-4">
-                            {stats.deferredExternalSales.map((sale: Sale) => (
-                                <div key={sale.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                    <div>
-                                    <div className="font-semibold">{sale.customerName}</div>
-                                    <p className="text-sm text-muted-foreground">
-                                        От {new Date(sale.date).toLocaleDateString('bg-BG')} - <span className="font-bold">{sale.total.toFixed(2)} EUR</span>
-                                    </p>
-                                    </div>
-                                    <Link href={`/sales/${sale.id}`} passHref>
-                                        <Button variant="secondary" size="sm">
-                                            Към продажбата <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
-      </div>
-
-      {/* Recent Members & Reminders Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <RemindersCard reminders={stats.reminders} isLoading={isLoading} />
-        <Card>
-            <CardHeader>
-                <CardTitle>Последно регистрирани</CardTitle>
-                <CardDescription>Списък на последните няколко регистрирани членове.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : (
-                    stats.recentMembers?.length > 0 ? (
-                      <div className="space-y-4">
-                          {stats.recentMembers.map((member) => (
-                              <div key={member.id} className="flex items-center justify-between">
-                                  <div className="space-y-1">
-                                      <Link href={`/members/${member.id}`} className="text-sm font-medium leading-none text-primary hover:underline">
-                                          {`${member.firstName} ${member.lastName}`}
-                                      </Link>
-                                  </div>
-                              </div>
-                          ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Няма наскоро регистрирани членове.</p>
-                    )
-                  )}
-            </CardContent>
-        </Card>
+      <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
+        <RecentMembersCard members={recentMembers} onNavigate={(id) => router.push(`/members/${id}`)} getInitials={getInitials} />
+        <RecentSalesCard sales={recentSales} onNavigate={(id) => router.push(`/sales/${id}`)} />
       </div>
     </div>
   );
 };
+
+const StatsCards = ({ stats }: { stats: DashboardStats }) => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Общо членове</CardTitle>
+        <Users className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{stats.totalMembers}</div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Активни членове</CardTitle>
+        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{stats.activeMembers}</div>
+      </CardContent>
+    </Card>
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Общо приходи</CardTitle>
+            <BarChart className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+            {Object.keys(stats.totalRevenue).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Няма данни</p>
+            ) : (
+                Object.entries(stats.totalRevenue).map(([currency, amount]) => (
+                    <div key={currency} className="text-2xl font-bold">
+                        {formatCurrency(amount, currency)}
+                    </div>
+                ))
+            )}
+        </CardContent>
+    </Card>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Неплатени сметки</CardTitle>
+        <TrendingDown className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{stats.unpaidSales}</div>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const RecentMembersCard = ({ members, onNavigate, getInitials }: { members: Member[], onNavigate: (id: string) => void, getInitials: (f?: string, l?: string) => string }) => (
+  <Card className="lg:col-span-2">
+    <CardHeader>
+      <CardTitle>Последни регистрирани членове</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {!Array.isArray(members) || members.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Няма намерени членове.</p>
+        ) : (members.map((member, index) => {
+            if (!member || typeof member !== 'object') return null;
+            return (
+              <div key={member.id || index} className="flex items-center space-x-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg" onClick={() => member.id && onNavigate(member.id)}>
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={member.avatarUrl ?? undefined} alt="Avatar" />
+                  <AvatarFallback>{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-sm font-medium leading-none">{member.firstName || ''} {member.lastName || ''}</p>
+                  <p className="text-sm text-muted-foreground break-all">{member.email || 'Няма имейл'}</p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {member.registrationDate ? new Date(member.registrationDate).toLocaleDateString('bg-BG') : 'N/A'}
+                </div>
+              </div>
+            );
+        }))}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const RecentSalesCard = ({ sales, onNavigate }: { sales: Sale[], onNavigate: (id: string) => void }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Последни продажби</CardTitle>
+    </CardHeader>
+    <CardContent>
+        <div className="space-y-4">
+            {!Array.isArray(sales) || sales.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Няма скорошни продажби.</p>
+            ) : (sales.map((sale, index) => {
+                if (!sale || typeof sale !== 'object') return null;
+                const totalAmount = typeof sale.totalAmount === 'number' ? sale.totalAmount : 0;
+                const currency = (sale.currency as string) || 'BGN';
+                return (
+                  <div key={sale.id || index} className="flex items-center space-x-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg" onClick={() => sale.id && onNavigate(sale.id)}>
+                      <div className="flex-1">
+                          <p className="text-sm font-medium leading-none">{sale.memberName || 'N/A'}</p>
+                          <p className="text-sm text-muted-foreground">{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('bg-BG') : 'N/A'}</p>
+                      </div>
+                      <div className="text-sm font-semibold">{formatCurrency(totalAmount, currency)}</div>
+                  </div>
+                );
+            }))}
+        </div>
+    </CardContent>
+  </Card>
+);
 
 export default DashboardPage;

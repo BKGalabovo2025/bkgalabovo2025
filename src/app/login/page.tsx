@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirebaseAuth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const auth = getAuth(app);
+      const auth = getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: 'Успешен вход', description: 'Пренасочваме ви към таблото за управление...' });
       router.push('/dashboard'); // Redirect to a protected route on successful login

@@ -2,8 +2,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
+import { getFirebaseAuth } from '@/lib/firebase'; // Updated import
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const auth = getAuth(app);
+  const auth = getFirebaseAuth(); // Use the new function
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

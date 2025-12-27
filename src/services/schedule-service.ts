@@ -1,9 +1,7 @@
 
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { ScheduleEvent } from '@/types';
-
-const eventsCollection = collection(db, 'events');
 
 /**
  * Fetches all events a specific member has attended.
@@ -11,6 +9,8 @@ const eventsCollection = collection(db, 'events');
  * @returns A promise that resolves to an array of ScheduleEvent objects.
  */
 export const getEventsByMemberId = async (memberId: string): Promise<ScheduleEvent[]> => {
+    const db = getDb();
+    const eventsCollection = collection(db, 'events');
     const q = query(
         eventsCollection, 
         where("attendees", "array-contains", memberId),

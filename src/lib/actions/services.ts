@@ -1,76 +1,58 @@
 
 "use server";
 
-import { collection, getDocs, query, where, addDoc, DocumentReference } from 'firebase/firestore';
-import { db } from '@/lib/firebase'; 
-import { MemberSubscription, ClubService, Member } from '@/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
+// We will now rely on the central, robust member service to get members.
+import { getAllMembers } from '@/services/member-service';
 
-const MEMBERS_COLLECTION = 'members';
-const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
-const SERVICES_COLLECTION = 'clubServices';
-
-/**
- * Fetches all member subscriptions from the database.
- */
-export const getAllSubscriptions = async (): Promise<MemberSubscription[]> => {
-    try {
-        const subscriptionsCollection = collection(db, SUBSCRIPTIONS_COLLECTION);
-        const querySnapshot = await getDocs(subscriptionsCollection);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }) as MemberSubscription);
-    } catch (error) {
-        console.error("Error fetching all subscriptions:", error);
-        return [];
-    }
+// Defines the shape of a club service object.
+export type ClubService = {
+    id: string;
+    name: string;
+    price: number;
+    // Can be 'subscription' or 'one-time'.
+    type: 'subscription' | 'one-time';
+    // Duration in days, only applicable if type is 'subscription'.
+    duration?: number; 
 };
 
+const SERVICES_COLLECTION = 'services';
+
 /**
- * Fetches all club services from the database.
+ * Fetches all services offered by the club from Firestore.
+ * @returns A promise that resolves to an array of ClubService objects.
  */
 export const getAllClubServices = async (): Promise<ClubService[]> => {
-    try {
-        const servicesCollection = collection(db, SERVICES_COLLECTION);
-        const querySnapshot = await getDocs(servicesCollection);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }) as ClubService);
-    } catch (error) {
-        console.error("Error fetching all club services:", error);
-        return [];
-    }
+    const db = getDb();
+    const servicesCollection = collection(db, SERVICES_COLLECTION);
+    const querySnapshot = await getDocs(servicesCollection);
+    
+    // Map the documents to ClubService objects, ensuring the ID is included.
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+    } as ClubService));
 };
 
 /**
- * Fetches all members from the database.
+ * Fetches both all club services and all members concurrently.
+ * This is useful for pages that need both sets of data at the same time.
+ * It now correctly uses the centralized `getAllMembers` function.
  */
-export const getMembers = async (): Promise<Member[]> => {
+export const getServicesAndMembers = async () => {
     try {
-        const membersCollection = collection(db, MEMBERS_COLLECTION);
-        const querySnapshot = await getDocs(membersCollection);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }) as Member);
+        // Use Promise.all to run fetches in parallel for better performance.
+        const [services, members] = await Promise.all([
+            getAllClubServices(),
+            // This call now goes to the corrected, centralized, and robust service function.
+            // This ensures that any invalid member data is filtered out at the source.
+            getAllMembers() 
+        ]);
+        return { services, members };
     } catch (error) {
-        console.error("Error fetching all members:", error);
-        return [];
-    }
-};
-
-/**
- * Creates a new club service in the database.
- */
-export const createClubService = async (service: Omit<ClubService, 'id'>) => {
-    try {
-        // Remove undefined values before sending to Firestore
-        Object.keys(service).forEach(key => (service as any)[key] === undefined && delete (service as any)[key]);
-        const docRef = await addDoc(collection(db, SERVICES_COLLECTION), service);
-        return docRef.id;
-    } catch (error) {
-        console.error("Error creating club service:", error);
-        throw new Error("Could not create club service.");
+        console.error("Failed to fetch services and members:", error);
+        // Return empty arrays in case of an error to prevent crashes downstream.
+        return { services: [], members: [] };
     }
 };

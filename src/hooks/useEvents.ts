@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase'; 
+import { getDb } from '@/lib/firebase'; 
 import { ScheduleEvent } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -21,6 +21,7 @@ export const useEvents = () => {
     const { toast } = useToast();
 
     useEffect(() => {
+        const db = getDb();
         setIsLoading(true);
         const eventsCollection = collection(db, 'events');
         const q = query(eventsCollection, orderBy('startDate', 'desc'));
@@ -52,6 +53,7 @@ export const useEvents = () => {
     }, [toast]);
 
     const addEvent = useCallback(async (event: NewEvent) => {
+        const db = getDb();
         try {
             await addDoc(collection(db, 'events'), event);
             toast({
@@ -70,6 +72,7 @@ export const useEvents = () => {
     }, [toast]);
     
     const addMultipleEvents = useCallback(async (events: NewEvent[]) => {
+        const db = getDb();
         const batch = writeBatch(db);
         const eventsCollection = collection(db, 'events');
         events.forEach(event => {
@@ -94,6 +97,7 @@ export const useEvents = () => {
     }, [toast]);
 
     const updateEvent = useCallback(async (eventId: string, eventData: Partial<NewEvent>) => {
+        const db = getDb();
         let originalEvents: ScheduleEvent[] = [];
 
         setEvents(currentEvents => {
@@ -125,6 +129,7 @@ export const useEvents = () => {
     }, [toast]);
 
     const deleteEvent = useCallback(async (eventId: string) => {
+        const db = getDb();
         let originalEvents: ScheduleEvent[] = [];
         let eventTitle: string | undefined = '';
 
@@ -150,6 +155,7 @@ export const useEvents = () => {
     }, [toast]);
     
     const updateAttendees = useCallback(async (eventId: string, attendeeIds: string[]) => {
+        const db = getDb();
         let originalEvents: ScheduleEvent[] = [];
         
         setEvents(currentEvents => {

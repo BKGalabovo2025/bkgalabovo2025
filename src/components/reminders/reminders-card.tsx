@@ -50,19 +50,22 @@ export const RemindersCard = ({ reminders, isLoading }: RemindersCardProps) => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {reminders.map((reminder, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                            <div>
-                                <Link href={`/members/${reminder.memberId}`} className="font-semibold text-primary hover:underline">{reminder.memberName}</Link>
-                                <p className="text-sm text-muted-foreground">{reminder.details}</p>
+                    {reminders.map((reminder, index) => {
+                        const memberId = reminder.memberId || reminder.memberId;
+                        return (
+                            <div key={index} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                                <div>
+                                    <Link href={`/members/${memberId}`} className="font-semibold text-primary hover:underline">{reminder.memberName}</Link>
+                                    <p className="text-sm text-muted-foreground">{reminder.details}</p>
+                                </div>
+                                <Link href={`/members/${memberId}`} passHref>
+                                    <Button variant="secondary" size="sm">
+                                        Преглед <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </Link>
                             </div>
-                            <Link href={`/members/${reminder.memberId}`} passHref>
-                                <Button variant="secondary" size="sm">
-                                    Преглед <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </CardContent>
         </Card>

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { clubInfo } from '@/config/club';
-import { formatCurrency, formatBgnCurrency } from '@/lib/currency';
+import { formatCurrency } from '@/lib/currency';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,10 +73,6 @@ const SaleReceiptPage = () => {
         }
     }, [saleId, toast]);
 
-    const isPaid = (status: Sale['status']) => {
-        return status === 'paid' || status === 'completed';
-    };
-
     const handlePrint = () => {
         window.print();
     };
@@ -94,7 +90,7 @@ const SaleReceiptPage = () => {
     };
 
     const generateReceiptHtml = (currentSale: Sale, currentMember: Member | null): string => {
-        const paid = isPaid(currentSale.status);
+        const paid = currentSale.isPaid;
         const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
         const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
         const statusColor = paid ? '#22c55e' : '#ef4444';
@@ -114,20 +110,20 @@ const SaleReceiptPage = () => {
 
         const itemsHtml = currentSale.items.map(item => `
             <tr>
-                <td style="${styles.td}">${item.name}</td>
+                <td style="${styles.td}">${item.productName}</td>
                 <td style="${styles.td}; text-align: center;">${item.quantity}</td>
-                <td style="${styles.td}; text-align: right;">${(item.price || 0).toFixed(2)} ${currencyLabel}</td>
-                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.price || 0)).toFixed(2)} ${currencyLabel}</td>
+                <td style="${styles.td}; text-align: right;">${(item.unitPrice || 0).toFixed(2)} ${currencyLabel}</td>
+                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)} ${currencyLabel}</td>
             </tr>
         `).join('');
 
-        const totalFormatted = currentSale.currency === 'EUR' ? formatCurrency(currentSale.total) : formatBgnCurrency(currentSale.total);
+        const totalFormatted = formatCurrency(currentSale.totalAmount, currentSale.currency);
 
         return `
             <div style="${styles.body}">
                 <div style="${styles.header}">
                     <h1 style="${styles.h1}">${receiptTitle}</h1>
-                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.date).toLocaleDateString('bg-BG')}</p>
+                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.saleDate).toLocaleDateString('bg-BG')}</p>
                 </div>
                  <div style="${styles.status}">${statusText}</div>
                 <p><strong>Издал:</strong> ${clubInfo.name}</p>
@@ -166,7 +162,7 @@ const SaleReceiptPage = () => {
         setIsSendingEmail(true);
         try {
             const receiptHtml = generateReceiptHtml(sale, member);
-            const subject = isPaid(sale.status) 
+            const subject = sale.isPaid 
                 ? `Разписка от ${clubInfo.name}`
                 : `Проформа разписка от ${clubInfo.name}`;
 
@@ -200,12 +196,12 @@ const SaleReceiptPage = () => {
         return <div className="text-center py-10">Продажбата не е намерена.</div>;
     }
 
-    const paid = isPaid(sale.status);
+    const paid = sale.isPaid;
     const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
     const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
     const statusColor = paid ? 'text-green-600' : 'text-red-600';
     const currencyLabel = sale.currency === 'EUR' ? 'EUR' : 'лв.';
-    const totalFormatted = sale.currency === 'EUR' ? formatCurrency(sale.total) : formatBgnCurrency(sale.total);
+    const totalFormatted = formatCurrency(sale.totalAmount, sale.currency);
 
     return (
         <div className="bg-muted/50 print:bg-white">
@@ -234,7 +230,7 @@ const SaleReceiptPage = () => {
                         </div>
                         <div className="text-right">
                             <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
-                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
+                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
 
@@ -277,10 +273,10 @@ const SaleReceiptPage = () => {
                             <tbody>
                                 {sale.items.map((item) => (
                                     <tr key={item.productId}>
-                                        <td className="p-2 font-medium">{item.name}</td>
+                                        <td className="p-2 font-medium">{item.productName}</td>
                                         <td className="text-center p-2">{item.quantity}</td>
-                                        <td className="text-right p-2">{(item.price || 0).toFixed(2)} {currencyLabel}</td>
-                                        <td className="text-right p-2">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} {currencyLabel}</td>
+                                        <td className="text-right p-2">{(item.unitPrice || 0).toFixed(2)} {currencyLabel}</td>
+                                        <td className="text-right p-2">{((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)} {currencyLabel}</td>
                                     </tr>
                                 ))}
                             </tbody>

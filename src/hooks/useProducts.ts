@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { Product } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -14,6 +14,7 @@ export const useProducts = () => {
     const { toast } = useToast();
 
     useEffect(() => {
+        const db = getDb();
         setIsLoading(true);
         const productsCollection = collection(db, 'products');
         const q = query(productsCollection);
@@ -36,6 +37,7 @@ export const useProducts = () => {
     }, [toast]);
 
     const addProduct = useCallback(async (productData: NewProduct) => {
+        const db = getDb();
         try {
             await addDoc(collection(db, 'products'), productData);
             toast({ title: "Продуктът е добавен успешно" });
@@ -47,6 +49,7 @@ export const useProducts = () => {
     }, [toast]);
 
     const updateProduct = useCallback(async (productId: string, productData: Partial<NewProduct>) => {
+        const db = getDb();
         const originalProducts = products;
         setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...productData } as Product : p));
         
@@ -62,6 +65,7 @@ export const useProducts = () => {
     }, [products, toast]);
 
     const deleteProduct = useCallback(async (productId: string) => {
+        const db = getDb();
         const originalProducts = products;
         setProducts(prev => prev.filter(p => p.id !== productId));
 

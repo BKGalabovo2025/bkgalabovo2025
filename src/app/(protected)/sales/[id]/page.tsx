@@ -7,14 +7,14 @@ import { deleteSale, getSaleById, markSaleAsPaid } from '@/services/sales-servic
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
-import { formatCurrency, formatBgnCurrency } from '@/lib/currency';
+import { formatCurrency } from '@/lib/currency';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Receipt, User, ShoppingCart, Trash2, CheckCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, User, ShoppingCart, Trash2, CheckCheck, FilePenLine, Receipt } from 'lucide-react';
 
 const SaleDetailsPage = () => {
   const [sale, setSale] = useState<Sale | null>(null);
@@ -34,9 +34,11 @@ const SaleDetailsPage = () => {
           setLoading(true);
           const saleData = await getSaleById(saleId);
           setSale(saleData);
-          if (saleData && saleData.memberId) {
+          if (saleData?.memberId) {
             const memberData = await getMemberById(saleData.memberId);
             setMember(memberData);
+          } else {
+            setMember(null);
           }
         } catch (error) {
           console.error("Грешка при зареждане на данните за продажбата:", error);
@@ -53,11 +55,12 @@ const SaleDetailsPage = () => {
     setIsDeleting(true);
     try {
         await deleteSale(saleId);
-        toast({ title: "Успех!", description: "Продажбата беше изтрита и наличностите са възстановени." });
+        toast({ title: "Успех!", description: "Продажбата беше изтрита." });
         router.push('/sales');
-    } catch (error) {
+    } catch (error: any) {
         console.error("Грешка при изтриване на продажба:", error);
-        toast({ title: "Грешка", description: "Възникна проблем при изтриването на продажбата.", variant: "destructive" });
+        toast({ title: "Грешка", description: error.message || "Възникна проблем при изтриването на продажбата.", variant: "destructive" });
+    } finally {
         setIsDeleting(false);
     }
   }
@@ -66,7 +69,7 @@ const SaleDetailsPage = () => {
     setIsUpdatingStatus(true);
     try {
       await markSaleAsPaid(saleId);
-      setSale(prevSale => prevSale ? { ...prevSale, status: 'paid' } : null);
+      setSale(prevSale => prevSale ? { ...prevSale, isPaid: true } : null);
       toast({
         title: "Успех!",
         description: "Плащането е регистрирано.",
@@ -83,13 +86,9 @@ const SaleDetailsPage = () => {
     }
   };
   
-  const isPaid = (status: Sale['status']) => {
-      return status === 'paid' || status === 'completed';
-  }
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="ml-4 text-lg text-muted-foreground">Зареждане на данни...</p>
       </div>
@@ -99,6 +98,8 @@ const SaleDetailsPage = () => {
   if (!sale) {
     return <div className="text-center py-10">Информацията за продажбата не е намерена.</div>;
   }
+
+  const displayCurrency = 'EUR';
 
   return (
     <div className="p-4 sm:p-6">
@@ -113,11 +114,14 @@ const SaleDetailsPage = () => {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>Продажба № {sale.id.substring(0, 8)}</CardTitle>
-                    <CardDescription>Дата: {new Date(sale.date).toLocaleString('bg-BG')}</CardDescription>
+                    <CardDescription>Дата: {new Date(sale.saleDate).toLocaleString('bg-BG')}</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={() => router.push(`/sales/${saleId}/receipt`)}>
+                    <Button variant="secondary" onClick={() => router.push(`/sales/${saleId}/receipt`)}>
                         <Receipt className="mr-2 h-4 w-4" /> Разписка
+                    </Button>
+                    <Button variant="outline" onClick={() => router.push(`/sales/${saleId}/edit`)}>
+                        <FilePenLine className="mr-2 h-4 w-4" /> Редактирай
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -129,7 +133,7 @@ const SaleDetailsPage = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Наистина ли искате да изтриете продажбата?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Тази операция не може да бъде отменена. Продажбата ще бъде перманентно изтрита и наличностите на включените продукти ще бъдат възстановени.
+                            Тази операция не може да бъде отменена. Продажбата ще бъде перманентно изтрита, а наличностите на продуктите ще бъдат възстановени.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -147,15 +151,15 @@ const SaleDetailsPage = () => {
                 <h3 className="font-semibold mb-2 text-lg flex items-center"><ShoppingCart className="mr-2 h-5 w-5"/>Артикули</h3>
                 <div className="border rounded-md">
                     <ul className="divide-y">
-                        {sale.items.map(item => (
-                            <li key={item.productId} className="p-3 flex justify-between items-center">
+                        {sale.items.map((item, index) => (
+                            <li key={item.productId || index} className="p-3 flex justify-between items-center">
                                 <div>
-                                    <p className="font-medium">{item.name}</p>
+                                    <p className="font-medium">{item.productName}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {(item.price || 0).toFixed(2)} {sale.currency === 'EUR' ? 'EUR' : 'лв.'}
+                                        {item.quantity} x {formatCurrency(item.unitPrice, displayCurrency)}
                                     </p>
                                 </div>
-                                <p className="font-semibold">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} {sale.currency === 'EUR' ? 'EUR' : 'лв.'}</p>
+                                <p className="font-semibold">{formatCurrency(item.quantity * item.unitPrice, displayCurrency)}</p>
                             </li>
                         ))}
                     </ul>
@@ -164,7 +168,7 @@ const SaleDetailsPage = () => {
             <CardFooter className="bg-muted/40 p-4 flex justify-end">
                  <div className="text-right">
                     <p className="text-sm text-muted-foreground">Общо</p>
-                     <p className="font-bold text-2xl">{sale.currency === 'EUR' ? formatCurrency(sale.total) : formatBgnCurrency(sale.total)}</p>
+                     <p className="font-bold text-2xl">{formatCurrency(sale.totalAmount, displayCurrency)}</p>
                 </div>
             </CardFooter>
           </Card>
@@ -176,19 +180,19 @@ const SaleDetailsPage = () => {
                     <CardTitle className="flex items-center"><User className="mr-2 h-5 w-5"/>Клиент</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {member ? (
+                    {sale.memberId && member ? (
                         <div className="flex items-center gap-4">
                             <Avatar className="h-16 w-16">
-                                <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.lastName}`} />
+                                <AvatarImage src={member.avatarUrl ?? undefined} alt={`${member.firstName} ${member.lastName}`} />
                                 <AvatarFallback>{member.firstName && member.lastName ? `${member.firstName[0]}${member.lastName[0]}` : ''}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="font-bold text-lg">{member.firstName} {member.lastName}</p>
-                                <p className="text-sm text-muted-foreground">{member.email}</p>
+                                <p className="text-sm text-muted-foreground">{member.email ?? 'Няма имейл'}</p>
                             </div>
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">Продажба на каса (без избран член)</p>
+                        <p className="text-muted-foreground">{sale.memberName || 'Продажба на каса'}</p>
                     )}
                 </CardContent>
                 {member && (
@@ -203,11 +207,11 @@ const SaleDetailsPage = () => {
                     <CardTitle>Статус на плащане</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-start gap-4">
-                     <Badge variant={isPaid(sale.status) ? 'success' : 'destructive'} className="text-base px-4 py-1">
-                        {isPaid(sale.status) ? 'Платено' : 'Неплатено'}
+                     <Badge variant={sale.isPaid ? 'success' : 'destructive'} className="text-base px-4 py-1">
+                        {sale.isPaid ? 'Платено' : 'Неплатено'}
                     </Badge>
 
-                    {sale.status === 'pending' && (
+                    {!sale.isPaid && (
                         <Button onClick={handleMarkAsPaid} disabled={isUpdatingStatus} className="w-full mt-2">
                             {isUpdatingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <CheckCheck className="mr-2 h-4 w-4" />}
                             Маркирай като платено

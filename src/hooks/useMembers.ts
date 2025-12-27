@@ -1,128 +1,83 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc, Timestamp, WriteBatch, writeBatch } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Member } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { getAllMembers, getMemberById } from '@/services/member-service';
 
-type NewMember = Omit<Member, 'id'>;
+/**
+ * A custom hook to manage fetching all members.
+ * It handles loading states and potential errors, providing a clean interface to the components.
+ */
+export const useMembers = () => {
+  // State for storing the list of members.
+  const [members, setMembers] = useState<Member[]>([]);
+  // State to indicate if the data is currently being fetched.
+  const [loading, setLoading] = useState(true);
+  // State to store any error that occurs during fetching.
+  const [error, setError] = useState<string | null>(null);
 
-const toISOStringOrUndefined = (date: any): string | undefined => {
-    if (date instanceof Timestamp) return date.toDate().toISOString();
-    if (date instanceof Date) return date.toISOString();
-    if (typeof date === 'string') return date;
-    return undefined;
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        setLoading(true);
+        // We rely on the centralized, robust `getAllMembers` function from the member service.
+        const allMembers = await getAllMembers();
+        // The service now ensures that members are sorted and valid.
+        setMembers(allMembers);
+      } catch (err: any) {
+        console.error("useMembers - Failed to fetch members:", err);
+        setError("Failed to load members. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMembers();
+  }, []); // The empty dependency array ensures this effect runs only once on mount.
+
+  // The hook returns the state variables, which components can then use.
+  return { members, loading, error };
 };
 
-export const useMembers = () => {
-    const [members, setMembers] = useState<Member[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-    const { toast } = useToast();
+/**
+ * A custom hook to manage fetching a single member by their ID.
+ * It handles loading and error states for fetching a specific member.
+ * @param memberId The ID of the member to fetch.
+ */
+export const useMember = (memberId: string | null) => {
+  // State for storing the single member object.
+  const [member, setMember] = useState<Member | null>(null);
+  // State for loading status.
+  const [loading, setLoading] = useState(true);
+  // State for storing errors.
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        setIsLoading(true);
-        const membersCollection = collection(db, 'members');
-        const q = query(membersCollection);
+  const fetchMember = useCallback(async () => {
+    // We only fetch if the memberId is valid.
+    if (!memberId || memberId === 'undefined') {
+      setLoading(false);
+      return; // Do not proceed with invalid ID.
+    }
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const membersData = snapshot.docs.map(doc => {
-                const data = doc.data();
-                // Explicitly construct the Member object to ensure type safety
-                return {
-                    id: doc.id,
-                    firstName: data.firstName || '',
-                    lastName: data.lastName || '',
-                    middleName: data.middleName || null,
-                    status: data.status || 'inactive',
-                    email: data.email || null,
-                    phone: data.phone || null,
-                    phoneType: data.phoneType || 'personal',
-                    address: data.address || null,
-                    dateOfBirth: toISOStringOrUndefined(data.dateOfBirth),
-                    registrationDate: toISOStringOrUndefined(data.registrationDate),
-                    notes: data.notes || null,
-                    avatarUrl: data.avatarUrl || null,
-                    familyId: data.familyId || null,
-                    educationInstitution: data.educationInstitution || null,
-                    personalId: data.personalId || null,
-                } as Member;
-            });
-            setMembers(membersData);
-            setIsLoading(false);
-        }, (err) => {
-            console.error("Error fetching members:", err);
-            setError(err);
-            setIsLoading(false);
-            toast({ title: "Грешка при зареждане на членовете", variant: "destructive" });
-        });
+    try {
+      setLoading(true);
+      // We use the centralized `getMemberById` function.
+      const fetchedMember = await getMemberById(memberId);
+      if (fetchedMember) {
+        setMember(fetchedMember);
+      } else {
+        setError("Member not found.");
+      }
+    } catch (err: any) {
+      console.error(`useMember - Failed to fetch member with ID ${memberId}:`, err);
+      setError("Failed to load member data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [memberId]);
 
-        return () => unsubscribe();
-    }, [toast]);
+  useEffect(() => {
+    fetchMember();
+  }, [fetchMember]); // The effect re-runs if the fetchMember function changes (i.e., if memberId changes).
 
-    const addMember = useCallback(async (memberData: NewMember) => {
-        try {
-            await addDoc(collection(db, 'members'), memberData);
-            toast({ title: "Членът е добавен успешно" });
-        } catch (err) {
-            console.error("Error adding member:", err);
-            toast({ title: "Грешка при добавяне на член", variant: "destructive" });
-            throw err;
-        }
-    }, [toast]);
-
-    const updateMember = useCallback(async (memberId: string, memberData: Partial<NewMember>) => {
-        const originalMembers = members;
-        setMembers(prev => prev.map(m => m.id === memberId ? { ...m, ...memberData } as Member : m));
-        
-        try {
-            await updateDoc(doc(db, 'members', memberId), memberData);
-            toast({ title: "Данните на члена са обновени" });
-        } catch (err) {
-            setMembers(originalMembers);
-            console.error("Error updating member:", err);
-            toast({ title: "Грешка при обновяване на данните", variant: "destructive" });
-            throw err;
-        }
-    }, [members, toast]);
-
-    const deleteMember = useCallback(async (memberId: string) => {
-        const originalMembers = members;
-        setMembers(prev => prev.filter(m => m.id !== memberId));
-
-        try {
-            await deleteDoc(doc(db, 'members', memberId));
-            toast({ title: "Членът е изтрит" });
-        } catch (err) {
-            setMembers(originalMembers);
-            console.error("Error deleting member:", err);
-            toast({ title: "Грешка при изтриване", variant: "destructive" });
-            throw err;
-        }
-    }, [members, toast]);
-    
-    const updateMemberAttendance = useCallback(async (updates: { memberId: string; newAttendance: { eventId: string; eventType: string; date: string; }[] }[]) => {
-        const batch = writeBatch(db);
-        updates.forEach(({ memberId, newAttendance }) => {
-            const memberRef = doc(db, 'members', memberId);
-            // This assumes the 'attendance' field is still part of your data model,
-            // even if not strictly in the Member type for the main list.
-            batch.update(memberRef, { attendance: newAttendance });
-        });
-
-        try {
-            await batch.commit();
-            // No toast here to avoid spamming for background updates
-        } catch (error) {
-            console.error("Batch attendance update failed:", error);
-            toast({
-                title: "Грешка при обновяване на присъствия",
-                description: "Синхронизацията на присъствията се провали.",
-                variant: "destructive"
-            });
-        }
-    }, [toast]);
-
-
-    return { members, isLoading, error, addMember, updateMember, deleteMember, updateMemberAttendance };
+  // Return the state and a function to manually refetch the data.
+  return { member, loading, error, refetch: fetchMember };
 };
