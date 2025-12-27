@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Member } from '@/types';
@@ -6,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, Calendar, Users, Building, BadgeInfo, ArrowLeft, Pencil } from 'lucide-react';
+import { Mail, Phone, Calendar, Users, Building, ArrowLeft, Pencil, FileText, Home, PhoneCall } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MemberSalesHistory } from './member-sales-history';
-import { MemberAttendanceHistory } from './MemberAttendanceHistory'; // Assuming this component exists as per README
+import { MemberAttendanceHistory } from './MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from './member-subscriptions-tab';
 
 interface MemberDetailsCardProps {
@@ -21,8 +20,15 @@ const getInitials = (firstName: string, lastName: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 };
 
+const formatPhoneType = (phoneType: string | null | undefined) => {
+    if (!phoneType) return null;
+    return phoneType === 'personal' ? 'Личен' : 'На родител';
+};
+
 export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardProps) => {
     const router = useRouter();
+
+    const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
 
     return (
         <div className="space-y-6">
@@ -30,7 +36,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                 <Button variant="outline" onClick={() => router.push('/members')}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Всички членове
                 </Button>
-                <Button onClick={() => router.push(`/members/edit/${member.id}`)}>
+                <Button onClick={() => router.push(`/members/${member.id}/edit`)}>
                     <Pencil className="mr-2 h-4 w-4" /> Редактирай
                 </Button>
             </div>
@@ -39,11 +45,11 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                 <CardHeader>
                     <div className="flex items-center space-x-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={member.avatarUrl ?? undefined} alt={`${member.firstName} ${member.lastName}`} />
+                            <AvatarImage src={member.avatarUrl ?? undefined} alt={fullName} />
                             <AvatarFallback className="text-2xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <CardTitle className="text-3xl font-bold">{member.firstName} {member.lastName}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">{fullName}</CardTitle>
                             <CardDescription className="text-lg">Статус: {member.status === 'active' ? 'Активен' : 'Неактивен'}</CardDescription>
                         </div>
                     </div>
@@ -63,10 +69,13 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                         <CardContent className="pt-6 space-y-4">
                             <InfoRow icon={Mail} label="Имейл" value={member.email} />
                             <InfoRow icon={Phone} label="Телефон" value={member.phone} />
+                            <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
                             <InfoRow icon={Calendar} label="Дата на раждане" value={new Date(member.dateOfBirth).toLocaleDateString('bg-BG')} />
-                            <InfoRow icon={BadgeInfo} label="ЕГН" value={member.personalId} />
+                            <InfoRow icon={Calendar} label="Дата на регистрация" value={new Date(member.registrationDate).toLocaleDateString('bg-BG')} />
                             <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
-                            
+                            <InfoRow icon={Home} label="Адрес" value={member.address} />
+                            <InfoRow icon={FileText} label="Бележки" value={member.notes} isBlock={true} />
+
                             {familyMembers && familyMembers.length > 0 && (
                                 <div>
                                     <h3 className="text-lg font-semibold mt-6 mb-3 flex items-center">
@@ -85,7 +94,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                                                     <AvatarFallback>{getInitials(familyMember.firstName, familyMember.lastName)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="text-sm font-medium">{familyMember.firstName} {familyMember.lastName}</p>
+                                                    <p className="text-sm font-medium">{[familyMember.firstName, familyMember.middleName, familyMember.lastName].filter(Boolean).join(' ')}</p>
                                                     <p className="text-xs text-muted-foreground">{familyMember.email || 'Няма имейл'}</p>
                                                 </div>
                                             </div>
@@ -114,13 +123,19 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
     );
 };
 
-const InfoRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | null | undefined }) => {
-    if (!value) return null;
+const InfoRow = ({ icon: Icon, label, value, isBlock = false }: { icon: React.ElementType, label: string, value: string | null | undefined, isBlock?: boolean }) => {
+    if (value === null || value === undefined || value === '') return null;
+    
+    const layoutClass = isBlock ? 'flex-col items-start space-y-2' : 'flex-row items-center';
+
     return (
-        <div className="flex items-center text-sm py-2 border-b last:border-b-0">
-            <Icon className="h-4 w-4 mr-3 text-muted-foreground" />
-            <span className="font-semibold mr-2 w-40">{label}:</span>
-            <span className="text-muted-foreground break-all">{value}</span>
+        <div className={`flex text-sm py-2 border-b last:border-b-0 ${layoutClass}`}>
+            <div className="flex items-center w-full">
+                <Icon className="h-4 w-4 mr-3 text-muted-foreground flex-shrink-0" />
+                <span className="font-semibold mr-2 w-40 flex-shrink-0">{label}:</span>
+                {!isBlock && <span className="text-muted-foreground break-all">{value}</span>}
+            </div>
+            {isBlock && <span className="text-muted-foreground pl-7 text-sm whitespace-pre-wrap">{value}</span>}
         </div>
     );
 };

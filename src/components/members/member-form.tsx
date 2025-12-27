@@ -9,30 +9,11 @@ import { useMembers } from '@/hooks/useMembers';
 import { getFamilyById, createFamily, addMemberToFamily, removeMemberFromFamily } from '@/services/family-service';
 
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ManageFamilyDialog } from './manage-family-dialog';
 import { Loader2 } from 'lucide-react';
 
@@ -48,9 +29,10 @@ const formSchema = z.object({
   status: z.enum(['active', 'inactive']),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
-  personalId: z.string().optional(),
   registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
 });
+
+type MemberFormData = z.infer<typeof formSchema>;
 
 interface MemberFormProps {
   member?: Member;
@@ -58,19 +40,29 @@ interface MemberFormProps {
   onClose: () => void;
 }
 
+const memberToFormDefaults = (member: Member): Partial<MemberFormData> => ({
+    ...member,
+    middleName: member.middleName ?? '',
+    email: member.email ?? '',
+    phone: member.phone ?? '',
+    phoneType: member.phoneType ?? 'personal',
+    address: member.address ?? '',
+    educationInstitution: member.educationInstitution ?? '',
+    notes: member.notes ?? '',
+    dateOfBirth: member.dateOfBirth.split('T')[0],
+    registrationDate: member.registrationDate.split('T')[0],
+});
+
 export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
+  const [familyId, setFamilyId] = useState(member?.familyId);
   const [isFamilyDialogOpen, setFamilyDialogOpen] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const { members: allMembers, isLoading: loadingMembers } = useMembers();
+  const { members: allMembers, loading: loadingMembers, refetch } = useMembers();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<MemberFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: member ? {
-        ...member,
-        dateOfBirth: member.dateOfBirth.split('T')[0],
-        registrationDate: member.registrationDate.split('T')[0],
-    } : {
+    defaultValues: member ? memberToFormDefaults(member) : {
       firstName: '',
       middleName: '',
       lastName: '',
@@ -82,60 +74,59 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
       status: 'active',
       educationInstitution: '',
       notes: '',
-      personalId: '',
       registrationDate: new Date().toISOString().split('T')[0],
     },
   });
 
   useEffect(() => {
-    if (member && member.familyId && allMembers.length > 0) {
+    if (familyId && allMembers.length > 0) {
         const fetchFamily = async () => {
-            const family = await getFamilyById(member.familyId!);
+            const family = await getFamilyById(familyId);
             if (family) {
                 const membersInFamily = allMembers.filter(m => family.memberIds.includes(m.id));
                 setFamilyMembers(membersInFamily);
             }
         };
         fetchFamily();
+    } else {
+        setFamilyMembers([]);
     }
-  }, [member, allMembers]);
-
+  }, [familyId, allMembers]);
 
   const handleSaveFamily = async (selectedMemberIds: string[]) => {
     if (!member) return;
     setIsSaving(true);
-
     try {
-        const currentFamilyId = member.familyId;
         const memberId = member.id;
 
-        if (!currentFamilyId && selectedMemberIds.length > 0) {
+        if (!familyId && selectedMemberIds.length > 0) {
             const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
-            // This update will be automatically picked up by the snapshot listener
-            // We might need to update the local member object if it affects the form
-        } else if (currentFamilyId) {
-            const initialMemberIds = familyMembers.map(m => m.id).filter(id => id !== member.id);
+            setFamilyId(newFamilyId); 
+        } else if (familyId) {
+            const initialMemberIds = familyMembers.map(m => m.id).filter(id => id !== memberId);
+
             const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
             for (const id of membersToAdd) {
-                await addMemberToFamily(currentFamilyId, id);
+                await addMemberToFamily(familyId, id);
             }
 
             const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id));
             for (const id of membersToRemove) {
-                await removeMemberFromFamily(currentFamilyId, id);
+                await removeMemberFromFamily(familyId, id);
             }
         }
+        refetch(); // Refresh members list to reflect family changes
     } finally {
         setIsSaving(false);
         setFamilyDialogOpen(false);
-        // No manual refetch needed!
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: MemberFormData) => {
     setIsSaving(true);
     try {
-        await onSave({ ...values, familyId: member?.familyId || null } as Omit<Member, 'id'>);
+        const finalData = { ...member, ...values, familyId: familyId };
+        await onSave(finalData as Omit<Member, 'id'>);
     } finally {
         setIsSaving(false);
     }
@@ -147,7 +138,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="firstName" render={({ field }) => (<FormItem><FormLabel>Име</FormLabel><FormControl><Input placeholder="Иван" {...field} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="middleName" render={({ field }) => (<FormItem><FormLabel>Презиме</FormLabel><FormControl><Input placeholder="Иванов" {...field} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="lastName" render={({ field }) => (<FormItem><FormLabel>Фамилия</FormLabel><FormControl><Input placeholder="Петров" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -157,12 +148,12 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
             <div className="md:col-span-2">
                 <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Телефон (опционално)</FormLabel><FormControl><Input placeholder="0888123456" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
-            <FormField control={form.control} name="phoneType" render={({ field }) => (<FormItem><FormLabel>Тип на телефона</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="personal">Личен</SelectItem><SelectItem value="parent">На родител</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="phoneType" render={({ field }) => (<FormItem><FormLabel>Тип на телефона</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="personal">Личен</SelectItem><SelectItem value="parent">На родител</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Дата на раждане</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="registrationDate" render={({ field }) => (<FormItem><FormLabel>Дата на регистрация</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Статус</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Избери статус" /></SelectTrigger></FormControl><SelectContent><SelectItem value="active">Активен</SelectItem><SelectItem value="inactive">Неактивен</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Статус</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Избери статус" /></SelectTrigger></FormControl><SelectContent><SelectItem value="active">Активен</SelectItem><SelectItem value="inactive">Неактивен</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
         </div>
         <FormField control={form.control} name="educationInstitution" render={({ field }) => (<FormItem><FormLabel>Образователна институция</FormLabel><FormControl><Input placeholder="СУ Св. Климент Охридски" {...field} /></FormControl><FormMessage /></FormItem>)} />
         <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Адрес (опционално)</FormLabel><FormControl><Input placeholder="гр. София, ул. Примерна 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -172,9 +163,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
             <Card className="mt-6">
                 <CardHeader>
                     <CardTitle>Семейство</CardTitle>
-                    <CardDescription>
-                        Свържете този член с други членове от същото семейство (братя, сестри).
-                    </CardDescription>
+                    <CardDescription>Свържете този член с други членове от същото семейство.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border p-4 min-h-[60px]">
@@ -185,9 +174,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center">
-                                Няма свързани членове на семейството.
-                            </p>
+                            <p className="text-sm text-muted-foreground text-center">Няма свързани членове на семейството.</p>
                         )}
                     </div>
                     <Button type="button" variant="outline" className="mt-4" onClick={() => setFamilyDialogOpen(true)} disabled={isButtonDisabled}>
@@ -216,7 +203,6 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
             allMembers={allMembers}
         />
       )}
-
     </Form>
   );
 };

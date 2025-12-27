@@ -8,33 +8,29 @@ import { getAllMembers, getMemberById } from '@/services/member-service';
  * It handles loading states and potential errors, providing a clean interface to the components.
  */
 export const useMembers = () => {
-  // State for storing the list of members.
   const [members, setMembers] = useState<Member[]>([]);
-  // State to indicate if the data is currently being fetched.
   const [loading, setLoading] = useState(true);
-  // State to store any error that occurs during fetching.
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        setLoading(true);
-        // We rely on the centralized, robust `getAllMembers` function from the member service.
-        const allMembers = await getAllMembers();
-        // The service now ensures that members are sorted and valid.
-        setMembers(allMembers);
-      } catch (err: any) {
-        console.error("useMembers - Failed to fetch members:", err);
-        setError("Failed to load members. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMembers();
-  }, []); // The empty dependency array ensures this effect runs only once on mount.
+  const fetchMembers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const allMembers = await getAllMembers();
+      setMembers(allMembers);
+    } catch (err: any) {
+      console.error("useMembers - Failed to fetch members:", err);
+      setError("Failed to load members. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // The hook returns the state variables, which components can then use.
-  return { members, loading, error };
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  // The hook returns the state variables and a refetch function.
+  return { members, loading, error, refetch: fetchMembers };
 };
 
 /**
@@ -43,23 +39,18 @@ export const useMembers = () => {
  * @param memberId The ID of the member to fetch.
  */
 export const useMember = (memberId: string | null) => {
-  // State for storing the single member object.
   const [member, setMember] = useState<Member | null>(null);
-  // State for loading status.
   const [loading, setLoading] = useState(true);
-  // State for storing errors.
   const [error, setError] = useState<string | null>(null);
 
   const fetchMember = useCallback(async () => {
-    // We only fetch if the memberId is valid.
     if (!memberId || memberId === 'undefined') {
       setLoading(false);
-      return; // Do not proceed with invalid ID.
+      return;
     }
 
     try {
       setLoading(true);
-      // We use the centralized `getMemberById` function.
       const fetchedMember = await getMemberById(memberId);
       if (fetchedMember) {
         setMember(fetchedMember);
@@ -76,8 +67,7 @@ export const useMember = (memberId: string | null) => {
 
   useEffect(() => {
     fetchMember();
-  }, [fetchMember]); // The effect re-runs if the fetchMember function changes (i.e., if memberId changes).
+  }, [fetchMember]);
 
-  // Return the state and a function to manually refetch the data.
   return { member, loading, error, refetch: fetchMember };
 };

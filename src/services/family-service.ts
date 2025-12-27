@@ -1,1 +1,75 @@
-\nimport { getDb } from \'@/lib/firebase\';\nimport { collection, addDoc, getDoc, doc, updateDoc, arrayUnion, arrayRemove, writeBatch, DocumentSnapshot } from \'firebase/firestore\';\nimport type { Family } from \'@/types\';\n\nconst FAMILIES_COLLECTION = \'families\';\nconst MEMBERS_COLLECTION = \'members\';\n\nconst docToFamily = (doc: DocumentSnapshot): Family | null => {\n    if (!doc.id || !doc.exists()) {\n        console.error(\"docToFamily: Invalid document snapshot provided.\", { id: doc.id });\n        return null;\n    }\n    const data = doc.data() || {};\n\n    // Ensure memberIds is an array of strings.\n    const memberIds = Array.isArray(data.memberIds) ? data.memberIds.filter(id => typeof id === \'string\') : [];\n\n    return {\n        id: doc.id,\n        memberIds: memberIds,\n    };\n};\n\nexport const createFamily = async (memberIds: string[]): Promise<string> => {\n    const db = getDb();\n    const familyDocRef = await addDoc(collection(db, FAMILIES_COLLECTION), {\n        memberIds: memberIds,\n    });\n\n    const batch = writeBatch(db);\n    memberIds.forEach(memberId => {\n        const memberRef = doc(db, MEMBERS_COLLECTION, memberId);\n        batch.update(memberRef, { familyId: familyDocRef.id });\n    });\n    await batch.commit();\n\n    return familyDocRef.id;\n};\n\nexport const addMemberToFamily = async (familyId: string, memberId: string): Promise<void> => {\n    const db = getDb();\n    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);\n    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);\n\n    const batch = writeBatch(db);\n    batch.update(familyRef, { memberIds: arrayUnion(memberId) });\n    batch.update(memberRef, { familyId: familyId });\n    await batch.commit();\n};\n\nexport const removeMemberFromFamily = async (familyId: string, memberId: string): Promise<void> => {\n    const db = getDb();\n    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);\n    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);\n\n    const batch = writeBatch(db);\n    batch.update(memberRef, { familyId: null });\n    batch.update(familyRef, { memberIds: arrayRemove(memberId) });\n    await batch.commit();\n\n    const familySnap = await getDoc(familyRef);\n    const family = docToFamily(familySnap);\n    if (family && family.memberIds.length <= 1) {\n        // Optional deletion logic can be implemented here.\n    }\n};\n\nexport const getFamilyById = async (familyId: string): Promise<Family | null> => {\n    if (!familyId) return null;\n    const db = getDb();\n    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);\n    const familySnap = await getDoc(familyRef);\n    return docToFamily(familySnap);\n};\n
+
+import { getDb } from '@/lib/firebase';
+import { collection, addDoc, getDoc, doc, updateDoc, arrayUnion, arrayRemove, writeBatch, DocumentSnapshot } from 'firebase/firestore';
+import type { Family } from '@/types';
+
+const FAMILIES_COLLECTION = 'families';
+const MEMBERS_COLLECTION = 'members';
+
+export const docToFamily = (doc: DocumentSnapshot): Family | null => {
+    if (!doc.id || !doc.exists()) {
+        console.error("docToFamily: Invalid document snapshot provided.", { id: doc.id });
+        return null;
+    }
+    const data = doc.data() || {};
+
+    // Ensure memberIds is an array of strings.
+    const memberIds = Array.isArray(data.memberIds) ? data.memberIds.filter(id => typeof id === 'string') : [];
+
+    return {
+        id: doc.id,
+        memberIds: memberIds,
+    };
+};
+
+export const createFamily = async (memberIds: string[]): Promise<string> => {
+    const db = getDb();
+    const familyDocRef = await addDoc(collection(db, FAMILIES_COLLECTION), {
+        memberIds: memberIds,
+    });
+
+    const batch = writeBatch(db);
+    memberIds.forEach(memberId => {
+        const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
+        batch.update(memberRef, { familyId: familyDocRef.id });
+    });
+    await batch.commit();
+
+    return familyDocRef.id;
+};
+
+export const addMemberToFamily = async (familyId: string, memberId: string): Promise<void> => {
+    const db = getDb();
+    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
+
+    const batch = writeBatch(db);
+    batch.update(familyRef, { memberIds: arrayUnion(memberId) });
+    batch.update(memberRef, { familyId: familyId });
+    await batch.commit();
+};
+
+export const removeMemberFromFamily = async (familyId: string, memberId: string): Promise<void> => {
+    const db = getDb();
+    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
+
+    const batch = writeBatch(db);
+    batch.update(memberRef, { familyId: null });
+    batch.update(familyRef, { memberIds: arrayRemove(memberId) });
+    await batch.commit();
+
+    const familySnap = await getDoc(familyRef);
+    const family = docToFamily(familySnap);
+    if (family && family.memberIds.length <= 1) {
+        // Optional deletion logic can be implemented here.
+    }
+};
+
+export const getFamilyById = async (familyId: string): Promise<Family | null> => {
+    if (!familyId) return null;
+    const db = getDb();
+    const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+    const familySnap = await getDoc(familyRef);
+    return docToFamily(familySnap);
+};
