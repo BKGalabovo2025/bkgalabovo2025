@@ -16,7 +16,7 @@ interface EventListItemProps {
 }
 
 const eventTypeDetails: Record<ScheduleEventType, { translation: string; color: string }> = {
-    trening: { translation: 'Тренировка', color: 'bg-blue-500' },
+    training: { translation: 'Тренировка', color: 'bg-blue-500' },
     sastezanie: { translation: 'Състезание', color: 'bg-red-500' },
     lager: { translation: 'Лагер', color: 'bg-green-500' },
     sabitie: { translation: 'Събитие', color: 'bg-yellow-500' },

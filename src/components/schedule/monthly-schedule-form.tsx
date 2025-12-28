@@ -41,8 +41,8 @@ export default function MonthlyScheduleForm({ onSave, onClose, isSaving }: Month
     defaultValues: {
       month: moment().format('YYYY-MM'),
       days: [],
-      startTime: '',
-      endTime: '',
+      startTime: '17:00',
+      endTime: '18:30',
       location: 'Спортна зала "Енергетик" град Гълъбово',
     },
   });
