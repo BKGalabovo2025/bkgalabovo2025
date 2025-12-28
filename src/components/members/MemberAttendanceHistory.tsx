@@ -24,7 +24,7 @@ const StatCard = ({ title, value }: { title: string, value: string | number }) =
 );
 
 const eventTypeTranslations: { [key: string]: string } = {
-    'trening': 'Тренировка',
+    'training': 'Тренировка',
     'sastezanie': 'Състезание',
     'lager': 'Лагер',
     'sabitie': 'Събитие',

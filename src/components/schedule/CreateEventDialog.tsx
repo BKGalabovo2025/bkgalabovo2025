@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScheduleEvent, ScheduleEventType } from '@/types';
+import { Loader2 } from 'lucide-react';
 
 interface CreateEventDialogProps {
     isOpen: boolean;
@@ -15,7 +16,7 @@ interface CreateEventDialogProps {
 }
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
-    trening: 'Тренировка',
+    training: 'Тренировка',
     sastezanie: 'Състезание',
     lager: 'Лагер',
     sabitie: 'Събитие',
@@ -25,7 +26,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [type, setType] = useState<ScheduleEventType>('trening');
+    const [type, setType] = useState<ScheduleEventType>('training');
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
             setTitle('');
             setStartDate(defaultStartTime);
             setEndDate(defaultEndTime);
-            setType('trening');
+            setType('training');
             setDescription('');
             setError(null);
         }
