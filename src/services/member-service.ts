@@ -70,7 +70,19 @@ export const addMember = async (memberData: CreateMemberData): Promise<string> =
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   const dataToAdd = {
-    ...memberData,
+    firstName: memberData.firstName,
+    lastName: memberData.lastName,
+    status: memberData.status,
+    middleName: memberData.middleName || null,
+    email: memberData.email || null,
+    phone: memberData.phone || null,
+    phoneType: memberData.phoneType || null,
+    avatarUrl: memberData.avatarUrl || null,
+    familyId: memberData.familyId || null,
+    educationInstitution: memberData.educationInstitution || null,
+    address: memberData.address || null,
+    notes: memberData.notes || null,
+    analysisCache: memberData.analysisCache || null,
     dateOfBirth: Timestamp.fromDate(new Date(memberData.dateOfBirth)),
     registrationDate: Timestamp.fromDate(new Date(memberData.registrationDate)),
   };
@@ -88,6 +100,13 @@ export const updateMember = async (id: string, memberData: UpdateMemberData): Pr
   if (memberData.registrationDate) {
       dataToUpdate.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate as string));
   }
+
+  Object.keys(dataToUpdate).forEach(key => {
+      if (dataToUpdate[key] === undefined) {
+          delete dataToUpdate[key];
+      }
+  });
+
   await updateDoc(memberRef, dataToUpdate);
 };
 
