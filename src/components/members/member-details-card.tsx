@@ -5,18 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, Calendar, Users, Building, ArrowLeft, Pencil, FileText, Home, PhoneCall } from 'lucide-react';
+import { Mail, Phone, Calendar, Users, Building, ArrowLeft, Pencil, FileText, Home, PhoneCall, BarChart2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MemberSalesHistory } from './member-sales-history';
 import { MemberAttendanceHistory } from './MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from './member-subscriptions-tab';
+import { getAgeGroup } from '@/lib/utils';
 
 interface MemberDetailsCardProps {
     member: Member;
     familyMembers: Member[];
 }
 
-const getInitials = (firstName: string, lastName: string) => {
+const getInitials = (firstName: string, lastName:string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 };
 
@@ -29,6 +30,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
     const router = useRouter();
 
     const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
+    const ageGroup = getAgeGroup(member.dateOfBirth);
 
     return (
         <div className="space-y-6">
@@ -71,6 +73,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                             <InfoRow icon={Phone} label="Телефон" value={member.phone} />
                             <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
                             <InfoRow icon={Calendar} label="Дата на раждане" value={new Date(member.dateOfBirth).toLocaleDateString('bg-BG')} />
+                            <InfoRow icon={BarChart2} label="Възрастова група" value={ageGroup} />
                             <InfoRow icon={Calendar} label="Дата на регистрация" value={new Date(member.registrationDate).toLocaleDateString('bg-BG')} />
                             <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
                             <InfoRow icon={Home} label="Адрес" value={member.address} />
