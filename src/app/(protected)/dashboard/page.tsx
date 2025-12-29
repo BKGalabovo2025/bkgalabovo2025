@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -44,7 +43,7 @@ const DashboardPage = () => {
 
       <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
         <RecentMembersCard members={recentMembers} onNavigate={(id) => router.push(`/members/${id}`)} getInitials={getInitials} />
-        <RecentSalesCard sales={recentSales} onNavigate={(id) => router.push(`/sales/${id}`)} />
+        <RecentSalesCard sales={recentSales} members={recentMembers} onNavigate={(id) => router.push(`/sales/${id}`)} />
       </div>
     </div>
   );
@@ -72,19 +71,13 @@ const StatsCards = ({ stats }: { stats: DashboardStats }) => (
     </Card>
     <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Общо приходи</CardTitle>
+            <CardTitle className="text-sm font-medium">Общо приходи (EUR)</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-            {Object.keys(stats.totalRevenue).length === 0 ? (
-                <p className="text-sm text-muted-foreground">Няма данни</p>
-            ) : (
-                Object.entries(stats.totalRevenue).map(([currency, amount]) => (
-                    <div key={currency} className="text-2xl font-bold">
-                        {formatCurrency(amount, currency)}
-                    </div>
-                ))
-            )}
+             <div className="text-2xl font-bold">
+                {formatCurrency(stats.totalRevenue.EUR || 0)}
+            </div>
         </CardContent>
     </Card>
     <Card>
@@ -131,7 +124,7 @@ const RecentMembersCard = ({ members, onNavigate, getInitials }: { members: Memb
   </Card>
 );
 
-const RecentSalesCard = ({ sales, onNavigate }: { sales: Sale[], onNavigate: (id: string) => void }) => (
+const RecentSalesCard = ({ sales, members, onNavigate }: { sales: Sale[], members: Member[], onNavigate: (id: string) => void }) => (
   <Card>
     <CardHeader>
       <CardTitle>Последни продажби</CardTitle>
@@ -142,15 +135,16 @@ const RecentSalesCard = ({ sales, onNavigate }: { sales: Sale[], onNavigate: (id
                 <p className="text-sm text-muted-foreground">Няма скорошни продажби.</p>
             ) : (sales.map((sale, index) => {
                 if (!sale || typeof sale !== 'object') return null;
-                const totalAmount = typeof sale.totalAmount === 'number' ? sale.totalAmount : 0;
-                const currency = (sale.currency as string) || 'BGN';
+                const totalAmount = sale.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+                const member = members.find(m => m.id === sale.memberId);
+                const memberName = member ? `${member.firstName} ${member.lastName}` : '(не е намерен)';
                 return (
                   <div key={sale.id || index} className="flex items-center space-x-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg" onClick={() => sale.id && onNavigate(sale.id)}>
                       <div className="flex-1">
-                          <p className="text-sm font-medium leading-none">{sale.memberName || 'N/A'}</p>
-                          <p className="text-sm text-muted-foreground">{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('bg-BG') : 'N/A'}</p>
+                          <p className="text-sm font-medium leading-none">{memberName}</p>
+                          <p className="text-sm text-muted-foreground">{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('bg-BG') : 'Няма дата'}</p>
                       </div>
-                      <div className="text-sm font-semibold">{formatCurrency(totalAmount, currency)}</div>
+                      <div className="text-sm font-semibold">{formatCurrency(totalAmount)}</div>
                   </div>
                 );
             }))}

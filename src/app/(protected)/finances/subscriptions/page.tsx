@@ -1,37 +1,39 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { DataTable } from '@/components/shared/data-table';
-import { columns, SubscriptionData } from '@/components/finance/subscriptions/columns'; 
-import { MemberSubscription, ClubService, Member } from '@/types';
-import { getAllSubscriptions, getAllClubServices, getMembers } from '@/lib/actions/services';
+import { columns, SubscriptionData } from '@/components/finance/subscriptions/columns';
+import { Subscription, ClubService, Member } from '@/types';
+import { getAllClubServices, getSubscriptionsByMemberId } from '@/services/subscription-service';
+import { getAllMembers } from '@/services/member-service';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
-// Main component for the subscriptions page
 const SubscriptionsPage = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Function to fetch all necessary data
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [subs, services, members] = await Promise.all([
-        getAllSubscriptions(),
+      const [services, members] = await Promise.all([
         getAllClubServices(),
-        getMembers()
+        getAllMembers(),
       ]);
 
-      // Combine data to create a richer object for the table
-      const enrichedSubscriptions: SubscriptionData[] = subs.map(sub => {
-        const service = services.find(s => s.id === sub.serviceId);
-        const member = members.find(m => m.id === sub.memberId);
+      const allSubscriptions: Subscription[] = [];
+      for (const member of members) {
+        const memberSubscriptions = await getSubscriptionsByMemberId(member.id);
+        allSubscriptions.push(...memberSubscriptions);
+      }
+
+      const enrichedSubscriptions: SubscriptionData[] = allSubscriptions.map((sub: Subscription) => {
+        const service = services.find((s: ClubService) => s.id === sub.serviceId);
+        const member = members.find((m: Member) => m.id === sub.memberId);
         return {
           ...sub,
           serviceName: service?.name || 'Unknown Service',
@@ -53,7 +55,6 @@ const SubscriptionsPage = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -78,7 +79,7 @@ const SubscriptionsPage = () => {
                     columns={columns} 
                     data={subscriptions} 
                     isLoading={isLoading}
-                    filterColumnId='memberLastName' // Allow filtering by member's last name
+                    filterColumnId='memberLastName'
                     filterPlaceholder='Филтриране по фамилия...'
                     emptyStateMessage="Все още няма добавени абонаменти."
                  />

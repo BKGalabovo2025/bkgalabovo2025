@@ -2,7 +2,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MemberSubscription } from '@/types';
+import { Subscription } from '@/types';
 import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 
 // Define the shape of the data for the table
-interface SubscriptionData extends MemberSubscription {
+export interface SubscriptionData extends Subscription {
   serviceName: string;
   memberFirstName: string;
   memberLastName: string;

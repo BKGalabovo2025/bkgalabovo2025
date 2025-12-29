@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EventListItem } from '@/components/schedule/EventListItem';
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
-    trening: 'Тренировка',
+    training: 'Тренировка',
     sastezanie: 'Състезание',
     lager: 'Лагер',
     sabitie: 'Събитие',
@@ -35,7 +35,7 @@ const EVENTS_PER_PAGE = 20;
 
 export default function SchedulePage() {
     const { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading: isLoadingEvents, error: eventsError } = useEvents();
-    const { members, isLoading: isLoadingMembers, error: membersError } = useMembers();
+    const { members, loading: isLoadingMembers, error: membersError } = useMembers();
     const { toast } = useToast();
     
     const [activeTab, setActiveTab] = useState('current');
@@ -58,7 +58,7 @@ export default function SchedulePage() {
 
     const triggerPrint = async (event: ScheduleEvent) => {
         const { renderToString } = await import('react-dom/server');
-        const printableComponent = <PrintableEvent event={event} members={members as Member[]} />;
+        const printableComponent = <PrintableEvent event={event} members={members as Member[]} eventTypeTranslations={eventTypeTranslations} />;
         const printContent = renderToString(printableComponent);
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
@@ -121,7 +121,7 @@ export default function SchedulePage() {
         const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         endOfCurrentMonth.setHours(23, 59, 59, 999);
 
-        const filtered = events
+        const filtered = (events || [])
             .filter(event => event.startDate && !isNaN(new Date(event.startDate).getTime()))
             .filter(event => {
                 if (filterType !== 'all' && event.type !== filterType) return false;
@@ -154,7 +154,15 @@ export default function SchedulePage() {
     }, [filteredEvents, currentPage, activeTab]);
     
     const isLoading = isLoadingEvents || isLoadingMembers;
-    const error = eventsError || membersError;
+    const combinedError = eventsError || membersError;
+    let errorObject: Error | null = null;
+    if (combinedError) {
+        if (typeof combinedError === 'string') {
+            errorObject = new Error(combinedError);
+        } else {
+            errorObject = combinedError;
+        }
+    }
 
     return (
         <div className="container mx-auto p-4">
@@ -195,13 +203,13 @@ export default function SchedulePage() {
                 </div>
 
                 <TabsContent value="current">
-                   {renderEventsList(filteredEvents, isLoading, error)}
+                   {renderEventsList(filteredEvents, isLoading, errorObject)}
                 </TabsContent>
                 <TabsContent value="upcoming">
-                   {renderEventsList(filteredEvents, isLoading, error)}
+                   {renderEventsList(filteredEvents, isLoading, errorObject)}
                 </TabsContent>
                 <TabsContent value="past">
-                    {renderEventsList(paginatedEvents, isLoading, error, filteredEvents.length)}
+                    {renderEventsList(paginatedEvents, isLoading, errorObject, filteredEvents.length)}
                 </TabsContent>
             </Tabs>
             
@@ -255,14 +263,14 @@ export default function SchedulePage() {
             );
         }
         
-        const groupedEvents = eventsToShow.reduce((acc, event) => {
+        const groupedEvents = (eventsToShow || []).reduce((acc: Record<string, ScheduleEvent[]>, event: ScheduleEvent) => {
             const month = new Date(event.startDate).toLocaleString('bg-BG', { month: 'long', year: 'numeric' });
             if (!acc[month]) {
                 acc[month] = [];
             }
             acc[month].push(event);
             return acc;
-        }, {} as Record<string, ScheduleEvent[]>);
+        }, {});
 
         return (
             <div>
@@ -271,7 +279,7 @@ export default function SchedulePage() {
                         <div key={month}>
                             <h2 className="text-xl font-semibold mb-3 capitalize">{month}</h2>
                             <div className="space-y-2">
-                                {monthEvents.map(event => (
+                                {(monthEvents as ScheduleEvent[]).map((event: ScheduleEvent) => (
                                     <EventListItem 
                                         key={event.id} 
                                         event={event} 

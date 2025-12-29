@@ -1,12 +1,13 @@
 // This component is designed specifically for printing.
 import React from 'react';
-import { ScheduleEvent, Member } from '@/types';
+import { ScheduleEvent, Member, ScheduleEventType } from '@/types';
 import { format } from 'date-fns';
 import { bg } from 'date-fns/locale';
 
 interface PrintableEventProps {
     event: ScheduleEvent;
     members: Member[];
+    eventTypeTranslations: Record<ScheduleEventType, string>;
 }
 
 // Simplified formatDate function, as data is now pre-processed in the hook.
@@ -21,7 +22,7 @@ const formatDate = (date?: Date | string | null) => {
     }
 };
 
-export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members }) => {
+export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members, eventTypeTranslations }) => {
     if (!event) return null;
 
     const attendeeNames = (event.attendees || [])
@@ -31,6 +32,8 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members }
         })
         .filter(Boolean)
         .join(', ');
+
+    const translatedEventType = event.type ? eventTypeTranslations[event.type] : 'Няма посочен';
 
     return (
         <div className="p-4 font-sans text-sm">
@@ -49,7 +52,7 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members }
                 <p className="col-span-2">{event.location || 'Няма посочено'}</p>
 
                 <p className="font-semibold col-span-1">Тип:</p>
-                <p className="col-span-2">{event.type || 'Няма посочен'}</p>
+                <p className="col-span-2">{translatedEventType}</p>
 
                 {attendeeNames && (
                     <>
