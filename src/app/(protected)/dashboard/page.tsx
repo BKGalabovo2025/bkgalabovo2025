@@ -135,14 +135,14 @@ const RecentSalesCard = ({ sales, members, onNavigate }: { sales: Sale[], member
                 <p className="text-sm text-muted-foreground">Няма скорошни продажби.</p>
             ) : (sales.map((sale, index) => {
                 if (!sale || typeof sale !== 'object') return null;
-                const totalAmount = sale.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+                const totalAmount = sale.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 const member = members.find(m => m.id === sale.memberId);
                 const memberName = member ? `${member.firstName} ${member.lastName}` : '(не е намерен)';
                 return (
                   <div key={sale.id || index} className="flex items-center space-x-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg" onClick={() => sale.id && onNavigate(sale.id)}>
                       <div className="flex-1">
                           <p className="text-sm font-medium leading-none">{memberName}</p>
-                          <p className="text-sm text-muted-foreground">{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('bg-BG') : 'Няма дата'}</p>
+                          <p className="text-sm text-muted-foreground">{sale.date ? new Date(sale.date).toLocaleDateString('bg-BG') : 'Няма дата'}</p>
                       </div>
                       <div className="text-sm font-semibold">{formatCurrency(totalAmount)}</div>
                   </div>
