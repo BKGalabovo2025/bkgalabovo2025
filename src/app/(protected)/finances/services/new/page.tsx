@@ -1,7 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClubService } from "@/lib/actions/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +14,52 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckedState } from '@radix-ui/react-checkbox';
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from 'lucide-react';
+
+// A new component for the submit button that shows a pending state
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" size="lg" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+      Запази услугата
+    </Button>
+  );
+}
 
 
 export default function NewServicePage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const initialState = { message: '', success: false };
+  const [state, formAction] = useFormState(createClubService, initialState);
+
   const [serviceType, setServiceType] = useState<'Абонамент' | 'Еднократно плащане'>('Абонамент');
   const [grantsLicense, setGrantsLicense] = useState(false);
   const [licenseCondition, setLicenseCondition] = useState<'Веднага' | 'След N плащания'>('След N плащания');
   const [grantsApparel, setGrantsApparel] = useState(false);
   const [apparelCondition, setApparelCondition] = useState<'Веднага' | 'След N плащания'>('След N плащания');
 
+  useEffect(() => {
+    if (state?.message) {
+        toast({
+            title: state.success ? "Успех!" : "Грешка",
+            description: state.message,
+            variant: state.success ? 'default' : 'destructive',
+        });
+
+        if (state.success) {
+            // Redirect only on success
+            router.push('/finances/services');
+        }
+    }
+}, [state, toast, router]);
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Добавяне на нова услуга</h1>
-      <form action={createClubService} className="space-y-8 max-w-2xl">
+      <form action={formAction} className="space-y-8 max-w-2xl">
         
         <Card>
           <CardHeader><CardTitle>Основна информация</CardTitle></CardHeader>
@@ -167,7 +202,7 @@ export default function NewServicePage() {
         )}
 
         <div className="flex justify-end space-x-4 pt-4">
-            <Button type="submit" size="lg">Запази услугата</Button>
+            <SubmitButton />
         </div>
       </form>
     </div>

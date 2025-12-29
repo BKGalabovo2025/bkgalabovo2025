@@ -2,19 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
+import { cn } from '@/lib/utils';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
 import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
-export function AppSidebar() {
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
 
   return (
-    <Sidebar className="bg-sidebar-background text-sidebar-foreground">
+    <Sidebar {...props} className={cn("bg-sidebar-background text-sidebar-foreground", props.className)}>
       <SidebarHeader>
         <div className="w-full text-center py-4 px-2">
           <h1 className="text-lg font-bold">{clubInfo.name}</h1>

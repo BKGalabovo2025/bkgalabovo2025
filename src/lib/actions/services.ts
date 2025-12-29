@@ -5,7 +5,6 @@ import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-// We will now rely on the central, robust member service to get members.
 import { getAllMembers } from '@/services/member-service';
 
 // Defines the shape of a club service object, expanded to include all form fields.
@@ -34,10 +33,12 @@ const SERVICES_COLLECTION = 'services';
 
 /**
  * Creates a new club service in Firestore.
- * This is a server action intended to be used directly by a form.
+ * This is a server action intended for use with the `useFormState` hook.
+ * @param prevState The previous state returned by the action.
  * @param formData The FormData object submitted from the form.
+ * @returns A state object with a success flag and a message.
  */
-export const createClubService = async (formData: FormData) => {
+export const createClubService = async (prevState: { message: string }, formData: FormData): Promise<{ message: string; success: boolean; }> => {
     const db = getDb();
 
     // Extract raw data from the form
@@ -58,7 +59,7 @@ export const createClubService = async (formData: FormData) => {
     };
 
     if (!rawData.name || !rawData.price || !rawData.type) {
-        throw new Error("Missing required form fields: name, price, and type are required.");
+        return { success: false, message: "Грешка: Моля попълнете задължителните полета (Име, Цена, Тип)." };
     }
 
     // Build the final object to be saved in Firestore, ensuring type safety
@@ -98,13 +99,13 @@ export const createClubService = async (formData: FormData) => {
     } catch (error) {
         console.error("Error creating new service:", error);
         return {
-            message: 'Database error: Failed to create service.'
+            success: false,
+            message: 'Грешка в базата данни: Неуспешно създаване на услуга.'
         };
     }
 
-    // After a successful write, revalidate the path to show the new data and redirect.
     revalidatePath('/finances/services');
-    redirect('/finances/services');
+    return { success: true, message: 'Новата услуга беше създадена успешно!' };
 };
 
 

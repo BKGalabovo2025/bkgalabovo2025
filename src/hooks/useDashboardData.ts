@@ -1,10 +1,10 @@
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Member, Sale } from '@/types';
 import { getAllMembers } from '@/services/member-service';
 import { getSales } from '@/services/sales-service';
 import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service';
-import { AuthContext } from '@/context/auth-context'; // Import AuthContext
+import { useAuth } from '@/context/auth-context'; // Import useAuth hook
 
 export type DashboardStats = {
     totalMembers: number;
@@ -14,7 +14,7 @@ export type DashboardStats = {
 };
 
 export const useDashboardData = () => {
-    const { user } = useContext(AuthContext); // Get user from AuthContext
+    const { user } = useAuth(); // Get user from useAuth hook
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [recentMembers, setRecentMembers] = useState<Member[]>([]);
     const [recentSales, setRecentSales] = useState<Sale[]>([]);
