@@ -1,22 +1,20 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Member, Sale } from '@/types';
 import { getAllMembers } from '@/services/member-service';
 import { getSales } from '@/services/sales-service';
-import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service'; // Import the new type
+import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service';
+import { AuthContext } from '@/context/auth-context'; // Import AuthContext
 
-// Updated type to reflect the new structure of totalRevenue
 export type DashboardStats = {
     totalMembers: number;
     activeMembers: number;
-    totalRevenue: TotalRevenue; // This is now an object, e.g., { BGN: 150, EUR: 4 }
+    totalRevenue: TotalRevenue;
     unpaidSales: number;
 };
 
-/**
- * A centralized and robust custom hook to fetch all necessary data for the dashboard.
- */
 export const useDashboardData = () => {
+    const { user } = useContext(AuthContext); // Get user from AuthContext
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [recentMembers, setRecentMembers] = useState<Member[]>([]);
     const [recentSales, setRecentSales] = useState<Sale[]>([]);
@@ -25,6 +23,10 @@ export const useDashboardData = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!user) { // Don't fetch if no user
+                setLoading(false);
+                return;
+            }
             try {
                 setLoading(true);
                 const [membersData, salesData] = await Promise.all([
@@ -53,7 +55,7 @@ export const useDashboardData = () => {
         };
 
         fetchData();
-    }, []);
+    }, [user]); // Add user as a dependency
 
     return { stats, recentMembers, recentSales, loading, error };
 };
