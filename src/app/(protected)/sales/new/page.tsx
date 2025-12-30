@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 import { getAllMembers } from '@/services/member-service';
 import { addSale } from '@/services/sales-service';
-import { useProducts } from '@/hooks/useProducts'; 
+import { useProducts } from '@/hooks/useProducts';
 import { Product, Member, Sale } from '@/types';
 import { formatCurrency } from '@/lib/currency';
 
@@ -32,7 +32,7 @@ const NewSalePage = () => {
     
     const [cart, setCart] = useState<SaleItem[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-    const [paymentStatus, setPaymentStatus] = useState<boolean>(true); 
+    const [paymentStatus, setPaymentStatus] = useState<Sale['status']>('completed');
     const [totalAmount, setTotalAmount] = useState(0);
     
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,10 +52,10 @@ const NewSalePage = () => {
         fetchMembers();
     }, [toast]);
 
-    const availableProducts = allProducts.filter(p => (p.stock || 0) > 0);
+    const availableProducts = allProducts.filter(p => (p.quantity || 0) > 0);
 
     useEffect(() => {
-        const newTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+        const newTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         setTotalAmount(newTotal);
     }, [cart]);
 
@@ -65,7 +65,7 @@ const NewSalePage = () => {
 
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.productId === productId);
-            const stock = productToAdd.stock || 0;
+            const stock = productToAdd.quantity || 0;
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
@@ -78,8 +78,8 @@ const NewSalePage = () => {
             } else {
                 return [...prevCart, { 
                     productId: productToAdd.id, 
-                    productName: productToAdd.name, 
-                    unitPrice: productToAdd.price, 
+                    name: productToAdd.name, 
+                    price: productToAdd.price, 
                     quantity: 1 
                 }];
             }
@@ -92,7 +92,7 @@ const NewSalePage = () => {
 
     const updateQuantity = (productId: string, quantity: number) => {
         const productInCart = allProducts.find(p => p.id === productId);
-        const stock = productInCart?.stock || 0;
+        const stock = productInCart?.quantity || 0;
         if (quantity <= 0) {
             removeFromCart(productId);
         } else if (quantity > stock) {
@@ -110,15 +110,11 @@ const NewSalePage = () => {
 
         setIsSubmitting(true);
         try {
-            const selectedMember = members.find(m => m.id === selectedMemberId);
-            
             await addSale({
-                saleDate: new Date().toISOString(),
+                date: new Date().toISOString(),
                 items: cart,
-                totalAmount: totalAmount,
                 memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : '',
-                memberName: selectedMember ? `${selectedMember.firstName} ${selectedMember.lastName}` : 'Външен клиент',
-                isPaid: paymentStatus,
+                status: paymentStatus,
                 currency: 'EUR', // Enforce EUR as per user instruction
             });
 
@@ -170,10 +166,10 @@ const NewSalePage = () => {
                                     {availableProducts.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(product.price, 'EUR')}</TableCell>
-                                            <TableCell className="text-right">{product.stock}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(product.price)}</TableCell>
+                                            <TableCell className="text-right">{product.quantity}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={(product.stock || 0) === 0}>
+                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={(product.quantity || 0) === 0}>
                                                     <PlusCircle className="h-4 w-4" />
                                                 </Button>
                                             </TableCell>
@@ -210,8 +206,8 @@ const NewSalePage = () => {
                                     cart.map(item => (
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
-                                                <p className="font-medium">{item.productName}</p>
-                                                <p className="text-sm text-muted-foreground">{formatCurrency(item.unitPrice, 'EUR')}</p>
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -233,13 +229,13 @@ const NewSalePage = () => {
                             <CardFooter className="flex-col items-start gap-4">
                                 <div className="space-y-2 w-full">
                                     <Label>Статус на плащане</Label>
-                                    <RadioGroup defaultValue={'true'} onValueChange={(value) => setPaymentStatus(value === 'true')} className="flex space-x-4">
+                                    <RadioGroup value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as Sale['status'])} className="flex space-x-4">
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="true" id="r-paid" />
+                                            <RadioGroupItem value="completed" id="r-paid" />
                                             <Label htmlFor="r-paid">Платено</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="false" id="r-deferred" />
+                                            <RadioGroupItem value="pending" id="r-deferred" />
                                             <Label htmlFor="r-deferred">Отложено</Label>
                                         </div>
                                     </RadioGroup>
@@ -247,7 +243,7 @@ const NewSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Общо:</span>
-                                    <span>{formatCurrency(totalAmount, 'EUR')}</span>
+                                    <span>{formatCurrency(totalAmount)}</span>
                                 </div>
                                 <Button onClick={handleCreateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

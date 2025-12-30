@@ -51,7 +51,7 @@ export type Product = {
   price: number;
   currency: 'BGN' | 'EUR';
   category: string;
-  quantity: number; // Current stock level
+  stock: number; // Current stock level
   imageUrl?: string | null;
   restockThreshold?: number | null; // Threshold for restock reminders
 };
@@ -72,9 +72,11 @@ export type SaleItem = {
 export type Sale = {
   id: string;
   memberId: string;
-  date: string; // ISO 8601
+  saleDate: string; // ISO 8601
   items: SaleItem[];
   status: 'pending' | 'completed' | 'cancelled';
+  isPaid: boolean;
+  total: number;
   currency: 'BGN' | 'EUR';
   // Note: totalAmount is calculated on the fly where needed.
 };
@@ -85,7 +87,7 @@ export type Sale = {
 export type Payment = {
   id: string;
   memberId: string;
-  date: string; // ISO 8601
+  paymentDate: string; // ISO 8601
   amount: number;
   currency: 'BGN' | 'EUR';
   type: 'subscription' | 'donation' | 'sale' | 'other';
@@ -223,11 +225,16 @@ export type ScheduleEvent = {
 export type InventoryEvent = {
     id: string;
     productId: string;
-    date: string; // ISO 8601
-    type: 'restock' | 'sale' | 'correction' | 'initial';
+    productName: string;
+    createdAt: string; // ISO 8601
+    type: 'restock' | 'sale' | 'correction' | 'initial' | 'price_update';
     quantityChange: number;
-    reason?: string;
+    notes?: string;
     relatedSaleId?: string;
+    userId: string;
+    userName: string;
+    oldPrice?: number;
+    newPrice?: number;
 };
 
 // =================================================================
@@ -243,26 +250,35 @@ export type Reminder = {
     dueDate: string; // ISO 8601
     isCompleted: boolean;
     relatedLink?: string;
+    memberId?: string;
+    memberName?: string;
+    details?: string;
 };
 
 /**
- * Represents a message from the AI assistant.
+ * Represents a message from the AI assistant, typically a suggestion or a warning.
  */
 export type AssistantMessage = {
   id: string;
   timestamp: string; // ISO 8601
-  role: 'user' | 'assistant' | 'system';
-  content: string;
+  type: 'warning' | 'suggestion' | 'info';
+  title: string;
+  description: string;
 };
 
 /**
  * Represents an analyzed subscription for member analysis.
  */
 export type AnalyzedSubscription = {
+    subscriptionId: string;
     serviceName: string;
     status: 'active' | 'lapsing' | 'inactive';
+    paymentStatus: string;
     expiryDate: string; // ISO 8601
+    startDate: string;
+    endDate: string;
     paymentsBehind: number; // Number of missed payments
+    attendanceSummary: string;
 };
 
 /**

@@ -102,7 +102,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClos
                                         htmlFor={`member-${member.id}`}
                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                     >
-                                        {member.name || 'Име липсва'}
+                                        {member.name}
                                     </label>
                                 </div>
                             ))}

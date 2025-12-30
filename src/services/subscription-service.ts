@@ -1,6 +1,6 @@
 import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { MemberSubscription, ClubService, ClubServiceHistory, SpecialRight } from '@/types';
+import { Subscription, ClubService, ClubServiceHistory } from '@/types';
 import { getAuth } from 'firebase/auth';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
@@ -17,11 +17,17 @@ const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
         description: typeof data.description === 'string' ? data.description : '',
         price: typeof data.price === 'number' ? data.price : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
-        billingPeriod: ['Еднократно', 'Месечен', 'Годишен'].includes(data.billingPeriod) ? data.billingPeriod : 'Еднократно',
-        durationMinutes: typeof data.durationMinutes === 'number' ? data.durationMinutes : null,
+        type: ['Абонамент', 'Еднократно плащане'].includes(data.type) ? data.type : 'Еднократно плащане',
+        billingPeriod: ['Месечен', 'Годишен', null].includes(data.billingPeriod) ? data.billingPeriod : null,
         targetGroups: Array.isArray(data.targetGroups) ? data.targetGroups : [],
-        paymentRules: typeof data.paymentRules === 'object' ? data.paymentRules : { paymentDay: 1, dueDays: 7 },
+        isCoachLed: typeof data.isCoachLed === 'boolean' ? data.isCoachLed : false,
+        durationMinutes: typeof data.durationMinutes === 'number' ? data.durationMinutes : 0,
+        requiresBooking: typeof data.requiresBooking === 'boolean' ? data.requiresBooking : false,
+        minMembers: typeof data.minMembers === 'number' ? data.minMembers : 0,
+        maxMembers: typeof data.maxMembers === 'number' ? data.maxMembers : 0,
+        paymentRules: typeof data.paymentRules === 'object' ? data.paymentRules : undefined,
         specialRights: Array.isArray(data.specialRights) ? data.specialRights : [],
+        cancellationPolicy: typeof data.cancellationPolicy === 'object' ? data.cancellationPolicy : { isAllowed: false, noticePeriodDays: 0, feeType: 'none', feeValue: 0, description: '', longTermSicknessDiscount: 0 },
     };
 };
 
@@ -40,7 +46,7 @@ const docToClubServiceHistory = (doc: DocumentSnapshot): ClubServiceHistory | nu
     };
 };
 
-const docToMemberSubscription = (doc: DocumentSnapshot): MemberSubscription | null => {
+const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
     return {
@@ -49,7 +55,7 @@ const docToMemberSubscription = (doc: DocumentSnapshot): MemberSubscription | nu
         serviceId: typeof data.serviceId === 'string' ? data.serviceId : '',
         startDate: typeof data.startDate === 'string' ? data.startDate : new Date().toISOString(),
         endDate: typeof data.endDate === 'string' ? data.endDate : new Date().toISOString(),
-        status: ['active', 'inactive', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
+        status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentHistory: Array.isArray(data.paymentHistory) ? data.paymentHistory : [],
@@ -99,11 +105,11 @@ export const getHistoryForService = async (serviceId: string): Promise<ClubServi
     return snapshot.docs.map(docToClubServiceHistory).filter(Boolean) as ClubServiceHistory[];
 };
 
-export const getSubscriptionsByMemberId = async (memberId: string): Promise<MemberSubscription[]> => {
+export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subscription[]> => {
   const db = getDb();
   const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), where("memberId", "==", memberId));
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as MemberSubscription[];
+  return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
 };
 
 export const assignSubscriptionToMember = async (memberId: string, serviceId: string, startDate: Date): Promise<string> => {
@@ -113,7 +119,7 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   
   // ... (rest of the logic remains the same, but now uses a bulletproof 'service' object)
 
-  const newSubscription: Omit<MemberSubscription, 'id'> = {
+  const newSubscription: Omit<Subscription, 'id'> = {
       memberId, serviceId, startDate: new Date().toISOString(), endDate: new Date().toISOString(), status: 'pending_payment', pricePaid: 0, currency: service.currency, paymentHistory: [], paymentsMadeCount: 0, licenseGranted: false, apparelGranted: false
   };
   const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), newSubscription);

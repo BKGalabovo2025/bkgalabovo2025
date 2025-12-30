@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Member, MemberSubscription, ClubService } from '@/types';
+import { Member, Subscription, ClubService } from '@/types';
 import { getAllSubscriptions } from '@/services/finance-service';
 import { getAllMembers } from '@/services/member-service';
 import { getAllClubServices } from '@/services/subscription-service';
@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 
 interface Liability {
   member: Member;
-  subscription: MemberSubscription;
+  subscription: Subscription;
   service?: ClubService;
 }
 
@@ -83,7 +83,7 @@ const LiabilitiesReport = () => {
                   <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
                   <TableCell>{service?.name || 'Няма име'}</TableCell>
                   <TableCell>{new Date(subscription.endDate).toLocaleDateString('bg-BG')}</TableCell>
-                  <TableCell className="text-right font-medium">{(subscription.pricePaid / 100).toFixed(2)} {subscription.currency}</TableCell>
+                  <TableCell className="text-right font-medium">{(subscription.pricePaid).toFixed(2)} {subscription.currency}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -17,7 +17,7 @@ export default function ProtectedLayout({
           <AppSidebar collapsible="icon" />
           <div className="flex flex-col flex-1">
             <MainHeader />
-            <main className="flex-1 p-6">
+            <main className="flex-1 p-6 animate-in fade-in-0 duration-500">
               {children}
             </main>
           </div>

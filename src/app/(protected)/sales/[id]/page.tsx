@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { deleteSale, getSaleById, markSaleAsPaid } from '@/services/sales-service';
+import { deleteSale, getSaleById, updateSale } from '@/services/sales-service';
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -68,8 +68,8 @@ const SaleDetailsPage = () => {
   const handleMarkAsPaid = async () => {
     setIsUpdatingStatus(true);
     try {
-      await markSaleAsPaid(saleId);
-      setSale(prevSale => prevSale ? { ...prevSale, isPaid: true } : null);
+      await updateSale(saleId, { status: 'completed' });
+      setSale(prevSale => prevSale ? { ...prevSale, status: 'completed' } : null);
       toast({
         title: "Успех!",
         description: "Плащането е регистрирано.",
@@ -98,8 +98,6 @@ const SaleDetailsPage = () => {
   if (!sale) {
     return <div className="text-center py-10">Информацията за продажбата не е намерена.</div>;
   }
-
-  const displayCurrency = 'EUR';
 
   return (
     <div className="p-4 sm:p-6">
@@ -154,12 +152,12 @@ const SaleDetailsPage = () => {
                         {sale.items.map((item, index) => (
                             <li key={item.productId || index} className="p-3 flex justify-between items-center">
                                 <div>
-                                    <p className="font-medium">{item.productName}</p>
+                                    <p className="font-medium">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {formatCurrency(item.unitPrice, displayCurrency)}
+                                        {item.quantity} x {formatCurrency(item.price)}
                                     </p>
                                 </div>
-                                <p className="font-semibold">{formatCurrency(item.quantity * item.unitPrice, displayCurrency)}</p>
+                                <p className="font-semibold">{formatCurrency(item.quantity * item.price)}</p>
                             </li>
                         ))}
                     </ul>
@@ -168,7 +166,7 @@ const SaleDetailsPage = () => {
             <CardFooter className="bg-muted/40 p-4 flex justify-end">
                  <div className="text-right">
                     <p className="text-sm text-muted-foreground">Общо</p>
-                     <p className="font-bold text-2xl">{formatCurrency(sale.totalAmount, displayCurrency)}</p>
+                     <p className="font-bold text-2xl">{formatCurrency(sale.total)}</p>
                 </div>
             </CardFooter>
           </Card>
@@ -192,7 +190,7 @@ const SaleDetailsPage = () => {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">{sale.memberName || 'Продажба на каса'}</p>
+                        <p className="text-muted-foreground">Продажба на каса</p>
                     )}
                 </CardContent>
                 {member && (
@@ -207,7 +205,7 @@ const SaleDetailsPage = () => {
                     <CardTitle>Статус на плащане</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-start gap-4">
-                     <Badge variant={sale.isPaid ? 'success' : 'destructive'} className="text-base px-4 py-1">
+                     <Badge variant={sale.status === 'completed' ? 'success' : 'destructive'} className="text-base px-4 py-1">
                         {sale.isPaid ? 'Платено' : 'Неплатено'}
                     </Badge>
 

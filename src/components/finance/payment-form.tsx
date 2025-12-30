@@ -12,12 +12,14 @@ import { Loader2 } from 'lucide-react';
 import { Member, Payment } from "@/types";
 
 const paymentSchema = z.object({
-  memberId: z.string({ required_error: "Моля, изберете член." }),
-  amount: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
-  paymentDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна дата." }),
-  type: z.enum(["Членски внос", "Дарение", "Друго"], { required_error: "Моля, изберете тип на плащането." }),
+  memberId: z.string().min(1, "Моля, изберете член."),
+  amount: z.number().min(0.01, "Сумата трябва да е положително число."),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), "Моля, въведете валидна дата."),
+  type: z.enum(["subscription", "donation", "sale", "other"]),
   notes: z.string().optional(),
 });
+
+type PaymentFormValues = z.infer<typeof paymentSchema>;
 
 interface PaymentFormProps {
   members: Member[];
@@ -28,15 +30,28 @@ interface PaymentFormProps {
 }
 
 export function PaymentForm({ members, onSave, onClose, initialData, isSaving }: PaymentFormProps) {
-  const form = useForm<z.infer<typeof paymentSchema>>({
+  const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: initialData ? { ...initialData } : {
-      paymentDate: new Date().toISOString().split('T')[0],
+    defaultValues: initialData ? { 
+        ...initialData,
+        date: initialData.date.split('T')[0]
+    } : {
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+      memberId: '',
+      type: 'subscription'
     },
   });
 
-  const onSubmit = (data: z.infer<typeof paymentSchema>) => {
-    onSave(data);
+  const onSubmit = (data: PaymentFormValues) => {
+    const paymentData: Omit<Payment, 'id'> = {
+        ...data,
+        currency: 'BGN',
+        method: 'cash', 
+        status: 'succeeded',
+        notes: data.notes || '',
+    };
+    onSave(paymentData);
   };
 
   return (
@@ -80,9 +95,10 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="Членски внос">Членски внос</SelectItem>
-                  <SelectItem value="Дарение">Дарение</SelectItem>
-                  <SelectItem value="Друго">Друго</SelectItem>
+                  <SelectItem value="subscription">Членски внос</SelectItem>
+                  <SelectItem value="donation">Дарение</SelectItem>
+                  <SelectItem value="sale">Продажба</SelectItem>
+                  <SelectItem value="other">Друго</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -97,7 +113,13 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
             <FormItem>
               <FormLabel>Сума</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <Input 
+                    type="number" 
+                    step="0.01" 
+                    {...field} 
+                    onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                    value={field.value === 0 ? '' : field.value}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,7 +128,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
 
         <FormField
           control={form.control}
-          name="paymentDate"
+          name="date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Дата на плащане</FormLabel>
@@ -125,7 +147,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
             <FormItem>
               <FormLabel>Бележки</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} value={field.value ?? ''}/>
               </FormControl>
               <FormMessage />
             </FormItem>

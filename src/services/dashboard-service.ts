@@ -18,22 +18,23 @@ export const getDashboardStats = (members: Member[], sales: Sale[]) => {
 
     const totalMembers = safeMembers.length;
     const activeMembers = safeMembers.filter(m => m && m.status === 'active').length;
-    const unpaidSales = safeSales.filter(sale => sale && !sale.isPaid).length;
+    const unpaidSales = safeSales.filter(sale => sale && sale.status === 'pending').length;
 
     // Correctly calculates total revenue by grouping amounts by currency.
     const totalRevenue: TotalRevenue = safeSales.reduce((acc, sale) => {
-        if (!sale || typeof sale.totalAmount !== 'number') {
-            return acc; // Skip if sale is invalid or amount is not a number
+        if (!sale || !Array.isArray(sale.items)) {
+            return acc; // Skip if sale or items are invalid
         }
 
+        const totalAmount = sale.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        
         // All new sales are in EUR. Default old ones to EUR as well for consistency.
-        const currency = (sale.currency as string) || 'EUR'; 
-        const amount = sale.totalAmount;
+        const currency = sale.currency || 'BGN'; 
 
         if (!acc[currency]) {
             acc[currency] = 0;
         }
-        acc[currency] += amount;
+        acc[currency] += totalAmount;
 
         return acc;
     }, {} as TotalRevenue);

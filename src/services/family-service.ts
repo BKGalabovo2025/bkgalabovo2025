@@ -13,20 +13,22 @@ export const docToFamily = (doc: DocumentSnapshot): Family | null => {
     }
     const data = doc.data() || {};
 
-    // Ensure memberIds is an array of strings.
     const memberIds = Array.isArray(data.memberIds) ? data.memberIds.filter(id => typeof id === 'string') : [];
 
     return {
         id: doc.id,
+        name: data.name || 'Unnamed Family', // Default name if not present
         memberIds: memberIds,
     };
 };
 
-export const createFamily = async (memberIds: string[]): Promise<string> => {
+export const createFamily = async (name: string, memberIds: string[]): Promise<Family> => {
     const db = getDb();
-    const familyDocRef = await addDoc(collection(db, FAMILIES_COLLECTION), {
+    const familyData = {
+        name: name,
         memberIds: memberIds,
-    });
+    };
+    const familyDocRef = await addDoc(collection(db, FAMILIES_COLLECTION), familyData);
 
     const batch = writeBatch(db);
     memberIds.forEach(memberId => {
@@ -35,7 +37,10 @@ export const createFamily = async (memberIds: string[]): Promise<string> => {
     });
     await batch.commit();
 
-    return familyDocRef.id;
+    return {
+        id: familyDocRef.id,
+        ...familyData,
+    };
 };
 
 export const addMemberToFamily = async (familyId: string, memberId: string): Promise<void> => {

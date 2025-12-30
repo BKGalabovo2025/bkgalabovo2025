@@ -20,9 +20,9 @@ import { EventListItem } from '@/components/schedule/EventListItem';
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
     training: 'Тренировка',
-    sastezanie: 'Състезание',
-    lager: 'Лагер',
-    sabitie: 'Събитие',
+    competition: 'Състезание',
+    camp: 'Лагер',
+    event: 'Събитие',
 };
 
 const tabTranslations: Record<string, string> = {

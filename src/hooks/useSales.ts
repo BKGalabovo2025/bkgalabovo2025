@@ -11,42 +11,38 @@ export const useSales = (memberId?: string) => {
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const fetchSales = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                // If a memberId is provided, fetch sales specifically for that member.
-                // Otherwise, fetch all sales.
-                const salesData = memberId 
-                    ? await getSalesByMemberId(memberId) 
-                    : await getSales();
-                
-                setSales(salesData);
-            } catch (err: any) {
-                console.error("Error fetching sales:", err);
-                const errorMessage = 'Неуспешно зареждане на продажбите.';
-                setError(errorMessage);
-                toast({ 
-                    title: "Грешка при зареждане", 
-                    description: errorMessage, 
-                    variant: "destructive" 
-                });
-            }
-            finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchSales();
+    const fetchSales = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const salesData = memberId 
+                ? await getSalesByMemberId(memberId) 
+                : await getSales();
+            setSales(salesData);
+        } catch (err: any) {
+            console.error("Error fetching sales:", err);
+            const errorMessage = 'Неуспешно зареждане на продажбите.';
+            setError(errorMessage);
+            toast({ 
+                title: "Грешка при зареждане", 
+                description: errorMessage, 
+                variant: "destructive" 
+            });
+        }
+        finally {
+            setIsLoading(false);
+        }
     }, [memberId, toast]);
+
+    useEffect(() => {
+        fetchSales();
+    }, [fetchSales]);
 
     const markAsPaid = useCallback(async (saleId: string) => {
       try {
         await serviceMarkAsPaid(saleId);
-        // Manually update the state to reflect the change in the UI immediately
         setSales(prevSales => prevSales.map(s => 
-            s.id === saleId ? { ...s, isPaid: true } : s
+            s.id === saleId ? { ...s, status: 'completed' } : s
         ));
         toast({ title: 'Продажбата е маркирана като платена' });
       } catch (err) {
@@ -55,5 +51,5 @@ export const useSales = (memberId?: string) => {
       }
     }, [toast]);
 
-    return { sales, loading, error, markAsPaid };
+    return { sales, loading, error, markAsPaid, refetch: fetchSales };
 };

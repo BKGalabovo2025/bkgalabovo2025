@@ -9,20 +9,20 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
-import { Member, MemberSubscription } from "@/types";
+import { Member, Subscription } from "@/types";
 
 const subscriptionSchema = z.object({
-  memberId: z.string({ required_error: "Моля, изберете член." }),
-  serviceId: z.string({ required_error: "Моля, изберете услуга." }),
-  status: z.enum(["active", "expired", "cancelled", "pending_payment"], { required_error: "Моля, изберете статус." }),
-  pricePaid: z.coerce.number().min(0.01, { message: "Сумата трябва да е положително число." }),
+  memberId: z.string().min(1, "Моля, изберете член."),
+  serviceId: z.string().min(1, "Моля, изберете услуга."),
+  status: z.enum(["active", "inactive", "cancelled", "pending_payment"]),
+  pricePaid: z.number().min(0.01, { message: "Сумата трябва да е положително число." }),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна начална дата." }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна крайна дата." }),
   currency: z.enum(["BGN", "EUR"]),
   paymentHistory: z.array(z.object({
     date: z.string(),
     amount: z.number(),
-    notes: z.string().optional(),
+    paymentId: z.string(),
   })),
   paymentsMadeCount: z.number(),
   licenseGranted: z.boolean(),
@@ -30,16 +30,18 @@ const subscriptionSchema = z.object({
 
 });
 
+type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
+
 interface SubscriptionFormProps {
   members: Member[];
-  onSave: (data: Omit<MemberSubscription, 'id'>) => void;
+  onSave: (data: Omit<Subscription, 'id'>) => void;
   onClose: () => void;
-  initialData?: MemberSubscription;
+  initialData?: Subscription;
   isSaving?: boolean;
 }
 
 export function SubscriptionForm({ members, onSave, onClose, initialData, isSaving }: SubscriptionFormProps) {
-  const form = useForm<z.infer<typeof subscriptionSchema>>({
+  const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -50,7 +52,7 @@ export function SubscriptionForm({ members, onSave, onClose, initialData, isSavi
     },
   });
 
-  const onSubmit = (data: z.infer<typeof subscriptionSchema>) => {
+  const onSubmit = (data: SubscriptionFormValues) => {
     onSave(data);
   };
 
@@ -91,7 +93,7 @@ export function SubscriptionForm({ members, onSave, onClose, initialData, isSavi
             <FormItem>
               <FormLabel>Платена сума</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)}/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -113,7 +115,7 @@ export function SubscriptionForm({ members, onSave, onClose, initialData, isSavi
                 <SelectContent>
                   <SelectItem value="active">Активен</SelectItem>
                   <SelectItem value="pending_payment">Чакащо плащане</SelectItem>
-                  <SelectItem value="expired">Изтекъл</SelectItem>
+                  <SelectItem value="inactive">Изтекъл</SelectItem>
                   <SelectItem value="cancelled">Анулиран</SelectItem>
                 </SelectContent>
               </Select>

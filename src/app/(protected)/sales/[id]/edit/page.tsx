@@ -34,7 +34,7 @@ const EditSalePage = () => {
     
     const [cart, setCart] = useState<SaleItem[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string>('none');
-    const [paymentStatus, setPaymentStatus] = useState<boolean>(true);
+    const [paymentStatus, setPaymentStatus] = useState<Sale['status']>('completed');
     const [totalAmount, setTotalAmount] = useState(0);
     const [initialSale, setInitialSale] = useState<Sale | null>(null);
 
@@ -60,7 +60,7 @@ const EditSalePage = () => {
                 setInitialSale(saleData);
                 setCart(saleData.items);
                 setSelectedMemberId(saleData.memberId || 'none');
-                setPaymentStatus(saleData.isPaid);
+                setPaymentStatus(saleData.status);
                 setMembers(membersData);
 
             } catch (error) {
@@ -76,7 +76,7 @@ const EditSalePage = () => {
     }, [saleId, toast, router]);
 
     useEffect(() => {
-        const newTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+        const newTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         setTotalAmount(newTotal);
     }, [cart]);
 
@@ -101,7 +101,7 @@ const EditSalePage = () => {
                     toast({ title: "Няма наличност", description: `Продуктът ${productToAdd.name} е изчерпан.`, variant: "destructive" });
                     return prevCart;
                 }
-                return [...prevCart, { productId: productToAdd.id, productName: productToAdd.name, unitPrice: productToAdd.price, quantity: 1 }];
+                return [...prevCart, { productId: productToAdd.id, name: productToAdd.name, price: productToAdd.price, quantity: 1 }];
             }
         });
     };
@@ -137,10 +137,8 @@ const EditSalePage = () => {
             
             await updateSale(saleId, {
                 items: cart,
-                totalAmount: totalAmount,
                 memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : '',
-                memberName: selectedMember ? `${selectedMember.firstName} ${selectedMember.lastName}` : 'Външен клиент',
-                isPaid: paymentStatus,
+                status: paymentStatus,
             });
 
             toast({ title: "Успех!", description: "Продажбата е обновена успешно." });
@@ -197,7 +195,7 @@ const EditSalePage = () => {
                                     {allProducts.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(product.price, 'EUR')}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(product.price)}</TableCell>
                                             <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button size="sm" onClick={() => addToCart(product.id)} >
@@ -237,8 +235,8 @@ const EditSalePage = () => {
                                     cart.map(item => (
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
-                                                <p className="font-medium">{item.productName}</p>
-                                                <p className="text-sm text-muted-foreground">{formatCurrency(item.unitPrice, 'EUR')}</p>
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -260,13 +258,13 @@ const EditSalePage = () => {
                             <CardFooter className="flex-col items-start gap-4">
                                 <div className="space-y-2 w-full">
                                     <Label>Статус на плащане</Label>
-                                    <RadioGroup value={String(paymentStatus)} onValueChange={(value) => setPaymentStatus(value === 'true')} className="flex space-x-4">
+                                    <RadioGroup value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as Sale['status'])} className="flex space-x-4">
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="true" id="r-paid" />
+                                            <RadioGroupItem value="completed" id="r-paid" />
                                             <Label htmlFor="r-paid">Платено</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="false" id="r-deferred" />
+                                            <RadioGroupItem value="pending" id="r-deferred" />
                                             <Label htmlFor="r-deferred">Отложено</Label>
                                         </div>
                                     </RadioGroup>
@@ -274,7 +272,7 @@ const EditSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Общо:</span>
-                                    <span>{formatCurrency(totalAmount, 'EUR')}</span>
+                                    <span>{formatCurrency(totalAmount)}</span>
                                 </div>
                                 <Button onClick={handleUpdateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

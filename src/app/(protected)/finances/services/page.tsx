@@ -294,14 +294,7 @@ export default function ServicesPage() {
             minMembers: Number(formData.minMembers) || 1,
             maxMembers: Number(formData.maxMembers) || 0,
             paymentRules: formData.type === 'Абонамент' ? (formData.paymentRules || initialServiceState.paymentRules) : undefined,
-            cancellationPolicy: formData.cancellationPolicy || initialCancellationPolicy,
-            // Ensure all other required fields are present
-            grantsLicense: formData.grantsLicense || false,
-            licenseCondition: formData.licenseCondition || 'Веднага',
-            licensePaymentCount: formData.licensePaymentCount || 0,
-            grantsApparel: formData.grantsApparel || false,
-            apparelCondition: formData.apparelCondition || 'Веднага',
-            apparelPaymentCount: formData.apparelPaymentCount || 0,
+            cancellationPolicy: formData.cancellationPolicy || initialCancellationPolicy
         };
 
         if (selectedService) {
@@ -334,8 +327,8 @@ export default function ServicesPage() {
         setServiceToDeleteId(null);
       }
     }
-  };
-  
+  }; 
+
   // Memoize card rendering
   const serviceCards = useMemo(() => services.map((service) => (
     <Card key={service.id} className="flex flex-col">

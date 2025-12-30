@@ -22,6 +22,16 @@ const docToMember = (doc: DocumentSnapshot): Member | null => {
         return null;
     }
 
+    const toISODate = (date: any): string => {
+        if (date instanceof Timestamp) {
+            return date.toDate().toISOString();
+        } else if (typeof date === 'string') {
+            return date;
+        } else {
+            return new Date(0).toISOString();
+        }
+    }
+
     const member: Member = {
         id: doc.id,
         name: [firstName, middleName, lastName].filter(Boolean).join(' '),
@@ -31,12 +41,13 @@ const docToMember = (doc: DocumentSnapshot): Member | null => {
         email: typeof data.email === 'string' ? data.email : null,
         phone: typeof data.phone === 'string' ? data.phone : null,
         phoneType: data.phoneType === 'personal' || data.phoneType === 'parent' ? data.phoneType : null,
-        dateOfBirth: data.dateOfBirth?.toDate?.() instanceof Date ? data.dateOfBirth.toDate().toISOString() : new Date(0).toISOString(),
-        registrationDate: data.registrationDate?.toDate?.() instanceof Date ? data.registrationDate.toDate().toISOString() : new Date().toISOString(),
+        dateOfBirth: toISODate(data.dateOfBirth),
+        registrationDate: toISODate(data.registrationDate),
         status: data.status === 'active' || data.status === 'inactive' ? data.status : 'inactive',
         avatarUrl: typeof data.avatarUrl === 'string' ? data.avatarUrl : null,
         familyId: typeof data.familyId === 'string' ? data.familyId : null,
         educationInstitution: typeof data.educationInstitution === 'string' ? data.educationInstitution : null,
+        personalId: typeof data.personalId === 'string' ? data.personalId : null,
         address: typeof data.address === 'string' ? data.address : null,
         notes: typeof data.notes === 'string' ? data.notes : null,
         analysisCache: typeof data.analysisCache === 'object' ? data.analysisCache : null,
@@ -44,9 +55,6 @@ const docToMember = (doc: DocumentSnapshot): Member | null => {
 
     return member;
 }
-
-type CreateMemberData = Omit<Member, 'id' | 'name'>;
-type UpdateMemberData = Partial<Omit<Member, 'id' | 'name'>>;
 
 export const getMemberById = async (id: string): Promise<Member | null> => {
     if (!id || id === 'undefined') {
@@ -66,23 +74,11 @@ export const getAllMembers = async (): Promise<Member[]> => {
   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
-export const addMember = async (memberData: CreateMemberData): Promise<string> => {
+export const addMember = async (memberData: Omit<Member, 'id' | 'name'>): Promise<string> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   const dataToAdd = {
-    firstName: memberData.firstName,
-    lastName: memberData.lastName,
-    status: memberData.status,
-    middleName: memberData.middleName || null,
-    email: memberData.email || null,
-    phone: memberData.phone || null,
-    phoneType: memberData.phoneType || null,
-    avatarUrl: memberData.avatarUrl || null,
-    familyId: memberData.familyId || null,
-    educationInstitution: memberData.educationInstitution || null,
-    address: memberData.address || null,
-    notes: memberData.notes || null,
-    analysisCache: memberData.analysisCache || null,
+    ...memberData,
     dateOfBirth: Timestamp.fromDate(new Date(memberData.dateOfBirth)),
     registrationDate: Timestamp.fromDate(new Date(memberData.registrationDate)),
   };
@@ -90,7 +86,7 @@ export const addMember = async (memberData: CreateMemberData): Promise<string> =
   return docRef.id;
 };
 
-export const updateMember = async (id: string, memberData: UpdateMemberData): Promise<void> => {
+export const updateMember = async (id: string, memberData: Partial<Omit<Member, 'id' | 'name'>>): Promise<void> => {
   const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
   const dataToUpdate: { [key: string]: any } = { ...memberData };
