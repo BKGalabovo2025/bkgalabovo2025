@@ -68,12 +68,15 @@ const seedDatabase = async () => {
     const sale1Items: SaleItem[] = [
       { productId: serviceForSale.id, name: serviceForSale.name, quantity: 1, price: serviceForSale.price },
     ];
+    const total1 = sale1Items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     await addSale({
       memberId: member1Id,
-      date: new Date().toISOString(),
+      saleDate: new Date().toISOString(),
       items: sale1Items,
       status: 'completed',
+      isPaid: true,
+      total: total1,
       currency: 'BGN',
     } as Omit<Sale, 'id'>);
     console.log(`Created sale 1 for member ${member1Id}`);
@@ -81,12 +84,15 @@ const seedDatabase = async () => {
     const sale2Items: SaleItem[] = [
         { productId: serviceForSale.id, name: serviceForSale.name, quantity: 2, price: serviceForSale.price },
     ];
+    const total2 = sale2Items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     await addSale({
         memberId: member2Id,
-        date: new Date().toISOString(),
+        saleDate: new Date().toISOString(),
         items: sale2Items,
         status: 'pending',
+        isPaid: false,
+        total: total2,
         currency: 'BGN',
       } as Omit<Sale, 'id'>);
     console.log(`Created sale 2 for member ${member2Id}`);

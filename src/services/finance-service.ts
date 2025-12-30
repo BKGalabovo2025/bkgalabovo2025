@@ -1,11 +1,10 @@
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc, orderBy, updateDoc, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { Payment, Subscription } from '@/types';
+import { Payment, Subscription, PaymentHistoryItem } from '@/types';
 
 const PAYMENTS_COLLECTION = 'payments';
 const SUBSCRIPTIONS_COLLECTION = 'subscriptions';
 
-// Bulletproof converters
 const docToPayment = (doc: DocumentSnapshot): Payment | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
@@ -13,7 +12,7 @@ const docToPayment = (doc: DocumentSnapshot): Payment | null => {
         id: doc.id,
         amount: typeof data.amount === 'number' ? data.amount : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
-        date: data.date instanceof Timestamp ? data.date.toDate().toISOString() : new Date().toISOString(),
+        paymentDate: data.paymentDate instanceof Timestamp ? data.paymentDate.toDate().toISOString() : new Date().toISOString(),
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
         method: ['cash', 'card', 'bank_transfer'].includes(data.method) ? data.method : 'cash',
         status: ['paid', 'unpaid', 'failed'].includes(data.status) ? data.status : 'unpaid',
@@ -24,6 +23,16 @@ const docToPayment = (doc: DocumentSnapshot): Payment | null => {
 const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
+
+    const paymentHistory = (Array.isArray(data.paymentHistory) ? data.paymentHistory : []).map((item: any): PaymentHistoryItem | null => {
+        if (!item || typeof item !== 'object') return null;
+        return {
+            paymentId: typeof item.paymentId === 'string' ? item.paymentId : '',
+            paymentDate: item.paymentDate instanceof Timestamp ? item.paymentDate.toDate().toISOString() : new Date().toISOString(),
+            amount: typeof item.amount === 'number' ? item.amount : 0,
+        };
+    }).filter(Boolean) as PaymentHistoryItem[];
+
     return {
         id: doc.id,
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
@@ -31,32 +40,46 @@ const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
         startDate: data.startDate instanceof Timestamp ? data.startDate.toDate().toISOString() : new Date().toISOString(),
         endDate: data.endDate instanceof Timestamp ? data.endDate.toDate().toISOString() : new Date().toISOString(),
         status: ['active', 'inactive', 'cancelled'].includes(data.status) ? data.status : 'inactive',
+        pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
+        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
+        paymentHistory: paymentHistory,
+        paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
+        totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,
+        serviceName: typeof data.serviceName === 'string' ? data.serviceName : ''
     };
 };
 
-// Payment Functions
 export const addPayment = async (paymentData: Omit<Payment, 'id'>): Promise<string> => {
     const db = getDb();
-    const docRef = await addDoc(collection(db, PAYMENTS_COLLECTION), { ...paymentData, date: Timestamp.fromDate(new Date(paymentData.date)) });
+    const dataWithTimestamp = {
+        ...paymentData,
+        paymentDate: Timestamp.fromDate(new Date(paymentData.paymentDate)),
+    };
+    const docRef = await addDoc(collection(db, PAYMENTS_COLLECTION), dataWithTimestamp);
     return docRef.id;
 };
 
 export const updatePayment = async (paymentId: string, paymentData: Partial<Omit<Payment, 'id'>>): Promise<void> => {
     const db = getDb();
     const paymentDoc = doc(db, PAYMENTS_COLLECTION, paymentId);
-    await updateDoc(paymentDoc, paymentData);
+    const dataToUpdate: { [key: string]: any } = { ...paymentData };
+    if (paymentData.paymentDate) {
+        dataToUpdate.paymentDate = Timestamp.fromDate(new Date(paymentData.paymentDate));
+    }
+    await updateDoc(paymentDoc, dataToUpdate);
 };
 
 export const getPaymentsForMember = async (memberId: string): Promise<Payment[]> => {
     const db = getDb();
-    const q = query(collection(db, PAYMENTS_COLLECTION), where('memberId', '==', memberId));
+    const q = query(collection(db, PAYMENTS_COLLECTION), where('memberId', '==', memberId), orderBy('paymentDate', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(docToPayment).filter(Boolean) as Payment[];
 };
 
 export const getAllPayments = async (): Promise<Payment[]> => {
     const db = getDb();
-    const snapshot = await getDocs(collection(db, PAYMENTS_COLLECTION));
+    const q = query(collection(db, PAYMENTS_COLLECTION), orderBy('paymentDate', 'desc'));
+    const snapshot = await getDocs(q);
     return snapshot.docs.map(docToPayment).filter(Boolean) as Payment[];
 };
 
@@ -65,13 +88,13 @@ export const deletePayment = async (paymentId: string): Promise<void> => {
     await deleteDoc(doc(db, PAYMENTS_COLLECTION, paymentId));
 };
 
-// Subscription Functions
 export const addSubscription = async (subscriptionData: Omit<Subscription, 'id'>): Promise<string> => {
     const db = getDb();
     const dataWithTimestamps = {
         ...subscriptionData,
         startDate: Timestamp.fromDate(new Date(subscriptionData.startDate)),
         endDate: Timestamp.fromDate(new Date(subscriptionData.endDate)),
+        paymentHistory: subscriptionData.paymentHistory.map(p => ({ ...p, paymentDate: Timestamp.fromDate(new Date(p.paymentDate))}))
     };
     const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), dataWithTimestamps);
     return docRef.id;
@@ -80,7 +103,18 @@ export const addSubscription = async (subscriptionData: Omit<Subscription, 'id'>
 export const updateSubscription = async (subscriptionId: string, subscriptionData: Partial<Omit<Subscription, 'id'>>): Promise<void> => {
     const db = getDb();
     const subDoc = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
-    await updateDoc(subDoc, subscriptionData);
+    const dataToUpdate: { [key: string]: any } = { ...subscriptionData };
+    if (subscriptionData.startDate) {
+        dataToUpdate.startDate = Timestamp.fromDate(new Date(subscriptionData.startDate));
+    }
+    if (subscriptionData.endDate) {
+        dataToUpdate.endDate = Timestamp.fromDate(new Date(subscriptionData.endDate));
+    }
+    if (subscriptionData.paymentHistory) {
+        dataToUpdate.paymentHistory = subscriptionData.paymentHistory.map(p => ({ ...p, paymentDate: Timestamp.fromDate(new Date(p.paymentDate))}));
+    }
+
+    await updateDoc(subDoc, dataToUpdate);
 };
 
 export const getAllSubscriptions = async (): Promise<Subscription[]> => {

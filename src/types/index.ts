@@ -157,6 +157,12 @@ export type ClubService = {
   cancellationPolicy: CancellationPolicy;
 };
 
+export type PaymentHistoryItem = { 
+  date: string; 
+  amount: number; 
+  paymentId: string; 
+};
+
 /**
  * Represents a member's subscription to a specific club service.
  * This was previously referred to as MemberSubscription.
@@ -165,15 +171,17 @@ export type Subscription = {
   id: string;
   memberId: string;
   serviceId: string;
+  serviceName: string;
   startDate: string; // ISO 8601
   endDate: string; // ISO 8601
   status: 'active' | 'inactive' | 'cancelled' | 'pending_payment';
   pricePaid: number;
   currency: 'BGN' | 'EUR';
-  paymentHistory: { date: string; amount: number; paymentId: string; }[];
+  paymentHistory: PaymentHistoryItem[];
   paymentsMadeCount: number;
-  licenseGranted: boolean;
-  apparelGranted: boolean;
+  totalPaymentsCount: number;
+  licenseGranted?: boolean;
+  apparelGranted?: boolean;
 };
 
 /**
@@ -198,7 +206,14 @@ export type ClubServiceHistory = {
 /**
  * Defines the types of schedule events.
  */
-export type ScheduleEventType = 'training' | 'competition' | 'camp' | 'event';
+export type ScheduleEventType = 'training' | 'competition' | 'camp' | 'event' | 'other';
+
+
+export type Attendee = {
+  memberId: string; 
+  name: string; 
+  attended: boolean; 
+};
 
 /**
  * Represents an event in the club's schedule.
@@ -210,7 +225,7 @@ export type ScheduleEvent = {
   endDate: string; // ISO 8601
   type: ScheduleEventType;
   location: string;
-  attendees: string[]; // Array of Member IDs
+  attendees: Attendee[];
   description?: string | null;
   maxAttendees?: number;
 };

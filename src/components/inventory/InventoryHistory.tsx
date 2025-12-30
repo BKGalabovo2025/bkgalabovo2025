@@ -31,26 +31,26 @@ const InventoryHistory = () => {
 
     const renderEventDetails = (event: InventoryEvent) => {
         switch (event.type) {
-            case 'RESTOCK':
+            case 'restock':
                 return <span className="text-green-600">+{event.quantityChange} бр.</span>;
-            case 'PRICE_UPDATE':
+            case 'price_update':
                 return `стара: ${event.oldPrice?.toFixed(2)} EUR -> нова: ${event.newPrice?.toFixed(2)} EUR`;
-            case 'SALE': // Assuming you might add sales later
+            case 'sale': // Assuming you might add sales later
                 return <span className="text-red-600">{event.quantityChange} бр.</span>;
-            case 'ADJUSTMENT': // For manual corrections
+            case 'correction': // For manual corrections
                  return <span className={event.quantityChange && event.quantityChange > 0 ? 'text-green-600' : 'text-red-600'}>{event.quantityChange} бр.</span>;
             default:
                 return '--';
         }
     };
 
-    const getEventTypeLabel = (type: string) => {
+    const getEventTypeLabel = (type: InventoryEvent['type']) => {
         switch (type) {
-            case 'RESTOCK': return <Badge variant="default">Презареждане</Badge>;
-            case 'PRICE_UPDATE': return <Badge variant="secondary">Промяна на цена</Badge>;
-            case 'SALE': return <Badge variant="destructive">Продажба</Badge>;
-            case 'ADJUSTMENT': return <Badge variant="outline">Корекция</Badge>;
-             case 'INITIAL': return <Badge>Първоначално</Badge>;
+            case 'restock': return <Badge variant="default">Презареждане</Badge>;
+            case 'price_update': return <Badge variant="secondary">Промяна на цена</Badge>;
+            case 'sale': return <Badge variant="destructive">Продажба</Badge>;
+            case 'correction': return <Badge variant="outline">Корекция</Badge>;
+             case 'initial': return <Badge>Първоначално</Badge>;
             default: return <Badge color="gray">{type}</Badge>;
         }
     };
@@ -78,7 +78,7 @@ const InventoryHistory = () => {
                         <TableBody>
                             {events.map((event) => (
                                 <TableRow key={event.id}>
-                                    <TableCell>{new Date(event.createdAt.seconds * 1000).toLocaleString('bg-BG')}</TableCell>
+                                    <TableCell>{new Date(event.createdAt).toLocaleString('bg-BG')}</TableCell>
                                     <TableCell>{event.productName}</TableCell>
                                     <TableCell>{getEventTypeLabel(event.type)}</TableCell>
                                     <TableCell>{renderEventDetails(event)}</TableCell>

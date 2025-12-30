@@ -196,20 +196,26 @@ export const analyzeMemberStatus = async (
         if (!service) continue;
 
         let paymentStatus: 'active' | 'lapsing' | 'inactive' = 'inactive';
+        let status: 'active' | 'lapsing' | 'inactive' = 'inactive';
         if (sub.status === 'active') {
-            paymentStatus = 'active';
+            status = 'active';
         } else if (sub.status === 'pending_payment') {
             const paymentWindowEnd = service.paymentRules?.window.endDay;
             if (paymentWindowEnd && today.getDate() > paymentWindowEnd) {
-                paymentStatus = 'lapsing';
+                status = 'lapsing';
             }
         }
 
         analyzedSubscriptions.push({
+            subscriptionId: sub.id,
             serviceName: service.name,
-            status: paymentStatus,
+            status: status,
+            paymentStatus: sub.status,
+            startDate: sub.startDate,
+            endDate: sub.endDate, 
             expiryDate: sub.endDate,
-            paymentsBehind: sub.paymentsMadeCount,
+            paymentsBehind: sub.totalPaymentsCount - sub.paymentsMadeCount,
+            attendanceSummary: ''
         });
     }
 

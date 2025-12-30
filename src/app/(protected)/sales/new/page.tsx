@@ -52,7 +52,7 @@ const NewSalePage = () => {
         fetchMembers();
     }, [toast]);
 
-    const availableProducts = allProducts.filter(p => (p.quantity || 0) > 0);
+    const availableProducts = allProducts.filter(p => (p.stock || 0) > 0);
 
     useEffect(() => {
         const newTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -65,7 +65,7 @@ const NewSalePage = () => {
 
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.productId === productId);
-            const stock = productToAdd.quantity || 0;
+            const stock = productToAdd.stock || 0;
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
@@ -92,7 +92,7 @@ const NewSalePage = () => {
 
     const updateQuantity = (productId: string, quantity: number) => {
         const productInCart = allProducts.find(p => p.id === productId);
-        const stock = productInCart?.quantity || 0;
+        const stock = productInCart?.stock || 0;
         if (quantity <= 0) {
             removeFromCart(productId);
         } else if (quantity > stock) {
@@ -111,12 +111,14 @@ const NewSalePage = () => {
         setIsSubmitting(true);
         try {
             await addSale({
-                date: new Date().toISOString(),
+                saleDate: new Date().toISOString(),
                 items: cart,
                 memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : '',
                 status: paymentStatus,
-                currency: 'EUR', // Enforce EUR as per user instruction
-            });
+                isPaid: paymentStatus === 'completed',
+                total: totalAmount,
+                currency: 'BGN',
+            } as Omit<Sale, 'id'>);
 
             toast({ title: "Успех!", description: "Продажбата е създадена успешно." });
             router.push('/sales');
@@ -135,7 +137,7 @@ const NewSalePage = () => {
     }
     
     if (productsError) {
-        return <div className="text-center py-10 text-red-500">{productsError.message}</div>;
+        return <div className="text-center py-10 text-red-500">{productsError as any}</div>;
     }
 
     return (
@@ -167,9 +169,9 @@ const NewSalePage = () => {
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
                                             <TableCell className="text-right">{formatCurrency(product.price)}</TableCell>
-                                            <TableCell className="text-right">{product.quantity}</TableCell>
+                                            <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={(product.quantity || 0) === 0}>
+                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={(product.stock || 0) === 0}>
                                                     <PlusCircle className="h-4 w-4" />
                                                 </Button>
                                             </TableCell>

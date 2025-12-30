@@ -18,7 +18,7 @@ const RestockReport = () => {
       try {
         const allProducts = await getProducts();
         const filteredProducts = allProducts.filter(
-          (p) => p.stock <= p.restockThreshold
+          (p) => typeof p.restockThreshold === 'number' && p.stock <= p.restockThreshold
         );
         setProductsToRestock(filteredProducts);
       } catch (error) {

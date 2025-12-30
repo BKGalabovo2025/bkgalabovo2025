@@ -53,6 +53,7 @@ const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => 
         id: doc.id,
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
         serviceId: typeof data.serviceId === 'string' ? data.serviceId : '',
+        serviceName: typeof data.serviceName === 'string' ? data.serviceName : '',
         startDate: typeof data.startDate === 'string' ? data.startDate : new Date().toISOString(),
         endDate: typeof data.endDate === 'string' ? data.endDate : new Date().toISOString(),
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
@@ -60,6 +61,7 @@ const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => 
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentHistory: Array.isArray(data.paymentHistory) ? data.paymentHistory : [],
         paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
+        totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,
         licenseGranted: typeof data.licenseGranted === 'boolean' ? data.licenseGranted : false,
         apparelGranted: typeof data.apparelGranted === 'boolean' ? data.apparelGranted : false,
     };
@@ -117,10 +119,10 @@ export const assignSubscriptionToMember = async (memberId: string, serviceId: st
   const service = await getClubServiceById(serviceId);
   if (!service) throw new Error("Service not found!");
   
-  // ... (rest of the logic remains the same, but now uses a bulletproof 'service' object)
+  const totalPaymentsCount = service.billingPeriod === 'Годишен' ? 1 : 12;
 
   const newSubscription: Omit<Subscription, 'id'> = {
-      memberId, serviceId, startDate: new Date().toISOString(), endDate: new Date().toISOString(), status: 'pending_payment', pricePaid: 0, currency: service.currency, paymentHistory: [], paymentsMadeCount: 0, licenseGranted: false, apparelGranted: false
+      memberId, serviceId, serviceName: service.name, startDate: new Date().toISOString(), endDate: new Date().toISOString(), status: 'pending_payment', pricePaid: 0, currency: service.currency, paymentHistory: [], paymentsMadeCount: 0, totalPaymentsCount: totalPaymentsCount, licenseGranted: false, apparelGranted: false
   };
   const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), newSubscription);
   return docRef.id;

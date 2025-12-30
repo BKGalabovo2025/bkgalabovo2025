@@ -14,7 +14,7 @@ import { Member, Payment } from "@/types";
 const paymentSchema = z.object({
   memberId: z.string().min(1, "Моля, изберете член."),
   amount: z.number().min(0.01, "Сумата трябва да е положително число."),
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), "Моля, въведете валидна дата."),
+  paymentDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Моля, въведете валидна дата."),
   type: z.enum(["subscription", "donation", "sale", "other"]),
   notes: z.string().optional(),
 });
@@ -34,11 +34,12 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
     resolver: zodResolver(paymentSchema),
     defaultValues: initialData ? { 
         ...initialData,
-        date: initialData.date.split('T')[0]
+        paymentDate: initialData.paymentDate.split('T')[0]
     } : {
-      date: new Date().toISOString().split('T')[0],
+      paymentDate: new Date().toISOString().split('T')[0],
       notes: '',
       memberId: '',
+      amount: 0,
       type: 'subscription'
     },
   });
@@ -128,7 +129,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
 
         <FormField
           control={form.control}
-          name="date"
+          name="paymentDate"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Дата на плащане</FormLabel>

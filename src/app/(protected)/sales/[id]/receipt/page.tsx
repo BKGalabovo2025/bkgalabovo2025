@@ -124,7 +124,7 @@ const SaleReceiptPage = () => {
             <div style="${styles.body}">
                 <div style="${styles.header}">
                     <h1 style="${styles.h1}">${receiptTitle}</h1>
-                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.date).toLocaleDateString('bg-BG')}</p>
+                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.saleDate).toLocaleDateString('bg-BG')}</p>
                 </div>
                  <div style="${styles.status}">${statusText}</div>
                 <p><strong>Издал:</strong> ${clubInfo.name}</p>
@@ -232,7 +232,7 @@ const SaleReceiptPage = () => {
                         </div>
                         <div className="text-right">
                             <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
-                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
+                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
 
@@ -284,7 +284,7 @@ const SaleReceiptPage = () => {
                             </tbody>
                             <tfoot className="border-t-2 border-border">
                                 <tr>
-                                    <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНЕ:</td>
+                                    <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНE:</td>
                                     <td className="text-right p-3 font-bold text-lg">{totalFormatted}</td>
                                 </tr>
                             </tfoot>

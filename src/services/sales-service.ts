@@ -1,9 +1,7 @@
 
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, orderBy } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { Sale, SaleItem } from '@/types';
-
-import { Product } from '@/types';
+import { Sale, SaleItem, Product } from '@/types';
 
 const SALES_COLLECTION = 'sales';
 const PRODUCTS_COLLECTION = 'products';
@@ -31,10 +29,12 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
     const sale: Sale = {
         id: doc.id,
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
-        date: data.date?.toDate?.() instanceof Date ? data.date.toDate().toISOString() : new Date().toISOString(),
+        saleDate: data.saleDate?.toDate?.() instanceof Date ? data.saleDate.toDate().toISOString() : new Date().toISOString(),
         items: validatedItems,
         status: ['pending', 'completed', 'cancelled'].includes(data.status) ? data.status : 'pending',
         currency: (data.currency === 'BGN' || data.currency === 'EUR') ? data.currency : 'BGN',
+        total: typeof data.total === 'number' ? data.total : 0,
+        isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : false,
     };
 
     return sale;
@@ -43,7 +43,7 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
 export const getSales = async (): Promise<Sale[]> => {
     const db = getDb();
     const salesCollection = collection(db, SALES_COLLECTION);
-    const q = query(salesCollection, orderBy("date", "desc"));
+    const q = query(salesCollection, orderBy("saleDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
@@ -54,7 +54,7 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     const db = getDb();
     const salesCollection = collection(db, SALES_COLLECTION);
     
-    const q = query(salesCollection, where("memberId", "==", memberId), orderBy("date", "desc"));
+    const q = query(salesCollection, where("memberId", "==", memberId), orderBy("saleDate", "desc"));
     
     const querySnapshot = await getDocs(q);
     
@@ -78,30 +78,28 @@ export const addSale = async (saleData: Omit<Sale, 'id'>): Promise<string> => {
     return await runTransaction(db, async (transaction) => {
         const productUpdates: { ref: any, newStock: number }[] = [];
 
-        // --- READ PHASE ---
         for (const item of saleData.items) {
             const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
             const productDoc = await transaction.get(productRef);
-            if (!productDoc.exists() || !('quantity' in productDoc.data())) {
+            if (!productDoc.exists() || !('stock' in productDoc.data())) {
                 throw new Error(`Продукт с ID ${item.productId} не е намерен или няма информация за наличност.`);
             }
-            const currentStock = productDoc.data().quantity as number;
+            const currentStock = productDoc.data().stock as number;
             if (currentStock < item.quantity) {
                 throw new Error(`Няма достатъчно наличност за ${item.name}. Налични: ${currentStock}, Нужни: ${item.quantity}`);
             }
             productUpdates.push({ ref: productRef, newStock: currentStock - item.quantity });
         }
 
-        // --- WRITE PHASE ---
         const newSaleRef = doc(collection(db, SALES_COLLECTION));
         const dataToSave = {
             ...saleData,
-            date: Timestamp.fromDate(new Date(saleData.date)),
+            saleDate: Timestamp.fromDate(new Date(saleData.saleDate)),
         };
         transaction.set(newSaleRef, dataToSave);
 
         for (const update of productUpdates) {
-            transaction.update(update.ref, { quantity: update.newStock });
+            transaction.update(update.ref, { stock: update.newStock });
         }
 
         return newSaleRef.id;
@@ -113,7 +111,6 @@ export const updateSale = async (id: string, saleData: Partial<Omit<Sale, 'id'>>
     const saleRef = doc(db, SALES_COLLECTION, id);
 
     await runTransaction(db, async (transaction) => {
-        // --- READ PHASE ---
         const saleDoc = await transaction.get(saleRef);
         if (!saleDoc.exists()) {
             throw new Error("Продажбата, която се опитвате да обновите, не съществува.");
@@ -141,7 +138,7 @@ export const updateSale = async (id: string, saleData: Partial<Omit<Sale, 'id'>>
                 throw new Error(`Продукт с ID ${productId} не е намерен.`);
             }
 
-            const currentStock = productDoc.data().quantity as number;
+            const currentStock = productDoc.data().stock as number;
             const newStock = currentStock + quantityChange;
 
             if (newStock < 0) {
@@ -151,15 +148,14 @@ export const updateSale = async (id: string, saleData: Partial<Omit<Sale, 'id'>>
             productUpdates.push({ ref: productRef, newStock });
         }
 
-        // --- WRITE PHASE ---
         const dataToUpdate: { [key: string]: any } = { ...saleData };
-        if (saleData.date) {
-            dataToUpdate.date = Timestamp.fromDate(new Date(saleData.date as string));
+        if (saleData.saleDate) {
+            dataToUpdate.saleDate = Timestamp.fromDate(new Date(saleData.saleDate as string));
         }
         transaction.update(saleRef, dataToUpdate);
 
         for (const update of productUpdates) {
-            transaction.update(update.ref, { quantity: update.newStock });
+            transaction.update(update.ref, { stock: update.newStock });
         }
     });
 };
@@ -169,7 +165,6 @@ export const deleteSale = async (id: string): Promise<void> => {
     const saleRef = doc(db, SALES_COLLECTION, id);
 
     await runTransaction(db, async (transaction) => {
-        // --- READ PHASE ---
         const saleDoc = await transaction.get(saleRef);
         if (!saleDoc.exists()) {
             console.warn(`Sale with ID ${id} not found for deletion.`);
@@ -185,7 +180,7 @@ export const deleteSale = async (id: string): Promise<void> => {
             const productDoc = await transaction.get(productRef); 
 
             if (productDoc.exists()) {
-                const currentStock = productDoc.data().quantity || 0;
+                const currentStock = productDoc.data().stock || 0;
                 const newStock = currentStock + item.quantity;
                 productUpdates.push({ ref: productRef, stock: newStock }); 
             } else {
@@ -193,11 +188,10 @@ export const deleteSale = async (id: string): Promise<void> => {
             }
         }
 
-        // --- WRITE PHASE ---
         transaction.delete(saleRef);
 
         for (const update of productUpdates) {
-            transaction.update(update.ref, { quantity: update.stock });
+            transaction.update(update.ref, { stock: update.stock });
         }
     });
 };

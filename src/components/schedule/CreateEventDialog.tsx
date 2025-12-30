@@ -17,9 +17,10 @@ interface CreateEventDialogProps {
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
     training: 'Тренировка',
-    sastezanie: 'Състезание',
-    lager: 'Лагер',
-    sabitie: 'Събитие',
+    competition: 'Състезание',
+    camp: 'Лагер',
+    event: 'Събитие',
+    other: 'Друго',
 };
 
 export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, onClose, onAddEvent }) => {
@@ -27,6 +28,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [type, setType] = useState<ScheduleEventType>('training');
+    const [location, setLocation] = useState('');
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
             setStartDate(defaultStartTime);
             setEndDate(defaultEndTime);
             setType('training');
+            setLocation('');
             setDescription('');
             setError(null);
         }
@@ -55,7 +58,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !startDate || !endDate || !type) {
+        if (!title || !startDate || !endDate || !type || !location) {
             setError('Моля, попълнете всички задължителни полета.');
             return;
         }
@@ -69,6 +72,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
                 startDate,
                 endDate,
                 type,
+                location,
                 description,
                 attendees: [],
             });
@@ -120,6 +124,16 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
                                 onChange={(e) => setEndDate(e.target.value)} 
                             />
                         </div>
+                    </div>
+
+                     <div className="space-y-2">
+                        <label htmlFor="location">Място</label>
+                        <Input
+                            id="location"
+                            placeholder="Например: Спортна зала \'Младост\'"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                        />
                     </div>
 
                     <div className="space-y-2">

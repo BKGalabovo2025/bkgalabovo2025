@@ -1,7 +1,7 @@
 
 import { doc, writeBatch, getDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { MemberSubscription, ClubService } from '@/types';
+import { Subscription, ClubService } from '@/types';
 import { getClubServiceById } from './subscription-service';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
@@ -16,13 +16,12 @@ const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 export const registerPaymentForSubscription = async (
     subscriptionId: string,
     paymentDetails: {
-        amount: number; // The amount paid, in the smallest currency unit (e.g., stotinki)
+        amount: number; // The amount paid
         paymentDate: string; // ISO string format
-        notes?: string;
+        paymentId: string; // The ID of the payment document
     }
 ): Promise<void> => {
     const db = getDb();
-    const batch = writeBatch(db);
     const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
 
     try {
@@ -31,7 +30,7 @@ export const registerPaymentForSubscription = async (
             throw new Error(`Subscription with ID [${subscriptionId}] not found.`);
         }
 
-        const subscription = subscriptionDoc.data() as MemberSubscription;
+        const subscription = subscriptionDoc.data() as Subscription;
 
         const service = await getClubServiceById(subscription.serviceId);
         if (!service) {
@@ -47,39 +46,24 @@ export const registerPaymentForSubscription = async (
             {
                 amount: paymentDetails.amount,
                 date: paymentDetails.paymentDate,
-                ...(paymentDetails.notes && { notes: paymentDetails.notes }),
+                paymentId: paymentDetails.paymentId,
             },
         ];
 
-        // 2. Determine new status and granted rights
-        const updatedFields: Partial<MemberSubscription> = {
-            status: 'active',
+        const isFullyPaid = newPaymentsCount >= subscription.totalPaymentsCount;
+
+        // 2. Determine new status
+        const updatedFields: Partial<Subscription> = {
             pricePaid: (subscription.pricePaid || 0) + paymentDetails.amount,
             paymentsMadeCount: newPaymentsCount,
             paymentHistory: newPaymentHistory,
+            status: isFullyPaid ? 'active' : 'pending_payment' // Or some other logic
         };
-
-        // 3. Check if any special rights are triggered with this payment
-        if (service.specialRights && service.specialRights.length > 0) {
-            service.specialRights.forEach(right => {
-                if (right.trigger.condition === 'AFTER_N_PAYMENTS' && newPaymentsCount >= (right.trigger.paymentCount || 1)) {
-                    if (right.right === 'kartoteka') {
-                        updatedFields.licenseGranted = true;
-                    }
-                    if (right.right === 'equipment') {
-                        updatedFields.apparelGranted = true;
-                    }
-                }
-            });
-        }
 
         // --- End Core Logic --- //
 
-        // Add the update operation to the batch
-        batch.update(subscriptionRef, updatedFields);
-
-        // Commit the batch to perform all writes atomically
-        await batch.commit();
+        // Update the document
+        await writeBatch(db).update(subscriptionRef, updatedFields).commit();
 
         console.log(`Successfully registered payment for subscription ID: ${subscriptionId}`);
 

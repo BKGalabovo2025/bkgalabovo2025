@@ -24,7 +24,7 @@ const SalesListPage = () => {
         return [...sales].sort((a, b) => {
             if (a.status === 'pending' && b.status !== 'pending') return -1;
             if (a.status !== 'pending' && b.status === 'pending') return 1;
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
+            return new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime();
         });
     }, [sales]);
 
@@ -72,7 +72,7 @@ const SalesListPage = () => {
                                     {sortedSales.length > 0 ? (
                                         sortedSales.map((sale) => (
                                             <TableRow key={sale.id}>
-                                                <TableCell onClick={() => handleRowClick(sale.id)} className="cursor-pointer hover:bg-muted/50">{new Date(sale.date).toLocaleString('bg-BG')}</TableCell>
+                                                <TableCell onClick={() => handleRowClick(sale.id)} className="cursor-pointer hover:bg-muted/50">{new Date(sale.saleDate).toLocaleString('bg-BG')}</TableCell>
                                                 <TableCell onClick={() => handleRowClick(sale.id)} className="cursor-pointer hover:bg-muted/50 font-medium">{sale.memberId || 'Външен клиент'}</TableCell>
                                                 <TableCell onClick={() => handleRowClick(sale.id)} className="cursor-pointer hover:bg-muted/50">
                                                     <Badge variant={sale.status === 'completed' ? 'success' : 'destructive'}>

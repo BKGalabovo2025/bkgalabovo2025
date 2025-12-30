@@ -67,7 +67,7 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                                 <TableCell className="text-center">
                                     <Badge variant={getStatusVariant(sale.isPaid)}>{getStatusText(sale.isPaid)}</Badge>
                                 </TableCell>
-                                <TableCell className="font-medium text-right">{sale.totalAmount.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
+                                <TableCell className="font-medium text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
                                 <TableCell className="text-right space-x-2">
                                     {!sale.isPaid && (
                                         <Button variant="outline" size="sm" onClick={() => markAsPaid(sale.id)}>

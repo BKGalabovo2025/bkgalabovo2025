@@ -3,7 +3,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 import { Sale } from '@/types';
-import { getSales, getSalesByMemberId, markSaleAsPaid as serviceMarkAsPaid } from '@/services/sales-service';
+import { getSales, getSalesByMemberId, updateSale } from '@/services/sales-service';
+
+// Add a new function to update the sale status
+const updateSaleStatus = async (saleId: string, status: 'pending' | 'completed' | 'cancelled') => {
+    await updateSale(saleId, { status });
+};
 
 export const useSales = (memberId?: string) => {
     const [sales, setSales] = useState<Sale[]>([]);
@@ -40,9 +45,9 @@ export const useSales = (memberId?: string) => {
 
     const markAsPaid = useCallback(async (saleId: string) => {
       try {
-        await serviceMarkAsPaid(saleId);
+        await updateSaleStatus(saleId, 'completed');
         setSales(prevSales => prevSales.map(s => 
-            s.id === saleId ? { ...s, status: 'completed' } : s
+            s.id === saleId ? { ...s, status: 'completed', isPaid: true } : s
         ));
         toast({ title: 'Продажбата е маркирана като платена' });
       } catch (err) {

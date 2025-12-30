@@ -12,7 +12,6 @@ const docToProduct = (doc: DocumentSnapshot): Product | null => {
     }
     const data = doc.data() || {};
 
-    // A product MUST have a valid, non-empty name.
     const name = data.name;
     if (typeof name !== 'string' || name.trim() === '') {
         console.warn(`docToProduct: Skipping product with invalid or missing name.`, { id: doc.id });
@@ -24,10 +23,11 @@ const docToProduct = (doc: DocumentSnapshot): Product | null => {
         name: name,
         description: typeof data.description === 'string' ? data.description : '',
         price: typeof data.price === 'number' ? data.price : 0,
+        currency: data.currency === 'EUR' || data.currency === 'BGN' ? data.currency : 'BGN',
         stock: typeof data.stock === 'number' ? data.stock : 0,
         category: typeof data.category === 'string' ? data.category : 'Без категория',
-        supplier: typeof data.supplier === 'string' ? data.supplier : 'Без доставчик',
-        sku: typeof data.sku === 'string' ? data.sku : null,
+        imageUrl: typeof data.imageUrl === 'string' ? data.imageUrl : '',
+        restockThreshold: typeof data.restockThreshold === 'number' ? data.restockThreshold : null,
     };
     
     return product;
@@ -43,9 +43,9 @@ const docToInventoryEvent = (doc: DocumentSnapshot): InventoryEvent | null => {
         id: doc.id,
         productId: typeof data.productId === 'string' ? data.productId : '',
         productName: typeof data.productName === 'string' ? data.productName : '',
-        type: ['RESTOCK', 'ADJUSTMENT', 'PRICE_UPDATE', 'SALE'].includes(data.type) ? data.type : 'ADJUSTMENT',
+        type: ['restock', 'correction', 'price_update', 'sale', 'initial'].includes(data.type) ? data.type : 'correction',
         quantityChange: typeof data.quantityChange === 'number' ? data.quantityChange : 0,
-        createdAt: data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.now(),
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
         userId: typeof data.userId === 'string' ? data.userId : '',
         userName: typeof data.userName === 'string' ? data.userName : '',
         notes: typeof data.notes === 'string' ? data.notes : undefined,
@@ -101,8 +101,8 @@ export const restockProduct = async (productId: string, quantityToAdd: number, u
         transaction.update(productRef, { stock: newStock });
 
         const eventData: Omit<InventoryEvent, 'id'> = {
-            productId, productName: product.name, type: 'RESTOCK', quantityChange: quantityToAdd,
-            createdAt: Timestamp.now(), userId, userName,
+            productId, productName: product.name, type: 'restock', quantityChange: quantityToAdd,
+            createdAt: new Date().toISOString(), userId, userName,
         };
         transaction.set(doc(collection(db, EVENTS_COLLECTION)), eventData);
     });
@@ -124,8 +124,8 @@ export const adjustProductStock = async (productId: string, quantityChange: numb
         transaction.update(productRef, { stock: newStock });
 
         const eventData: Omit<InventoryEvent, 'id'> = {
-            productId, productName: product.name, type: 'ADJUSTMENT', quantityChange, notes,
-            createdAt: Timestamp.now(), userId, userName,
+            productId, productName: product.name, type: 'correction', quantityChange, notes,
+            createdAt: new Date().toISOString(), userId, userName,
         };
         transaction.set(doc(collection(db, EVENTS_COLLECTION)), eventData);
     });
@@ -147,8 +147,15 @@ export const updateProductPrice = async (productId: string, newPrice: number, us
         transaction.update(productRef, { price: newPrice });
 
         const eventData: Omit<InventoryEvent, 'id'> = {
-            productId, productName: product.name, type: 'PRICE_UPDATE', oldPrice, newPrice,
-            createdAt: Timestamp.now(), userId, userName,
+            productId,
+            productName: product.name,
+            type: 'price_update',
+            quantityChange: 0,
+            oldPrice,
+            newPrice,
+            createdAt: new Date().toISOString(),
+            userId,
+            userName,
         };
         transaction.set(doc(collection(db, EVENTS_COLLECTION)), eventData);
     });

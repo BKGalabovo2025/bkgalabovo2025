@@ -13,14 +13,15 @@ interface EditEventDialogProps {
     isOpen: boolean;
     onClose: () => void;
     event: ScheduleEvent | null;
-    onUpdateEvent: (eventId: string, eventData: Partial<ScheduleEvent>) => Promise<void>;
+    onUpdateEvent: (eventId: string, eventData: Partial<Omit<ScheduleEvent, 'id' | 'color'>>) => Promise<void>;
 }
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
     training: 'Тренировка',
-    sastezanie: 'Състезание',
-    lager: 'Лагер',
-    sabitie: 'Събитие',
+    competition: 'Състезание',
+    camp: 'Лагер',
+    event: 'Събитие',
+    other: 'Друго',
 };
 
 export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClose, event, onUpdateEvent }) => {
@@ -28,6 +29,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClos
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [type, setType] = useState<ScheduleEventType>('training');
+    const [location, setLocation] = useState('');
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClos
             setStartDate(event.startDate ? new Date(new Date(event.startDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
             setEndDate(event.endDate ? new Date(new Date(event.endDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
             setType(event.type);
+            setLocation(event.location || '');
             setDescription(event.description || '');
             setError(null);
         }
@@ -46,7 +49,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClos
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!event) return;
-        if (!title || !startDate || !endDate || !type) {
+        if (!title || !startDate || !endDate || !type || !location) {
             setError('Моля, попълнете всички задължителни полета.');
             return;
         }
@@ -60,6 +63,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClos
                 startDate,
                 endDate,
                 type,
+                location,
                 description,
             });
             onClose();
@@ -109,6 +113,15 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({ isOpen, onClos
                                 onChange={(e) => setEndDate(e.target.value)} 
                             />
                         </div>
+                    </div>
+
+                     <div className="space-y-2">
+                        <label htmlFor="edit-location">Място</label>
+                        <Input
+                            id="edit-location"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                        />
                     </div>
 
                     <div className="space-y-2">
