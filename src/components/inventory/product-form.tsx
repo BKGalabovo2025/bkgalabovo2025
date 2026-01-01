@@ -1,6 +1,6 @@
 'use client'
 
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -10,55 +10,74 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, ExternalLink } from 'lucide-react';
 import { Product } from "@/types";
 
-// Схема за валидация с Zod
-const productFormSchema = z.object({
+// FINAL FIX: Define the form with string types for numbers initially
+const formSchema = z.object({
   name: z.string().min(3, { message: "Името на продукта трябва да е поне 3 символа." }),
-  description: z.string().min(10, { message: "Описанието трябва да е поне 10 символа." }).optional().or(z.literal('')),
+  description: z.string().optional(),
   category: z.string().min(3, { message: "Категорията трябва да е поне 3 символа." }),
-  price: z.coerce.number().positive({ message: "Цената трябва да е положително число." }),
+  price: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, { message: "Цената трябва да е положително число." }),
   currency: z.enum(['BGN', 'EUR']),
-  stock: z.coerce.number().int().min(0, { message: "Наличността не може да е отрицателна." }),
-  restockThreshold: z.coerce.number().int().min(0, { message: "Прагът не може да е отрицателен." }).optional().nullable(),
-  imageUrl: z.string().url({ message: "Моля, въведете валиден URL." }).optional().or(z.literal('')),
+  stock: z.string().refine(val => !isNaN(parseInt(val, 10)) && parseInt(val, 10) >= 0, { message: "Наличността трябва да е цяло, неотрицателно число." }),
+  restockThreshold: z.string().optional(),
+  imageUrl: z.string().url({ message: "Моля, въведете валиден URL." }).or(z.literal('')).optional(),
 });
 
-type ProductFormValues = z.infer<typeof productFormSchema>;
+// FINAL FIX: Create a separate schema that transforms strings to numbers on submit
+const productSubmitSchema = formSchema.transform(data => ({
+    ...data,
+    price: parseFloat(data.price),
+    stock: parseInt(data.stock, 10),
+    restockThreshold: data.restockThreshold ? parseInt(data.restockThreshold, 10) : null,
+    description: data.description || '',
+    imageUrl: data.imageUrl || '',
+}));
+
+// The type for the final, transformed data
+type ProductFormValues = z.infer<typeof productSubmitSchema>;
 
 interface ProductFormProps {
   product?: Product | null;
-  onSave: (data: Omit<Product, 'id'>) => Promise<void> | void;
+  onSave: (data: ProductFormValues) => Promise<void> | void;
   onClose: () => void;
 }
 
 export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    // Use the base form schema (with strings) for validation during input
+    resolver: zodResolver(formSchema),
+    // Default values must match the form schema (strings for numbers)
     defaultValues: product ? { 
         ...product,
-        description: product.description || '',
-        imageUrl: product.imageUrl || '',
-        restockThreshold: product.restockThreshold || 0,
+        price: String(product.price),
+        stock: String(product.stock),
+        description: product.description ?? '',
+        imageUrl: product.imageUrl ?? '',
+        restockThreshold: product.restockThreshold ? String(product.restockThreshold) : '',
      } : {
         name: '',
         description: '',
         category: '',
-        price: 0,
+        price: '0',
         currency: 'BGN',
-        stock: 0,
-        restockThreshold: 0,
+        stock: '0',
+        restockThreshold: '',
         imageUrl: '',
     }
   });
 
-  const onSubmit: SubmitHandler<ProductFormValues> = (data) => {
-    onSave(data as Omit<Product, 'id'>);
-  };
+  // This function now receives the raw form data (with strings)
+  // and needs to parse it before sending it to the parent.
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const parsedData = await productSubmitSchema.parseAsync(data);
+    onSave(parsedData);
+  }
 
   const isEditing = !!product;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* No changes needed below, all inputs work with strings by default */}
         <FormField
           control={form.control}
           name="name"
@@ -79,7 +98,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
             <FormItem>
               <FormLabel>Описание</FormLabel>
               <FormControl>
-                <Textarea placeholder="Описание на продукта..." {...field} value={field.value || ''} />
+                <Textarea placeholder="Описание на продукта..." {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,7 +126,8 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                     <FormItem>
                     <FormLabel>Цена (BGN)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                        {/* Input is now a simple, controlled component. No complex onChange needed. */}
+                        <Input type="number" placeholder="0.00" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -120,7 +140,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                     <FormItem>
                         <FormLabel>Наличност (бр.)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="1" placeholder="0" {...field} />
+                            <Input type="number" placeholder="0" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -133,7 +153,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                     <FormItem>
                         <FormLabel>Праг за презареждане</FormLabel>
                         <FormControl>
-                            <Input type="number" step="1" placeholder="0" {...field} value={field.value || 0} />
+                            <Input type="number" placeholder="Няма" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -149,7 +169,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
               <FormLabel>URL на снимка (опционално)</FormLabel>
                 <div className="flex items-center space-x-2">
                     <FormControl>
-                        <Input placeholder="https_//..." {...field} value={field.value || ''} />
+                        <Input placeholder="https_//..." {...field} value={field.value ?? ''} />
                     </FormControl>
                     <a href={field.value || ''} target="_blank" rel="noopener noreferrer" className={!field.value ? 'pointer-events-none opacity-50' : ''}>
                         <Button type="button" variant="outline" size="icon"><ExternalLink className="h-4 w-4" /></Button>
