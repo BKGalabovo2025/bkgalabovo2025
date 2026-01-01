@@ -58,7 +58,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
         description: '',
         category: '',
         price: '0',
-        currency: 'BGN',
+        currency: 'EUR',
         stock: '0',
         restockThreshold: '',
         imageUrl: '',
@@ -124,7 +124,7 @@ export function ProductForm({ product, onSave, onClose }: ProductFormProps) {
                 name="price"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Цена (BGN)</FormLabel>
+                    <FormLabel>Цена (EUR)</FormLabel>
                     <FormControl>
                         {/* Input is now a simple, controlled component. No complex onChange needed. */}
                         <Input type="number" placeholder="0.00" {...field} />
