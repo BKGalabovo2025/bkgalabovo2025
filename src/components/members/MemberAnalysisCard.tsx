@@ -7,11 +7,11 @@ import { CheckCircle, AlertTriangle, Clock } from "lucide-react";
 
 const getOverallStatusInfo = (status: MemberAnalysis['overallStatus']) => {
     switch (status) {
-        case 'OK':
+        case 'green':
             return { text: 'Всичко е наред', Icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' };
-        case 'WARNING':
+        case 'orange':
             return { text: 'Предупреждение', Icon: AlertTriangle, color: 'text-yellow-600', bgColor: 'bg-yellow-50' };
-        case 'ACTION_NEEDED':
+        case 'red':
             return { text: 'Нуждае се от внимание', Icon: AlertTriangle, color: 'text-orange-600', bgColor: 'bg-orange-50' };
         default:
             return { text: 'Неизвестен', Icon: Clock, color: 'text-gray-600', bgColor: 'bg-gray-50' };
@@ -66,7 +66,7 @@ export const MemberAnalysisCard = ({ analysis }: MemberAnalysisCardProps) => {
                                     <p className="text-right font-medium text-foreground">{sub.status === 'active' ? 'Активен' : 'Чакащ плащане'}</p>
 
                                     <p>Посетени тренировки:</p>
-                                    <p className="text-right font-medium text-foreground">{sub.attendanceSummary.totalAttended}</p>
+                                    <p className="text-right font-medium text-foreground">{sub.attendanceSummary}</p>
                                 </div>
                             </div>
                         ))}

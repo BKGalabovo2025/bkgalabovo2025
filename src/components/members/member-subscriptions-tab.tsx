@@ -7,14 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getSubscriptionsByMemberId, getAllClubServices, assignSubscriptionToMember } from '@/services/subscription-service';
-import { registerPaymentForSubscription } from '@/services/payment-service'; // ИМПОРТ НА НОВАТА УСЛУГА
-import { MemberSubscription, ClubService } from '@/types';
+import { registerPaymentForSubscription } from '@/services/payment-service';
+import { Subscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 // #region Payment Dialog Component
-// Отделяме диалога за плащане в собствен компонент, за да е по-чисто
-const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: MemberSubscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [amount, setAmount] = useState(((service?.price || 0) - sub.pricePaid) / 100);
@@ -25,12 +24,13 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Member
         setIsLoading(true);
         try {
             await registerPaymentForSubscription(sub.id, {
-                amount: Math.round(amount * 100), // Преобразуване обратно в стотинки
+                paymentId: crypto.randomUUID(),
+                amount: Math.round(amount * 100), 
                 paymentDate: new Date(paymentDate).toISOString(),
             });
             toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
-            onPaymentSuccess(); // Извикваме функцията за опресняване
-            setIsOpen(false); // Затваряме диалога
+            onPaymentSuccess();
+            setIsOpen(false);
         } catch (error) {
             console.error("Failed to register payment:", error);
             toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
@@ -82,13 +82,13 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Member
 }
 // #endregion
 
-const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: MemberSubscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
 
-    const getStatusInfo = (status: MemberSubscription['status']) => {
+    const getStatusInfo = (status: Subscription['status']) => {
         switch (status) {
             case 'active':
                 return { icon: <CheckCircle className="h-4 w-4 text-green-500" />, text: 'Активен', color: 'border-green-500' };
-            case 'expired':
+            case 'inactive': // FIX: Changed 'expired' to 'inactive'
                 return { icon: <XCircle className="h-4 w-4 text-red-500" />, text: 'Изтекъл', color: 'border-red-500' };
             case 'cancelled':
                 return { icon: <XCircle className="h-4 w-4 text-gray-500" />, text: 'Отказан', color: 'border-gray-500' };
@@ -139,7 +139,7 @@ interface MemberSubscriptionsTabProps {
 }
 
 export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps) => {
-  const [subscriptions, setSubscriptions] = useState<MemberSubscription[]>([]); 
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]); 
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -181,14 +181,14 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
         setIsAddDialogOpen(false);
         setSelectedService(null);
         setStartDate(new Date().toISOString().split('T')[0]);
-        fetchData(); // Опресняване на абонаментите
+        fetchData();
     } catch (error) {
         console.error("Failed to add subscription:", error);
         toast({ title: "Грешка", description: "Възникна проблем при добавянето на абонамента.", variant: "destructive" });
     }
   }
 
-  const getServiceForSubscription = (sub: MemberSubscription) => {
+  const getServiceForSubscription = (sub: Subscription) => {
     return services.find(s => s.id === sub.serviceId);
   }
 

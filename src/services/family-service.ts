@@ -17,7 +17,7 @@ export const docToFamily = (doc: DocumentSnapshot): Family | null => {
 
     return {
         id: doc.id,
-        name: data.name || 'Unnamed Family', // Default name if not present
+        name: data.name || 'Unnamed Family',
         memberIds: memberIds,
     };
 };
@@ -43,31 +43,41 @@ export const createFamily = async (name: string, memberIds: string[]): Promise<F
     };
 };
 
-export const addMemberToFamily = async (familyId: string, memberId: string): Promise<void> => {
+export const addMembersToFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
+    if (memberIds.length === 0) return;
     const db = getDb();
     const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
-    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
 
     const batch = writeBatch(db);
-    batch.update(familyRef, { memberIds: arrayUnion(memberId) });
-    batch.update(memberRef, { familyId: familyId });
+    batch.update(familyRef, { memberIds: arrayUnion(...memberIds) });
+
+    memberIds.forEach(memberId => {
+        const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
+        batch.update(memberRef, { familyId: familyId });
+    });
+
     await batch.commit();
 };
 
-export const removeMemberFromFamily = async (familyId: string, memberId: string): Promise<void> => {
+export const removeMembersFromFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
+    if (memberIds.length === 0) return;
     const db = getDb();
     const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
-    const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
 
     const batch = writeBatch(db);
-    batch.update(memberRef, { familyId: null });
-    batch.update(familyRef, { memberIds: arrayRemove(memberId) });
+    batch.update(familyRef, { memberIds: arrayRemove(...memberIds) });
+    
+    memberIds.forEach(memberId => {
+        const memberRef = doc(db, MEMBERS_COLLECTION, memberId);
+        batch.update(memberRef, { familyId: null });
+    });
+    
     await batch.commit();
 
     const familySnap = await getDoc(familyRef);
     const family = docToFamily(familySnap);
     if (family && family.memberIds.length <= 1) {
-        // Optional deletion logic can be implemented here.
+        // Optional: Add logic here to handle or delete families with one or zero members.
     }
 };
 

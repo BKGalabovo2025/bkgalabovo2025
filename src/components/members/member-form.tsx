@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Member } from '@/types';
+import { Member, Family } from '@/types';
 import { useMembers } from '@/hooks/useMembers';
-import { getFamilyById, createFamily, addMemberToFamily, removeMemberFromFamily } from '@/services/family-service';
+import { getFamilyById, createFamily, addMembersToFamily, removeMembersFromFamily } from '@/services/family-service';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -93,34 +93,40 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
     }
   }, [familyId, allMembers]);
 
-  const handleSaveFamily = async (selectedMemberIds: string[]) => {
+ const handleSaveFamily = async (selectedMemberIds: string[]) => {
     if (!member) return;
     setIsSaving(true);
     try {
         const memberId = member.id;
+        const familyName = `${member.lastName} Family`; // Create a family name
 
         if (!familyId && selectedMemberIds.length > 0) {
-            const newFamilyId = await createFamily([memberId, ...selectedMemberIds]);
-            setFamilyId(newFamilyId); 
+            // Create a new family
+            const newFamily = await createFamily(familyName, [memberId, ...selectedMemberIds]);
+            setFamilyId(newFamily.id);
         } else if (familyId) {
+            // Update existing family
             const initialMemberIds = familyMembers.map(m => m.id).filter(id => id !== memberId);
 
             const membersToAdd = selectedMemberIds.filter(id => !initialMemberIds.includes(id));
-            for (const id of membersToAdd) {
-                await addMemberToFamily(familyId, id);
+            if (membersToAdd.length > 0) {
+                await addMembersToFamily(familyId, membersToAdd);
             }
 
             const membersToRemove = initialMemberIds.filter(id => !selectedMemberIds.includes(id));
-            for (const id of membersToRemove) {
-                await removeMemberFromFamily(familyId, id);
+            if (membersToRemove.length > 0) {
+                await removeMembersFromFamily(familyId, membersToRemove);
             }
         }
-        refetch(); // Refresh members list to reflect family changes
+        refetch(); // Refresh members list
+    } catch(error) {
+        console.error("Error saving family:", error);
     } finally {
         setIsSaving(false);
         setFamilyDialogOpen(false);
     }
   };
+
 
   const onSubmit = async (values: MemberFormData) => {
     setIsSaving(true);
