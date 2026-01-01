@@ -68,7 +68,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Изберете член" />
-                  </Trigger>
+                  </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {members.map(member => (
