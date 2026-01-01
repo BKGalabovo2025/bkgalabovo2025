@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase'; 
-import { ScheduleEvent } from '@/types';
+import { ScheduleEvent, Member, Attendee } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
+import { getAllMembers } from '@/services/member-service';
 
 type NewEvent = Omit<ScheduleEvent, 'id'>;
 
@@ -16,9 +17,22 @@ const toISOStringOrUndefined = (date: any): string | undefined => {
 
 export const useEvents = () => {
     const [events, setEvents] = useState<ScheduleEvent[]>([]);
+    const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const membersData = await getAllMembers();
+                setMembers(membersData);
+            } catch (err) {
+                console.error("Error fetching members:", err);
+            }
+        };
+        fetchMembers();
+    }, []);
 
     useEffect(() => {
         const db = getDb();
@@ -158,14 +172,30 @@ export const useEvents = () => {
         const db = getDb();
         let originalEvents: ScheduleEvent[] = [];
         
+        const eventToUpdate = events.find(e => e.id === eventId);
+        if (!eventToUpdate) return;
+
+        const newAttendees: Attendee[] = attendeeIds.map(id => {
+            const existingAttendee = eventToUpdate.attendees.find(a => a.memberId === id);
+            if (existingAttendee) {
+                return existingAttendee;
+            }
+            const member = members.find(m => m.id === id);
+            return {
+                memberId: id,
+                name: member?.name || 'Unknown Member',
+                attended: false,
+            };
+        });
+
         setEvents(currentEvents => {
             originalEvents = currentEvents;
-            return currentEvents.map(e => e.id === eventId ? { ...e, attendees: attendeeIds } as ScheduleEvent : e)
+            return currentEvents.map(e => e.id === eventId ? { ...e, attendees: newAttendees } : e)
         });
 
         try {
             const eventRef = doc(db, 'events', eventId);
-            await updateDoc(eventRef, { attendees: attendeeIds });
+            await updateDoc(eventRef, { attendees: newAttendees });
             toast({
                 title: "Присъствията са обновени",
                 description: "Списъкът с присъстващи е запазен.",
@@ -179,7 +209,7 @@ export const useEvents = () => {
             });
             throw err;
         }
-    }, [toast]);
+    }, [toast, events, members]);
 
     return { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error };
 };

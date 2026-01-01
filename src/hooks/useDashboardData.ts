@@ -43,7 +43,7 @@ export const useDashboardData = () => {
                 members.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
                 setRecentMembers(members.slice(0, 5));
                 
-                sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                sales.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
                 setRecentSales(sales.slice(0, 5));
 
             } catch (err) {
