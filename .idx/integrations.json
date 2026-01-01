@@ -1,4 +1,6 @@
 {
-  "firebase_hosting": {},
+  "firebase_hosting": {
+    "deploymentHostingUrl": "https://bkgalabovo2025.web.app"
+  },
   "cloud_run_deploy": {}
 }

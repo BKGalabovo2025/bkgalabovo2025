@@ -114,16 +114,16 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subs
   return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
 };
 
-export const assignSubscriptionToMember = async (memberId: string, serviceId: string, startDate: Date): Promise<string> => {
-  const db = getDb();
-  const service = await getClubServiceById(serviceId);
-  if (!service) throw new Error("Service not found!");
-  
-  const totalPaymentsCount = service.billingPeriod === 'Годишен' ? 1 : 12;
+export const createSubscription = async (subscription: Omit<Subscription, 'id'>): Promise<DocumentReference> => {
+    const db = getDb();
+    Object.keys(subscription).forEach(key => (subscription as any)[key] === undefined && delete (subscription as any)[key]);
+    const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), subscription);
+    return docRef;
+};
 
-  const newSubscription: Omit<Subscription, 'id'> = {
-      memberId, serviceId, serviceName: service.name, startDate: new Date().toISOString(), endDate: new Date().toISOString(), status: 'pending_payment', pricePaid: 0, currency: service.currency, paymentHistory: [], paymentsMadeCount: 0, totalPaymentsCount: totalPaymentsCount, licenseGranted: false, apparelGranted: false
-  };
-  const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), newSubscription);
-  return docRef.id;
+export const updateSubscription = async (id: string, subscriptionUpdate: Partial<Subscription>): Promise<void> => {
+    const db = getDb();
+    const subRef = doc(db, SUBSCRIPTIONS_COLLECTION, id);
+    Object.keys(subscriptionUpdate).forEach(key => (subscriptionUpdate as any)[key] === undefined && delete (subscriptionUpdate as any)[key]);
+    await updateDoc(subRef, subscriptionUpdate);
 };

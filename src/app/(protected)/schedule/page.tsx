@@ -23,6 +23,7 @@ const eventTypeTranslations: Record<ScheduleEventType, string> = {
     competition: 'Състезание',
     camp: 'Лагер',
     event: 'Събитие',
+    other: 'Друго',
 };
 
 const tabTranslations: Record<string, string> = {

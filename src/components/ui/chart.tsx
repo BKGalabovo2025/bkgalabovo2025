@@ -103,7 +103,9 @@ ${colorConfig
 const ChartTooltip = RechartsPrimitive.Tooltip
 
 
-interface ChartTooltipContentProps extends React.ComponentProps<"div">, Pick<RechartsPrimitive.TooltipProps<any, any>, 'payload' | 'label'> {
+interface ChartTooltipContentProps extends React.ComponentProps<"div"> {
+  payload?: any[]
+  label?: React.ReactNode
   hideLabel?: boolean;
   hideIndicator?: boolean;
   indicator?: "line" | "dot" | "dashed";
@@ -140,7 +142,7 @@ const ChartTooltipContent = React.forwardRef<
   const { config } = useChart()
 
   const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
+    if (hideLabel || !payload || payload.length === 0) {
       return null
     }
 
@@ -175,7 +177,7 @@ const ChartTooltipContent = React.forwardRef<
     labelKey,
   ])
 
-  if (!active || !payload?.length) {
+  if (!active || !payload || payload.length === 0) {
     return null
   }
 
@@ -263,7 +265,9 @@ ChartTooltipContent.displayName = "ChartTooltip"
 
 const ChartLegend = RechartsPrimitive.Legend
 
-interface ChartLegendContentProps extends React.ComponentProps<"div">, Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> {
+interface ChartLegendContentProps extends React.ComponentProps<"div"> {
+  payload?: any[]
+  verticalAlign?: "top" | "middle" | "bottom"
   hideIcon?: boolean;
   nameKey?: string;
 }
@@ -271,55 +275,53 @@ interface ChartLegendContentProps extends React.ComponentProps<"div">, Pick<Rech
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   ChartLegendContentProps
->(
-  (
-    { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
-    ref
-  ) => {
-    const { config } = useChart()
+>((
+  { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
+  ref
+) => {
+  const { config } = useChart()
 
-    if (!payload) {
-      return null
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "flex items-center justify-center gap-4",
-          verticalAlign === "top" ? "pb-3" : "pt-3",
-          className
-        )}
-      >
-        {payload.map((item: any) => {
-          const key = `${nameKey || item.dataKey || "value"}`
-          const itemConfig = getPayloadConfigFromPayload(config, item, key)
-
-          return (
-            <div
-              key={item.value}
-              className={cn(
-                "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
-              )}
-            >
-              {itemConfig?.icon && !hideIcon ? (
-                <itemConfig.icon />
-              ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
-              )}
-              {itemConfig?.label}
-            </div>
-          )
-        })}
-      </div>
-    )
+  if (!payload || payload.length === 0) {
+    return null
   }
-)
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex items-center justify-center gap-4",
+        verticalAlign === "top" ? "pb-3" : "pt-3",
+        className
+      )}
+    >
+      {payload.map((item: any) => {
+        const key = `${nameKey || item.dataKey || "value"}`
+        const itemConfig = getPayloadConfigFromPayload(config, item, key)
+
+        return (
+          <div
+            key={item.value}
+            className={cn(
+              "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
+            )}
+          >
+            {itemConfig?.icon && !hideIcon ? (
+              <itemConfig.icon />
+            ) : (
+              <div
+                className="h-2 w-2 shrink-0 rounded-[2px]"
+                style={{
+                  backgroundColor: item.color,
+                }}
+              />
+            )}
+            {itemConfig?.label}
+          </div>
+        )
+      })}
+    </div>
+  )
+})
 ChartLegendContent.displayName = "ChartLegend"
 
 // Helper to extract item config from a payload.

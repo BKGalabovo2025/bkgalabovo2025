@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getSubscriptionsByMemberId, getAllClubServices, assignSubscriptionToMember } from '@/services/subscription-service';
+import { getSubscriptionsByMemberId, getAllClubServices, createSubscription } from '@/services/subscription-service';
 import { registerPaymentForSubscription } from '@/services/payment-service';
 import { Subscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -143,7 +143,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   const { toast } = useToast();
@@ -171,15 +171,36 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
   }, [memberId]);
 
   const handleAddSubscription = async () => {
-    if (!selectedService || !startDate) {
+    if (!selectedServiceId || !startDate) {
         toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
         return;
     }
+    const service = services.find(s => s.id === selectedServiceId);
+    if (!service) {
+        toast({ title: "Грешка", description: "Избраната услуга не е намерена.", variant: "destructive" });
+        return;
+    }
+
     try {
-        await assignSubscriptionToMember(memberId, selectedService, new Date(startDate));
+        const newSubscription: Omit<Subscription, 'id'> = {
+            memberId: memberId,
+            serviceId: selectedServiceId,
+            serviceName: service.name,
+            startDate: new Date(startDate).toISOString(),
+            endDate: new Date(new Date(startDate).setFullYear(new Date(startDate).getFullYear() + 1)).toISOString(), // Assuming 1 year
+            status: 'pending_payment',
+            pricePaid: 0,
+            currency: service.currency,
+            paymentHistory: [],
+            paymentsMadeCount: 0,
+            totalPaymentsCount: service.billingPeriod === 'Годишен' ? 1 : 12,
+            licenseGranted: false,
+            apparelGranted: false,
+        };
+        await createSubscription(newSubscription);
         toast({ title: "Успех", description: "Абонаментът е добавен успешно." });
         setIsAddDialogOpen(false);
-        setSelectedService(null);
+        setSelectedServiceId(null);
         setStartDate(new Date().toISOString().split('T')[0]);
         fetchData();
     } catch (error) {
@@ -230,8 +251,8 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
                             {services.map(service => (
                                 <div
                                     key={service.id}
-                                    onClick={() => setSelectedService(service.id)}
-                                    className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedService === service.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                                    onClick={() => setSelectedServiceId(service.id)}
+                                    className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedServiceId === service.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
                                 >
                                     <span className='font-medium'>{service.name}</span>
                                     <span className='font-bold'>{(service.price / 100).toFixed(2)} {service.currency}</span>
@@ -257,7 +278,7 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
             </div>
             <DialogFooter>
                 <Button onClick={() => setIsAddDialogOpen(false)} variant="outline">Отказ</Button>
-                <Button onClick={handleAddSubscription} disabled={!selectedService || !startDate || services.length === 0}>
+                <Button onClick={handleAddSubscription} disabled={!selectedServiceId || !startDate || services.length === 0}>
                     Добави абонамент
                 </Button>
             </DialogFooter>
