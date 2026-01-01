@@ -47,7 +47,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
   const onSubmit = (data: PaymentFormValues) => {
     const paymentData: Omit<Payment, 'id'> = {
         ...data,
-        currency: 'BGN',
+        currency: 'EUR',
         method: 'cash', 
         status: 'succeeded',
         notes: data.notes || '',
@@ -68,7 +68,7 @@ export function PaymentForm({ members, onSave, onClose, initialData, isSaving }:
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Изберете член" />
-                  </SelectTrigger>
+                  </Trigger>
                 </FormControl>
                 <SelectContent>
                   {members.map(member => (
