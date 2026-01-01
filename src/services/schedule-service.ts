@@ -5,7 +5,7 @@ import {
 } from "firebase/firestore";
 import { ScheduleEvent, Attendee } from '@/types';
 
-const EVENTS_COLLECTION = 'scheduleEvents';
+const EVENTS_COLLECTION = 'events';
 
 const docToScheduleEvent = (doc: DocumentSnapshot): ScheduleEvent | null => {
     if (!doc.id || !doc.exists()) return null;
@@ -29,6 +29,7 @@ const docToScheduleEvent = (doc: DocumentSnapshot): ScheduleEvent | null => {
         type: ['training', 'competition', 'camp', 'event', 'other'].includes(data.type) ? data.type : 'other',
         location: typeof data.location === 'string' ? data.location : 'Unknown Location',
         attendees: attendees,
+        attendeeMemberIds: Array.isArray(data.attendeeMemberIds) ? data.attendeeMemberIds : [],
     };
 };
 
@@ -53,6 +54,7 @@ export const addScheduleEvent = async (eventData: Omit<ScheduleEvent, 'id'>): Pr
         ...eventData,
         startDate: Timestamp.fromDate(new Date(eventData.startDate)),
         endDate: Timestamp.fromDate(new Date(eventData.endDate)),
+        attendeeMemberIds: (eventData.attendees || []).map(a => a.memberId),
     };
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), dataWithTimestamps);
     return docRef.id;
@@ -68,6 +70,9 @@ export const updateScheduleEvent = async (eventId: string, eventData: Partial<Om
     if (eventData.endDate) {
         dataToUpdate.endDate = Timestamp.fromDate(new Date(eventData.endDate));
     }
+    if (eventData.attendees) {
+        dataToUpdate.attendeeMemberIds = eventData.attendees.map(a => a.memberId);
+    }
     await updateDoc(eventDoc, dataToUpdate);
 };
 
@@ -80,13 +85,20 @@ export const deleteScheduleEvent = async (eventId: string): Promise<void> => {
 export const getEventsByMemberId = async (memberId: string): Promise<ScheduleEvent[]> => {
     const db = getDb();
     const eventsCollection = collection(db, EVENTS_COLLECTION);
+    
+    // The query is simplified to avoid needing a composite index.
+    // Sorting will be handled in the application code.
     const q = query(
         eventsCollection,
-        where("attendees.memberId", "==", memberId),
-        orderBy("startDate", "desc")
+        where("attendeeMemberIds", "array-contains", memberId)
     );
     
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(docToScheduleEvent).filter(Boolean) as ScheduleEvent[];
+    const events = snapshot.docs.map(docToScheduleEvent).filter(Boolean) as ScheduleEvent[];
+
+    // Sort events by date in descending order (newest first)
+    events.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+
+    return events;
 };

@@ -5,6 +5,7 @@ import { getDb } from '@/lib/firebase';
 import { ScheduleEvent, Member, Attendee } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { getAllMembers } from '@/services/member-service';
+import { getFullName } from '@/lib/utils';
 
 type NewEvent = Omit<ScheduleEvent, 'id'>;
 
@@ -48,6 +49,10 @@ export const useEvents = () => {
                     ...data,
                     startDate: toISOStringOrUndefined(data.startDate),
                     endDate: toISOStringOrUndefined(data.endDate),
+                     attendees: (data.attendees || []).map((attendee: any) => ({
+                        ...attendee,
+                        name: members.find(m => m.id === attendee.memberId)?.name || attendee.name || 'Unknown'
+                    })),
                 } as ScheduleEvent;
             });
             setEvents(eventsData);
@@ -64,7 +69,7 @@ export const useEvents = () => {
         });
 
         return () => unsubscribe();
-    }, [toast]);
+    }, [toast, members]);
 
     const addEvent = useCallback(async (event: NewEvent) => {
         const db = getDb();
@@ -168,39 +173,37 @@ export const useEvents = () => {
         }
     }, [toast]);
     
-    const updateAttendees = useCallback(async (eventId: string, attendeeIds: string[]) => {
+    const updateAttendees = useCallback(async (eventId: string, newAttendees: Attendee[]) => {
         const db = getDb();
         let originalEvents: ScheduleEvent[] = [];
-        
-        const eventToUpdate = events.find(e => e.id === eventId);
-        if (!eventToUpdate) return;
 
-        const newAttendees: Attendee[] = attendeeIds.map(id => {
-            const existingAttendee = eventToUpdate.attendees.find(a => a.memberId === id);
-            if (existingAttendee) {
-                return existingAttendee;
-            }
-            const member = members.find(m => m.id === id);
-            return {
-                memberId: id,
-                name: member?.name || 'Unknown Member',
-                attended: false,
-            };
-        });
+        const attendeeMemberIds = newAttendees.map(a => a.memberId);
 
+        // Optimistic update
         setEvents(currentEvents => {
-            originalEvents = currentEvents;
-            return currentEvents.map(e => e.id === eventId ? { ...e, attendees: newAttendees } : e)
+            originalEvents = [...currentEvents];
+            return currentEvents.map(e => 
+                e.id === eventId 
+                    ? { 
+                        ...e, 
+                        attendees: newAttendees.map(a => ({...a, name: getFullName(members.find(m => m.id === a.memberId) || {})})), 
+                        attendeeMemberIds 
+                      }
+                    : e
+            );
         });
 
         try {
             const eventRef = doc(db, 'events', eventId);
-            await updateDoc(eventRef, { attendees: newAttendees });
+            const payload = newAttendees.map(({ memberId, attended, name }) => ({ memberId, attended, name }));
+            await updateDoc(eventRef, { attendees: payload, attendeeMemberIds });
+            
             toast({
                 title: "Присъствията са обновени",
                 description: "Списъкът с присъстващи е запазен.",
             });
         } catch (err) {
+            // Rollback on error
             setEvents(originalEvents);
             console.error("Error updating attendees:", err);
             toast({
@@ -209,7 +212,7 @@ export const useEvents = () => {
             });
             throw err;
         }
-    }, [toast, events, members]);
+    }, [toast, members]);
 
-    return { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error };
+    return { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error, members };
 };

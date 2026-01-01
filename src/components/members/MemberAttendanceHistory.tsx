@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ScheduleEvent } from '@/types';
+import { ScheduleEvent, Attendee } from '@/types';
 import { getEventsByMemberId } from '@/services/schedule-service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, getYear, getMonth } from 'date-fns';
 import { bg } from 'date-fns/locale';
-import { CalendarIcon, MapPinIcon, InfoIcon, FilterIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, InfoIcon, FilterIcon, CheckCheck } from 'lucide-react';
 
 interface MemberAttendanceHistoryProps {
     memberId: string;
@@ -33,7 +33,7 @@ const eventTypeTranslations: { [key: string]: string } = {
 const getBulgarianEventType = (type: string) => eventTypeTranslations[type] || type;
 
 export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryProps) {
-    const [allEvents, setAllEvents] = useState<ScheduleEvent[]>([]);
+    const [attendedEvents, setAttendedEvents] = useState<ScheduleEvent[]>([]);
     const [filteredEvents, setFilteredEvents] = useState<ScheduleEvent[]>([]);
     const [loading, setLoading] = useState(true);
     
@@ -44,9 +44,17 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
         const fetchAttendance = async () => {
             setLoading(true);
             try {
+                // 1. Fetch all events the member is associated with.
                 const memberEvents = await getEventsByMemberId(memberId);
-                setAllEvents(memberEvents);
-                setFilteredEvents(memberEvents); 
+                
+                // 2. Filter to include only events where the member's attendance is marked as true.
+                const attendedOnlyEvents = memberEvents.filter(event => {
+                    const attendeeRecord = event.attendees?.find((a: Attendee) => a.memberId === memberId);
+                    return attendeeRecord?.attended === true;
+                });
+
+                setAttendedEvents(attendedOnlyEvents);
+                setFilteredEvents(attendedOnlyEvents); 
             } catch (error) {
                 console.error("Error fetching attendance history:", error);
             } finally {
@@ -58,7 +66,7 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
 
     const monthOptions = useMemo(() => {
         const months = new Set<string>();
-        allEvents.forEach(event => {
+        attendedEvents.forEach(event => {
             if (!event.startDate) return;
             const eventDate = new Date(event.startDate);
             const monthKey = `${getYear(eventDate)}-${getMonth(eventDate)}`;
@@ -72,10 +80,10 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
                 label: format(date, 'MMMM yyyy', { locale: bg })
             };
         });
-    }, [allEvents]);
+    }, [attendedEvents]);
 
     useEffect(() => {
-        let events = [...allEvents];
+        let events = [...attendedEvents];
 
         if (selectedMonth !== 'all') {
             const [year, month] = selectedMonth.split('-').map(Number);
@@ -91,15 +99,16 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
         }
 
         setFilteredEvents(events);
-    }, [selectedMonth, selectedType, allEvents]);
+    }, [selectedMonth, selectedType, attendedEvents]);
 
-
-    const currentMonthAttendances = allEvents.filter(event => {
-        if (!event.startDate) return false;
-        const eventDate = new Date(event.startDate);
-        const currentDate = new Date();
-        return eventDate.getFullYear() === currentDate.getFullYear() && eventDate.getMonth() === currentDate.getMonth();
-    }).length;
+    const currentMonthAttendances = useMemo(() => {
+        return attendedEvents.filter(event => {
+            if (!event.startDate) return false;
+            const eventDate = new Date(event.startDate);
+            const currentDate = new Date();
+            return eventDate.getFullYear() === currentDate.getFullYear() && eventDate.getMonth() === currentDate.getMonth();
+        }).length;
+    }, [attendedEvents]);
 
     const formatEventDate = (startDate?: string | null, endDate?: string | null) => {
         if (!startDate || !endDate) return 'Няма данни за дата';
@@ -123,7 +132,7 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mb-6">
-                   <StatCard title="Общо посещения" value={allEvents.length} />
+                   <StatCard title="Общо посещения" value={attendedEvents.length} />
                    <StatCard title="Посещения (текущ месец)" value={currentMonthAttendances} />
                    <StatCard title="Резултати от филтъра" value={filteredEvents.length} />
                 </div>
@@ -176,7 +185,11 @@ export function MemberAttendanceHistory({ memberId }: MemberAttendanceHistoryPro
                         ))
                     ) : (
                         <div className="text-center py-10 border rounded-lg">
-                            <p>Няма резултати, отговарящи на избраните филтри.</p>
+                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                <CheckCheck className="h-10 w-10"/>
+                                <h3 className="text-lg font-semibold">Няма регистрирани присъствия</h3>
+                                <p className="text-sm">За избраните филтри няма данни за реално посетени събития.</p>
+                            </div>
                         </div>
                     )}
                 </div>

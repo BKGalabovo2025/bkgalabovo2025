@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 
 import React, { useState, useMemo } from 'react';
 import { useEvents } from '@/hooks/useEvents';
-import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Repeat, Loader2 } from 'lucide-react';
 import { CreateEventDialog } from '@/components/schedule/CreateEventDialog';
@@ -11,7 +10,7 @@ import { EditEventDialog } from '@/components/schedule/EditEventDialog';
 import { AttendeesDialog } from '@/components/schedule/AttendeesDialog';
 import { MonthlyScheduleDialog } from '@/components/schedule/MonthlyScheduleDialog';
 import { PrintableEvent } from '@/components/schedule/PrintableEvent';
-import { ScheduleEvent, Member, ScheduleEventType } from '@/types';
+import { ScheduleEvent, Member, ScheduleEventType, Attendee } from '@/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,8 +34,7 @@ const tabTranslations: Record<string, string> = {
 const EVENTS_PER_PAGE = 20;
 
 export default function SchedulePage() {
-    const { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading: isLoadingEvents, error: eventsError } = useEvents();
-    const { members, loading: isLoadingMembers, error: membersError } = useMembers();
+    const { events, members, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error } = useEvents();
     const { toast } = useToast();
     
     const [activeTab, setActiveTab] = useState('current');
@@ -89,8 +87,8 @@ export default function SchedulePage() {
         await updateEvent(eventId, eventData);
     };
     
-    const handleUpdateAttendees = async (eventId: string, attendeeIds: string[]) => {
-        await updateAttendees(eventId, attendeeIds);
+    const handleUpdateAttendees = async (eventId: string, attendees: Attendee[]) => {
+        await updateAttendees(eventId, attendees);
     };
 
     const openEditDialog = (event: ScheduleEvent) => {
@@ -153,15 +151,13 @@ export default function SchedulePage() {
         const endIndex = startIndex + EVENTS_PER_PAGE;
         return filteredEvents.slice(startIndex, endIndex);
     }, [filteredEvents, currentPage, activeTab]);
-    
-    const isLoading = isLoadingEvents || isLoadingMembers;
-    const combinedError = eventsError || membersError;
+
     let errorObject: Error | null = null;
-    if (combinedError) {
-        if (typeof combinedError === 'string') {
-            errorObject = new Error(combinedError);
+    if (error) {
+        if (typeof error === 'string') {
+            errorObject = new Error(error);
         } else {
-            errorObject = combinedError;
+            errorObject = error;
         }
     }
 

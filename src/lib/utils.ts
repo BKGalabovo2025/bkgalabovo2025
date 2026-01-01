@@ -2,10 +2,28 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { DocumentData, DocumentSnapshot } from "firebase/firestore";
+import { Member } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/**
+ * Генерира пълното име на член от трите му части.
+ * @param member - Обект, съдържащ данните за члена (firstName, middleName, lastName).
+ * @returns {string} Пълното име, или "Неизвестен член", ако имената липсват.
+ */
+export const getFullName = (member: Partial<Member>): string => {
+  if (!member || (!member.firstName && !member.lastName)) {
+    return 'Неизвестен член';
+  }
+  
+  const fullName = [member.firstName, member.middleName, member.lastName]
+    .filter(Boolean) // Премахва null, undefined или празни низове
+    .join(' ');
+
+  return fullName;
+};
 
 /**
  * Определя възрастовата група на член на базата на годината на раждане.
