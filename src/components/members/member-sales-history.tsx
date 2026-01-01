@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, Receipt, CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSales } from '@/hooks/useSales'; // Assuming this hook fetches sales for a member
+import { useSales } from '@/hooks/useSales';
 
 interface MemberSalesHistoryProps {
   memberId: string;
@@ -16,7 +16,6 @@ interface MemberSalesHistoryProps {
 
 export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
   const router = useRouter();
-  // The useSales hook now fetches data internally, making the component self-sufficient.
   const { sales, loading, error, markAsPaid } = useSales(memberId);
 
   if (loading) {
@@ -30,14 +29,6 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
 
   if (error) {
       return <p className="text-center text-destructive py-4">{error}</p>;
-  }
-
-  const getStatusVariant = (isPaid: boolean) => {
-    return isPaid ? 'success' : 'destructive';
-  };
-
-  const getStatusText = (isPaid: boolean) => {
-    return isPaid ? 'Платено' : 'Неплатено';
   }
 
   return (
@@ -61,25 +52,28 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {sales.map(sale => (
-                            <TableRow key={sale.id}>
-                                <TableCell>{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</TableCell>
-                                <TableCell className="text-center">
-                                    <Badge variant={getStatusVariant(sale.isPaid)}>{getStatusText(sale.isPaid)}</Badge>
-                                </TableCell>
-                                <TableCell className="font-medium text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
-                                <TableCell className="text-right space-x-2">
-                                    {!sale.isPaid && (
-                                        <Button variant="outline" size="sm" onClick={() => markAsPaid(sale.id)}>
-                                            <CheckCircle className="h-4 w-4 mr-1"/> Плати
+                        {sales.map(sale => {
+                            const isPaid = sale.status === 'completed';
+                            return (
+                                <TableRow key={sale.id}>
+                                    <TableCell>{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</TableCell>
+                                    <TableCell className="text-center">
+                                        <Badge variant={isPaid ? 'success' : 'destructive'}>{isPaid ? 'Платено' : 'Неплатено'}</Badge>
+                                    </TableCell>
+                                    <TableCell className="font-medium text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
+                                    <TableCell className="text-right space-x-2">
+                                        {!isPaid && (
+                                            <Button variant="outline" size="sm" onClick={() => markAsPaid(sale.id)}>
+                                                <CheckCircle className="h-4 w-4 mr-1"/> Плати
+                                            </Button>
+                                        )}
+                                        <Button variant="outline" size="sm" onClick={() => router.push(`/sales/${sale.id}/receipt`)}>
+                                            <Receipt className="h-4 w-4"/>
                                         </Button>
-                                    )}
-                                    <Button variant="outline" size="sm" onClick={() => router.push(`/sales/${sale.id}/receipt`)}>
-                                        <Receipt className="h-4 w-4"/>
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                     </TableBody>
                 </Table>
             ) : (

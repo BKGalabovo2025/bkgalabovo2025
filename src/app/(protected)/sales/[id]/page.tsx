@@ -98,6 +98,8 @@ const SaleDetailsPage = () => {
   if (!sale) {
     return <div className="text-center py-10">Информацията за продажбата не е намерена.</div>;
   }
+  
+  const isPaid = sale.status === 'completed';
 
   return (
     <div className="p-4 sm:p-6">
@@ -205,11 +207,11 @@ const SaleDetailsPage = () => {
                     <CardTitle>Статус на плащане</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-start gap-4">
-                     <Badge variant={sale.status === 'completed' ? 'success' : 'destructive'} className="text-base px-4 py-1">
-                        {sale.isPaid ? 'Платено' : 'Неплатено'}
+                     <Badge variant={isPaid ? 'success' : 'destructive'} className="text-base px-4 py-1">
+                        {isPaid ? 'Платено' : 'Неплатено'}
                     </Badge>
 
-                    {!sale.isPaid && (
+                    {!isPaid && (
                         <Button onClick={handleMarkAsPaid} disabled={isUpdatingStatus} className="w-full mt-2">
                             {isUpdatingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <CheckCheck className="mr-2 h-4 w-4" />}
                             Маркирай като платено

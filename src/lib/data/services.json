@@ -105,9 +105,11 @@
     "requiresBooking": true,
     "billingPeriod": "Месечен",
     "grantsLicense": true,
-    "licenseCondition": null,
+    "licenseCondition": "След N плащания",
+    "licensePaymentCount": 6,
     "grantsApparel": true,
-    "apparelCondition": null
+    "apparelCondition": "След N плащания",
+    "apparelPaymentCount": 12
   },
   {
     "id": "svc_1766513858765",
@@ -124,9 +126,11 @@
     "requiresBooking": true,
     "billingPeriod": "Годишен",
     "grantsLicense": true,
-    "licenseCondition": null,
+    "licenseCondition": "След N плащания",
+    "licensePaymentCount": 1,
     "grantsApparel": true,
-    "apparelCondition": null
+    "apparelCondition": "След N плащания",
+    "apparelPaymentCount": 1
   },
   {
     "id": "svc_1766514094772",

@@ -9,7 +9,7 @@ import { Loader2, AlertCircle, Users, BarChart, TrendingUp, TrendingDown } from 
 import { formatCurrency } from '@/lib/currency';
 
 const DashboardPage = () => {
-  const { stats, recentMembers, recentSales, loading, error } = useDashboardData();
+  const { stats, allMembers, recentSales, loading, error } = useDashboardData(); // Use allMembers
   const router = useRouter();
 
   if (loading) {
@@ -30,6 +30,11 @@ const DashboardPage = () => {
       </div>
     );
   }
+  
+  // Sort members by registration date and take the most recent ones for the 'RecentMembersCard'
+  const recentMembers = allMembers
+    .sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime())
+    .slice(0, 5);
 
   const getInitials = (firstName?: string, lastName?: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
@@ -43,7 +48,7 @@ const DashboardPage = () => {
 
       <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
         <RecentMembersCard members={recentMembers} onNavigate={(id) => router.push(`/members/${id}`)} getInitials={getInitials} />
-        <RecentSalesCard sales={recentSales} members={recentMembers} onNavigate={(id) => router.push(`/sales/${id}`)} />
+        <RecentSalesCard sales={recentSales} members={allMembers} onNavigate={(id) => router.push(`/sales/${id}`)} />
       </div>
     </div>
   );
@@ -136,7 +141,7 @@ const RecentSalesCard = ({ sales, members, onNavigate }: { sales: Sale[], member
             ) : (sales.map((sale, index) => {
                 if (!sale || typeof sale !== 'object') return null;
                 const member = members.find(m => m.id === sale.memberId);
-                const memberName = member ? `${member.firstName} ${member.lastName}` : '(не е намерен)';
+                const memberName = member ? `${member.firstName} ${member.lastName}` : 'Външен клиент';
                 return (
                   <div key={sale.id || index} className="flex items-center space-x-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg" onClick={() => sale.id && onNavigate(sale.id)}>
                       <div className="flex-1">

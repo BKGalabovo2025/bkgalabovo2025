@@ -14,34 +14,43 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// --- Functions to get Firebase services ---
+let app: FirebaseApp;
 
 // This function ensures the app is initialized only once.
 function getFirebaseApp(): FirebaseApp {
-    if (!getApps().length) {
-        return initializeApp(firebaseConfig);
+    if (getApps().length) {
+        return getApp();
     }
-    return getApp();
+    return initializeApp(firebaseConfig);
 }
 
-// Returns the Auth instance.
-function getFirebaseAuth(): Auth {
-    return getAuth(getFirebaseApp());
-}
+// --- Lazy-loaded, service-specific functions ---
 
-// Returns the Firestore instance.
+let db: Firestore;
+
 function getDb(): Firestore {
-    return getFirestore(getFirebaseApp());
+    if (!db) {
+        db = getFirestore(getFirebaseApp());
+    }
+    return db;
 }
 
-// Returns the Storage instance.
+let auth: Auth;
+function getFirebaseAuth(): Auth {
+    if (!auth) {
+        auth = getAuth(getFirebaseApp());
+    }
+    return auth;
+}
+
+let storage: FirebaseStorage;
 function getAppStorage(): FirebaseStorage {
-    return getStorage(getFirebaseApp());
+    if (!storage) {
+        storage = getStorage(getFirebaseApp());
+    }
+    return storage;
 }
 
-// --- Exports ---
-
-// We export the functions instead of the instances themselves.
 export {
     getFirebaseApp,
     getFirebaseAuth,

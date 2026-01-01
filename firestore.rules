@@ -14,8 +14,10 @@ service cloud.firestore {
     }
 
     // -- Collections --
+    // WARNING: This is insecure for production. Allows all reads and writes.
+    // This is for local development and emulator use only.
     match /{document=**} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if true;
     }
   }
 }

@@ -1,13 +1,13 @@
+
 import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
+import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import { Subscription, ClubService, ClubServiceHistory } from '@/types';
-import { getAuth } from 'firebase/auth';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
 const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
 
-// Bulletproof converters
+// --- Converters --- 
 const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
@@ -67,10 +67,27 @@ const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => 
     };
 };
 
-const generateChangeSummary = (oldData: Partial<ClubService>, newData: Partial<ClubService>): string => {
-    // ... (implementation remains the same)
-    return 'Summary of changes'; // Placeholder
+// --- Change Summary Generator --- 
+const generateChangeSummary = (oldData: ClubService, newData: Omit<ClubService, 'id'>): string => {
+    const changes: string[] = [];
+    
+    // Direct field comparisons
+    if (oldData.name !== newData.name) changes.push(`- Име: '${oldData.name}' -> '${newData.name}'`);
+    if (oldData.price !== newData.price) changes.push(`- Цена: ${(oldData.price / 100).toFixed(2)} -> ${(newData.price / 100).toFixed(2)} ${newData.currency}`);
+    if (oldData.description !== newData.description) changes.push(`- Описанието е променено.`);
+    if (oldData.billingPeriod !== newData.billingPeriod) changes.push(`- Таксуване: '${oldData.billingPeriod}' -> '${newData.billingPeriod}'`);
+
+    // Array comparison for target groups
+    const oldGroups = (oldData.targetGroups || []).join(', ');
+    const newGroups = (newData.targetGroups || []).join(', ');
+    if (oldGroups !== newGroups) changes.push(`- Целеви групи: '${oldGroups}' -> '${newGroups}'`);
+
+    if (!changes.length) return 'Няма засечени промени.';
+
+    return changes.join('\n');
 };
+
+// --- Service Functions --- 
 
 export const getAllClubServices = async (): Promise<ClubService[]> => {
     const db = getDb();
@@ -91,8 +108,48 @@ export const createClubService = async (service: Omit<ClubService, 'id'>): Promi
     return await addDoc(collection(db, SERVICES_COLLECTION), service);
 };
 
-export const updateClubService = async (id: string, serviceUpdate: Partial<ClubService>, note?: string): Promise<void> => {
-    // ... (logic remains, but would internally use docToClubService if fetching data)
+export const updateClubService = async (id: string, serviceUpdate: Omit<ClubService, 'id'>, note?: string): Promise<void> => {
+    const db = getDb();
+    const auth = getFirebaseAuth();
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("Нямате права за тази операция. Моля, влезте отново в системата.");
+
+    const serviceRef = doc(db, SERVICES_COLLECTION, id);
+    const historyRef = doc(collection(db, SERVICE_HISTORY_COLLECTION));
+
+    const batch = writeBatch(db);
+
+    // 1. Fetch the current state of the service
+    const oldDocSnap = await getDoc(serviceRef);
+    const oldData = docToClubService(oldDocSnap);
+    if (!oldData) throw new Error("Услугата, която се опитвате да промените, не съществува.");
+
+    // 2. Generate summary of changes
+    const changes = generateChangeSummary(oldData, serviceUpdate);
+
+    // 3. Create history log
+    const historyLog: ClubServiceHistory = {
+        id: historyRef.id,
+        serviceId: id,
+        serviceName: oldData.name,
+        timestamp: new Date().toISOString(),
+        userId: user.uid,
+        userName: user.displayName || user.email || 'System',
+        changes: changes,
+        note: note || undefined,
+    };
+
+    // Remove undefined fields before saving
+    Object.keys(serviceUpdate).forEach(key => (serviceUpdate as any)[key] === undefined && delete (serviceUpdate as any)[key]);
+    Object.keys(historyLog).forEach(key => (historyLog as any)[key] === undefined && delete (historyLog as any)[key]);
+
+    // 4. Add update and history creation to the batch
+    batch.update(serviceRef, serviceUpdate);
+    batch.set(historyRef, historyLog);
+
+    // 5. Commit the batch
+    await batch.commit();
 };
 
 export const deleteClubService = async (id: string): Promise<void> => {
@@ -106,6 +163,8 @@ export const getHistoryForService = async (serviceId: string): Promise<ClubServi
     const snapshot = await getDocs(q);
     return snapshot.docs.map(docToClubServiceHistory).filter(Boolean) as ClubServiceHistory[];
 };
+
+// --- Subscription Functions ---
 
 export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subscription[]> => {
   const db = getDb();

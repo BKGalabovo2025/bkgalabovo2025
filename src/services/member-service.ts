@@ -77,11 +77,19 @@ export const getAllMembers = async (): Promise<Member[]> => {
 export const addMember = async (memberData: Omit<Member, 'id' | 'name'>): Promise<string> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
-  const dataToAdd = {
+  const dataToAdd: { [key: string]: any } = {
     ...memberData,
     dateOfBirth: Timestamp.fromDate(new Date(memberData.dateOfBirth)),
     registrationDate: Timestamp.fromDate(new Date(memberData.registrationDate)),
   };
+
+  // Clean up undefined values to prevent Firestore errors
+  Object.keys(dataToAdd).forEach(key => {
+      if (dataToAdd[key] === undefined) {
+          delete dataToAdd[key];
+      }
+  });
+
   const docRef = await addDoc(membersCollection, dataToAdd);
   return docRef.id;
 };
@@ -97,6 +105,7 @@ export const updateMember = async (id: string, memberData: Partial<Omit<Member, 
       dataToUpdate.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate as string));
   }
 
+  // Clean up undefined values to prevent Firestore errors
   Object.keys(dataToUpdate).forEach(key => {
       if (dataToUpdate[key] === undefined) {
           delete dataToUpdate[key];

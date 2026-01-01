@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Member, Sale } from '@/types';
 import { getAllMembers } from '@/services/member-service';
 import { getSales } from '@/services/sales-service';
-import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service';
-import { useAuth } from '@/context/auth-context'; // Import useAuth hook
+import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service'; // Corrected import path
+import { useAuth } from '@/context/auth-context';
 
 export type DashboardStats = {
     totalMembers: number;
@@ -14,16 +14,16 @@ export type DashboardStats = {
 };
 
 export const useDashboardData = () => {
-    const { user } = useAuth(); // Get user from useAuth hook
+    const { user } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [recentMembers, setRecentMembers] = useState<Member[]>([]);
+    const [allMembers, setAllMembers] = useState<Member[]>([]);
     const [recentSales, setRecentSales] = useState<Sale[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) { // Don't fetch if no user
+            if (!user) {
                 setLoading(false);
                 return;
             }
@@ -37,11 +37,11 @@ export const useDashboardData = () => {
                 const members = Array.isArray(membersData) ? membersData : [];
                 const sales = Array.isArray(salesData) ? salesData : [];
 
+                // Now calling the correct, updated function
                 const dashboardStats = getDashboardStats(members, sales);
                 setStats(dashboardStats);
 
-                members.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
-                setRecentMembers(members.slice(0, 5));
+                setAllMembers(members);
                 
                 sales.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
                 setRecentSales(sales.slice(0, 5));
@@ -55,7 +55,7 @@ export const useDashboardData = () => {
         };
 
         fetchData();
-    }, [user]); // Add user as a dependency
+    }, [user]);
 
-    return { stats, recentMembers, recentSales, loading, error };
+    return { stats, allMembers, recentSales, loading, error };
 };
