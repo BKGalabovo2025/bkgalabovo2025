@@ -55,7 +55,7 @@ export function SalesHistory({ memberId }: SalesHistoryProps) {
                     <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                         {sales.map(sale => (
                             <tr key={sale.id}>
-                                <td className="px-6 py-4 whitespace-nowrap">{new Date(sale.date).toLocaleDateString('bg-BG')}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</td>
                                 <td className="px-6 py-4 whitespace-normal">
                                     {sale.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}
                                 </td>

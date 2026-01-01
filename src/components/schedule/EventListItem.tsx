@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ScheduleEvent, Member, ScheduleEventType } from '@/types';
+import { ScheduleEvent, Member, ScheduleEventType, Attendee } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Users, Printer, Calendar as CalendarIcon, Clock, Tag } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,9 +17,10 @@ interface EventListItemProps {
 
 const eventTypeDetails: Record<ScheduleEventType, { translation: string; color: string }> = {
     training: { translation: 'Тренировка', color: 'bg-blue-500' },
-    sastezanie: { translation: 'Състезание', color: 'bg-red-500' },
-    lager: { translation: 'Лагер', color: 'bg-green-500' },
-    sabitie: { translation: 'Събитие', color: 'bg-yellow-500' },
+    competition: { translation: 'Състезание', color: 'bg-red-500' },
+    camp: { translation: 'Лагер', color: 'bg-green-500' },
+    event: { translation: 'Събитие', color: 'bg-yellow-500' },
+    other: { translation: 'Друго', color: 'bg-gray-500' },
 };
 
 const getInitials = (name: string) => {
@@ -49,9 +50,10 @@ export const EventListItem: React.FC<EventListItemProps> = ({ event, members, on
         return new Date(date).toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' });
     };
 
-    const attendees = (event.attendees || []).map(attendeeId => 
-        members.find(m => m.id === attendeeId)
-    ).filter(Boolean) as Member[];
+    const attendees: (Member & { attended: boolean })[] = (event.attendees || []).map((attendee: Attendee) => {
+        const member = members.find(m => m.id === attendee.memberId);
+        return member ? { ...member, attended: attendee.attended } : null;
+    }).filter(Boolean) as (Member & { attended: boolean })[];
 
     const MAX_VISIBLE_AVATARS = 5;
     const visibleAttendees = attendees.slice(0, MAX_VISIBLE_AVATARS);

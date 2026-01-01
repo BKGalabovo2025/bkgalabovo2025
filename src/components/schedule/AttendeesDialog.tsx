@@ -24,7 +24,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClos
 
     useEffect(() => {
         if (event) {
-            setSelectedAttendees(event.attendees || []);
+            setSelectedAttendees(event.attendees?.map(a => a.memberId) || []);
         }
     }, [event]);
 

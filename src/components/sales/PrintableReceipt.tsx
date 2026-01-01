@@ -31,7 +31,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member
             </div>
             <div className="text-right">
                 <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
-                <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.date).toLocaleDateString('bg-BG')}</p>
+                <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
             </div>
         </header>
         

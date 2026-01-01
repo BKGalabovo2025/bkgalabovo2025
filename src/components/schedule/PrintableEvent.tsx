@@ -1,6 +1,6 @@
 // This component is designed specifically for printing.
 import React from 'react';
-import { ScheduleEvent, Member, ScheduleEventType } from '@/types';
+import { ScheduleEvent, Member, ScheduleEventType, Attendee } from '@/types';
 import { format } from 'date-fns';
 import { bg } from 'date-fns/locale';
 
@@ -26,8 +26,8 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({ event, members, 
     if (!event) return null;
 
     const attendeeNames = (event.attendees || [])
-        .map(attendeeId => {
-            const member = members.find(m => m.id === attendeeId);
+        .map((attendee: Attendee) => {
+            const member = members.find(m => m.id === attendee.memberId);
             return member ? `${member.firstName} ${member.lastName}` : null;
         })
         .filter(Boolean)
