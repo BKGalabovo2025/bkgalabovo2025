@@ -16,7 +16,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { user, signOut } = useAuth();
 
   return (
-    <Sidebar {...props} className={cn("bg-sidebar-background text-sidebar-foreground animate-in slide-in-from-left-2 duration-500", props.className)}>
+    <Sidebar {...props} className={cn("bg-sidebar text-sidebar-foreground animate-in slide-in-from-left-2 duration-500", props.className)}>
       <SidebarHeader>
         <div className="w-full text-center py-4 px-2">
           <h1 className="text-lg font-bold">{clubInfo.name}</h1>
