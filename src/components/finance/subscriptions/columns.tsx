@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from '@/components/shared/data-table-column-hea
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 
 // Define the shape of the data for the table
@@ -18,13 +18,13 @@ export interface SubscriptionData extends Subscription {
 }
 
 // Helper function to determine badge color based on status
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status: 'active' | 'inactive' | 'cancelled' | 'pending_payment') => {
   switch (status) {
     case 'active':
       return <Badge variant="success">Активен</Badge>;
     case 'pending_payment':
       return <Badge variant="secondary">Чакащо плащане</Badge>;
-    case 'expired':
+    case 'inactive':
       return <Badge variant="destructive">Изтекъл</Badge>;
     case 'cancelled':
       return <Badge variant="secondary">Отказан</Badge>;
@@ -34,7 +34,7 @@ const getStatusBadge = (status: string) => {
 };
 
 // Define the columns for the DataTable
-export const columns: ColumnDef<SubscriptionData>[] = [
+export const columns = (openForm: (subscription: SubscriptionData) => void): ColumnDef<SubscriptionData>[] => [
   {
     accessorKey: 'memberLastName',
     header: ({ column }) => (
@@ -90,6 +90,9 @@ export const columns: ColumnDef<SubscriptionData>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Действия</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => openForm(subscription)}>
+              Редактирай
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
                <Link href={`/members/${subscription.memberId}?tab=subscriptions`}>Преглед на абонамента</Link>
             </DropdownMenuItem>

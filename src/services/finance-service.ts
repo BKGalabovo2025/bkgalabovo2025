@@ -1,3 +1,4 @@
+
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc, orderBy, updateDoc, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Payment, Subscription, PaymentHistoryItem } from '@/types';
@@ -14,9 +15,11 @@ const docToPayment = (doc: DocumentSnapshot): Payment | null => {
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentDate: data.paymentDate instanceof Timestamp ? data.paymentDate.toDate().toISOString() : new Date().toISOString(),
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
+        type: ['subscription', 'donation', 'sale', 'other'].includes(data.type) ? data.type : 'other',
         method: ['cash', 'card', 'bank_transfer'].includes(data.method) ? data.method : 'cash',
-        status: ['paid', 'unpaid', 'failed'].includes(data.status) ? data.status : 'unpaid',
+        status: ['succeeded', 'pending', 'failed'].includes(data.status) ? data.status : 'pending',
         notes: typeof data.notes === 'string' ? data.notes : '',
+        relatedId: typeof data.relatedId === 'string' ? data.relatedId : undefined,
     };
 };
 
@@ -28,7 +31,7 @@ const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
         if (!item || typeof item !== 'object') return null;
         return {
             paymentId: typeof item.paymentId === 'string' ? item.paymentId : '',
-            paymentDate: item.paymentDate instanceof Timestamp ? item.paymentDate.toDate().toISOString() : new Date().toISOString(),
+            date: item.date instanceof Timestamp ? item.date.toDate().toISOString() : new Date().toISOString(),
             amount: typeof item.amount === 'number' ? item.amount : 0,
         };
     }).filter(Boolean) as PaymentHistoryItem[];
@@ -37,15 +40,17 @@ const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
         id: doc.id,
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
         serviceId: typeof data.serviceId === 'string' ? data.serviceId : '',
+        serviceName: typeof data.serviceName === 'string' ? data.serviceName : '',
         startDate: data.startDate instanceof Timestamp ? data.startDate.toDate().toISOString() : new Date().toISOString(),
         endDate: data.endDate instanceof Timestamp ? data.endDate.toDate().toISOString() : new Date().toISOString(),
-        status: ['active', 'inactive', 'cancelled'].includes(data.status) ? data.status : 'inactive',
+        status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentHistory: paymentHistory,
         paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
         totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,
-        serviceName: typeof data.serviceName === 'string' ? data.serviceName : ''
+        licenseGranted: typeof data.licenseGranted === 'boolean' ? data.licenseGranted : undefined,
+        apparelGranted: typeof data.apparelGranted === 'boolean' ? data.apparelGranted : undefined,
     };
 };
 
@@ -94,7 +99,7 @@ export const addSubscription = async (subscriptionData: Omit<Subscription, 'id'>
         ...subscriptionData,
         startDate: Timestamp.fromDate(new Date(subscriptionData.startDate)),
         endDate: Timestamp.fromDate(new Date(subscriptionData.endDate)),
-        paymentHistory: subscriptionData.paymentHistory.map(p => ({ ...p, paymentDate: Timestamp.fromDate(new Date(p.paymentDate))}))
+        paymentHistory: subscriptionData.paymentHistory.map(p => ({ ...p, date: Timestamp.fromDate(new Date(p.date))}))
     };
     const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), dataWithTimestamps);
     return docRef.id;
@@ -111,7 +116,7 @@ export const updateSubscription = async (subscriptionId: string, subscriptionDat
         dataToUpdate.endDate = Timestamp.fromDate(new Date(subscriptionData.endDate));
     }
     if (subscriptionData.paymentHistory) {
-        dataToUpdate.paymentHistory = subscriptionData.paymentHistory.map(p => ({ ...p, paymentDate: Timestamp.fromDate(new Date(p.paymentDate))}));
+        dataToUpdate.paymentHistory = subscriptionData.paymentHistory.map(p => ({ ...p, date: Timestamp.fromDate(new Date(p.date))}));
     }
 
     await updateDoc(subDoc, dataToUpdate);
