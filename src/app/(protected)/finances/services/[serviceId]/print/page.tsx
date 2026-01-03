@@ -1,7 +1,6 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { notFound } from 'next/navigation';
 import PrintClientPage from './PrintClientPage';
-import { use } from 'react';
 
 // --- Type Definition (includes ALL possible fields) ---
 interface Service {
@@ -50,7 +49,7 @@ async function getService(id: string): Promise<Service | null> {
             grantsLicense: data.grantsLicense || false,
             licenseCondition: data.licenseCondition,
             licensePaymentCount: data.licensePaymentCount,
-            grantsApparel: data.grantsApparel || false,
+    grantsApparel: data.grantsApparel || false,
             apparelCondition: data.apparelCondition,
             apparelPaymentCount: data.apparelPaymentCount,
             durationMinutes: data.durationMinutes,
@@ -62,10 +61,10 @@ async function getService(id: string): Promise<Service | null> {
 }
 
 // --- Page Component (React Server Component) ---
-export default function ServicePrintPage({ params }: { params: { serviceId: string } }) {
+export default async function ServicePrintPage({ params }: { params: { serviceId: string } }) {
   
-  // Using `use` to resolve the promise from the async data fetching function.
-  const service = use(getService(params.serviceId));
+  // Using `await` to resolve the promise from the async data fetching function.
+  const service = await getService(params.serviceId);
 
   // If no service is found for any reason, show a 404 page.
   if (!service) {
