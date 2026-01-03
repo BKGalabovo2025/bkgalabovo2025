@@ -1,148 +1,188 @@
+'use server';
 
-"use server";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { getAllMembers } from '@/services/member-service';
+// --- Zod Schema for validation (no changes here) ---
+const ServiceSchema = z.object({
+  name: z.string().min(3, { message: "Името трябва да е поне 3 символа." }),
+  price: z.preprocess(
+    (val) => (typeof val === 'string' ? parseFloat(val) : val),
+    z.number().positive({ message: "Цената трябва да е положително число." })
+  ),
+  description: z.string().min(10, { message: "Описанието трябва да е поне 10 символа." }),
+  currency: z.string(),
+  type: z.string(),
+  billingPeriod: z.string().optional(),
+  targetGroups: z.array(z.string()).optional(),
+  grantsLicense: z.boolean().optional(),
+  licenseCondition: z.string().optional(),
+  licensePaymentCount: z.number().optional(),
+  grantsApparel: z.boolean().optional(),
+  apparelCondition: z.string().optional(),
+  apparelPaymentCount: z.number().optional(),
+  durationMinutes: z.number().optional(),
+});
 
-// Defines the shape of a club service object, expanded to include all form fields.
-export type ClubService = {
-    id: string;
-    name: string;
-    description?: string;
-    price: number;
-    targetGroups?: ('Деца' | 'Любители')[];
-    type: 'subscription' | 'one-time';
-    
-    // Subscription-specific fields
-    billingPeriod?: 'Месечен' | 'Годишен';
-    grantsLicense?: boolean;
-    licenseCondition?: 'Веднага' | 'След N плащания';
-    licensePaymentCount?: number;
-    grantsApparel?: boolean;
-    apparelCondition?: 'Веднага' | 'След N плащания';
-    apparelPaymentCount?: number;
-    
-    // One-time specific fields
-    durationMinutes?: number;
+export type ServiceState = {
+  errors?: { [key: string]: string[] | undefined; };
+  message?: string | null;
 };
 
-const SERVICES_COLLECTION = 'services';
+// --- Private Helper Functions ---
+
+async function _getUserNameFromToken(idToken: string): Promise<string> {
+    if (!idToken) return "System (No Token)";
+    try {
+        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const user = await adminAuth.getUser(decodedToken.uid);
+        return user.displayName || user.email || "Анонимен потребител";
+    } catch (error) {
+        console.error("Error verifying ID token:", error);
+        return "System (Invalid Token)";
+    }
+}
 
 /**
- * Creates a new club service in Firestore.
- * This is a server action intended for use with the `useFormState` hook.
- * @param prevState The previous state returned by the action.
- * @param formData The FormData object submitted from the form.
- * @returns A state object with a success flag and a message.
+ * NEW, ROBUST FORM DATA PARSER
+ * This function correctly handles various form field types.
  */
-export const createClubService = async (prevState: { message: string }, formData: FormData): Promise<{ message: string; success: boolean; }> => {
-    const db = getDb();
-
-    // Extract raw data from the form
-    const rawData = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        price: formData.get('price'),
-        targetGroups: formData.getAll('targetGroups'),
-        type: formData.get('type'),
-        billingPeriod: formData.get('billingPeriod'),
+function _parseFormData(formData: FormData) {
+    const data = {
+        name: formData.get('name') as string,
+        price: parseFloat(formData.get('price') as string),
+        description: formData.get('description') as string,
+        currency: formData.get('currency') as string,
+        type: formData.get('type') as string,
+        targetGroups: formData.getAll('targetGroups') as string[],
         grantsLicense: formData.get('grantsLicense') === 'on',
-        licenseCondition: formData.get('licenseCondition'),
-        licensePaymentCount: formData.get('licensePaymentCount'),
         grantsApparel: formData.get('grantsApparel') === 'on',
-        apparelCondition: formData.get('apparelCondition'),
-        apparelPaymentCount: formData.get('apparelPaymentCount'),
-        durationMinutes: formData.get('durationMinutes'),
+        billingPeriod: formData.get('billingPeriod') as string | undefined,
+        licenseCondition: formData.get('licenseCondition') as string | undefined,
+        licensePaymentCount: formData.has('licensePaymentCount') ? parseInt(formData.get('licensePaymentCount') as string, 10) : undefined,
+        apparelCondition: formData.get('apparelCondition') as string | undefined,
+        apparelPaymentCount: formData.has('apparelPaymentCount') ? parseInt(formData.get('apparelPaymentCount') as string, 10) : undefined,
+        durationMinutes: formData.has('durationMinutes') ? parseInt(formData.get('durationMinutes') as string, 10) : undefined,
     };
 
-    if (!rawData.name || !rawData.price || !rawData.type) {
-        return { success: false, message: "Грешка: Моля попълнете задължителните полета (Име, Цена, Тип)." };
+    // Clean up undefined values so they don't get sent to Firestore
+    Object.keys(data).forEach(key => {
+        const k = key as keyof typeof data;
+        if (data[k] === undefined || data[k] === null || (typeof data[k] === 'number' && isNaN(data[k]))) {
+            delete data[k];
+        }
+    });
+
+    return data;
+}
+
+function _generateChangeDescription(originalData: any, newData: any): string {
+    const changes: string[] = [];
+    const originalPrice = (originalData.price || 0) / 100;
+    const newPrice = newData.price;
+
+    if (originalData.name !== newData.name) {
+        changes.push(`Име е променено от '${originalData.name}' на '${newData.name}'.`);
+    }
+    if (originalPrice.toFixed(2) !== newPrice.toFixed(2)) {
+        changes.push(`Цена е променена от ${originalPrice.toFixed(2)} на ${newPrice.toFixed(2)}.`);
+    }
+    if (originalData.description !== newData.description) {
+        changes.push("Описанието е редактирано.");
+    }
+    if (originalData.type !== newData.type) {
+        changes.push(`Тип е променен от '${originalData.type}' на '${newData.type}'.`);
     }
 
-    // Build the final object to be saved in Firestore, ensuring type safety
-    const serviceData: Omit<ClubService, 'id'> = {
-        name: rawData.name as string,
-        description: rawData.description as string || undefined,
-        price: parseFloat(rawData.price as string),
-        targetGroups: rawData.targetGroups as ('Деца' | 'Любители')[] | undefined,
-        type: rawData.type === 'Абонамент' ? 'subscription' : 'one-time',
-    };
+    if (changes.length === 0) return "Няма направени промени по основните полета.";
+    return changes.join(" ");
+}
 
-    if (serviceData.type === 'subscription') {
-        serviceData.billingPeriod = rawData.billingPeriod as 'Месечен' | 'Годишен' || undefined;
-        serviceData.grantsLicense = rawData.grantsLicense;
-        if (rawData.grantsLicense) {
-            serviceData.licenseCondition = rawData.licenseCondition as 'Веднага' | 'След N плащания' || undefined;
-            if (rawData.licenseCondition === 'След N плащания' && rawData.licensePaymentCount) {
-                serviceData.licensePaymentCount = parseInt(rawData.licensePaymentCount as string, 10);
-            }
-        }
-        serviceData.grantsApparel = rawData.grantsApparel;
-        if (rawData.grantsApparel) {
-            serviceData.apparelCondition = rawData.apparelCondition as 'Веднага' | 'След N плащания' || undefined;
-            if (rawData.apparelCondition === 'След N плащания' && rawData.apparelPaymentCount) {
-                serviceData.apparelPaymentCount = parseInt(rawData.apparelPaymentCount as string, 10);
-            }
-        }
-    } else { // 'one-time'
-        if (rawData.durationMinutes) {
-            serviceData.durationMinutes = parseInt(rawData.durationMinutes as string, 10);
-        }
-    }
+async function _logServiceHistory(serviceId: string, userName: string, action: 'create' | 'update', changes: string) {
+  try {
+    await adminDb.collection("serviceHistory").add({
+      serviceId,
+      userName,
+      action,
+      changes,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+      console.error(`Failed to log history for service ${serviceId}:`, error);
+  }
+}
 
-    try {
-        const servicesCollection = collection(db, SERVICES_COLLECTION);
-        await addDoc(servicesCollection, serviceData);
-    } catch (error) {
-        console.error("Error creating new service:", error);
-        return {
-            success: false,
-            message: 'Грешка в базата данни: Неуспешно създаване на услуга.'
-        };
-    }
+// --- Public Server Actions (Now using the robust parser) ---
 
-    revalidatePath('/finances/services');
-    return { success: true, message: 'Новата услуга беше създадена успешно!' };
-};
+export async function updateClubService(
+  id: string,
+  idToken: string,
+  prevState: ServiceState,
+  formData: FormData
+): Promise<ServiceState> {
 
+  const userName = await _getUserNameFromToken(idToken);
+  const parsedData = _parseFormData(formData);
 
-/**
- * Fetches all services offered by the club from Firestore.
- * @returns A promise that resolves to an array of ClubService objects.
- */
-export const getAllClubServices = async (): Promise<ClubService[]> => {
-    const db = getDb();
-    const servicesCollection = collection(db, SERVICES_COLLECTION);
-    const querySnapshot = await getDocs(servicesCollection);
+  const validatedFields = ServiceSchema.safeParse(parsedData);
+
+  if (!validatedFields.success) {
+      return { errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
+  }
+
+  const dataToSave = validatedFields.data;
+  const priceInCents = Math.round(dataToSave.price * 100);
+  const serviceRef = adminDb.collection("clubServices").doc(id);
+
+  try {
+    const originalDocSnap = await serviceRef.get();
+    if (!originalDocSnap.exists) throw new Error("Услугата не е намерена.");
     
-    // Map the documents to ClubService objects, ensuring the ID is included.
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-    } as ClubService));
-};
+    const originalData = originalDocSnap.data()!;
+    const changesDescription = _generateChangeDescription(originalData, dataToSave);
 
-/**
- * Fetches both all club services and all members concurrently.
- * This is useful for pages that need both sets of data at the same time.
- * It now correctly uses the centralized `getAllMembers` function.
- */
-export const getServicesAndMembers = async () => {
-    try {
-        // Use Promise.all to run fetches in parallel for better performance.
-        const [services, members] = await Promise.all([
-            getAllClubServices(),
-            // This call now goes to the corrected, centralized, and robust service function.
-            // This ensures that any invalid member data is filtered out at the source.
-            getAllMembers() 
-        ]);
-        return { services, members };
-    } catch (error) {
-        console.error("Failed to fetch services and members:", error);
-        // Return empty arrays in case of an error to prevent crashes downstream.
-        return { services: [], members: [] };
+    await serviceRef.update({ ...dataToSave, price: priceInCents });
+    await _logServiceHistory(id, userName, 'update', changesDescription);
+
+    revalidatePath("/finances/services");
+    revalidatePath(`/finances/services/${id}/history`);
+    return { message: `Услугата '${dataToSave.name}' беше успешно обновена.` };
+
+  } catch (error: any) {
+    console.error("Server Action Error:", error);
+    return { message: `Грешка от сървъра: ${error.message}` };
+  }
+}
+
+export async function createClubService(
+  idToken: string,
+  prevState: ServiceState,
+  formData: FormData
+): Promise<ServiceState> {
+
+    const userName = await _getUserNameFromToken(idToken);
+    const parsedData = _parseFormData(formData);
+    
+    const validatedFields = ServiceSchema.safeParse(parsedData);
+
+    if (!validatedFields.success) {
+        return { errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
     }
-};
+
+    const dataToSave = validatedFields.data;
+    const priceInCents = Math.round(dataToSave.price * 100);
+
+    try {
+        const docRef = await adminDb.collection("clubServices").add({ ...dataToSave, price: priceInCents });
+        await _logServiceHistory(docRef.id, userName, 'create', "Услугата е създадена.");
+
+        revalidatePath("/finances/services");
+        return { message: `Услугата '${dataToSave.name}' беше успешно създадена.` };
+
+    } catch (error: any) {
+        console.error("Server Action Error:", error);
+        return { message: `Грешка от сървъра: ${error.message}` };
+    }
+}
