@@ -1,41 +1,45 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-// Import the new, correct function
 import { formatPriceWithConversion } from '@/lib/currency' 
 import { DataTableRowActions } from './DataTableRowActions'
 
 export interface Service {
   id: string;
   name: string;
-  price: number; // This is in the smallest unit (e.g., cents)
-  currency: 'EUR' | 'BGN'; // The currency of the price
+  price: number; // in smallest unit (e.g., cents)
+  currency: 'EUR' | 'BGN';
   type: string;
   billingPeriod?: string;
 }
 
 export const columns: ColumnDef<Service>[] = [
   {
-    accessorKey: 'name',
+    accessorFn: row => row.name,
+    id: 'name',
     header: 'Име',
   },
   {
-    accessorKey: 'price',
+    accessorFn: row => row.price,
+    id: 'price',
     header: 'Цена',
     cell: ({ row }) => {
-      const priceInCents = parseFloat(row.getValue('price'))
-      const currency = row.original.currency
+      // The price is now correctly in the smallest unit
+      const priceInSmallestUnit = row.original.price;
+      const currency = row.original.currency;
 
-      // Use the new function to correctly format the price from cents
-      return <div>{formatPriceWithConversion(priceInCents, currency)}</div>
+      // Format the price directly
+      return <div>{formatPriceWithConversion(priceInSmallestUnit, currency)}</div>
     },
   },
   {
-    accessorKey: 'type',
+    accessorFn: row => row.type,
+    id: 'type',
     header: 'Тип',
   },
   {
-    accessorKey: 'billingPeriod',
+    accessorFn: row => row.billingPeriod,
+    id: 'billingPeriod',
     header: 'Платежен период',
     meta: {
         hideIfNoData: true, 

@@ -21,13 +21,11 @@ async function getServices(): Promise<Service[]> {
 
     const services = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        // Convert price from cents to the main unit for display
-        const priceInMainUnit = (data.price || 0) / 100;
 
         return {
             id: doc.id,
             name: data.name || 'N/A',
-            price: priceInMainUnit,
+            price: data.price || 0, // Pass price in smallest unit (cents)
             currency: data.currency || 'BGN',
             type: data.type || 'Unknown',
             billingPeriod: data.billingPeriod || 'N/A',
