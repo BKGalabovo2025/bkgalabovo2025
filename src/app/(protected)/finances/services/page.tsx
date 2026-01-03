@@ -4,15 +4,7 @@ import { DataTable } from '@/components/shared/data-table';
 import { columns } from './columns';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-interface Service {
-    id: string;
-    name: string;
-    price: number; 
-    currency: string;
-    type: string;
-    billingPeriod?: string;
-}
+import { Service } from './service.types'; // Import from the new central file
 
 // Async function to fetch data using the Admin SDK
 async function getServices(): Promise<Service[]> {

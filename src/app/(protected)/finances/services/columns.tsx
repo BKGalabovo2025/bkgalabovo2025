@@ -3,15 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { formatPriceWithConversion } from '@/lib/currency' 
 import { DataTableRowActions } from './DataTableRowActions'
-
-export interface Service {
-  id: string;
-  name: string;
-  price: number; // in smallest unit (e.g., cents)
-  currency: 'EUR' | 'BGN';
-  type: string;
-  billingPeriod?: string;
-}
+import { Service } from './service.types' // Import from the new central file
 
 // By explicitly setting the second generic to `any`, we tell TypeScript 
 // that our accessor functions can return different types (string, number, undefined),
