@@ -13,7 +13,10 @@ export interface Service {
   billingPeriod?: string;
 }
 
-export const columns: ColumnDef<Service>[] = [
+// By explicitly setting the second generic to `any`, we tell TypeScript 
+// that our accessor functions can return different types (string, number, undefined),
+// which resolves the conflict with the DataTable component's props.
+export const columns: ColumnDef<Service, any>[] = [
   {
     accessorFn: row => row.name,
     id: 'name',
@@ -44,8 +47,6 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     id: 'actions',
-    // Add a dummy accessorFn to satisfy TypeScript's strict checks in the DataTable component.
-    // The actual rendering is handled by the `cell` property.
     accessorFn: () => undefined, 
     cell: ({ row }) => {
       const service = row.original
