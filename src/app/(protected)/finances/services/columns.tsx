@@ -24,11 +24,8 @@ export const columns: ColumnDef<Service>[] = [
     id: 'price',
     header: 'Цена',
     cell: ({ row }) => {
-      // The price is now correctly in the smallest unit
       const priceInSmallestUnit = row.original.price;
       const currency = row.original.currency;
-
-      // Format the price directly
       return <div>{formatPriceWithConversion(priceInSmallestUnit, currency)}</div>
     },
   },
@@ -47,6 +44,9 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     id: 'actions',
+    // Add a dummy accessorFn to satisfy TypeScript's strict checks in the DataTable component.
+    // The actual rendering is handled by the `cell` property.
+    accessorFn: () => undefined, 
     cell: ({ row }) => {
       const service = row.original
       return <DataTableRowActions row={row} service={service} />
