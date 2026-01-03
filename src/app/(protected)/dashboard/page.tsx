@@ -81,7 +81,7 @@ const StatsCards = ({ stats }: { stats: DashboardStats }) => (
         </CardHeader>
         <CardContent>
              <div className="text-2xl font-bold">
-                {formatCurrency(stats.totalRevenue.EUR || 0)}
+                {formatCurrency(stats.totalRevenue.EUR || 0, 'EUR')}
             </div>
         </CardContent>
     </Card>
@@ -148,7 +148,7 @@ const RecentSalesCard = ({ sales, members, onNavigate }: { sales: Sale[], member
                           <p className="text-sm font-medium leading-none">{memberName}</p>
                           <p className="text-sm text-muted-foreground">{sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('bg-BG') : 'Няма дата'}</p>
                       </div>
-                      <div className="text-sm font-semibold">{formatCurrency(sale.total)}</div>
+                      <div className="text-sm font-semibold">{formatCurrency(sale.total, 'EUR')}</div>
                   </div>
                 );
             }))}
