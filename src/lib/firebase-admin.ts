@@ -1,3 +1,18 @@
+// --- Vercel Environment Variable Debugging ---
+console.log("--- Vercel Build-Time Environment Variables ---");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("VERCEL_ENV:", process.env.VERCEL_ENV);
+console.log("Attempting to read FIREBASE_SERVICE_ACCOUNT_JSON...");
+const serviceAccountJSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+if (serviceAccountJSON) {
+    console.log("FIREBASE_SERVICE_ACCOUNT_JSON variable WAS FOUND.");
+    console.log("First 50 chars:", serviceAccountJSON.substring(0, 50));
+} else {
+    console.log("CRITICAL_DEBUG: FIREBASE_SERVICE_ACCOUNT_JSON was NOT FOUND in process.env.");
+}
+console.log("------------------------------------------");
+// --- End Debugging ---
+
 import * as admin from 'firebase-admin';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -14,10 +29,8 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
 
 try {
   // Step 2: Parse the JSON string.
-  // This will fail if the JSON is malformed (e.g., contains unescaped newlines).
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 } catch (e: any) {
-  // Provide a clear error if parsing fails.
   throw new Error(
     `CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Reason: ${e.message}. This is often caused by newlines in the .env.local file. Ensure the entire JSON object is on a single line.`
   );
@@ -37,7 +50,6 @@ if (!getApps().length) {
   });
 }
 
-// Initialize and export the admin instances for use in other server-side files.
 const adminDb = getFirestore();
 const adminAuth = getAuth();
 
