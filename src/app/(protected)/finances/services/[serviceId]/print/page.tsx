@@ -49,7 +49,7 @@ async function getService(id: string): Promise<Service | null> {
             grantsLicense: data.grantsLicense || false,
             licenseCondition: data.licenseCondition,
             licensePaymentCount: data.licensePaymentCount,
-    grantsApparel: data.grantsApparel || false,
+            grantsApparel: data.grantsApparel || false,
             apparelCondition: data.apparelCondition,
             apparelPaymentCount: data.apparelPaymentCount,
             durationMinutes: data.durationMinutes,
@@ -63,8 +63,10 @@ async function getService(id: string): Promise<Service | null> {
 // --- Page Component (React Server Component) ---
 export default async function ServicePrintPage({ params }: { params: { serviceId: string } }) {
   
-  // Using `await` to resolve the promise from the async data fetching function.
-  const service = await getService(params.serviceId);
+  // Per Next.js 13+ App Router, the `params` object can be a promise.
+  // We must `await` it before accessing its properties.
+  const resolvedParams = await params;
+  const service = await getService(resolvedParams.serviceId);
 
   // If no service is found for any reason, show a 404 page.
   if (!service) {
