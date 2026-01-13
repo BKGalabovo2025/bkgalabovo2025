@@ -25,7 +25,14 @@ interface Service {
 // --- Helper Functions ---
 
 const formatPrice = (priceInCents: number, currency: string) => {
+    if (priceInCents === 0) return 'Безплатно';
     return new Intl.NumberFormat('bg-BG', { style: 'currency', currency: currency }).format(priceInCents / 100);
+};
+
+const formatPaymentCount = (count: number) => {
+    if (!count) return '';
+    const label = count === 1 ? 'плащане' : 'плащания';
+    return `(след ${count} ${label})`;
 };
 
 const formatDescription = (description: string) => {
@@ -112,11 +119,11 @@ export default function PrintClientPage({ service }: { service: Service }) {
                             )}
 
                             {service.grantsLicense && (
-                                <div className="flex items-start col-span-full"><Award className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя лиценз:</strong> {service.licenseCondition || 'Да'} {service.licensePaymentCount ? `(след ${service.licensePaymentCount} плащания)` : ''}</p></div>
+                                <div className="flex items-start col-span-full"><Award className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя картотека:</strong> {service.licenseCondition || 'Да'} {formatPaymentCount(service.licensePaymentCount)}</p></div>
                             )}
 
                             {service.grantsApparel && (
-                                <div className="flex items-start col-span-full"><Shirt className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя екипировка:</strong> {service.apparelCondition || 'Да'} {service.apparelPaymentCount ? `(след ${service.apparelPaymentCount} плащания)` : ''}</p></div>
+                                <div className="flex items-start col-span-full"><Shirt className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя екипировка:</strong> {service.apparelCondition || 'Да'} {formatPaymentCount(service.apparelPaymentCount)}</p></div>
                             )}
                         </div>
                     </div>
