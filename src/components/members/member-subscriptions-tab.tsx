@@ -12,10 +12,39 @@ import { Subscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
+// #region Helper Functions
+
+/**
+ * Calculates the end date of a subscription based on its start date and billing period.
+ * This is a critical function to ensure that subscriptions have the correct duration.
+ */
+const calculateEndDate = (startDate: Date, billingPeriod: ClubService['billingPeriod']): Date => {
+    const endDate = new Date(startDate);
+    switch (billingPeriod) {
+        case 'Месечен':
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+        case 'Годишен':
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+        case 'Тримесечен':
+            endDate.setMonth(endDate.getMonth() + 3);
+            break;
+        case 'Еднократен':
+        default:
+            // For one-time payments, the end date is the same as the start date.
+            break;
+    }
+    return endDate;
+};
+
+// #endregion
+
 // #region Payment Dialog Component
 const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    // The amount is pre-filled with the outstanding balance.
     const [amount, setAmount] = useState(((service?.price || 0) - sub.pricePaid) / 100);
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
     const { toast } = useToast();
@@ -29,7 +58,7 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscr
                 paymentDate: new Date(paymentDate).toISOString(),
             });
             toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
-            onPaymentSuccess();
+            onPaymentSuccess(); // This refreshes the subscription list.
             setIsOpen(false);
         } catch (error) {
             console.error("Failed to register payment:", error);
@@ -52,21 +81,11 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscr
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="amount">Сума ({sub.currency})</Label>
-                        <Input 
-                            id="amount" 
-                            type="number" 
-                            value={amount} 
-                            onChange={(e) => setAmount(Number(e.target.value))} 
-                        />
+                        <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="paymentDate">Дата на плащане</Label>
-                        <Input 
-                            id="paymentDate" 
-                            type="date" 
-                            value={paymentDate} 
-                            onChange={(e) => setPaymentDate(e.target.value)} 
-                        />
+                        <Input id="paymentDate" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
                     </div>
                 </div>
                 <DialogFooter>
@@ -88,7 +107,7 @@ const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: Subscriptio
         switch (status) {
             case 'active':
                 return { icon: <CheckCircle className="h-4 w-4 text-green-500" />, text: 'Активен', color: 'border-green-500' };
-            case 'inactive': // FIX: Changed 'expired' to 'inactive'
+            case 'inactive':
                 return { icon: <XCircle className="h-4 w-4 text-red-500" />, text: 'Изтекъл', color: 'border-red-500' };
             case 'cancelled':
                 return { icon: <XCircle className="h-4 w-4 text-gray-500" />, text: 'Отказан', color: 'border-gray-500' };
@@ -106,7 +125,7 @@ const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: Subscriptio
             <div className="flex justify-between items-start">
                 <div>
                     <h4 className="font-bold text-lg">{service?.name || 'Неизвестна услуга'}</h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">{service?.description}</p>
+                    {/* The long description is now removed to keep the interface clean */}
                 </div>
                 <div className="flex items-center space-x-2">
                     {statusInfo.icon}
@@ -170,6 +189,11 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
     fetchData();
   }, [memberId]);
 
+  /**
+   * Handles the creation of a new subscription. This function now includes
+   * robust logic to calculate the correct end date and to ensure that the price
+   * and currency are correctly copied from the selected service.
+   */
   const handleAddSubscription = async () => {
     if (!selectedServiceId || !startDate) {
         toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
@@ -182,23 +206,30 @@ export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps
     }
 
     try {
+        const startDateObj = new Date(startDate);
+        const endDateObj = calculateEndDate(startDateObj, service.billingPeriod);
+
         const newSubscription: Omit<Subscription, 'id'> = {
             memberId: memberId,
             serviceId: selectedServiceId,
             serviceName: service.name,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(new Date(startDate).setFullYear(new Date(startDate).getFullYear() + 1)).toISOString(), // Assuming 1 year
+            price: service.price, // BUG FIX: Correctly set the price from the service
+            currency: service.currency, // BUG FIX: Correctly set the currency from the service
+            startDate: startDateObj.toISOString(),
+            endDate: endDateObj.toISOString(), // BUG FIX: Use the new robust `calculateEndDate` function
             status: 'pending_payment',
             pricePaid: 0,
-            currency: service.currency,
             paymentHistory: [],
             paymentsMadeCount: 0,
             totalPaymentsCount: service.billingPeriod === 'Годишен' ? 1 : 12,
             licenseGranted: false,
             apparelGranted: false,
         };
+
         await createSubscription(newSubscription);
         toast({ title: "Успех", description: "Абонаментът е добавен успешно." });
+        
+        // Reset state and refetch data
         setIsAddDialogOpen(false);
         setSelectedServiceId(null);
         setStartDate(new Date().toISOString().split('T')[0]);
