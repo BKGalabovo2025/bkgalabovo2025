@@ -119,11 +119,11 @@ export default function PrintClientPage({ service }: { service: Service }) {
                             )}
 
                             {service.grantsLicense && (
-                                <div className="flex items-start col-span-full"><Award className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя картотека:</strong> {service.licenseCondition || 'Да'} {formatPaymentCount(service.licensePaymentCount)}</p></div>
+                                <div className="flex items-start col-span-full"><Award className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя картотека:</strong> {service.licenseCondition || 'Да'} {formatPaymentCount(service.licensePaymentCount || 0)}</p></div>
                             )}
 
                             {service.grantsApparel && (
-                                <div className="flex items-start col-span-full"><Shirt className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя екипировка:</strong> {service.apparelCondition || 'Да'} {formatPaymentCount(service.apparelPaymentCount)}</p></div>
+                                <div className="flex items-start col-span-full"><Shirt className="h-6 w-6 mr-3 mt-1 text-gray-700"/><p><strong>Предоставя екипировка:</strong> {service.apparelCondition || 'Да'} {formatPaymentCount(service.apparelPaymentCount || 0)}</p></div>
                             )}
                         </div>
                     </div>

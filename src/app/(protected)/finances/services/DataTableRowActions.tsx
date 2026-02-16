@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
-import { Service } from './columns' // Assuming Service type is exported from columns
+import { Service } from './service.types' // FIX: Corrected the import path
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
-  service: Service // FIX: Explicitly expect the service object
+  service: Service
 }
 
 export function DataTableRowActions<TData>({ row, service }: DataTableRowActionsProps<TData>) {
@@ -33,7 +33,6 @@ export function DataTableRowActions<TData>({ row, service }: DataTableRowActions
         <DropdownMenuLabel>Действия</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          {/* FIX: Now service.id is guaranteed to exist */}
           <Link href={`/finances/services/${service.id}/edit`}>Редактирай</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>

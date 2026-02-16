@@ -3,38 +3,48 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase'; // Updated import
+import { getFirebaseAuth } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
+  idToken: string | null; // Added idToken
   loading: boolean;
-  signOut: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  idToken: null, // Added idToken
   loading: true,
-  signOut: async () => {},
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [idToken, setIdToken] = useState<string | null>(null); // Added idToken state
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const auth = getFirebaseAuth(); // Use the new function
+  const auth = getFirebaseAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        setUser(user);
+        setIdToken(token);
+      } else {
+        setUser(null);
+        setIdToken(null);
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [auth]);
 
-  const signOut = async () => {
+  const logout = async () => { // Removed MouseEvent argument
     try {
       await firebaseSignOut(auth);
       router.push('/login');
@@ -53,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, idToken, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

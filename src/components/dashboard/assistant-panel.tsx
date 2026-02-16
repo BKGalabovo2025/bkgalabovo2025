@@ -1,58 +1,64 @@
+'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Lightbulb, Loader2 } from "lucide-react";
-import { AssistantMessage } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Zap, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface AssistantPanelProps {
-  messages: AssistantMessage[];
-  isLoading: boolean;
-}
+export function AssistantPanel() {
+  const [isSending, setIsSending] = useState(false);
 
-export default function AssistantPanel({ messages, isLoading }: AssistantPanelProps) {
+  const handleSendReminders = async () => {
+    setIsSending(true);
+    toast.info("Започва изпращане на напомняния...");
 
-  const getIconForType = (type: AssistantMessage['type']) => {
-      switch(type) {
-          case 'warning':
-              return <Lightbulb className="h-5 w-5 text-red-500" />;
-          case 'suggestion':
-              return <Lightbulb className="h-5 w-5 text-blue-500" />;
-          case 'info':
-          default:
-              return <Lightbulb className="h-5 w-5 text-amber-500 dark:text-amber-400" />;
+    try {
+      const response = await fetch('/api/send-reminders', {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Неуспешно изпращане на напомнянията.');
       }
-  }
+      
+      toast.success(`Напомнянията са изпратени успешно до ${result.sentCount} члена.`);
+
+    } catch (error) {
+      console.error("Failed to send reminders:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Възникна неочаквана грешка.");
+      }
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-200 dark:border-blue-900">
       <CardHeader>
         <div className="flex items-center space-x-3">
-            <div className="bg-amber-100 dark:bg-amber-900 p-2 rounded-full">
-                 <Lightbulb className="h-6 w-6 text-amber-500 dark:text-amber-400" />
-            </div>
-            <div>
-                <CardTitle>Препоръки от асистента</CardTitle>
-                <CardDescription>Автоматично генерирани задачи и предложения.</CardDescription>
-            </div>
+          <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <CardTitle>Асистент</CardTitle>
         </div>
+        <CardDescription>
+          Автоматизирани действия за улеснение на управлението.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        ) : (
-             <ul className="space-y-4">
-                {(messages || []).map((msg) => (
-                    <li key={msg.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                        <div>{getIconForType(msg.type)}</div>
-                        <div>
-                            <p className="font-semibold text-sm mb-1">{msg.title}</p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{msg.description}</p>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        )}
+        <div className="flex items-center space-x-4">
+            <Button onClick={handleSendReminders} disabled={isSending}>
+                {isSending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Изпращане...</>
+                ) : (
+                    'Изпрати напомняния за неплатени такси'
+                )}
+            </Button>
+        </div>
       </CardContent>
     </Card>
   );

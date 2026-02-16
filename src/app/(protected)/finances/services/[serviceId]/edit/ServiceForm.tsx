@@ -113,12 +113,12 @@ export default function ServiceForm({ service }: { service: Service }) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Цена (в EUR)</Label>
+                <Label htmlFor="price">Цена (в {service.currency})</Label>
                 <Input id="price" name="price" type="number" defaultValue={service.price} required step="0.01" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">Валута</Label>
-                <Input id="currency" name="currency" value="EUR" readOnly className="bg-gray-100" />
+                <Input id="currency" name="currency" value={service.currency} readOnly className="bg-gray-100" />
               </div>
             </div>
           </CardContent>

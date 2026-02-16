@@ -76,9 +76,9 @@ const seedDatabase = async () => {
       items: sale1Items,
       status: 'completed',
       isPaid: true,
-      total: total1,
+      totalAmount: total1,
       currency: 'BGN',
-    } as Omit<Sale, 'id'>);
+    } as Omit<Sale, 'id'>, 'seed_script_user', 'Seed Script');
     console.log(`Created sale 1 for member ${member1Id}`);
 
     const sale2Items: SaleItem[] = [
@@ -92,9 +92,9 @@ const seedDatabase = async () => {
         items: sale2Items,
         status: 'pending',
         isPaid: false,
-        total: total2,
+        totalAmount: total2,
         currency: 'BGN',
-      } as Omit<Sale, 'id'>);
+      } as Omit<Sale, 'id'>, 'seed_script_user', 'Seed Script');
     console.log(`Created sale 2 for member ${member2Id}`);
 
 

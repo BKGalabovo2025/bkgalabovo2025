@@ -13,7 +13,7 @@ import { clubInfo } from '@/config/club';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <Sidebar {...props} className={cn("bg-sidebar text-sidebar-foreground animate-in slide-in-from-left-2 duration-500", props.className)}>
@@ -83,7 +83,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         {user && (
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut}>
+            <SidebarMenuButton onClick={logout}>
               <LogOut className="w-4 h-4" />
               <span>Изход</span>
             </SidebarMenuButton>

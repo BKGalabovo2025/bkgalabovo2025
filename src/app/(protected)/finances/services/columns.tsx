@@ -1,13 +1,10 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { formatPriceWithConversion } from '@/lib/currency' 
+import { formatPrice } from '@/lib/currency'
 import { DataTableRowActions } from './DataTableRowActions'
-import { Service } from './service.types' // Import from the new central file
+import { Service } from './service.types'
 
-// By explicitly setting the second generic to `any`, we tell TypeScript 
-// that our accessor functions can return different types (string, number, undefined),
-// which resolves the conflict with the DataTable component's props.
 export const columns: ColumnDef<Service, any>[] = [
   {
     accessorFn: row => row.name,
@@ -19,9 +16,9 @@ export const columns: ColumnDef<Service, any>[] = [
     id: 'price',
     header: 'Цена',
     cell: ({ row }) => {
-      const priceInSmallestUnit = row.original.price;
-      const currency = row.original.currency;
-      return <div>{formatPriceWithConversion(priceInSmallestUnit, currency)}</div>
+      const priceInCents = row.original.price; // Price from DB is in the smallest unit (cents)
+      // FIX: The formatPrice function handles the division, so we pass the value in cents directly.
+      return <div>{formatPrice(priceInCents)}</div>
     },
   },
   {

@@ -9,6 +9,7 @@ import { Product } from "@/types";
 import { restockProduct, updateProductPrice, adjustProductStock } from '@/services/inventory-service';
 import { User } from 'firebase/auth';
 import { Textarea } from '@/components/ui/textarea';
+import { formatPrice } from '@/lib/currency';
 
 interface EditProductDialogProps {
   product: Product | null;
@@ -116,7 +117,7 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Редактиране на: {product.name}</DialogTitle>
-           <p className="text-sm text-gray-500 pt-1">Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{product.price.toFixed(2)} лв.</strong></p>
+           <p className="text-sm text-gray-500 pt-1">Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{formatPrice(product.price * 100)}</strong></p>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 gap-y-6">
           

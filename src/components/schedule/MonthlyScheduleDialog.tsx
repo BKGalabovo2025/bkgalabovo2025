@@ -51,6 +51,7 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({ is
                         type: eventType,
                         location: location,
                         attendees: [],
+                        attendeeMemberIds: [],
                         description: `Генерирано събитие от месечен шаблон.`
                     });
                 }

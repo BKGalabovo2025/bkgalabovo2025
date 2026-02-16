@@ -26,7 +26,7 @@ const formSchema = z.object({
   phoneType: z.enum(['personal', 'parent']).optional(),
   dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
   address: z.string().optional(),
-  status: z.enum(['active', 'inactive']),
+  status: z.enum(['active', 'inactive', 'suspended']),
   educationInstitution: z.string().optional(),
   notes: z.string().optional(),
   registrationDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Моля, въведете валидна дата.' }),
@@ -49,7 +49,7 @@ const memberToFormDefaults = (member: Member): Partial<MemberFormData> => ({
     address: member.address ?? '',
     educationInstitution: member.educationInstitution ?? '',
     notes: member.notes ?? '',
-    dateOfBirth: member.dateOfBirth.split('T')[0],
+    dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split('T')[0] : '',
     registrationDate: member.registrationDate.split('T')[0],
 });
 
@@ -159,7 +159,7 @@ export const MemberForm = ({ member, onSave, onClose }: MemberFormProps) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField control={form.control} name="dateOfBirth" render={({ field }) => (<FormItem><FormLabel>Дата на раждане</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="registrationDate" render={({ field }) => (<FormItem><FormLabel>Дата на регистрация</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Статус</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Избери статус" /></SelectTrigger></FormControl><SelectContent><SelectItem value="active">Активен</SelectItem><SelectItem value="inactive">Неактивен</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+          <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Статус</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Избери статус" /></SelectTrigger></FormControl><SelectContent><SelectItem value="active">Активен</SelectItem><SelectItem value="inactive">Неактивен</SelectItem><SelectItem value="suspended">Замразен</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
         </div>
         <FormField control={form.control} name="educationInstitution" render={({ field }) => (<FormItem><FormLabel>Образователна институция</FormLabel><FormControl><Input placeholder="СУ Св. Климент Охридски" {...field} /></FormControl><FormMessage /></FormItem>)} />
         <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Адрес (опционално)</FormLabel><FormControl><Input placeholder="гр. София, ул. Примерна 1" {...field} /></FormControl><FormMessage /></FormItem>)} />

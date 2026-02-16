@@ -1,60 +1,59 @@
 
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, DocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { Member } from '@/types';
+import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
+import { Member, MemberSchema } from '@/types/member.types';
 
-const MEMBERS_COLLECTION = 'members';
+const MEMBERS_COLLECTION = FIRESTORE_COLLECTIONS.MEMBERS;
 
-const docToMember = (doc: DocumentSnapshot): Member | null => {
-    if (!doc.id || !doc.exists()) {
-        console.error("docToMember: Invalid document snapshot provided. It will be skipped.", { id: doc.id });
+const docToMember = (docSnap: any): Member | null => {
+    if (!docSnap.exists()) {
+        console.warn(`docToMember: Document with ID ${docSnap.id} does not exist.`);
         return null;
     }
 
-    const data = doc.data() || {};
+    const data = docSnap.data();
 
-    const firstName = typeof data.firstName === 'string' ? data.firstName : '';
-    const middleName = typeof data.middleName === 'string' ? data.middleName : null;
-    const lastName = typeof data.lastName === 'string' ? data.lastName : '';
-
-    if (!firstName || !lastName) {
-        console.error(`docToMember: Document with ID ${doc.id} is missing essential fields (firstName, lastName) and will be skipped.`, { data });
-        return null;
-    }
-
-    const toISODate = (date: any): string => {
+    const toISODate = (date: any): string | null => {
         if (date instanceof Timestamp) {
             return date.toDate().toISOString();
-        } else if (typeof date === 'string') {
+        } else if (typeof date === 'string' && !isNaN(Date.parse(date))) {
             return date;
-        } else {
-            return new Date(0).toISOString();
+        } else if (date) {
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString();
         }
-    }
+        return null;
+    };
+    
+    const name = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ') || '';
 
-    const member: Member = {
-        id: doc.id,
-        name: [firstName, middleName, lastName].filter(Boolean).join(' '),
-        firstName,
-        middleName,
-        lastName,
-        email: typeof data.email === 'string' ? data.email : null,
-        phone: typeof data.phone === 'string' ? data.phone : null,
-        phoneType: data.phoneType === 'personal' || data.phoneType === 'parent' ? data.phoneType : null,
+    const dataToParse = {
+        ...data,
+        id: docSnap.id,
+        name: name,
+        middleName: data.middleName || null,
+        email: data.email || null,
+        phone: data.phone || null,
+        phoneType: data.phoneType || null,
+        avatarUrl: data.avatarUrl || null,
+        familyId: data.familyId || null,
+        educationInstitution: data.educationInstitution || null,
+        personalId: data.personalId || null,
+        address: data.address || null,
+        notes: data.notes || null,
+        analysisCache: data.analysisCache || null,
         dateOfBirth: toISODate(data.dateOfBirth),
-        registrationDate: toISODate(data.registrationDate),
-        status: data.status === 'active' || data.status === 'inactive' ? data.status : 'inactive',
-        avatarUrl: typeof data.avatarUrl === 'string' ? data.avatarUrl : null,
-        familyId: typeof data.familyId === 'string' ? data.familyId : null,
-        educationInstitution: typeof data.educationInstitution === 'string' ? data.educationInstitution : null,
-        personalId: typeof data.personalId === 'string' ? data.personalId : null,
-        address: typeof data.address === 'string' ? data.address : null,
-        notes: typeof data.notes === 'string' ? data.notes : null,
-        analysisCache: typeof data.analysisCache === 'object' ? data.analysisCache : null,
+        registrationDate: toISODate(data.registrationDate) || toISODate(data.createdAt) || new Date().toISOString(),
     };
 
-    return member;
-}
+    try {
+        return MemberSchema.parse(dataToParse);
+    } catch (error) {
+        console.error(`docToMember: Zod validation failed for document ID ${docSnap.id}.`, error);
+        return null; 
+    }
+};
 
 export const getMemberById = async (id: string): Promise<Member | null> => {
     if (!id || id === 'undefined') {
@@ -67,6 +66,17 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
     return docToMember(docSnap);
 };
 
+export const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
+    if (!ids || ids.length === 0) {
+        return [];
+    }
+    const db = getDb();
+    const membersCollection = collection(db, MEMBERS_COLLECTION);
+    const q = query(membersCollection, where('__name__', 'in', ids));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
+};
+
 export const getAllMembers = async (): Promise<Member[]> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
@@ -74,18 +84,18 @@ export const getAllMembers = async (): Promise<Member[]> => {
   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
+
 export const addMember = async (memberData: Omit<Member, 'id' | 'name'>): Promise<string> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   const dataToAdd: { [key: string]: any } = {
     ...memberData,
-    dateOfBirth: Timestamp.fromDate(new Date(memberData.dateOfBirth)),
-    registrationDate: Timestamp.fromDate(new Date(memberData.registrationDate)),
+    dateOfBirth: memberData.dateOfBirth ? Timestamp.fromDate(new Date(memberData.dateOfBirth)) : null,
+    registrationDate: memberData.registrationDate ? Timestamp.fromDate(new Date(memberData.registrationDate)) : Timestamp.now(),
   };
 
-  // Clean up undefined values to prevent Firestore errors
   Object.keys(dataToAdd).forEach(key => {
-      if (dataToAdd[key] === undefined) {
+      if (dataToAdd[key] === undefined || dataToAdd[key] === null) {
           delete dataToAdd[key];
       }
   });
@@ -105,7 +115,6 @@ export const updateMember = async (id: string, memberData: Partial<Omit<Member, 
       dataToUpdate.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate as string));
   }
 
-  // Clean up undefined values to prevent Firestore errors
   Object.keys(dataToUpdate).forEach(key => {
       if (dataToUpdate[key] === undefined) {
           delete dataToUpdate[key];

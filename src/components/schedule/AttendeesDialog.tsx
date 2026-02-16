@@ -8,7 +8,7 @@ import { Member, ScheduleEvent, Attendee } from '@/types';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, UserCheck, UserPlus } from 'lucide-react';
-import { getFullName } from '@/lib/utils';
+import { formatFullName } from '@/lib/utils';
 
 interface AttendeesDialogProps {
     isOpen: boolean;
@@ -29,7 +29,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClos
             // Map full member info to attendees
             const attendeesWithNames = event.attendees.map(a => {
                 const member = members.find(m => m.id === a.memberId);
-                return { ...a, name: member ? getFullName(member) : 'Неизвестен член' };
+                return { ...a, name: member ? formatFullName(member) : 'Неизвестен член' };
             });
             setAttendees(attendeesWithNames);
         } else {
@@ -49,7 +49,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClos
         if (!attendees.some(a => a.memberId === member.id)) {
             setAttendees(prev => [...prev, {
                 memberId: member.id,
-                name: getFullName(member),
+                name: formatFullName(member),
                 attended: true // Automatically mark as attended when adding
             }]);
         }
@@ -103,7 +103,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({ isOpen, onClos
                         <div className="p-2">
                             {availableMembers.length > 0 ? availableMembers.map(member => (
                                 <div key={member.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                                    <span>{getFullName(member)}</span>
+                                    <span>{formatFullName(member)}</span>
                                     <Button size="sm" variant="outline" onClick={() => handleAddMemberToAttendees(member)}>
                                         Добави
                                     </Button>

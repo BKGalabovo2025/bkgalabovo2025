@@ -26,9 +26,11 @@ const ServiceSchema = z.object({
   durationMinutes: z.number().optional(),
 });
 
+// UPDATED: Added 'success' property
 export type ServiceState = {
   errors?: { [key: string]: string[] | undefined; };
   message?: string | null;
+  success?: boolean;
 };
 
 // --- Private Helper Functions ---
@@ -45,10 +47,6 @@ async function _getUserNameFromToken(idToken: string): Promise<string> {
     }
 }
 
-/**
- * NEW, ROBUST FORM DATA PARSER
- * This function correctly handles various form field types.
- */
 function _parseFormData(formData: FormData) {
     const data = {
         name: formData.get('name') as string,
@@ -67,7 +65,6 @@ function _parseFormData(formData: FormData) {
         durationMinutes: formData.has('durationMinutes') ? parseInt(formData.get('durationMinutes') as string, 10) : undefined,
     };
 
-    // Clean up undefined values so they don't get sent to Firestore
     Object.keys(data).forEach(key => {
         const k = key as keyof typeof data;
         if (data[k] === undefined || data[k] === null || (typeof data[k] === 'number' && isNaN(data[k]))) {
@@ -110,11 +107,11 @@ async function _logServiceHistory(serviceId: string, userName: string, action: '
       timestamp: FieldValue.serverTimestamp(),
     });
   } catch (error) {
-      console.error(`Failed to log history for service ${serviceId}:`, error);
+      console.error(`Failed to log history for service ${serviceId}:`, JSON.stringify(error, null, 2));
   }
 }
 
-// --- Public Server Actions (Now using the robust parser) ---
+// --- Public Server Actions ---
 
 export async function updateClubService(
   id: string,
@@ -129,7 +126,7 @@ export async function updateClubService(
   const validatedFields = ServiceSchema.safeParse(parsedData);
 
   if (!validatedFields.success) {
-      return { errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
+      return { success: false, errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
   }
 
   const dataToSave = validatedFields.data;
@@ -148,11 +145,11 @@ export async function updateClubService(
 
     revalidatePath("/finances/services");
     revalidatePath(`/finances/services/${id}/history`);
-    return { message: `Услугата '${dataToSave.name}' беше успешно обновена.` };
+    return { success: true, message: `Услугата '${dataToSave.name}' беше успешно обновена.` };
 
   } catch (error: any) {
-    console.error("Server Action Error:", error);
-    return { message: `Грешка от сървъра: ${error.message}` };
+    console.error("Server Action Error:", JSON.stringify(error, null, 2));
+    return { success: false, message: `Грешка от сървъра: ${error.message}` };
   }
 }
 
@@ -168,7 +165,7 @@ export async function createClubService(
     const validatedFields = ServiceSchema.safeParse(parsedData);
 
     if (!validatedFields.success) {
-        return { errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
+        return { success: false, errors: validatedFields.error.flatten().fieldErrors, message: "Невалидни данни. Моля, проверете полетата." };
     }
 
     const dataToSave = validatedFields.data;
@@ -179,10 +176,10 @@ export async function createClubService(
         await _logServiceHistory(docRef.id, userName, 'create', "Услугата е създадена.");
 
         revalidatePath("/finances/services");
-        return { message: `Услугата '${dataToSave.name}' беше успешно създадена.` };
+        return { success: true, message: `Услугата '${dataToSave.name}' беше успешно създадена.` };
 
     } catch (error: any) {
-        console.error("Server Action Error:", error);
-        return { message: `Грешка от сървъра: ${error.message}` };
+        console.error("Server Action Error:", JSON.stringify(error, null, 2));
+        return { success: false, message: `Грешка от сървъра: ${error.message}` };
     }
 }

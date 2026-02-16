@@ -41,7 +41,7 @@ async function getService(id: string): Promise<Service | null> {
         name: data.name || '',
         price: priceInMainUnit,
         description: data.description || '',
-        currency: data.currency || 'BGN',
+        currency: data.currency || 'EUR',
         type: data.type || 'one-time',
         billingPeriod: data.billingPeriod,
         targetGroups: data.targetGroups || [],

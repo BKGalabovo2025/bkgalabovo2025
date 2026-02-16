@@ -57,6 +57,7 @@ const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => 
         startDate: typeof data.startDate === 'string' ? data.startDate : new Date().toISOString(),
         endDate: typeof data.endDate === 'string' ? data.endDate : new Date().toISOString(),
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
+        price: typeof data.price === 'number' ? data.price : 0,
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentHistory: Array.isArray(data.paymentHistory) ? data.paymentHistory : [],
@@ -165,6 +166,13 @@ export const getHistoryForService = async (serviceId: string): Promise<ClubServi
 };
 
 // --- Subscription Functions ---
+
+export const getAllSubscriptions = async (): Promise<Subscription[]> => {
+  const db = getDb();
+  const q = query(collection(db, SUBSCRIPTIONS_COLLECTION));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
+};
 
 export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subscription[]> => {
   const db = getDb();

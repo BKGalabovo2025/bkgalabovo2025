@@ -7,7 +7,7 @@ import { Product } from "@/types";
 import { PlusCircle, Edit, Trash2, ImageIcon, Loader2 } from 'lucide-react';
 import { EditProductDialog } from '@/components/inventory/EditProductDialog';
 import { useAuth } from '@/context/auth-context';
-import { formatCurrency } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InventoryHistory from '@/components/inventory/InventoryHistory';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -31,7 +31,6 @@ const ProductList = () => {
         }
     };
 
-    // This handler will be passed to the dialog to close it on successful update.
     const handleProductUpdate = () => {
         setIsEditOpen(false);
         setSelectedProduct(null);
@@ -42,7 +41,7 @@ const ProductList = () => {
     }
 
     if (error) {
-        return <p className="text-destructive text-center py-4">Грешка при зареждането на продуктите.</p>;
+        return <p className="text-destructive text-center py-4">Грешка при зареждане на продуктите.</p>;
     }
 
     return (
@@ -65,8 +64,8 @@ const ProductList = () => {
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
                         <div className="col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatCurrency(product.price)}</div>
-                             <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock} бр.</div>
+                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatPrice(product.price * 100)}</div>
+                             <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock}</div>
                         </div>
                         <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">
                              <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}><Edit className="h-5 w-5 text-muted-foreground" /></Button>
@@ -84,7 +83,7 @@ const ProductList = () => {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Наистина ли искате да изтриете продукта "{productToDelete?.name}"? Това действие е необратимо.
+                        Това ще изтрие перманентно продукта "{productToDelete?.name}". Това действие не може да бъде отменено.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -99,7 +98,7 @@ const ProductList = () => {
                     onClose={() => {setIsEditOpen(false); setSelectedProduct(null)}}
                     product={selectedProduct}
                     user={user}
-                    onProductUpdate={handleProductUpdate} // <-- Prop is now provided
+                    onProductUpdate={handleProductUpdate}
                  />
             )}
          </AlertDialog>
@@ -110,7 +109,6 @@ const InventoryPage = () => {
   const { user } = useAuth();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // This handler will be passed to the dialog to close it on successful creation.
   const handleProductAdded = () => {
       setIsAddOpen(false);
   };
@@ -126,7 +124,7 @@ const InventoryPage = () => {
 
         <Tabs defaultValue="stock" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="stock">Наличности</TabsTrigger>
+                <TabsTrigger value="stock">Наличност</TabsTrigger>
                 <TabsTrigger value="history">История на инвентара</TabsTrigger>
             </TabsList>
             <TabsContent value="stock" className="mt-4">
@@ -142,7 +140,7 @@ const InventoryPage = () => {
             onClose={() => setIsAddOpen(false)}
             product={null}
             user={user}
-            onProductUpdate={handleProductAdded} // <-- Prop is now provided
+            onProductUpdate={handleProductAdded}
         />
     </div>
   );

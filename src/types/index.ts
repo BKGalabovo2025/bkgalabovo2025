@@ -1,36 +1,12 @@
+import { Member } from './member.types'; // Explicit import to fix resolution issues
 
 // This file is the single source of truth for all data structures in the application.
+// We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
+export { type Member, MemberSchema } from './member.types';
 
 // =================================================================
 //                            CORE TYPES
 // =================================================================
-
-/**
- * Represents a registered member of the club.
- */
-export type Member = {
-  id: string;
-  name: string; // Composite of firstName and lastName
-  firstName: string;
-  middleName?: string | null;
-  lastName: string;
-  email: string | null;
-  phone: string | null;
-  phoneType?: 'personal' | 'parent' | null;
-  dateOfBirth: string; // ISO 8601
-  registrationDate: string; // ISO 8601
-  address?: string | null;
-  status: 'active' | 'inactive';
-  avatarUrl?: string | null;
-  familyId?: string | null;
-  educationInstitution?: string | null;
-  personalId?: string | null;
-  notes?: string | null;
-  analysisCache?: {
-      generatedAt: string; // ISO string format
-      result: MemberAnalysis;
-  } | null;
-};
 
 /**
  * Represents a family unit, grouping multiple members.
@@ -68,6 +44,7 @@ export type SaleItem = {
 
 /**
  * Represents a transaction or sale.
+ * UPDATED: Renamed 'total' to 'totalAmount' and added 'subscriptionId'.
  */
 export type Sale = {
   id: string;
@@ -76,9 +53,9 @@ export type Sale = {
   items: SaleItem[];
   status: 'pending' | 'completed' | 'cancelled';
   isPaid: boolean;
-  total: number;
+  totalAmount: number; // Corrected field name
   currency: 'BGN' | 'EUR';
-  // Note: totalAmount is calculated on the fly where needed.
+  subscriptionId?: string | null; // Added for linking sales to subscriptions
 };
 
 /**
@@ -160,12 +137,13 @@ export type ClubService = {
 export type PaymentHistoryItem = { 
   date: string; 
   amount: number; 
-  paymentId: string; 
+  paymentId: string;
+  saleId?: string; // Added to link to a specific sale if applicable
 };
 
 /**
  * Represents a member's subscription to a specific club service.
- * This was previously referred to as MemberSubscription.
+ * UPDATED: Added 'price' field.
  */
 export type Subscription = {
   id: string;
@@ -175,6 +153,7 @@ export type Subscription = {
   startDate: string; // ISO 8601
   endDate: string; // ISO 8601
   status: 'active' | 'inactive' | 'cancelled' | 'pending_payment';
+  price: number; // The price of the subscription per billing period
   pricePaid: number;
   currency: 'BGN' | 'EUR';
   paymentHistory: PaymentHistoryItem[];
@@ -182,6 +161,22 @@ export type Subscription = {
   totalPaymentsCount: number;
   licenseGranted?: boolean;
   apparelGranted?: boolean;
+};
+
+export type AnalyzedSubscription = {
+  subscriptionId: string;
+  serviceName: string;
+  paymentStatus: 'PAID' | 'PENDING' | 'OVERDUE';
+  startDate: string; // ISO 8601
+  endDate: string; // ISO 8601
+  status: 'active' | 'pending_payment';
+  attendanceSummary: string;
+};
+
+export type MemberAnalysis = {
+  overallStatus: 'green' | 'orange' | 'red';
+  analysisDate: string; // ISO 8601
+  analyzedSubscriptions: AnalyzedSubscription[];
 };
 
 /**
@@ -226,6 +221,7 @@ export type ScheduleEvent = {
   type: ScheduleEventType;
   location: string;
   attendees: Attendee[];
+  attendeeMemberIds: string[];
   description?: string | null;
   maxAttendees?: number;
 };
@@ -267,7 +263,9 @@ export type Reminder = {
     relatedLink?: string;
     memberId?: string;
     memberName?: string;
-    details?: string;
+    description?: string;
+    type: 'payment' | 'inventory' | 'other' | 'error' | 'warning';
+    relatedId?: string;
 };
 
 /**
@@ -281,29 +279,8 @@ export type AssistantMessage = {
   description: string;
 };
 
-/**
- * Represents an analyzed subscription for member analysis.
- */
-export type AnalyzedSubscription = {
-    subscriptionId: string;
-    serviceName: string;
-    status: 'active' | 'lapsing' | 'inactive';
-    paymentStatus: string;
-    expiryDate: string; // ISO 8601
-    startDate: string;
-    endDate: string;
-    paymentsBehind: number; // Number of missed payments
-    attendanceSummary: string;
-};
-
-/**
- * Represents the comprehensive analysis of a member.
- */
-export type MemberAnalysis = {
-    memberId: string;
-    memberName: string;
-  analysisDate: string; // ISO 8601
-    overallStatus: 'green' | 'orange' | 'red'; // Traffic light system
-    analyzedSubscriptions: AnalyzedSubscription[];
-    // Add other relevant analysis fields here
+export type Liability = {
+  member: Member;
+  subscription: Subscription;
+  service?: ClubService;
 };

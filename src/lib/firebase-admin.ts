@@ -3,7 +3,7 @@ import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
-let serviceAccount: admin.ServiceAccount;
+let serviceAccount: any; // Use `any` to avoid type conflicts with the snake_case properties.
 
 // Step 1: Verify the Environment Variable Exists
 if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
@@ -14,7 +14,6 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
 
 try {
   // Step 2: Parse the JSON string.
-  // This will fail if the JSON is malformed (e.g., contains unescaped newlines).
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 } catch (e: any) {
   // Provide a clear error if parsing fails.
@@ -23,7 +22,7 @@ try {
   );
 }
 
-// Step 3: Validate the Parsed Object
+// Step 3: Validate the Parsed Object using the correct snake_case properties.
 if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
     throw new Error(
       'CRITICAL: The parsed service account JSON is missing one or more required properties (project_id, private_key, client_email). The JSON may be incomplete or corrupted.'
@@ -33,6 +32,7 @@ if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount
 // Step 4: Initialize the App (if not already done)
 if (!getApps().length) {
   initializeApp({
+    // The cert function correctly handles the snake_case properties.
     credential: admin.credential.cert(serviceAccount),
   });
 }

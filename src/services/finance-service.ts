@@ -44,6 +44,7 @@ const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
         startDate: data.startDate instanceof Timestamp ? data.startDate.toDate().toISOString() : new Date().toISOString(),
         endDate: data.endDate instanceof Timestamp ? data.endDate.toDate().toISOString() : new Date().toISOString(),
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
+        price: typeof data.price === 'number' ? data.price : 0,
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
         currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
         paymentHistory: paymentHistory,

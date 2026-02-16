@@ -1,14 +1,15 @@
 
 'use client';
 
-import { Sale } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from '@/components/ui/button';
-import { ShoppingBag, Receipt, CheckCircle, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSales } from '@/hooks/useSales';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { formatPrice } from '@/lib/currency'; // IMPORT THE CENTRALIZED FORMATTER
 
 interface MemberSalesHistoryProps {
   memberId: string;
@@ -16,70 +17,89 @@ interface MemberSalesHistoryProps {
 
 export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
   const router = useRouter();
-  const { sales, loading, error, markAsPaid } = useSales(memberId);
+  // The useSales hook fetches sales. We can assume it returns amounts in the currency they were recorded in.
+  const { sales, loading, error } = useSales(memberId);
 
-  if (loading) {
-    return (
-        <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-4 text-muted-foreground">Зареждане на покупките...</p>
-        </div>
-    );
-  }
+  const handleRowClick = (saleId: string) => {
+    router.push(`/sales/${saleId}/receipt`);
+  };
 
-  if (error) {
-      return <p className="text-center text-destructive py-4">{error}</p>;
+  const getDisplayPrice = (amount: number, currency: string | undefined) => {
+    // If the historical currency was BGN, convert it to EUR for display.
+    // Assumes amounts are stored in the smallest unit (stotinki/cents).
+    const priceInMainUnit = amount / 100;
+    if (currency === 'BGN') {
+      // This is a legacy record. Convert the BGN amount to EUR.
+      // IMPORTANT: The conversion logic should be centralized if it's complex,
+      // but for this one-time display fix, a direct conversion is clear.
+      const BGN_TO_EUR_RATE = 1.95583;
+      return priceInMainUnit / BGN_TO_EUR_RATE;
+    }
+    // Otherwise, assume it's already in EUR (or should be treated as such).
+    return priceInMainUnit;
   }
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle className="flex items-center">
-                <ShoppingBag className="h-5 w-5 mr-2"/>
-                История на покупките
-            </CardTitle>
-            <CardDescription>Списък с всички покупки на стоки от клуба.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            {sales && sales.length > 0 ? (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Дата</TableHead>
-                            <TableHead className="text-center">Статус</TableHead>
-                            <TableHead className="text-right">Сума</TableHead>
-                            <TableHead className="w-48 text-right">Действия</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {sales.map(sale => {
-                            const isPaid = sale.status === 'completed';
-                            return (
-                                <TableRow key={sale.id}>
-                                    <TableCell>{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge variant={isPaid ? 'success' : 'destructive'}>{isPaid ? 'Платено' : 'Неплатено'}</Badge>
-                                    </TableCell>
-                                    <TableCell className="font-medium text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</TableCell>
-                                    <TableCell className="text-right space-x-2">
-                                        {!isPaid && (
-                                            <Button variant="outline" size="sm" onClick={() => markAsPaid(sale.id)}>
-                                                <CheckCircle className="h-4 w-4 mr-1"/> Плати
-                                            </Button>
-                                        )}
-                                        <Button variant="outline" size="sm" onClick={() => router.push(`/sales/${sale.id}/receipt`)}>
-                                            <Receipt className="h-4 w-4"/>
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            ) : (
-                <p className="text-center text-muted-foreground py-4">Няма регистрирани покупки.</p>
-            )}
-        </CardContent>
-    </Card>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium">История на продажбите</h3>
+        <Button size="sm" onClick={() => router.push(`/sales/new?memberId=${memberId}`)}>
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Нова продажба
+        </Button>
+      </div>
+      {loading ? (
+        <p>Зареждане...</p>
+      ) : error ? (
+        <p>Грешка: {error}</p>
+      ) : sales.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Няма регистрирани продажби.</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Дата</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead className="text-right">Обща сума</TableHead>
+              <TableHead><span className="sr-only">Действия</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sales.map(sale => {
+              // Calculate the correct display price in EUR.
+              const displayPriceInEur = getDisplayPrice(sale.totalAmount, sale.currency);
+              
+              return (
+                <TableRow key={sale.id} onClick={() => handleRowClick(sale.id)} className="cursor-pointer">
+                  <TableCell>{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</TableCell>
+                  <TableCell>
+                    <Badge variant={sale.status === 'completed' ? 'default' : 'secondary'}>
+                      {sale.status === 'completed' ? 'Платено' : 'Чакащо'}
+                    </Badge>
+                  </TableCell>
+                  {/* ALWAYS use the centralized formatter to display the EUR price */}
+                  <TableCell className="text-right">{formatPrice(displayPriceInEur)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => handleRowClick(sale.id)}>
+                          Преглед на квитанция
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
+    </div>
   );
 };

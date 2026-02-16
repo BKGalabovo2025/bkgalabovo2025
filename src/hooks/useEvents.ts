@@ -5,7 +5,7 @@ import { getDb } from '@/lib/firebase';
 import { ScheduleEvent, Member, Attendee } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { getAllMembers } from '@/services/member-service';
-import { getFullName } from '@/lib/utils';
+import { formatFullName } from '@/lib/utils';
 
 type NewEvent = Omit<ScheduleEvent, 'id'>;
 
@@ -182,15 +182,17 @@ export const useEvents = () => {
         // Optimistic update
         setEvents(currentEvents => {
             originalEvents = [...currentEvents];
-            return currentEvents.map(e => 
-                e.id === eventId 
-                    ? { 
-                        ...e, 
-                        attendees: newAttendees.map(a => ({...a, name: getFullName(members.find(m => m.id === a.memberId) || {})})), 
-                        attendeeMemberIds 
-                      }
-                    : e
-            );
+            return currentEvents.map(e => {
+                if (e.id === eventId) {
+                    const updatedAttendees = newAttendees.map(a => {
+                        const member = members.find(m => m.id === a.memberId);
+                        return { ...a, name: member ? formatFullName(member) : 'Unknown' };
+                    });
+                    return { ...e, attendees: updatedAttendees, attendeeMemberIds };
+                } else {
+                    return e;
+                }
+            });
         });
 
         try {

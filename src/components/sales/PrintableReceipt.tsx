@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Sale, Member } from '@/types';
 import { clubInfo } from '@/config/club';
+import { formatPrice } from '@/lib/currency';
 
 interface PrintableReceiptProps {
   sale: Sale;
@@ -76,15 +77,15 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member
                         <tr key={item.productId}>
                             <td className="p-2 font-medium">{item.name}</td>
                             <td className="text-center p-2">{item.quantity}</td>
-                            <td className="text-right p-2">{(item.price || 0).toFixed(2)} лв.</td>
-                            <td className="text-right p-2">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} лв.</td>
+                            <td className="text-right p-2">{formatPrice(item.price)}</td>
+                            <td className="text-right p-2">{formatPrice(item.quantity * item.price)}</td>
                         </tr>
                     ))}
                 </tbody>
                 <tfoot className="border-t-2 border-border">
                     <tr>
                         <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНЕ:</td>
-                        <td className="text-right p-3 font-bold text-lg">{(sale.total || 0).toFixed(2)} лв.</td>
+                        <td className="text-right p-3 font-bold text-lg">{formatPrice(sale.totalAmount)}</td>
                     </tr>
                 </tfoot>
             </table>

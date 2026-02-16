@@ -3,23 +3,22 @@ export const dynamic = 'force-dynamic';
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSales } from '@/hooks/useSales';
-import { useMembers } from '@/hooks/useMembers'; // Import the hook to fetch members
+import { useInventorySales } from '@/hooks/useInventorySales'; 
+import { useMembers } from '@/hooks/useMembers';
 import { Sale, Member } from '@/types';
-import { formatCurrency } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, PlusCircle, AlertTriangle, MoreVertical, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DataTable } from '@/components/ui/data-table'; // Assuming you have a DataTable component
+
 
 const SalesListPage = () => {
     const router = useRouter();
-    const { sales, loading: salesLoading, error: salesError, refetch } = useSales();
-    const { members, loading: membersLoading, error: membersError } = useMembers(); // Fetch members
+    const { sales, loading: salesLoading, error: salesError, refetch } = useInventorySales();
+    const { members, loading: membersLoading, error: membersError } = useMembers();
 
     const memberMap = useMemo(() => {
         if (!members) return new Map();
@@ -29,11 +28,10 @@ const SalesListPage = () => {
     const salesWithMemberNames = useMemo(() => {
         return sales.map(sale => ({
             ...sale,
-            memberName: sale.memberId ? memberMap.get(sale.memberId) || 'Неизвестен член' : 'Външен клиент',
+            memberName: sale.memberId ? memberMap.get(sale.memberId) || 'Unknown Member' : 'Walk-in Customer',
         }));
     }, [sales, memberMap]);
 
-    // Corrected sorting logic based on the new Sale type
     const sortedSales = useMemo(() => {
         return [...salesWithMemberNames].sort((a, b) => {
             if (a.status === 'pending' && b.status !== 'pending') return -1;
@@ -43,7 +41,7 @@ const SalesListPage = () => {
     }, [salesWithMemberNames]);
 
     const handleRowClick = (saleId: string) => {
-        router.push(`/sales/${saleId}`);
+        router.push(`/sales/${saleId}/receipt`);
     };
     
     const loading = salesLoading || membersLoading;
@@ -54,8 +52,8 @@ const SalesListPage = () => {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>История на продажбите</CardTitle>
-                        <CardDescription>Преглед на всички направени продажби.</CardDescription>
+                        <CardTitle>История на продажбите (инвентар)</CardTitle>
+                        <CardDescription>Преглед на всички продажби на продукти.</CardDescription>
                     </div>
                     <Button onClick={() => router.push('/sales/new')}>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -71,7 +69,7 @@ const SalesListPage = () => {
                     ) : error ? (
                         <div className="text-center py-10 text-destructive flex flex-col items-center">
                             <AlertTriangle className="h-8 w-8 mb-2" />
-                            <p>{error || "Възникна грешка при зареждането на продажбите."}</p>
+                            <p>{error || "An error occurred while loading the sales."}</p>
                         </div>
                     ) : (
                         <div className="border rounded-lg">
@@ -92,19 +90,19 @@ const SalesListPage = () => {
                                                 <TableCell>{new Date(sale.saleDate).toLocaleString('bg-BG')}</TableCell>
                                                 <TableCell className="font-medium">{sale.memberName}</TableCell>
                                                 <TableCell>
-                                                    <Badge variant={sale.status === 'completed' ? 'success' : 'destructive'}>
-                                                        {sale.status === 'completed' ? 'Платено' : 'Неплатено'}
+                                                    <Badge variant={sale.isPaid ? 'default' : 'secondary'}>
+                                                        {sale.isPaid ? 'Платено' : 'Висящо'}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right font-mono">
-                                                    {formatCurrency(sale.total)}
+                                                    {formatPrice(sale.totalAmount)}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                      <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button variant="ghost" size="icon">
                                                                 <MoreVertical className="h-5 w-5" />
-                                                                <span className="sr-only">Отвори меню</span>
+                                                                <span className="sr-only">Меню</span>
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
@@ -119,7 +117,7 @@ const SalesListPage = () => {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-24 text-center">Няма регистрирани продажби все още.</TableCell>
+                                            <TableCell colSpan={5} className="h-24 text-center">Все още няма записани продажби на продукти.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>

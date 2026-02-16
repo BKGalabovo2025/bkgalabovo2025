@@ -1,28 +1,27 @@
 
-import { doc, writeBatch, getDoc } from 'firebase/firestore';
+import { doc, writeBatch, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Subscription, ClubService } from '@/types';
 import { getClubServiceById } from './subscription-service';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
+const SALES_COLLECTION = 'sales';
 
 /**
- * Registers a payment for a specific member subscription and updates its status.
- *
- * @param subscriptionId The ID of the member subscription to update.
- * @param paymentDetails The details of the payment being made.
- * @returns A promise that resolves when the operation is complete.
+ * Registers a payment for a subscription. This function does two critical things:
+ * 1. Creates a new 'sale' document to record the financial transaction.
+ * 2. Updates the corresponding subscription's status and payment history.
  */
 export const registerPaymentForSubscription = async (
     subscriptionId: string,
     paymentDetails: {
-        amount: number; // The amount paid
+        amount: number; // The amount paid, in the smallest currency unit (e.g., cents)
         paymentDate: string; // ISO string format
-        paymentId: string; // The ID of the payment document
     }
 ): Promise<void> => {
     const db = getDb();
     const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
+    const salesCollectionRef = collection(db, SALES_COLLECTION);
 
     try {
         const subscriptionDoc = await getDoc(subscriptionRef);
@@ -32,44 +31,48 @@ export const registerPaymentForSubscription = async (
 
         const subscription = subscriptionDoc.data() as Subscription;
 
-        const service = await getClubServiceById(subscription.serviceId);
-        if (!service) {
-            throw new Error(`Underlying service with ID [${subscription.serviceId}] not found for subscription.`);
-        }
-
-        // --- Core Logic --- //
-
-        // 1. Increment payment count & add to history
-        const newPaymentsCount = (subscription.paymentsMadeCount || 0) + 1;
-        const newPaymentHistory = [
-            ...(subscription.paymentHistory || []),
-            {
-                amount: paymentDetails.amount,
-                date: paymentDetails.paymentDate,
-                paymentId: paymentDetails.paymentId,
-            },
-        ];
-
-        const isFullyPaid = newPaymentsCount >= subscription.totalPaymentsCount;
-
-        // 2. Determine new status
-        const updatedFields: Partial<Subscription> = {
-            pricePaid: (subscription.pricePaid || 0) + paymentDetails.amount,
-            paymentsMadeCount: newPaymentsCount,
-            paymentHistory: newPaymentHistory,
-            status: isFullyPaid ? 'active' : 'pending_payment' // Or some other logic
+        // Create a new sale document linked to this subscription
+        const saleData = {
+            memberId: subscription.memberId,
+            subscriptionId: subscriptionId, // <<<< CRITICAL LINK
+            saleDate: new Date(paymentDetails.paymentDate),
+            items: [{
+                productId: subscription.serviceId,
+                name: subscription.serviceName,
+                quantity: 1,
+                price: paymentDetails.amount,
+            }],
+            totalAmount: paymentDetails.amount,
+            currency: subscription.currency,
+            status: 'completed',
+            createdAt: serverTimestamp(),
         };
 
-        // --- End Core Logic --- //
+        const saleDocRef = await addDoc(salesCollectionRef, saleData);
 
-        // Update the document
+        // Now, update the subscription with the payment details
+        const newPricePaid = (subscription.pricePaid || 0) + paymentDetails.amount;
+        const isFullyPaid = newPricePaid >= subscription.price;
+
+        const updatedFields: Partial<Subscription> = {
+            pricePaid: newPricePaid,
+            status: isFullyPaid ? 'active' : 'pending_payment',
+            paymentHistory: [
+                ...(subscription.paymentHistory || []),
+                {
+                    amount: paymentDetails.amount,
+                    date: paymentDetails.paymentDate,
+                    paymentId: saleDocRef.id, // Store the ID of the sale for reference
+                },
+            ],
+        };
+
         await writeBatch(db).update(subscriptionRef, updatedFields).commit();
 
-        console.log(`Successfully registered payment for subscription ID: ${subscriptionId}`);
+        console.log(`Successfully registered payment and created sale [${saleDocRef.id}] for subscription [${subscriptionId}]`);
 
     } catch (error) {
         console.error("Error registering payment for subscription:", error);
-        // Re-throw the error to be handled by the calling UI component
         throw error;
     }
 };

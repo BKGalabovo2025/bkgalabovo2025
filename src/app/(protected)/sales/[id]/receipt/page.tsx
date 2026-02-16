@@ -1,370 +1,70 @@
-'use client';
-export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { deleteSale, getSaleById } from '@/services/sales-service';
+import { getSaleById } from '@/services/sales-service';
 import { getMemberById } from '@/services/member-service';
-import { Sale, Member } from '@/types';
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Printer, Trash2, Mail } from 'lucide-react';
-import Image from 'next/image';
-import { clubInfo } from '@/config/club';
-import { formatCurrency } from '@/lib/currency';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-    DialogClose
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { getClubServiceById, getSubscriptionsByMemberId } from '@/services/subscription-service';
+import ReceiptClientPage from './ReceiptClientPage';
+import { AlertCircle } from 'lucide-react';
 
-const SaleReceiptPage = () => {
-    const [sale, setSale] = useState<Sale | null>(null);
-    const [member, setMember] = useState<Member | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [showEmailDialog, setShowEmailDialog] = useState(false);
-    const [emailToSend, setEmailToSend] = useState('');
-    const [isSendingEmail, setIsSendingEmail] = useState(false);
-    
-    const params = useParams();
-    const router = useRouter();
-    const { toast } = useToast();
-    const saleId = params.id as string;
+interface ReceiptPageProps {
+    params: Promise<{
+        id: string;
+    }>;
+}
 
-    useEffect(() => {
-        if (saleId) {
-            const fetchSaleData = async () => {
-                setLoading(true);
-                try {
-                    const saleData = await getSaleById(saleId);
-                    setSale(saleData);
-                    if (saleData && saleData.memberId) {
-                        const memberData = await getMemberById(saleData.memberId);
-                        setMember(memberData);
-                        if (memberData && memberData.email) {
-                            setEmailToSend(memberData.email);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Грешка при зареждане на продажбата:", error);
-                    toast({ title: "Грешка", description: "Неуспешно зареждане на данните за продажбата.", variant: "destructive" });
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchSaleData();
+export default async function ReceiptPage({ params }: ReceiptPageProps) {
+    // CORRECTED: Await the params promise to resolve before accessing its properties.
+    const resolvedParams = await params;
+    const saleId = resolvedParams.id;
+
+    try {
+        const sale = await getSaleById(saleId);
+        if (!sale) {
+            return <ErrorDisplay message={`Продажба с ID ${saleId} не е намерена.`} />;
         }
-    }, [saleId, toast]);
 
-    const handlePrint = () => {
-        window.print();
-    };
-
-    const handleDelete = async () => {
-        setShowDeleteDialog(false);
-        try {
-            await deleteSale(saleId);
-            toast({ title: "Успех!", description: "Продажбата беше изтрита успешно." });
-            router.push('/sales');
-        } catch (error) {
-            console.error("Грешка при изтриване на продажба:", error);
-            toast({ title: "Грешка", description: "Възникна проблем при изтриването на продажбата.", variant: "destructive" });
+        if (!sale.memberId) {
+            return <ErrorDisplay message="Продажбата не е свързана с член." />;
         }
-    };
 
-    const generateReceiptHtml = (currentSale: Sale, currentMember: Member | null): string => {
-        const paid = currentSale.status === 'completed';
-        const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
-        const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
-        const statusColor = paid ? '#22c55e' : '#ef4444';
-        const currencyLabel = currentSale.currency === 'EUR' ? 'EUR' : 'лв.';
+        const [member, memberSubscriptions] = await Promise.all([
+            getMemberById(sale.memberId),
+            getSubscriptionsByMemberId(sale.memberId)
+        ]);
 
-        const styles = {
-            body: `font-family: Arial, sans-serif; color: #333;`,
-            header: `border-bottom: 2px solid #eee; padding-bottom: 15px;`,
-            h1: `font-size: 24px; font-weight: bold; margin: 0;`,
-            status: `font-size: 1.5em; font-weight: bold; color: ${statusColor}; margin-top: 10px;`,
-            table: `width: 100%; border-collapse: collapse; margin-top: 20px;`,
-            th: `text-align: left; padding: 8px; border-bottom: 1px solid #ddd; background-color: #f9f9f9;`,
-            td: `padding: 8px; border-bottom: 1px solid #ddd;`,
-            total: `font-size: 1.2em; font-weight: bold;`,
-            footer: `margin-top: 20px; font-size: 0.8em; color: #777; text-align: center;`
-        };
-
-        const itemsHtml = currentSale.items.map(item => `
-            <tr>
-                <td style="${styles.td}">${item.name}</td>
-                <td style="${styles.td}; text-align: center;">${item.quantity}</td>
-                <td style="${styles.td}; text-align: right;">${(item.price || 0).toFixed(2)} ${currencyLabel}</td>
-                <td style="${styles.td}; text-align: right;">${((item.quantity || 0) * (item.price || 0)).toFixed(2)} ${currencyLabel}</td>
-            </tr>
-        `).join('');
-
-        const totalAmount = currentSale.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const totalFormatted = formatCurrency(totalAmount);
-
-        return `
-            <div style="${styles.body}">
-                <div style="${styles.header}">
-                    <h1 style="${styles.h1}">${receiptTitle}</h1>
-                    <p>№ ${currentSale.id.substring(0, 8)} / ${new Date(currentSale.saleDate).toLocaleDateString('bg-BG')}</p>
-                </div>
-                 <div style="${styles.status}">${statusText}</div>
-                <p><strong>Издал:</strong> ${clubInfo.name}</p>
-                <p><strong>Получател:</strong> ${currentMember ? `${currentMember.firstName} ${currentMember.lastName}` : 'Външен клиент'}</p>
-                <table style="${styles.table}">
-                    <thead>
-                        <tr>
-                            <th style="${styles.th}">Артикул</th>
-                            <th style="${styles.th}; text-align: center;">Количество</th>
-                            <th style="${styles.th}; text-align: right;">Ед. цена</th>
-                            <th style="${styles.th}; text-align: right;">Общо</th>
-                        </tr>
-                    </thead>
-                    <tbody>${itemsHtml}</tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" style="${styles.td}; text-align: right; font-weight: bold;">ОБЩО:</td>
-                            <td style="${styles.td}; text-align: right; ${styles.total}">${totalFormatted}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-                <div style="${styles.footer}">
-                    <p>Настоящият документ удостоверява предаването на описаните артикули.</p>
-                    ${!paid ? '<p>Това е проформа документ и не удостоверява плащане.</p>' : '<p>Този документ удостоверява извършено плащане.</p>'}
-                </div>
-            </div>
-        `;
-    };
-
-    const handleSendEmail = async () => {
-        if (!sale) return;
-        if (!emailToSend || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToSend)) {
-             toast({ title: "Грешка", description: "Моля, въведете валиден имейл адрес.", variant: "destructive" });
-             return;
+        if (!member) {
+            return <ErrorDisplay message={`Член с ID ${sale.memberId} не е намерен.`} />;
         }
-        setIsSendingEmail(true);
-        try {
-            const receiptHtml = generateReceiptHtml(sale, member);
-            const subject = sale.status === 'completed'
-                ? `Разписка от ${clubInfo.name}`
-                : `Проформа разписка от ${clubInfo.name}`;
+        
+        const subscription = memberSubscriptions.find(sub => sub.id === sale.subscriptionId);
 
-            const response = await fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: emailToSend, subject, html: receiptHtml }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Грешка при изпращането на имейл.');
-            }
-            
-            toast({ title: "Успех!", description: "Разписката беше изпратена успешно." });
-            setShowEmailDialog(false);
-
-        } catch (error: any) {
-            console.error("Грешка при изпращане на имейл:", error);
-            toast({ title: "Грешка", description: error.message, variant: "destructive" });
-        } finally {
-            setIsSendingEmail(false);
+        if (!subscription) {
+            return <ErrorDisplay message={`Свързан абонамент (ID: ${sale.subscriptionId}) не е намерен за този член.`} />;
         }
-    };
 
-    if (loading) {
-        return <div className="flex items-center justify-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+        if (!subscription.serviceId) {
+            return <ErrorDisplay message="Абонаментът не е свързан с услуга." />;
+        }
+
+        const service = await getClubServiceById(subscription.serviceId);
+        if (!service) {
+            return <ErrorDisplay message={`Услуга с ID ${subscription.serviceId} не е намерена.`} />;
+        }
+
+        return <ReceiptClientPage sale={sale} member={member} service={service} subscription={subscription} />;
+
+    } catch (error) {
+        console.error("Error fetching receipt data:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Възникна неочаквана грешка';
+        return <ErrorDisplay message={errorMessage} />;
     }
+}
 
-    if (!sale) {
-        return <div className="text-center py-10">Продажбата не е намерена.</div>;
-    }
-
-    const paid = sale.status === 'completed';
-    const receiptTitle = paid ? 'СТОКОВА РАЗПИСКА' : 'ПРОФОРМА СТОКОВА РАЗПИСКА';
-    const statusText = paid ? 'ПЛАТЕНО' : 'НЕПЛАТЕНО';
-    const statusColor = paid ? 'text-green-600' : 'text-red-600';
-    const currencyLabel = sale.currency === 'EUR' ? 'EUR' : 'лв.';
-    const totalAmount = sale.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const totalFormatted = formatCurrency(totalAmount);
-
+const ErrorDisplay = ({ message }: { message: string }) => {
     return (
-        <div className="bg-muted/50 print:bg-white">
-            <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-                <div className="flex items-center justify-between mb-6 print:hidden">
-                    <Button variant="outline" onClick={() => router.push('/sales')}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Всички продажби
-                    </Button>
-                    <div className="flex items-center gap-2">
-                         <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-                            <Mail className="mr-2 h-4 w-4" /> Изпрати
-                        </Button>
-                        <Button variant="outline" onClick={handlePrint}>
-                            <Printer className="mr-2 h-4 w-4" /> Принтирай
-                        </Button>
-                        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                            <Trash2 className="mr-2 h-4 w-4" /> Изтрий
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="bg-white p-8 border border-border shadow-sm print:border-none print:shadow-none">
-                    <header className="flex justify-between items-start pb-6 border-b-2 border-border">
-                        <div className="flex items-center gap-4">
-                            <Image src="/logo.png" alt="Club Logo" width={60} height={60} />
-                        </div>
-                        <div className="text-right">
-                            <h1 className="text-3xl font-bold tracking-wider">{receiptTitle}</h1>
-                            <p className="text-sm text-muted-foreground mt-1">№ {sale.id.substring(0, 8)} / {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
-                        </div>
-                    </header>
-
-                    <section className="mt-8 grid grid-cols-2 gap-8">
-                        <div>
-                            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ИЗДАЛ:</h2>
-                            <p className="font-bold mt-2">{clubInfo.name}</p>
-                            <p className="text-sm text-muted-foreground">{clubInfo.address}</p>
-                            <p className="text-sm text-muted-foreground">тел: {clubInfo.contact}</p>
-                            <p className="text-sm text-muted-foreground">e-mail: {clubInfo.email}</p>
-                            <p className="text-sm text-muted-foreground">{clubInfo.website}</p>
-                        </div>
-                        <div className="text-right">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ПОЛУЧАТЕЛ:</h2>
-                            {member ? (
-                                <>
-                                    <p className="font-bold mt-2">{member.firstName} {member.lastName}</p>
-                                    <p className="text-sm text-muted-foreground">Редовен член на клуба</p>
-                                </>
-                            ) : (
-                                <p className="font-bold mt-2">Външен клиент</p>
-                            )}
-                        </div>
-                    </section>
-
-                     <div className={`mt-8 text-center text-3xl font-bold ${statusColor}`}>
-                        {statusText}
-                    </div>
-
-                    <section className="mt-10">
-                        <table className="w-full text-sm">
-                            <thead className="border-b border-border">
-                                <tr>
-                                    <th className="text-left font-semibold text-muted-foreground p-2">Артикул</th>
-                                    <th className="text-center font-semibold text-muted-foreground p-2">Кол.</th>
-                                    <th className="text-right font-semibold text-muted-foreground p-2">Ед. цена</th>
-                                    <th className="text-right font-semibold text-muted-foreground p-2">Общо</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sale.items.map((item) => (
-                                    <tr key={item.productId}>
-                                        <td className="p-2 font-medium">{item.name}</td>
-                                        <td className="text-center p-2">{item.quantity}</td>
-                                        <td className="text-right p-2">{(item.price || 0).toFixed(2)} {currencyLabel}</td>
-                                        <td className="text-right p-2">{((item.quantity || 0) * (item.price || 0)).toFixed(2)} {currencyLabel}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                            <tfoot className="border-t-2 border-border">
-                                <tr>
-                                    <td colSpan={3} className="text-right p-3 font-bold text-foreground">ОБЩО ЗА ПЛАЩАНE:</td>
-                                    <td className="text-right p-3 font-bold text-lg">{totalFormatted}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </section>
-
-                    <section className="mt-20 grid grid-cols-2 gap-8 text-center">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Издал:</p>
-                            <p className="text-sm mt-1">(Подпис и печат)</p>
-                            <p className="mt-8">/СНЦ "Бадминтон клуб Гълъбово"/</p>
-                        </div>
-                        <div>
-                             <p className="text-sm text-muted-foreground">Получил:</p>
-                             <p className="text-sm mt-1">(Подпис)</p>
-                             <p className="mt-8">/{member ? `${member.firstName} ${member.lastName}` : '................................'}/</p>
-                        </div>
-                    </section>
-
-                    <footer className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground">
-                        <p>Настоящият документ се издава в два еднообразни екземпляра - по един за всяка от страните.</p>
-                         {!paid 
-                            ? <p>Това е проформа документ, който не удостоверява плащане. Той служи за целите на бъдещо плащане.</p>
-                            : <p>Този документ удостоверява извършено плащане и служи като касова бележка.</p>}
-                    </footer>
-                </div>
-            </div>
-
-            {/* Email Dialog */}
-            <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Изпращане на разписка по имейл</DialogTitle>
-                        <DialogDescription>
-                            Въведете имейл адреса на получателя.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">
-                                Имейл
-                            </Label>
-                            <Input
-                                id="email"
-                                value={emailToSend}
-                                onChange={(e) => setEmailToSend(e.target.value)}
-                                className="col-span-3"
-                                placeholder="name@example.com"
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button type="button" variant="secondary">Отказ</Button>
-                        </DialogClose>
-                        <Button type="submit" onClick={handleSendEmail} disabled={isSendingEmail}>
-                            {isSendingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Изпрати
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Потвърждение за изтриване</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Сигурни ли сте, че искате да изтриете тази продажба? Това действие е необратимо.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Отказ</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Изтрий</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-destructive">
+            <AlertCircle className="h-12 w-12 mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Грешка при генериране на квитанция</h2>
+            <p>{message}</p>
         </div>
     );
 };
-
-export default SaleReceiptPage;

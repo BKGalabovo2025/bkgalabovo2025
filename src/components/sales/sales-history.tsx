@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6,6 +5,7 @@ import { useRouter } from 'next/navigation'; // Import useRouter
 import { getSalesByMemberId } from '@/services/sales-service';
 import { Sale } from '@/types';
 import { Button } from '@/components/ui/button'; // Using Button for consistency
+import { formatPrice } from '@/lib/currency';
 
 interface SalesHistoryProps {
   memberId: string;
@@ -59,7 +59,7 @@ export function SalesHistory({ memberId }: SalesHistoryProps) {
                                 <td className="px-6 py-4 whitespace-normal">
                                     {sale.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right">{sale.total.toFixed(2)} {sale.currency || 'EUR'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right">{formatPrice(sale.totalAmount)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                    <Button variant="link" onClick={() => router.push(`/sales/${sale.id}`)}>
                                        Разписка

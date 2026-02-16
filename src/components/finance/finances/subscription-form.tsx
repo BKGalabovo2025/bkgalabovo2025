@@ -85,6 +85,7 @@ export function SubscriptionForm({ members, services, onSave, onClose, initialDa
     
     const subscriptionData: Omit<Subscription, 'id'> = {
         ...data,
+        price: selectedService.price,
         serviceName: selectedService.name,
         totalPaymentsCount: totalPaymentsCount,
         currency: selectedService.currency,

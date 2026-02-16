@@ -1,68 +1,105 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { getSubscriptionsByMemberId, getAllClubServices, createSubscription } from '@/services/subscription-service';
+import { findOrCreateSaleForSubscription } from '@/services/sales-service';
 import { registerPaymentForSubscription } from '@/services/payment-service';
 import { Subscription, ClubService } from '@/types';
-import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle, Receipt, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { bg } from 'date-fns/locale';
+import { formatPrice } from '@/lib/currency'; // CORRECT: Import the new centralized formatter
 
-// #region Helper Functions
+// --- NEW: Centralized Price Conversion Logic for this Component ---
+const getDisplayPrice = (amount: number, currency: string | undefined) => {
+    // This function handles historical data by converting BGN amounts to EUR for display.
+    // It assumes amounts are stored in the smallest currency unit (stotinki/cents).
+    const priceInMainUnit = amount / 100;
+    if (currency === 'BGN') {
+        const BGN_TO_EUR_RATE = 1.95583;
+        return priceInMainUnit / BGN_TO_EUR_RATE;
+    }
+    // For 'EUR' or undefined currency, assume the amount is already in EUR.
+    return priceInMainUnit;
+};
 
-/**
- * Calculates the end date of a subscription based on its start date and billing period.
- * This is a critical function to ensure that subscriptions have the correct duration.
- */
+
+// Helper functions for date calculations
+const calculateNextStartDate = (currentEndDate: string | Date): Date => {
+    const endDate = new Date(currentEndDate);
+    endDate.setDate(endDate.getDate() + 1);
+    return endDate;
+};
+
 const calculateEndDate = (startDate: Date, billingPeriod: ClubService['billingPeriod']): Date => {
     const endDate = new Date(startDate);
-    switch (billingPeriod) {
-        case 'Месечен':
-            endDate.setMonth(endDate.getMonth() + 1);
-            break;
-        case 'Годишен':
-            endDate.setFullYear(endDate.getFullYear() + 1);
-            break;
-        case 'Тримесечен':
-            endDate.setMonth(endDate.getMonth() + 3);
-            break;
-        case 'Еднократен':
-        default:
-            // For one-time payments, the end date is the same as the start date.
-            break;
+    if (billingPeriod === 'Месечен') {
+        endDate.setMonth(endDate.getMonth() + 1);
+        endDate.setDate(endDate.getDate() - 1);
+    } else if (billingPeriod === 'Годишен') {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        endDate.setDate(endDate.getDate() - 1);
     }
     return endDate;
 };
 
-// #endregion
-
-// #region Payment Dialog Component
-const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+// --- DIALOG FOR ADDING A NEW SUBSCRIPTION ---
+const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded }: { memberId: string, services: ClubService[], onSubscriptionAdded: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const [isLoading, setIsLoading] = useState(false);
-    // The amount is pre-filled with the outstanding balance.
-    const [amount, setAmount] = useState(((service?.price || 0) - sub.pricePaid) / 100);
-    const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
     const { toast } = useToast();
 
-    const handlePayment = async () => {
+    const handleAddSubscription = async () => {
+        if (!selectedServiceId || !startDate) {
+            toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
+            return;
+        }
+
+        const service = services.find(s => s.id === selectedServiceId);
+        if (!service) {
+            toast({ title: "Грешка", description: "Избраната услуга не е валидна.", variant: "destructive" });
+            return;
+        }
+
         setIsLoading(true);
         try {
-            await registerPaymentForSubscription(sub.id, {
-                paymentId: crypto.randomUUID(),
-                amount: Math.round(amount * 100), 
-                paymentDate: new Date(paymentDate).toISOString(),
+            const endDate = calculateEndDate(startDate, service.billingPeriod);
+            
+            await createSubscription({
+                memberId: memberId,
+                serviceId: service.id,
+                serviceName: service.name,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                status: 'pending_payment', // New subscriptions require payment
+                pricePaid: 0,
+                price: service.price, // Store the price from the service (now it is in EUR)
+                currency: 'EUR', // ALWAYS set new subscriptions to EUR
+                paymentHistory: [],
+                paymentsMadeCount: 0,
+                totalPaymentsCount: 1 // Or based on service type
             });
-            toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
-            onPaymentSuccess(); // This refreshes the subscription list.
+
+            toast({ title: "Успех!", description: "Абонаментът е добавен и очаква плащане." });
+            onSubscriptionAdded(); // Refresh the parent list
             setIsOpen(false);
+            // Reset state
+            setSelectedServiceId(null);
+            setStartDate(new Date());
         } catch (error) {
-            console.error("Failed to register payment:", error);
-            toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
+            console.error("Error creating subscription:", error);
+            toast({ title: "Грешка", description: "Възникна проблем при създаването на абонамента.", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -71,261 +108,282 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscr
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="secondary">Регистрирай плащане</Button>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Добави абонамент
+                </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Регистриране на плащане</DialogTitle>
-                    <DialogDescription>За абонамент: <strong>{service?.name || 'Неизвестна услуга'}</strong></DialogDescription>
+                    <DialogTitle>Добавяне на нов абонамент</DialogTitle>
+                    <DialogDescription>Изберете услуга и начална дата, за да създадете нов абонамент за члена.</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="amount">Сума ({sub.currency})</Label>
-                        <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="service" className="text-right">Услуга</label>
+                        <Select onValueChange={setSelectedServiceId} defaultValue={selectedServiceId || undefined}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Изберете услуга..." />
+                            </SelectTrigger>
+                            <SelectContent id="service">
+                                {services.map(service => (
+                                    // FIX 1: Use formatPrice on the EUR value of the service.
+                                    <SelectItem key={service.id} value={service.id}>{service.name} ({formatPrice(service.price)})</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="paymentDate">Дата на плащане</Label>
-                        <Input id="paymentDate" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                         <label htmlFor="start-date" className="text-right">Начална дата</label>
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "col-span-3 justify-start text-left font-normal",
+                                    !startDate && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {startDate ? format(startDate, 'PPP', { locale: bg }) : <span>Изберете дата</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={startDate}
+                                onSelect={setStartDate}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>Отказ</Button>
-                    <Button onClick={handlePayment} disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Потвърди плащането
+                    <Button variant="outline" onClick={() => setIsOpen(false)}>Отказ</Button>
+                    <Button onClick={handleAddSubscription} disabled={isLoading}>
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Запази'}
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 }
-// #endregion
 
-const SubscriptionCard = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+// --- EXISTING COMPONENTS (with minor adjustments if needed) ---
 
-    const getStatusInfo = (status: Subscription['status']) => {
-        switch (status) {
-            case 'active':
-                return { icon: <CheckCircle className="h-4 w-4 text-green-500" />, text: 'Активен', color: 'border-green-500' };
-            case 'inactive':
-                return { icon: <XCircle className="h-4 w-4 text-red-500" />, text: 'Изтекъл', color: 'border-red-500' };
-            case 'cancelled':
-                return { icon: <XCircle className="h-4 w-4 text-gray-500" />, text: 'Отказан', color: 'border-gray-500' };
-            case 'pending_payment':
-                return { icon: <AlertCircle className="h-4 w-4 text-yellow-500" />, text: 'Чакащо плащане', color: 'border-yellow-500' };
-            default:
-                return { icon: null, text: 'Неизвестен', color: 'border-gray-300' };
+const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription, onUpdate: () => void }) => {
+    const router = useRouter();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleReceiptClick = async () => {
+        setIsLoading(true);
+        try {
+            const sale = await findOrCreateSaleForSubscription(subscription);
+            if (sale && sale.id) {
+                onUpdate(); 
+                router.push(`/sales/${sale.id}/receipt`);
+            } else {
+                toast({ title: "Грешка", description: "Не може да бъде генерирана квитанция.", variant: "destructive" });
+            }
+        } catch (error) {
+            console.error("Error in receipt generation:", error);
+            toast({ title: "Грешка", description: "Възникна проблем при генерирането на квитанцията.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
+    
+    return (
+        <Button size="sm" variant="outline" onClick={handleReceiptClick} disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Receipt className="mr-2 h-4 w-4" />}
+            Квитанция
+        </Button>
+    )
+}
 
-    const statusInfo = getStatusInfo(sub.status);
+const SubscriptionCard = ({ sub, service, onSubscriptionUpdate }: { sub: Subscription, service?: ClubService, onSubscriptionUpdate: () => void }) => {
+    const [isRenewing, setIsRenewing] = useState(false);
+    const { toast } = useToast();
+
+    const getStatusInfo = () => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const endDate = new Date(sub.endDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        if (sub.status !== 'cancelled' && now > endDate) {
+            return { icon: <XCircle className="h-4 w-4 text-red-500" />, text: 'Изтекъл', color: 'border-red-500' };
+        }
+        switch (sub.status) {
+            case 'active': return { icon: <CheckCircle className="h-4 w-4 text-green-500" />, text: 'Активен', color: 'border-green-500' };
+            case 'pending_payment': return { icon: <AlertCircle className="h-4 w-4 text-yellow-500" />, text: 'Чакащо плащане', color: 'border-yellow-500' };
+            case 'cancelled': return { icon: <XCircle className="h-4 w-4 text-gray-500" />, text: 'Отменен', color: 'border-gray-500' };
+            default: return { icon: <XCircle className="h-4 w-4 text-gray-500" />, text: 'Неактивен', color: 'border-gray-500' };
+        }
+    };
+
+    const handleRenew = async () => {
+        if (!service) return;
+        setIsRenewing(true);
+        try {
+            const nextStartDate = calculateNextStartDate(sub.endDate);
+            const nextEndDate = calculateEndDate(nextStartDate, service.billingPeriod);
+
+            await createSubscription({
+                memberId: sub.memberId,
+                serviceId: sub.serviceId,
+                serviceName: service.name,
+                price: service.price, // Price is already in EUR
+                currency: 'EUR', // Always EUR
+                startDate: nextStartDate.toISOString(),
+                endDate: nextEndDate.toISOString(),
+                status: 'pending_payment',
+                pricePaid: 0,
+                paymentHistory: [],
+                paymentsMadeCount: 0,
+                totalPaymentsCount: 1
+            });
+
+            toast({ title: "Успешно подновен", description: `Създаден е нов абонамент за периода ${nextStartDate.toLocaleDateString('bg-BG')}.` });
+            onSubscriptionUpdate();
+        } catch (error) {
+            toast({ title: "Грешка при подновяване", variant: "destructive" });
+        } finally {
+            setIsRenewing(false);
+        }
+    };
+
+    const statusInfo = getStatusInfo();
+    const isPaid = sub.pricePaid > 0;
+    const isExpired = statusInfo.text === 'Изтекъл';
+
+    // FIX 2: Calculate the display price for the paid amount
+    const paidAmountInEur = getDisplayPrice(sub.pricePaid, sub.currency);
 
     return (
         <div className={`border-l-4 ${statusInfo.color} rounded-md bg-muted/20 p-4 mb-4`}>
             <div className="flex justify-between items-start">
-                <div>
-                    <h4 className="font-bold text-lg">{service?.name || 'Неизвестна услуга'}</h4>
-                    {/* The long description is now removed to keep the interface clean */}
-                </div>
+                 <h4 className="font-bold text-lg">{sub.serviceName}</h4>
                 <div className="flex items-center space-x-2">
                     {statusInfo.icon}
                     <span className="font-semibold">{statusInfo.text}</span>
                 </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm items-center">
-                <div>
-                    <p className="text-muted-foreground">Начална дата</p>
-                    <p className="font-medium flex items-center"><CalendarIcon className="mr-2 h-4 w-4"/> {new Date(sub.startDate).toLocaleDateString('bg-BG')}</p>
+                <div><p className="text-muted-foreground">Начало</p><p className="font-medium"><CalendarIcon className="mr-2 h-4 w-4 inline"/> {new Date(sub.startDate).toLocaleDateString('bg-BG')}</p></div>
+                <div><p className="text-muted-foreground">Край</p><p className="font-medium"><CalendarIcon className="mr-2 h-4 w-4 inline"/>{new Date(sub.endDate).toLocaleDateString('bg-BG')}</p></div>
+                <div><p className="text-muted-foreground">Платено</p><p className="font-medium">{formatPrice(paidAmountInEur)}</p></div>
+                <div className="flex justify-end items-center gap-2">
+                    {isPaid && <ReceiptButton subscription={sub} onUpdate={onSubscriptionUpdate} />}
+                    {isExpired && (
+                        <Button size="sm" onClick={handleRenew} disabled={isRenewing}>
+                            {isRenewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                            Подновяване
+                        </Button>
+                    )}
+                    {sub.status === 'pending_payment' && <RegisterPaymentDialog sub={sub} service={service} onPaymentSuccess={onSubscriptionUpdate} />}
                 </div>
-                <div>
-                    <p className="text-muted-foreground">Крайна дата</p>
-                    <p className="font-medium flex items-center"><CalendarIcon className="mr-2 h-4 w-4"/>{new Date(sub.endDate).toLocaleDateString('bg-BG')}</p>
-                </div>
-                <div>
-                    <p className="text-muted-foreground">Платена сума</p>
-                    <p className="font-medium">{(sub.pricePaid / 100).toFixed(2)} {sub.currency}</p>
-                </div>
-                {sub.status === 'pending_payment' && (
-                    <RegisterPaymentDialog sub={sub} service={service} onPaymentSuccess={onPaymentSuccess} />
-                )}
             </div>
         </div>
     )
 }
 
-interface MemberSubscriptionsTabProps {
-  memberId: string;
+const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const { toast } = useToast();
+    
+    // The price from the service catalog is now in EUR.
+    // The price on the subscription might be BGN or EUR.
+    const originalPriceInEur = getDisplayPrice(sub.price, sub.currency);
+    const paidAmountInEur = getDisplayPrice(sub.pricePaid, sub.currency);
+    const amountToPayInEur = originalPriceInEur - paidAmountInEur;
+
+    const handlePayment = async () => {
+        if (amountToPayInEur <= 0) {
+            toast({ title: "Информация", description: "Няма дължима сума за този абонамент." });
+            return;
+        }
+        setIsLoading(true);
+        try {
+            // The backend service expects the amount in the original currency unit (cents/stotinki)
+            // We need to convert the EUR amount back to the smallest unit.
+            // Since all new amounts are EUR, we convert to cents.
+            await registerPaymentForSubscription(sub.id, {
+                amount: amountToPayInEur * 100, 
+                paymentDate: new Date().toISOString(),
+            });
+            toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
+            onPaymentSuccess();
+            setIsOpen(false);
+        } catch (error) {
+            toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild><Button size="sm">Регистрирай плащане</Button></DialogTrigger>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Потвърждение на плащане</DialogTitle></DialogHeader>
+                {/* FIX 3: Use formatPrice on the calculated EUR amount */}
+                <p>Ще регистрирате плащане от <strong>{formatPrice(amountToPayInEur)}</strong> за абонамент <strong>{sub.serviceName}</strong>. Сигурни ли сте?</p>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsOpen(false)} >Отказ</Button>
+                    <Button onClick={handlePayment} disabled={isLoading}>{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Потвърди'}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
 }
 
-export const MemberSubscriptionsTab = ({ memberId }: MemberSubscriptionsTabProps) => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]); 
+export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-
   const { toast } = useToast();
 
   const fetchData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const [srvs, subs] = await Promise.all([
-            getAllClubServices(),
-            getSubscriptionsByMemberId(memberId)
-        ]);
+        const [srvs, subs] = await Promise.all([getAllClubServices(), getSubscriptionsByMemberId(memberId)]);
         subs.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
         setSubscriptions(subs);
-        setServices(srvs);
+        // Service prices from the catalog are now in EUR, so we can use them directly.
+        setServices(srvs.filter(s => s.type === 'Абонамент'));
       } catch (error) {
-        console.error("Failed to fetch data:", error);
         toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
       } finally {
         setLoading(false);
       }
   }
 
-  useEffect(() => {
-    fetchData();
-  }, [memberId]);
+  useEffect(() => { fetchData() }, [memberId]); 
 
-  /**
-   * Handles the creation of a new subscription. This function now includes
-   * robust logic to calculate the correct end date and to ensure that the price
-   * and currency are correctly copied from the selected service.
-   */
-  const handleAddSubscription = async () => {
-    if (!selectedServiceId || !startDate) {
-        toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
-        return;
-    }
-    const service = services.find(s => s.id === selectedServiceId);
-    if (!service) {
-        toast({ title: "Грешка", description: "Избраната услуга не е намерена.", variant: "destructive" });
-        return;
-    }
-
-    try {
-        const startDateObj = new Date(startDate);
-        const endDateObj = calculateEndDate(startDateObj, service.billingPeriod);
-
-        const newSubscription: Omit<Subscription, 'id'> = {
-            memberId: memberId,
-            serviceId: selectedServiceId,
-            serviceName: service.name,
-            price: service.price, // BUG FIX: Correctly set the price from the service
-            currency: service.currency, // BUG FIX: Correctly set the currency from the service
-            startDate: startDateObj.toISOString(),
-            endDate: endDateObj.toISOString(), // BUG FIX: Use the new robust `calculateEndDate` function
-            status: 'pending_payment',
-            pricePaid: 0,
-            paymentHistory: [],
-            paymentsMadeCount: 0,
-            totalPaymentsCount: service.billingPeriod === 'Годишен' ? 1 : 12,
-            licenseGranted: false,
-            apparelGranted: false,
-        };
-
-        await createSubscription(newSubscription);
-        toast({ title: "Успех", description: "Абонаментът е добавен успешно." });
-        
-        // Reset state and refetch data
-        setIsAddDialogOpen(false);
-        setSelectedServiceId(null);
-        setStartDate(new Date().toISOString().split('T')[0]);
-        fetchData();
-    } catch (error) {
-        console.error("Failed to add subscription:", error);
-        toast({ title: "Грешка", description: "Възникна проблем при добавянето на абонамента.", variant: "destructive" });
-    }
-  }
-
-  const getServiceForSubscription = (sub: Subscription) => {
-    return services.find(s => s.id === sub.serviceId);
-  }
-
-  if (loading) {
-    return (
-        <div className="flex items-center justify-center py-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
-  }
+  if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Активни и изминали абонаменти</CardTitle>
-          <CardDescription>Списък с всички услуги, за които членът е абониран.</CardDescription>
+            <CardTitle>Абонаменти</CardTitle>
+            <CardDescription>Списък с всички активни и изминали абонаменти.</CardDescription>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Добави абонамент
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[480px]">
-            <DialogHeader>
-              <DialogTitle>Добавяне на нов абонамент</DialogTitle>
-              <DialogDescription>
-                Изберете услуга и начална дата, за да създадете нов абонамент за този член. Статусът първоначално ще бъде "Чакащо плащане".
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                    <label className="text-sm font-medium">Услуга</label>
-                     {services.length > 0 ? (
-                        <div className="max-h-64 overflow-y-auto rounded-md border bg-background">
-                            <div className="p-2 space-y-1">
-                            {services.map(service => (
-                                <div
-                                    key={service.id}
-                                    onClick={() => setSelectedServiceId(service.id)}
-                                    className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedServiceId === service.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                                >
-                                    <span className='font-medium'>{service.name}</span>
-                                    <span className='font-bold'>{(service.price / 100).toFixed(2)} {service.currency}</span>
-                                </div>
-                            ))}
-                            </div>
-                        </div>
-                     ) : (
-                        <div className='text-center text-sm text-muted-foreground p-4 border rounded-md'>
-                            Няма създадени услуги. Моля, първо добавете услуга от секция "Финанси" -&gt; "Услуги".
-                        </div>
-                     )}
-                </div>
-                <div className='grid gap-2'>
-                    <label htmlFor='start-date' className="text-sm font-medium">Начална дата</label>
-                    <Input 
-                        id='start-date'
-                        type="date" 
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                </div>
-            </div>
-            <DialogFooter>
-                <Button onClick={() => setIsAddDialogOpen(false)} variant="outline">Отказ</Button>
-                <Button onClick={handleAddSubscription} disabled={!selectedServiceId || !startDate || services.length === 0}>
-                    Добави абонамент
-                </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <AddSubscriptionDialog memberId={memberId} services={services} onSubscriptionAdded={fetchData} />
       </CardHeader>
       <CardContent>
         {subscriptions.length === 0 ? (
-          <div className="text-center py-10 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground">Няма намерени активни или изминали абонаменти.</p>
-            <p className="text-sm text-muted-foreground mt-2">Натиснете бутона, за да присвоите услуга към този член.</p>
+          <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+            <p>Няма намерени абонаменти.</p>
           </div>
         ) : (
           <div>
             {subscriptions.map(sub => (
-                <SubscriptionCard key={sub.id} sub={sub} service={getServiceForSubscription(sub)} onPaymentSuccess={fetchData} />
+                <SubscriptionCard key={sub.id} sub={sub} service={services.find(s => s.id === sub.serviceId)} onSubscriptionUpdate={fetchData} />
             ))}
           </div>
         )}

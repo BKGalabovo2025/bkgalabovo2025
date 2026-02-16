@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const descriptionId = useId();
 
     useEffect(() => {
         if (isOpen) {
@@ -75,6 +76,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
                 location,
                 description,
                 attendees: [],
+                attendeeMemberIds: [],
             });
             handleClose();
         } catch (err) {
@@ -87,10 +89,10 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[480px]">
+            <DialogContent className="sm:max-w-[480px]" aria-describedby={descriptionId}>
                 <DialogHeader>
                     <DialogTitle>Създаване на ново събитие</DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription id={descriptionId}>
                         Попълнете детайлите по-долу, за да създадете ново събитие в графика.
                     </DialogDescription>
                 </DialogHeader>
@@ -130,7 +132,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ isOpen, on
                         <label htmlFor="location">Място</label>
                         <Input
                             id="location"
-                            placeholder="Например: Спортна зала \'Младост\'"
+                            placeholder="Например: Спортна зала 'Младост'"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                         />

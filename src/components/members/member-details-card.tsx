@@ -10,16 +10,12 @@ import { useRouter } from 'next/navigation';
 import { MemberSalesHistory } from './member-sales-history';
 import { MemberAttendanceHistory } from './MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from './member-subscriptions-tab';
-import { getAgeGroup } from '@/lib/utils';
+import { getAgeGroup, getInitials, formatFullName } from '@/lib/utils';
 
 interface MemberDetailsCardProps {
     member: Member;
     familyMembers: Member[];
 }
-
-const getInitials = (firstName: string, lastName:string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
-};
 
 const formatPhoneType = (phoneType: string | null | undefined) => {
     if (!phoneType) return null;
@@ -29,8 +25,11 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
 export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardProps) => {
     const router = useRouter();
 
-    const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
-    const ageGroup = getAgeGroup(member.dateOfBirth);
+    const fullName = formatFullName(member);
+    const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
+    const formattedBirthDate = member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString('bg-BG') : null;
+    const formattedRegistrationDate = member.registrationDate ? new Date(member.registrationDate).toLocaleDateString('bg-BG') : null;
+
 
     return (
         <div className="space-y-6">
@@ -48,7 +47,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                     <div className="flex items-center space-x-4">
                         <Avatar className="h-20 w-20">
                             <AvatarImage src={member.avatarUrl ?? undefined} alt={fullName} />
-                            <AvatarFallback className="text-2xl">{getInitials(member.firstName, member.lastName)}</AvatarFallback>
+                            <AvatarFallback className="text-2xl">{getInitials(fullName)}</AvatarFallback>
                         </Avatar>
                         <div>
                             <CardTitle className="text-3xl font-bold">{fullName}</CardTitle>
@@ -72,9 +71,9 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                             <InfoRow icon={Mail} label="Имейл" value={member.email} />
                             <InfoRow icon={Phone} label="Телефон" value={member.phone} />
                             <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
-                            <InfoRow icon={Calendar} label="Дата на раждане" value={new Date(member.dateOfBirth).toLocaleDateString('bg-BG')} />
+                            <InfoRow icon={Calendar} label="Дата на раждане" value={formattedBirthDate} />
                             <InfoRow icon={BarChart2} label="Възрастова група" value={ageGroup} />
-                            <InfoRow icon={Calendar} label="Дата на регистрация" value={new Date(member.registrationDate).toLocaleDateString('bg-BG')} />
+                            <InfoRow icon={Calendar} label="Дата на регистрация" value={formattedRegistrationDate} />
                             <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
                             <InfoRow icon={Home} label="Адрес" value={member.address} />
                             <InfoRow icon={FileText} label="Бележки" value={member.notes} isBlock={true} />
@@ -93,11 +92,11 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                                                 onClick={() => router.push(`/members/${familyMember.id}`)}
                                             >
                                                 <Avatar className="h-9 w-9">
-                                                    <AvatarImage src={familyMember.avatarUrl ?? undefined} alt={`${familyMember.firstName} ${familyMember.lastName}`} />
-                                                    <AvatarFallback>{getInitials(familyMember.firstName, familyMember.lastName)}</AvatarFallback>
+                                                    <AvatarImage src={familyMember.avatarUrl ?? undefined} alt={formatFullName(familyMember)} />
+                                                    <AvatarFallback>{getInitials(formatFullName(familyMember))}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="text-sm font-medium">{[familyMember.firstName, familyMember.middleName, familyMember.lastName].filter(Boolean).join(' ')}</p>
+                                                    <p className="text-sm font-medium">{formatFullName(familyMember)}</p>
                                                     <p className="text-xs text-muted-foreground">{familyMember.email || 'Няма имейл'}</p>
                                                 </div>
                                             </div>

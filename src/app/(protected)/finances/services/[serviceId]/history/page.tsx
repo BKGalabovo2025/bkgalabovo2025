@@ -1,4 +1,3 @@
-import { use } from 'react';
 import HistoryClientPage from './HistoryClientPage';
 import { notFound } from 'next/navigation';
 
@@ -8,9 +7,7 @@ import { notFound } from 'next/navigation';
 // Its only job is to unwrap the params and pass the ID to the client.
 export default function ServiceHistoryPage({ params }: { params: { serviceId: string } }) {
   
-  // In dynamic routes, `params` is a Promise. We MUST unwrap it with `use`.
-  const resolvedParams = use(params);
-  const serviceId = resolvedParams.serviceId;
+  const { serviceId } = params;
 
   // If the serviceId is missing or invalid, show a 404 page immediately.
   if (!serviceId || serviceId === 'undefined') {
