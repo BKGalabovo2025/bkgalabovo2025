@@ -25,16 +25,17 @@ export async function POST(request: Request) {
         const baseUrl = `${protocol}://${host}`;
 
         for (const member of overdueMembers) {
+            const memberName = `${member.firstName} ${member.lastName}`.trim();
+            
             if (!member.email) {
-                const memberName = `${member.firstName} ${member.lastName}`.trim();
                 console.log(`Member ${memberName} has no email address. Skipping.`);
                 continue;
             }
-
-            const memberName = `${member.firstName} ${member.lastName}`.trim();
-            const emailHtml = ReminderEmailHtml({ memberName: memberName });
-
+            
             try {
+                // Generate the email HTML inside the try...catch block
+                const emailHtml = ReminderEmailHtml({ memberName: memberName });
+
                 // We now call our own API endpoint to send the email
                 const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
                     method: 'POST',
