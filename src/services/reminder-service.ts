@@ -57,3 +57,27 @@ export const createRemindersForOverdueMembers = (overdueMembers: Member[]): Remi
     dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('bg-BG'),
   }));
 };
+
+/**
+ * Generates reminders for members with overdue payments from existing data.
+ * @param allMembers An array of all members.
+ * @param allSales An array of all sales.
+ * @returns An array of reminder objects.
+ */
+export const getReminders = (allMembers: Member[], allSales: Sale[]): Reminder[] => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  const membersWithOverduePayments = allMembers.filter(member => {
+    const hasCurrentSubscription = allSales.some(sale =>
+      sale.memberId === member.id &&
+      sale.type === 'Абонамент' &&
+      new Date(sale.date).getMonth() === currentMonth &&
+      new Date(sale.date).getFullYear() === currentYear
+    );
+    return !hasCurrentSubscription;
+  });
+
+  return createRemindersForOverdueMembers(membersWithOverduePayments);
+};

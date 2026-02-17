@@ -44,10 +44,10 @@ export function RemindersCard({ reminders }: RemindersCardProps) {
       <CardContent>
         {reminders && reminders.length > 0 ? (
           <div className="space-y-4 mt-4">
-            {reminders.map((reminder) => {
+            {reminders.map((reminder, index) => {
               const link = getReminderLink(reminder);
               return (
-                <div key={reminder.id} className="flex items-start">
+                <div key={`${reminder.id}-${index}`} className="flex items-start">
                   <div>{getReminderIcon(reminder.type)}</div>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{reminder.title}</p>
