@@ -1,24 +1,23 @@
-'use client';
 
 import { collection, getDocs } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase'; // For client-side
+import { dbAdmin } from '@/lib/firebase-admin'; // For server-side
 import { Member } from '@/types/member.types';
 import { Sale, Reminder } from '@/types';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 
 /**
  * Finds members with overdue monthly subscription payments for the current month by fetching fresh data from the database.
- * This is used by the API route for sending email reminders.
+ * THIS FUNCTION IS FOR SERVER-SIDE USE ONLY.
  * @returns A promise that resolves to an array of members with overdue payments.
  */
 export const getOverdueMembers = async (): Promise<Member[]> => {
-  const db = getDb();
-  const membersCollectionRef = collection(db, FIRESTORE_COLLECTIONS.MEMBERS);
-  const salesCollectionRef = collection(db, FIRESTORE_COLLECTIONS.SALES);
+  const membersCollectionRef = dbAdmin.collection(FIRESTORE_COLLECTIONS.MEMBERS);
+  const salesCollectionRef = dbAdmin.collection(FIRESTORE_COLLECTIONS.SALES);
 
   const [membersSnapshot, salesSnapshot] = await Promise.all([
-    getDocs(membersCollectionRef),
-    getDocs(salesCollectionRef),
+    membersCollectionRef.get(),
+    salesCollectionRef.get(),
   ]);
 
   const allMembers = membersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Member[];
@@ -68,6 +67,7 @@ export const createRemindersForOverdueMembers = (overdueMembers: Member[]): Remi
 
 /**
  * Generates reminders for members with overdue payments from existing data.
+ * This function can be used on the client-side.
  * @param allMembers An array of all members.
  * @param allSales An array of all sales.
  * @returns An array of reminder objects.
