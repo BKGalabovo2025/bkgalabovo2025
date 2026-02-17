@@ -50,13 +50,21 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
  * @returns An array of reminder objects.
  */
 export const createRemindersForOverdueMembers = (overdueMembers: Member[]): Reminder[] => {
-  return overdueMembers.map(member => ({
-    to: member.email, // The email address of the recipient.
-    name: `${member.firstName} ${member.lastName}`,
-    // The due date is the last day of the current month.
-    dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('bg-BG'),
-  }));
-};
+    const today = new Date();
+    const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
+  
+    return overdueMembers.map((member, index) => ({
+      id: `overdue-${member.id}-${index}`,
+      title: 'Просрочено плащане',
+      description: `Таксата за абонамента на ${member.firstName} ${member.lastName} за текущия месец не е платена.`,
+      dueDate: dueDate.toISOString(),
+      isCompleted: false,
+      type: 'payment',
+      memberId: member.id,
+      memberName: `${member.firstName} ${member.lastName}`,
+      relatedId: member.id, // Link to member's profile
+    }));
+  };
 
 /**
  * Generates reminders for members with overdue payments from existing data.
