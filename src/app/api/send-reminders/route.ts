@@ -26,11 +26,13 @@ export async function POST(request: Request) {
 
         for (const member of overdueMembers) {
             if (!member.email) {
-                console.log(`Member ${member.name} has no email address. Skipping.`);
+                const memberName = `${member.firstName} ${member.lastName}`.trim();
+                console.log(`Member ${memberName} has no email address. Skipping.`);
                 continue;
             }
 
-            const emailHtml = ReminderEmailHtml({ memberName: member.name });
+            const memberName = `${member.firstName} ${member.lastName}`.trim();
+            const emailHtml = ReminderEmailHtml({ memberName: memberName });
 
             try {
                 // We now call our own API endpoint to send the email
@@ -51,9 +53,9 @@ export async function POST(request: Request) {
                     throw new Error(`API responded with ${emailResponse.status}: ${errorBody.error}`);
                 }
                 
-                console.log(`Email sent to ${member.name} (${member.email})`);
+                console.log(`Email sent to ${memberName} (${member.email})`);
             } catch (emailError) {
-                console.error(`Failed to send email to ${member.name}:`, emailError);
+                console.error(`Failed to send email to ${memberName}:`, emailError);
                 // Decide if you want to stop the whole process or just log the error and continue
             }
         }
