@@ -32,9 +32,9 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
     // Check if the member has an active subscription for the current month.
     const hasCurrentSubscription = allSales.some(sale =>
       sale.memberId === member.id &&
-      sale.type === 'Абонамент' &&
-      new Date(sale.date).getMonth() === currentMonth &&
-      new Date(sale.date).getFullYear() === currentYear
+      sale.subscriptionId && // Check if it's a subscription sale
+      new Date(sale.saleDate).getMonth() === currentMonth &&
+      new Date(sale.saleDate).getFullYear() === currentYear
     );
 
     // If there is no sale for a subscription this month, their payment is overdue.
@@ -52,7 +52,7 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
 export const createRemindersForOverdueMembers = (overdueMembers: Member[]): Reminder[] => {
   return overdueMembers.map(member => ({
     to: member.email, // The email address of the recipient.
-    name: `${member.firstName} ${member.lastName}`, // Full name of the member.
+    name: `${member.firstName} ${member.lastName}`,
     // The due date is the last day of the current month.
     dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('bg-BG'),
   }));
@@ -72,9 +72,9 @@ export const getReminders = (allMembers: Member[], allSales: Sale[]): Reminder[]
   const membersWithOverduePayments = allMembers.filter(member => {
     const hasCurrentSubscription = allSales.some(sale =>
       sale.memberId === member.id &&
-      sale.type === 'Абонамент' &&
-      new Date(sale.date).getMonth() === currentMonth &&
-      new Date(sale.date).getFullYear() === currentYear
+      sale.subscriptionId && // Check if it's a subscription sale
+      new Date(sale.saleDate).getMonth() === currentMonth &&
+      new Date(sale.saleDate).getFullYear() === currentYear
     );
     return !hasCurrentSubscription;
   });
