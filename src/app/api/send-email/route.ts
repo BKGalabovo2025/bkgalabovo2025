@@ -22,12 +22,15 @@ export async function POST(request: Request) {
       service: 'gmail',
       auth: {
         user: user,
-        pass: pass,
+        pass: pass, // Should be a Google App Password
       },
     });
 
     const mailOptions = {
-      from: `Администратор\"Бадминтон Клуб Гълъбово\" <${user}>`,
+      from: {
+        name: 'Администратор "Бадминтон Клуб Гълъбово"',
+        address: user,
+      },
       to: to,
       bcc: 'bkgalabovo2014@gmail.com',
       subject: subject,
