@@ -9,6 +9,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { MainHeader } from '@/components/layout/main-header';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from '@/components/ui/sonner'; // Import the Toaster
 
 export default function ProtectedLayout({
   children,
@@ -33,7 +34,6 @@ export default function ProtectedLayout({
   }, [router]);
 
   if (isAuthenticated === null) {
-    // Показване на индикатор за зареждане, докато се проверява удостоверяването
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -42,8 +42,6 @@ export default function ProtectedLayout({
   }
 
   if (!isAuthenticated) {
-    // Потребителят не е удостоверен, така че не рендираме нищо,
-    // тъй като пренасочването ще се случи скоро.
     return null;
   }
 
@@ -57,6 +55,8 @@ export default function ProtectedLayout({
               {children}
             </main>
           </div>
+          {/* Add the Toaster component here */}
+          <Toaster richColors position="top-center" />
         </div>
       </SidebarProvider>
   );

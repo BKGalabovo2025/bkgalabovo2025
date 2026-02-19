@@ -10,6 +10,7 @@ export function AssistantPanel() {
   const [isSending, setIsSending] = useState(false);
 
   const handleSendReminders = async () => {
+    console.log('handleSendReminders called!'); // Added for absolute certainty
     setIsSending(true);
     toast.info("Започва изпращане на напомняния...");
 
@@ -24,7 +25,8 @@ export function AssistantPanel() {
         throw new Error(result.error || 'Неуспешно изпращане на напомнянията.');
       }
       
-      toast.success(`Напомнянията са изпратени успешно до ${result.sentCount} члена.`);
+      // Correctly display the success message from the API response
+      toast.success(result.message || "Напомнянията са изпратени успешно.");
 
     } catch (error) {
       console.error("Failed to send reminders:", error);
