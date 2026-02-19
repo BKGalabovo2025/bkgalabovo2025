@@ -9,7 +9,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { MainHeader } from '@/components/layout/main-header';
 import { Loader2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/sonner'; // Import the Toaster
+import { Toaster } from 'sonner'; // CORRECTED IMPORT: Import directly from the library
 
 export default function ProtectedLayout({
   children,
@@ -55,7 +55,7 @@ export default function ProtectedLayout({
               {children}
             </main>
           </div>
-          {/* Add the Toaster component here */}
+          {/* The Toaster component will now render correctly */}
           <Toaster richColors position="top-center" />
         </div>
       </SidebarProvider>
