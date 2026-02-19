@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { getOverdueMembers } from '@/services/reminder-service';
+import { getOverdueMembers } from '@/services/reminder-service.server'; // Use the server-specific service
 import { ReminderEmailHtml } from '@/components/emails/reminder-email';
 
 // This endpoint should be protected, e.g., require authentication and admin rights.
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
             }
             
             try {
-                // Generate the email HTML inside the try...catch block
+                // Generate the email HTML
                 const emailHtml = ReminderEmailHtml({ memberName: memberName });
 
                 // We now call our own API endpoint to send the email
@@ -65,6 +65,10 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error('Failed to send reminders:', error);
+        // Check if the error is a known type and provide a more specific message
+        if (error instanceof Error) {
+            return NextResponse.json({ error: `Възникна грешка: ${error.message}` }, { status: 500 });
+        }
         return NextResponse.json({ error: 'Възникна грешка при изпращането на напомняния.' }, { status: 500 });
     }
 }
