@@ -1,9 +1,8 @@
 
 import { NextResponse } from 'next/server';
-import { getOverdueMembers } from '@/services/reminder-service.server'; // Use the server-specific service
+import { getOverdueMembers } from '@/services/reminder-service.server';
 import { ReminderEmailHtml } from '@/components/emails/reminder-email';
 
-// This endpoint should be protected, e.g., require authentication and admin rights.
 export async function POST(request: Request) {
     console.log('--- API /api/send-reminders HIT! ---');
     try {
@@ -12,7 +11,7 @@ export async function POST(request: Request) {
 
         console.log(`STEP 2: Found ${overdueMembers.length} overdue members.`);
         if (overdueMembers.length > 0) {
-            console.log('Overdue members list:', JSON.stringify(overdueMembers, null, 2));
+            console.log('Overdue members list:', JSON.stringify(overdueMembers.map(m => ({ id: m.id, name: `${m.firstName} ${m.lastName}`, email: m.email })), null, 2));
         }
 
         if (overdueMembers.length === 0) {
@@ -26,18 +25,23 @@ export async function POST(request: Request) {
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
         const baseUrl = `${protocol}://${host}`;
 
+        let sentCount = 0;
+        let failedCount = 0;
+
         for (const member of overdueMembers) {
             const memberName = `${member.firstName} ${member.lastName}`.trim();
             
             if (!member.email) {
-                console.log(`SKIPPING: Member ${memberName} has no email address.`);
+                console.log(`SKIPPING: Member ${memberName} (ID: ${member.id}) has no email address.`);
                 continue;
             }
             
             try {
                 const emailHtml = ReminderEmailHtml({ memberName: memberName });
+                // Generate a simple text version for email clients that don't support HTML
+                const emailText = `Здравейте, ${memberName}. Напомняме ви за просрочена месечна такса към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
 
-                console.log(`Sending email to ${memberName} (${member.email})...`);
+                console.log(`Attempting to dispatch email for ${memberName} (${member.email}) via internal API...`);
                 const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
                     method: 'POST',
                     headers: {
@@ -47,28 +51,46 @@ export async function POST(request: Request) {
                         to: member.email,
                         subject: 'Напомняне за месечна такса',
                         html: emailHtml,
+                        text: emailText, // Pass the text version as well
                     }),
                 });
 
                 if (!emailResponse.ok) {
-                    const errorBody = await emailResponse.json();
-                    throw new Error(`API responded with ${emailResponse.status}: ${errorBody.error}`);
+                    const errorBody = await emailResponse.json().catch(() => ({ error: 'Could not parse error response from /api/send-email' }));
+                    throw new Error(`Internal API /api/send-email failed with status ${emailResponse.status}. Details: ${errorBody.error}`);
                 }
                 
-                console.log(`SUCCESS: Email sent to ${memberName} (${member.email})`);
+                console.log(`SUCCESS: Email dispatched for ${memberName} (${member.email})`);
+                sentCount++;
             } catch (emailError) {
-                console.error(`FAILURE: Failed to send email to ${memberName}. Reason:`, emailError);
+                if (emailError instanceof Error) {
+                     console.error(`FAILURE: Failed to dispatch email for ${memberName}. Reason:`, emailError.message);
+                } else {
+                     console.error(`FAILURE: An unknown error occurred while dispatching email for ${memberName}.`);
+                }
+                failedCount++;
             }
         }
 
         console.log('--- API /api/send-reminders FINISHED. ---');
-        return NextResponse.json({ message: `Напомнящи имейли бяха изпратени до ${overdueMembers.length} членове.` }, { status: 200 });
+        console.log(`Summary: ${sentCount} emails successfully dispatched, ${failedCount} failed.`);
+
+        if (failedCount > 0) {
+             return NextResponse.json({ 
+                message: `Процесът завърши. Изпратени: ${sentCount}, Неуспешни: ${failedCount}. Проверете логовете на сървъра за повече детайли.`,
+                sentCount: sentCount,
+                failedCount: failedCount 
+            }, { status: 207 }); // 207 Multi-Status
+        } else {
+            return NextResponse.json({ message: `Напомнящи имейли бяха изпратени успешно до ${sentCount} членове.` }, { status: 200 });
+        }
 
     } catch (error) {
         console.error('CRITICAL FAILURE in /api/send-reminders:', error);
+        let errorMessage = 'Възникна критична грешка при изпращането на напомняния.';
         if (error instanceof Error) {
-            return NextResponse.json({ error: `Възникна критична грешка: ${error.message}` }, { status: 500 });
+           errorMessage = `Възникна критична грешка: ${error.message}`;
         }
-        return NextResponse.json({ error: 'Възникна критична грешка при изпращането на напомняния.' }, { status: 500 });
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
