@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getOverdueMembers } from '@/services/reminder-service.server';
 import { ReminderEmailHtml } from '@/components/emails/reminder-email';
+import { render } from '@react-email/render';
 
 export async function POST(request: Request) {
     console.log('--- API /api/send-reminders HIT! ---');
@@ -37,7 +38,9 @@ export async function POST(request: Request) {
             }
             
             try {
-                const emailHtml = ReminderEmailHtml({ memberName: memberName });
+                // Correctly render the React component to an HTML string
+                const emailHtml = render(ReminderEmailHtml({ memberName: memberName }));
+                
                 // Generate a simple text version for email clients that don't support HTML
                 const emailText = `Здравейте, ${memberName}. Напомняме ви за просрочена месечна такса към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
 
@@ -50,8 +53,8 @@ export async function POST(request: Request) {
                     body: JSON.stringify({
                         to: member.email,
                         subject: 'Напомняне за месечна такса',
-                        html: emailHtml,
-                        text: emailText, // Pass the text version as well
+                        html: emailHtml, // Now sending a valid HTML string
+                        text: emailText,
                     }),
                 });
 
