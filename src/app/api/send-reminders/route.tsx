@@ -1,9 +1,8 @@
 
 import { NextResponse } from 'next/server';
-import * as React from 'react';
 import { getOverdueMembers } from '@/services/reminder-service.server';
-import { ReminderEmail } from '@/components/emails/reminder-email';
-import { render } from '@react-email/render';
+
+// No longer need React, render, or the email component here.
 
 export async function POST(request: Request) {
     console.log('--- API /api/send-reminders HIT! ---');
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Няма членове с просрочени задължения.' }, { status: 200 });
         }
 
-        console.log(`STEP 3: Proceeding to send emails to ${overdueMembers.length} members.`);
+        console.log(`STEP 3: Proceeding to dispatch email requests for ${overdueMembers.length} members.`);
 
         const host = request.headers.get('host');
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
@@ -39,13 +38,10 @@ export async function POST(request: Request) {
             }
             
             try {
-                // Correctly render the React component to an HTML string
-                const emailHtml = render(<ReminderEmail memberName={memberName} />);
+                console.log(`Attempting to dispatch email request for ${memberName} (${member.email}) via internal API...`);
                 
-                // Generate a simple text version for email clients that don't support HTML
-                const emailText = `Здравейте, ${memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
-
-                console.log(`Attempting to dispatch email for ${memberName} (${member.email}) via internal API...`);
+                // The payload now contains the member's name and a template identifier,
+                // instead of the rendered HTML.
                 const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
                     method: 'POST',
                     headers: {
@@ -54,17 +50,19 @@ export async function POST(request: Request) {
                     body: JSON.stringify({
                         to: member.email,
                         subject: 'Напомняне за просрочено плащане',
-                        html: emailHtml, // Now sending a valid HTML string
-                        text: emailText,
+                        template: 'reminder', // Specify which email to render
+                        data: { memberName },   // Pass the necessary data for the template
                     }),
                 });
 
                 if (!emailResponse.ok) {
                     const errorBody = await emailResponse.json().catch(() => ({ error: 'Could not parse error response from /api/send-email' }));
-                    throw new Error(`Internal API /api/send-email failed with status ${emailResponse.status}. Details: ${errorBody.error}`);
+                    // Use a more descriptive error name
+                    const errorMessage = errorBody.error || `Internal API /api/send-email failed with status ${emailResponse.status}`;
+                    throw new Error(errorMessage);
                 }
                 
-                console.log(`SUCCESS: Email dispatched for ${memberName} (${member.email})`);
+                console.log(`SUCCESS: Email request for ${memberName} (${member.email}) was accepted by the email API.`);
                 sentCount++;
             } catch (emailError) {
                 if (emailError instanceof Error) {
@@ -77,16 +75,16 @@ export async function POST(request: Request) {
         }
 
         console.log('--- API /api/send-reminders FINISHED. ---');
-        console.log(`Summary: ${sentCount} emails successfully dispatched, ${failedCount} failed.`);
+        console.log(`Summary: ${sentCount} email requests accepted, ${failedCount} failed.`);
 
         if (failedCount > 0) {
              return NextResponse.json({ 
-                message: `Процесът завърши. Изпратени: ${sentCount}, Неуспешни: ${failedCount}. Проверете логовете на сървъра за повече детайли.`,
+                message: `Процесът завърши. Успешни заявки: ${sentCount}, Неуспешни: ${failedCount}. Проверете логовете на сървъра за повече детайли.`,
                 sentCount: sentCount,
                 failedCount: failedCount 
             }, { status: 207 }); // 207 Multi-Status
         } else {
-            return NextResponse.json({ message: `Напомнящи имейли бяха изпратени успешно до ${sentCount} членове.` }, { status: 200 });
+            return NextResponse.json({ message: `Заявките за напомнящи имейли бяха изпратени успешно за ${sentCount} членове.` }, { status: 200 });
         }
 
     } catch (error) {
