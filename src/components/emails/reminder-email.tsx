@@ -35,10 +35,10 @@ const text = {
 };
 
 const logo = {
+    display: 'block',
     width: 60,
     height: 60,
-    margin: '0 auto',
-    marginBottom: '20px',
+    margin: '20px auto',
 };
 
 const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/next-test-485df.appspot.com/o/logo.png?alt=media&token=04d96a79-5677-4563-8742-3e66052f5bdd';
@@ -53,6 +53,8 @@ export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
                     src={logoUrl}
                     alt={`${clubInfo.name} Logo`}
                     style={logo}
+                    width="60"
+                    height="60"
                 />
                 <Text style={text}>Здравейте, {memberName},</Text>
                 <Text style={text}>
