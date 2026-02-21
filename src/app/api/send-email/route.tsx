@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     // Render the React component to an HTML string
     console.log(`[send-email] Rendering template '${template}' with data:`, data);
-    const html = render(<EmailComponent {...data} />);
+    const html = await render(<EmailComponent {...data} />);
     const text = generateTextContent(template, data);
     console.log(`[send-email] Template rendered successfully. HTML length: ${html.length}`);
 
