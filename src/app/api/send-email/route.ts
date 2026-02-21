@@ -6,6 +6,19 @@ export async function POST(request: Request) {
   try {
     const { to, subject, html, text } = await request.json();
 
+    // --- Start Enhanced Debugging ---
+    console.log(`[send-email] Received payload for: ${to}`)
+    console.log(`[send-email] Type of 'html' variable: ${typeof html}`)
+    if (typeof html === 'string') {
+        console.log(`[send-email] 'html' is a string. Snippet: ${html.substring(0, 150)}...`)
+    } else if (typeof html === 'object' && html !== null) {
+        console.log(`[send-email] 'html' is an object. Keys: ${Object.keys(html).join(', ')}`)
+        console.log(`[send-email] Full object (stringified): ${JSON.stringify(html)}`)
+    } else {
+        console.log(`[send-email] 'html' is of another type: ${html}`)
+    }
+    // --- End Enhanced Debugging ---
+
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
 
@@ -31,7 +44,7 @@ export async function POST(request: Request) {
       to: to,
       bcc: 'bkgalabovo2014@gmail.com', // Keep sending a copy to the admin email
       subject: subject,
-      html: html,
+      html: html, // The problem is here
       text: text,
     };
     
@@ -49,6 +62,8 @@ export async function POST(request: Request) {
     let errorMessage = 'Възникна грешка при изпращането на имейла.';
     if (error.code === 'EAUTH') {
         errorMessage = 'Грешка при автентикация с Gmail. Проверете EMAIL_USER и EMAIL_PASS. Препоръчително е да се използва App Password.';
+    } else if (error.code === 'ESTREAM') {
+        errorMessage = 'Грешка в данните на имейла. Съдържанието (html) не е в правилния текстов формат.'
     }
 
     return NextResponse.json({ error: errorMessage, details: error.message }, { status: 500 });
