@@ -7,7 +7,6 @@ import {
     Img,
     Preview,
     Text,
-    render
 } from '@react-email/components';
 import * as React from 'react';
 import { clubInfo } from '@/config/club';
@@ -42,9 +41,6 @@ const logo = {
     marginBottom: '20px',
 };
 
-// It's better to use an absolute URL for images in emails.
-// Assuming your app is hosted at 'https://your-app-url.com'
-// and the logo is in 'public/logo.png'.
 const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/next-test-485df.appspot.com/o/logo.png?alt=media&token=04d96a79-5677-4563-8742-3e66052f5bdd';
 
 export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
@@ -54,13 +50,13 @@ export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
         <Body style={main}>
             <Container style={container}>
                 <Img
-                    src={logoUrl} 
+                    src={logoUrl}
                     alt={`${clubInfo.name} Logo`}
                     style={logo}
                 />
                 <Text style={text}>Здравейте, {memberName},</Text>
                 <Text style={text}>
-                    Пишем ви с приятелско напомняне, че все още не сме регистрирали плащане на месечната ви такса за настоящия месец.
+                    Напомняне Ви, че имате просрочено плащане.
                 </Text>
                 <Text style={text}>
                     Моля, уредете плащането си при следващото си посещение в клуба. Ако смятате, че получавате този имейл по погрешка, моля, свържете се с нас.
@@ -68,11 +64,9 @@ export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
                 <Text style={text}>
                     Поздрави,
                     <br />
-                    Екипът на {clubInfo.name}
+                    Администратор на {clubInfo.name}
                 </Text>
             </Container>
         </Body>
     </Html>
 );
-
-export const ReminderEmailHtml = (props: ReminderEmailProps) => render(<ReminderEmail {...props} />, { pretty: true });

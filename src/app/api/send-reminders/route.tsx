@@ -1,7 +1,8 @@
 
 import { NextResponse } from 'next/server';
+import * as React from 'react';
 import { getOverdueMembers } from '@/services/reminder-service.server';
-import { ReminderEmailHtml } from '@/components/emails/reminder-email';
+import { ReminderEmail } from '@/components/emails/reminder-email';
 import { render } from '@react-email/render';
 
 export async function POST(request: Request) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
             
             try {
                 // Correctly render the React component to an HTML string
-                const emailHtml = render(ReminderEmailHtml({ memberName: memberName }));
+                const emailHtml = render(<ReminderEmail memberName={memberName} />);
                 
                 // Generate a simple text version for email clients that don't support HTML
                 const emailText = `Здравейте, ${memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
