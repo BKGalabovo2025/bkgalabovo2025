@@ -4,9 +4,9 @@ import {
     Container,
     Head,
     Html,
+    Img,
     Preview,
     Text,
-    // Img is no longer used
 } from '@react-email/components';
 import * as React from 'react';
 import { clubInfo } from '@/config/club';
@@ -34,8 +34,15 @@ const text = {
     lineHeight: '24px',
 };
 
-// We will apply styles directly to the img tag
-const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/next-test-485df.appspot.com/o/logo.png?alt=media&token=04d96a79-5677-4563-8742-3e66052f5bdd';
+const logo = {
+    display: 'block',
+    width: 60,
+    height: 60,
+    margin: '20px auto',
+};
+
+// Use the absolute public URL to the logo
+const logoUrl = 'https://bkgalabovo2025.vercel.app/logo.png';
 
 export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
     <Html>
@@ -43,16 +50,12 @@ export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
         <Preview>Напомняне за месечна такса</Preview>
         <Body style={main}>
             <Container style={container}>
-                {/* Using a standard HTML img tag for maximum compatibility */}
-                <img
+                <Img
                     src={logoUrl}
                     alt={`${clubInfo.name} Logo`}
+                    style={logo}
                     width="60"
                     height="60"
-                    style={{
-                        display: 'block',
-                        margin: '20px auto',
-                    }}
                 />
                 <Text style={text}>Здравейте, {memberName},</Text>
                 <Text style={text}>
