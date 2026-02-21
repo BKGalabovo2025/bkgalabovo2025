@@ -42,7 +42,7 @@ export async function POST(request: Request) {
                 const emailHtml = render(ReminderEmailHtml({ memberName: memberName }));
                 
                 // Generate a simple text version for email clients that don't support HTML
-                const emailText = `Здравейте, ${memberName}. Напомняме ви за просрочена месечна такса към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
+                const emailText = `Здравейте, ${memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`
 
                 console.log(`Attempting to dispatch email for ${memberName} (${member.email}) via internal API...`);
                 const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
                     },
                     body: JSON.stringify({
                         to: member.email,
-                        subject: 'Напомняне за месечна такса',
+                        subject: 'Напомняне за просрочено плащане',
                         html: emailHtml, // Now sending a valid HTML string
                         text: emailText,
                     }),
