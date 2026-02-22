@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { Printer, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clubInfo } from '@/config/club';
-import { getReceiptDetails, ReceiptDetails } from '@/services/sales-service'; // Import the new function and type
+import { getReceiptDetails, ReceiptDetails } from '@/services/sales-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatCurrency } from '@/lib/utils';
 
 interface ReceiptClientPageProps {
-    saleId: string; // Receive only the ID
+    saleId: string;
 }
 
-// Main Component for the Receipt Page
 export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     const [details, setDetails] = useState<ReceiptDetails | null>(null);
     const [loading, setLoading] = useState(true);
@@ -39,39 +39,51 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         fetchDetails();
     }, [saleId]);
 
-    // Loading State
     if (loading) {
         return <ReceiptSkeleton />;
     }
 
-    // Error State
     if (error || !details) {
         return <ErrorDisplay message={error || 'Данните за квитанцията не са намерени.'} />
     }
 
-    // Success State
-    const { sale, member, service, subscription } = details;
+    const { sale, member, service } = details;
     const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
     const memberAddress = member.address || 'Няма предоставен адрес';
 
     return (
         <>
             <style jsx global>{`
-                @media print { ... }
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    .printable-area, .printable-area * {
+                        visibility: visible;
+                    }
+                    .printable-area {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none;
+                    }
+                }
             `}</style>
 
-            <div className="max-w-4xl mx-auto bg-white p-4 sm:p-8 font-sans printable-area">
-                <div className="flex justify-between items-center mb-8 no-print">
+            <div className="max-w-4xl mx-auto bg-white p-4 sm:p-8 font-sans">
+                 <div className="flex justify-between items-center mb-8 no-print">
                     <h1 className="text-2xl font-bold">Преглед на квитанция</h1>
                     <Button onClick={() => window.print()} variant="default">
                         <Printer className="mr-2 h-4 w-4" />
                         Принтирай
                     </Button>
                 </div>
-                
-                {/* Receipt Content using details */}
-                <div className="border border-gray-300 p-8">
-                     <header className="flex justify-between items-start pb-6 border-b-2 border-gray-500">
+
+                <div className="border border-gray-300 p-8 printable-area">
+                    <header className="flex justify-between items-start pb-6 border-b-2 border-gray-500">
                         <div className="flex items-center">
                             <img src="/logo.png" alt="Лого на клуба" className="h-20 w-20 mr-4" />
                             <div>
@@ -86,14 +98,75 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                             <p className="text-sm text-gray-600">Дата: {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
-                    {/* ... Rest of the receipt JSX ... */}
+
+                    <main className="mt-8">
+                        <div className="grid grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-600 mb-2">ДОСТАВЧИК</h3>
+                                <p className="font-bold">{clubInfo.name}</p>
+                                <p>{clubInfo.mol}</p>
+                                <p>{clubInfo.address}</p>
+                                <p>ЕИК: {clubInfo.eik}</p>
+                            </div>
+                            <div className="text-right">
+                                <h3 className="text-sm font-semibold text-gray-600 mb-2">ПОЛУЧАТЕЛ</h3>
+                                <p className="font-bold">{fullName}</p>
+                                <p>{memberAddress}</p>
+                            </div>
+                        </div>
+
+                        <table className="w-full text-left mb-8">
+                            <thead>
+                                <tr className="bg-gray-100 text-sm font-semibold text-gray-700">
+                                    <th className="p-3">Описание</th>
+                                    <th className="p-3 text-right">Количество</th>
+                                    <th className="p-3 text-right">Ед. цена</th>
+                                    <th className="p-3 text-right">Общо</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sale.items.map((item, index) => (
+                                    <tr key={index} className="border-b">
+                                        <td className="p-3">
+                                            <p className="font-semibold">{item.name}</p>
+                                            <p className="text-xs text-gray-600">{service.name}</p>
+                                        </td>
+                                        <td className="p-3 text-right">{item.quantity}</td>
+                                        <td className="p-3 text-right">{formatCurrency(item.price)}</td>
+                                        <td className="p-3 text-right">{formatCurrency(item.quantity * item.price)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        <div className="flex justify-end">
+                            <div className="w-full md:w-1/3 text-right">
+                                <div className="flex justify-between py-1">
+                                    <span className="text-gray-600">Междинна сума:</span>
+                                    <span>{formatCurrency(sale.totalAmount)}</span>
+                                </div>
+                                <div className="flex justify-between py-1 font-bold text-xl border-t-2 border-b-2 my-2">
+                                    <span>Общо:</span>
+                                    <span>{formatCurrency(sale.totalAmount)}</span>
+                                </div>
+                                 <div className="flex justify-between py-1">
+                                    <span className="text-gray-600">Статус:</span>
+                                    <span className="font-bold">{sale.isPaid ? 'Платено' : 'Неплатено'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-12 text-center text-xs text-gray-500">
+                            <p>Благодарим Ви, че избрахте нашия клуб!</p>
+                            <p>Този документ е генериран автоматично и е валиден без подпис и печат.</p>
+                        </div>
+                    </main>
                 </div>
             </div>
         </>
     );
 }
 
-// Helper components for loading and error states
 const ReceiptSkeleton = () => (
     <div className="max-w-4xl mx-auto p-8">
         <div className="flex justify-between items-center mb-8">
@@ -112,7 +185,7 @@ const ReceiptSkeleton = () => (
 const ErrorDisplay = ({ message }: { message: string }) => (
     <div className="max-w-4xl mx-auto p-8">
         <Alert variant="destructive">
-             <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Грешка</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
         </Alert>
