@@ -1,11 +1,13 @@
 
 import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
-import { Subscription, ClubService, ClubServiceHistory } from '@/types';
+import { Subscription, ClubService, ClubServiceHistory, Member } from '@/types/index';
+import { docToMember } from './member-service';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
 const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
+const MEMBERS_COLLECTION = 'members'; // Added for fetching member data
 
 // --- Converters --- 
 export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
@@ -65,26 +67,21 @@ export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | n
         totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,
         licenseGranted: typeof data.licenseGranted === 'boolean' ? data.licenseGranted : false,
         apparelGranted: typeof data.apparelGranted === 'boolean' ? data.apparelGranted : false,
+        linkedSubscriptionId: typeof data.linkedSubscriptionId === 'string' ? data.linkedSubscriptionId : null,
     };
 };
 
 // --- Change Summary Generator --- 
 const generateChangeSummary = (oldData: ClubService, newData: Omit<ClubService, 'id'>): string => {
     const changes: string[] = [];
-    
-    // Direct field comparisons
     if (oldData.name !== newData.name) changes.push(`- Име: '${oldData.name}' -> '${newData.name}'`);
     if (oldData.price !== newData.price) changes.push(`- Цена: ${(oldData.price / 100).toFixed(2)} -> ${(newData.price / 100).toFixed(2)} ${newData.currency}`);
     if (oldData.description !== newData.description) changes.push(`- Описанието е променено.`);
     if (oldData.billingPeriod !== newData.billingPeriod) changes.push(`- Таксуване: '${oldData.billingPeriod}' -> '${newData.billingPeriod}'`);
-
-    // Array comparison for target groups
     const oldGroups = (oldData.targetGroups || []).join(', ');
     const newGroups = (newData.targetGroups || []).join(', ');
     if (oldGroups !== newGroups) changes.push(`- Целеви групи: '${oldGroups}' -> '${newGroups}'`);
-
     if (!changes.length) return 'Няма засечени промени.';
-
     return changes.join('\n');
 };
 
@@ -113,23 +110,18 @@ export const updateClubService = async (id: string, serviceUpdate: Omit<ClubServ
     const db = getDb();
     const auth = getFirebaseAuth();
     const user = auth.currentUser;
-
     if (!user) throw new Error("Нямате права за тази операция. Моля, влезте отново в системата.");
 
     const serviceRef = doc(db, SERVICES_COLLECTION, id);
     const historyRef = doc(collection(db, SERVICE_HISTORY_COLLECTION));
-
     const batch = writeBatch(db);
 
-    // 1. Fetch the current state of the service
     const oldDocSnap = await getDoc(serviceRef);
     const oldData = docToClubService(oldDocSnap);
     if (!oldData) throw new Error("Услугата, която се опитвате да промените, не съществува.");
 
-    // 2. Generate summary of changes
     const changes = generateChangeSummary(oldData, serviceUpdate);
 
-    // 3. Create history log
     const historyLog: ClubServiceHistory = {
         id: historyRef.id,
         serviceId: id,
@@ -141,15 +133,11 @@ export const updateClubService = async (id: string, serviceUpdate: Omit<ClubServ
         note: note || undefined,
     };
 
-    // Remove undefined fields before saving
     Object.keys(serviceUpdate).forEach(key => (serviceUpdate as any)[key] === undefined && delete (serviceUpdate as any)[key]);
     Object.keys(historyLog).forEach(key => (historyLog as any)[key] === undefined && delete (historyLog as any)[key]);
 
-    // 4. Add update and history creation to the batch
     batch.update(serviceRef, serviceUpdate);
     batch.set(historyRef, historyLog);
-
-    // 5. Commit the batch
     await batch.commit();
 };
 
@@ -181,11 +169,49 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subs
   return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
 };
 
-export const createSubscription = async (subscription: Omit<Subscription, 'id'>): Promise<DocumentReference> => {
+export const createSubscription = async (subscription: Omit<Subscription, 'id' | 'linkedSubscriptionId'>): Promise<DocumentReference[]> => {
     const db = getDb();
-    Object.keys(subscription).forEach(key => (subscription as any)[key] === undefined && delete (subscription as any)[key]);
-    const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), subscription);
-    return docRef;
+    const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
+    const memberSnap = await getDoc(memberRef);
+    const member = docToMember(memberSnap);
+
+    const isFamilySubscription = subscription.serviceName.toLowerCase().includes('семеен');
+
+    if (member && member.relatedMemberId && isFamilySubscription) {
+        console.log(`Family subscription detected for member ${member.firstName}. Creating linked subscriptions.`);
+        const batch = writeBatch(db);
+
+        // Create two new doc refs for the subscriptions
+        const primarySubRef = doc(collection(db, SUBSCRIPTIONS_COLLECTION));
+        const relatedSubRef = doc(collection(db, SUBSCRIPTIONS_COLLECTION));
+
+        // Prepare data for the primary member
+        const primarySubData = {
+            ...subscription,
+            linkedSubscriptionId: relatedSubRef.id,
+        };
+        
+        // Prepare data for the related member
+        const relatedSubData = {
+            ...subscription,
+            memberId: member.relatedMemberId,
+            linkedSubscriptionId: primarySubRef.id,
+        };
+
+        // Add to batch
+        batch.set(primarySubRef, primarySubData);
+        batch.set(relatedSubRef, relatedSubData);
+
+        // Commit batch
+        await batch.commit();
+        console.log(`Successfully created linked subscriptions: ${primarySubRef.id} and ${relatedSubRef.id}`)
+        return [primarySubRef, relatedSubRef];
+    } else {
+        // --- Standard single subscription creation --- 
+        const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), subscription);
+        console.log(`Created single subscription: ${docRef.id}`);
+        return [docRef];
+    }
 };
 
 export const updateSubscription = async (id: string, subscriptionUpdate: Partial<Subscription>): Promise<void> => {

@@ -161,6 +161,7 @@ export type Subscription = {
   totalPaymentsCount: number;
   licenseGranted?: boolean;
   apparelGranted?: boolean;
+  linkedSubscriptionId?: string | null; // ID of the corresponding family subscription
 };
 
 export type AnalyzedSubscription = {

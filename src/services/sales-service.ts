@@ -12,23 +12,17 @@ const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const MEMBERS_COLLECTION = 'members';
 const SERVICES_COLLECTION = 'clubServices';
 
-// CORRECTED docToSale function with robust data normalization
 const docToSale = (doc: DocumentSnapshot): Sale | null => {
     if (!doc.id || !doc.exists()) {
         return null;
     }
     const data = doc.data() || {};
-
-    // --- Data Normalization --- 
     const saleDate = data.saleDate?.toDate?.() || new Date();
 
     let totalAmountInCents = 0;
     const rawAmount = data.totalAmount;
 
     if (typeof rawAmount === 'number') {
-        // If the number is a float (e.g., 50.50), it's in Euros. Convert to cents.
-        // If it's an integer (e.g., 5050), it's already in cents.
-        // A simple check is if the number is not an integer.
         if (!Number.isInteger(rawAmount)) {
             totalAmountInCents = Math.round(rawAmount * 100);
         } else {
@@ -43,21 +37,20 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
         items: data.items || [],
         status: data.status || 'completed',
         currency: data.currency || 'EUR', 
-        totalAmount: totalAmountInCents, // ALWAYS in cents
+        totalAmount: totalAmountInCents,
         isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : true, 
         subscriptionId: data.subscriptionId || null,
     };
 };
 
-// New type for the detailed receipt
 export interface ReceiptDetails {
     sale: Sale;
     member: Member;
+    relatedMember: Member | null; // Added for family subscriptions
     service: ClubService;
     subscription: Subscription;
 }
 
-// New efficient function to get all receipt details
 export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails | null> => {
     const db = getDb();
     const saleRef = doc(db, SALES_COLLECTION, saleId);
@@ -74,56 +67,64 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
         return null;
     }
 
-    // Fetch related documents
-    const memberRef = doc(db, MEMBERS_COLLECTION, sale.memberId);
-    const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, sale.subscriptionId);
-
-    const [memberSnap, subscriptionSnap] = await Promise.all([
-        getDoc(memberRef),
-        getDoc(subscriptionRef),
-    ]);
-
+    const memberSnap = await getDoc(doc(db, MEMBERS_COLLECTION, sale.memberId));
     if (!memberSnap.exists()) {
         console.error("No member found with ID:", sale.memberId);
         return null;
     }
+    const member = docToMember(memberSnap);
+    if (!member) {
+        console.error("Could not process member data for ID:", sale.memberId);
+        return null;
+    }
 
+    // --- Fetch related member if ID exists ---
+    let relatedMember: Member | null = null;
+    if (member.relatedMemberId) {
+        try {
+            const relatedMemberSnap = await getDoc(doc(db, MEMBERS_COLLECTION, member.relatedMemberId));
+            if (relatedMemberSnap.exists()) {
+                relatedMember = docToMember(relatedMemberSnap);
+            }
+        } catch (e) {
+            console.warn(`Could not fetch related member (ID: ${member.relatedMemberId}). Proceeding without it.`, e);
+        }
+    }
+    // ----------------------------------------
+
+    const subscriptionSnap = await getDoc(doc(db, SUBSCRIPTIONS_COLLECTION, sale.subscriptionId));
     if (!subscriptionSnap.exists()) {
         console.error("No subscription found with ID:", sale.subscriptionId);
         return null;
     }
-
-    const member = docToMember(memberSnap);
-    const subscription = docToMemberSubscription(subscriptionSnap); 
-
+    const subscription = docToMemberSubscription(subscriptionSnap);
     if (!subscription || !subscription.serviceId) {
         console.error("Subscription data is incomplete:", subscription);
         return null;
     }
 
-    const serviceRef = doc(db, SERVICES_COLLECTION, subscription.serviceId);
-    const serviceSnap = await getDoc(serviceRef);
-
+    const serviceSnap = await getDoc(doc(db, SERVICES_COLLECTION, subscription.serviceId));
     if (!serviceSnap.exists()) {
         console.error("No service found with ID:", subscription.serviceId);
         return null;
     }
-
     const service = docToClubService(serviceSnap);
 
-    if (!member || !service || !subscription) { 
+    if (!service) {
         return null;
     }
 
     return {
         sale,
         member,
+        relatedMember, // Include in the final object
         service,
         subscription
     };
 };
 
-// ... (rest of the existing functions)
+
+// ... (rest of the existing functions: getSales, addSale, etc.)
 
 export const getSales = async (): Promise<Sale[]> => {
     const db = getDb();
@@ -145,8 +146,6 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
     const db = getDb();
     const newSaleRef = doc(collection(db, SALES_COLLECTION));
 
-    const totalAmountInCents = Math.round(saleData.totalAmount * 100);
-
     await runTransaction(db, async (transaction) => {
         transaction.set(newSaleRef, {
             ...saleData,
@@ -158,17 +157,11 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
         for (const item of saleData.items) {
             const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
             const productDoc = await transaction.get(productRef);
-
-            if (!productDoc.exists()) {
-                throw new Error(`Product with ID ${item.productId} not found.`);
-            }
+            if (!productDoc.exists()) throw new Error(`Product with ID ${item.productId} not found.`);
 
             const currentStock = productDoc.data().stock || 0;
             const newStock = currentStock - item.quantity;
-
-            if (newStock < 0) {
-                throw new Error(`Not enough stock for ${item.name}.`);
-            }
+            if (newStock < 0) throw new Error(`Not enough stock for ${item.name}.`);
 
             transaction.update(productRef, { stock: newStock });
 
@@ -234,29 +227,25 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
     if (existingSale) return existingSale;
 
     const firstPayment = subscription.paymentHistory?.[0];
-    if (!firstPayment || !subscription.memberId) {
-        console.warn(`Cannot create sale for subscription ${subscription.id}: no payment history or memberId found.`);
-        return null;
-    }
+    if (!firstPayment || !subscription.memberId) return null;
 
     try {
         let createdSale: Sale | null = null;
         await runTransaction(db, async (transaction) => {
             const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscription.id);
             const salesCollectionRef = collection(db, SALES_COLLECTION);
-            const saleDate = new Date(firstPayment.date);
 
             const saleDataForFirestore = {
                 memberId: subscription.memberId,
                 subscriptionId: subscription.id,
-                saleDate: Timestamp.fromDate(saleDate),
+                saleDate: Timestamp.fromDate(new Date(firstPayment.date)),
                 items: [{
                     productId: subscription.serviceId,
                     name: subscription.serviceName,
                     quantity: 1,
-                    price: firstPayment.amount, // This is in CENTS
+                    price: firstPayment.amount, 
                 }],
-                totalAmount: firstPayment.amount, // This is in CENTS
+                totalAmount: firstPayment.amount, 
                 currency: 'EUR', 
                 isPaid: true, 
                 status: 'completed' as const,
@@ -273,7 +262,15 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
 
             transaction.update(subscriptionRef, { paymentHistory: updatedPaymentHistory });
             
-            createdSale = docToSale(await transaction.get(newSaleRef));
+            const saleSnap = await transaction.get(newSaleRef);
+            // Manually construct the Sale object for return to avoid another DB read
+            const saleData = saleSnap.data();
+            createdSale = {
+                id: saleSnap.id,
+                ...saleData,
+                saleDate: (saleData?.saleDate as Timestamp).toDate().toISOString(),
+            } as Sale;
+
         });
         
         console.log(`Self-healed: Created new sale for subscription ${subscription.id}`);
