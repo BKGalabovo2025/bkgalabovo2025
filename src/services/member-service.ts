@@ -6,7 +6,7 @@ import { Member, MemberSchema } from '@/types/member.types';
 
 const MEMBERS_COLLECTION = FIRESTORE_COLLECTIONS.MEMBERS;
 
-const docToMember = (docSnap: any): Member | null => {
+export const docToMember = (docSnap: any): Member | null => {
     if (!docSnap.exists()) {
         console.warn(`docToMember: Document with ID ${docSnap.id} does not exist.`);
         return null;
