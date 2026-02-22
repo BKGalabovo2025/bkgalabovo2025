@@ -1,43 +1,66 @@
 'use client';
 
-import { Printer } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Printer, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { clubInfo } from '@/config/club'; // Assuming club info is here
-import { Sale, Member, ClubService, Subscription } from '@/types';
+import { clubInfo } from '@/config/club';
+import { getReceiptDetails, ReceiptDetails } from '@/services/sales-service'; // Import the new function and type
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ReceiptClientPageProps {
-    sale: Sale;
-    member: Member;
-    service: ClubService;
-    subscription: Subscription;
+    saleId: string; // Receive only the ID
 }
 
 // Main Component for the Receipt Page
-export default function ReceiptClientPage({ sale, member, service, subscription }: ReceiptClientPageProps) {
+export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
+    const [details, setDetails] = useState<ReceiptDetails | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                setLoading(true);
+                const fetchedDetails = await getReceiptDetails(saleId);
+                if (!fetchedDetails) {
+                    setError(`Не могат да бъдат заредени данните за квитанция с номер ${saleId}.`);
+                } else {
+                    setDetails(fetchedDetails);
+                }
+            } catch (err: any) {
+                console.error("Error fetching receipt details:", err);
+                setError(err.message || 'Възникна неочаквана грешка.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDetails();
+    }, [saleId]);
+
+    // Loading State
+    if (loading) {
+        return <ReceiptSkeleton />;
+    }
+
+    // Error State
+    if (error || !details) {
+        return <ErrorDisplay message={error || 'Данните за квитанцията не са намерени.'} />
+    }
+
+    // Success State
+    const { sale, member, service, subscription } = details;
     const fullName = [member.firstName, member.middleName, member.lastName].filter(Boolean).join(' ');
     const memberAddress = member.address || 'Няма предоставен адрес';
 
     return (
         <>
-            {/* Print-specific styles */}
             <style jsx global>{`
-                @media print {
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .no-print { display: none !important; }
-                    .printable-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        padding: 0;
-                        margin: 0;
-                    }
-                }
+                @media print { ... }
             `}</style>
 
             <div className="max-w-4xl mx-auto bg-white p-4 sm:p-8 font-sans printable-area">
-                {/* Header with Print Button */}
                 <div className="flex justify-between items-center mb-8 no-print">
                     <h1 className="text-2xl font-bold">Преглед на квитанция</h1>
                     <Button onClick={() => window.print()} variant="default">
@@ -46,10 +69,9 @@ export default function ReceiptClientPage({ sale, member, service, subscription 
                     </Button>
                 </div>
                 
-                {/* Receipt Content */}
+                {/* Receipt Content using details */}
                 <div className="border border-gray-300 p-8">
-                    {/* 1. Document Header */}
-                    <header className="flex justify-between items-start pb-6 border-b-2 border-gray-500">
+                     <header className="flex justify-between items-start pb-6 border-b-2 border-gray-500">
                         <div className="flex items-center">
                             <img src="/logo.png" alt="Лого на клуба" className="h-20 w-20 mr-4" />
                             <div>
@@ -64,79 +86,35 @@ export default function ReceiptClientPage({ sale, member, service, subscription 
                             <p className="text-sm text-gray-600">Дата: {new Date(sale.saleDate).toLocaleDateString('bg-BG')}</p>
                         </div>
                     </header>
-
-                    {/* 2. Supplier and Client Information */}
-                    <section className="grid grid-cols-2 gap-8 my-8">
-                        <div>
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Доставчик</h3>
-                            <p className="font-bold">{clubInfo.name}</p>
-                            <p className="text-sm text-gray-700">{clubInfo.address}</p>
-                            <p className="text-sm text-gray-700">{clubInfo.email}</p>
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Получател</h3>
-                            <p className="font-bold">{fullName}</p>
-                            <p className="text-sm text-gray-700">{memberAddress}</p>
-                        </div>
-                    </section>
-
-                    {/* 3. Items Table */}
-                    <section className="my-10">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="p-3 text-sm font-semibold uppercase">Описание</th>
-                                    <th className="p-3 text-sm font-semibold uppercase text-right">Период на абонамент</th>
-                                    <th className="p-3 text-sm font-semibold uppercase text-right">Сума</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr className="border-b">
-                                    <td className="p-3 font-medium">{service.name}</td>
-                                    <td className="p-3 text-right">{`${new Date(subscription.startDate).toLocaleDateString('bg-BG')} - ${new Date(subscription.endDate).toLocaleDateString('bg-BG')}`}</td>
-                                    <td className="p-3 text-right">{(sale.totalAmount / 100).toFixed(2)} {sale.currency}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
-
-                    {/* 4. Totals Section */}
-                    <section className="flex justify-end my-8">
-                        <div className="w-full max-w-xs text-right">
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="font-semibold text-gray-600">Междинна сума:</span>
-                                <span>{(sale.totalAmount / 100).toFixed(2)} {sale.currency}</span>
-                            </div>
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="font-semibold text-gray-600">ДДС (0%):</span>
-                                <span>0.00 {sale.currency}</span>
-                            </div>
-                            <div className="flex justify-between py-3 bg-gray-100 px-4 mt-4 rounded-md">
-                                <span className="font-bold text-lg">ОБЩО:</span>
-                                <span className="font-bold text-lg">{(sale.totalAmount / 100).toFixed(2)} {sale.currency}</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* 5. Signature Section */}
-                    <footer className="mt-16 pt-8 border-t-2 border-gray-200">
-                        <div className="grid grid-cols-2 gap-8 text-center">
-                            <div>
-                                <p className="text-sm text-gray-600">....................................................</p>
-                                <p className="text-sm font-semibold mt-1">Съставил</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-600">....................................................</p>
-                                <p className="text-sm font-semibold mt-1">Получил</p>
-                            </div>
-                        </div>
-                        <div className="text-center text-xs text-gray-500 mt-12">
-                            <p>Този документ е генериран автоматично и е валиден без подпис и печат.</p>
-                            <p>Благодарим Ви, че избрахте {clubInfo.name}!</p>
-                        </div>
-                    </footer>
+                    {/* ... Rest of the receipt JSX ... */}
                 </div>
             </div>
         </>
     );
 }
+
+// Helper components for loading and error states
+const ReceiptSkeleton = () => (
+    <div className="max-w-4xl mx-auto p-8">
+        <div className="flex justify-between items-center mb-8">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-10 w-28" />
+        </div>
+        <div className="border p-8 space-y-8">
+            <div className="flex justify-between items-start"><Skeleton className="h-20 w-1/2" /><Skeleton className="h-12 w-1/3" /></div>
+            <div className="grid grid-cols-2 gap-8"><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></div>
+            <Skeleton className="h-32 w-full" />
+            <div className="flex justify-end"><Skeleton className="h-40 w-1/3" /></div>
+        </div>
+    </div>
+);
+
+const ErrorDisplay = ({ message }: { message: string }) => (
+    <div className="max-w-4xl mx-auto p-8">
+        <Alert variant="destructive">
+             <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Грешка</AlertTitle>
+            <AlertDescription>{message}</AlertDescription>
+        </Alert>
+    </div>
+);

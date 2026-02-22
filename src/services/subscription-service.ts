@@ -8,7 +8,7 @@ const SERVICES_COLLECTION = 'clubServices';
 const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
 
 // --- Converters --- 
-const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
+export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
     return {
@@ -46,7 +46,7 @@ const docToClubServiceHistory = (doc: DocumentSnapshot): ClubServiceHistory | nu
     };
 };
 
-const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => {
+export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
     return {

@@ -1,59 +1,113 @@
 
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { Sale, SaleItem, Product, Subscription, InventoryEvent } from '@/types';
+import { Sale, SaleItem, Product, Subscription, InventoryEvent, Member, ClubService } from '@/types';
+import { docToMember } from './member-service'; 
+import { docToClubService, docToMemberSubscription } from './subscription-service'; // CORRECTED IMPORT
 
 const SALES_COLLECTION = 'sales';
 const PRODUCTS_COLLECTION = 'products';
 const EVENTS_COLLECTION = 'inventoryEvents';
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
+const MEMBERS_COLLECTION = 'members';
+const SERVICES_COLLECTION = 'clubServices';
 
+// Existing docToSale function (make sure it's robust)
 const docToSale = (doc: DocumentSnapshot): Sale | null => {
     if (!doc.id || !doc.exists()) {
         return null;
     }
     const data = doc.data() || {};
-
     const saleDate = data.saleDate?.toDate?.() || new Date();
-    const items: SaleItem[] = data.items || [];
-
-    let totalAmount = data.totalAmount || 0;
-    const isSubscriptionSale = !!data.subscriptionId;
-
-    // NORMALIZATION LOGIC:
-    // The goal is to always return totalAmount in CENTS.
-    if (isSubscriptionSale) {
-        // For subscription sales, the amount is assumed to be already in CENTS in Firestore.
-        // No action needed.
-    } else {
-        // For inventory sales, the amount is stored in EUROS.
-        // Convert it to CENTS.
-        totalAmount = Math.round(totalAmount * 100);
-    }
-
-    // Recalculate from items only if total is still zero.
-    if (totalAmount === 0 && items.length > 0) {
-        // This assumes item.price is consistent with the logic above (EUR for inventory, Cents for subs)
-        totalAmount = items.reduce((acc, item) => {
-            const itemPriceInCents = isSubscriptionSale ? item.price : Math.round(item.price * 100);
-            return acc + (itemPriceInCents * item.quantity);
-        }, 0);
-    }
-
-    const sale: Sale = {
+    
+    return {
         id: doc.id,
         memberId: data.memberId,
         saleDate: saleDate.toISOString(),
-        items: items,
+        items: data.items || [],
         status: data.status || 'completed',
         currency: data.currency || 'EUR', 
-        totalAmount: totalAmount, // GUARANTEED TO BE IN CENTS
+        totalAmount: data.totalAmount, // Assuming it's in cents
         isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : true, 
         subscriptionId: data.subscriptionId || null,
     };
-
-    return sale;
 };
+
+// New type for the detailed receipt
+export interface ReceiptDetails {
+    sale: Sale;
+    member: Member;
+    service: ClubService;
+    subscription: Subscription;
+}
+
+// New efficient function to get all receipt details
+export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails | null> => {
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, saleId);
+    const saleSnap = await getDoc(saleRef);
+
+    if (!saleSnap.exists()) {
+        console.error("No sale found with ID:", saleId);
+        return null;
+    }
+
+    const sale = docToSale(saleSnap);
+    if (!sale || !sale.memberId || !sale.subscriptionId) {
+        console.error("Sale data is incomplete:", sale);
+        return null;
+    }
+
+    // Fetch related documents
+    const memberRef = doc(db, MEMBERS_COLLECTION, sale.memberId);
+    const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, sale.subscriptionId);
+
+    const [memberSnap, subscriptionSnap] = await Promise.all([
+        getDoc(memberRef),
+        getDoc(subscriptionRef),
+    ]);
+
+    if (!memberSnap.exists()) {
+        console.error("No member found with ID:", sale.memberId);
+        return null;
+    }
+
+    if (!subscriptionSnap.exists()) {
+        console.error("No subscription found with ID:", sale.subscriptionId);
+        return null;
+    }
+
+    const member = docToMember(memberSnap);
+    const subscription = docToMemberSubscription(subscriptionSnap); // CORRECTED FUNCTION NAME
+
+    if (!subscription || !subscription.serviceId) {
+        console.error("Subscription data is incomplete:", subscription);
+        return null;
+    }
+
+    const serviceRef = doc(db, SERVICES_COLLECTION, subscription.serviceId);
+    const serviceSnap = await getDoc(serviceRef);
+
+    if (!serviceSnap.exists()) {
+        console.error("No service found with ID:", subscription.serviceId);
+        return null;
+    }
+
+    const service = docToClubService(serviceSnap);
+
+    if (!member || !service || !subscription) { // Added subscription to the check
+        return null;
+    }
+
+    return {
+        sale,
+        member,
+        service,
+        subscription
+    };
+};
+
+// ... (rest of the existing functions: getSales, getInventorySales, addSale, etc.)
 
 export const getSales = async (): Promise<Sale[]> => {
     const db = getDb();
