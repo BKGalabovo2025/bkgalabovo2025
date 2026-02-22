@@ -102,9 +102,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-600 mb-2">ДОСТАВЧИК</h3>
                                 <p className="font-bold">{clubInfo.name}</p>
-                                <p>{clubInfo.mol}</p>
                                 <p>{clubInfo.address}</p>
-                                <p>ЕИК: {clubInfo.eik}</p>
                             </div>
                             <div className="text-right">
                                 <h3 className="text-sm font-semibold text-gray-600 mb-2">ПОЛУЧАТЕЛ(И)</h3>
