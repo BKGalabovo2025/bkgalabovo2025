@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 /**
@@ -22,6 +21,7 @@ export const MemberSchema = z.object({
     dateOfBirth: z.string().refine(val => val === null || !isNaN(Date.parse(val)), { message: "Невалиден формат на рождена дата" }).nullable().optional(),
     avatarUrl: z.string().url("Невалиден URL на аватар").nullable().optional(),
     familyId: z.string().nullable().optional(),
+    relatedMemberId: z.string().nullable().optional(), // Added to support family subscriptions
     educationInstitution: z.string().nullable().optional(),
     personalId: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
