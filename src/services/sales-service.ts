@@ -3,7 +3,7 @@ import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, Documen
 import { getDb } from '@/lib/firebase';
 import { Sale, SaleItem, Product, Subscription, InventoryEvent, Member, ClubService } from '@/types';
 import { docToMember } from './member-service'; 
-import { docToClubService, docToMemberSubscription } from './subscription-service'; // CORRECTED IMPORT
+import { docToClubService, docToMemberSubscription } from './subscription-service';
 
 const SALES_COLLECTION = 'sales';
 const PRODUCTS_COLLECTION = 'products';
@@ -12,14 +12,30 @@ const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const MEMBERS_COLLECTION = 'members';
 const SERVICES_COLLECTION = 'clubServices';
 
-// Existing docToSale function (make sure it's robust)
+// CORRECTED docToSale function with robust data normalization
 const docToSale = (doc: DocumentSnapshot): Sale | null => {
     if (!doc.id || !doc.exists()) {
         return null;
     }
     const data = doc.data() || {};
+
+    // --- Data Normalization --- 
     const saleDate = data.saleDate?.toDate?.() || new Date();
-    
+
+    let totalAmountInCents = 0;
+    const rawAmount = data.totalAmount;
+
+    if (typeof rawAmount === 'number') {
+        // If the number is a float (e.g., 50.50), it's in Euros. Convert to cents.
+        // If it's an integer (e.g., 5050), it's already in cents.
+        // A simple check is if the number is not an integer.
+        if (!Number.isInteger(rawAmount)) {
+            totalAmountInCents = Math.round(rawAmount * 100);
+        } else {
+            totalAmountInCents = rawAmount;
+        }
+    }
+
     return {
         id: doc.id,
         memberId: data.memberId,
@@ -27,7 +43,7 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
         items: data.items || [],
         status: data.status || 'completed',
         currency: data.currency || 'EUR', 
-        totalAmount: data.totalAmount, // Assuming it's in cents
+        totalAmount: totalAmountInCents, // ALWAYS in cents
         isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : true, 
         subscriptionId: data.subscriptionId || null,
     };
@@ -78,7 +94,7 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
     }
 
     const member = docToMember(memberSnap);
-    const subscription = docToMemberSubscription(subscriptionSnap); // CORRECTED FUNCTION NAME
+    const subscription = docToMemberSubscription(subscriptionSnap); 
 
     if (!subscription || !subscription.serviceId) {
         console.error("Subscription data is incomplete:", subscription);
@@ -95,7 +111,7 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
 
     const service = docToClubService(serviceSnap);
 
-    if (!member || !service || !subscription) { // Added subscription to the check
+    if (!member || !service || !subscription) { 
         return null;
     }
 
@@ -107,7 +123,7 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
     };
 };
 
-// ... (rest of the existing functions: getSales, getInventorySales, addSale, etc.)
+// ... (rest of the existing functions)
 
 export const getSales = async (): Promise<Sale[]> => {
     const db = getDb();
@@ -125,20 +141,16 @@ export const getInventorySales = async (): Promise<Sale[]> => {
     return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
 
-
 export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userName: string): Promise<string> => {
     const db = getDb();
     const newSaleRef = doc(collection(db, SALES_COLLECTION));
 
-    // Data sent to this function should have totalAmount in EUROS
     const totalAmountInCents = Math.round(saleData.totalAmount * 100);
 
     await runTransaction(db, async (transaction) => {
         transaction.set(newSaleRef, {
             ...saleData,
             saleDate: Timestamp.fromDate(new Date(saleData.saleDate)),
-            // We store inventory sales in EUROS to maintain consistency with old data.
-            // The normalization happens on read.
             totalAmount: saleData.totalAmount,
             createdAt: Timestamp.now(),
         });
@@ -178,7 +190,6 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
     return newSaleRef.id;
 };
 
-
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     if (!memberId) return [];
     const db = getDb();
@@ -199,7 +210,6 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
 export const updateSale = async (id: string, data: Partial<Sale>): Promise<void> => {
     const db = getDb();
     const saleRef = doc(db, SALES_COLLECTION, id);
-    // This is tricky. Assume data is in the correct format for now.
     await updateDoc(saleRef, data);
 };
 
@@ -236,7 +246,6 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
             const salesCollectionRef = collection(db, SALES_COLLECTION);
             const saleDate = new Date(firstPayment.date);
 
-            // Data for Firestore. Amounts for subscriptions are stored in CENTS.
             const saleDataForFirestore = {
                 memberId: subscription.memberId,
                 subscriptionId: subscription.id,
@@ -264,7 +273,6 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
 
             transaction.update(subscriptionRef, { paymentHistory: updatedPaymentHistory });
             
-            // Return a normalized Sale object (docToSale will handle this)
             createdSale = docToSale(await transaction.get(newSaleRef));
         });
         
