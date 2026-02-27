@@ -21,34 +21,37 @@ const checkForConflicts = async (startTime: Timestamp, endTime: Timestamp, court
     const reservationQuery = query(
         reservationsCollection,
         where('courtId', 'in', courtIds),
-        where('startTime', '<', endTime),
-        where('endTime', '>', startTime)
+        where('startTime', '<', endTime)
     );
     const conflictingReservations = await getDocs(reservationQuery);
     for (const doc of conflictingReservations.docs) {
         if (doc.id !== excludeId) {
-            console.error('Conflict with reservation:', doc.data());
-            return true; // Conflict found
+            const reservation = doc.data();
+            if (reservation.endTime > startTime) {
+                console.error('Conflict with reservation:', doc.data());
+                return true; // Conflict found
+            }
         }
     }
 
     // 2. Check for conflicting blocked slots
     const blockedSlotQuery = query(
         blockedSlotsCollection,
-        where('startTime', '<', endTime),
-        where('endTime', '>', startTime)
+        where('startTime', '<', endTime)
     );
     const conflictingSlots = await getDocs(blockedSlotQuery);
     for (const doc of conflictingSlots.docs) {
         if (doc.id === excludeId) continue; // Don't check against self
 
         const slot = doc.data() as BlockedSlot;
-        const isBlockedForAll = slot.courtIds.length === 0;
-        const overlapsWithCourt = courtIds.some(id => slot.courtIds.includes(id));
+        if (slot.endTime > startTime) { // Check for overlap in memory
+            const isBlockedForAll = slot.courtIds.length === 0;
+            const overlapsWithCourt = courtIds.some(id => slot.courtIds.includes(id));
 
-        if (isBlockedForAll || overlapsWithCourt) {
-            console.error('Conflict with blocked slot:', slot);
-            return true; // Conflict found
+            if (isBlockedForAll || overlapsWithCourt) {
+                console.error('Conflict with blocked slot:', slot);
+                return true; // Conflict found
+            }
         }
     }
 

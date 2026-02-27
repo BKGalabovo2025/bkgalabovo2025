@@ -50,6 +50,30 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "reservations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "courtId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "blockedSlots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "startTime",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ]
 }
