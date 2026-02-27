@@ -1,11 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Позволява четене и писане в колекцията за абонаменти
-    match /memberSubscriptions/{id} {
+    
+    // 1. Правило за абонаментите (тук беше грешката преди)
+    match /memberSubscriptions/{subscriptionId} {
       allow read, write: if request.auth != null;
     }
-    // Позволява за всички останали (членове, продажби и т.н.)
+
+    // 2. Правило за продажбите (критично за новата логика)
+    match /sales/{saleId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 3. Правило за членовете (за да обновим lastPaymentDate)
+    match /members/{memberId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 4. Правила за всичко останало (склад, услуги и т.н.)
+    match /products/{productId} { allow read, write: if request.auth != null; }
+    match /clubServices/{serviceId} { allow read, write: if request.auth != null; }
+    match /inventoryEvents/{eventId} { allow read, write: if request.auth != null; }
+    
+    // Глобално правило за сигурност
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
