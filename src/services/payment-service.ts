@@ -71,7 +71,7 @@ export const registerPaymentForSubscription = async (
         batch.update(subscriptionRef, updatedFields);
         
         // Dynamically import and update the member
-        const { updateMember } = await import('./member-service');
+        const { updateMember } = await import('./member-service.js');
         await updateMember(subscription.memberId, { 
             lastPaymentDate: paymentDetails.paymentDate 
         });
