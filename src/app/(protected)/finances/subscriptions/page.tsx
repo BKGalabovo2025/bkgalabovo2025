@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { SubscriptionForm } from '@/components/finance/finances/subscription-form';
+import { getFirebaseAuth } from '@/lib/firebase';
+import { User } from 'firebase/auth';
 
 const SubscriptionsPage = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
@@ -22,7 +23,16 @@ const SubscriptionsPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | undefined>(undefined);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -70,13 +80,17 @@ const SubscriptionsPage = () => {
   }, []);
 
   const handleSave = async (data: Omit<Subscription, 'id'>) => {
+    if (!user) {
+        toast({ title: 'Грешка', description: 'За да извършите това действие, трябва да сте влезли в системата.', variant: 'destructive' });
+        return;
+    }
     setIsSaving(true);
     try {
         if (selectedSubscription) {
             await updateSubscription(selectedSubscription.id, data);
             toast({ title: 'Абонаментът е обновен успешно!' });
         } else {
-            await createSubscription(data);
+            await createSubscription(data, user.uid, user.displayName || 'System');
             toast({ title: 'Абонаментът е създаден успешно!' });
         }
         setIsFormOpen(false);
