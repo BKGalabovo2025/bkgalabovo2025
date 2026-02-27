@@ -15,7 +15,7 @@ const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
   template: z.enum(['reminder']), // Добавяй новите шаблони тук
-  data: z.record(z.any())
+  data: z.record(z.string(), z.any())
 });
 
 // A function to generate text content from data, as a fallback.
