@@ -18,6 +18,9 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { bg } from 'date-fns/locale';
 import { formatPrice } from '@/lib/currency'; // CORRECT: Import the new centralized formatter
+import { getFirebaseAuth } from '@/lib/firebase';
+import { User } from 'firebase/auth';
+
 
 // --- NEW: Centralized Price Conversion Logic for this Component ---
 const getDisplayPrice = (amount: number, currency: string | undefined) => {
@@ -53,7 +56,7 @@ const calculateEndDate = (startDate: Date, billingPeriod: ClubService['billingPe
 };
 
 // --- DIALOG FOR ADDING A NEW SUBSCRIPTION ---
-const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded }: { memberId: string, services: ClubService[], onSubscriptionAdded: () => void }) => {
+const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }: { memberId: string, services: ClubService[], onSubscriptionAdded: () => void, user: User | null }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
@@ -61,6 +64,11 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded }: { me
     const { toast } = useToast();
 
     const handleAddSubscription = async () => {
+        if (!user) {
+            toast({ title: "Грешка", description: "Трябва да сте влезли, за да добавите абонамент.", variant: "destructive" });
+            return;
+        }
+
         if (!selectedServiceId || !startDate) {
             toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
             return;
@@ -89,7 +97,7 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded }: { me
                 paymentHistory: [],
                 paymentsMadeCount: 0,
                 totalPaymentsCount: 1 // Or based on service type
-            });
+            }, user.uid, user.displayName || 'System');
 
             toast({ title: "Успех!", description: "Абонаментът е добавен и очаква плащане." });
             onSubscriptionAdded(); // Refresh the parent list
@@ -203,7 +211,7 @@ const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription,
     )
 }
 
-const SubscriptionCard = ({ sub, service, onSubscriptionUpdate }: { sub: Subscription, service?: ClubService, onSubscriptionUpdate: () => void }) => {
+const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: Subscription, service?: ClubService, onSubscriptionUpdate: () => void, user: User | null }) => {
     const [isRenewing, setIsRenewing] = useState(false);
     const { toast } = useToast();
 
@@ -225,7 +233,7 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate }: { sub: Subscri
     };
 
     const handleRenew = async () => {
-        if (!service) return;
+        if (!service || !user) return;
         setIsRenewing(true);
         try {
             const nextStartDate = calculateNextStartDate(sub.endDate);
@@ -244,7 +252,7 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate }: { sub: Subscri
                 paymentHistory: [],
                 paymentsMadeCount: 0,
                 totalPaymentsCount: 1
-            });
+            }, user.uid, user.displayName || 'System');
 
             toast({ title: "Успешно подновен", description: `Създаден е нов абонамент за периода ${nextStartDate.toLocaleDateString('bg-BG')}.` });
             onSubscriptionUpdate();
@@ -345,7 +353,16 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const fetchData = async () => {
       setLoading(true);
@@ -373,7 +390,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
             <CardTitle>Абонаменти</CardTitle>
             <CardDescription>Списък с всички активни и изминали абонаменти.</CardDescription>
         </div>
-        <AddSubscriptionDialog memberId={memberId} services={services} onSubscriptionAdded={fetchData} />
+        <AddSubscriptionDialog memberId={memberId} services={services} onSubscriptionAdded={fetchData} user={user} />
       </CardHeader>
       <CardContent>
         {subscriptions.length === 0 ? (
@@ -383,7 +400,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
         ) : (
           <div>
             {subscriptions.map(sub => (
-                <SubscriptionCard key={sub.id} sub={sub} service={services.find(s => s.id === sub.serviceId)} onSubscriptionUpdate={fetchData} />
+                <SubscriptionCard key={sub.id} sub={sub} service={services.find(s => s.id === sub.serviceId)} onSubscriptionUpdate={fetchData} user={user} />
             ))}
           </div>
         )}
