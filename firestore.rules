@@ -1,71 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- Helper Functions ---
-    function isAuthenticated() {
-      return request.auth != null;
+    // Позволява четене и писане в колекцията за абонаменти
+    match /memberSubscriptions/{id} {
+      allow read, write: if request.auth != null;
     }
-
-    function isUser(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return (isAuthenticated() && request.auth.token.admin == true) ||
-             (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-    }
-
-    // --- Collection-Specific Rules ---
-
-    match /users/{userId} {
-      allow read, write: if isAdmin() || isUser(userId);
-    }
-
-    match /members/{memberId} {
-      allow read, create: if isAuthenticated();
-      allow update, delete: if isAdmin();
-    }
-
-    match /families/{familyId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    match /products/{productId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    match /memberSubscriptions/{subscriptionId} {
-        allow read: if isAuthenticated();
-        allow write: if isAdmin();
-    }
-    
-    match /clubServices/{serviceId} {
-        allow read: if isAuthenticated();
-        allow write: if isAdmin();
-    }
-
-    match /sales/{saleId} {
-        allow read, create: if isAuthenticated();
-        allow update, delete: if isAdmin();
-    }
-
-    match /inventoryEvents/{eventId} {
-        allow read, create: if isAuthenticated();
-        allow update, delete: if false; // History is immutable
-    }
-
-    match /events/{eventId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated(); // Allow any authenticated user to write
-    }
-
-    // Allow admins to perform any write operation (create, update, delete, batch writes)
-    match /schedule/{scheduleId} {
-        allow read: if isAuthenticated();
-        allow write: if isAdmin();
+    // Позволява за всички останали (членове, продажби и т.н.)
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
