@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Calendar, Users, Building, ArrowLeft, Pencil, FileText, Home, PhoneCall, BarChart2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MemberSalesHistory } from './member-sales-history';
 import { MemberAttendanceHistory } from './MemberAttendanceHistory';
 import { MemberSubscriptionsTab } from './member-subscriptions-tab';
 import { getAgeGroup, getInitials, formatFullName } from '@/lib/utils';
+import { updateMember } from '@/services/member-service';
 
 interface MemberDetailsCardProps {
     member: Member;
@@ -29,6 +31,20 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
     const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
     const formattedBirthDate = member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString('bg-BG') : null;
     const formattedRegistrationDate = member.registrationDate ? new Date(member.registrationDate).toLocaleDateString('bg-BG') : null;
+
+    // 1. Изчисляваме статуса
+    const lastPayment = member.lastPaymentDate ? new Date(member.lastPaymentDate) : null;
+    const isOverdue = !lastPayment || 
+    (Math.floor((new Date().getTime() - lastPayment.getTime()) / (1000 * 3600 * 24)) > 30);
+
+    // 2. Функцията за плащане
+    const handlePayment = async () => {
+    if (!confirm('Маркиране на месечната такса като платена?')) return;
+    // Тук викаме логиката от нашия payment-service
+    await updateMember(member.id, { lastPaymentDate: new Date().toISOString() });
+    alert('Успешно платено!');
+    window.location.reload(); 
+    };
 
 
     return (
@@ -56,6 +72,25 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                     </div>
                 </CardHeader>
             </Card>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase">Финансов статус</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                    <Badge variant={isOverdue ? "destructive" : "success"}>
+                        {isOverdue ? "Дължи такса" : "Редовен"}
+                    </Badge>
+                    <span className="text-xs text-gray-400">
+                        Последно: {lastPayment ? lastPayment.toLocaleDateString('bg-BG') : 'няма данни'}
+                    </span>
+                    </div>
+                </div>
+                {isOverdue && (
+                    <Button size="sm" onClick={handlePayment} className="bg-green-600 hover:bg-green-700 text-white">
+                    Плати такса
+                    </Button>
+                )}
+            </div>
 
             <Tabs defaultValue="personal">
                 <TabsList className="grid w-full grid-cols-4">
