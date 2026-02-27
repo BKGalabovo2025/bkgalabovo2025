@@ -7,6 +7,7 @@ import { Loader2, AlertCircle, Users, BarChart, TrendingUp, TrendingDown, Packag
 import { formatPrice } from '@/lib/currency';
 import { RemindersCard } from '@/components/reminders/reminders-card';
 import { AssistantPanel } from '@/components/dashboard/assistant-panel';
+import { LatePayments } from '@/components/dashboard/late-payments';
 import { Sale } from '@/types';
 import { format } from 'date-fns';
 
@@ -59,6 +60,8 @@ const DashboardPage = () => {
       </header>
 
       <AssistantPanel />
+
+      <LatePayments />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* SIMPLIFIED: `formatPrice` now receives cents directly */}

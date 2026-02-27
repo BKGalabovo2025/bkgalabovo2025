@@ -281,3 +281,37 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
         throw error;
     }
 };
+
+export const voidSale = async (saleId: string) => {
+  const db = getDb();
+  const saleRef = doc(db, SALES_COLLECTION, saleId);
+
+  return await runTransaction(db, async (transaction) => {
+    const saleDoc = await transaction.get(saleRef);
+    if (!saleDoc.exists()) throw new Error("Продажбата не съществува!");
+    
+    const saleData = saleDoc.data();
+    if (saleData.status === 'cancelled') return;
+
+    // 1. Mark as cancelled
+    transaction.update(saleRef, { 
+      status: 'cancelled', 
+      voidedAt: Timestamp.now() 
+    });
+
+    // 2. Restore stock for products
+    if (saleData.items && saleData.items.length > 0) {
+        for (const item of saleData.items) {
+          // Only restore stock for items that are actual products and have a productId
+          if (item.productId) {
+              const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
+              const productDoc = await transaction.get(productRef);
+              if (productDoc.exists()) {
+                  const currentStock = productDoc.data().stock || 0;
+                  transaction.update(productRef, { stock: currentStock + item.quantity });
+              }
+          }
+        }
+    }
+  });
+};
