@@ -17,24 +17,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { bg } from 'date-fns/locale';
-import { formatPrice } from '@/lib/currency'; // CORRECT: Import the new centralized formatter
+import { formatPrice } from '@/lib/currency';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { User } from 'firebase/auth';
-
-
-// --- NEW: Centralized Price Conversion Logic for this Component ---
-const getDisplayPrice = (amount: number, currency: string | undefined) => {
-    // This function handles historical data by converting BGN amounts to EUR for display.
-    // It assumes amounts are stored in the smallest currency unit (stotinki/cents).
-    const priceInMainUnit = amount / 100;
-    if (currency === 'BGN') {
-        const BGN_TO_EUR_RATE = 1.95583;
-        return priceInMainUnit / BGN_TO_EUR_RATE;
-    }
-    // For 'EUR' or undefined currency, assume the amount is already in EUR.
-    return priceInMainUnit;
-};
-
 
 // Helper functions for date calculations
 const calculateNextStartDate = (currentEndDate: string | Date): Date => {
@@ -92,7 +77,7 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
                 endDate: endDate.toISOString(),
                 status: 'pending_payment', // New subscriptions require payment
                 pricePaid: 0,
-                price: service.price, // Store the price from the service (now it is in EUR)
+                price: service.price, // Store the price as a whole number
                 currency: 'EUR', // ALWAYS set new subscriptions to EUR
                 paymentHistory: [],
                 paymentsMadeCount: 0,
@@ -135,7 +120,6 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
                             </SelectTrigger>
                             <SelectContent id="service">
                                 {services.map(service => (
-                                    // FIX 1: Use formatPrice on the EUR value of the service.
                                     <SelectItem key={service.id} value={service.id}>{service.name} ({formatPrice(service.price)})</SelectItem>
                                 ))}
                             </SelectContent>
@@ -243,7 +227,7 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
                 memberId: sub.memberId,
                 serviceId: sub.serviceId,
                 serviceName: service.name,
-                price: service.price, // Price is already in EUR
+                price: service.price, // Price is already a whole number
                 currency: 'EUR', // Always EUR
                 startDate: nextStartDate.toISOString(),
                 endDate: nextEndDate.toISOString(),
@@ -267,9 +251,6 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
     const isPaid = sub.pricePaid > 0;
     const isExpired = statusInfo.text === 'Изтекъл';
 
-    // FIX 2: Calculate the display price for the paid amount
-    const paidAmountInEur = getDisplayPrice(sub.pricePaid, sub.currency);
-
     return (
         <div className={`border-l-4 ${statusInfo.color} rounded-md bg-muted/20 p-4 mb-4`}>
             <div className="flex justify-between items-start">
@@ -282,7 +263,7 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm items-center">
                 <div><p className="text-muted-foreground">Начало</p><p className="font-medium"><CalendarIcon className="mr-2 h-4 w-4 inline"/> {new Date(sub.startDate).toLocaleDateString('bg-BG')}</p></div>
                 <div><p className="text-muted-foreground">Край</p><p className="font-medium"><CalendarIcon className="mr-2 h-4 w-4 inline"/>{new Date(sub.endDate).toLocaleDateString('bg-BG')}</p></div>
-                <div><p className="text-muted-foreground">Платено</p><p className="font-medium">{formatPrice(paidAmountInEur)}</p></div>
+                <div><p className="text-muted-foreground">Платено</p><p className="font-medium">{formatPrice(sub.pricePaid)}</p></div>
                 <div className="flex justify-end items-center gap-2">
                     {isPaid && <ReceiptButton subscription={sub} onUpdate={onSubscriptionUpdate} />}
                     {isExpired && (
@@ -291,36 +272,30 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
                             Подновяване
                         </Button>
                     )}
-                    {sub.status === 'pending_payment' && <RegisterPaymentDialog sub={sub} service={service} onPaymentSuccess={onSubscriptionUpdate} />}
+                    {sub.status === 'pending_payment' && <RegisterPaymentDialog sub={sub} onPaymentSuccess={onSubscriptionUpdate} />}
                 </div>
             </div>
         </div>
     )
 }
 
-const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscription, service?: ClubService, onPaymentSuccess: () => void }) => {
+const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, onPaymentSuccess: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     
-    // The price from the service catalog is now in EUR.
-    // The price on the subscription might be BGN or EUR.
-    const originalPriceInEur = getDisplayPrice(sub.price, sub.currency);
-    const paidAmountInEur = getDisplayPrice(sub.pricePaid, sub.currency);
-    const amountToPayInEur = originalPriceInEur - paidAmountInEur;
+    // Prices are now whole numbers.
+    const amountToPay = sub.price - sub.pricePaid;
 
     const handlePayment = async () => {
-        if (amountToPayInEur <= 0) {
+        if (amountToPay <= 0) {
             toast({ title: "Информация", description: "Няма дължима сума за този абонамент." });
             return;
         }
         setIsLoading(true);
         try {
-            // The backend service expects the amount in the original currency unit (cents/stotinki)
-            // We need to convert the EUR amount back to the smallest unit.
-            // Since all new amounts are EUR, we convert to cents.
             await registerPaymentForSubscription(sub.id, {
-                amount: amountToPayInEur * 100, 
+                amount: amountToPay, // Send the whole number amount
                 paymentDate: new Date().toISOString(),
             });
             toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
@@ -338,8 +313,7 @@ const RegisterPaymentDialog = ({ sub, service, onPaymentSuccess }: { sub: Subscr
             <DialogTrigger asChild><Button size="sm">Регистрирай плащане</Button></DialogTrigger>
             <DialogContent>
                 <DialogHeader><DialogTitle>Потвърждение на плащане</DialogTitle></DialogHeader>
-                {/* FIX 3: Use formatPrice on the calculated EUR amount */}
-                <p>Ще регистрирате плащане от <strong>{formatPrice(amountToPayInEur)}</strong> за абонамент <strong>{sub.serviceName}</strong>. Сигурни ли сте?</p>
+                <p>Ще регистрирате плащане от <strong>{formatPrice(amountToPay)}</strong> за абонамент <strong>{sub.serviceName}</strong>. Сигурни ли сте?</p>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsOpen(false)} >Отказ</Button>
                     <Button onClick={handlePayment} disabled={isLoading}>{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Потвърди'}</Button>
@@ -370,7 +344,6 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
         const [srvs, subs] = await Promise.all([getAllClubServices(), getSubscriptionsByMemberId(memberId)]);
         subs.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
         setSubscriptions(subs);
-        // Service prices from the catalog are now in EUR, so we can use them directly.
         setServices(srvs.filter(s => s.type === 'Абонамент'));
       } catch (error) {
         toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
