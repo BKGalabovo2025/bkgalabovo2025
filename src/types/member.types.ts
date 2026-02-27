@@ -12,6 +12,7 @@ export const MemberSchema = z.object({
     lastName: z.string().min(1, "Фамилията е задължителна."),
     registrationDate: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Невалиден формат на дата за регистрация" }),
     status: z.enum(['active', 'inactive', 'suspended']),
+    lastPaymentDate: z.string().refine(val => val === null || !isNaN(Date.parse(val)), { message: "Невалиден формат на дата за последно плащане" }).nullable().optional(),
 
     // Напълно незадължителни (nullable) полета
     middleName: z.string().nullable().optional(),
