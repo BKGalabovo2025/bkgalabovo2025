@@ -1,10 +1,12 @@
-
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import * as React from 'react';
 import { render } from '@react-email/render';
-import { ReminderEmail } from '@/components/emails/reminder-email';
 import { z } from 'zod';
+
+import { ReminderEmail } from '@/components/emails/reminder-email';
+import { ReservationConfirmationEmail } from '@/components/emails/reservation-confirmation-email';
+
 
 // A mapping of template names to their components and text generators
 const templates: { [key: string]: { component: React.ComponentType<any>; getText: (data: any) => string; } } = {
@@ -17,12 +19,22 @@ const templates: { [key: string]: { component: React.ComponentType<any>; getText
             return 'Просрочено плащане към Бадминтон Клуб Гълъбово.'; // Generic fallback
         }
     },
+    reservationConfirmation: {
+        component: ReservationConfirmationEmail,
+        getText: (data: any) => {
+            const { clientName, startTime, endTime, courtId } = data;
+            // Important: Re-create Date objects if they are passed as strings
+            const formattedStartTime = new Date(startTime).toLocaleString('bg-BG', { dateStyle: 'full', timeStyle: 'short' });
+            const formattedEndTime = new Date(endTime).toLocaleString('bg-BG', { timeStyle: 'short' });
+            return `Здравейте, ${clientName}. Вашата резервация в бадминтон клуб "Гълъбово" е потвърдена. Детайли: Корт ${courtId}, от ${formattedStartTime} до ${formattedEndTime} ч.`;
+        }
+    },
 };
 
 const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
-  template: z.enum(['reminder']), // Добавяй новите шаблони тук
+  template: z.enum(['reminder', 'reservationConfirmation']), // Добавяй новите шаблони тук
   data: z.record(z.string(), z.any())
 });
 
@@ -32,7 +44,7 @@ export async function POST(request: Request) {
     const result = EmailSchema.safeParse(body);
     
     if (!result.success) {
-      return NextResponse.json({ error: "Невалидни данни за имейл" }, { status: 400 });
+      return NextResponse.json({ error: "Невалидни данни за имейл", details: result.error.flatten() }, { status: 400 });
     }
 
     // The payload now includes a template identifier and the data for it.

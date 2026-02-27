@@ -72,6 +72,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </Link>
         </SidebarMenuItem>
         <SidebarMenuItem>
+          <Link href="/reservations" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/reservations')}>
+              <Calendar className="w-4 h-4" />
+              <span>Резервации на корт</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
           <Link href="/reports" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reports')}>
               <FileText className="w-4 h-4" />
