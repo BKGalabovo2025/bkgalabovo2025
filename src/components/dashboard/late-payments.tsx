@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { bg } from 'date-fns/locale';
 
@@ -11,7 +11,7 @@ export function LatePayments() {
 
   const fetchDebtors = async () => {
     try {
-      const q = query(collection(db, "members"), where("status", "==", "active"));
+      const q = query(collection(getDb(), "members"), where("status", "==", "active"));
       const snapshot = await getDocs(q);
       const today = new Date();
       
@@ -36,7 +36,7 @@ export function LatePayments() {
     if (!confirm(`Маркиране на месечната такса като платена за ${name}?`)) return;
 
     try {
-      const memberRef = doc(db, 'members', memberId);
+      const memberRef = doc(getDb(), 'members', memberId);
       const now = Timestamp.now();
 
       // 1. Обновяваме последното плащане на члена
@@ -45,7 +45,7 @@ export function LatePayments() {
       });
 
       // 2. Добавяме запис в историята на плащанията (за отчетност)
-      await addDoc(collection(db, 'payments'), {
+      await addDoc(collection(getDb(), 'payments'), {
         memberId,
         memberName: name,
         amount: 40, // Смени го на твоята стандартна такса
