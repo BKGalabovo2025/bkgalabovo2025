@@ -74,7 +74,7 @@ export async function POST(request: Request) {
         address: user,
       },
       to: to,
-      bcc: 'bkgalabovo2014@gmail.com',
+      bcc: process.env.ADMIN_ARCHIVE_EMAIL || 'bkgalabovo2014@gmail.com',
       subject: subject,
       html: html, // The rendered HTML is now used here
       text: text, // A plain text version
