@@ -6,9 +6,17 @@ import { render } from '@react-email/render';
 import { ReminderEmail } from '@/components/emails/reminder-email';
 import { z } from 'zod';
 
-// A mapping of template names to their React components
-const templates: { [key: string]: React.ComponentType<any> } = {
-    reminder: ReminderEmail,
+// A mapping of template names to their components and text generators
+const templates: { [key: string]: { component: React.ComponentType<any>; getText: (data: any) => string; } } = {
+    reminder: {
+        component: ReminderEmail,
+        getText: (data: any) => {
+            if (data.memberName) {
+                return `Здравейте, ${data.memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`;
+            }
+            return 'Просрочено плащане към Бадминтон Клуб Гълъбово.'; // Generic fallback
+        }
+    },
 };
 
 const EmailSchema = z.object({
@@ -17,14 +25,6 @@ const EmailSchema = z.object({
   template: z.enum(['reminder']), // Добавяй новите шаблони тук
   data: z.record(z.string(), z.any())
 });
-
-// A function to generate text content from data, as a fallback.
-const generateTextContent = (template: string, data: any): string => {
-    if (template === 'reminder' && data.memberName) {
-        return `Здравейте, ${data.memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`;
-    }
-    return 'Просрочено плащане към Бадминтон Клуб Гълъбово.'; // Generic fallback
-}
 
 export async function POST(request: Request) {
   try {
@@ -40,15 +40,17 @@ export async function POST(request: Request) {
 
     console.log(`[send-email] Received request for: ${to}, template: ${template}`);
 
-    const EmailComponent = templates[template];
-    if (!EmailComponent) {
+    const templateConfig = templates[template];
+    if (!templateConfig) {
         return NextResponse.json({ error: `Шаблонът за имейл '${template}' не е намерен.` }, { status: 400 });
     }
+
+    const { component: EmailComponent, getText } = templateConfig;
 
     // Render the React component to an HTML string
     console.log(`[send-email] Rendering template '${template}' with data:`, data);
     const html = await render(<EmailComponent {...data} />);
-    const text = generateTextContent(template, data);
+    const text = getText(data);
     console.log(`[send-email] Template rendered successfully. HTML length: ${html.length}`);
 
     const user = process.env.EMAIL_USER;
