@@ -9,6 +9,16 @@ export function LatePayments() {
   const [debtors, setDebtors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to safely convert date values
+  const toSafeDate = (date: any): Date | null => {
+    if (!date) return null;
+    if (typeof date.toDate === 'function') return date.toDate(); // Firestore Timestamp
+    if (date instanceof Date) return date; // Already a Date object
+    if (typeof date === 'string') return new Date(date); // ISO string
+    if (typeof date === 'number') return new Date(date); // Milliseconds
+    return null;
+  };
+
   const fetchDebtors = async () => {
     try {
       const q = query(collection(getDb(), "members"), where("status", "==", "active"));
@@ -19,7 +29,8 @@ export function LatePayments() {
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter((member: any) => {
           if (!member.lastPaymentDate) return true;
-          const lastDate = member.lastPaymentDate.toDate();
+          const lastDate = toSafeDate(member.lastPaymentDate);
+          if (!lastDate) return true; // Treat as overdue if date is invalid
           const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
           return diffDays > 30;
         });
@@ -81,7 +92,7 @@ export function LatePayments() {
                 <p className="font-bold text-gray-700">{member.firstName} {member.lastName}</p>
                 <p className="text-xs text-gray-500">
                   {member.lastPaymentDate 
-                    ? `Преди ${formatDistanceToNow(member.lastPaymentDate.toDate(), { locale: bg })}` 
+                    ? `Преди ${formatDistanceToNow(toSafeDate(member.lastPaymentDate)!, { locale: bg })}` 
                     : 'Няма предишни плащания'}
                 </p>
               </div>
