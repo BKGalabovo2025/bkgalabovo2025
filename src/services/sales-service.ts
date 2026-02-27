@@ -18,17 +18,8 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
     }
     const data = doc.data() || {};
     const saleDate = data.saleDate?.toDate?.() || new Date();
-
-    let totalAmountInCents = 0;
     const rawAmount = data.totalAmount;
-
-    if (typeof rawAmount === 'number') {
-        if (!Number.isInteger(rawAmount)) {
-            totalAmountInCents = Math.round(rawAmount * 100);
-        } else {
-            totalAmountInCents = rawAmount;
-        }
-    }
+    const totalAmount = Number(rawAmount) || 0;
 
     return {
         id: doc.id,
@@ -37,7 +28,7 @@ const docToSale = (doc: DocumentSnapshot): Sale | null => {
         items: data.items || [],
         status: data.status || 'completed',
         currency: data.currency || 'EUR', 
-        totalAmount: totalAmountInCents,
+        totalAmount: totalAmount,
         isPaid: typeof data.isPaid === 'boolean' ? data.isPaid : true, 
         subscriptionId: data.subscriptionId || null,
     };
@@ -282,36 +273,62 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
     }
 };
 
-export const voidSale = async (saleId: string) => {
+export const voidSale = async (saleId: string, userId: string, userName: string) => {
   const db = getDb();
-  const saleRef = doc(db, SALES_COLLECTION, saleId);
+  const saleRef = doc(db, 'sales', saleId);
 
   return await runTransaction(db, async (transaction) => {
     const saleDoc = await transaction.get(saleRef);
     if (!saleDoc.exists()) throw new Error("Продажбата не съществува!");
     
-    const saleData = saleDoc.data();
+    const saleData = saleDoc.data() as Sale;
     if (saleData.status === 'cancelled') return;
 
-    // 1. Mark as cancelled
+    // 1. Маркираме продажбата като анулирана
     transaction.update(saleRef, { 
       status: 'cancelled', 
       voidedAt: Timestamp.now() 
     });
 
-    // 2. Restore stock for products
+    // 2. АКО Е КЪМ АБОНАМЕНТ: Намаляваме цената в абонамента и го правим неплатен
+    if (saleData.subscriptionId) {
+      const subRef = doc(db, 'memberSubscriptions', saleData.subscriptionId);
+      const subSnap = await transaction.get(subRef);
+      if (subSnap.exists()) {
+        const subData = subSnap.data() as Subscription;
+        const newPaid = Math.max(0, (subData.pricePaid || 0) - saleData.totalAmount);
+        transaction.update(subRef, { 
+          pricePaid: newPaid,
+          status: 'pending_payment' // Връщаме статус "Длъжник"
+        });
+      }
+    }
+
+    // 3. АКО Е ПРОДУКТ: Връщаме стоката в склада
     if (saleData.items && saleData.items.length > 0) {
-        for (const item of saleData.items) {
-          // Only restore stock for items that are actual products and have a productId
-          if (item.productId) {
-              const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
-              const productDoc = await transaction.get(productRef);
-              if (productDoc.exists()) {
-                  const currentStock = productDoc.data().stock || 0;
-                  transaction.update(productRef, { stock: currentStock + item.quantity });
-              }
+      for (const item of saleData.items) {
+        if (item.productId) {
+          const productRef = doc(db, 'products', item.productId);
+          const productDoc = await transaction.get(productRef);
+          if (productDoc.exists()) {
+            const currentStock = productDoc.data().stock || 0;
+            transaction.update(productRef, { stock: currentStock + item.quantity });
+            
+            // Записваме събитие в лога на склада за връщане на стока
+            const eventRef = doc(collection(db, 'inventoryEvents'));
+            transaction.set(eventRef, {
+              productId: item.productId,
+              productName: item.name,
+              type: 'correction',
+              quantityChange: item.quantity,
+              notes: `Върната стока поради анулирана продажба: ${saleId}`,
+              createdAt: new Date().toISOString(),
+              userId,
+              userName
+            });
           }
         }
+      }
     }
   });
 };

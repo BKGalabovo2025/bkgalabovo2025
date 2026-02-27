@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, doc, query, where, writeBatch, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, query, where, writeBatch, runTransaction, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import { Subscription, ClubService, ClubServiceHistory, Member } from '@/types/index';
 import { docToMember } from './member-service';
@@ -169,49 +169,47 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subs
   return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
 };
 
-export const createSubscription = async (subscription: Omit<Subscription, 'id' | 'linkedSubscriptionId'>): Promise<DocumentReference[]> => {
+export const createSubscription = async (
+  subscription: Omit<Subscription, 'id'>, 
+  userId: string, 
+  userName: string
+): Promise<string> => {
     const db = getDb();
-    const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
-    const memberSnap = await getDoc(memberRef);
-    const member = docToMember(memberSnap);
+    const subRef = doc(collection(db, 'memberSubscriptions'));
+    
+    // Подготвяме данните за продажбата (Sale)
+    const saleData = {
+        memberId: subscription.memberId,
+        subscriptionId: subRef.id,
+        saleDate: Timestamp.now(),
+        items: [{
+            productId: subscription.serviceId,
+            name: subscription.serviceName,
+            quantity: 1,
+            price: subscription.price,
+        }],
+        totalAmount: subscription.price,
+        currency: subscription.currency,
+        isPaid: subscription.pricePaid >= subscription.price,
+        status: 'completed' as const,
+    };
 
-    const isFamilySubscription = subscription.serviceName.toLowerCase().includes('семеен');
+    await runTransaction(db, async (transaction) => {
+        // 1. Записваме абонамента
+        transaction.set(subRef, { ...subscription, id: subRef.id });
 
-    if (member && member.relatedMemberId && isFamilySubscription) {
-        console.log(`Family subscription detected for member ${member.firstName}. Creating linked subscriptions.`);
-        const batch = writeBatch(db);
-
-        // Create two new doc refs for the subscriptions
-        const primarySubRef = doc(collection(db, SUBSCRIPTIONS_COLLECTION));
-        const relatedSubRef = doc(collection(db, SUBSCRIPTIONS_COLLECTION));
-
-        // Prepare data for the primary member
-        const primarySubData = {
-            ...subscription,
-            linkedSubscriptionId: relatedSubRef.id,
-        };
+        // 2. Записваме продажбата автоматично
+        const saleRef = doc(collection(db, 'sales'));
+        transaction.set(saleRef, saleData);
         
-        // Prepare data for the related member
-        const relatedSubData = {
-            ...subscription,
-            memberId: member.relatedMemberId,
-            linkedSubscriptionId: primarySubRef.id,
-        };
+        // 3. Обновяваме последната дата на плащане в профила на члена
+        const memberRef = doc(db, 'members', subscription.memberId);
+        transaction.update(memberRef, { 
+            lastPaymentDate: new Date().toISOString() 
+        });
+    });
 
-        // Add to batch
-        batch.set(primarySubRef, primarySubData);
-        batch.set(relatedSubRef, relatedSubData);
-
-        // Commit batch
-        await batch.commit();
-        console.log(`Successfully created linked subscriptions: ${primarySubRef.id} and ${relatedSubRef.id}`)
-        return [primarySubRef, relatedSubRef];
-    } else {
-        // --- Standard single subscription creation --- 
-        const docRef = await addDoc(collection(db, SUBSCRIPTIONS_COLLECTION), subscription);
-        console.log(`Created single subscription: ${docRef.id}`);
-        return [docRef];
-    }
+    return subRef.id;
 };
 
 export const updateSubscription = async (id: string, subscriptionUpdate: Partial<Subscription>): Promise<void> => {
