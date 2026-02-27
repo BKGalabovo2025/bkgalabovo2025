@@ -16,9 +16,9 @@ export const columns: ColumnDef<Service, any>[] = [
     id: 'price',
     header: 'Цена',
     cell: ({ row }) => {
-      const priceInCents = row.original.price; // Price from DB is in the smallest unit (cents)
-      // FIX: The formatPrice function handles the division, so we pass the value in cents directly.
-      return <div>{formatPrice(priceInCents)}</div>
+      const price = row.original.price; // Price from DB is a whole number (e.g., 20 for 20 EUR)
+      // The formatPrice function now expects a whole number and formats it correctly.
+      return <div>{formatPrice(price)}</div>
     },
   },
   {
