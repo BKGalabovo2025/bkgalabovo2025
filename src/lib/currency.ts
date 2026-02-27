@@ -19,5 +19,5 @@ export const formatPrice = (value: number) => {
         currency: 'EUR', // The currency is hardcoded to EUR.
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(numberValue);
+    }).format(numberValue / 100); // Divide by 100 to convert from cents to EUR
 };
