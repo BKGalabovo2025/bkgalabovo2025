@@ -3,7 +3,6 @@ import { doc, writeBatch, getDoc, collection, addDoc, serverTimestamp } from 'fi
 import { getDb } from '@/lib/firebase';
 import { Subscription, ClubService } from '@/types';
 import { getClubServiceById } from './subscription-service';
-import { updateMember } from './member-service';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SALES_COLLECTION = 'sales';
@@ -68,11 +67,16 @@ export const registerPaymentForSubscription = async (
             ],
         };
 
-        await writeBatch(db).update(subscriptionRef, updatedFields).commit();
+        const batch = writeBatch(db);
+        batch.update(subscriptionRef, updatedFields);
         
+        // Dynamically import and update the member
+        const { updateMember } = await import('./member-service');
         await updateMember(subscription.memberId, { 
             lastPaymentDate: paymentDetails.paymentDate 
         });
+
+        await batch.commit();
 
         console.log(`Successfully registered payment and created sale [${saleDocRef.id}] for subscription [${subscriptionId}]`);
 
