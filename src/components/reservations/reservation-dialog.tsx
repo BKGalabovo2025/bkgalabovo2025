@@ -26,9 +26,9 @@ const reservationSchema = z.object({
   clientName: z.string().min(2, { message: "Името трябва да е поне 2 символа." }),
   clientPhone: z.string().min(9, { message: "Невалиден телефонен номер." }),
   clientEmail: z.string().email({ message: "Невалиден имейл адрес." }),
-  courtId: z.coerce.number().min(1).max(6),
-  startTime: z.date({ required_error: "Моля, изберете начален час." }),
-  endTime: z.date({ required_error: "Моля, изберете краен час." }),
+  courtId: z.number().min(1, { message: "Моля, изберете корт"}).max(6),
+  startTime: z.date(),
+  endTime: z.date(),
 }).refine(data => data.endTime > data.startTime, {
     message: "Крайният час трябва да е след началния.",
     path: ["endTime"],
@@ -139,7 +139,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
                             <FormField control={form.control} name="clientPhone" render={({ field }) => (<FormItem><FormLabel>Телефон</FormLabel><FormControl><Input placeholder="0888123456" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={form.control} name="clientEmail" render={({ field }) => (<FormItem><FormLabel>Имейл</FormLabel><FormControl><Input placeholder="ivan@email.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         </div>
-                        <FormField control={form.control} name="courtId" render={({ field }) => (<FormItem><FormLabel>Корт</FormLabel><Select onValueChange={field.onChange} value={String(field.value)}><FormControl><SelectTrigger><SelectValue placeholder="Изберете корт..." /></SelectTrigger></FormControl><SelectContent>{Array.from({ length: 6 }, (_, i) => i + 1).map(num => (<SelectItem key={num} value={String(num)}>Корт {num}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="courtId" render={({ field }) => (<FormItem><FormLabel>Корт</FormLabel><Select onValueChange={(value) => field.onChange(parseInt(value, 10))} value={field.value ? String(field.value) : ""}><FormControl><SelectTrigger><SelectValue placeholder="Изберете корт..." /></SelectTrigger></FormControl><SelectContent>{Array.from({ length: 6 }, (_, i) => i + 1).map(num => (<SelectItem key={num} value={String(num)}>Корт {num}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
                         <div className="grid grid-cols-2 gap-4">
                             <FormField control={form.control} name="startTime" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Начален час</FormLabel><Input type="datetime-local" value={field.value ? new Date(field.value.getTime() - (field.value.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''} onChange={e => field.onChange(new Date(e.target.value))} /><FormMessage /></FormItem>)} />
                             <FormField control={form.control} name="endTime" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Краен час</FormLabel><Input type="datetime-local" value={field.value ? new Date(field.value.getTime() - (field.value.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''} onChange={e => field.onChange(new Date(e.target.value))} /><FormMessage /></FormItem>)} />

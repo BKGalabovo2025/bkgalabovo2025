@@ -4,7 +4,7 @@ import * as fs from 'fs';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
-import { adminDb } from '../src/lib/firebase-admin';
+import { getAdminDb } from '../src/lib/firebase-admin';
 import { CollectionReference, DocumentData, DocumentReference } from 'firebase-admin/firestore';
 
 // Рекурсивна функция за извличане на данни от документ и неговите подколекции
@@ -41,6 +41,7 @@ async function getCollectionData(collectionRef: CollectionReference): Promise<Re
 
 // Главна функция за стартиране на експорта
 async function exportFirestoreData() {
+    const adminDb = getAdminDb();
     console.log('Starting Firestore data export...');
     const mainCollections = await adminDb.listCollections();
     const finalExport: Record<string, any> = {};

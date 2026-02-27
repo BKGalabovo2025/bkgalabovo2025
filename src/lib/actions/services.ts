@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { getAdminDb, getAdminAuth } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schema for validation (no changes here) ---
@@ -37,6 +37,7 @@ export type ServiceState = {
 
 async function _getUserNameFromToken(idToken: string): Promise<string> {
     if (!idToken) return "System (No Token)";
+    const adminAuth = getAdminAuth();
     try {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         const user = await adminAuth.getUser(decodedToken.uid);
@@ -98,6 +99,7 @@ function _generateChangeDescription(originalData: any, newData: any): string {
 }
 
 async function _logServiceHistory(serviceId: string, userName: string, action: 'create' | 'update', changes: string) {
+  const adminDb = getAdminDb();
   try {
     await adminDb.collection("serviceHistory").add({
       serviceId,
@@ -131,6 +133,7 @@ export async function updateClubService(
 
   const dataToSave = validatedFields.data;
   const priceInCents = Math.round(dataToSave.price * 100);
+  const adminDb = getAdminDb();
   const serviceRef = adminDb.collection("clubServices").doc(id);
 
   try {
@@ -170,6 +173,7 @@ export async function createClubService(
 
     const dataToSave = validatedFields.data;
     const priceInCents = Math.round(dataToSave.price * 100);
+    const adminDb = getAdminDb();
 
     try {
         const docRef = await adminDb.collection("clubServices").add({ ...dataToSave, price: priceInCents });

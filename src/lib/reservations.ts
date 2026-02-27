@@ -1,7 +1,8 @@
 import { collection, addDoc, doc, updateDoc, getDocs, query, where, Timestamp, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { Reservation, BlockedSlot } from '@/types/reservation';
 
+const db = getDb();
 const reservationsCollection = collection(db, 'reservations');
 const blockedSlotsCollection = collection(db, 'blockedSlots');
 

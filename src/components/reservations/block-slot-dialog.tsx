@@ -22,8 +22,8 @@ import { BlockedSlot } from '@/types/reservation';
 
 const blockSlotSchema = z.object({
   title: z.string().min(3, { message: "Причината трябва да е поне 3 символа." }),
-  startTime: z.date({ required_error: "Моля, изберете начален час." }),
-  endTime: z.date({ required_error: "Моля, изберете краен час." }),
+  startTime: z.date(),
+  endTime: z.date(),
   courtIds: z.array(z.number()).min(1, "Трябва да изберете поне един корт."),
 }).refine(data => data.endTime > data.startTime, {
     message: "Крайният час трябва да е след началния.",

@@ -1,12 +1,15 @@
-import { adminDb } from '@/lib/firebase-admin';
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import ServiceForm from './ServiceForm';
+import { Loader2 } from 'lucide-react';
 
 // --- Type Definition ---
 interface Service {
     id: string;
     name: string;
-    price: number; 
+    price: number;
     currency: string;
     description: string;
     type: string;
@@ -21,51 +24,51 @@ interface Service {
     durationMinutes?: number;
 }
 
-// --- Data Fetching (Server-side) ---
-async function getService(id: string): Promise<Service | null> {
-    if (!id) return null;
+// --- Page Component (Client Component) ---
+export default function EditServicePage() {
+    const params = useParams();
+    const serviceId = params.serviceId as string;
+    const [service, setService] = useState<Service | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    const serviceRef = adminDb.collection('clubServices').doc(id);
-    const docSnap = await serviceRef.get();
+    useEffect(() => {
+        if (!serviceId) return;
 
-    if (!docSnap.exists) {
-        return null;
+        const fetchService = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(`/api/services/${serviceId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch service');
+                }
+                const data = await response.json();
+                setService(data);
+            } catch (err) {
+                setError(true);
+                console.error(err);
+            }
+            setLoading(false);
+        };
+
+        fetchService();
+    }, [serviceId]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
     }
 
-    const data = docSnap.data()!;
+    if (error) {
+        notFound();
+    }
 
-    const priceInMainUnit = (data.price || 0) / 100;
+    if (!service) {
+        return null; // Or some other placeholder
+    }
 
-    return {
-        id: docSnap.id,
-        name: data.name || '',
-        price: priceInMainUnit,
-        description: data.description || '',
-        currency: data.currency || 'EUR',
-        type: data.type || 'one-time',
-        billingPeriod: data.billingPeriod,
-        targetGroups: data.targetGroups || [],
-        grantsLicense: data.grantsLicense || false,
-        licenseCondition: data.licenseCondition,
-        licensePaymentCount: data.licensePaymentCount,
-        grantsApparel: data.grantsApparel || false,
-        apparelCondition: data.apparelCondition,
-        apparelPaymentCount: data.apparelPaymentCount,
-        durationMinutes: data.durationMinutes,
-    };
-}
-
-// --- Page Component (React Server Component) ---
-export default async function EditServicePage({ params }: { params: { serviceId: string } }) {
-  
-  // Per Next.js 14+ and Turbopack, `params` can be a Promise and must be awaited.
-  const resolvedParams = await params;
-  const serviceId = resolvedParams.serviceId;
-  const service = await getService(serviceId);
-
-  if (!service) {
-    notFound();
-  }
-
-  return <ServiceForm service={service} />;
+    return <ServiceForm service={service} />;
 }

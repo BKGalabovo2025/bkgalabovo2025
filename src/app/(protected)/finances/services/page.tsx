@@ -1,12 +1,13 @@
-'use server'
-
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { Service, ServiceSchema } from './service.types';
 import ServicesClientPage from './client-page';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections'; // <-- 1. ИМПОРТИРАМЕ КОНСТАНТИТЕ
 
+export const dynamic = 'force-dynamic';
+
 async function getServices(): Promise<Service[]> {
     try {
+        const adminDb = getAdminDb();
         // 2. ИЗПОЛЗВАМЕ КОНСТАНТАТА, вместо ръчно изписан низ
         const servicesSnapshot = await adminDb.collection(FIRESTORE_COLLECTIONS.CLUB_SERVICES).get();
         

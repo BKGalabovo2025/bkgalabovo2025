@@ -7,7 +7,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: './.env.local' });
 
-import { adminDb } from '../src/lib/firebase-admin';
+import { getAdminDb } from '../src/lib/firebase-admin';
 
 // The ground truth for service prices, as provided by the client.
 const CORRECT_PRICES_EUR = new Map<string, number>([
@@ -24,6 +24,7 @@ const CORRECT_PRICES_EUR = new Map<string, number>([
 async function setCorrectPrices() {
   console.log('Starting to set the correct, hardcoded prices in EUR...');
 
+  const adminDb = getAdminDb();
   const servicesRef = adminDb.collection('clubServices');
   const snapshot = await servicesRef.get();
 

@@ -1,4 +1,4 @@
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { notFound } from 'next/navigation';
 import PrintClientPage from './PrintClientPage';
 
@@ -27,6 +27,7 @@ async function getService(id: string): Promise<Service | null> {
     if (!id || id === 'undefined') return null;
 
     try {
+        const adminDb = getAdminDb();
         const serviceRef = adminDb.collection('clubServices').doc(id);
         const docSnap = await serviceRef.get();
 
