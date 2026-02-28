@@ -29,6 +29,10 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
         paymentRules: typeof data.paymentRules === 'object' ? data.paymentRules : undefined,
         specialRights: Array.isArray(data.specialRights) ? data.specialRights : [],
         cancellationPolicy: typeof data.cancellationPolicy === 'object' ? data.cancellationPolicy : { isAllowed: false, noticePeriodDays: 0, feeType: 'none', feeValue: 0, description: '', longTermSicknessDiscount: 0 },
+        createdAt: typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString(),
+        updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString(),
+        createdBy: data.createdBy && typeof data.createdBy === 'object' ? data.createdBy : { userId: '', userName: '' },
+        updatedBy: data.updatedBy && typeof data.updatedBy === 'object' ? data.updatedBy : { userId: '', userName: '' },
     };
 };
 

@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Price, PriceHistory } from '@/types/index';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { getPriceHistory } from '@/services/price-service';
 import { formatPrice } from '@/lib/currency';

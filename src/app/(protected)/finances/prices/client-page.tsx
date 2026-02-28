@@ -42,6 +42,8 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
         data={prices} 
         filterColumnId='name'
         filterPlaceholder='Търсене по име на цена...'
+        isLoading={false}
+        emptyStateMessage="Няма намерени цени."
       />
 
       {selectedPrice && (
