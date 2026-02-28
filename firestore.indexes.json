@@ -56,10 +56,6 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "courtId",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "startTime",
           "order": "ASCENDING"
         }

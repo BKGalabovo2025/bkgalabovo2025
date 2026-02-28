@@ -20,14 +20,13 @@ const checkForConflicts = async (startTime: Timestamp, endTime: Timestamp, court
     // 1. Check for conflicting reservations
     const reservationQuery = query(
         reservationsCollection,
-        where('courtId', 'in', courtIds),
         where('startTime', '<', endTime)
     );
     const conflictingReservations = await getDocs(reservationQuery);
     for (const doc of conflictingReservations.docs) {
         if (doc.id !== excludeId) {
             const reservation = doc.data();
-            if (reservation.endTime > startTime) {
+            if (courtIds.includes(reservation.courtId) && reservation.endTime > startTime) {
                 console.error('Conflict with reservation:', doc.data());
                 return true; // Conflict found
             }
