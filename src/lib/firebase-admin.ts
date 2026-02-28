@@ -5,42 +5,37 @@ let adminDb: admin.firestore.Firestore;
 let adminAuth: admin.auth.Auth;
 
 function initializeFirebaseAdmin() {
+  // If the app is already initialized, return the existing instances.
   if (admin.apps.length > 0) {
     if(!adminDb) adminDb = admin.firestore();
     if(!adminAuth) adminAuth = admin.auth();
     return;
   }
 
-  // Ensure the service account details are provided
-  if (
-    !process.env.FIREBASE_PROJECT_ID ||
-    !process.env.FIREBASE_PRIVATE_KEY ||
-    !process.env.FIREBASE_CLIENT_EMAIL
-  ) {
-    throw new Error('Missing Firebase Admin SDK credentials in environment variables.');
+  // Check for the environment variable that points to the service account file.
+  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    throw new Error(
+      'The GOOGLE_APPLICATION_CREDENTIALS environment variable is not set. ' +
+      'It should point to the path of the service account JSON file.'
+    );
   }
 
-  const serviceAccount: admin.ServiceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    // Replace escaped newlines before parsing
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  };
-
   try {
+    // Initialize the Admin SDK using the service account file.
+    // This is the recommended method for server environments.
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential: admin.credential.applicationDefault(),
     });
     adminDb = admin.firestore();
     adminAuth = admin.auth();
   } catch (error) {
     console.error('CRITICAL: Firebase Admin SDK initialization failed!', error);
-    // Re-throw the error to fail fast during initialization
+    // Re-throw the error to fail fast during initialization.
     throw error;
   }
 }
 
-// These are now functions that will initialize on first call.
+// These functions ensure that Firebase is initialized only once.
 const getAdminDb = () => {
     if (!adminDb) {
         initializeFirebaseAdmin();

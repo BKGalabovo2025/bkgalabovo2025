@@ -11,7 +11,7 @@ export const BGN_TO_EUR_RATE = 1.95583;
  * @param value The numeric value to be formatted.
  * @returns A string representing the formatted currency, e.g., "20,00 €".
  */
-export const formatPrice = (value: number) => {
+export const formatPrice = (value: number, currency: string) => {
     const numberValue = typeof value === 'number' ? value : 0;
 
     return new Intl.NumberFormat('bg-BG', {

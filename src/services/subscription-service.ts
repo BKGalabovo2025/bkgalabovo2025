@@ -1,8 +1,7 @@
 
 import { collection, getDocs, addDoc, doc, query, where, writeBatch, runTransaction, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
-import { Subscription, ClubService, ClubServiceHistory, Member } from '@/types/index';
-import { docToMember } from './member-service';
+import { Subscription, ClubService, ClubServiceHistory } from '@/types/index';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
@@ -102,8 +101,13 @@ export const getClubServiceById = async (id: string): Promise<ClubService | null
 
 export const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
     const db = getDb();
-    Object.keys(service).forEach(key => (service as any)[key] === undefined && delete (service as any)[key]);
-    return await addDoc(collection(db, SERVICES_COLLECTION), service);
+    const cleanService: { [key: string]: unknown } = {};
+    Object.entries(service).forEach(([key, value]) => {
+      if (value !== undefined) {
+        cleanService[key] = value;
+      }
+    });
+    return await addDoc(collection(db, SERVICES_COLLECTION), cleanService);
 };
 
 export const updateClubService = async (id: string, serviceUpdate: Omit<ClubService, 'id'>, note?: string): Promise<void> => {
@@ -133,11 +137,22 @@ export const updateClubService = async (id: string, serviceUpdate: Omit<ClubServ
         note: note || undefined,
     };
 
-    Object.keys(serviceUpdate).forEach(key => (serviceUpdate as any)[key] === undefined && delete (serviceUpdate as any)[key]);
-    Object.keys(historyLog).forEach(key => (historyLog as any)[key] === undefined && delete (historyLog as any)[key]);
+    const cleanServiceUpdate: { [key: string]: unknown } = {};
+    Object.entries(serviceUpdate).forEach(([key, value]) => {
+        if (value !== undefined) {
+            cleanServiceUpdate[key] = value;
+        }
+    });
 
-    batch.update(serviceRef, serviceUpdate);
-    batch.set(historyRef, historyLog);
+    const cleanHistoryLog: { [key: string]: unknown } = {};
+    Object.entries(historyLog).forEach(([key, value]) => {
+        if (value !== undefined) {
+            cleanHistoryLog[key] = value;
+        }
+    });
+
+    batch.update(serviceRef, cleanServiceUpdate);
+    batch.set(historyRef, cleanHistoryLog);
     await batch.commit();
 };
 
@@ -171,8 +186,8 @@ export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subs
 
 export const createSubscription = async (
   subscription: Omit<Subscription, 'id'>, 
-  userId: string, 
-  userName: string
+  _userId: string, 
+  _userName: string
 ): Promise<string> => {
     const db = getDb();
     const subRef = doc(collection(db, 'memberSubscriptions'));
@@ -203,7 +218,7 @@ export const createSubscription = async (
         transaction.set(saleRef, saleData);
         
         // 3. Обновяваме последната дата на плащане в профила на члена
-        const memberRef = doc(db, 'members', subscription.memberId);
+        const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
         transaction.update(memberRef, { 
             lastPaymentDate: new Date().toISOString() 
         });
@@ -215,6 +230,11 @@ export const createSubscription = async (
 export const updateSubscription = async (id: string, subscriptionUpdate: Partial<Subscription>): Promise<void> => {
     const db = getDb();
     const subRef = doc(db, SUBSCRIPTIONS_COLLECTION, id);
-    Object.keys(subscriptionUpdate).forEach(key => (subscriptionUpdate as any)[key] === undefined && delete (subscriptionUpdate as any)[key]);
-    await updateDoc(subRef, subscriptionUpdate);
+    const cleanSubscriptionUpdate: { [key: string]: unknown } = {};
+    Object.entries(subscriptionUpdate).forEach(([key, value]) => {
+        if (value !== undefined) {
+            cleanSubscriptionUpdate[key] = value;
+        }
+    });
+    await updateDoc(subRef, cleanSubscriptionUpdate);
 };

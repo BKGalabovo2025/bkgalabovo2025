@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText } from 'lucide-react';
+import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText, Settings, Tag } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -39,14 +39,33 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
+
+        {/* Updated Finances Section */}
         <SidebarMenuItem>
           <Link href="/finances" passHref>
-            <SidebarMenuButton isActive={pathname.startsWith('/finances')}>
+            <SidebarMenuButton isActive={pathname === '/finances'}>
               <CreditCard className="w-4 h-4" />
-              <span>Финанси</span>
+              <span>Финанси (общ)</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Link href="/finances/services" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/finances/services')}>
+              <Settings className="w-4 h-4" />
+              <span>Услуги</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <Link href="/finances/prices" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/finances/prices')}>
+              <Tag className="w-4 h-4" />
+              <span>Цени</span>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+
         <SidebarMenuItem>
           <Link href="/inventory" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/inventory')}>

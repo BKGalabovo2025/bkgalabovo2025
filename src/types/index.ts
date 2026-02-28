@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { Member } from './member.types'; // Explicit import to fix resolution issues
 
 // This file is the single source of truth for all data structures in the application.
@@ -9,13 +10,22 @@ export { type Member, MemberSchema } from './member.types';
 // =================================================================
 
 /**
- * Represents a family unit, grouping multiple members.
+ * Zod schema for validating family data.
+ * This ensures that family objects are structured correctly, including timestamps.
  */
-export type Family = {
-  id: string;
-  name: string;
-  memberIds: string[];
-};
+export const FamilySchema = z.object({
+    id: z.string().min(1, "ID is required."),
+    name: z.string().min(1, "Family name is required."),
+    memberIds: z.array(z.string()).default([]),
+    createdAt: z.string().datetime({ message: "Invalid creation date format" }).optional(),
+    updatedAt: z.string().datetime({ message: "Invalid update date format" }).optional(),
+});
+
+/**
+ * Represents a family unit, grouping multiple members.
+ * Type is inferred from the Zod schema to ensure consistency.
+ */
+export type Family = z.infer<typeof FamilySchema>;
 
 /**
  * Represents a physical product sold by the club.
@@ -79,6 +89,38 @@ export type Payment = {
 // =================================================================
 
 /**
+ * Represents a single, manageable price point in the system.
+ * This allows prices to be updated dynamically from a settings panel.
+ */
+export type Price = {
+  id: string; // A unique, machine-readable key (e.g., "SUBSCRIPTION_CHILDREN_MONTHLY")
+  name: string; // A human-readable name (e.g., "Месечен абонамент за деца")
+  description?: string; // Optional further details
+  value: number; // The price in the smallest currency unit (e.g., cents)
+  currency: 'EUR' | 'BGN';
+  isActive: boolean; // Allows deactivating a price without deleting it
+  updatedAt: string; // ISO 8601 timestamp of the last modification
+  updatedBy: {
+    userId: string;
+    userName: string;
+  };
+};
+
+/**
+ * Represents a historical log entry for any change made to a Price.
+ */
+export type PriceHistory = {
+  id: string;
+  priceId: string; // The ID of the Price entity that was changed
+  timestamp: string; // ISO 8601 timestamp of when the change occurred
+  userId: string;
+  userName: string;
+  oldValue: number; // The price value before the change
+  newValue: number; // The price value after the change
+  notes?: string; // Optional notes from the user who made the change
+};
+
+/**
  * Defines the type for a group targeted by a service.
  */
 export type TargetGroup = 'Деца' | 'Любители' | 'Състезатели' | 'Професионалисти';
@@ -132,6 +174,10 @@ export type ClubService = {
   };
   specialRights: SpecialRight[];
   cancellationPolicy: CancellationPolicy;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+  createdBy: { userId: string, userName: string };
+  updatedBy: { userId: string, userName: string };
 };
 
 export type PaymentHistoryItem = { 

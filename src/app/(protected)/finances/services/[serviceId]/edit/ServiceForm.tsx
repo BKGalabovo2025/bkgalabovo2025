@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -15,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
+import { Price } from '@/types';
+import { formatPrice } from '@/lib/currency';
 
 // --- Types ---
 interface Service {
@@ -33,25 +36,34 @@ interface Service {
     apparelCondition?: string;
     apparelPaymentCount?: number;
     durationMinutes?: number;
+    priceId?: string;
+}
+
+// This interface defines the props expected by the ServiceForm component.
+// It requires both a `service` object and an `activePrices` array.
+interface ServiceFormProps {
+    service: Service;
+    activePrices: Price[];
 }
 
 // --- Submit Button ---
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
     <Button type="submit" size="lg" disabled={isPending}>
-      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       Запази промените
     </Button>
   );
 }
 
 // --- The Form Component ---
-export default function ServiceForm({ service }: { service: Service }) {
+export default function ServiceForm({ service, activePrices }: ServiceFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  
-  const { user, loading } = useAuth(); // Get user from AuthContext
+  const { user, loading } = useAuth();
+
+  const initialPriceId = service.priceId || activePrices.find(p => p.value === service.price)?.id;
 
   // Local state for UI interactivity
   const [serviceType, setServiceType] = useState(service.type);
@@ -76,7 +88,7 @@ export default function ServiceForm({ service }: { service: Service }) {
 
     startTransition(async () => {
         try {
-            const idToken = await user.getIdToken(true); // Force refresh token
+            const idToken = await user.getIdToken(true);
             const result = await updateClubService(service.id, idToken, { message: '' }, formData);
 
             if (result && result.message) {
@@ -97,7 +109,7 @@ export default function ServiceForm({ service }: { service: Service }) {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Редактиране на услуга</h1>
       <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
-        
+
         <Card>
           <CardHeader><CardTitle>Основна информация</CardTitle></CardHeader>
           <CardContent className="space-y-6">
@@ -110,16 +122,21 @@ export default function ServiceForm({ service }: { service: Service }) {
               <Label htmlFor="description">Описание</Label>
               <Textarea id="description" name="description" defaultValue={service.description || ''} rows={5} />
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Цена (в {service.currency})</Label>
-                <Input id="price" name="price" type="number" defaultValue={service.price} required step="0.01" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currency">Валута</Label>
-                <Input id="currency" name="currency" value={service.currency} readOnly className="bg-gray-100" />
-              </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="priceId">Цена</Label>
+              <Select name="priceId" defaultValue={initialPriceId}>
+                <SelectTrigger id="priceId">
+                  <SelectValue placeholder="Изберете цена" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activePrices.map((price) => (
+                    <SelectItem key={price.id} value={price.id}>
+                      {`${price.name} (${formatPrice(price.value, price.currency)})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -161,16 +178,16 @@ export default function ServiceForm({ service }: { service: Service }) {
             <CardHeader><CardTitle>Настройки за абонамент</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                  <Label>Период на таксуване</Label>
+                  <Label htmlFor="billingPeriod">Период на таксуване</Label>
                   <Select name="billingPeriod" defaultValue={service.billingPeriod || 'Месечен'}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger id="billingPeriod"><SelectValue /></SelectTrigger>
                       <SelectContent>
                           <SelectItem value="Месечен">Месечен</SelectItem>
                           <SelectItem value="Годишен">Годишен</SelectItem>
                       </SelectContent>
                   </Select>
               </div>
-              
+
               <div className="space-y-4 rounded-md border p-4">
                   <div className="flex items-center justify-between">
                       <Label htmlFor="grantsLicense">Дава право на картотека</Label>
@@ -178,9 +195,9 @@ export default function ServiceForm({ service }: { service: Service }) {
                   </div>
                   {grantsLicense && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
-                          <Label>Условие за получаване</Label>
+                          <Label htmlFor="licenseCondition">Условие за получаване</Label>
                           <Select name="licenseCondition" value={licenseCondition} onValueChange={(val) => setLicenseCondition(val as any)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="licenseCondition"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="След N плащания">След N плащания</SelectItem>
                                 <SelectItem value="Веднага">Веднага</SelectItem>
@@ -203,9 +220,9 @@ export default function ServiceForm({ service }: { service: Service }) {
                   </div>
                   {grantsApparel && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
-                          <Label>Условие за получаване</Label>
+                          <Label htmlFor="apparelCondition">Условие за получаване</Label>
                           <Select name="apparelCondition" value={apparelCondition} onValueChange={(val) => setApparelCondition(val as any)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="apparelCondition"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="След N плащания">След N плащания</SelectItem>
                                 <SelectItem value="Веднага">Веднага</SelectItem>

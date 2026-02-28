@@ -1,16 +1,21 @@
 /**
- * Централизиран файл за имената на всички Firestore колекции.
- * Използването на този обект вместо ръчно изписани низове ("magic strings")
- * предотвратява грешки при изписване и улеснява бъдещи промени.
+ * A centralized file for all Firestore collection names.
+ * Using this constant object instead of hard-coded "magic strings"
+ * prevents typos and simplifies future maintenance and refactoring.
  */
 export const FIRESTORE_COLLECTIONS = {
+    ATTENDANCE: 'attendance',
     CLUB_SERVICES: 'clubServices',
     EVENTS: 'events',
     FAMILIES: 'families',
     INVENTORY_EVENTS: 'inventoryEvents',
-    MEMBER_SUBSCRIPTIONS: 'memberSubscriptions',
     MEMBERS: 'members',
+    PAYMENTS: 'payments',
+    PRICES: 'prices',
     PRODUCTS: 'products',
+    REMINDERS: 'reminders',
     SALES: 'sales',
     SERVICE_HISTORY: 'serviceHistory',
+    SUBSCRIPTIONS: 'subscriptions',
+    USERS: 'users',
 } as const;

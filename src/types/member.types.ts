@@ -1,41 +1,46 @@
 import { z } from 'zod';
 
 /**
- * Zod схема за валидация на данните за член на клуба.
- * Тази схема гарантира, че данните, идващи от Firestore, 
- * отговарят на очакваната структура, преди да бъдат използвани в приложението.
+ * Zod schema for validating club member data.
+ * This schema ensures that data retrieved from Firestore conforms to the expected structure 
+ * before being used in the application, including robust date validation.
  */
 export const MemberSchema = z.object({
-    // Основни полета, които трябва да съществуват
-    id: z.string().min(1, "ID е задължително поле."),
-    firstName: z.string().min(1, "Първото име е задължително."),
-    lastName: z.string().min(1, "Фамилията е задължителна."),
-    registrationDate: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Невалиден формат на дата за регистрация" }),
+    // --- Core Fields ---
+    id: z.string().min(1, "ID is a required field."),
+    firstName: z.string().min(1, "First name is required."),
+    lastName: z.string().min(1, "Last name is required."),
+    name: z.string(), // This is a derived field, added in the code, not in the database
     status: z.enum(['active', 'inactive', 'suspended']),
-    lastPaymentDate: z.string().refine(val => val === null || !isNaN(Date.parse(val)), { message: "Невалиден формат на дата за последно плащане" }).nullable().optional(),
 
-    // Напълно незадължителни (nullable) полета
+    // --- Date Fields (as ISO strings) ---
+    registrationDate: z.string().datetime({ message: "Invalid registration date format" }),
+    updatedAt: z.string().datetime({ message: "Invalid update date format" }).optional(),
+    lastPaymentDate: z.string().datetime({ message: "Invalid last payment date format" }).nullable().optional(),
+    dateOfBirth: z.string().datetime({ message: "Invalid birth date format" }).nullable().optional(),
+
+    // --- Optional Contact & Personal Info ---
     middleName: z.string().nullable().optional(),
-    email: z.string().email("Невалиден имейл адрес").nullable().optional(),
+    email: z.string().email("Invalid email address").nullable().optional(),
     phone: z.string().nullable().optional(),
     phoneType: z.enum(['personal', 'parent']).nullable().optional(),
-    dateOfBirth: z.string().refine(val => val === null || !isNaN(Date.parse(val)), { message: "Невалиден формат на рождена дата" }).nullable().optional(),
-    avatarUrl: z.string().url("Невалиден URL на аватар").nullable().optional(),
-    familyId: z.string().nullable().optional(),
-    relatedMemberId: z.string().nullable().optional(), // Added to support family subscriptions
+    avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
     educationInstitution: z.string().nullable().optional(),
     personalId: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
-    analysisCache: z.unknown().nullable().optional(),
-    suspended: z.boolean().optional(),
 
-    // Производно поле, което не е в базата данни, но се добавя в кода
-    name: z.string(), // Името вече е задължително
+    // --- Family & Relations ---
+    familyId: z.string().nullable().optional(),
+    relatedMemberId: z.string().nullable().optional(), // Used for family subscriptions
+
+    // --- Miscellaneous ---
+    suspended: z.boolean().optional(),
+    analysisCache: z.unknown().nullable().optional(),
 });
 
 /**
- * TypeScript тип, изведен от Zod схемата.
- * Този тип се използва в цялото приложение за гарантиране на типовата безопасност.
+ * TypeScript type inferred from the Zod schema.
+ * This type is used throughout the application to ensure type safety.
  */
 export type Member = z.infer<typeof MemberSchema>;

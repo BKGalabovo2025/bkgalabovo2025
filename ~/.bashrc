@@ -1,0 +1,1 @@
+export PATH=~/.n/bin:$PATH

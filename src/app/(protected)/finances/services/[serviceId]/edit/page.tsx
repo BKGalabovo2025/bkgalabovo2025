@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import ServiceForm from './ServiceForm';
 import { Loader2 } from 'lucide-react';
+import { getActivePrices } from '@/services/price-service';
+import { Price } from '@/types';
 
 // --- Type Definition ---
 interface Service {
@@ -22,6 +24,7 @@ interface Service {
     apparelCondition?: string;
     apparelPaymentCount?: number;
     durationMinutes?: number;
+    priceId?: string;
 }
 
 // --- Page Component (Client Component) ---
@@ -29,21 +32,26 @@ export default function EditServicePage() {
     const params = useParams();
     const serviceId = params.serviceId as string;
     const [service, setService] = useState<Service | null>(null);
+    const [activePrices, setActivePrices] = useState<Price[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     useEffect(() => {
         if (!serviceId) return;
 
-        const fetchService = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`/api/services/${serviceId}`);
-                if (!response.ok) {
+                const serviceResponse = await fetch(`/api/services/${serviceId}`);
+                if (!serviceResponse.ok) {
                     throw new Error('Failed to fetch service');
                 }
-                const data = await response.json();
-                setService(data);
+                const serviceData = await serviceResponse.json();
+                
+                const pricesData = await getActivePrices();
+
+                setService(serviceData);
+                setActivePrices(pricesData);
             } catch (err) {
                 setError(true);
                 console.error(err);
@@ -51,7 +59,7 @@ export default function EditServicePage() {
             setLoading(false);
         };
 
-        fetchService();
+        fetchData();
     }, [serviceId]);
 
     if (loading) {
@@ -70,5 +78,5 @@ export default function EditServicePage() {
         return null; // Or some other placeholder
     }
 
-    return <ServiceForm service={service} />;
+    return <ServiceForm service={service} activePrices={activePrices} />;
 }

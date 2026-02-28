@@ -1,11 +1,12 @@
 
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where, serverTimestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 import { Member, MemberSchema } from '@/types/member.types';
 
 const MEMBERS_COLLECTION = FIRESTORE_COLLECTIONS.MEMBERS;
 
+// Converts a Firestore document to a Member object with robust validation.
 export const docToMember = (docSnap: any): Member | null => {
     if (!docSnap.exists()) {
         console.warn(`docToMember: Document with ID ${docSnap.id} does not exist.`);
@@ -14,40 +15,29 @@ export const docToMember = (docSnap: any): Member | null => {
 
     const data = docSnap.data();
 
-    const toISODate = (date: any): string | null => {
+    // Helper to gracefully convert Timestamps to ISO strings.
+    const toISODate = (date: any): string | undefined => {
         if (date instanceof Timestamp) {
             return date.toDate().toISOString();
-        } else if (typeof date === 'string' && !isNaN(Date.parse(date))) {
-            return date;
-        } else if (date) {
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString();
         }
-        return null;
+        // Return undefined for invalid or missing dates to let Zod handle it.
+        return undefined;
     };
     
-    const name = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ') || '';
+    const name = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ');
 
+    // Prepare the data for Zod parsing.
     const dataToParse = {
         ...data,
         id: docSnap.id,
         name: name,
-        middleName: data.middleName || null,
-        email: data.email || null,
-        phone: data.phone || null,
-        phoneType: data.phoneType || null,
-        avatarUrl: data.avatarUrl || null,
-        familyId: data.familyId || null,
-        educationInstitution: data.educationInstitution || null,
-        personalId: data.personalId || null,
-        address: data.address || null,
-        notes: data.notes || null,
-        analysisCache: data.analysisCache || null,
         dateOfBirth: toISODate(data.dateOfBirth),
-        registrationDate: toISODate(data.registrationDate) || toISODate(data.createdAt) || new Date().toISOString(),
+        registrationDate: toISODate(data.registrationDate) || new Date().toISOString(),
+        updatedAt: toISODate(data.updatedAt),
     };
 
     try {
+        // Use Zod to validate and parse the data.
         return MemberSchema.parse(dataToParse);
     } catch (error) {
         console.error(`docToMember: Zod validation failed for document ID ${docSnap.id}.`, error);
@@ -55,6 +45,7 @@ export const docToMember = (docSnap: any): Member | null => {
     }
 };
 
+// Fetches a single member by their ID.
 export const getMemberById = async (id: string): Promise<Member | null> => {
     if (!id || id === 'undefined') {
         console.error(`getMemberById was called with an invalid ID: ${id}`);
@@ -66,6 +57,7 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
     return docToMember(docSnap);
 };
 
+// Fetches multiple members by their IDs.
 export const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
     if (!ids || ids.length === 0) {
         return [];
@@ -77,6 +69,7 @@ export const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
     return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
+// Fetches all members from the database.
 export const getAllMembers = async (): Promise<Member[]> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
@@ -84,48 +77,54 @@ export const getAllMembers = async (): Promise<Member[]> => {
   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
-
-export const addMember = async (memberData: Omit<Member, 'id' | 'name'>): Promise<string> => {
+// Adds a new member to the database, using server-side timestamps.
+export const addMember = async (memberData: Omit<Member, 'id' | 'name' | 'registrationDate' | 'updatedAt'>): Promise<string> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
-  const dataToAdd: { [key: string]: any } = {
+  
+  const dataToAdd = {
     ...memberData,
     dateOfBirth: memberData.dateOfBirth ? Timestamp.fromDate(new Date(memberData.dateOfBirth)) : null,
-    registrationDate: memberData.registrationDate ? Timestamp.fromDate(new Date(memberData.registrationDate)) : Timestamp.now(),
+    registrationDate: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
-
-  Object.keys(dataToAdd).forEach(key => {
-      if (dataToAdd[key] === undefined || dataToAdd[key] === null) {
-          delete dataToAdd[key];
-      }
-  });
 
   const docRef = await addDoc(membersCollection, dataToAdd);
   return docRef.id;
 };
 
+// Updates an existing member in the database, using server-side timestamps.
 export const updateMember = async (id: string, memberData: Partial<Omit<Member, 'id' | 'name'>>): Promise<void> => {
   const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
-  const dataToUpdate: { [key: string]: any } = { ...memberData };
+  
+  const dataToUpdate: { [key: string]: any } = {
+    ...memberData,
+    updatedAt: serverTimestamp(),
+  };
+
   if (memberData.dateOfBirth) {
       dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(memberData.dateOfBirth as string));
   }
-  if (memberData.registrationDate) {
-      dataToUpdate.registrationDate = Timestamp.fromDate(new Date(memberData.registrationDate as string));
-  }
-
-  Object.keys(dataToUpdate).forEach(key => {
-      if (dataToUpdate[key] === undefined) {
-          delete dataToUpdate[key];
-      }
-  });
 
   await updateDoc(memberRef, dataToUpdate);
 };
 
+// Deletes a member from the database.
 export const deleteMember = async (id: string): Promise<void> => {
   const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
   await deleteDoc(memberRef);
+};
+
+// Fetches all members belonging to a specific family ID.
+export const getMembersByFamilyId = async (familyId: string): Promise<Member[]> => {
+    if (!familyId) return [];
+
+    const db = getDb();
+    const membersCollection = collection(db, MEMBERS_COLLECTION);
+    const q = query(membersCollection, where("familyId", "==", familyId));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
