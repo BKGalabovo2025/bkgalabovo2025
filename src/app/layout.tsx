@@ -1,9 +1,23 @@
 
 import type { Metadata } from 'next';
+import { Poppins, PT_Sans } from 'next/font/google'; // Import the correct fonts
 import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+
+// Font configuration based on docs/blueprint.md
+const fontSans = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-sans', // Use for body text
+});
+
+const fontHeading = Poppins({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-heading', // Use for headings
+});
 
 export const metadata: Metadata = {
   title: 'Badminton Club Admin',
@@ -17,12 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <body 
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

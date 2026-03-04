@@ -5,7 +5,7 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 const config: Config = {
   darkMode: 'class',
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}', // Correctly scan all relevant files in the src directory
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     container: {
@@ -16,6 +16,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)'], // Set body font to PT Sans
+        heading: ['var(--font-heading)'], // Set heading font to Poppins
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
