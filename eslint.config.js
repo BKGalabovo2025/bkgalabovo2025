@@ -1,3 +1,4 @@
+
 const globals = require("globals");
 const react = require("eslint-plugin-react");
 const jsxA11y = require("eslint-plugin-jsx-a11y");
@@ -9,6 +10,7 @@ const nextPlugin = require("@next/eslint-plugin-next");
 module.exports = [
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
+    ignores: [".next/"], // Ignore the .next directory
     languageOptions: {
       parser: tsParser,
       parserOptions: {
