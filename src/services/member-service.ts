@@ -40,7 +40,8 @@ export const docToMember = (docSnap: any): Member | null => {
         // Use Zod to validate and parse the data.
         return MemberSchema.parse(dataToParse);
     } catch (error) {
-        console.error(`docToMember: Zod validation failed for document ID ${docSnap.id}.`, error);
+        // Добавете този ред, за да видите ID-то и съдържанието на документа
+        console.error(`Валидацията не успя за ID ${docSnap.id}. Данни:`, dataToParse); 
         return null; 
     }
 };

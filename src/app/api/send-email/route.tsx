@@ -80,6 +80,10 @@ export async function POST(request: Request) {
         user: user,
         pass: pass, // This should be a Google App Password
       },
+      // Add TLS configuration for better compatibility, especially in local/dev environments
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const mailOptions = {
