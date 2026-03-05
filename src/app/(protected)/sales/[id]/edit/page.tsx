@@ -1,14 +1,14 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 
 import { getSaleById, updateSale } from '@/services/sales-service';
 import { getAllMembers } from '@/services/member-service';
 import { useProducts } from '@/hooks/useProducts';
-import { Product, Member, Sale } from '@/types';
+import { Member, Sale, Product } from '@/types';
 import { formatPrice } from '@/lib/currency';
 
 import { Button } from "@/components/ui/button";
@@ -80,28 +80,27 @@ const EditSalePage = () => {
         setTotalAmount(newTotal);
     }, [cart]);
 
-    const addToCart = (productId: string) => {
-        const productToAdd = allProducts.find(p => p.id === productId);
-        if (!productToAdd) return;
+    const addToCart = (product: Product) => {
+        if (!product) return;
 
         setCart(prevCart => {
-            const existingItem = prevCart.find(item => item.productId === productId);
-            const stock = productToAdd.stock || 0;
+            const existingItem = prevCart.find(item => item.productId === product.id);
+            const stock = product.stock || 0;
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
-                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${productToAdd.name} available.`, variant: "destructive" });
+                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${product.name} available.`, variant: "destructive" });
                     return prevCart;
                 }
                 return prevCart.map(item => 
-                    item.productId === productId ? { ...item, quantity: newQuantity } : item
+                    item.productId === product.id ? { ...item, quantity: newQuantity } : item
                 );
             } else {
                 if (stock < 1) {
-                    toast({ title: "Out of stock", description: `Product ${productToAdd.name} is out of stock.`, variant: "destructive" });
+                    toast({ title: "Out of stock", description: `Product ${product.name} is out of stock.`, variant: "destructive" });
                     return prevCart;
                 }
-                return [...prevCart, { productId: productToAdd.id, name: productToAdd.name, price: productToAdd.price, quantity: 1 }];
+                return [...prevCart, { productId: product.id, name: product.name, price: product.price, quantity: 1 }];
             }
         });
     };
@@ -133,23 +132,31 @@ const EditSalePage = () => {
 
         setIsSubmitting(true);
         try {
-            const selectedMember = members.find(m => m.id === selectedMemberId);
-            
             await updateSale(saleId, {
                 items: cart,
-                memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : '',
+                memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : null,
                 status: paymentStatus,
             });
 
             toast({ title: "Success!", description: "Sale updated successfully." });
             router.push(`/sales/${saleId}`);
-        } catch (error: any) {
-            console.error("Error updating sale:", error);
-            toast({ title: "Error", description: error.message || "An error occurred while updating the sale.", variant: "destructive" });
+        } catch (error) {
+            const err = error as Error;
+            console.error("Error updating sale:", err);
+            toast({ title: "Error", description: err.message || "An error occurred while updating the sale.", variant: "destructive" });
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    const availableProducts = useMemo(() => allProducts.filter(p => {
+        const itemInCart = cart.find(item => item.productId === p.id);
+        const cartQuantity = itemInCart?.quantity || 0;
+        const originalItem = initialSale?.items.find(item => item.productId === p.id);
+        const originalQuantity = originalItem?.quantity || 0;
+        const currentStock = (p.stock || 0) + originalQuantity;
+        return currentStock - cartQuantity > 0;
+    }), [allProducts, cart, initialSale]);
 
     const isLoading = productsLoading || membersLoading || isPageLoading;
 
@@ -158,14 +165,8 @@ const EditSalePage = () => {
     }
     
     if (productsError) {
-        return <div className="text-center py-10 text-red-500">{productsError.message}</div>;
+        return <div className="text-center py-10 text-red-500">An error occurred while fetching products.</div>;
     }
-
-    const availableProducts = allProducts.filter(p => {
-        const itemInCart = cart.find(item => item.productId === p.id);
-        const cartQuantity = itemInCart?.quantity || 0;
-        return (p.stock || 0) - cartQuantity > 0 || cartQuantity > 0;
-    });
 
     return (
         <div className="p-4 sm:p-6">
@@ -192,13 +193,13 @@ const EditSalePage = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {allProducts.map(product => (
+                                    {availableProducts.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{formatPrice(product.price)}</TableCell>
+                                            <TableCell className="text-right">{formatPrice(product.price * 100)}</TableCell>
                                             <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button size="sm" onClick={() => addToCart(product.id)} >
+                                                <Button size="sm" onClick={() => addToCart(product)} >
                                                     <PlusCircle className="h-4 w-4" />
                                                 </Button>
                                             </TableCell>
@@ -236,7 +237,7 @@ const EditSalePage = () => {
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
                                                 <p className="font-medium">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
+                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price * 100)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -272,7 +273,7 @@ const EditSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Total:</span>
-                                    <span>{formatPrice(totalAmount)}</span>
+                                    <span>{formatPrice(totalAmount * 100)}</span>
                                 </div>
                                 <Button onClick={handleUpdateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

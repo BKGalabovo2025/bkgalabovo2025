@@ -15,11 +15,10 @@ import Link from 'next/link'
 import { Service } from './service.types' // FIX: Corrected the import path
 
 interface DataTableRowActionsProps<TData> {
-  row: Row<TData>
   service: Service
 }
 
-export function DataTableRowActions<TData>({ row, service }: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions<TData>({ service }: DataTableRowActionsProps<TData>) {
 
   return (
     <DropdownMenu>

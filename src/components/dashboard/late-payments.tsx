@@ -1,33 +1,38 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { bg } from 'date-fns/locale';
 
+interface Debtor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  lastPaymentDate?: Timestamp | Date | string;
+}
+
 export function LatePayments() {
-  const [debtors, setDebtors] = useState<any[]>([]);
+  const [debtors, setDebtors] = useState<Debtor[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to safely convert date values
-  const toSafeDate = (date: any): Date | null => {
+  const toSafeDate = (date: Timestamp | Date | string | null): Date | null => {
     if (!date) return null;
-    if (typeof date.toDate === 'function') return date.toDate(); // Firestore Timestamp
-    if (date instanceof Date) return date; // Already a Date object
-    if (typeof date === 'string') return new Date(date); // ISO string
-    if (typeof date === 'number') return new Date(date); // Milliseconds
+    if (date instanceof Timestamp) return date.toDate();
+    if (date instanceof Date) return date;
+    if (typeof date === 'string') return new Date(date);
     return null;
   };
 
-  const fetchDebtors = async () => {
+  const fetchDebtors = useCallback(async () => {
     try {
       const q = query(collection(getDb(), "members"), where("status", "==", "active"));
       const snapshot = await getDocs(q);
       const today = new Date();
       
       const overdue = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter((member: any) => {
+        .map(doc => ({ id: doc.id, ...doc.data() } as Debtor))
+        .filter((member: Debtor) => {
           if (!member.lastPaymentDate) return true;
           const lastDate = toSafeDate(member.lastPaymentDate);
           if (!lastDate) return true; // Treat as overdue if date is invalid
@@ -41,7 +46,7 @@ export function LatePayments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleQuickPayment = async (memberId: string, name: string) => {
     if (!confirm(`Маркиране на месечната такса като платена за ${name}?`)) return;
@@ -68,12 +73,13 @@ export function LatePayments() {
       fetchDebtors(); // Опресняваме списъка на екрана
     } catch (err) {
       alert('Грешка при запис на плащането.');
+      console.error("Error handling quick payment:", err);
     }
   };
 
   useEffect(() => {
     fetchDebtors();
-  }, []);
+  }, [fetchDebtors]);
 
   if (loading) return <p className="text-sm italic">Проверка...</p>;
 

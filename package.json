@@ -8,9 +8,11 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:css": "stylelint \"**/*.{css,scss}\"",
+    "lint:css:fix": "stylelint \"**/*.{css,scss}\" --fix",
     "typecheck": "tsc --noEmit",
-    "check-all": "npm run lint && npx tsc --noEmit && npm run build",
+    "check-all": "npm run lint && npm run lint:css && npx tsc --noEmit && npm run build",
     "security-check": "npm audit"
   },
   "dependencies": {
@@ -74,6 +76,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.1.6",
+    "@stylistic/stylelint-plugin": "^5.0.1",
     "@types/node": "^25.0.10",
     "@types/nodemailer": "7.0.11",
     "@types/react": "^19.2.10",
@@ -84,6 +87,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "genkit-cli": "1.29.0",
     "postcss": "8.5.6",
+    "stylelint": "^17.4.0",
+    "stylelint-config-recommended-scss": "^17.0.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-config-tailwindcss": "^1.0.1",
     "tailwindcss": "4.2.1",
     "typescript": "^5"
   },

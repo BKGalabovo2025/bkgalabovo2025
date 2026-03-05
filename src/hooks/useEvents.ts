@@ -9,7 +9,7 @@ import { formatFullName } from '@/lib/utils';
 
 type NewEvent = Omit<ScheduleEvent, 'id'>;
 
-const toISOStringOrUndefined = (date: any): string | undefined => {
+const toISOStringOrUndefined = (date: Date | Timestamp | string | undefined): string | undefined => {
     if (!date) return undefined;
     if (date instanceof Timestamp) return date.toDate().toISOString();
     if (date instanceof Date) return date.toISOString();
@@ -49,7 +49,7 @@ export const useEvents = () => {
                     ...data,
                     startDate: toISOStringOrUndefined(data.startDate),
                     endDate: toISOStringOrUndefined(data.endDate),
-                     attendees: (data.attendees || []).map((attendee: any) => ({
+                     attendees: (data.attendees || []).map((attendee: Attendee) => ({
                         ...attendee,
                         name: members.find(m => m.id === attendee.memberId)?.name || attendee.name || 'Unknown'
                     })),
@@ -123,8 +123,8 @@ export const useEvents = () => {
             originalEvents = currentEvents;
             const optimisticPayload = {
                 ...eventData,
-                startDate: toISOStringOrUndefined(eventData.startDate),
-                endDate: toISOStringOrUndefined(eventData.endDate),
+                startDate: toISOStringOrUndefined(eventData.startDate as Date | Timestamp | string | undefined),
+                endDate: toISOStringOrUndefined(eventData.endDate as Date | Timestamp | string | undefined),
             };
             return currentEvents.map(e => 
                 e.id === eventId ? { ...e, ...optimisticPayload } as ScheduleEvent : e

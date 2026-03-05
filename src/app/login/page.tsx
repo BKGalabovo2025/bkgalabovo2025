@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,9 +29,10 @@ const LoginPage = () => {
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: 'Успешен вход', description: 'Пренасочваме ви към таблото за управление...' });
       router.push('/dashboard'); // Redirect to a protected route on successful login
-    } catch (err: any) {
+    } catch (err) {
         let errorMessage = "Възникна грешка при входа. Моля, опитайте отново.";
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        const firebaseError = err as AuthError;
+        if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
             errorMessage = "Грешен имейл или парола.";
         }
         setError(errorMessage);

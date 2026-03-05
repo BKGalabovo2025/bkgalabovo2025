@@ -4,15 +4,21 @@ import * as React from 'react';
 import { render } from '@react-email/render';
 import { z } from 'zod';
 
-import { ReminderEmail } from '@/components/emails/reminder-email';
-import { ReservationConfirmationEmail } from '@/components/emails/reservation-confirmation-email';
+import { ReminderEmail, ReminderEmailProps } from '@/components/emails/reminder-email';
+import { ReservationConfirmationEmail, ReservationConfirmationEmailProps } from '@/components/emails/reservation-confirmation-email';
 
+// Define the data types for each email template
+type EmailTemplateData = {
+    reminder: ReminderEmailProps;
+    reservationConfirmation: ReservationConfirmationEmailProps;
+    // Add other templates here...
+};
 
 // A mapping of template names to their components and text generators
-const templates: { [key: string]: { component: React.ComponentType<any>; getText: (data: any) => string; } } = {
+const templates = {
     reminder: {
         component: ReminderEmail,
-        getText: (data: any) => {
+        getText: (data: ReminderEmailProps) => {
             if (data.memberName) {
                 return `Здравейте, ${data.memberName}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово. Моля, свържете се с нас за повече информация.`;
             }
@@ -21,7 +27,7 @@ const templates: { [key: string]: { component: React.ComponentType<any>; getText
     },
     reservationConfirmation: {
         component: ReservationConfirmationEmail,
-        getText: (data: any) => {
+        getText: (data: ReservationConfirmationEmailProps) => {
             const { clientName, startTime, endTime, courtId } = data;
             // Important: Re-create Date objects if they are passed as strings
             const formattedStartTime = new Date(startTime).toLocaleString('bg-BG', { dateStyle: 'full', timeStyle: 'short' });
@@ -34,9 +40,28 @@ const templates: { [key: string]: { component: React.ComponentType<any>; getText
 const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
-  template: z.enum(['reminder', 'reservationConfirmation']), // Добавяй новите шаблони тук
-  data: z.record(z.string(), z.any())
+  template: z.enum(['reminder', 'reservationConfirmation']),
+  data: z.record(z.string(), z.any()) // Keep z.any() here for validation flexibility, but we will use the typed data below
 });
+
+async function renderEmailTemplate<T extends keyof EmailTemplateData>(template: T, data: EmailTemplateData[T]) {
+    let html: string;
+    let text: string;
+
+    if (template === 'reminder') {
+        const props = data as ReminderEmailProps;
+        html = await render(<ReminderEmail {...props} />);
+        text = templates.reminder.getText(props);
+    } else if (template === 'reservationConfirmation') {
+        const props = data as ReservationConfirmationEmailProps;
+        html = await render(<ReservationConfirmationEmail {...props} />);
+        text = templates.reservationConfirmation.getText(props);
+    } else {
+        throw new Error(`Unknown email template: ${template}`);
+    }
+
+    return { html, text };
+}
 
 export async function POST(request: Request) {
   try {
@@ -47,22 +72,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Невалидни данни за имейл", details: result.error.flatten() }, { status: 400 });
     }
 
-    // The payload now includes a template identifier and the data for it.
     const { to, subject, template, data } = result.data;
 
     console.log(`[send-email] Received request for: ${to}, template: ${template}`);
 
-    const templateConfig = templates[template];
-    if (!templateConfig) {
-        return NextResponse.json({ error: `Шаблонът за имейл '${template}' не е намерен.` }, { status: 400 });
-    }
-
-    const { component: EmailComponent, getText } = templateConfig;
-
-    // Render the React component to an HTML string
-    console.log(`[send-email] Rendering template '${template}' with data:`, data);
-    const html = await render(<EmailComponent {...data} />);
-    const text = getText(data);
+    const { html, text } = await renderEmailTemplate(template, data as EmailTemplateData[typeof template]);
+    
     console.log(`[send-email] Template rendered successfully. HTML length: ${html.length}`);
 
     const user = process.env.EMAIL_USER;
@@ -80,7 +95,6 @@ export async function POST(request: Request) {
         user: user,
         pass: pass, // This should be a Google App Password
       },
-      // Add TLS configuration for better compatibility, especially in local/dev environments
       tls: {
         rejectUnauthorized: false
       }
@@ -94,8 +108,8 @@ export async function POST(request: Request) {
       to: to,
       bcc: process.env.ADMIN_ARCHIVE_EMAIL || 'bkgalabovo2014@gmail.com',
       subject: subject,
-      html: html, // The rendered HTML is now used here
-      text: text, // A plain text version
+      html: html,
+      text: text,
     };
     
     console.log(`[send-email] Attempting to send email via Gmail to: ${to}`);
@@ -104,16 +118,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Email sent successfully' }, { status: 200 });
 
-  } catch (error: any) {
-    console.error('[send-email] CRITICAL: Failed to process and send email. Full Error:', JSON.stringify(error, null, 2));
+  } catch (error) {
+    const e = error as Error & { code?: string };
+    console.error('[send-email] CRITICAL: Failed to process and send email. Full Error:', JSON.stringify(e, null, 2));
     
     let errorMessage = 'Възникна грешка при изпращането на имейла.';
-    if (error.code === 'EAUTH') {
+    if (e.code === 'EAUTH') {
         errorMessage = 'Грешка при автентикация с Gmail. Проверете EMAIL_USER и EMAIL_PASS. Препоръчително е да се използва App Password.';
-    } else if (error.message.includes('template')) { // A crude way to check for template errors
-        errorMessage = error.message;
+    } else if (e.message.includes('template')) {
+        errorMessage = e.message;
     }
 
-    return NextResponse.json({ error: errorMessage, details: error.message }, { status: 500 });
+    return NextResponse.json({ error: errorMessage, details: e.message }, { status: 500 });
   }
 }

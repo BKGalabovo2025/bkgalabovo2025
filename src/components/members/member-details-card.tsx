@@ -125,6 +125,13 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                                                 key={familyMember.id} 
                                                 className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted cursor-pointer transition-colors"
                                                 onClick={() => router.push(`/members/${familyMember.id}`)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        router.push(`/members/${familyMember.id}`);
+                                                    }
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
                                             >
                                                 <Avatar className="h-9 w-9">
                                                     <AvatarImage src={familyMember.avatarUrl ?? undefined} alt={formatFullName(familyMember)} />

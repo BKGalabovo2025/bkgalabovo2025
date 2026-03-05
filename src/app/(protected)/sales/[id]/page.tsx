@@ -57,9 +57,10 @@ const SaleDetailsPage = () => {
         await deleteSale(saleId);
         toast({ title: "Success!", description: "Sale was deleted." });
         router.push('/sales');
-    } catch (error: any) {
-        console.error("Error deleting sale:", error);
-        toast({ title: "Error", description: error.message || "An error occurred while deleting the sale.", variant: "destructive" });
+    } catch (error) {
+        const err = error as Error;
+        console.error("Error deleting sale:", err);
+        toast({ title: "Error", description: err.message || "An error occurred while deleting the sale.", variant: "destructive" });
     } finally {
         setIsDeleting(false);
     }
@@ -100,7 +101,6 @@ const SaleDetailsPage = () => {
   }
   
   const isPaid = sale.isPaid;
-  const currency = sale.currency || 'EUR'; // Ensure currency is always defined
 
   return (
     <div className="p-4 sm:p-6">
@@ -115,7 +115,7 @@ const SaleDetailsPage = () => {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>Sale # {sale.id.substring(0, 8)}</CardTitle>
-                    <CardDescription>Date: {new Date(sale.saleDate).toLocaleString('en-US')}</CardDescription>
+                    <CardDescription>Date: {new Date(sale.saleDate).toLocaleString('bg-BG')}</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="secondary" onClick={() => router.push(`/sales/${saleId}/receipt`)}>
@@ -157,10 +157,10 @@ const SaleDetailsPage = () => {
                                 <div>
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {formatPrice(item.price)}
+                                        {item.quantity} x {formatPrice(item.price * 100)}
                                     </p>
                                 </div>
-                                <p className="font-semibold">{formatPrice(item.quantity * item.price)}</p>
+                                <p className="font-semibold">{formatPrice(item.quantity * item.price * 100)}</p>
                             </li>
                         ))}
                     </ul>
@@ -169,7 +169,7 @@ const SaleDetailsPage = () => {
             <CardFooter className="bg-muted/40 p-4 flex justify-end">
                  <div className="text-right">
                     <p className="text-sm text-muted-foreground">Total</p>
-                     <p className="font-bold text-2xl">{formatPrice(sale.totalAmount)}</p>
+                     <p className="font-bold text-2xl">{formatPrice(sale.totalAmount * 100)}</p>
                 </div>
             </CardFooter>
           </Card>

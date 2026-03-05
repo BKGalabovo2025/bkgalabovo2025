@@ -36,27 +36,27 @@ async function _getUser(idToken: string) {
     try {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         return await adminAuth.getUser(decodedToken.uid);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Error verifying ID token:", error);
         throw new Error("Authentication failed.");
     }
 }
 
-function _parseFormData(formData: FormData): any {
+function _parseFormData(formData: FormData): z.infer<typeof ServiceSchema> {
     return {
-        name: formData.get('name'),
-        priceId: formData.get('priceId'),
-        description: formData.get('description'),
-        type: formData.get('type'),
-        targetGroups: formData.getAll('targetGroups'),
+        name: formData.get('name') as string,
+        priceId: formData.get('priceId') as string,
+        description: formData.get('description') as string,
+        type: formData.get('type') as 'Абонамент' | 'Еднократно плащане',
+        targetGroups: formData.getAll('targetGroups') as string[],
         grantsLicense: formData.get('grantsLicense') === 'on',
         grantsApparel: formData.get('grantsApparel') === 'on',
-        billingPeriod: formData.get('billingPeriod'),
-        licenseCondition: formData.get('licenseCondition'),
-        licensePaymentCount: formData.get('licensePaymentCount'),
-        apparelCondition: formData.get('apparelCondition'),
-        apparelPaymentCount: formData.get('apparelPaymentCount'),
-        durationMinutes: formData.get('durationMinutes'),
+        billingPeriod: formData.get('billingPeriod') as string,
+        licenseCondition: formData.get('licenseCondition') as string,
+        licensePaymentCount: Number(formData.get('licensePaymentCount')),
+        apparelCondition: formData.get('apparelCondition') as string,
+        apparelPaymentCount: Number(formData.get('apparelPaymentCount')),
+        durationMinutes: Number(formData.get('durationMinutes')),
     };
 }
 
@@ -109,9 +109,9 @@ export async function updateClubService(
     revalidatePath(`/finances/services/${id}/history`);
     return { success: true, message: `Service '${dataToSave.name}' updated successfully.` };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Server Action Error:", error);
-    return { success: false, message: `Server Error: ${error.message}` };
+    return { success: false, message: `Server Error: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 
@@ -152,8 +152,8 @@ export async function createClubService(
     revalidatePath("/finances/services");
     return { success: true, message: `Service '${dataToSave.name}' created successfully.` };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Server Action Error:", error);
-    return { success: false, message: `Server Error: ${error.message}` };
+    return { success: false, message: `Server Error: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }

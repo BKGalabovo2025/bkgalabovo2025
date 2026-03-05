@@ -159,7 +159,7 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
               </div>
               <div className="space-y-3">
                   <Label>Тип на услугата</Label>
-                  <RadioGroup name="type" required value={serviceType} onValueChange={(value) => setServiceType(value as any)} className="pt-2">
+                  <RadioGroup name="type" required value={serviceType} onValueChange={(value) => setServiceType(value)} className="pt-2">
                       <div className="flex items-center space-x-2">
                           <RadioGroupItem value="Абонамент" id="type-subscription" />
                           <Label htmlFor="type-subscription" className="font-normal">Абонамент</Label>
@@ -196,7 +196,7 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
                   {grantsLicense && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
                           <Label htmlFor="licenseCondition">Условие за получаване</Label>
-                          <Select name="licenseCondition" value={licenseCondition} onValueChange={(val) => setLicenseCondition(val as any)}>
+                          <Select name="licenseCondition" value={licenseCondition} onValueChange={(val) => setLicenseCondition(val)}>
                             <SelectTrigger id="licenseCondition"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="След N плащания">След N плащания</SelectItem>
@@ -221,7 +221,7 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
                   {grantsApparel && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
                           <Label htmlFor="apparelCondition">Условие за получаване</Label>
-                          <Select name="apparelCondition" value={apparelCondition} onValueChange={(val) => setApparelCondition(val as any)}>
+                          <Select name="apparelCondition" value={apparelCondition} onValueChange={(val) => setApparelCondition(val)}>
                             <SelectTrigger id="apparelCondition"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="След N плащания">След N плащания</SelectItem>

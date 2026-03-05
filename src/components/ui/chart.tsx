@@ -104,7 +104,7 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 
 
 interface ChartTooltipContentProps extends React.ComponentProps<"div"> {
-  payload?: any[]
+  payload?: unknown[]
   label?: React.ReactNode
   hideLabel?: boolean;
   hideIndicator?: boolean;
@@ -112,8 +112,8 @@ interface ChartTooltipContentProps extends React.ComponentProps<"div"> {
   nameKey?: string;
   labelKey?: string;
   active?: boolean;
-  formatter?: (value: any, name: any, item: any, index: number, payload: any) => React.ReactNode;
-  labelFormatter?: (label: any, payload: any) => React.ReactNode;
+  formatter?: (value: unknown, name: unknown, item: unknown, index: number, payload: unknown) => React.ReactNode;
+  labelFormatter?: (label: unknown, payload: unknown) => React.ReactNode;
   color?: string;
   labelClassName?: string;
 }
@@ -147,7 +147,7 @@ const ChartTooltipContent = React.forwardRef<
     }
 
     const [item] = payload
-    const key = `${labelKey || item.dataKey || item.name || "value"}`
+    const key = `${labelKey || (item as any).dataKey || (item as any).name || "value"}`
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
       !labelKey && typeof label === "string"
@@ -266,7 +266,7 @@ ChartTooltipContent.displayName = "ChartTooltip"
 const ChartLegend = RechartsPrimitive.Legend
 
 interface ChartLegendContentProps extends React.ComponentProps<"div"> {
-  payload?: any[]
+  payload?: unknown[]
   verticalAlign?: "top" | "middle" | "bottom"
   hideIcon?: boolean;
   nameKey?: string;
@@ -327,7 +327,7 @@ ChartLegendContent.displayName = "ChartLegend"
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
-  payload: any,
+  payload: unknown,
   key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
@@ -336,24 +336,24 @@ function getPayloadConfigFromPayload(
 
   const payloadPayload =
     "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
-      ? payload.payload
+    typeof (payload as any).payload === "object" &&
+    (payload as any).payload !== null
+      ? (payload as any).payload
       : undefined
 
   let configLabelKey: string = key
 
   if (
     key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
+    typeof (payload as any)[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
+    configLabelKey = (payload as any)[key as keyof typeof payload] as string
   } else if (
     payloadPayload &&
     key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
+    typeof (payloadPayload as any)[key as keyof typeof payloadPayload] === "string"
   ) {
-    configLabelKey = payloadPayload[
+    configLabelKey = (payloadPayload as any)[
       key as keyof typeof payloadPayload
     ] as string
   }

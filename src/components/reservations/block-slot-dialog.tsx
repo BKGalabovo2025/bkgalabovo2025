@@ -80,9 +80,13 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({ children, slot
             }
             onSave?.();
             setIsOpen(false);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Failed to save blocked slot:", error);
-            toast.error(error.message || "Възникна грешка при запазването.");
+            if (error instanceof Error) {
+                toast.error(error.message || "Възникна грешка при запазването.");
+            } else {
+                toast.error("Възникна грешка при запазването.");
+            }
         } finally {
             setIsSaving(false);
         }

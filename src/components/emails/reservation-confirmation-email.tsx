@@ -1,67 +1,57 @@
-import {
-    Body,
-    Container,
-    Head,
-    Heading,
-    Hr,
-    Html,
-    Img,
-    Link,
-    Preview,
-    Section,
-    Text,
-} from '@react-email/components';
+import { Body, Container, Head, Heading, Html, Link, Preview, Text } from '@react-email/components';
 import * as React from 'react';
 
-interface ReservationConfirmationEmailProps {
-    clientName: string;
-    startTime: Date; // Sending Date object for easy formatting
-    endTime: Date;
-    courtId: number;
-    reservationId: string;
+export interface ReservationConfirmationEmailProps {
+  clientName: string;
+  startTime: string | Date;
+  endTime: string | Date;
+  courtId: string;
+  baseUrl?: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
-
-export const ReservationConfirmationEmail = ({ 
+export const ReservationConfirmationEmail: React.FC<ReservationConfirmationEmailProps> = ({ 
     clientName, 
     startTime, 
     endTime, 
     courtId, 
-    reservationId 
-}: ReservationConfirmationEmailProps) => {
-
-    const formattedStartTime = startTime.toLocaleString('bg-BG', { dateStyle: 'full', timeStyle: 'short' });
-    const formattedEndTime = endTime.toLocaleString('bg-BG', { timeStyle: 'short' });
-
-    const previewText = `Успешна резервация за корт ${courtId}`;
+    baseUrl = 'http://localhost:3001' 
+}) => {
+    const formattedStartTime = new Date(startTime).toLocaleString('bg-BG', { dateStyle: 'full', timeStyle: 'short' });
+    const formattedEndTime = new Date(endTime).toLocaleString('bg-BG', { timeStyle: 'short' });
 
     return (
         <Html>
             <Head />
-            <Preview>{previewText}</Preview>
+            <Preview>Потвърждение на резервация</Preview>
             <Body style={main}>
                 <Container style={container}>
-                    {/* <Img src={`${baseUrl}/static/logo.png`} width="40" height="37" alt="BK Galabovo Logo" style={logo} /> */}
-                    <Heading style={heading}>Вашата резервация е потвърдена!</Heading>
-                    <Text style={paragraph}>Здравейте, {clientName},</Text>
-                    <Text style={paragraph}>
-                        Благодарим Ви, че направихте резервация на корт в "Бадминтон клуб Гълъбово". По-долу ще намерите детайлите за нея:
+                    <Heading style={h1}>Потвърждение на Резервация</Heading>
+                    
+                    <Text style={text}>
+                        Здравейте, {clientName},
                     </Text>
-                    <Section style={detailsSection}>
-                        <Text style={detailsTitle}>Детайли на резервацията:</Text>
-                        <Text style={detailsItem}><strong>Корт:</strong> {courtId}</Text>
-                        <Text style={detailsItem}><strong>Дата и час:</strong> {formattedStartTime} - {formattedEndTime} ч.</Text>
-                        <Text style={detailsItem}><strong>ID на резервация:</strong> {reservationId}</Text>
-                    </Section>
-                    <Text style={paragraph}>
-                        Ако имате въпроси или се налага да промените или отмените резервацията си, моля, свържете се с нас своевременно.
+                    <Text style={text}>
+                        Вашата резервация в бадминтон клуб &quot;Гълъбово&quot; е потвърдена. По-долу са детайлите:
                     </Text>
-                    <Hr style={hr} />
-                    <Text style={footer}>"Бадминтон Клуб Гълъбово"</Text>
-                     <Text style={footer}>Спортна зала "Енергетик" град Гълъбово</Text>
+                    
+                    <Text style={detailsText}>
+                        <strong>Корт:</strong> {courtId}<br />
+                        <strong>Начален час:</strong> {formattedStartTime} ч.<br />
+                        <strong>Краен час:</strong> {formattedEndTime} ч.
+                    </Text>
+
+                    <Text style={text}>
+                        Ако имате въпроси или се нуждаете от промяна, моля, свържете се с нас.
+                    </Text>
+
+                    <Text style={text}>
+                        Очакваме Ви!
+                    </Text>
+
+                    <Text style={footer}>
+                        Бадминтон Клуб &quot;Гълъбово&quot;<br/>
+                        <Link href={baseUrl} style={link}>Посетете нашия уебсайт</Link>
+                    </Text>
                 </Container>
             </Body>
         </Html>
@@ -70,65 +60,52 @@ export const ReservationConfirmationEmail = ({
 
 export default ReservationConfirmationEmail;
 
-// --- Styles --- //
-
+// Styles
 const main = {
     backgroundColor: '#f6f9fc',
-    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+    padding: '10px 0',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
 };
 
 const container = {
     backgroundColor: '#ffffff',
-    margin: '0 auto',
-    padding: '20px 0 48px',
-    marginBottom: '64px',
     border: '1px solid #f0f0f0',
-    borderRadius: '4px',
+    padding: '20px',
+    width: '580px',
+    margin: '0 auto',
 };
 
-const heading = {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    marginTop: '48px',
-    textAlign: 'center' as const,
+const h1 = {
     color: '#333',
-};
-
-const paragraph = {
-    fontSize: '16px',
-    lineHeight: '24px',
-    color: '#555',
-    padding: '0 20px',
-};
-
-const detailsSection = {
-    backgroundColor: '#fafafa',
-    padding: '10px 20px',
-    margin: '20px 20px',
-    border: '1px solid #eaeaea',
-    borderRadius: '4px',
-};
-
-const detailsTitle = {
-    fontSize: '18px',
+    fontSize: '24px',
     fontWeight: 'bold',
-    marginBottom: '10px',
+    textAlign: 'center' as const,
+    margin: '30px 0',
 };
 
-const detailsItem = {
-    fontSize: '14px',
-    lineHeight: '22px',
-    margin: '4px 0',
+const text = {
+    color: '#555',
+    fontSize: '16px',
+    lineHeight: '1.5',
+    marginBottom: '20px',
 };
 
-const hr = {
-    borderColor: '#e6ebf1',
+const detailsText = {
+    ...text,
+    padding: '15px',
+    backgroundColor: '#f9f9f9',
+    borderLeft: '4px solid #007bff',
     margin: '20px 0',
-};
+}
 
 const footer = {
-    color: '#8898aa',
+    color: '#888',
     fontSize: '12px',
-    lineHeight: '16px',
     textAlign: 'center' as const,
+    marginTop: '30px',
+};
+
+const link = {
+    color: '#007bff',
+    textDecoration: 'none',
 };

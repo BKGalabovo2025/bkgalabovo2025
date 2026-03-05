@@ -4,7 +4,25 @@ import { getAdminDb } from '@/lib/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
-async function getService(id: string): Promise<any | null> {
+interface Service {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+    currency: string;
+    type: string;
+    billingPeriod?: string;
+    targetGroups: string[];
+    grantsLicense: boolean;
+    licenseCondition?: string;
+    licensePaymentCount?: number;
+    grantsApparel: boolean;
+    apparelCondition?: string;
+    apparelPaymentCount?: number;
+    durationMinutes?: number;
+}
+
+async function getService(id: string): Promise<Service | null> {
     if (!id) return null;
 
     const adminDb = getAdminDb();
@@ -39,9 +57,9 @@ async function getService(id: string): Promise<any | null> {
 }
 
 
-export async function GET(request: NextRequest, context: { params: Promise<{ serviceId: string }> }) {
+export async function GET(request: NextRequest, context: { params: { serviceId: string } }) {
     try {
-        const { serviceId } = await context.params;
+        const { serviceId } = context.params;
         const service = await getService(serviceId);
 
         if (!service) {

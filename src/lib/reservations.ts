@@ -118,7 +118,7 @@ export const updateReservation = async (id: string, data: Omit<Reservation, 'id'
         throw new Error("Промяната се застъпва със съществуваща резервация или блокиран час.");
     }
     const docRef = doc(db, 'reservations', id);
-    await updateDoc(docRef, data as any); // Firestore allows partial updates
+    await updateDoc(docRef, data);
 };
 
 export const getReservationsForDay = async (date: Date): Promise<Reservation[]> => {
@@ -155,7 +155,7 @@ export const updateBlockedSlot = async (id: string, data: Omit<BlockedSlot, 'id'
         throw new Error("Промяната се застъпва със съществуваща резервация или блокиран час.");
     }
     const docRef = doc(db, 'blockedSlots', id);
-    await updateDoc(docRef, data as any);
+    await updateDoc(docRef, data);
 };
 
 export const getBlockedSlotsForDay = async (date: Date): Promise<BlockedSlot[]> => {

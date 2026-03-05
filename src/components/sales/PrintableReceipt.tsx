@@ -94,7 +94,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({ sale, member
             <div>
                 <p className="text-sm text-muted-foreground">Издал:</p>
                 <p className="text-sm mt-1">(Подпис и печат)</p>
-                <p className="mt-8">/СНЦ "Бадминтон клуб Гълъбово"/</p>
+                <p className="mt-8">/СНЦ &quot;Бадминтон клуб Гълъбово&quot;/</p>
             </div>
             <div>
                     <p className="text-sm text-muted-foreground">Получил:</p>

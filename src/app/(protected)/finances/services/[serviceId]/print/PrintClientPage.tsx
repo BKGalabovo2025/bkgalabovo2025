@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Printer, Calendar, Users, Award, Shirt, Info, Clock } from "lucide-react";
+import { Printer, Calendar, Users, Award, Shirt, Clock } from "lucide-react";
 
 // --- Type Definition (includes all possible fields) ---
 interface Service {
@@ -75,7 +75,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
     return (
         <>
-            <style jsx global>{`
+            <style>{`
                 @media print {
                     body * { visibility: hidden; }
                     .printable-area, .printable-area * { visibility: visible; }

@@ -24,7 +24,7 @@ export const useSales = (memberId?: string) => {
                 ? await getSalesByMemberId(memberId) 
                 : await getSales();
             setSales(salesData);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error fetching sales:", err);
             const errorMessage = 'Неуспешно зареждане на продажбите.';
             setError(errorMessage);

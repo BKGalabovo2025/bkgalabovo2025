@@ -36,7 +36,7 @@ interface DataTableProps<TData, TValue> {
   filterPlaceholder: string,
   isLoading: boolean,
   emptyStateMessage: string,
-  getCellValue?: (row: TData, columnId: string) => any;
+  getCellValue?: (row: TData, columnId: string) => TValue;
 }
  
 export function DataTable<TData, TValue>({
@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {getCellValue 
+                      {getCellValue
                         ? getCellValue(row.original, cell.column.id)
                         : flexRender(
                             cell.column.columnDef.cell,

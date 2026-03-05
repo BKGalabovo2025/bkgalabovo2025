@@ -5,7 +5,7 @@ import { formatPrice } from '@/lib/currency'
 import { DataTableRowActions } from './DataTableRowActions'
 import { Service } from './service.types'
 
-export const columns: ColumnDef<Service, any>[] = [
+export const columns: ColumnDef<Service>[] = [
   {
     accessorFn: row => row.name,
     id: 'name',
@@ -36,10 +36,9 @@ export const columns: ColumnDef<Service, any>[] = [
   },
   {
     id: 'actions',
-    accessorFn: () => undefined, 
     cell: ({ row }) => {
       const service = row.original
-      return <DataTableRowActions row={row} service={service} />
+      return <DataTableRowActions service={service} />
     },
   },
 ]

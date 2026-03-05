@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
@@ -59,7 +60,7 @@ const ProductList = () => {
                     <div key={product.id} className="grid grid-cols-3 md:grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-card shadow-sm">
                         <div className="col-span-1 md:col-span-1 flex items-center">
                              <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                                 {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-md" /> : <ImageIcon className="text-muted-foreground" />}
+                                 {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} width={48} height={48} className="w-full h-full object-cover rounded-md" /> : <ImageIcon className="text-muted-foreground" />}
                              </div>
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
@@ -83,7 +84,7 @@ const ProductList = () => {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Това ще изтрие перманентно продукта "{productToDelete?.name}". Това действие не може да бъде отменено.
+                        Това ще изтрие перманентно продукта &quot;{productToDelete?.name}&quot;. Това действие не може да бъде отменено.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

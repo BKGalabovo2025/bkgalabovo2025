@@ -104,9 +104,13 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
             }
             onSave?.();
             setIsOpen(false);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Failed to save reservation:", error);
-            toast.error(error.message || "Възникна грешка при запазването.");
+            if (error instanceof Error) {
+                toast.error(error.message || "Възникна грешка при запазването.");
+            } else {
+                toast.error("Възникна грешка при запазването.");
+            }
         } finally {
             setIsSaving(false);
         }

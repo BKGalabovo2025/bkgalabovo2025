@@ -9,7 +9,7 @@ import { useAuth } from '@/context/auth-context';
 import { getAllMembers } from '@/services/member-service';
 import { addSale } from '@/services/sales-service';
 import { useProducts } from '@/hooks/useProducts';
-import { Product, Member, Sale } from '@/types';
+import { Member, Sale, Product } from '@/types';
 import { formatPrice } from '@/lib/currency';
 
 import { Button } from "@/components/ui/button";
@@ -61,27 +61,26 @@ const NewSalePage = () => {
         setTotalAmount(newTotal);
     }, [cart]);
 
-    const addToCart = (productId: string) => {
-        const productToAdd = allProducts.find(p => p.id === productId);
-        if (!productToAdd) return;
+    const addToCart = (product: Product) => {
+        if (!product) return;
 
         setCart(prevCart => {
-            const existingItem = prevCart.find(item => item.productId === productId);
-            const stock = productToAdd.stock || 0;
+            const existingItem = prevCart.find(item => item.productId === product.id);
+            const stock = product.stock || 0;
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
-                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${productToAdd.name} available.`, variant: "destructive" });
+                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${product.name} available.`, variant: "destructive" });
                     return prevCart;
                 }
                 return prevCart.map(item => 
-                    item.productId === productId ? { ...item, quantity: newQuantity } : item
+                    item.productId === product.id ? { ...item, quantity: newQuantity } : item
                 );
             } else {
                 return [...prevCart, { 
-                    productId: productToAdd.id, 
-                    name: productToAdd.name, 
-                    price: productToAdd.price, 
+                    productId: product.id, 
+                    name: product.name, 
+                    price: product.price, 
                     quantity: 1 
                 }];
             }
@@ -124,14 +123,15 @@ const NewSalePage = () => {
                 status: paymentStatus,
                 isPaid: paymentStatus === 'completed',
                 totalAmount: totalAmount,
-                currency: 'EUR',
+                currency: 'BGN',
             } as Omit<Sale, 'id'>, user.uid, user.displayName || user.email || 'Unknown User');
 
             toast({ title: "Success!", description: "Sale created successfully." });
             router.push('/sales');
-        } catch (error: any) {
-            console.error("Error creating sale:", error);
-            toast({ title: "Error", description: error.message || "An error occurred while creating the sale.", variant: "destructive" });
+        } catch (error) {
+            const err = error as Error;
+            console.error("Error creating sale:", err);
+            toast({ title: "Error", description: err.message || "An error occurred while creating the sale.", variant: "destructive" });
         } finally {
             setIsSubmitting(false);
         }
@@ -144,7 +144,7 @@ const NewSalePage = () => {
     }
     
     if (productsError) {
-        return <div className="text-center py-10 text-red-500">{productsError as any}</div>;
+        return <div className="text-center py-10 text-red-500">Error loading products.</div>;
     }
 
     return (
@@ -175,10 +175,10 @@ const NewSalePage = () => {
                                     {availableProducts.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{formatPrice(product.price)}</TableCell>
+                                            <TableCell className="text-right">{formatPrice(product.price * 100)}</TableCell>
                                             <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button size="sm" onClick={() => addToCart(product.id)} disabled={(product.stock || 0) === 0}>
+                                                <Button size="sm" onClick={() => addToCart(product)} disabled={(product.stock || 0) === 0}>
                                                     <PlusCircle className="h-4 w-4" />
                                                 </Button>
                                             </TableCell>
@@ -216,7 +216,7 @@ const NewSalePage = () => {
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
                                                 <p className="font-medium">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
+                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price * 100)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -252,7 +252,7 @@ const NewSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Total:</span>
-                                    <span>{formatPrice(totalAmount)}</span>
+                                    <span>{formatPrice(totalAmount * 100)}</span>
                                 </div>
                                 <Button onClick={handleCreateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

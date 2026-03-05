@@ -84,6 +84,13 @@ export const EventListItem: React.FC<EventListItemProps> = ({ event, members, on
                  <div 
                     className="px-3 pb-2 pt-1 border-t border-gray-200 dark:border-gray-700 mt-2 flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
                     onClick={() => onManageAttendees(event)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            onManageAttendees(event);
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
                 >
                     <strong className="text-sm font-medium">Присъстващи:</strong>
                     <div className="flex items-center -space-x-2">

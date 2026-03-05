@@ -1,75 +1,54 @@
-
-import {
-    Body,
-    Container,
-    Head,
-    Html,
-    Img,
-    Preview,
-    Text,
-} from '@react-email/components';
+import { Body, Container, Head, Heading, Html, Preview, Text } from '@react-email/components';
 import * as React from 'react';
-import { clubInfo } from '@/config/club';
 
-interface ReminderEmailProps {
-    memberName: string;
+export interface ReminderEmailProps {
+  memberName?: string;
 }
 
+export const ReminderEmail: React.FC<ReminderEmailProps> = ({ memberName }) => (
+  <Html>
+    <Head />
+    <Preview>Просрочено плащане</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Напомняне за плащане</Heading>
+        <Text style={text}>
+          Здравейте, {memberName || 'членове'}. Напомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово.
+        </Text>
+        <Text style={text}>
+          Моля, свържете се с нас за повече информация.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+);
+
+export default ReminderEmail;
+
 const main = {
-    backgroundColor: '#f6f9fc',
-    padding: '20px',
+  backgroundColor: '#f6f9fc',
+  padding: '10px 0',
 };
 
 const container = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #f0f0f0',
-    borderRadius: '5px',
-    padding: '20px',
-    fontFamily: 'Arial, sans-serif',
+  backgroundColor: '#ffffff',
+  border: '1px solid #f0f0f0',
+  padding: '45px',
+};
+
+const h1 = {
+  color: '#333',
+  fontFamily: '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
+  fontSize: '32px',
+  fontWeight: '300',
+  lineHeight: '1.5',
+  margin: '0 0 30px',
+  textAlign: 'center' as const,
 };
 
 const text = {
-    fontSize: '16px',
-    color: '#333',
-    lineHeight: '24px',
+  color: '#333',
+  fontFamily: '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
+  fontSize: '16px',
+  margin: '24px 0',
 };
-
-const logo = {
-    display: 'block',
-    width: 60,
-    height: 60,
-    margin: '20px auto',
-};
-
-// Use the absolute public URL to the logo
-const logoUrl = 'https://bkgalabovo2025.vercel.app/logo.png';
-
-export const ReminderEmail = ({ memberName }: ReminderEmailProps) => (
-    <Html>
-        <Head />
-        <Preview>Напомняне за месечна такса</Preview>
-        <Body style={main}>
-            <Container style={container}>
-                <Img
-                    src={logoUrl}
-                    alt={`${clubInfo.name} Logo`}
-                    style={logo}
-                    width="60"
-                    height="60"
-                />
-                <Text style={text}>Здравейте, {memberName},</Text>
-                <Text style={text}>
-                    Напомняне Ви, че имате просрочено плащане.
-                </Text>
-                <Text style={text}>
-                    Моля, уредете плащането си при следващото си посещение в клуба. Ако смятате, че получавате този имейл по погрешка, моля, свържете се с нас.
-                </Text>
-                <Text style={text}>
-                    Поздрави,
-                    <br />
-                    Администратор на {clubInfo.name}
-                </Text>
-            </Container>
-        </Body>
-    </Html>
-);

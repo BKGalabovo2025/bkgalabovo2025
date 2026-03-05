@@ -121,7 +121,7 @@ export default function NewServicePage() {
               </div>
               <div className="space-y-3">
                   <Label>Service Type</Label>
-                  <RadioGroup name="type" required value={serviceType} onValueChange={(value) => setServiceType(value as any)} className="pt-2">
+                  <RadioGroup name="type" required value={serviceType} onValueChange={(value: 'Subscription' | 'One-time') => setServiceType(value)} className="pt-2">
                       <div className="flex items-center space-x-2">
                           <RadioGroupItem value="Subscription" id="type-subscription" />
                           <Label htmlFor="type-subscription" className="font-normal">Subscription</Label>
@@ -159,7 +159,7 @@ export default function NewServicePage() {
                   {grantsLicense && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
                           <Label>Condition for Receiving</Label>
-                          <Select name="licenseCondition" value={licenseCondition} onValueChange={(val) => setLicenseCondition(val as any)}>
+                          <Select name="licenseCondition" value={licenseCondition} onValueChange={(val: 'Immediately' | 'After N payments') => setLicenseCondition(val)}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="After N payments">After N payments</SelectItem>
@@ -184,7 +184,7 @@ export default function NewServicePage() {
                   {grantsApparel && (
                       <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
                           <Label>Condition for Receiving</Label>
-                          <Select name="apparelCondition" value={apparelCondition} onValueChange={(val) => setApparelCondition(val as any)}>
+                          <Select name="apparelCondition" value={apparelCondition} onValueChange={(val: 'Immediately' | 'After N payments') => setApparelCondition(val)}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="After N payments">After N payments</SelectItem>

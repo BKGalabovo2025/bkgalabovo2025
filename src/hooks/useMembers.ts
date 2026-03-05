@@ -17,7 +17,7 @@ export const useMembers = () => {
       setLoading(true);
       const allMembers = await getAllMembers();
       setMembers(allMembers);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("useMembers - Failed to fetch members:", err);
       setError("Failed to load members. Please try again later.");
     } finally {
@@ -57,7 +57,7 @@ export const useMember = (memberId: string | null) => {
       } else {
         setError("Member not found.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`useMember - Failed to fetch member with ID ${memberId}:`, err);
       setError("Failed to load member data.");
     } finally {

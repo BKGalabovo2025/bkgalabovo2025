@@ -1,4 +1,3 @@
-
 // src/app/(protected)/finances/prices/price-history-dialog.tsx
 
 'use client';
@@ -36,7 +35,7 @@ export function PriceHistoryDialog({ isOpen, onClose, price }: PriceHistoryDialo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>История на промените за "{price.name}"</DialogTitle>
+          <DialogTitle>История на промените за &quot;{price.name}&quot;</DialogTitle>
         </DialogHeader>
         <div className="py-4">
             {isLoading ? (
@@ -81,4 +80,3 @@ export function PriceHistoryDialog({ isOpen, onClose, price }: PriceHistoryDialo
     </Dialog>
   );
 }
-

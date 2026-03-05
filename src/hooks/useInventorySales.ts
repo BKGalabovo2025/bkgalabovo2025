@@ -24,7 +24,7 @@ export const useInventorySales = () => {
         try {
             const salesData = await getInventorySales();
             setSales(salesData);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error fetching inventory sales:", err);
             const errorMessage = 'Неуспешно зареждане на продажбите от инвентар.';
             setError(errorMessage);

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { getDb } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
 // --- Types ---
@@ -31,10 +31,10 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * Safely formats a timestamp from Firestore.
  * Handles both Timestamp objects and legacy string dates.
  */
-const formatTimestamp = (timestamp: any): string => {
+const formatTimestamp = (timestamp: Timestamp | string): string => {
   // Case 1: It's a Firestore Timestamp object (the correct format).
-  if (timestamp && typeof timestamp.toDate === 'function') {
-    return timestamp.toDate().toLocaleString('bg-BG');
+  if (timestamp && typeof (timestamp as Timestamp).toDate === 'function') {
+    return (timestamp as Timestamp).toDate().toLocaleString('bg-BG');
   }
   // Case 2: It's a string (from old buggy code).
   if (typeof timestamp === 'string' && timestamp.length > 0) {
@@ -98,13 +98,13 @@ export default function HistoryClientPage({ serviceId }: HistoryClientPageProps)
           if (attempt < 2) {
             await sleep(1500);
           } else {
-            setError(`Услуга с ID "${serviceId}" не беше намерена. Възможно е все още да се създава или да е била изтрита.`);
+            setError(`Услуга с ID &quot;${serviceId}&quot; не беше намерена. Възможно е все още да се създава или да е била изтрита.`);
             setIsLoading(false);
           }
 
-        } catch (err: any) {
+        } catch (err) {
           console.error(`Error on attempt ${attempt}:`, err);
-          setError(err.message || "Възникна грешка при зареждането на данните.");
+          setError((err as Error).message || "Възникна грешка при зареждането на данните.");
           setIsLoading(false);
           return;
         }
@@ -135,7 +135,7 @@ export default function HistoryClientPage({ serviceId }: HistoryClientPageProps)
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">История на промените за "{service?.name || '...'}"</h1>
+      <h1 className="text-2xl font-bold mb-4">История на промените за &quot;{service?.name || '...'}&quot;</h1>
       <div className="mb-6"><Link href="/finances/services"><Button variant="outline">Назад към услугите</Button></Link></div>
       {history.length > 0 ? (
         <ul className="space-y-4">

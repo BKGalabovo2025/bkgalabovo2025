@@ -131,7 +131,7 @@ const MembersPage = () => {
                                     <div className="flex flex-col items-center gap-2">
                                         <Search className="h-12 w-12 text-muted-foreground" />
                                         <p className="font-semibold">Няма намерени резултати</p>
-                                        <p className="text-muted-foreground text-sm">Няма членове, съответстващи на търсенето за "{searchTerm}".</p>
+                                        <p className="text-muted-foreground text-sm">Няма членове, съответстващи на търсенето за &quot;{searchTerm}&quot;.</p>
                                     </div>
                                 </TableCell>
                             </TableRow>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Printer, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { clubInfo } from '@/config/club';
 import { getReceiptDetails, ReceiptDetails } from '@/services/sales-service';
@@ -28,9 +29,10 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                 } else {
                     setDetails(fetchedDetails);
                 }
-            } catch (err: any) {
-                console.error("Error fetching receipt details:", err);
-                setError(err.message || 'Възникна неочаквана грешка.');
+            } catch (err) {
+                const error = err as Error;
+                console.error("Error fetching receipt details:", error);
+                setError(error.message || 'Възникна неочаквана грешка.');
             } finally {
                 setLoading(false);
             }
@@ -51,7 +53,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
     return (
         <>
-            <style jsx global>{`
+            <style>{`
                 @media print {
                     body * {
                         visibility: hidden;
@@ -83,7 +85,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                 <div className="border border-gray-300 p-8 printable-area">
                     <header className="flex justify-between items-start pb-6 border-b-2 border-gray-500">
                         <div className="flex items-center">
-                            <img src="/logo.png" alt="Лого на клуба" className="h-20 w-20 mr-4" />
+                            <Image src="/logo.png" alt="Лого на клуба" width={80} height={80} className="mr-4" />
                             <div>
                                 <h2 className="text-xl font-bold text-gray-800">{clubInfo.name}</h2>
                                 <p className="text-xs text-gray-600">{clubInfo.address}</p>

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, AlertCircle, Users, BarChart, TrendingUp, TrendingDown, Package, CreditCard } from 'lucide-react';
@@ -13,7 +12,6 @@ import { format } from 'date-fns';
 
 const DashboardPage = () => {
   const { stats, allMembers, recentSales, reminders, loading, error } = useDashboardData();
-  const router = useRouter();
 
   if (loading) {
     return (
