@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils"
 
 const Select = SelectPrimitive.Root
 
-const SelectGroup = SelectPrimitive.Group
-
 const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
@@ -109,16 +107,12 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
-const SelectPortal = SelectPrimitive.Portal
-
 export {
   Select,
-  SelectGroup,
   SelectValue,
   SelectTrigger,
   SelectContent,
-  SelectLabel,
   SelectItem,
+  SelectLabel,
   SelectSeparator,
-  SelectPortal,
 }
