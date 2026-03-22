@@ -74,7 +74,7 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
             <p className="text-sm text-muted-foreground">{price.description}</p>
             <div className="grid grid-cols-2 gap-4 items-center">
                 <Label>Текуща цена:</Label>
-                <span className="font-bold text-lg">{formatPrice(price.value, price.currency)}</span>
+                <span className="font-bold text-lg">{formatPrice(price.value)}</span>
             </div>
              <div className="grid grid-cols-2 gap-4 items-center">
                 <Label htmlFor="new-price">Нова цена (в {price.currency}):</Label>
