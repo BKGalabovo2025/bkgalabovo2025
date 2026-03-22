@@ -1,15 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Member, Sale, Subscription, Product, Reminder } from '@/types';
+import { Member, Sale, Reminder } from '@/types';
 import { getAllMembers } from '@/services/member-service';
 import { getSales } from '@/services/sales-service';
-import { getAllSubscriptions } from '@/services/subscription-service';
-import { getProducts } from '@/services/inventory-service';
 import { getDashboardStats, TotalRevenue } from '@/services/dashboard-service';
 import { getReminders } from '@/services/reminder-service';
 import { useAuth } from '@/context/auth-context';
 
-export type DashboardStats = {
+type DashboardStats = {
     totalMembers: number;
     activeMembersCount: number;
     totalRevenue: TotalRevenue;

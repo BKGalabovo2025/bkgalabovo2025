@@ -17,7 +17,7 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
         name: typeof data.name === 'string' ? data.name : 'Неименувана услуга',
         description: typeof data.description === 'string' ? data.description : '',
         price: typeof data.price === 'number' ? data.price : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
+        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'EUR', // Default to EUR
         type: ['Абонамент', 'Еднократно плащане'].includes(data.type) ? data.type : 'Еднократно плащане',
         billingPeriod: ['Месечен', 'Годишен', null].includes(data.billingPeriod) ? data.billingPeriod : null,
         targetGroups: Array.isArray(data.targetGroups) ? data.targetGroups : [],
@@ -64,7 +64,7 @@ export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | n
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
         price: typeof data.price === 'number' ? data.price : 0,
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
+        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'EUR', // Default to EUR
         paymentHistory: Array.isArray(data.paymentHistory) ? data.paymentHistory : [],
         paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
         totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,
@@ -97,13 +97,13 @@ export const getAllClubServices = async (): Promise<ClubService[]> => {
     return snapshot.docs.map(docToClubService).filter(Boolean) as ClubService[];
 };
 
-export const getClubServiceById = async (id: string): Promise<ClubService | null> => {
+const getClubServiceById = async (id: string): Promise<ClubService | null> => {
     const db = getDb();
     const docSnap = await getDoc(doc(db, SERVICES_COLLECTION, id));
     return docToClubService(docSnap);
 };
 
-export const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
+const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
     const db = getDb();
     const cleanService: { [key: string]: unknown } = {};
     Object.entries(service).forEach(([key, value]) => {
@@ -114,7 +114,7 @@ export const createClubService = async (service: Omit<ClubService, 'id'>): Promi
     return await addDoc(collection(db, SERVICES_COLLECTION), cleanService);
 };
 
-export const updateClubService = async (id: string, serviceUpdate: Omit<ClubService, 'id'>, note?: string): Promise<void> => {
+const updateClubService = async (id: string, serviceUpdate: Omit<ClubService, 'id'>, note?: string): Promise<void> => {
     const db = getDb();
     const auth = getFirebaseAuth();
     const user = auth.currentUser;
@@ -160,12 +160,12 @@ export const updateClubService = async (id: string, serviceUpdate: Omit<ClubServ
     await batch.commit();
 };
 
-export const deleteClubService = async (id: string): Promise<void> => {
+const deleteClubService = async (id: string): Promise<void> => {
     const db = getDb();
     await deleteDoc(doc(db, SERVICES_COLLECTION, id));
 };
 
-export const getHistoryForService = async (serviceId: string): Promise<ClubServiceHistory[]> => {
+const getHistoryForService = async (serviceId: string): Promise<ClubServiceHistory[]> => {
     const db = getDb();
     const q = query(collection(db, SERVICE_HISTORY_COLLECTION), where("serviceId", "==", serviceId), orderBy("timestamp", "desc"));
     const snapshot = await getDocs(q);
@@ -174,7 +174,7 @@ export const getHistoryForService = async (serviceId: string): Promise<ClubServi
 
 // --- Subscription Functions ---
 
-export const getAllSubscriptions = async (): Promise<Subscription[]> => {
+const getAllSubscriptions = async (): Promise<Subscription[]> => {
   const db = getDb();
   const q = query(collection(db, SUBSCRIPTIONS_COLLECTION));
   const snapshot = await getDocs(q);
@@ -196,7 +196,9 @@ export const createSubscription = async (
     const db = getDb();
     const subRef = doc(collection(db, 'memberSubscriptions'));
     
-    // Подготвяме данните за продажбата (Sale)
+    // FIX: Определяме статуса на базата на цената
+    const saleStatus = subscription.price > 0 ? 'completed' : 'informational';
+
     const saleData = {
         memberId: subscription.memberId,
         subscriptionId: subRef.id,
@@ -210,7 +212,7 @@ export const createSubscription = async (
         totalAmount: subscription.price,
         currency: subscription.currency,
         isPaid: subscription.pricePaid >= subscription.price,
-        status: 'completed' as const,
+        status: saleStatus, // <-- FIX: Използваме динамично определения статус
     };
 
     await runTransaction(db, async (transaction) => {
@@ -221,11 +223,13 @@ export const createSubscription = async (
         const saleRef = doc(collection(db, 'sales'));
         transaction.set(saleRef, saleData);
         
-        // 3. Обновяваме последната дата на плащане в профила на члена
-        const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
-        transaction.update(memberRef, { 
-            lastPaymentDate: new Date().toISOString() 
-        });
+        // 3. Обновяваме последната дата на плащане в профила на члена, само ако е имало реално плащане
+        if (subscription.price > 0) { // <-- FIX
+            const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
+            transaction.update(memberRef, { 
+                lastPaymentDate: new Date().toISOString() 
+            });
+        }
     });
 
     return subRef.id;

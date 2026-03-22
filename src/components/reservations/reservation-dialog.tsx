@@ -11,7 +11,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog"
 import {
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import {
@@ -53,7 +53,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
         resolver: zodResolver(reservationSchema),
     });
 
-    const { watch, setValue, reset } = form;
+    const { watch, reset } = form;
     const startTime = watch('startTime');
     const endTime = watch('endTime');
 

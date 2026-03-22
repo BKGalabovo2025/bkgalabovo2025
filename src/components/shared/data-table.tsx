@@ -4,9 +4,8 @@
 import * as React from "react"
 import {
   ColumnDef,
-  ColumnFiltersState,
   SortingState,
-  VisibilityState,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -121,7 +120,7 @@ export function DataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {getCellValue
-                        ? getCellValue(row.original, cell.column.id)
+                        ? getCellValue(row.original, cell.column.id) as React.ReactNode
                         : flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

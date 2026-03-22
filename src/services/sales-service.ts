@@ -1,7 +1,7 @@
 
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { Sale, SaleItem, Product, Subscription, InventoryEvent, Member, ClubService } from '@/types';
+import { Sale, Subscription, InventoryEvent, Member, ClubService } from '@/types';
 import { docToMember } from './member-service'; 
 import { docToClubService, docToMemberSubscription } from './subscription-service';
 
@@ -203,7 +203,7 @@ export const deleteSale = async (id: string): Promise<void> => {
     await deleteDoc(saleRef);
 };
 
-export const getSaleBySubscriptionId = async (subscriptionId: string): Promise<Sale | null> => {
+const getSaleBySubscriptionId = async (subscriptionId: string): Promise<Sale | null> => {
     if (!subscriptionId) return null;
     const db = getDb();
     const q = query(collection(db, SALES_COLLECTION), where("subscriptionId", "==", subscriptionId), limit(1));
@@ -273,7 +273,7 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
     }
 };
 
-export const voidSale = async (saleId: string, userId: string, userName: string) => {
+const voidSale = async (saleId: string, userId: string, userName: string) => {
   const db = getDb();
   const saleRef = doc(db, 'sales', saleId);
 

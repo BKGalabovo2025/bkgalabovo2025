@@ -1,7 +1,7 @@
 
 // src/services/price-service.ts
 
-import { collection, getDocs, doc, writeBatch, getDoc, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, doc, writeBatch, getDoc, query, orderBy, where, DocumentSnapshot } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Price, PriceHistory } from '@/types/index';
 import { User } from 'firebase/auth';
@@ -11,8 +11,8 @@ const PRICE_HISTORY_COLLECTION = 'priceHistory';
 
 // --- Converters ---
 
-const docToPrice = (doc: any): Price => {
-    const data = doc.data();
+const docToPrice = (doc: DocumentSnapshot): Price => {
+    const data = doc.data()!;
     return {
         id: doc.id,
         name: data.name || 'Няма име',
@@ -25,8 +25,8 @@ const docToPrice = (doc: any): Price => {
     };
 };
 
-const docToPriceHistory = (doc: any): PriceHistory => {
-    const data = doc.data();
+const docToPriceHistory = (doc: DocumentSnapshot): PriceHistory => {
+    const data = doc.data()!;
     return {
         id: doc.id,
         priceId: data.priceId,

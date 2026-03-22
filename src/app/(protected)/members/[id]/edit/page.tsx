@@ -22,7 +22,7 @@ const EditMemberPage = () => {
       toast({ title: 'Успех!', description: 'Членът е актуализиран успешно.' });
       router.push(`/members/${memberId}`);
       router.refresh(); // Force a refresh to reflect changes
-    } catch (e) {
+    } catch {
       toast({ title: 'Грешка', description: 'Неуспешно актуализиране на члена.', variant: 'destructive' });
     }
   };

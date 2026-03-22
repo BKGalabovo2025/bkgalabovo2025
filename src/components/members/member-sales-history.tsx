@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSales } from '@/hooks/useSales';
 import { Button } from '@/components/ui/button';
@@ -9,35 +8,39 @@ import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { formatPrice } from '@/lib/currency'; // IMPORT THE CENTRALIZED FORMATTER
+import { formatPrice } from '@/lib/currency';
 
 interface MemberSalesHistoryProps {
   memberId: string;
 }
 
+// Helper to determine badge variant and text based on status and amount
+const getStatusDetails = (status: 'completed' | 'pending' | 'informational' | string, totalAmount: number) => {
+    if (totalAmount === 0 && status === 'informational') {
+        return { text: 'Системна', variant: 'outline' as const };
+    }
+
+    switch (status) {
+        case 'completed':
+            return { text: 'Платено', variant: 'default' as const };
+        case 'pending':
+            return { text: 'Чакащо', variant: 'secondary' as const };
+        // Fallback for old data that might have status: 'completed' but amount: 0
+        case 'completed':
+             if (totalAmount === 0) return { text: 'Нулева', variant: 'outline' as const };
+             return { text: 'Платено', variant: 'default' as const };
+        default:
+            return { text: status, variant: 'secondary' as const };
+    }
+};
+
 export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
   const router = useRouter();
-  // The useSales hook fetches sales. We can assume it returns amounts in the currency they were recorded in.
   const { sales, loading, error } = useSales(memberId);
 
   const handleRowClick = (saleId: string) => {
     router.push(`/sales/${saleId}/receipt`);
   };
-
-  const getDisplayPrice = (amount: number, currency: string | undefined) => {
-    // If the historical currency was BGN, convert it to EUR for display.
-    // Assumes amounts are stored in the smallest unit (stotinki/cents).
-    const priceInMainUnit = amount / 100;
-    if (currency === 'BGN') {
-      // This is a legacy record. Convert the BGN amount to EUR.
-      // IMPORTANT: The conversion logic should be centralized if it's complex,
-      // but for this one-time display fix, a direct conversion is clear.
-      const BGN_TO_EUR_RATE = 1.95583;
-      return priceInMainUnit / BGN_TO_EUR_RATE;
-    }
-    // Otherwise, assume it's already in EUR (or should be treated as such).
-    return priceInMainUnit;
-  }
 
   return (
     <div>
@@ -66,19 +69,18 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
           </TableHeader>
           <TableBody>
             {sales.map(sale => {
-              // Calculate the correct display price in EUR.
-              const displayPriceInEur = getDisplayPrice(sale.totalAmount, sale.currency);
+              const statusDetails = getStatusDetails(sale.status, sale.totalAmount);
               
               return (
                 <TableRow key={sale.id} onClick={() => handleRowClick(sale.id)} className="cursor-pointer">
                   <TableCell>{new Date(sale.saleDate).toLocaleDateString('bg-BG')}</TableCell>
                   <TableCell>
-                    <Badge variant={sale.status === 'completed' ? 'default' : 'secondary'}>
-                      {sale.status === 'completed' ? 'Платено' : 'Чакащо'}
+                    <Badge variant={statusDetails.variant}>
+                      {statusDetails.text}
                     </Badge>
                   </TableCell>
-                  {/* ALWAYS use the centralized formatter to display the EUR price */}
-                  <TableCell className="text-right">{formatPrice(displayPriceInEur)}</TableCell>
+                  {/* The formatPrice function now expects the value in cents */}
+                  <TableCell className="text-right">{formatPrice(sale.totalAmount)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

@@ -7,11 +7,17 @@ import { ScheduleEvent, Attendee } from '@/types';
 
 const EVENTS_COLLECTION = 'events';
 
+interface AttendeeData {
+    memberId: string;
+    name: string;
+    attended: boolean;
+}
+
 const docToScheduleEvent = (doc: DocumentSnapshot): ScheduleEvent | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
 
-    const attendees = (Array.isArray(data.attendees) ? data.attendees : []).map((item: any): Attendee | null => {
+    const attendees = (Array.isArray(data.attendees) ? data.attendees : []).map((item: AttendeeData): Attendee | null => {
         if (!item || typeof item !== 'object') return null;
         return {
             memberId: typeof item.memberId === 'string' ? item.memberId : '',
@@ -33,7 +39,7 @@ const docToScheduleEvent = (doc: DocumentSnapshot): ScheduleEvent | null => {
     };
 };
 
-export const getScheduleEvents = async (): Promise<ScheduleEvent[]> => {
+const getScheduleEvents = async (): Promise<ScheduleEvent[]> => {
     const db = getDb();
     const eventsCollection = collection(db, EVENTS_COLLECTION);
     const q = query(eventsCollection, orderBy("startDate", "desc"));
@@ -41,14 +47,14 @@ export const getScheduleEvents = async (): Promise<ScheduleEvent[]> => {
     return snapshot.docs.map(docToScheduleEvent).filter(Boolean) as ScheduleEvent[];
 };
 
-export const getScheduleEventById = async (eventId: string): Promise<ScheduleEvent | null> => {
+const getScheduleEventById = async (eventId: string): Promise<ScheduleEvent | null> => {
     const db = getDb();
     const eventDoc = await getDoc(doc(db, EVENTS_COLLECTION, eventId));
     return docToScheduleEvent(eventDoc);
 };
 
 
-export const addScheduleEvent = async (eventData: Omit<ScheduleEvent, 'id'>): Promise<string> => {
+const addScheduleEvent = async (eventData: Omit<ScheduleEvent, 'id'>): Promise<string> => {
     const db = getDb();
     const dataWithTimestamps = {
         ...eventData,
@@ -60,10 +66,10 @@ export const addScheduleEvent = async (eventData: Omit<ScheduleEvent, 'id'>): Pr
     return docRef.id;
 };
 
-export const updateScheduleEvent = async (eventId: string, eventData: Partial<Omit<ScheduleEvent, 'id'>>): Promise<void> => {
+const updateScheduleEvent = async (eventId: string, eventData: Partial<Omit<ScheduleEvent, 'id'>>): Promise<void> => {
     const db = getDb();
     const eventDoc = doc(db, EVENTS_COLLECTION, eventId);
-    const dataToUpdate: { [key: string]: any } = { ...eventData };
+    const dataToUpdate: { [key: string]: unknown } = { ...eventData };
     if (eventData.startDate) {
         dataToUpdate.startDate = Timestamp.fromDate(new Date(eventData.startDate));
     }
@@ -76,7 +82,7 @@ export const updateScheduleEvent = async (eventId: string, eventData: Partial<Om
     await updateDoc(eventDoc, dataToUpdate);
 };
 
-export const deleteScheduleEvent = async (eventId: string): Promise<void> => {
+const deleteScheduleEvent = async (eventId: string): Promise<void> => {
     const db = getDb();
     const eventDoc = doc(db, EVENTS_COLLECTION, eventId);
     await deleteDoc(eventDoc);

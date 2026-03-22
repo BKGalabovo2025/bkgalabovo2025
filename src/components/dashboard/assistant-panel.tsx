@@ -41,7 +41,7 @@ export function AssistantPanel() {
   };
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-200 dark:border-blue-900">
+    <Card className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-200 dark:border-blue-900">
       <CardHeader>
         <div className="flex items-center space-x-3">
           <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />

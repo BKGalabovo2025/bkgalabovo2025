@@ -9,7 +9,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { MainHeader } from '@/components/layout/main-header';
 import { Loader2 } from 'lucide-react';
-import { Toaster } from 'sonner'; // CORRECTED IMPORT: Import directly from the library
+import { Toaster } from 'sonner';
 
 export default function ProtectedLayout({
   children,
@@ -47,9 +47,10 @@ export default function ProtectedLayout({
 
   return (
       <SidebarProvider>
-        <div className="flex min-h-screen bg-background text-foreground">
-          <AppSidebar collapsible="icon" />
-          <div className="flex flex-col flex-1">
+        <div className="min-h-screen bg-background text-foreground">
+          {/* Sidebar is now fixed, and content is pushed accordingly */}
+          <AppSidebar className="fixed inset-y-0 left-0 z-50 w-64" />
+          <div className="ml-64 flex flex-1 flex-col">
             <MainHeader />
             <main className="flex-1 p-6 animate-in fade-in-0 duration-500">
               {children}

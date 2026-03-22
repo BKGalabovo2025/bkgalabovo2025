@@ -8,7 +8,7 @@ import { Sale, Reminder } from '@/types';
  * @param overdueMembers An array of members with overdue payments.
  * @returns An array of reminder objects.
  */
-export const createRemindersForOverdueMembers = (overdueMembers: Member[]): Reminder[] => {
+const createRemindersForOverdueMembers = (overdueMembers: Member[]): Reminder[] => {
     const today = new Date();
     const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
   
@@ -38,6 +38,9 @@ export const getReminders = (allMembers: Member[], allSales: Sale[]): Reminder[]
   const currentYear = today.getFullYear();
 
   const membersWithOverduePayments = allMembers.filter(member => {
+    if (member.status !== 'active') {
+      return false; // Ignore inactive members
+    }
     const hasCurrentSubscription = allSales.some(sale =>
       sale.memberId === member.id &&
       sale.subscriptionId && // Check if it's a subscription sale

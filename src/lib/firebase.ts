@@ -14,7 +14,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-let app: FirebaseApp;
 
 // This function ensures the app is initialized only once.
 function getFirebaseApp(): FirebaseApp {
@@ -52,8 +51,8 @@ function getAppStorage(): FirebaseStorage {
 }
 
 export {
-    getFirebaseApp,
+    
     getFirebaseAuth,
     getDb,
-    getAppStorage
+    
 };

@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
  
 @layer base {
   :root {
@@ -75,3 +73,33 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* stylelint-disable at-rule-no-unknown */
+@theme {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* Custom container utility */
+@utility container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  
+  /* stylelint-disable-next-line no-invalid-position-declaration */
+  @media (min-width: 640px) { max-width: 640px; }
+  /* stylelint-disable-next-line no-invalid-position-declaration */
+  @media (min-width: 768px) { max-width: 768px; }
+  /* stylelint-disable-next-line no-invalid-position-declaration */
+  @media (min-width: 1024px) { max-width: 1024px; }
+  /* stylelint-disable-next-line no-invalid-position-declaration */
+  @media (min-width: 1280px) { max-width: 1280px; }
+  /* stylelint-disable-next-line no-invalid-position-declaration */
+  @media (min-width: 1536px) { max-width: 1536px; }
+}
+/* stylelint-enable at-rule-no-unknown */

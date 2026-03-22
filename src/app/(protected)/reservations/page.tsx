@@ -53,7 +53,7 @@ const ReservationsPage = () => {
         </div>
       </header>
 
-      <AgendaView key={refreshKey} date={currentDate} courtCount={COURT_COUNT} />
+      <AgendaView refreshKey={refreshKey} date={currentDate} courtCount={COURT_COUNT} />
     </div>
   );
 };

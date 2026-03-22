@@ -1,7 +1,7 @@
 import { Body, Container, Head, Heading, Html, Preview, Text } from '@react-email/components';
 import * as React from 'react';
 
-export interface ReminderEmailProps {
+interface ReminderEmailProps {
   memberName?: string;
 }
 
@@ -23,7 +23,6 @@ export const ReminderEmail: React.FC<ReminderEmailProps> = ({ memberName }) => (
   </Html>
 );
 
-export default ReminderEmail;
 
 const main = {
   backgroundColor: '#f6f9fc',

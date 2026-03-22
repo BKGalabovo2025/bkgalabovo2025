@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy, addDoc, runTransaction, Timestamp, DocumentSnapshot } from 'firebase/firestore';
+import { collection, doc, getDocs, deleteDoc, query, orderBy, addDoc, runTransaction, Timestamp, DocumentSnapshot } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Product, InventoryEvent } from '@/types';
 
@@ -66,7 +66,7 @@ export const getInventoryEvents = async (): Promise<InventoryEvent[]> => {
     return querySnapshot.docs.map(docToInventoryEvent).filter(Boolean) as InventoryEvent[];
 };
 
-export const addProduct = async (productData: Omit<Product, 'id'>): Promise<string> => {
+const addProduct = async (productData: Omit<Product, 'id'>): Promise<string> => {
     const db = getDb();
     const dataWithStock = { ...productData, stock: productData.stock ?? 0 };
     const docRef = await addDoc(collection(db, PRODUCTS_COLLECTION), dataWithStock);
@@ -81,7 +81,7 @@ export const getProducts = async (): Promise<Product[]> => {
     return querySnapshot.docs.map(docToProduct).filter(Boolean) as Product[];
 };
 
-export const deleteProduct = async (productId: string): Promise<void> => {
+const deleteProduct = async (productId: string): Promise<void> => {
     const db = getDb();
     const productDoc = doc(db, PRODUCTS_COLLECTION, productId);
     await deleteDoc(productDoc);

@@ -3,7 +3,7 @@ import { Member } from './member.types'; // Explicit import to fix resolution is
 
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
-export { type Member, MemberSchema } from './member.types';
+export { type Member,  } from './member.types';
 
 // =================================================================
 //                            CORE TYPES
@@ -210,7 +210,7 @@ export type Subscription = {
   linkedSubscriptionId?: string | null; // ID of the corresponding family subscription
 };
 
-export type AnalyzedSubscription = {
+type AnalyzedSubscription = {
   subscriptionId: string;
   serviceName: string;
   paymentStatus: 'PAID' | 'PENDING' | 'OVERDUE';
@@ -220,7 +220,7 @@ export type AnalyzedSubscription = {
   attendanceSummary: string;
 };
 
-export type MemberAnalysis = {
+type MemberAnalysis = {
   overallStatus: 'green' | 'orange' | 'red';
   analysisDate: string; // ISO 8601
   analyzedSubscriptions: AnalyzedSubscription[];
@@ -318,7 +318,7 @@ export type Reminder = {
 /**
  * Represents a message from the AI assistant, typically a suggestion or a warning.
  */
-export type AssistantMessage = {
+type AssistantMessage = {
   id: string;
   timestamp: string; // ISO 8601
   type: 'warning' | 'suggestion' | 'info';
@@ -326,7 +326,7 @@ export type AssistantMessage = {
   description: string;
 };
 
-export type Liability = {
+type Liability = {
   member: Member;
   subscription: Subscription;
   service?: ClubService;

@@ -115,10 +115,10 @@ const BlockedSlotCard: React.FC<CardProps<BlockedSlot> & {courtCount: number}> =
 interface AgendaViewProps {
     date: Date;
     courtCount: number;
-    key: number; // Used for forcing re-renders
+    refreshKey: number; // Used for forcing re-renders
 }
 
-export const AgendaView: React.FC<AgendaViewProps> = ({ date, courtCount, key }) => {
+export const AgendaView: React.FC<AgendaViewProps> = ({ date, courtCount, refreshKey }) => {
   const [events, setEvents] = useState<{
     reservations: Reservation[];
     blockedSlots: BlockedSlot[];
@@ -144,7 +144,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ date, courtCount, key })
       }
     };
     fetchData();
-  }, [date, refreshId, key]); // Rerun on date, parent key, or internal refresh change
+  }, [date, refreshId, refreshKey]); // Rerun on date, parent key, or internal refresh change
 
   const handleDataChange = () => setRefreshId(prev => prev + 1);
 

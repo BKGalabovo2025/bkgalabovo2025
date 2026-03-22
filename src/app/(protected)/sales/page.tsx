@@ -1,11 +1,10 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInventorySales } from '@/hooks/useInventorySales'; 
 import { useMembers } from '@/hooks/useMembers';
-import { Sale, Member } from '@/types';
 import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const SalesListPage = () => {
     const router = useRouter();
-    const { sales, loading: salesLoading, error: salesError, refetch } = useInventorySales();
+    const { sales, loading: salesLoading, error: salesError } = useInventorySales();
     const { members, loading: membersLoading, error: membersError } = useMembers();
 
     const memberMap = useMemo(() => {

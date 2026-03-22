@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { 
     DropdownMenu, 
@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator, 
     DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 // Функция за извличане на инициали от имейл
 const getInitialsFromEmail = (email: string | null) => {

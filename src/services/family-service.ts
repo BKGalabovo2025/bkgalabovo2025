@@ -1,6 +1,6 @@
 
 import { getDb } from '@/lib/firebase';
-import { collection, addDoc, getDoc, doc, updateDoc, arrayUnion, arrayRemove, writeBatch, DocumentSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDoc, doc, arrayUnion, arrayRemove, writeBatch, DocumentSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Family, FamilySchema } from '@/types';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 
@@ -11,7 +11,7 @@ const { FAMILIES, MEMBERS } = FIRESTORE_COLLECTIONS;
  * @param doc - The Firestore document snapshot.
  * @returns A validated Family object or null if the document is invalid or doesn't exist.
  */
-export const docToFamily = (docSnap: DocumentSnapshot): Family | null => {
+const docToFamily = (docSnap: DocumentSnapshot): Family | null => {
     if (!docSnap.exists()) {
         console.warn(`docToFamily: Document with ID ${docSnap.id} does not exist.`);
         return null;
@@ -19,8 +19,8 @@ export const docToFamily = (docSnap: DocumentSnapshot): Family | null => {
 
     const data = docSnap.data();
 
-    const toISODate = (date: any): string | undefined => {
-        if (date instanceof serverTimestamp) return new Date().toISOString();
+    const toISODate = (date: unknown): string | undefined => {
+        if (date instanceof Timestamp) return date.toDate().toISOString();
         if (date instanceof Date) return date.toISOString();
         return undefined;
     };
@@ -46,7 +46,7 @@ export const docToFamily = (docSnap: DocumentSnapshot): Family | null => {
  * @param memberIds - An array of member IDs to include in the family.
  * @returns The newly created Family object.
  */
-export const createFamily = async (name: string, memberIds: string[]): Promise<Family> => {
+const createFamily = async (name: string, memberIds: string[]): Promise<Family> => {
     const db = getDb();
     const familyData = {
         name,
@@ -73,7 +73,7 @@ export const createFamily = async (name: string, memberIds: string[]): Promise<F
  * @param familyId - The ID of the family to add members to.
  * @param memberIds - The IDs of the members to add.
  */
-export const addMembersToFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
+const addMembersToFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
     if (memberIds.length === 0) return;
     const db = getDb();
     const familyRef = doc(db, FAMILIES, familyId);
@@ -97,7 +97,7 @@ export const addMembersToFamily = async (familyId: string, memberIds: string[]):
  * @param familyId - The ID of the family to remove members from.
  * @param memberIds - The IDs of the members to remove.
  */
-export const removeMembersFromFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
+const removeMembersFromFamily = async (familyId: string, memberIds: string[]): Promise<void> => {
     if (memberIds.length === 0) return;
     const db = getDb();
     const familyRef = doc(db, FAMILIES, familyId);

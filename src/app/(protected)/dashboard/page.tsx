@@ -6,7 +6,6 @@ import { Loader2, AlertCircle, Users, BarChart, TrendingUp, TrendingDown, Packag
 import { formatPrice } from '@/lib/currency';
 import { RemindersCard } from '@/components/reminders/reminders-card';
 import { AssistantPanel } from '@/components/dashboard/assistant-panel';
-import { LatePayments } from '@/components/dashboard/late-payments';
 import { Sale } from '@/types';
 import { format } from 'date-fns';
 
@@ -59,8 +58,6 @@ const DashboardPage = () => {
 
       <AssistantPanel />
 
-      <LatePayments />
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* SIMPLIFIED: `formatPrice` now receives cents directly */}
         <StatCard title="Приходи (30 дни)" value={formatPrice(stats.revenueLast30Days || 0, 'EUR')} icon={<TrendingUp />} change={stats.revenueChange}/>
@@ -88,13 +85,13 @@ const DashboardPage = () => {
                           <CreditCard className="h-5 w-5 text-muted-foreground" />
                       }
                   </div>
-                  <div className="grid gap-1 flex-grow">
+                  <div className="grid gap-1 grow">
                     <p className="text-sm font-medium leading-none">{memberName}</p>
                     <p className="text-sm text-muted-foreground">{saleDetails.description}</p>
                   </div>
                   <div className="ml-auto font-medium text-right">
                       {/* SIMPLIFIED: No more multiplication. `sale.totalAmount` is guaranteed to be in cents. */}
-                      <div>{formatPrice(sale.totalAmount, sale.currency)}</div>
+                      <div>{formatPrice(sale.totalAmount, 'EUR')}</div>
                       <div className="text-xs text-muted-foreground font-normal">{format(new Date(sale.saleDate), 'dd.MM.yyyy')}</div>
                   </div>
                 </div>

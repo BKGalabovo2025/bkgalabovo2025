@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Product } from '@/types';
 import { useToast } from '@/components/ui/use-toast';

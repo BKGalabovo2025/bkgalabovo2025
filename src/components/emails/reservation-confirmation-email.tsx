@@ -1,7 +1,7 @@
 import { Body, Container, Head, Heading, Html, Link, Preview, Text } from '@react-email/components';
 import * as React from 'react';
 
-export interface ReservationConfirmationEmailProps {
+interface ReservationConfirmationEmailProps {
   clientName: string;
   startTime: string | Date;
   endTime: string | Date;
@@ -58,7 +58,6 @@ export const ReservationConfirmationEmail: React.FC<ReservationConfirmationEmail
     );
 };
 
-export default ReservationConfirmationEmail;
 
 // Styles
 const main = {

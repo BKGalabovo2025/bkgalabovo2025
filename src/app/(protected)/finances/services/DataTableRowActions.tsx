@@ -1,6 +1,5 @@
 'use client'
 
-import { Row } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { 
     DropdownMenu, 
@@ -14,11 +13,11 @@ import { MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { Service } from './service.types' // FIX: Corrected the import path
 
-interface DataTableRowActionsProps<TData> {
+interface DataTableRowActionsProps {
   service: Service
 }
 
-export function DataTableRowActions<TData>({ service }: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions({ service }: DataTableRowActionsProps) {
 
   return (
     <DropdownMenu>

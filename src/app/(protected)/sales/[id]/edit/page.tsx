@@ -134,7 +134,7 @@ const EditSalePage = () => {
         try {
             await updateSale(saleId, {
                 items: cart,
-                memberId: selectedMemberId && selectedMemberId !== 'none' ? selectedMemberId : null,
+                memberId: selectedMemberId === 'none' ? undefined : selectedMemberId,
                 status: paymentStatus,
             });
 

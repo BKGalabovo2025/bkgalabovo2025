@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,9 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { getSubscriptionsByMemberId, getAllClubServices, createSubscription } from '@/services/subscription-service';
+import { getSubscriptionsByMemberId, getAllClubServices, createSubscription, updateSubscription } from '@/services/subscription-service';
 import { findOrCreateSaleForSubscription } from '@/services/sales-service';
-import { registerPaymentForSubscription } from '@/services/payment-service';
 import { Subscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle, Receipt, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -179,8 +178,7 @@ const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription,
             } else {
                 toast({ title: "Грешка", description: "Не може да бъде генерирана квитанция.", variant: "destructive" });
             }
-        } catch (error) {
-            console.error("Error in receipt generation:", error);
+        } catch {
             toast({ title: "Грешка", description: "Възникна проблем при генерирането на квитанцията.", variant: "destructive" });
         } finally {
             setIsLoading(false);
@@ -240,7 +238,7 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
 
             toast({ title: "Успешно подновен", description: `Създаден е нов абонамент за периода ${nextStartDate.toLocaleDateString('bg-BG')}.` });
             onSubscriptionUpdate();
-        } catch (error) {
+        } catch {
             toast({ title: "Грешка при подновяване", variant: "destructive" });
         } finally {
             setIsRenewing(false);
@@ -284,7 +282,6 @@ const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, o
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     
-    // Prices are now whole numbers.
     const amountToPay = sub.price - sub.pricePaid;
 
     const handlePayment = async () => {
@@ -294,14 +291,19 @@ const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, o
         }
         setIsLoading(true);
         try {
-            await registerPaymentForSubscription(sub.id, {
-                amount: amountToPay, // Send the whole number amount
-                paymentDate: new Date().toISOString(),
+            // Update subscription status and price paid
+            await updateSubscription(sub.id, {
+                status: 'active',
+                pricePaid: sub.price,
             });
+
+            // Ensure a sale is created and marked as paid
+            await findOrCreateSaleForSubscription(sub);
+
             toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
             onPaymentSuccess();
             setIsOpen(false);
-        } catch (error) {
+        } catch {
             toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
         } finally {
             setIsLoading(false);
@@ -338,21 +340,21 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
     return () => unsubscribe();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
       setLoading(true);
       try {
         const [srvs, subs] = await Promise.all([getAllClubServices(), getSubscriptionsByMemberId(memberId)]);
         subs.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
         setSubscriptions(subs);
         setServices(srvs.filter(s => s.type === 'Абонамент'));
-      } catch (error) {
+      } catch {
         toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
       } finally {
         setLoading(false);
       }
-  }
+  }, [memberId, toast])
 
-  useEffect(() => { fetchData() }, [memberId]); 
+  useEffect(() => { fetchData() }, [fetchData]); 
 
   if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 

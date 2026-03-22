@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Zod schema for validating club member data.
- * This schema ensures that data retrieved from Firestore conforms to the expected structure 
+ * This schema ensures that data retrieved from Firestore conforms to the expected structure
  * before being used in the application, including robust date validation.
  */
 export const MemberSchema = z.object({
@@ -12,6 +12,7 @@ export const MemberSchema = z.object({
     lastName: z.string().min(1, "Last name is required."),
     name: z.string(), // This is a derived field, added in the code, not in the database
     status: z.enum(['active', 'inactive', 'suspended']),
+    ageGroup2026: z.string().nullable().optional(), // ADDED: Calculated age group for 2026
 
     // --- Date Fields (as ISO strings) ---
     registrationDate: z.string().datetime({ message: "Invalid registration date format" }),
@@ -29,6 +30,13 @@ export const MemberSchema = z.object({
     personalId: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
+
+    // --- ADDED: Emergency Contact ---
+    emergencyContactName: z.string().nullable().optional(),
+    emergencyContactPhone: z.string().nullable().optional(),
+
+    // --- ADDED: Apparel ---
+    apparelSize: z.string().nullable().optional(),
 
     // --- Family & Relations ---
     familyId: z.string().nullable().optional(),

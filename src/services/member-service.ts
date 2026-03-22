@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where, serverTimestamp, DocumentSnapshot } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 import { Member, MemberSchema } from '@/types/member.types';
@@ -7,7 +7,7 @@ import { Member, MemberSchema } from '@/types/member.types';
 const MEMBERS_COLLECTION = FIRESTORE_COLLECTIONS.MEMBERS;
 
 // Converts a Firestore document to a Member object with robust validation.
-export const docToMember = (docSnap: any): Member | null => {
+export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     if (!docSnap.exists()) {
         console.warn(`docToMember: Document with ID ${docSnap.id} does not exist.`);
         return null;
@@ -16,9 +16,12 @@ export const docToMember = (docSnap: any): Member | null => {
     const data = docSnap.data();
 
     // Helper to gracefully convert Timestamps to ISO strings.
-    const toISODate = (date: any): string | undefined => {
+    const toISODate = (date: Timestamp | Date): string | undefined => {
         if (date instanceof Timestamp) {
             return date.toDate().toISOString();
+        }
+        if (date instanceof Date) {
+            return date.toISOString();
         }
         // Return undefined for invalid or missing dates to let Zod handle it.
         return undefined;
@@ -40,8 +43,7 @@ export const docToMember = (docSnap: any): Member | null => {
         // Use Zod to validate and parse the data.
         return MemberSchema.parse(dataToParse);
     } catch (error) {
-        // Добавете този ред, за да видите ID-то и съдържанието на документа
-        console.error(`Валидацията не успя за ID ${docSnap.id}. Данни:`, dataToParse); 
+        console.error(`Validation failed for ID ${docSnap.id}. Data:`, dataToParse, error); 
         return null; 
     }
 };
@@ -99,27 +101,26 @@ export const updateMember = async (id: string, memberData: Partial<Omit<Member, 
   const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
   
-  const dataToUpdate: { [key: string]: any } = {
-    ...memberData,
-    updatedAt: serverTimestamp(),
-  };
+  const dataToUpdate: { [key: string]: unknown } = { ...memberData };
 
-  if (memberData.dateOfBirth) {
-      dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(memberData.dateOfBirth as string));
+  if (dataToUpdate.dateOfBirth) {
+      dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(dataToUpdate.dateOfBirth as string));
   }
+  
+  dataToUpdate.updatedAt = serverTimestamp();
 
   await updateDoc(memberRef, dataToUpdate);
 };
 
 // Deletes a member from the database.
-export const deleteMember = async (id: string): Promise<void> => {
+const deleteMember = async (id: string): Promise<void> => {
   const db = getDb();
   const memberRef = doc(db, MEMBERS_COLLECTION, id);
   await deleteDoc(memberRef);
 };
 
 // Fetches all members belonging to a specific family ID.
-export const getMembersByFamilyId = async (familyId: string): Promise<Member[]> => {
+const getMembersByFamilyId = async (familyId: string): Promise<Member[]> => {
     if (!familyId) return [];
 
     const db = getDb();

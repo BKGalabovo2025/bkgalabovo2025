@@ -32,7 +32,7 @@ function SubmitButton() {
 export default function NewServicePage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, idToken } = useAuth(); // Get user and idToken from auth context
+  const { idToken } = useAuth(); // Get user and idToken from auth context
 
   // Define the initial state with the correct type
   const initialState: ServiceState = { message: '', success: false, errors: {} };
