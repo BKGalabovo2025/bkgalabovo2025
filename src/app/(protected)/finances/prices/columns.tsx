@@ -27,7 +27,7 @@ export const columns = ({ onEdit, onShowHistory }: ColumnsProps): ColumnDef<Pric
     {
         accessorKey: "value",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Стойност" />,
-        cell: ({ row }) => formatPrice(row.original.value, row.original.currency),
+        cell: ({ row }) => formatPrice(row.original.value),
     },
     {
         accessorKey: "isActive",
