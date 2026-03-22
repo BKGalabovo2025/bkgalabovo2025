@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/api/**/*.ts",
+    "src/app/**/*.tsx",
+    "scripts/**/*.ts"
+  ],
+  "ignore": [
+    "src/components/ui/use-toast.ts"
+  ],
+  "ignoreDependencies": [
+    "eslint-config-next",
+    "tsconfig-paths"
+  ],
+  "next": {
+    "entry": [
+      "src/app/api/**/*.ts",
+      "src/app/**/*.tsx"
+    ]
+  }
+}
