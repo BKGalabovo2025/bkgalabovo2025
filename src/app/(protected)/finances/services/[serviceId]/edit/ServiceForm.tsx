@@ -132,7 +132,7 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
                 <SelectContent>
                   {activePrices.map((price) => (
                     <SelectItem key={price.id} value={price.id}>
-                      {`${price.name} (${formatPrice(price.value, price.currency)})`}
+                      {`${price.name} (${formatPrice(price.value)})`}
                     </SelectItem>
                   ))}
                 </SelectContent>

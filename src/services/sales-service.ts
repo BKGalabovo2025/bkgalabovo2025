@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Sale, Subscription, InventoryEvent, Member, ClubService } from '@/types';
 import { docToMember } from './member-service'; 
@@ -191,27 +191,6 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
     return docToSale(docSnap);
 };
 
-export const updateSale = async (id: string, data: Partial<Sale>): Promise<void> => {
-    const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, id);
-    await updateDoc(saleRef, data);
-};
-
-export const deleteSale = async (id: string): Promise<void> => {
-    const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, id);
-    await deleteDoc(saleRef);
-};
-
-const getSaleBySubscriptionId = async (subscriptionId: string): Promise<Sale | null> => {
-    if (!subscriptionId) return null;
-    const db = getDb();
-    const q = query(collection(db, SALES_COLLECTION), where("subscriptionId", "==", subscriptionId), limit(1));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-    return docToSale(querySnapshot.docs[0]);
-};
-
 export const findOrCreateSaleForSubscription = async (subscription: Subscription): Promise<Sale | null> => {
     const db = getDb();
     const existingSale = await getSaleBySubscriptionId(subscription.id);
@@ -273,62 +252,11 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
     }
 };
 
-const voidSale = async (saleId: string, userId: string, userName: string) => {
-  const db = getDb();
-  const saleRef = doc(db, 'sales', saleId);
-
-  return await runTransaction(db, async (transaction) => {
-    const saleDoc = await transaction.get(saleRef);
-    if (!saleDoc.exists()) throw new Error("Продажбата не съществува!");
-    
-    const saleData = saleDoc.data() as Sale;
-    if (saleData.status === 'cancelled') return;
-
-    // 1. Маркираме продажбата като анулирана
-    transaction.update(saleRef, { 
-      status: 'cancelled', 
-      voidedAt: Timestamp.now() 
-    });
-
-    // 2. АКО Е КЪМ АБОНАМЕНТ: Намаляваме цената в абонамента и го правим неплатен
-    if (saleData.subscriptionId) {
-      const subRef = doc(db, 'memberSubscriptions', saleData.subscriptionId);
-      const subSnap = await transaction.get(subRef);
-      if (subSnap.exists()) {
-        const subData = subSnap.data() as Subscription;
-        const newPaid = Math.max(0, (subData.pricePaid || 0) - saleData.totalAmount);
-        transaction.update(subRef, { 
-          pricePaid: newPaid,
-          status: 'pending_payment' // Връщаме статус "Длъжник"
-        });
-      }
-    }
-
-    // 3. АКО Е ПРОДУКТ: Връщаме стоката в склада
-    if (saleData.items && saleData.items.length > 0) {
-      for (const item of saleData.items) {
-        if (item.productId) {
-          const productRef = doc(db, 'products', item.productId);
-          const productDoc = await transaction.get(productRef);
-          if (productDoc.exists()) {
-            const currentStock = productDoc.data().stock || 0;
-            transaction.update(productRef, { stock: currentStock + item.quantity });
-            
-            // Записваме събитие в лога на склада за връщане на стока
-            const eventRef = doc(collection(db, 'inventoryEvents'));
-            transaction.set(eventRef, {
-              productId: item.productId,
-              productName: item.name,
-              type: 'correction',
-              quantityChange: item.quantity,
-              notes: `Върната стока поради анулирана продажба: ${saleId}`,
-              createdAt: new Date().toISOString(),
-              userId,
-              userName
-            });
-          }
-        }
-      }
-    }
-  });
+const getSaleBySubscriptionId = async (subscriptionId: string): Promise<Sale | null> => {
+    if (!subscriptionId) return null;
+    const db = getDb();
+    const q = query(collection(db, SALES_COLLECTION), where("subscriptionId", "==", subscriptionId), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) return null;
+    return docToSale(querySnapshot.docs[0]);
 };

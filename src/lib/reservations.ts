@@ -128,11 +128,6 @@ export const getReservationsForDay = async (date: Date): Promise<Reservation[]> 
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Omit<Reservation, 'id'>) }));
 };
 
-const updateReservationStatus = async (reservationId: string, status: Reservation['status']) => {
-  const docRef = doc(db, 'reservations', reservationId);
-  await updateDoc(docRef, { status });
-};
-
 export const deleteReservation = async (reservationId: string) => {
     const docRef = doc(db, 'reservations', reservationId);
     await deleteDoc(docRef);

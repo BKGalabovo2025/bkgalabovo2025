@@ -1,11 +1,10 @@
 
-import { collection, getDocs, addDoc, doc, query, where, writeBatch, runTransaction, getDoc, updateDoc, deleteDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, query, where, writeBatch, runTransaction, getDoc, updateDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import { Subscription, ClubService, ClubServiceHistory } from '@/types/index';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';
-const SERVICE_HISTORY_COLLECTION = 'serviceHistory';
 const MEMBERS_COLLECTION = 'members'; // Added for fetching member data
 
 // --- Converters --- 
@@ -36,21 +35,6 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
     };
 };
 
-const docToClubServiceHistory = (doc: DocumentSnapshot): ClubServiceHistory | null => {
-    if (!doc.id || !doc.exists()) return null;
-    const data = doc.data() || {};
-    return {
-        id: doc.id,
-        serviceId: typeof data.serviceId === 'string' ? data.serviceId : '',
-        serviceName: typeof data.serviceName === 'string' ? data.serviceName : '',
-        timestamp: typeof data.timestamp === 'string' ? data.timestamp : new Date().toISOString(),
-        userId: typeof data.userId === 'string' ? data.userId : '',
-        userName: typeof data.userName === 'string' ? data.userName : '',
-        changes: typeof data.changes === 'string' ? data.changes : '',
-        note: typeof data.note === 'string' ? data.note : undefined,
-    };
-};
-
 export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | null => {
     if (!doc.id || !doc.exists()) return null;
     const data = doc.data() || {};
@@ -74,20 +58,6 @@ export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | n
     };
 };
 
-// --- Change Summary Generator --- 
-const generateChangeSummary = (oldData: ClubService, newData: Omit<ClubService, 'id'>): string => {
-    const changes: string[] = [];
-    if (oldData.name !== newData.name) changes.push(`- Име: '${oldData.name}' -> '${newData.name}'`);
-    if (oldData.price !== newData.price) changes.push(`- Цена: ${(oldData.price / 100).toFixed(2)} -> ${(newData.price / 100).toFixed(2)} ${newData.currency}`);
-    if (oldData.description !== newData.description) changes.push(`- Описанието е променено.`);
-    if (oldData.billingPeriod !== newData.billingPeriod) changes.push(`- Таксуване: '${oldData.billingPeriod}' -> '${newData.billingPeriod}'`);
-    const oldGroups = (oldData.targetGroups || []).join(', ');
-    const newGroups = (newData.targetGroups || []).join(', ');
-    if (oldGroups !== newGroups) changes.push(`- Целеви групи: '${oldGroups}' -> '${newGroups}'`);
-    if (!changes.length) return 'Няма засечени промени.';
-    return changes.join('\n');
-};
-
 // --- Service Functions --- 
 
 export const getAllClubServices = async (): Promise<ClubService[]> => {
@@ -97,89 +67,7 @@ export const getAllClubServices = async (): Promise<ClubService[]> => {
     return snapshot.docs.map(docToClubService).filter(Boolean) as ClubService[];
 };
 
-const getClubServiceById = async (id: string): Promise<ClubService | null> => {
-    const db = getDb();
-    const docSnap = await getDoc(doc(db, SERVICES_COLLECTION, id));
-    return docToClubService(docSnap);
-};
-
-const createClubService = async (service: Omit<ClubService, 'id'>): Promise<DocumentReference<DocumentData>> => {
-    const db = getDb();
-    const cleanService: { [key: string]: unknown } = {};
-    Object.entries(service).forEach(([key, value]) => {
-      if (value !== undefined) {
-        cleanService[key] = value;
-      }
-    });
-    return await addDoc(collection(db, SERVICES_COLLECTION), cleanService);
-};
-
-const updateClubService = async (id: string, serviceUpdate: Omit<ClubService, 'id'>, note?: string): Promise<void> => {
-    const db = getDb();
-    const auth = getFirebaseAuth();
-    const user = auth.currentUser;
-    if (!user) throw new Error("Нямате права за тази операция. Моля, влезте отново в системата.");
-
-    const serviceRef = doc(db, SERVICES_COLLECTION, id);
-    const historyRef = doc(collection(db, SERVICE_HISTORY_COLLECTION));
-    const batch = writeBatch(db);
-
-    const oldDocSnap = await getDoc(serviceRef);
-    const oldData = docToClubService(oldDocSnap);
-    if (!oldData) throw new Error("Услугата, която се опитвате да промените, не съществува.");
-
-    const changes = generateChangeSummary(oldData, serviceUpdate);
-
-    const historyLog: ClubServiceHistory = {
-        id: historyRef.id,
-        serviceId: id,
-        serviceName: oldData.name,
-        timestamp: new Date().toISOString(),
-        userId: user.uid,
-        userName: user.displayName || user.email || 'System',
-        changes: changes,
-        note: note || undefined,
-    };
-
-    const cleanServiceUpdate: { [key: string]: unknown } = {};
-    Object.entries(serviceUpdate).forEach(([key, value]) => {
-        if (value !== undefined) {
-            cleanServiceUpdate[key] = value;
-        }
-    });
-
-    const cleanHistoryLog: { [key: string]: unknown } = {};
-    Object.entries(historyLog).forEach(([key, value]) => {
-        if (value !== undefined) {
-            cleanHistoryLog[key] = value;
-        }
-    });
-
-    batch.update(serviceRef, cleanServiceUpdate);
-    batch.set(historyRef, cleanHistoryLog);
-    await batch.commit();
-};
-
-const deleteClubService = async (id: string): Promise<void> => {
-    const db = getDb();
-    await deleteDoc(doc(db, SERVICES_COLLECTION, id));
-};
-
-const getHistoryForService = async (serviceId: string): Promise<ClubServiceHistory[]> => {
-    const db = getDb();
-    const q = query(collection(db, SERVICE_HISTORY_COLLECTION), where("serviceId", "==", serviceId), orderBy("timestamp", "desc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(docToClubServiceHistory).filter(Boolean) as ClubServiceHistory[];
-};
-
 // --- Subscription Functions ---
-
-const getAllSubscriptions = async (): Promise<Subscription[]> => {
-  const db = getDb();
-  const q = query(collection(db, SUBSCRIPTIONS_COLLECTION));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
-};
 
 export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subscription[]> => {
   const db = getDb();

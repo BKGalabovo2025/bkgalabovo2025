@@ -196,7 +196,7 @@ const EditSalePage = () => {
                                     {availableProducts.map(product => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell className="text-right">{formatPrice(product.price * 100)}</TableCell>
+                                            <TableCell className="text-right">{formatPrice(product.price)}</TableCell>
                                             <TableCell className="text-right">{product.stock}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button size="sm" onClick={() => addToCart(product)} >
@@ -237,7 +237,7 @@ const EditSalePage = () => {
                                         <div key={item.productId} className="flex items-center justify-between">
                                             <div>
                                                 <p className="font-medium">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price * 100)}</p>
+                                                <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input 
@@ -273,7 +273,7 @@ const EditSalePage = () => {
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
                                     <span>Total:</span>
-                                    <span>{formatPrice(totalAmount * 100)}</span>
+                                    <span>{formatPrice(totalAmount)}</span>
                                 </div>
                                 <Button onClick={handleUpdateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

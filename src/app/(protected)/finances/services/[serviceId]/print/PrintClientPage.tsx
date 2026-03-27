@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Printer, Calendar, Users, Award, Shirt, Clock } from "lucide-react";
+import { formatPrice } from '@/lib/currency';
 
 // --- Type Definition (includes all possible fields) ---
 interface Service {
@@ -23,11 +24,6 @@ interface Service {
 }
 
 // --- Helper Functions ---
-
-const formatPrice = (priceInCents: number, currency: string) => {
-    if (priceInCents === 0) return 'Безплатно';
-    return new Intl.NumberFormat('bg-BG', { style: 'currency', currency: currency }).format(priceInCents / 100);
-};
 
 const formatPaymentCount = (count: number) => {
     if (!count) return '';
@@ -89,7 +85,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
                 <div className="flex justify-between items-start mb-8 border-b pb-4">
                     <div>
                         <h1 className="text-3xl font-bold mb-2">{service.name}</h1>
-                        <p className="text-2xl font-semibold text-gray-800">{formatPrice(service.price, service.currency)}</p>
+                        <p className="text-2xl font-semibold text-gray-800">{formatPrice(service.price)}</p>
                         <div className="flex items-center text-md text-gray-600 mt-2">
                             <Calendar className="mr-2 h-4 w-4"/> 
                             <span>{service.billingPeriod || service.type}</span>

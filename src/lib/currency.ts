@@ -23,6 +23,3 @@ export const formatPrice = (valueInCents: number) => {
         maximumFractionDigits: 2,
     }).format(valueInEuros);
 };
-
-// Kept for historical reference if needed, but should not be used for new formatting.
-const BGN_TO_EUR_RATE = 1.95583;

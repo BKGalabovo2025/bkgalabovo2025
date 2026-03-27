@@ -157,10 +157,10 @@ const SaleDetailsPage = () => {
                                 <div>
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {formatPrice(item.price * 100)}
+                                        {item.quantity} x {formatPrice(item.price)}
                                     </p>
                                 </div>
-                                <p className="font-semibold">{formatPrice(item.quantity * item.price * 100)}</p>
+                                <p className="font-semibold">{formatPrice(item.quantity * item.price)}</p>
                             </li>
                         ))}
                     </ul>
@@ -169,7 +169,7 @@ const SaleDetailsPage = () => {
             <CardFooter className="bg-muted/40 p-4 flex justify-end">
                  <div className="text-right">
                     <p className="text-sm text-muted-foreground">Total</p>
-                     <p className="font-bold text-2xl">{formatPrice(sale.totalAmount * 100)}</p>
+                     <p className="font-bold text-2xl">{formatPrice(sale.totalAmount)}</p>
                 </div>
             </CardFooter>
           </Card>

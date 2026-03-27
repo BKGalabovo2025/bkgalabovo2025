@@ -1,7 +1,6 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
-import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -42,17 +41,7 @@ function getFirebaseAuth(): Auth {
     return auth;
 }
 
-let storage: FirebaseStorage;
-function getAppStorage(): FirebaseStorage {
-    if (!storage) {
-        storage = getStorage(getFirebaseApp());
-    }
-    return storage;
-}
-
 export {
-    
     getFirebaseAuth,
     getDb,
-    
 };

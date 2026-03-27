@@ -57,9 +57,9 @@ export function PriceHistoryDialog({ isOpen, onClose, price }: PriceHistoryDialo
                                         <p className="font-medium">Променено от: {entry.userName}</p>
                                     </div>
                                     <div className="flex items-center space-x-2 font-mono text-lg">
-                                        <span className="text-red-600">{formatPrice(entry.oldValue, price.currency)}</span>
+                                        <span className="text-red-600">{formatPrice(entry.oldValue)}</span>
                                         <ArrowRight className="h-5 w-5" />
-                                        <span className="text-green-600">{formatPrice(entry.newValue, price.currency)}</span>
+                                        <span className="text-green-600">{formatPrice(entry.newValue)}</span>
                                     </div>
                                 </div>
                                 {entry.notes && (

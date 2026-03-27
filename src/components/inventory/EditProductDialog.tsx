@@ -117,7 +117,7 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Редактиране на: {product.name}</DialogTitle>
-           <p className="text-sm text-gray-500 pt-1">Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{formatPrice(product.price * 100)}</strong></p>
+           <p className="text-sm text-gray-500 pt-1">Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{formatPrice(product.price)}</strong></p>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 gap-y-6">
           

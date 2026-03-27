@@ -65,7 +65,7 @@ const ProductList = () => {
                         </div>
                         <div className="col-span-2 md:col-span-5 font-medium break-words">{product.name}</div>
                         <div className="col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatPrice(product.price * 100)}</div>
+                             <div className="md:text-right"><span className="font-bold md:hidden">Цена: </span>{formatPrice(product.price)}</div>
                              <div className="md:text-right"><span className="font-bold md:hidden">Наличност: </span>{product.stock}</div>
                         </div>
                         <div className="col-span-3 md:col-span-2 flex justify-end md:justify-center items-center space-x-1">

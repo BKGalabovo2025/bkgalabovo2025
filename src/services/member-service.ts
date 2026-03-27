@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, Timestamp, query, where, serverTimestamp, DocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, getDoc, Timestamp, query, where, serverTimestamp, DocumentSnapshot } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 import { Member, MemberSchema } from '@/types/member.types';
@@ -110,23 +110,4 @@ export const updateMember = async (id: string, memberData: Partial<Omit<Member, 
   dataToUpdate.updatedAt = serverTimestamp();
 
   await updateDoc(memberRef, dataToUpdate);
-};
-
-// Deletes a member from the database.
-const deleteMember = async (id: string): Promise<void> => {
-  const db = getDb();
-  const memberRef = doc(db, MEMBERS_COLLECTION, id);
-  await deleteDoc(memberRef);
-};
-
-// Fetches all members belonging to a specific family ID.
-const getMembersByFamilyId = async (familyId: string): Promise<Member[]> => {
-    if (!familyId) return [];
-
-    const db = getDb();
-    const membersCollection = collection(db, MEMBERS_COLLECTION);
-    const q = query(membersCollection, where("familyId", "==", familyId));
-    const querySnapshot = await getDocs(q);
-
-    return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
