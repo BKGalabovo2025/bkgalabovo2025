@@ -81,7 +81,7 @@ export const getAllMembers = async (): Promise<Member[]> => {
 };
 
 // Изчисляване на възрастовата група за 2026 година на базата на годината на раждане
-export const calculateAgeGroup2026 = (dateOfBirth?: string | Date | null): string | null => {
+const calculateAgeGroup2026 = (dateOfBirth?: string | Date | null): string | null => {
     if (!dateOfBirth) return null;
     const dob = new Date(dateOfBirth as string | Date);
     if (isNaN(dob.getTime())) return null;

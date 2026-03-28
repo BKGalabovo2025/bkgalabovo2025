@@ -8,7 +8,8 @@ import { clubInfo } from '@/config/club';
 import { getReceiptDetails, ReceiptDetails } from '@/services/sales-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { formatCurrency, formatFullName } from '@/lib/utils';
+import { formatPrice } from '@/lib/currency';
+import { formatFullName } from '@/lib/utils';
 
 interface ReceiptClientPageProps {
     saleId: string;
@@ -137,8 +138,8 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                                                 <p className="text-xs text-gray-600">{service?.name || '(неизвестна услуга)'}</p>
                                             </td>
                                             <td className="p-3 text-right">{item.quantity}</td>
-                                            <td className="p-3 text-right">{formatCurrency(item.price)}</td>
-                                            <td className="p-3 text-right">{formatCurrency(item.quantity * item.price)}</td>
+                                            <td className="p-3 text-right">{formatPrice(item.price)}</td>
+                                            <td className="p-3 text-right">{formatPrice(item.quantity * item.price)}</td>
                                         </tr>
                                     ))
                                 ) : (
@@ -153,11 +154,11 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                             <div className="w-full md:w-1/3 text-right">
                                 <div className="flex justify-between py-1">
                                     <span className="text-gray-600">Междинна сума:</span>
-                                    <span>{formatCurrency(sale?.totalAmount)}</span>
+                                    <span>{formatPrice(sale?.totalAmount || 0)}</span>
                                 </div>
                                 <div className="flex justify-between py-1 font-bold text-xl border-t-2 border-b-2 my-2">
                                     <span>Общо:</span>
-                                    <span>{formatCurrency(sale?.totalAmount)}</span>
+                                    <span>{formatPrice(sale?.totalAmount || 0)}</span>
                                 </div>
                                  <div className="flex justify-between py-1">
                                     <span className="text-gray-600">Статус:</span>

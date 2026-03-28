@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, orderBy, DocumentSnapshot, Timestamp, updateDoc, runTransaction } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, orderBy, DocumentSnapshot, Timestamp, runTransaction } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Product, InventoryEvent } from '@/types';
 

@@ -1,7 +1,6 @@
-
-import { collection, getDocs, doc, query, where, writeBatch, runTransaction, getDoc, updateDoc, DocumentData, DocumentReference, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
-import { getDb, getFirebaseAuth } from '@/lib/firebase';
-import { Subscription, ClubService, ClubServiceHistory } from '@/types/index';
+import { collection, getDocs, doc, query, where, runTransaction, updateDoc, orderBy, DocumentSnapshot, Timestamp } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
+import { Subscription, ClubService } from '@/types/index';
 
 const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
 const SERVICES_COLLECTION = 'clubServices';

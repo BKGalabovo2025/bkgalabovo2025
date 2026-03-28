@@ -30,15 +30,3 @@ export const getAgeGroup = (birthDate: string): string => {
 
     return 'Неопределена';
 };
-
-export const formatCurrency = (amount: number | null | undefined): string => {
-    if (typeof amount !== 'number') {
-        // Return a default formatted string for EUR
-        return new Intl.NumberFormat('bg-BG', { style: 'currency', currency: 'EUR' }).format(0);
-    }
-
-    return new Intl.NumberFormat('bg-BG', {
-        style: 'currency',
-        currency: 'EUR',
-    }).format(amount);
-};

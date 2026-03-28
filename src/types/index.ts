@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Member } from './member.types'; // Explicit import to fix resolution issues
+
 
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
@@ -210,35 +210,9 @@ export type Subscription = {
   linkedSubscriptionId?: string | null; // ID of the corresponding family subscription
 };
 
-type AnalyzedSubscription = {
-  subscriptionId: string;
-  serviceName: string;
-  paymentStatus: 'PAID' | 'PENDING' | 'OVERDUE';
-  startDate: string; // ISO 8601
-  endDate: string; // ISO 8601
-  status: 'active' | 'pending_payment';
-  attendanceSummary: string;
-};
 
-type MemberAnalysis = {
-  overallStatus: 'green' | 'orange' | 'red';
-  analysisDate: string; // ISO 8601
-  analyzedSubscriptions: AnalyzedSubscription[];
-};
 
-/**
- * Represents a historical log entry for changes to a ClubService.
- */
-export type ClubServiceHistory = {
-  id: string;
-  serviceId: string;
-  serviceName: string;
-  timestamp: string; // ISO 8601
-  userId: string;
-  userName: string;
-  changes: string; // A summary of what was changed
-  note?: string;
-};
+
 
 
 // =================================================================
@@ -315,19 +289,4 @@ export type Reminder = {
     relatedId?: string;
 };
 
-/**
- * Represents a message from the AI assistant, typically a suggestion or a warning.
- */
-type AssistantMessage = {
-  id: string;
-  timestamp: string; // ISO 8601
-  type: 'warning' | 'suggestion' | 'info';
-  title: string;
-  description: string;
-};
 
-type Liability = {
-  member: Member;
-  subscription: Subscription;
-  service?: ClubService;
-};
