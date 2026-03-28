@@ -5,7 +5,7 @@ import { createSubscription, getAllClubServices } from '@/services/subscription-
 import { Subscription, Member } from '@/types';
 
 // Тип за данните, необходими за създаване на нов член
-type NewMemberData = Pick<Member, 'firstName' | 'lastName' | 'email'>;
+type NewMemberData = Pick<Member, 'firstName' | 'lastName' | 'email' | 'status'>;
 
 // POST /api/members - Create a new member and a default subscription
 export async function POST(request: Request) {
@@ -23,6 +23,7 @@ export async function POST(request: Request) {
         firstName,
         lastName,
         email,
+        status: 'active',
     };
     const newMemberId = await addMember(memberData);
 

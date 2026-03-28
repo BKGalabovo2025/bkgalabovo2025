@@ -1,7 +1,7 @@
 import { Body, Container, Head, Heading, Html, Link, Preview, Text } from '@react-email/components';
 import * as React from 'react';
 
-interface ReservationConfirmationEmailProps {
+export interface ReservationConfirmationEmailProps {
   clientName: string;
   startTime: string | Date;
   endTime: string | Date;

@@ -4,13 +4,17 @@ import { useRouter } from 'next/navigation';
 import { addMember } from '@/services/member-service';
 import { useToast } from '@/components/ui/use-toast';
 import { MemberForm } from '@/components/members/member-form';
-import { Member } from '@/types';
+import { MemberSchema, Member } from '@/types/member.types';
+import { z } from 'zod';
+
+const MemberFormSchema = MemberSchema.omit({ id: true, name: true, registrationDate: true, updatedAt: true });
+type MemberFormValues = z.infer<typeof MemberFormSchema>;
 
 const NewMemberPage = () => {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSave = async (data: Omit<Member, 'id'>) => {
+  const handleSave = async (data: MemberFormValues) => {
     try {
       const newMemberId = await addMember(data);
       toast({ title: 'Успех!', description: 'Нов член е добавен успешно.' });
