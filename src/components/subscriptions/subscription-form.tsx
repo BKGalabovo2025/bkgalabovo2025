@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
 import { Member, Subscription, ClubService } from "@/types";
+import { useState, useEffect } from "react";
 
 const subscriptionSchema = z.object({
   memberId: z.string().min(1, "Моля, изберете член."),
@@ -43,6 +44,10 @@ interface SubscriptionFormProps {
 }
 
 export function SubscriptionForm({ members, services, onSave, onClose, initialData, isSaving }: SubscriptionFormProps) {
+  const [periodMonth, setPeriodMonth] = useState(() => new Date().toISOString().substring(0, 7)); // YYYY-MM
+  const [periodYear, setPeriodYear] = useState(() => new Date().getFullYear().toString());
+  const [periodDate, setPeriodDate] = useState(() => new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
+
   const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: initialData ? {
@@ -62,6 +67,38 @@ export function SubscriptionForm({ members, services, onSave, onClose, initialDa
       apparelGranted: false,
     },
   });
+
+  const selectedServiceId = form.watch("serviceId");
+  const selectedServiceObj = services.find(s => s.id === selectedServiceId);
+  const billingPeriod = selectedServiceObj?.billingPeriod || null;
+
+  useEffect(() => {
+    if (initialData) {
+        const start = new Date(initialData.startDate);
+        setPeriodYear(start.getFullYear().toString());
+        setPeriodMonth(initialData.startDate.substring(0, 7));
+        setPeriodDate(initialData.startDate.substring(0, 10));
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    if (!billingPeriod) {
+        form.setValue("startDate", periodDate);
+        form.setValue("endDate", periodDate);
+    } else if (billingPeriod === 'Месечен') {
+        const [y, m] = periodMonth.split('-');
+        if (y && m) {
+            form.setValue("startDate", `${y}-${m}-01`);
+            const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
+            form.setValue("endDate", `${y}-${m}-${lastDay.toString().padStart(2, '0')}`);
+        }
+    } else if (billingPeriod === 'Годишен') {
+        if (periodYear) {
+            form.setValue("startDate", `${periodYear}-01-01`);
+            form.setValue("endDate", `${periodYear}-12-31`);
+        }
+    }
+  }, [billingPeriod, periodMonth, periodYear, periodDate, form]);
 
   const onSubmit = (data: SubscriptionFormValues) => {
     const selectedService = services.find(s => s.id === data.serviceId);
@@ -193,33 +230,42 @@ export function SubscriptionForm({ members, services, onSave, onClose, initialDa
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Начална дата</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {selectedServiceId && (
+            <div className="space-y-4 rounded-md bg-blue-50/50 p-4 border border-blue-100">
+                <h3 className="text-sm font-semibold text-blue-900">Период на валидност</h3>
+                {billingPeriod === 'Месечен' && (
+                    <FormItem>
+                        <FormLabel>За кой месец се отнася?</FormLabel>
+                        <FormControl>
+                            <Input type="month" value={periodMonth} onChange={(e) => setPeriodMonth(e.target.value)} />
+                        </FormControl>
+                    </FormItem>
+                )}
+                {billingPeriod === 'Годишен' && (
+                    <FormItem>
+                        <FormLabel>За коя година се отнася?</FormLabel>
+                        <FormControl>
+                            <Input type="number" min="2020" max="2100" value={periodYear} onChange={(e) => setPeriodYear(e.target.value)} />
+                        </FormControl>
+                    </FormItem>
+                )}
+                {!billingPeriod && (
+                    <FormItem>
+                        <FormLabel>Дата на посещение</FormLabel>
+                        <FormControl>
+                            <Input type="date" value={periodDate} onChange={(e) => setPeriodDate(e.target.value)} />
+                        </FormControl>
+                    </FormItem>
+                )}
+                <div className="text-xs text-blue-700/80 pt-2 font-medium flex flex-col gap-1">
+                    <span>Начало: <b>{new Date(form.watch("startDate")).toLocaleDateString('bg-BG')}</b></span>
+                    <span>Край: <b>{new Date(form.watch("endDate")).toLocaleDateString('bg-BG')}</b></span>
+                </div>
+            </div>
+        )}
 
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Крайна дата</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <input type="hidden" {...form.register('startDate')} />
+        <input type="hidden" {...form.register('endDate')} />
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button type="button" variant="ghost" onClick={onClose}>Отказ</Button>
