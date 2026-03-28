@@ -10,7 +10,7 @@ export interface Reservation {
   clientPhone: string;
   clientEmail: string;
   status: 'unpaid' | 'paid' | 'cancelled';
-  totalPrice: number; // in cents, to avoid floating point issues
+  totalPrice: number; // in Euro, as whole numbers
   createdAt: Timestamp;
 }
 

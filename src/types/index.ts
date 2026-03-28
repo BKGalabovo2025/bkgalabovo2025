@@ -96,7 +96,7 @@ export type Price = {
   id: string; // A unique, machine-readable key (e.g., "SUBSCRIPTION_CHILDREN_MONTHLY")
   name: string; // A human-readable name (e.g., "Месечен абонамент за деца")
   description?: string; // Optional further details
-  value: number; // The price in the smallest currency unit (e.g., cents)
+  value: number; // The price in Euro (always a whole number)
   currency: 'EUR';
   isActive: boolean; // Allows deactivating a price without deleting it
   updatedAt: string; // ISO 8601 timestamp of the last modification

@@ -79,7 +79,6 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                       {statusDetails.text}
                     </Badge>
                   </TableCell>
-                  {/* The formatPrice function now expects the value in cents */}
                   <TableCell className="text-right">{formatPrice(sale.totalAmount)}</TableCell>
                   <TableCell>
                     <DropdownMenu>

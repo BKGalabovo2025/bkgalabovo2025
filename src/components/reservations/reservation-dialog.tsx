@@ -93,7 +93,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
                 ...values,
                 startTime: Timestamp.fromDate(values.startTime),
                 endTime: Timestamp.fromDate(values.endTime),
-                totalPrice: price * 100, // store in cents
+                totalPrice: price, // store in Euro directly
             };
 
             if (isEditMode) {

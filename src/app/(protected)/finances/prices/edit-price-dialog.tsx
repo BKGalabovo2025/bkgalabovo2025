@@ -24,7 +24,7 @@ interface EditPriceDialogProps {
 }
 
 export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: EditPriceDialogProps) {
-  const [newValue, setNewValue] = useState(price.value / 100); // Display in EUR, not cents
+  const [newValue, setNewValue] = useState(price.value); // Display in EUR directly
   const [notes, setNotes] = useState('');
   const [isPending, startTransition] = useTransition();
   const { user } = useAuth();
@@ -36,19 +36,19 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
       return;
     }
 
-    const newValueInCents = Math.round(newValue * 100);
-    if (isNaN(newValueInCents) || newValueInCents < 0) {
+    const newValueRounded = Math.round(newValue);
+    if (isNaN(newValueRounded) || newValueRounded < 0) {
         toast({ title: "Грешка", description: "Моля, въведете валидна положителна цена.", variant: 'destructive' });
         return;
     }
 
     startTransition(async () => {
       try {
-        await updatePrice(price.id, newValueInCents, user, notes);
+        await updatePrice(price.id, newValueRounded, user, notes);
         
         const updatedPriceData: Price = {
             ...price,
-            value: newValueInCents,
+            value: newValueRounded,
             updatedAt: new Date().toISOString(),
             updatedBy: { userId: user.uid, userName: user.displayName || user.email || 'System' }
         };
@@ -81,9 +81,9 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
                 <Input 
                     id="new-price"
                     type="number"
-                    step="0.01"
+                    step="1"
                     value={newValue}
-                    onChange={(e) => setNewValue(parseFloat(e.target.value))}
+                    onChange={(e) => setNewValue(parseInt(e.target.value, 10))}
                 />
             </div>
             <div className="space-y-2">

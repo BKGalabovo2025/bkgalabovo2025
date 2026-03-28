@@ -6,7 +6,7 @@ import PrintClientPage from './PrintClientPage';
 interface Service {
     id: string;
     name: string;
-    price: number; // Stored in cents
+    price: number; // in Euro
     currency: string;
     description: string;
     type: string;
@@ -37,11 +37,11 @@ async function getService(id: string): Promise<Service | null> {
 
         const data = docSnap.data()!;
 
-        // The data is already in the correct format, including price in cents.
+        // The data is already in the correct format, including price.
         return {
             id: docSnap.id,
             name: data.name || '',
-            price: data.price || 0, // Keep price in cents
+            price: data.price || 0, // Keep price in Euro
             description: data.description || '',
             currency: 'EUR',
             type: data.type || 'one-time',

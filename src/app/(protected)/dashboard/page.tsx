@@ -59,7 +59,6 @@ const DashboardPage = () => {
       <AssistantPanel />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* SIMPLIFIED: `formatPrice` now receives cents directly */}
         <StatCard title="Приходи (30 дни)" value={formatPrice(stats.revenueLast30Days || 0)} icon={<TrendingUp />} change={stats.revenueChange}/>
         <StatCard title="Активни членове" value={stats.activeMembersCount.toString()} icon={<Users />} />
         <StatCard title="Нови членове (30 дни)" value={stats.newMembersLast30Days.toString()} icon={<Users />} change={stats.newMembersChange} />
@@ -90,7 +89,6 @@ const DashboardPage = () => {
                     <p className="text-sm text-muted-foreground">{saleDetails.description}</p>
                   </div>
                   <div className="ml-auto font-medium text-right">
-                      {/* SIMPLIFIED: No more multiplication. `sale.totalAmount` is guaranteed to be in cents. */}
                       <div>{formatPrice(sale.totalAmount)}</div>
                       <div className="text-xs text-muted-foreground font-normal">{format(new Date(sale.saleDate), 'dd.MM.yyyy')}</div>
                   </div>

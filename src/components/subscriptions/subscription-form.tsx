@@ -16,7 +16,7 @@ const subscriptionSchema = z.object({
   memberId: z.string().min(1, "Моля, изберете член."),
   serviceId: z.string().min(1, "Моля, изберете услуга."),
   status: z.enum(["active", "inactive", "cancelled", "pending_payment"]),
-  pricePaid: z.number().min(0.01, { message: "Сумата трябва да е положително число." }),
+  pricePaid: z.number().min(1, { message: "Сумата трябва да е положително число." }),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна начална дата." }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Моля, въведете валидна крайна дата." }),
   paymentHistory: z.array(z.object({
@@ -199,7 +199,7 @@ export function SubscriptionForm({ members, services, onSave, onClose, initialDa
             <FormItem>
               <FormLabel>Платена сума</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)}/>
+                <Input type="number" step="1" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/>
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -35,7 +35,7 @@ async function getService(id: string): Promise<Service | null> {
 
     const data = docSnap.data()!;
 
-    const priceInMainUnit = (data.price || 0) / 100;
+    const priceInMainUnit = (data.price || 0);
 
     return {
         id: docSnap.id,

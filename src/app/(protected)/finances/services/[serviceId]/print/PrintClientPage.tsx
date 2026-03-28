@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/currency';
 interface Service {
     id: string;
     name: string;
-    price: number; // in cents
+    price: number; // in Euro
     currency: string;
     description: string;
     type: string;

@@ -31,16 +31,14 @@ export const getAgeGroup = (birthDate: string): string => {
     return 'Неопределена';
 };
 
-export const formatCurrency = (amountInCents: number | null | undefined): string => {
-    if (typeof amountInCents !== 'number') {
+export const formatCurrency = (amount: number | null | undefined): string => {
+    if (typeof amount !== 'number') {
         // Return a default formatted string for EUR
         return new Intl.NumberFormat('bg-BG', { style: 'currency', currency: 'EUR' }).format(0);
     }
 
-    const amountInEuros = amountInCents / 100;
-
     return new Intl.NumberFormat('bg-BG', {
         style: 'currency',
         currency: 'EUR',
-    }).format(amountInEuros);
+    }).format(amount);
 };
