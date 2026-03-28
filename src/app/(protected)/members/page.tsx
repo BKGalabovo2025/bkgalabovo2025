@@ -106,6 +106,7 @@ const MembersPage = () => {
                         <TableRow>
                             <TableHead>Име</TableHead>
                             <TableHead>Имейл</TableHead>
+                            <TableHead>Група (2026)</TableHead>
                             <TableHead>Дата на регистрация</TableHead>
                             <TableHead>Статус</TableHead>
                         </TableRow>
@@ -113,9 +114,14 @@ const MembersPage = () => {
                     <TableBody>
                         {filteredMembers.length > 0 ? (
                             filteredMembers.map(member => (
-                                <TableRow key={member.id} onClick={() => router.push(`/members/${member.id}`)} className="cursor-pointer">
+                                <TableRow key={member.id} onClick={() => router.push(`/members/${member.id}`)} className="cursor-pointer hover:bg-muted/50 transition-colors">
                                     <TableCell className="font-medium">{member.firstName} {member.lastName}</TableCell>
                                     <TableCell>{member.email || 'N/A'}</TableCell>
+                                    <TableCell>
+                                        {member.ageGroup2026 ? (
+                                            <Badge variant="outline">{member.ageGroup2026}</Badge>
+                                        ) : 'N/A'}
+                                    </TableCell>
                                     {/* Вече сме сигурни, че registrationDate е валиден string */}
                                     <TableCell>{new Date(member.registrationDate).toLocaleDateString('bg-BG')}</TableCell>
                                     <TableCell>

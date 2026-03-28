@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy, updateDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Sale, Subscription, InventoryEvent, Member, ClubService } from '@/types';
 import { docToMember } from './member-service'; 
@@ -189,6 +189,19 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
     const saleRef = doc(db, SALES_COLLECTION, id);
     const docSnap = await getDoc(saleRef);
     return docToSale(docSnap);
+};
+
+export const updateSale = async (id: string, data: Partial<Omit<Sale, 'id' | 'createdAt'>>): Promise<void> => {
+    if (!id) throw new Error("Sale ID is required for update.");
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+    
+    const dataToUpdate: { [key: string]: unknown } = { ...data };
+    if (dataToUpdate.saleDate && typeof dataToUpdate.saleDate === 'string') {
+        dataToUpdate.saleDate = Timestamp.fromDate(new Date(dataToUpdate.saleDate));
+    }
+    
+    await updateDoc(saleRef, dataToUpdate);
 };
 
 export const findOrCreateSaleForSubscription = async (subscription: Subscription): Promise<Sale | null> => {

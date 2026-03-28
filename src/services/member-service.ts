@@ -80,13 +80,35 @@ export const getAllMembers = async (): Promise<Member[]> => {
   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
+// Изчисляване на възрастовата група за 2026 година на базата на годината на раждане
+export const calculateAgeGroup2026 = (dateOfBirth?: string | Date | null): string | null => {
+    if (!dateOfBirth) return null;
+    const dob = new Date(dateOfBirth as string | Date);
+    if (isNaN(dob.getTime())) return null;
+    
+    const year = dob.getFullYear();
+    
+    if (year >= 2018) return 'U9';
+    if (year === 2017 || year === 2016) return 'U11';
+    if (year === 2015 || year === 2014) return 'U13';
+    if (year === 2013 || year === 2012) return 'U15';
+    if (year === 2011 || year === 2010) return 'U17';
+    if (year === 2009 || year === 2008) return 'U19';
+    if (year <= 2007) return 'Мъже/Жени';
+    
+    return null;
+};
+
 // Adds a new member to the database, using server-side timestamps.
 export const addMember = async (memberData: Omit<Member, 'id' | 'name' | 'registrationDate' | 'updatedAt'>): Promise<string> => {
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
   
+  const ageGroup2026 = calculateAgeGroup2026(memberData.dateOfBirth);
+
   const dataToAdd = {
     ...memberData,
+    ageGroup2026,
     dateOfBirth: memberData.dateOfBirth ? Timestamp.fromDate(new Date(memberData.dateOfBirth)) : null,
     registrationDate: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -103,8 +125,13 @@ export const updateMember = async (id: string, memberData: Partial<Omit<Member, 
   
   const dataToUpdate: { [key: string]: unknown } = { ...memberData };
 
-  if (dataToUpdate.dateOfBirth) {
-      dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(dataToUpdate.dateOfBirth as string));
+  if ('dateOfBirth' in dataToUpdate) {
+      dataToUpdate.ageGroup2026 = calculateAgeGroup2026(dataToUpdate.dateOfBirth as string | Date | null);
+      if (dataToUpdate.dateOfBirth) {
+          dataToUpdate.dateOfBirth = Timestamp.fromDate(new Date(dataToUpdate.dateOfBirth as string));
+      } else {
+          dataToUpdate.dateOfBirth = null;
+      }
   }
   
   dataToUpdate.updatedAt = serverTimestamp();

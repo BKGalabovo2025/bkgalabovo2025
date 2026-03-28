@@ -106,10 +106,13 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                             <InfoRow icon={Mail} label="Имейл" value={member.email} />
                             <InfoRow icon={Phone} label="Телефон" value={member.phone} />
                             <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
+                            <InfoRow icon={Phone} label="Спешен контакт" value={member.emergencyContactName ? `${member.emergencyContactName} (${member.emergencyContactPhone || '—'})` : null} />
                             <InfoRow icon={Calendar} label="Дата на раждане" value={formattedBirthDate} />
-                            <InfoRow icon={BarChart2} label="Възрастова група" value={ageGroup} />
+                            <InfoRow icon={BarChart2} label="Възрастова група 2026" value={member.ageGroup2026 || ageGroup} />
                             <InfoRow icon={Calendar} label="Дата на регистрация" value={formattedRegistrationDate} />
                             <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
+                            <InfoRow icon={Users} label="Размер екипировка" value={member.apparelSize} />
+                            <InfoRow icon={FileText} label="ЕГН" value={member.personalId} />
                             <InfoRow icon={Home} label="Адрес" value={member.address} />
                             <InfoRow icon={FileText} label="Бележки" value={member.notes} isBlock={true} />
 

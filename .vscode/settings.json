@@ -1,10 +1,11 @@
 {
-    "IDX.agenticWorkspace": true,
-    "IDX.aI.showChatInEditorTab": true,
-    "files.associations": {
-        "*.css": "tailwindcss"
-    },
-    "editor.quickSuggestions": {
-        "strings": "on"
-    }
+  "IDX.agenticWorkspace": true,
+  "IDX.aI.showChatInEditorTab": true,
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "workbench.startupEditor": "readme"
 }

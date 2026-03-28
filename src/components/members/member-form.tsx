@@ -35,12 +35,16 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
       firstName: '',
       middleName: '',
       lastName: '',
-      egn: '',
+      personalId: '',
+      educationInstitution: '',
       dateOfBirth: undefined,
       gender: 'male',
       phone: '',
       email: '',
       address: '',
+      emergencyContactName: '',
+      emergencyContactPhone: '',
+      apparelSize: '',
       status: 'active',
       notes: '',
       familyId: undefined,
@@ -83,7 +87,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Презиме</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +122,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Телефон</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,12 +135,43 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Имейл</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input type="email" {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              <div className="pt-4 border-t mt-4">
+                 <h4 className="font-medium mb-2 text-sm">Спешен Контакт</h4>
+                 <div className="grid gap-4">
+                  <FormField
+                    name="emergencyContactName"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Име на контакт</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="emergencyContactPhone"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Телефон на контакт</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                 </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -147,13 +182,26 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
-                name="egn"
+                name="personalId"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>ЕГН</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="educationInstitution"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Учебно заведение</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -200,7 +248,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                 render={({ field }) => (
                   <FormItem className="pt-2">
                     <FormLabel>Пол</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -222,7 +270,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem className="sm:col-span-3">
                     <FormLabel>Адрес</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,6 +285,19 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
               <CardTitle>Административна информация</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="apparelSize"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Размер екипировка</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ''} placeholder="напр. M, L, XL" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="status"
@@ -266,7 +327,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem className="sm:col-span-3">
                     <FormLabel>Бележки</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={4} />
+                      <Textarea {...field} value={field.value || ''} rows={4} />
                     </FormControl>
                     <FormDescription>Вътрешни бележки, видими само за администратори.</FormDescription>
                     <FormMessage />
