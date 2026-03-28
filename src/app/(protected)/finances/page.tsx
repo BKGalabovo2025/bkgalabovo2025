@@ -27,7 +27,7 @@ export default function FinancesPage() {
             <CreditCard className="h-5 w-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" className="w-full"><Link href="/finances/subscriptions">Списък</Link></Button>
+            <Button asChild variant="outline" className="w-full"><Link href="/subscriptions">Списък</Link></Button>
           </CardContent>
         </Card>
 

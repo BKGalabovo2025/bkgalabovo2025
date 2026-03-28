@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { Price, PriceHistory } from '@/types/index';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { getPriceHistory } from '@/services/price-service';
 import { formatPrice } from '@/lib/currency';
@@ -36,6 +36,7 @@ export function PriceHistoryDialog({ isOpen, onClose, price }: PriceHistoryDialo
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>История на промените за &quot;{price.name}&quot;</DialogTitle>
+          <DialogDescription>Списък на всички минали промени в стойността на тази услуга или стока.</DialogDescription>
         </DialogHeader>
         <div className="py-4">
             {isLoading ? (

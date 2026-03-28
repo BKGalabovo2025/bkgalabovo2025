@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from '@/hooks/use-toast';
@@ -117,7 +117,9 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Редактиране на: {product.name}</DialogTitle>
-           <p className="text-sm text-gray-500 pt-1">Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{formatPrice(product.price)}</strong></p>
+          <DialogDescription>
+            Текуща наличност: <strong>{product.stock} бр.</strong> | Текуща цена: <strong>{formatPrice(product.price)}</strong>
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 gap-y-6">
           

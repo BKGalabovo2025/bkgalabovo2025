@@ -314,7 +314,10 @@ const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, o
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild><Button size="sm">Регистрирай плащане</Button></DialogTrigger>
             <DialogContent>
-                <DialogHeader><DialogTitle>Потвърждение на плащане</DialogTitle></DialogHeader>
+                <DialogHeader>
+                    <DialogTitle>Потвърждение на плащане</DialogTitle>
+                    <DialogDescription>Прегледайте сумата и потвърдете регистрирането на плащането.</DialogDescription>
+                </DialogHeader>
                 <p>Ще регистрирате плащане от <strong>{formatPrice(amountToPay)}</strong> за абонамент <strong>{sub.serviceName}</strong>. Сигурни ли сте?</p>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsOpen(false)} >Отказ</Button>

@@ -5,7 +5,7 @@
 
 import { useState, useTransition } from 'react';
 import { Price } from '@/types/index';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,6 +68,7 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Редактиране на цена</DialogTitle>
+          <DialogDescription>Актуализирайте стойността на цената и добавете бележка за промяната.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
             <p className="font-semibold text-lg">{price.name}</p>
