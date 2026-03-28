@@ -6,7 +6,11 @@ import { updateMember } from '@/services/member-service';
 import { useToast } from '@/components/ui/use-toast';
 import { MemberForm } from '@/components/members/member-form';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { Member } from '@/types';
+import { MemberSchema, Member } from '@/types/member.types';
+import { z } from 'zod';
+
+const MemberFormSchema = MemberSchema.omit({ id: true, name: true, registrationDate: true, updatedAt: true });
+type MemberFormValues = z.infer<typeof MemberFormSchema>;
 
 const EditMemberPage = () => {
   const router = useRouter();
@@ -16,7 +20,7 @@ const EditMemberPage = () => {
 
   const { member, loading, error } = useMember(memberId);
 
-  const handleSave = async (data: Omit<Member, 'id'>) => {
+  const handleSave = async (data: MemberFormValues) => {
     try {
       await updateMember(memberId, data);
       toast({ title: 'Успех!', description: 'Членът е актуализиран успешно.' });
@@ -48,7 +52,7 @@ const EditMemberPage = () => {
   return (
     <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold mb-4">Редактиране на член</h1>
-      <MemberForm member={member} onSave={handleSave} onClose={handleClose} />
+      <MemberForm initialData={member} onSave={handleSave} onClose={handleClose} />
     </div>
   );
 };
