@@ -1,5 +1,5 @@
-
 // src/app/(protected)/finances/prices/page.tsx
+export const dynamic = 'force-dynamic';
 
 import { getAllPrices } from "@/services/price-service";
 import { PricesClientPage } from './client-page';
