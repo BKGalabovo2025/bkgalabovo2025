@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, DocumentSnapshot, Timestamp, runTransaction, query, where, limit, orderBy, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Sale, Subscription, InventoryEvent, Member, ClubService } from '@/types';
 import { docToMember } from './member-service'; 
@@ -202,6 +202,13 @@ export const updateSale = async (id: string, data: Partial<Omit<Sale, 'id' | 'cr
     }
     
     await updateDoc(saleRef, dataToUpdate);
+};
+
+export const deleteSale = async (id: string): Promise<void> => {
+    if (!id) throw new Error("Sale ID is required for deletion.");
+    const db = getDb();
+    const saleRef = doc(db, SALES_COLLECTION, id);
+    await deleteDoc(saleRef);
 };
 
 export const findOrCreateSaleForSubscription = async (subscription: Subscription): Promise<Sale | null> => {
