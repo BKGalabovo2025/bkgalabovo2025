@@ -123,7 +123,7 @@ const NewSalePage = () => {
                 status: paymentStatus,
                 isPaid: paymentStatus === 'completed',
                 totalAmount: totalAmount,
-                currency: 'BGN',
+                currency: 'EUR',
             } as Omit<Sale, 'id'>, user.uid, user.displayName || user.email || 'Unknown User');
 
             toast({ title: "Success!", description: "Sale created successfully." });

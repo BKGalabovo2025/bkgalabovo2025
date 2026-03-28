@@ -34,7 +34,7 @@ export const ServiceSchema = z.object({
     id: z.string(), // Ще идва от ID-то на документа
     name: z.string(),
     price: z.number(),
-    currency: z.enum(['EUR', 'BGN']),
+    currency: z.enum(['EUR']),
     type: z.string(),
     description: z.string(),
     billingPeriod: z.string().nullable(),

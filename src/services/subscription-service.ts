@@ -16,7 +16,7 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
         name: typeof data.name === 'string' ? data.name : 'Неименувана услуга',
         description: typeof data.description === 'string' ? data.description : '',
         price: typeof data.price === 'number' ? data.price : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'EUR', // Default to EUR
+        currency: 'EUR', // Force EUR
         type: ['Абонамент', 'Еднократно плащане'].includes(data.type) ? data.type : 'Еднократно плащане',
         billingPeriod: ['Месечен', 'Годишен', null].includes(data.billingPeriod) ? data.billingPeriod : null,
         targetGroups: Array.isArray(data.targetGroups) ? data.targetGroups : [],
@@ -48,7 +48,7 @@ export const docToMemberSubscription = (doc: DocumentSnapshot): Subscription | n
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
         price: typeof data.price === 'number' ? data.price : 0,
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'EUR', // Default to EUR
+        currency: 'EUR', // Force EUR
         paymentHistory: Array.isArray(data.paymentHistory) ? data.paymentHistory : [],
         paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
         totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,

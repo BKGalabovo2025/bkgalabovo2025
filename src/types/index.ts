@@ -35,7 +35,7 @@ export type Product = {
   name: string;
   description?: string;
   price: number;
-  currency: 'BGN' | 'EUR';
+  currency: 'EUR';
   category: string;
   stock: number; // Current stock level
   imageUrl?: string | null;
@@ -64,7 +64,7 @@ export type Sale = {
   status: 'pending' | 'completed' | 'cancelled';
   isPaid: boolean;
   totalAmount: number; // Corrected field name
-  currency: 'BGN' | 'EUR';
+  currency: 'EUR';
   subscriptionId?: string | null; // Added for linking sales to subscriptions
 };
 
@@ -76,7 +76,7 @@ export type Payment = {
   memberId: string;
   paymentDate: string; // ISO 8601
   amount: number;
-  currency: 'BGN' | 'EUR';
+  currency: 'EUR';
   type: 'subscription' | 'donation' | 'sale' | 'other';
   method: 'cash' | 'card' | 'bank_transfer';
   status: 'succeeded' | 'pending' | 'failed';
@@ -97,7 +97,7 @@ export type Price = {
   name: string; // A human-readable name (e.g., "Месечен абонамент за деца")
   description?: string; // Optional further details
   value: number; // The price in the smallest currency unit (e.g., cents)
-  currency: 'EUR' | 'BGN';
+  currency: 'EUR';
   isActive: boolean; // Allows deactivating a price without deleting it
   updatedAt: string; // ISO 8601 timestamp of the last modification
   updatedBy: {
@@ -157,7 +157,7 @@ export type ClubService = {
   name: string;
   description: string;
   price: number;
-  currency: 'BGN' | 'EUR';
+  currency: 'EUR';
   type: 'Абонамент' | 'Еднократно плащане';
   billingPeriod: 'Месечен' | 'Годишен' | null;
   targetGroups: TargetGroup[];
@@ -201,7 +201,7 @@ export type Subscription = {
   status: 'active' | 'inactive' | 'cancelled' | 'pending_payment';
   price: number; // The price of the subscription per billing period
   pricePaid: number;
-  currency: 'BGN' | 'EUR';
+  currency: 'EUR';
   paymentHistory: PaymentHistoryItem[];
   paymentsMadeCount: number;
   totalPaymentsCount: number;

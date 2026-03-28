@@ -23,7 +23,7 @@ const docToProduct = (doc: DocumentSnapshot): Product | null => {
         name: name,
         description: typeof data.description === 'string' ? data.description : '',
         price: typeof data.price === 'number' ? data.price : 0,
-        currency: data.currency === 'EUR' || data.currency === 'BGN' ? data.currency : 'BGN',
+        currency: 'EUR', // Force EUR
         stock: typeof data.stock === 'number' ? data.stock : 0,
         category: typeof data.category === 'string' ? data.category : 'Без категория',
         imageUrl: typeof data.imageUrl === 'string' ? data.imageUrl : '',

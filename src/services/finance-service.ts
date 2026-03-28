@@ -18,7 +18,7 @@ const docToPayment = (doc: DocumentSnapshot): Payment | null => {
     return {
         id: doc.id,
         amount: typeof data.amount === 'number' ? data.amount : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
+        currency: 'EUR',
         paymentDate: data.paymentDate instanceof Timestamp ? data.paymentDate.toDate().toISOString() : new Date().toISOString(),
         memberId: typeof data.memberId === 'string' ? data.memberId : '',
         type: ['subscription', 'donation', 'sale', 'other'].includes(data.type) ? data.type : 'other',
@@ -52,7 +52,7 @@ const docToSubscription = (doc: DocumentSnapshot): Subscription | null => {
         status: ['active', 'inactive', 'cancelled', 'pending_payment'].includes(data.status) ? data.status : 'inactive',
         price: typeof data.price === 'number' ? data.price : 0,
         pricePaid: typeof data.pricePaid === 'number' ? data.pricePaid : 0,
-        currency: ['BGN', 'EUR'].includes(data.currency) ? data.currency : 'BGN',
+        currency: 'EUR',
         paymentHistory: paymentHistory,
         paymentsMadeCount: typeof data.paymentsMadeCount === 'number' ? data.paymentsMadeCount : 0,
         totalPaymentsCount: typeof data.totalPaymentsCount === 'number' ? data.totalPaymentsCount : 0,

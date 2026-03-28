@@ -2,7 +2,7 @@
 import { Member, Sale } from '@/types';
 
 export type TotalRevenue = {
-    [key: string]: number; // e.g. { BGN: 120.50, EUR: 50.00 }
+    [key: string]: number; // e.g. { EUR: 50.00 }
 };
 
 /**
@@ -52,7 +52,7 @@ export const getDashboardStats = (members: Member[], sales: Sale[]) => {
         .filter(sale => sale && sale.status === 'completed')
         .reduce((acc, sale) => {
             const totalAmount = sale.totalAmount || 0;
-            const currency = sale.currency || 'BGN';
+            const currency = sale.currency || 'EUR';
             if (!acc[currency]) {
                 acc[currency] = 0;
             }

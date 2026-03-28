@@ -150,7 +150,7 @@ const FinancialReport = () => {
                             <TableCell>{new Date(p.paymentDate).toLocaleDateString('bg-BG')}</TableCell>
                             <TableCell>{memberName}</TableCell>
                             <TableCell>{p.type}</TableCell>
-                            <TableCell className="text-right font-medium">{p.amount.toFixed(2)} лв.</TableCell>
+                            <TableCell className="text-right font-medium">{p.amount.toFixed(2)} €</TableCell>
                         </TableRow>
                     );
                 })
@@ -163,7 +163,7 @@ const FinancialReport = () => {
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={3} className="text-right font-bold">Общо:</TableCell>
-                <TableCell className="text-right font-bold">{totalAmount.toFixed(2)} лв.</TableCell>
+                <TableCell className="text-right font-bold">{totalAmount.toFixed(2)} €</TableCell>
               </TableRow>
             </TableFooter>
           </Table>

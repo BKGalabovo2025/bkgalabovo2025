@@ -89,6 +89,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
         setIsSaving(true);
         try {
             const dataToSave = {
+                currency: 'EUR',
                 ...values,
                 startTime: Timestamp.fromDate(values.startTime),
                 endTime: Timestamp.fromDate(values.endTime),
@@ -148,7 +149,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({ children, 
                             <FormField control={form.control} name="startTime" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Начален час</FormLabel><Input type="datetime-local" value={field.value ? new Date(field.value.getTime() - (field.value.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''} onChange={e => field.onChange(new Date(e.target.value))} /><FormMessage /></FormItem>)} />
                             <FormField control={form.control} name="endTime" render={({ field }) => (<FormItem className="flex flex-col"><FormLabel>Краен час</FormLabel><Input type="datetime-local" value={field.value ? new Date(field.value.getTime() - (field.value.getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''} onChange={e => field.onChange(new Date(e.target.value))} /><FormMessage /></FormItem>)} />
                         </div>
-                        <div className="text-right font-bold text-lg">Общо: {price.toFixed(2)} лв.</div>
+                        <div className="text-right font-bold text-lg">Общо: {price.toFixed(2)} €</div>
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Отказ</Button>
                             <Button type="submit" disabled={isSaving}>
