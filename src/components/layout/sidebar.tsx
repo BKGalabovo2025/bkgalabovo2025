@@ -18,15 +18,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props} className={cn("bg-sidebar text-sidebar-foreground animate-in slide-in-from-left-2 duration-500", props.className)}>
       <SidebarHeader>
-        <div className="fixed left-0 top-0 h-full z-50 w-64 w-full text-center py-4 px-2">
-          <h1 className="fixed left-0 top-0 h-full z-50 w-64 text-lg font-bold">{clubInfo.name}</h1>
+        <div className="hidden md:flex">
+          <h1 className="hidden md:flex">{clubInfo.name}</h1>
         </div>
       </SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
           <Link href="/dashboard" passHref>
             <SidebarMenuButton isActive={pathname === '/dashboard'}>
-              <Home className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Home className="hidden md:flex" />
               <span>Начало</span>
             </SidebarMenuButton>
           </Link>
@@ -34,7 +34,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/members" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/members')}>
-              <Users className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Users className="hidden md:flex" />
               <span>Членове</span>
             </SidebarMenuButton>
           </Link>
@@ -43,7 +43,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/subscriptions" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/subscriptions')}>
-              <CreditCard className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <CreditCard className="hidden md:flex" />
               <span>Абонаменти</span>
             </SidebarMenuButton>
           </Link>
@@ -52,7 +52,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/finances/services" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances/services')}>
-              <Settings className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Settings className="hidden md:flex" />
               <span>Услуги</span>
             </SidebarMenuButton>
           </Link>
@@ -60,7 +60,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/finances/prices" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances/prices')}>
-              <Tag className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Tag className="hidden md:flex" />
               <span>Цени</span>
             </SidebarMenuButton>
           </Link>
@@ -69,7 +69,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/inventory" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/inventory')}>
-              <ShoppingCart className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <ShoppingCart className="hidden md:flex" />
               <span>Инвентар</span>
             </SidebarMenuButton>
           </Link>
@@ -77,7 +77,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/sales" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/sales')}>
-              <Receipt className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Receipt className="hidden md:flex" />
               <span>Продажби</span>
             </SidebarMenuButton>
           </Link>
@@ -85,7 +85,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/schedule" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/schedule')}>
-              <Calendar className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <Calendar className="hidden md:flex" />
               <span>График</span>
             </SidebarMenuButton>
           </Link>
@@ -93,7 +93,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/reservations" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reservations')}>
-              <LayoutGrid className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <LayoutGrid className="hidden md:flex" />
               <span>Резервации на корт</span>
             </SidebarMenuButton>
           </Link>
@@ -101,7 +101,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/reports" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reports')}>
-              <FileText className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <FileText className="hidden md:flex" />
               <span>Справки</span>
             </SidebarMenuButton>
           </Link>
@@ -111,7 +111,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         {user && (
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logout}>
-              <LogOut className="fixed left-0 top-0 h-full z-50 w-64 w-4 h-4" />
+              <LogOut className="hidden md:flex" />
               <span>Изход</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
