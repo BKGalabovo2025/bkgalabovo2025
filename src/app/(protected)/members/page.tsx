@@ -1,3 +1,4 @@
+"use client"; //
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -24,11 +25,11 @@ interface PageHeaderProps {
 
 const PageHeader = ({ searchTerm, onSearchChange, onAddMember }: PageHeaderProps) => (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-        <h1 className="text-2xl font-bold flex items-center"><User className="mr-2"/>Членове на клуба</h1>
+        <h1 className="text-2xl font-bold flex items-center"><User className="mr-2" />Членове на клуба</h1>
         <div className="flex w-full sm:w-auto gap-2">
             <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
+                <Input
                     placeholder="Търсене по име или имейл..."
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
@@ -92,17 +93,17 @@ const MembersPage = () => {
             </div>
         );
     }
-    
+
     if (members.length === 0) {
         return (
-             <div className="p-4 sm:p-6">
+            <div className="p-4 sm:p-6">
                 <PageHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} onAddMember={() => router.push('/members/new')} />
-                <EmptyState 
+                <EmptyState
                     Icon={Users}
                     title="Няма добавени членове"
                     description="Все още не сте добавили нито един член. Започнете, като добавите първия."
                 >
-                     <Button onClick={() => router.push('/members/new')}>
+                    <Button onClick={() => router.push('/members/new')}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Добави първия член
                     </Button>
                 </EmptyState>
@@ -113,7 +114,7 @@ const MembersPage = () => {
     return (
         <div className="p-4 sm:p-6">
             <PageHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} onAddMember={() => router.push('/members/new')} />
-            
+
             <div className="border rounded-lg mb-4 overflow-hidden">
                 <Table>
                     <TableHeader>
@@ -128,9 +129,9 @@ const MembersPage = () => {
                     <TableBody>
                         {paginatedMembers.length > 0 ? (
                             paginatedMembers.map(member => (
-                                <TableRow 
-                                    key={member.id} 
-                                    onClick={() => router.push(`/members/${member.id}`)} 
+                                <TableRow
+                                    key={member.id}
+                                    onClick={() => router.push(`/members/${member.id}`)}
                                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                                 >
                                     <TableCell className="font-medium">{member.firstName} {member.lastName}</TableCell>
@@ -170,9 +171,9 @@ const MembersPage = () => {
                         Показани {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredMembers.length)} от {filteredMembers.length} членове
                     </p>
                     <div className="flex items-center space-x-2">
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -181,9 +182,9 @@ const MembersPage = () => {
                         <div className="text-sm font-medium">
                             Страница {currentPage} от {totalPages}
                         </div>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
