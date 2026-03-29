@@ -1,9 +1,8 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 import { getSaleById, updateSale } from '@/services/sales-service';
 import { getAllMembers } from '@/services/member-service';
@@ -25,7 +24,6 @@ type SaleItem = Sale['items'][0];
 const EditSalePage = () => {
     const router = useRouter();
     const params = useParams();
-    const { toast } = useToast();
     const saleId = params.id as string;
 
     const { products: allProducts, isLoading: productsLoading, error: productsError } = useProducts();
@@ -52,7 +50,7 @@ const EditSalePage = () => {
                 ]);
 
                 if (!saleData) {
-                    toast({ title: "Error", description: "Sale not found.", variant: "destructive" });
+                    toast.error("Грешка", { description: "Продажбата не е намерена." });
                     router.push('/sales');
                     return;
                 }
@@ -65,7 +63,7 @@ const EditSalePage = () => {
 
             } catch (error) {
                 console.error("Error fetching data:", error);
-                toast({ title: "Error loading data", description: "Failed to load data for editing.", variant: "destructive" });
+                toast.error("Грешка при зареждане", { description: "Неуспешно зареждане на данните за редактиране." });
             } finally {
                 setMembersLoading(false);
                 setPageLoading(false);
@@ -73,7 +71,7 @@ const EditSalePage = () => {
         };
 
         fetchInitialData();
-    }, [saleId, toast, router]);
+    }, [saleId, router]);
 
     useEffect(() => {
         const newTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -89,7 +87,7 @@ const EditSalePage = () => {
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
-                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${product.name} available.`, variant: "destructive" });
+                    toast.error("Няма наличност", { description: `Само ${stock} бр. от ${product.name} са налични.` });
                     return prevCart;
                 }
                 return prevCart.map(item => 
@@ -97,7 +95,7 @@ const EditSalePage = () => {
                 );
             } else {
                 if (stock < 1) {
-                    toast({ title: "Out of stock", description: `Product ${product.name} is out of stock.`, variant: "destructive" });
+                    toast.error("Няма наличност", { description: `Продуктът ${product.name} е изчерпан.` });
                     return prevCart;
                 }
                 return [...prevCart, { productId: product.id, name: product.name, price: product.price, quantity: 1 }];
@@ -118,7 +116,7 @@ const EditSalePage = () => {
         if (quantity <= 0) {
             removeFromCart(productId);
         } else if (quantity > stock) {
-             toast({ title: "Not enough stock", description: `Maximum available quantity is ${stock}.`, variant: "destructive" });
+             toast.error("Няма наличност", { description: `Максималното налично количество е ${stock}.` });
         } else {
             setCart(cart.map(item => item.productId === productId ? { ...item, quantity } : item));
         }
@@ -126,7 +124,7 @@ const EditSalePage = () => {
 
     const handleUpdateSale = async () => {
         if (cart.length === 0) {
-            toast({ title: "Empty cart", description: "Please add at least one product.", variant: "destructive" });
+            toast.error("Празна количка", { description: "Моля, добавете поне един продукт." });
             return;
         }
 
@@ -138,12 +136,12 @@ const EditSalePage = () => {
                 status: paymentStatus,
             });
 
-            toast({ title: "Success!", description: "Sale updated successfully." });
+            toast.success("Успех!", { description: "Продажбата е актуализирана успешно." });
             router.push(`/sales/${saleId}`);
         } catch (error) {
             const err = error as Error;
             console.error("Error updating sale:", err);
-            toast({ title: "Error", description: err.message || "An error occurred while updating the sale.", variant: "destructive" });
+            toast.error("Грешка", { description: err.message || "Възникна грешка при обновяване на продажбата." });
         } finally {
             setIsSubmitting(false);
         }
@@ -161,34 +159,34 @@ const EditSalePage = () => {
     const isLoading = productsLoading || membersLoading || isPageLoading;
 
     if (isLoading) {
-        return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin" /> Loading...</div>;
+        return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin" /> Зареждане...</div>;
     }
     
     if (productsError) {
-        return <div className="text-center py-10 text-red-500">An error occurred while fetching products.</div>;
+        return <div className="text-center py-10 text-red-500">Възникна грешка при извличане на продуктите.</div>;
     }
 
     return (
         <div className="p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-                <Button variant="outline" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-                <h1 className="text-2xl font-bold">Edit Sale</h1>
+                <Button variant="outline" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Назад</Button>
+                <h1 className="text-2xl font-bold">Редактиране на продажба</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Products</CardTitle>
-                            <CardDescription>Edit the products in the sale.</CardDescription>
+                            <CardTitle>Продукти</CardTitle>
+                            <CardDescription>Променете продуктите в продажбата.</CardDescription>
                         </CardHeader>
                         <CardContent>
                            <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Product</TableHead>
-                                        <TableHead className="text-right">Price</TableHead>
-                                        <TableHead className="text-right">Stock</TableHead>
+                                        <TableHead>Продукт</TableHead>
+                                        <TableHead className="text-right">Цена</TableHead>
+                                        <TableHead className="text-right">Наличност</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -214,15 +212,15 @@ const EditSalePage = () => {
                 <div>
                     <Card className="sticky top-6">
                         <CardHeader>
-                            <CardTitle className="flex items-center"><ShoppingCart className="mr-2"/>Cart</CardTitle>
+                            <CardTitle className="flex items-center"><ShoppingCart className="mr-2"/>Количка</CardTitle>
                         </CardHeader>
                         <CardContent>
                              <div className="flex items-center gap-2 mb-4">
                                 <UserPlus className="h-5 w-5"/>
                                 <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-                                    <SelectTrigger><SelectValue placeholder="Select a member (optional)" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Изберете член (по желание)" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="none">Walk-in Customer</SelectItem>
+                                        <SelectItem value="none">Случаен клиент</SelectItem>
                                         {members.map(member => (
                                             <SelectItem key={member.id} value={member.id}>{member.firstName} {member.lastName}</SelectItem>
                                         ))}
@@ -231,7 +229,7 @@ const EditSalePage = () => {
                             </div>
                             <div className="space-y-2">
                                 {cart.length === 0 ? (
-                                    <p className="text-center text-muted-foreground py-4">The cart is empty.</p>
+                                    <p className="text-center text-muted-foreground py-4">Количката е празна.</p>
                                 ) : (
                                     cart.map(item => (
                                         <div key={item.productId} className="flex items-center justify-between">
@@ -258,26 +256,26 @@ const EditSalePage = () => {
                         {cart.length > 0 && (
                             <CardFooter className="flex-col items-start gap-4">
                                 <div className="space-y-2 w-full">
-                                    <Label>Payment Status</Label>
+                                    <Label>Статус на плащане</Label>
                                     <RadioGroup value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as Sale['status'])} className="flex space-x-4">
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="completed" id="r-paid" />
-                                            <Label htmlFor="r-paid">Paid</Label>
+                                            <Label htmlFor="r-paid">Платено</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="pending" id="r-deferred" />
-                                            <Label htmlFor="r-deferred">Deferred</Label>
+                                            <Label htmlFor="r-deferred">Отложено</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
 
                                 <div className="flex justify-between font-bold text-lg w-full pt-4 border-t">
-                                    <span>Total:</span>
+                                    <span>Общо:</span>
                                     <span>{formatPrice(totalAmount)}</span>
                                 </div>
                                 <Button onClick={handleUpdateSale} className="w-full" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Save Changes
+                                    Запази промените
                                 </Button>
                             </CardFooter>
                         )}

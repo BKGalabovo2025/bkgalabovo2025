@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Product } from "@/types";
 import { restockProduct, updateProductPrice, adjustProductStock } from '@/services/inventory-service';
 import { User } from 'firebase/auth';
@@ -25,11 +25,10 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
   const [adjustmentAmount, setAdjustmentAmount] = useState("");
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
 
   const getUserInfo = () => {
     if (!user) {
-        toast({ title: "Грешка", description: "Трябва да сте логнат, за да извършите тази операция.", variant: "destructive" });
+        toast.error("Грешка", { description: "Трябва да сте логнат, за да извършите тази операция." });
         return null;
     }
     return { userId: user.uid, userName: user.displayName || user.email || "Анонимен потребител" };
@@ -40,17 +39,17 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
     if (!product || !restockAmount || !userInfo) return;
     const amount = parseInt(restockAmount, 10);
     if (isNaN(amount) || amount <= 0) {
-      toast({ title: "Грешка", description: "Моля, въведете валидно положително число за презареждане.", variant: "destructive" });
+      toast.error("Грешка", { description: "Моля, въведете валидно положително число за презареждане." });
       return;
     }
     setIsProcessing(true);
     try {
       await restockProduct(product.id, amount, userInfo.userId, userInfo.userName);
-      toast({ title: "Успех!", description: `Артикулът '${product.name}' беше презареден с ${amount} бр.` });
+      toast.success("Успех!", { description: `Артикулът '${product.name}' беше презареден с ${amount} бр.` });
       onProductUpdate();
       onClose();
     } catch (error) {
-      toast({ title: "Грешка при презареждане", description: (error as Error).message, variant: "destructive" });
+      toast.error("Грешка при презареждане", { description: (error as Error).message });
     } finally {
       setIsProcessing(false);
       setRestockAmount("");
@@ -64,23 +63,23 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
     const amount = parseInt(adjustmentAmount, 10);
 
     if (isNaN(amount) || amount === 0) {
-        toast({ title: "Грешка", description: "Моля, въведете валидно, ненулево число за корекция.", variant: "destructive" });
+        toast.error("Грешка", { description: "Моля, въведете валидно, ненулево число за корекция." });
         return;
     }
 
     if (amount < 0 && !adjustmentNotes) {
-        toast({ title: "Грешка", description: "При отписване на количества, бележката е задължителна.", variant: "destructive" });
+        toast.error("Грешка", { description: "При отписване на количества, бележката е задължителна." });
         return;
     }
 
     setIsProcessing(true);
     try {
         await adjustProductStock(product.id, amount, userInfo.userId, userInfo.userName, adjustmentNotes);
-        toast({ title: "Успех!", description: `Наличността на '${product.name}' беше коригирана с ${amount} бр.` });
+        toast.success("Успех!", { description: `Наличността на '${product.name}' беше коригирана с ${amount} бр.` });
         onProductUpdate();
         onClose();
     } catch (error) {
-        toast({ title: "Грешка при корекция", description: (error as Error).message, variant: "destructive" });
+        toast.error("Грешка при корекция", { description: (error as Error).message });
     } finally {
         setIsProcessing(false);
         setAdjustmentAmount("");
@@ -93,17 +92,17 @@ export const EditProductDialog = ({ product, isOpen, onClose, onProductUpdate, u
     if (!product || !newPrice || !userInfo) return;
     const price = parseFloat(newPrice);
     if (isNaN(price) || price < 0) {
-      toast({ title: "Грешка", description: "Моля, въведете валидна, неотрицателна цена.", variant: "destructive" });
+      toast.error("Грешка", { description: "Моля, въведете валидна, неотрицателна цена." });
       return;
     }
     setIsProcessing(true);
     try {
       await updateProductPrice(product.id, price, userInfo.userId, userInfo.userName);
-      toast({ title: "Успех!", description: `Цената на '${product.name}' беше актуализирана.` });
+      toast.success("Успех!", { description: `Цената на '${product.name}' беше актуализирана.` });
       onProductUpdate();
       onClose();
     } catch (error) {
-      toast({ title: "Грешка при актуализация на цената", description: (error as Error).message, variant: "destructive" });
+      toast.error("Грешка при актуализация на цената", { description: (error as Error).message });
     } finally {
       setIsProcessing(false);
       setNewPrice("");

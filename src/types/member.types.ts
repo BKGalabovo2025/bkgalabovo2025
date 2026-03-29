@@ -12,7 +12,7 @@ export const MemberSchema = z.object({
     lastName: z.string().min(1, "Last name is required."),
     name: z.string(), // This is a derived field, added in the code, not in the database
     status: z.enum(['active', 'inactive', 'suspended']),
-    ageGroup2026: z.string().nullable().optional(), // ADDED: Calculated age group for 2026
+    ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
 
     // --- Date Fields (as ISO strings) ---
     registrationDate: z.string().datetime({ message: "Invalid registration date format" }),

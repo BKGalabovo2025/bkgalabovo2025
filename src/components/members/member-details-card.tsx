@@ -108,7 +108,7 @@ export const MemberDetailsCard = ({ member, familyMembers }: MemberDetailsCardPr
                             <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
                             <InfoRow icon={Phone} label="Спешен контакт" value={member.emergencyContactName ? `${member.emergencyContactName} (${member.emergencyContactPhone || '—'})` : null} />
                             <InfoRow icon={Calendar} label="Дата на раждане" value={formattedBirthDate} />
-                            <InfoRow icon={BarChart2} label="Възрастова група 2026" value={member.ageGroup2026 || ageGroup} />
+                            <InfoRow icon={BarChart2} label="Възрастова група" value={member.ageGroup || ageGroup} />
                             <InfoRow icon={Calendar} label="Дата на регистрация" value={formattedRegistrationDate} />
                             <InfoRow icon={Building} label="Учебно заведение" value={member.educationInstitution} />
                             <InfoRow icon={Users} label="Размер екипировка" value={member.apparelSize} />

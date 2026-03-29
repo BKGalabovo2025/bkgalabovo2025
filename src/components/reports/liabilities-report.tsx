@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { Member, Subscription, ClubService } from '@/types';
-import { getAllSubscriptions } from '@/services/finance-service';
+import { getAllMemberSubscriptions, getAllClubServices } from '@/services/subscription-service';
 import { getAllMembers } from '@/services/member-service';
-import { getAllClubServices } from '@/services/subscription-service';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -25,23 +24,25 @@ const LiabilitiesReport = () => {
       setIsLoading(true);
       try {
         const [allSubscriptions, allMembers, allServices] = await Promise.all([
-          getAllSubscriptions(),
+          getAllMemberSubscriptions(), // FIX: was reading from wrong 'subscriptions' collection
           getAllMembers(),
           getAllClubServices(),
         ]);
-        
+
         const unpaidSubscriptions = allSubscriptions.filter(
-          (sub) => sub.status === 'pending_payment'
+          (sub: Subscription) => sub.status === 'pending_payment'
         );
 
-        const memberMap = new Map(allMembers.map((m) => [m.id, m]));
-        const serviceMap = new Map(allServices.map((s) => [s.id, s]));
+        const memberMap = new Map(allMembers.map((m: Member) => [m.id, m]));
+        const serviceMap = new Map(allServices.map((s: ClubService) => [s.id, s]));
 
-        const combinedLiabilities = unpaidSubscriptions.map((sub) => ({
+        const combinedLiabilities = unpaidSubscriptions.map((sub: Subscription) => ({
           subscription: sub,
           member: memberMap.get(sub.memberId)!,
           service: serviceMap.get(sub.serviceId),
-        })).filter(item => item.member && item.service); // Ensure both member and service exist
+        })).filter((item: { member: Member | undefined; service: ClubService | undefined }) =>
+          item.member && item.service
+        ) as Liability[];
 
         setLiabilities(combinedLiabilities);
       } catch (error) {

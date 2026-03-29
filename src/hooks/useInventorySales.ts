@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 import { Sale } from '@/types';
 import { getInventorySales, updateSale } from '@/services/sales-service';
@@ -16,7 +16,6 @@ export const useInventorySales = () => {
     const [sales, setSales] = useState<Sale[]>([]);
     const [loading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { toast } = useToast();
 
     const fetchSales = useCallback(async () => {
         setIsLoading(true);
@@ -28,16 +27,14 @@ export const useInventorySales = () => {
             console.error("Error fetching inventory sales:", err);
             const errorMessage = 'Неуспешно зареждане на продажбите от инвентар.';
             setError(errorMessage);
-            toast({ 
-                title: "Грешка при зареждане", 
-                description: errorMessage, 
-                variant: "destructive" 
+            toast.error("Грешка при зареждане", { 
+                description: errorMessage
             });
         }
         finally {
             setIsLoading(false);
         }
-    }, [toast]);
+    }, []);
 
     useEffect(() => {
         fetchSales();
@@ -49,12 +46,12 @@ export const useInventorySales = () => {
         setSales(prevSales => prevSales.map(s => 
             s.id === saleId ? { ...s, status: 'completed', isPaid: true } : s
         ));
-        toast({ title: 'Продажбата е маркирана като платена' });
+        toast.success('Продажбата е маркирана като платена');
       } catch (err) {
         console.error('Error marking sale as paid:', err);
-        toast({ title: 'Грешка при маркиране като платена', variant: 'destructive' });
+        toast.error('Грешка при маркиране като платена');
       }
-    }, [toast]);
+    }, []);
 
     return { sales, loading, error, markAsPaid, refetch: fetchSales };
 };

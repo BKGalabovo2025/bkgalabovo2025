@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Poppins, PT_Sans } from 'next/font/google'; // Import the correct fonts
 import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from 'sonner';
 import { ThemeProvider } from "@/components/theme-provider";
 
 // Font configuration based on docs/blueprint.md
@@ -42,7 +42,7 @@ export default function RootLayout({
         >
           <AuthProvider>
               {children}
-              <Toaster />
+              <Toaster richColors closeButton position="top-right" />
           </AuthProvider>
         </ThemeProvider>
       </body>

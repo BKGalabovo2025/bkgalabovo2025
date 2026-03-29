@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
-import moment from 'moment';
+import { format } from 'date-fns';
 
 const daysOfWeek = [
   { id: 'tuesday', label: 'Вторник', value: 2 },
@@ -39,7 +39,7 @@ export default function MonthlyScheduleForm({ onSave, onClose, isSaving }: Month
   const form = useForm<MonthlyScheduleFormData>({
     resolver: zodResolver(monthlyScheduleSchema),
     defaultValues: {
-      month: moment().format('YYYY-MM'),
+      month: format(new Date(), 'yyyy-MM'),
       days: [],
       startTime: '17:00',
       endTime: '18:30',

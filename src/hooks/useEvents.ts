@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase'; 
 import { ScheduleEvent, Member, Attendee } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { getAllMembers } from '@/services/member-service';
 import { formatFullName } from '@/lib/utils';
 
@@ -21,7 +21,6 @@ export const useEvents = () => {
     const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const { toast } = useToast();
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -58,37 +57,32 @@ export const useEvents = () => {
             setEvents(eventsData);
             setIsLoading(false);
         }, (err) => {
-            console.error("Error fetching events:", err);
+             console.error("Error fetching events:", err);
             setError(err);
             setIsLoading(false);
-            toast({
-                title: "Грешка при зареждане на събитията",
-                description: "Не може да се установи връзка със сървъра.",
-                variant: "destructive",
+            toast.error("Грешка при зареждане на събитията", {
+                description: "Не може да се установи връзка със сървъра."
             });
         });
 
         return () => unsubscribe();
-    }, [toast, members]);
+    }, [members]);
 
     const addEvent = useCallback(async (event: NewEvent) => {
         const db = getDb();
         try {
             await addDoc(collection(db, 'events'), event);
-            toast({
-                title: "Събитието е създадено успешно",
-                description: `"${event.title}" беше добавено към графика.`,
+            toast.success("Събитието е създадено успешно", {
+                description: `"${event.title}" беше добавено към графика.`
             });
         } catch (err) {
             console.error("Error adding event:", err);
-            toast({
-                title: "Грешка при добавяне на събитие",
-                description: "Действието се провали. Моля, опитайте отново.",
-                variant: "destructive",
+            toast.error("Грешка при добавяне на събитие", {
+                description: "Действието се провали. Моля, опитайте отново."
             });
             throw err;
         }
-    }, [toast]);
+    }, []);
     
     const addMultipleEvents = useCallback(async (events: NewEvent[]) => {
         const db = getDb();
@@ -100,20 +94,17 @@ export const useEvents = () => {
         });
         try {
             await batch.commit();
-            toast({
-                title: "Графикът е генериран",
-                description: `Успешно бяха създадени ${events.length} събития.`,
+            toast.success("Графикът е генериран", {
+                description: `Успешно бяха създадени ${events.length} събития.`
             });
         } catch (err) {
             console.error("Error adding multiple events:", err);
-            toast({
-                title: "Грешка при генериране на графика",
-                description: "Действието се провали. Моля, опитайте отново.",
-                variant: "destructive",
+            toast.error("Грешка при генериране на графика", {
+                description: "Действието се провали. Моля, опитайте отново."
             });
             throw err;
         }
-    }, [toast]);
+    }, []);
 
     const updateEvent = useCallback(async (eventId: string, eventData: Partial<NewEvent>) => {
         const db = getDb();
@@ -134,18 +125,16 @@ export const useEvents = () => {
         try {
             const eventRef = doc(db, 'events', eventId);
             await updateDoc(eventRef, eventData);
-            toast({ title: "Събитието е обновено" });
+            toast.success("Събитието е обновено");
         } catch (err) {
             setEvents(originalEvents);
             console.error("Error updating event:", err);
-            toast({
-                title: "Грешка при обновяване",
-                description: "Промените не бяха запазени. Моля, опитайте отново.",
-                variant: "destructive",
+            toast.error("Грешка при обновяване", {
+                description: "Промените не бяха запазени. Моля, опитайте отново."
             });
             throw err;
         }
-    }, [toast]);
+    }, []);
 
     const deleteEvent = useCallback(async (eventId: string) => {
         const db = getDb();
@@ -161,17 +150,16 @@ export const useEvents = () => {
         try {
             const eventRef = doc(db, 'events', eventId);
             await deleteDoc(eventRef);
-            toast({
-                title: "Събитието е изтрито",
+            toast.success("Събитието е изтрито", {
                 description: eventTitle ? `"${eventTitle}" беше премахнато.` : ''
             });
         } catch (err) {
             setEvents(originalEvents);
             console.error("Error deleting event:", err);
-            toast({ title: "Грешка при изтриване", variant: "destructive" });
+            toast.error("Грешка при изтриване");
             throw err;
         }
-    }, [toast]);
+    }, []);
     
     const updateAttendees = useCallback(async (eventId: string, newAttendees: Attendee[]) => {
         const db = getDb();
@@ -200,21 +188,17 @@ export const useEvents = () => {
             const payload = newAttendees.map(({ memberId, attended, name }) => ({ memberId, attended, name }));
             await updateDoc(eventRef, { attendees: payload, attendeeMemberIds });
             
-            toast({
-                title: "Присъствията са обновени",
-                description: "Списъкът с присъстващи е запазен.",
+            toast.success("Присъствията са обновени", {
+                description: "Списъкът с присъстващи е запазен."
             });
         } catch (err) {
             // Rollback on error
             setEvents(originalEvents);
             console.error("Error updating attendees:", err);
-            toast({
-                title: "Грешка при обновяване на присъствия",
-                variant: "destructive",
-            });
+            toast.error("Грешка при обновяване на присъствия");
             throw err;
         }
-    }, [toast, members]);
+    }, [members]);
 
     return { events, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error, members };
 };

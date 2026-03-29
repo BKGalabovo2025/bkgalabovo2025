@@ -5,12 +5,7 @@ import { Sale, Subscription, InventoryEvent, Member, ClubService } from '@/types
 import { docToMember } from './member-service'; 
 import { docToClubService, docToMemberSubscription } from './subscription-service';
 
-const SALES_COLLECTION = 'sales';
-const PRODUCTS_COLLECTION = 'products';
-const EVENTS_COLLECTION = 'inventoryEvents';
-const SUBSCRIPTIONS_COLLECTION = 'memberSubscriptions';
-const MEMBERS_COLLECTION = 'members';
-const SERVICES_COLLECTION = 'clubServices';
+import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
 
 const docToSale = (doc: DocumentSnapshot): Sale | null => {
     if (!doc.id || !doc.exists()) {
@@ -44,7 +39,7 @@ export interface ReceiptDetails {
 
 export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails | null> => {
     const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, saleId);
+    const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, saleId);
     const saleSnap = await getDoc(saleRef);
 
     if (!saleSnap.exists()) {
@@ -58,32 +53,19 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
         return null;
     }
 
-    const memberSnap = await getDoc(doc(db, MEMBERS_COLLECTION, sale.memberId));
+    // --- STAGE 1: Fetch Member and Subscription in parallel ---
+    const [memberSnap, subscriptionSnap] = await Promise.all([
+        getDoc(doc(db, FIRESTORE_COLLECTIONS.MEMBERS, sale.memberId)),
+        getDoc(doc(db, FIRESTORE_COLLECTIONS.MEMBER_SUBSCRIPTIONS, sale.subscriptionId))
+    ]);
+
     if (!memberSnap.exists()) {
         console.error("No member found with ID:", sale.memberId);
         return null;
     }
     const member = docToMember(memberSnap);
-    if (!member) {
-        console.error("Could not process member data for ID:", sale.memberId);
-        return null;
-    }
+    if (!member) return null;
 
-    // --- Fetch related member if ID exists ---
-    let relatedMember: Member | null = null;
-    if (member.relatedMemberId) {
-        try {
-            const relatedMemberSnap = await getDoc(doc(db, MEMBERS_COLLECTION, member.relatedMemberId));
-            if (relatedMemberSnap.exists()) {
-                relatedMember = docToMember(relatedMemberSnap);
-            }
-        } catch (e) {
-            console.warn(`Could not fetch related member (ID: ${member.relatedMemberId}). Proceeding without it.`, e);
-        }
-    }
-    // ----------------------------------------
-
-    const subscriptionSnap = await getDoc(doc(db, SUBSCRIPTIONS_COLLECTION, sale.subscriptionId));
     if (!subscriptionSnap.exists()) {
         console.error("No subscription found with ID:", sale.subscriptionId);
         return null;
@@ -94,21 +76,30 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
         return null;
     }
 
-    const serviceSnap = await getDoc(doc(db, SERVICES_COLLECTION, subscription.serviceId));
+    // --- STAGE 2: Fetch Service and Related Member in parallel ---
+    const serviceRef = doc(db, FIRESTORE_COLLECTIONS.CLUB_SERVICES, subscription.serviceId);
+    const relatedMemberRef = member.relatedMemberId ? doc(db, FIRESTORE_COLLECTIONS.MEMBERS, member.relatedMemberId) : null;
+
+    const [serviceSnap, relatedMemberSnap] = await Promise.all([
+        getDoc(serviceRef),
+        relatedMemberRef ? getDoc(relatedMemberRef) : Promise.resolve(null)
+    ]);
+
     if (!serviceSnap.exists()) {
         console.error("No service found with ID:", subscription.serviceId);
         return null;
     }
     const service = docToClubService(serviceSnap);
+    if (!service) return null;
 
-    if (!service) {
-        return null;
-    }
+    const relatedMember = (relatedMemberSnap && relatedMemberSnap.exists()) 
+        ? docToMember(relatedMemberSnap) 
+        : null;
 
     return {
         sale,
         member,
-        relatedMember, // Include in the final object
+        relatedMember,
         service,
         subscription
     };
@@ -119,7 +110,7 @@ export const getReceiptDetails = async (saleId: string): Promise<ReceiptDetails 
 
 export const getSales = async (): Promise<Sale[]> => {
     const db = getDb();
-    const salesCollection = collection(db, SALES_COLLECTION);
+    const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
     const q = query(salesCollection, orderBy("saleDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
@@ -127,7 +118,7 @@ export const getSales = async (): Promise<Sale[]> => {
 
 export const getInventorySales = async (): Promise<Sale[]> => {
     const db = getDb();
-    const salesCollection = collection(db, SALES_COLLECTION);
+    const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
     const q = query(salesCollection, where('subscriptionId', '==', null), orderBy("saleDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
@@ -135,7 +126,7 @@ export const getInventorySales = async (): Promise<Sale[]> => {
 
 export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userName: string): Promise<string> => {
     const db = getDb();
-    const newSaleRef = doc(collection(db, SALES_COLLECTION));
+    const newSaleRef = doc(collection(db, FIRESTORE_COLLECTIONS.SALES));
 
     await runTransaction(db, async (transaction) => {
         transaction.set(newSaleRef, {
@@ -146,7 +137,7 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
         });
 
         for (const item of saleData.items) {
-            const productRef = doc(db, PRODUCTS_COLLECTION, item.productId);
+            const productRef = doc(db, FIRESTORE_COLLECTIONS.PRODUCTS, item.productId);
             const productDoc = await transaction.get(productRef);
             if (!productDoc.exists()) throw new Error(`Product with ID ${item.productId} not found.`);
 
@@ -166,7 +157,7 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
                 userName: userName,
                 relatedSaleId: newSaleRef.id,
             };
-            const eventRef = doc(collection(db, EVENTS_COLLECTION));
+            const eventRef = doc(collection(db, FIRESTORE_COLLECTIONS.INVENTORY_EVENTS));
             transaction.set(eventRef, eventData);
         }
     });
@@ -177,7 +168,7 @@ export const addSale = async (saleData: Omit<Sale, 'id'>, userId: string, userNa
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     if (!memberId) return [];
     const db = getDb();
-    const salesCollection = collection(db, SALES_COLLECTION);
+    const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
     const q = query(salesCollection, where("memberId", "==", memberId), orderBy("saleDate", "desc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => docToSale(doc)).filter(Boolean) as Sale[];
@@ -186,7 +177,7 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
 export const getSaleById = async (id: string): Promise<Sale | null> => {
     if (!id) return null;
     const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, id);
+    const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
     const docSnap = await getDoc(saleRef);
     return docToSale(docSnap);
 };
@@ -194,7 +185,7 @@ export const getSaleById = async (id: string): Promise<Sale | null> => {
 export const updateSale = async (id: string, data: Partial<Omit<Sale, 'id' | 'createdAt'>>): Promise<void> => {
     if (!id) throw new Error("Sale ID is required for update.");
     const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, id);
+    const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
     
     const dataToUpdate: { [key: string]: unknown } = { ...data };
     if (dataToUpdate.saleDate && typeof dataToUpdate.saleDate === 'string') {
@@ -207,7 +198,7 @@ export const updateSale = async (id: string, data: Partial<Omit<Sale, 'id' | 'cr
 export const deleteSale = async (id: string): Promise<void> => {
     if (!id) throw new Error("Sale ID is required for deletion.");
     const db = getDb();
-    const saleRef = doc(db, SALES_COLLECTION, id);
+    const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
     await deleteDoc(saleRef);
 };
 
@@ -222,8 +213,8 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
     try {
         let createdSale: Sale | null = null;
         await runTransaction(db, async (transaction) => {
-            const subscriptionRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscription.id);
-            const salesCollectionRef = collection(db, SALES_COLLECTION);
+            const subscriptionRef = doc(db, FIRESTORE_COLLECTIONS.MEMBER_SUBSCRIPTIONS, subscription.id);
+            const salesCollectionRef = collection(db, FIRESTORE_COLLECTIONS.SALES);
 
             const saleDataForFirestore = {
                 memberId: subscription.memberId,
@@ -275,7 +266,7 @@ export const findOrCreateSaleForSubscription = async (subscription: Subscription
 const getSaleBySubscriptionId = async (subscriptionId: string): Promise<Sale | null> => {
     if (!subscriptionId) return null;
     const db = getDb();
-    const q = query(collection(db, SALES_COLLECTION), where("subscriptionId", "==", subscriptionId), limit(1));
+    const q = query(collection(db, FIRESTORE_COLLECTIONS.SALES), where("subscriptionId", "==", subscriptionId), limit(1));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
     return docToSale(querySnapshot.docs[0]);

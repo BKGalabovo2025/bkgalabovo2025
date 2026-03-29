@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Product } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 type NewProduct = Omit<Product, 'id'>;
 
@@ -11,7 +11,6 @@ export const useProducts = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const { toast } = useToast();
 
     useEffect(() => {
         const db = getDb();
@@ -30,23 +29,23 @@ export const useProducts = () => {
             console.error("Error fetching products:", err);
             setError(err);
             setIsLoading(false);
-            toast({ title: "Грешка при зареждане на продуктите", variant: "destructive" });
+            toast.error("Грешка при зареждане на продуктите");
         });
 
         return () => unsubscribe();
-    }, [toast]);
+    }, []);
 
     const addProduct = useCallback(async (productData: NewProduct) => {
         const db = getDb();
         try {
             await addDoc(collection(db, 'products'), productData);
-            toast({ title: "Продуктът е добавен успешно" });
+            toast.success("Продуктът е добавен успешно");
         } catch (err) {
             console.error("Error adding product:", err);
-            toast({ title: "Грешка при добавяне на продукт", variant: "destructive" });
+            toast.error("Грешка при добавяне на продукт");
             throw err;
         }
-    }, [toast]);
+    }, []);
 
     const updateProduct = useCallback(async (productId: string, productData: Partial<NewProduct>) => {
         const db = getDb();
@@ -55,14 +54,14 @@ export const useProducts = () => {
         
         try {
             await updateDoc(doc(db, 'products', productId), productData);
-            toast({ title: "Продуктът е обновен" });
+            toast.success("Продуктът е обновен");
         } catch (err) {
             setProducts(originalProducts);
             console.error("Error updating product:", err);
-            toast({ title: "Грешка при обновяване", variant: "destructive" });
+            toast.error("Грешка при обновяване");
             throw err;
         }
-    }, [products, toast]);
+    }, [products]);
 
     const deleteProduct = useCallback(async (productId: string) => {
         const db = getDb();
@@ -71,14 +70,14 @@ export const useProducts = () => {
 
         try {
             await deleteDoc(doc(db, 'products', productId));
-            toast({ title: "Продуктът е изтрит" });
+            toast.success("Продуктът е изтрит");
         } catch (err) {
             setProducts(originalProducts);
             console.error("Error deleting product:", err);
-            toast({ title: "Грешка при изтриване", variant: "destructive" });
+            toast.error("Грешка при изтриване");
             throw err;
         }
-    }, [products, toast]);
+    }, [products]);
 
     return { products, isLoading, error, addProduct, updateProduct, deleteProduct };
 };

@@ -1,11 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: [
-    "*.cloudworkstations.dev",
-    "3001-firebase-bkgalabovo2025-1772179617694.cluster-zti5ytzhlffjiqj6bp4giuli3u.cloudworkstations.dev",
-    "9000-firebase-bkgalabovo2025-1772179617694.cluster-zti5ytzhlffjiqj6bp4giuli3u.cloudworkstations.dev",
-  ],
+  experimental: {
+    // This allows access from Cloud Workstations URLs which are dynamic.
+    // We move these to environment variables as per audit recommendations.
+    allowedRevalidateHeaderKeys: ['x-prerender-revalidate'],
+  },
+  // In Next.js 14/15, allowedDevOrigins might need to be in 'experimental'
+  // using a process environment variable for these specific origins.
+  ...(process.env.ALLOWED_DEV_ORIGINS ? {
+    allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS.split(','),
+  } : {
+    allowedDevOrigins: [
+      "*.cloudworkstations.dev",
+    ]
+  }),
 };
 
 module.exports = nextConfig;

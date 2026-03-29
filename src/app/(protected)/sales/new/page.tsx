@@ -1,9 +1,8 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/auth-context';
 
 import { getAllMembers } from '@/services/member-service';
@@ -25,7 +24,6 @@ type SaleItem = Sale['items'][0];
 
 const NewSalePage = () => {
     const router = useRouter();
-    const { toast } = useToast();
     const { user } = useAuth();
 
     const { products: allProducts, isLoading: productsLoading, error: productsError } = useProducts();
@@ -46,7 +44,7 @@ const NewSalePage = () => {
                 setMembers(membersData);
             } catch (error) {
                 console.error("Error fetching members:", error);
-                toast({ title: "Error", description: "Failed to load members.", variant: "destructive" });
+                toast.error("Грешка", { description: "Неуспешно зареждане на членове." });
             } finally {
                 setMembersLoading(false);
             }
@@ -70,7 +68,7 @@ const NewSalePage = () => {
             if (existingItem) {
                 const newQuantity = existingItem.quantity + 1;
                 if (newQuantity > stock) {
-                    toast({ title: "Not enough stock", description: `Only ${stock} items of ${product.name} available.`, variant: "destructive" });
+                    toast.error("Недостатъчна наличност", { description: `Само ${stock} броя от ${product.name} са налични.` });
                     return prevCart;
                 }
                 return prevCart.map(item => 
@@ -97,7 +95,7 @@ const NewSalePage = () => {
         if (quantity <= 0) {
             removeFromCart(productId);
         } else if (quantity > stock) {
-             toast({ title: "Not enough stock", description: `Maximum quantity: ${stock}`, variant: "destructive" });
+             toast.error("Недостатъчна наличност", { description: `Максимално количество: ${stock}` });
         } else {
             setCart(cart.map(item => item.productId === productId ? { ...item, quantity } : item));
         }
@@ -105,12 +103,12 @@ const NewSalePage = () => {
 
     const handleCreateSale = async () => {
         if (cart.length === 0) {
-            toast({ title: "Empty cart", description: "Please add at least one product to the cart.", variant: "destructive" });
+            toast.error("Празна количка", { description: "Моля, добавете поне един продукт." });
             return;
         }
 
         if (!user) {
-            toast({ title: "Authentication Error", description: "You must be logged in to create a sale.", variant: "destructive" });
+            toast.error("Грешка при автентикация", { description: "Трябва да сте влезли в системата." });
             return;
         }
 
@@ -126,12 +124,12 @@ const NewSalePage = () => {
                 currency: 'EUR',
             } as Omit<Sale, 'id'>, user.uid, user.displayName || user.email || 'Unknown User');
 
-            toast({ title: "Success!", description: "Sale created successfully." });
+            toast.success("Успех!", { description: "Продажбата беше създадена успешно." });
             router.push('/sales');
         } catch (error) {
             const err = error as Error;
             console.error("Error creating sale:", err);
-            toast({ title: "Error", description: err.message || "An error occurred while creating the sale.", variant: "destructive" });
+            toast.error("Грешка", { description: err.message || "Възникна грешка при създаването на продажбата." });
         } finally {
             setIsSubmitting(false);
         }

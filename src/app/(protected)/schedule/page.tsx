@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState, useMemo } from 'react';
 import { useEvents } from '@/hooks/useEvents';
@@ -12,7 +11,7 @@ import { MonthlyScheduleDialog } from '@/components/schedule/MonthlyScheduleDial
 import { PrintableEvent } from '@/components/schedule/PrintableEvent';
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from '@/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EventListItem } from '@/components/schedule/EventListItem';
@@ -35,7 +34,6 @@ const EVENTS_PER_PAGE = 20;
 
 export default function SchedulePage() {
     const { events, members, addEvent, addMultipleEvents, updateEvent, deleteEvent, updateAttendees, isLoading, error } = useEvents();
-    const { toast } = useToast();
     
     const [activeTab, setActiveTab] = useState('current');
     const [filterType, setFilterType] = useState<ScheduleEventType | 'all'>('all');
@@ -61,7 +59,7 @@ export default function SchedulePage() {
         const printContent = renderToString(printableComponent);
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
-            toast({ title: "Грешка при принтиране", description: "Прозорецът за печат е блокиран от браузъра.", variant: "destructive" });
+            toast.error("Грешка при принтиране", { description: "Прозорецът за печат е блокиран от браузъра." });
             return;
         }
         const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));

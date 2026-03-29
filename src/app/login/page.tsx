@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const LoginPage = () => {
@@ -17,7 +17,6 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +26,7 @@ const LoginPage = () => {
     try {
       const auth = getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: 'Успешен вход', description: 'Пренасочваме ви към таблото за управление...' });
+      toast.success('Успешен вход', { description: 'Пренасочваме ви към таблото за управление...' });
       router.push('/dashboard'); // Redirect to a protected route on successful login
     } catch (err) {
         let errorMessage = "Възникна грешка при входа. Моля, опитайте отново.";
@@ -37,7 +36,7 @@ const LoginPage = () => {
         }
         setError(errorMessage);
         console.error("Firebase Login Error:", err);
-        toast({ title: 'Грешка при вход', description: errorMessage, variant: 'destructive' });
+        toast.error('Грешка при вход', { description: errorMessage });
     } finally {
         setIsLoading(false);
     }

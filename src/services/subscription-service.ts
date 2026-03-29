@@ -68,6 +68,17 @@ export const getAllClubServices = async (): Promise<ClubService[]> => {
 
 // --- Subscription Functions ---
 
+/**
+ * Fetches ALL member subscriptions in a SINGLE Firestore query.
+ * Use this for list views instead of looping over members (N+1 bug prevention).
+ */
+export const getAllMemberSubscriptions = async (): Promise<Subscription[]> => {
+  const db = getDb();
+  const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), orderBy('startDate', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(docToMemberSubscription).filter(Boolean) as Subscription[];
+};
+
 export const getSubscriptionsByMemberId = async (memberId: string): Promise<Subscription[]> => {
   const db = getDb();
   const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), where("memberId", "==", memberId));

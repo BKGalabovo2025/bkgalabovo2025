@@ -17,16 +17,20 @@ export const formatFullName = (member: { firstName: string, middleName?: string 
 }
 
 export const getAgeGroup = (birthDate: string): string => {
-    const birthDateObj = new Date(birthDate);
-    const yearOfBirth = birthDateObj.getFullYear();
-
-    if (yearOfBirth <= 2006) return 'Мъже и жени';
-    if (yearOfBirth === 2007 || yearOfBirth === 2008) return 'Под 19 год.';
-    if (yearOfBirth === 2009 || yearOfBirth === 2010) return 'Под 17 год.';
-    if (yearOfBirth === 2011 || yearOfBirth === 2012) return 'Под 15 год.';
-    if (yearOfBirth === 2013 || yearOfBirth === 2014) return 'Под 13 год.';
-    if (yearOfBirth === 2015 || yearOfBirth === 2016) return 'Под 11 год.';
-    if (yearOfBirth >= 2017) return 'Под 9 години';
+    const dob = new Date(birthDate);
+    if (isNaN(dob.getTime())) return 'Неопределена';
+    
+    const birthYear = dob.getFullYear();
+    const currentYear = new Date().getFullYear();
+    const diff = currentYear - birthYear;
+    
+    if (diff <= 8) return 'U9';
+    if (diff === 9 || diff === 10) return 'U11';
+    if (diff === 11 || diff === 12) return 'U13';
+    if (diff === 13 || diff === 14) return 'U15';
+    if (diff === 15 || diff === 16) return 'U17';
+    if (diff === 17 || diff === 18) return 'U19';
+    if (diff >= 19) return 'Мъже/Жени';
 
     return 'Неопределена';
 };

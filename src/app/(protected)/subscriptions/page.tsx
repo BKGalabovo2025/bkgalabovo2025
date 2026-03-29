@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import useSWR from 'swr';
 import { DataTable } from '@/components/shared/data-table';
 import { columns, SubscriptionData } from '@/components/subscriptions/columns';
 import { Subscription, ClubService, Member } from '@/types';
-import { getAllClubServices, getSubscriptionsByMemberId, createSubscription, updateSubscription } from '@/services/subscription-service';
+import { getAllClubServices, getAllMemberSubscriptions, createSubscription, updateSubscription } from '@/services/subscription-service';
 import { getAllMembers } from '@/services/member-service';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -16,89 +17,88 @@ import { getFirebaseAuth } from '@/lib/firebase';
 import { User } from 'firebase/auth';
 
 const SubscriptionsPage = () => {
-  const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [services, setServices] = useState<ClubService[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | undefined>(undefined);
   const [user, setUser] = useState<User | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const auth = getFirebaseAuth();
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    const unsubscribe = auth.onAuthStateChanged((u) => {
+      setUser(u);
     });
     return () => unsubscribe();
   }, []);
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [fetchedServices, fetchedMembers] = await Promise.all([
-        getAllClubServices(),
-        getAllMembers(),
-      ]);
-
-      setServices(fetchedServices);
-      setMembers(fetchedMembers);
-
-      const allSubscriptions: Subscription[] = [];
-      for (const member of fetchedMembers) {
-        const memberSubscriptions = await getSubscriptionsByMemberId(member.id);
-        allSubscriptions.push(...memberSubscriptions);
-      }
-
-      const enrichedSubscriptions: SubscriptionData[] = allSubscriptions.map((sub: Subscription) => {
-        const service = fetchedServices.find((s: ClubService) => s.id === sub.serviceId);
-        const member = fetchedMembers.find((m: Member) => m.id === sub.memberId);
-        return {
-          ...sub,
-          serviceName: service?.name || 'Unknown Service',
-          memberFirstName: member?.firstName || 'Unknown',
-          memberLastName: member?.lastName || 'Member',
-        };
-      });
-
-      setSubscriptions(enrichedSubscriptions);
-    } catch (error) {
-      console.error("Error fetching subscription data:", error);
-      toast({
-        title: 'Грешка при зареждане на данните',
-        description: 'Възникна проблем при извличането на абонаментите.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+  // Use SWR for complex multi-source data fetching
+  const { data, error, isLoading, mutate } = useSWR('subscriptions-page-data', async () => {
+    const [fetchedServices, fetchedMembers, allSubscriptions] = await Promise.all([
+      getAllClubServices(),
+      getAllMembers(),
+      getAllMemberSubscriptions(),
+    ]);
+    return { fetchedServices, fetchedMembers, allSubscriptions };
+  }, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (error) {
+       console.error("Error fetching subscription data:", error);
+       toast.error('Грешка при зареждане на данните', {
+         description: 'Възникна проблем при извличането на абонаментите.'
+       });
+    }
+  }, [error]);
 
-  const handleSave = async (data: Omit<Subscription, 'id'>) => {
+  const { services = [], members = [], subscriptions = [] } = useMemo(() => {
+    if (!data) return { services: [], members: [], subscriptions: [] };
+
+    const { fetchedServices, fetchedMembers, allSubscriptions } = data;
+    
+    // Enrich subscriptions with member and service names using in-memory lookup
+    const memberMap = new Map(fetchedMembers.map((m: Member) => [m.id, m]));
+    const serviceMap = new Map(fetchedServices.map((s: ClubService) => [s.id, s]));
+
+    const enrichedSubscriptions: SubscriptionData[] = allSubscriptions.map((sub: Subscription) => {
+      const service = serviceMap.get(sub.serviceId);
+      const member = memberMap.get(sub.memberId);
+      return {
+        ...sub,
+        serviceName: service?.name || 'Unknown Service',
+        memberFirstName: member?.firstName || 'Unknown',
+        memberLastName: member?.lastName || 'Member',
+      };
+    });
+
+    return { 
+      services: fetchedServices, 
+      members: fetchedMembers, 
+      subscriptions: enrichedSubscriptions 
+    };
+  }, [data]);
+
+  const handleSave = async (formData: Omit<Subscription, 'id'>) => {
     if (!user) {
-        toast({ title: 'Грешка', description: 'За да извършите това действие, трябва да сте влезли в системата.', variant: 'destructive' });
+        toast.error('Грешка', { description: 'За да извършите това действие, трябва да сте влезли в системата.' });
         return;
     }
     setIsSaving(true);
     try {
         if (selectedSubscription) {
-            await updateSubscription(selectedSubscription.id, data);
-            toast({ title: 'Абонаментът е обновен успешно!' });
+            await updateSubscription(selectedSubscription.id, formData);
+            toast.success('Абонаментът е обновен успешно!');
         } else {
-            await createSubscription(data, user.uid, user.displayName || 'System');
-            toast({ title: 'Абонаментът е създаден успешно!' });
+            await createSubscription(formData, user.uid, user.displayName || 'System');
+            toast.success('Абонаментът е създаден успешно!');
         }
         setIsFormOpen(false);
         setSelectedSubscription(undefined);
-        fetchData(); // Refresh data
-    } catch (error) {
-        console.error('Error saving subscription:', error);
-        toast({ title: 'Грешка при записа', description: 'Възникна проблем при запис на абонамента.', variant: 'destructive' });
+        mutate(); // Trigger SWR re-fetch
+    } catch (err) {
+        console.error('Error saving subscription:', err);
+        toast.error('Грешка при записа', { description: 'Възникна проблем при запис на абонамента.' });
     } finally {
         setIsSaving(false);
     }

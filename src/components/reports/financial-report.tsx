@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Payment, Member } from '@/types';
-import { getAllPayments } from '@/services/finance-service';
+import { Sale, Member } from '@/types';
+import { getSales } from '@/services/sales-service';
 import { getAllMembers } from '@/services/member-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,7 +14,7 @@ import { addDays, format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
 const FinancialReport = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,11 +27,11 @@ const FinancialReport = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [allPayments, allMembers] = await Promise.all([
-          getAllPayments(),
+        const [allSales, allMembers] = await Promise.all([
+          getSales(),
           getAllMembers(),
         ]);
-        setPayments(allPayments);
+        setSales(allSales);
         setMembers(allMembers);
       } catch (error) {
         console.error('Failed to fetch financial data:', error);
@@ -44,7 +44,7 @@ const FinancialReport = () => {
 
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
-  const filteredPayments = useMemo(() => {
+  const filteredSales = useMemo(() => {
     // Create new Date objects for comparison to avoid mutating state
     const startDate = dateFrom ? new Date(dateFrom) : null;
     if (startDate) startDate.setHours(0, 0, 0, 0);
@@ -52,21 +52,25 @@ const FinancialReport = () => {
     const endDate = dateTo ? new Date(dateTo) : null;
     if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    return payments.filter(p => {
-      const paymentDate = new Date(p.paymentDate);
+    return sales.filter(s => {
+      const saleDate = new Date(s.saleDate);
       
       const isInDateRange = 
-        (!startDate || paymentDate >= startDate) &&
-        (!endDate || paymentDate <= endDate);
+        (!startDate || saleDate >= startDate) &&
+        (!endDate || saleDate <= endDate);
 
-      const isTypeMatch = paymentType === 'all' || p.type === paymentType;
+      // Simple type matching for now - in a real app, you'd check item categories
+      const isTypeMatch = paymentType === 'all' || 
+        (paymentType === 'Членски внос' && s.subscriptionId) ||
+        (paymentType === 'inventory' && !s.subscriptionId);
+
       return isInDateRange && isTypeMatch;
     });
-  }, [payments, dateFrom, dateTo, paymentType]);
+  }, [sales, dateFrom, dateTo, paymentType]);
 
   const totalAmount = useMemo(() => 
-    filteredPayments.reduce((acc, p) => acc + p.amount, 0), 
-  [filteredPayments]);
+    filteredSales.reduce((acc, s) => acc + s.totalAmount, 0), 
+  [filteredSales]);
 
   // Handler to convert string from input to Date object
   const handleDateChange = (setter: (date: Date | undefined) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,8 +125,7 @@ const FinancialReport = () => {
                 <SelectContent>
                 <SelectItem value="all">Всички</SelectItem>
                 <SelectItem value="Членски внос">Членски внос</SelectItem>
-                <SelectItem value="Дарение">Дарение</SelectItem>
-                <SelectItem value="Друго">Друго</SelectItem>
+                <SelectItem value="inventory">Продажба инвентар</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -141,22 +144,23 @@ const FinancialReport = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPayments.length > 0 ? (
-                filteredPayments.map(p => {
-                    const member = p.memberId ? memberMap.get(p.memberId) : null;
+              {filteredSales.length > 0 ? (
+                filteredSales.map(s => {
+                    const member = s.memberId ? memberMap.get(s.memberId) : null;
                     const memberName = member ? `${member.firstName} ${member.lastName}` : 'Н/А';
+                    const type = s.subscriptionId ? 'Членски внос' : 'Продажба инвентар';
                     return (
-                        <TableRow key={p.id}>
-                            <TableCell>{new Date(p.paymentDate).toLocaleDateString('bg-BG')}</TableCell>
+                        <TableRow key={s.id}>
+                            <TableCell>{new Date(s.saleDate).toLocaleDateString('bg-BG')}</TableCell>
                             <TableCell>{memberName}</TableCell>
-                            <TableCell>{p.type}</TableCell>
-                            <TableCell className="text-right font-medium">{p.amount.toFixed(2)} €</TableCell>
+                            <TableCell>{type}</TableCell>
+                            <TableCell className="text-right font-medium">{s.totalAmount.toFixed(2)} €</TableCell>
                         </TableRow>
                     );
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">Няма намерени плащания за избрания период.</TableCell>
+                  <TableCell colSpan={4} className="text-center">Няма намерени записи за избрания период.</TableCell>
                 </TableRow>
               )}
             </TableBody>

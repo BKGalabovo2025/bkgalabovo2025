@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { addMember } from '@/services/member-service';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { MemberForm } from '@/components/members/member-form';
 import { Member } from '@/types/member.types';
 
@@ -10,17 +10,16 @@ type MemberFormValues = Omit<Member, 'id' | 'name' | 'registrationDate' | 'updat
 
 const NewMemberPage = () => {
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleSave = async (data: MemberFormValues) => {
     try {
       const newMemberId = await addMember(data);
-      toast({ title: 'Успех!', description: 'Нов член е добавен успешно.' });
+      toast.success('Успех!', { description: 'Нов член е добавен успешно.' });
       router.push(`/members/${newMemberId}`);
       router.refresh(); // Refresh the members list page
     } catch (e) {
       console.error("Failed to create member:", e);
-      toast({ title: 'Грешка', description: 'Неуспешно създаване на член.', variant: 'destructive' });
+      toast.error('Грешка', { description: 'Неуспешно създаване на член.' });
     }
   };
 

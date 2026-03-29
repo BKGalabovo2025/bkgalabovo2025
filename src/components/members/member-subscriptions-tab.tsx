@@ -12,7 +12,7 @@ import { getSubscriptionsByMemberId, getAllClubServices, createSubscription, upd
 import { findOrCreateSaleForSubscription } from '@/services/sales-service';
 import { Subscription, ClubService } from '@/types';
 import { PlusCircle, Loader2, CalendarIcon, CheckCircle, XCircle, AlertCircle, Receipt, RefreshCw } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { bg } from 'date-fns/locale';
@@ -45,22 +45,21 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
     const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
 
     const handleAddSubscription = async () => {
         if (!user) {
-            toast({ title: "Грешка", description: "Трябва да сте влезли, за да добавите абонамент.", variant: "destructive" });
+            toast.error("Грешка", { description: "Трябва да сте влезли, за да добавите абонамент." });
             return;
         }
 
         if (!selectedServiceId || !startDate) {
-            toast({ title: "Грешка", description: "Моля, изберете услуга и начална дата.", variant: "destructive" });
+            toast.error("Грешка", { description: "Моля, изберете услуга и начална дата." });
             return;
         }
 
         const service = services.find(s => s.id === selectedServiceId);
         if (!service) {
-            toast({ title: "Грешка", description: "Избраната услуга не е валидна.", variant: "destructive" });
+            toast.error("Грешка", { description: "Избраната услуга не е валидна." });
             return;
         }
 
@@ -83,7 +82,7 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
                 totalPaymentsCount: 1 // Or based on service type
             }, user.uid, user.displayName || 'System');
 
-            toast({ title: "Успех!", description: "Абонаментът е добавен и очаква плащане." });
+            toast.success("Успех!", { description: "Абонаментът е добавен и очаква плащане." });
             onSubscriptionAdded(); // Refresh the parent list
             setIsOpen(false);
             // Reset state
@@ -91,7 +90,7 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
             setStartDate(new Date());
         } catch (error) {
             console.error("Error creating subscription:", error);
-            toast({ title: "Грешка", description: "Възникна проблем при създаването на абонамента.", variant: "destructive" });
+            toast.error("Грешка", { description: "Възникна проблем при създаването на абонамента." });
         } finally {
             setIsLoading(false);
         }
@@ -165,7 +164,6 @@ const AddSubscriptionDialog = ({ memberId, services, onSubscriptionAdded, user }
 
 const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription, onUpdate: () => void }) => {
     const router = useRouter();
-    const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleReceiptClick = async () => {
@@ -176,10 +174,10 @@ const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription,
                 onUpdate(); 
                 router.push(`/sales/${sale.id}/receipt`);
             } else {
-                toast({ title: "Грешка", description: "Не може да бъде генерирана квитанция.", variant: "destructive" });
+                toast.error("Грешка", { description: "Не може да бъде генерирана квитанция." });
             }
         } catch {
-            toast({ title: "Грешка", description: "Възникна проблем при генерирането на квитанцията.", variant: "destructive" });
+            toast.error("Грешка", { description: "Възникна проблем при генерирането на квитанцията." });
         } finally {
             setIsLoading(false);
         }
@@ -195,7 +193,6 @@ const ReceiptButton = ({ subscription, onUpdate }: { subscription: Subscription,
 
 const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: Subscription, service?: ClubService, onSubscriptionUpdate: () => void, user: User | null }) => {
     const [isRenewing, setIsRenewing] = useState(false);
-    const { toast } = useToast();
 
     const getStatusInfo = () => {
         const now = new Date();
@@ -236,10 +233,10 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
                 totalPaymentsCount: 1
             }, user.uid, user.displayName || 'System');
 
-            toast({ title: "Успешно подновен", description: `Създаден е нов абонамент за периода ${nextStartDate.toLocaleDateString('bg-BG')}.` });
+            toast.success("Успешно подновен", { description: `Създаден е нов абонамент за периода ${nextStartDate.toLocaleDateString('bg-BG')}.` });
             onSubscriptionUpdate();
         } catch {
-            toast({ title: "Грешка при подновяване", variant: "destructive" });
+            toast.error("Грешка при подновяване");
         } finally {
             setIsRenewing(false);
         }
@@ -280,13 +277,12 @@ const SubscriptionCard = ({ sub, service, onSubscriptionUpdate, user }: { sub: S
 const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, onPaymentSuccess: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const { toast } = useToast();
     
     const amountToPay = sub.price - sub.pricePaid;
 
     const handlePayment = async () => {
         if (amountToPay <= 0) {
-            toast({ title: "Информация", description: "Няма дължима сума за този абонамент." });
+            toast.info("Информация", { description: "Няма дължима сума за този абонамент." });
             return;
         }
         setIsLoading(true);
@@ -300,11 +296,11 @@ const RegisterPaymentDialog = ({ sub, onPaymentSuccess }: { sub: Subscription, o
             // Ensure a sale is created and marked as paid
             await findOrCreateSaleForSubscription(sub);
 
-            toast({ title: "Успех!", description: "Плащането е регистрирано успешно." });
+            toast.success("Успех!", { description: "Плащането е регистрирано успешно." });
             onPaymentSuccess();
             setIsOpen(false);
         } catch {
-            toast({ title: "Грешка", description: "Неуспешен запис на плащането.", variant: "destructive" });
+            toast.error("Грешка", { description: "Неуспешен запис на плащането." });
         } finally {
             setIsLoading(false);
         }
@@ -333,7 +329,6 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -351,11 +346,11 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
         setSubscriptions(subs);
         setServices(srvs.filter(s => s.type === 'Абонамент'));
       } catch {
-        toast({ title: "Грешка", description: "Неуспешно зареждане на данните.", variant: "destructive" });
+        toast.error("Грешка", { description: "Неуспешно зареждане на данните." });
       } finally {
         setLoading(false);
       }
-  }, [memberId, toast])
+  }, [memberId])
 
   useEffect(() => { fetchData() }, [fetchData]); 
 

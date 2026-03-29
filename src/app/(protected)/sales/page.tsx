@@ -1,10 +1,10 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInventorySales } from '@/hooks/useInventorySales'; 
 import { useMembers } from '@/hooks/useMembers';
+import { deleteSale } from '@/services/sales-service';
 import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,12 +12,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2, PlusCircle, AlertTriangle, MoreVertical, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 
 const SalesListPage = () => {
     const router = useRouter();
-    const { sales, loading: salesLoading, error: salesError } = useInventorySales();
+    const { sales, loading: salesLoading, error: salesError, refetch } = useInventorySales();
     const { members, loading: membersLoading, error: membersError } = useMembers();
+    const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const memberMap = useMemo(() => {
         if (!members) return new Map();
@@ -41,6 +44,22 @@ const SalesListPage = () => {
 
     const handleRowClick = (saleId: string) => {
         router.push(`/sales/${saleId}/receipt`);
+    };
+
+    const handleDelete = async () => {
+        if (!saleToDelete) return;
+        setIsDeleting(true);
+        try {
+            await deleteSale(saleToDelete);
+            toast.success('Продажбата беше изтрита успешно');
+            refetch();
+        } catch (error) {
+            console.error('Error deleting sale:', error);
+            toast.error('Грешка при изтриване');
+        } finally {
+            setIsDeleting(false);
+            setSaleToDelete(null);
+        }
     };
     
     const loading = salesLoading || membersLoading;
@@ -96,7 +115,7 @@ const SalesListPage = () => {
                                                 <TableCell className="text-right font-mono">
                                                     {formatPrice(sale.totalAmount)}
                                                 </TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                                      <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button variant="ghost" size="icon">
@@ -105,7 +124,10 @@ const SalesListPage = () => {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
+                                                            <DropdownMenuItem 
+                                                                className="text-destructive focus:bg-destructive/10 cursor-pointer" 
+                                                                onSelect={() => setSaleToDelete(sale.id)}
+                                                            >
                                                                 <Trash2 className="mr-2 h-4 w-4"/>
                                                                 <span>Изтрий</span>
                                                             </DropdownMenuItem>
@@ -125,6 +147,28 @@ const SalesListPage = () => {
                     )}
                 </CardContent>
             </Card>
+
+            <AlertDialog open={!!saleToDelete} onOpenChange={(open) => !open && setSaleToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Това действие ще изтрие записа на продажбата за постоянно. Ако това е продажба на инвентар, наличностите няма да се възстановят автоматично.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Отказ</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDelete} 
+                            disabled={isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Изтрий
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

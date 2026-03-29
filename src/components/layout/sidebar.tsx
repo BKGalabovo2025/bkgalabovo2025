@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
 } from '@/components/ui/sidebar';
-import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText, Settings, Tag } from 'lucide-react';
+import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText, Settings, Tag, LayoutGrid } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -40,15 +40,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </Link>
         </SidebarMenuItem>
 
-        {/* Updated Finances Section */}
         <SidebarMenuItem>
-          <Link href="/finances" passHref>
-            <SidebarMenuButton isActive={pathname === '/finances'}>
+          <Link href="/subscriptions" passHref>
+            <SidebarMenuButton isActive={pathname.startsWith('/subscriptions')}>
               <CreditCard className="w-4 h-4" />
-              <span>Финанси (общ)</span>
+              <span>Абонаменти</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
+
         <SidebarMenuItem>
           <Link href="/finances/services" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances/services')}>
@@ -93,7 +93,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/reservations" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reservations')}>
-              <Calendar className="w-4 h-4" />
+              <LayoutGrid className="w-4 h-4" />
               <span>Резервации на корт</span>
             </SidebarMenuButton>
           </Link>

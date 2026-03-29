@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckedState } from '@radix-ui/react-checkbox';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Price } from '@/types';
 import { formatPrice } from '@/lib/currency';
@@ -59,7 +59,6 @@ function SubmitButton({ isPending }: { isPending: boolean }) {
 // --- The Form Component ---
 export default function ServiceForm({ service, activePrices }: ServiceFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const { user, loading } = useAuth();
 
@@ -77,12 +76,12 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
     const formData = new FormData(event.currentTarget);
 
     if (loading) {
-        toast({ title: "Моля, изчакайте", description: "Проверката на потребителя все още не е приключила." });
+        toast.info("Моля, изчакайте", { description: "Проверката на потребителя все още не е приключила." });
         return;
     }
 
     if (!user) {
-        toast({ title: "Грешка", description: "Трябва да сте влезли в системата, за да извършите това действие.", variant: 'destructive' });
+        toast.error("Грешка", { description: "Трябва да сте влезли в системата, за да извършите това действие." });
         return;
     }
 
@@ -92,15 +91,15 @@ export default function ServiceForm({ service, activePrices }: ServiceFormProps)
             const result = await updateClubService(service.id, idToken, { message: '' }, formData);
 
             if (result && result.message) {
-                toast({ title: "Успех!", description: result.message });
+                toast.success("Успех!", { description: result.message });
                 router.push('/finances/services');
                 router.refresh();
             } else if (result && result.errors) {
-                toast({ title: "Грешка при валидация", description: result.message || "Моля, проверете въведените данни.", variant: 'destructive' });
+                toast.error("Грешка при валидация", { description: result.message || "Моля, проверете въведените данни." });
             }
         } catch (error) {
             console.error("Error getting ID token or updating service:", error);
-            toast({ title: "Грешка при автентикация", description: "Не може да бъде валидиран потребителя. Моля, опитайте отново.", variant: 'destructive' });
+            toast.error("Грешка при автентикация", { description: "Не може да бъде валидиран потребителя. Моля, опитайте отново." });
         }
     });
   }

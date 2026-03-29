@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckedState } from '@radix-ui/react-checkbox';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context'; // Import useAuth
 
@@ -31,7 +31,6 @@ function SubmitButton() {
 
 export default function NewServicePage() {
   const router = useRouter();
-  const { toast } = useToast();
   const { idToken } = useAuth(); // Get user and idToken from auth context
 
   // Define the initial state with the correct type
@@ -59,17 +58,14 @@ export default function NewServicePage() {
   // useEffect now correctly checks for state.success
   useEffect(() => {
     if (state?.message) {
-        toast({
-            title: state.success ? "Success!" : "Error",
-            description: state.message,
-            variant: state.success ? 'default' : 'destructive',
-        });
-
         if (state.success) {
+            toast.success("Success!", { description: state.message });
             router.push('/finances/services');
+        } else {
+            toast.error("Error", { description: state.message });
         }
     }
-}, [state, toast, router]);
+}, [state, router]);
 
   // The rest of the JSX remains the same
   return (

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useMember } from '@/hooks/useMembers';
 import { updateMember } from '@/services/member-service';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { MemberForm } from '@/components/members/member-form';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Member } from '@/types/member.types';
@@ -13,7 +13,6 @@ type MemberFormValues = Omit<Member, 'id' | 'name' | 'registrationDate' | 'updat
 const EditMemberPage = () => {
   const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
   const memberId = params.id as string;
 
   const { member, loading, error } = useMember(memberId);
@@ -21,11 +20,11 @@ const EditMemberPage = () => {
   const handleSave = async (data: MemberFormValues) => {
     try {
       await updateMember(memberId, data);
-      toast({ title: 'Успех!', description: 'Членът е актуализиран успешно.' });
+      toast.success('Успех!', { description: 'Членът е актуализиран успешно.' });
       router.push(`/members/${memberId}`);
       router.refresh(); // Force a refresh to reflect changes
     } catch {
-      toast({ title: 'Грешка', description: 'Неуспешно актуализиране на члена.', variant: 'destructive' });
+      toast.error('Грешка', { description: 'Неуспешно актуализиране на члена.' });
     }
   };
 

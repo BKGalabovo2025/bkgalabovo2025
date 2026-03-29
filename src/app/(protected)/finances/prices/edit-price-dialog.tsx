@@ -1,6 +1,4 @@
 
-// src/app/(protected)/finances/prices/edit-price-dialog.tsx
-
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -11,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { updatePrice } from '@/services/price-service';
 import { Loader2 } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
@@ -28,17 +26,16 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
   const [notes, setNotes] = useState('');
   const [isPending, startTransition] = useTransition();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (!user) {
-      toast({ title: "Грешка", description: "Трябва да сте влезли, за да извършите тази операция.", variant: 'destructive' });
+      toast.error("Грешка", { description: "Трябва да сте влезли, за да извършите тази операция." });
       return;
     }
 
     const newValueRounded = Math.round(newValue);
     if (isNaN(newValueRounded) || newValueRounded < 0) {
-        toast({ title: "Грешка", description: "Моля, въведете валидна положителна цена.", variant: 'destructive' });
+        toast.error("Грешка", { description: "Моля, въведете валидна положителна цена." });
         return;
     }
 
@@ -53,12 +50,12 @@ export function EditPriceDialog({ isOpen, onClose, price, onPriceUpdated }: Edit
             updatedBy: { userId: user.uid, userName: user.displayName || user.email || 'System' }
         };
 
-        toast({ title: "Успех!", description: `Цената на "${price.name}" беше актуализирана.` });
+        toast.success("Успех!", { description: `Цената на "${price.name}" беше актуализирана.` });
         onPriceUpdated(updatedPriceData);
         onClose();
       } catch (error) {
         console.error(error);
-        toast({ title: "Грешка", description: "Възникна грешка при актуализиране на цената.", variant: 'destructive' });
+        toast.error("Грешка", { description: "Възникна грешка при актуализиране на цената." });
       }
     });
   };

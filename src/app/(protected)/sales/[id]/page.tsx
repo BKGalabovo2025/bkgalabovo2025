@@ -1,12 +1,11 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { deleteSale, getSaleById, updateSale } from '@/services/sales-service';
 import { getMemberById } from '@/services/member-service';
 import { Sale, Member } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,6 @@ const SaleDetailsPage = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const params = useParams();
   const router = useRouter();
-  const { toast } = useToast();
   const saleId = params.id as string;
 
   useEffect(() => {
@@ -42,25 +40,25 @@ const SaleDetailsPage = () => {
           }
         } catch (error) {
           console.error("Error loading sale data:", error);
-           toast({ title: "Error", description: "Failed to load data.", variant: "destructive" });
+          toast.error("Грешка", { description: "Неуспешно зареждане на данните за продажбата." });
         } finally {
           setLoading(false);
         }
       };
       fetchSaleData();
     }
-  }, [saleId, toast]);
+  }, [saleId]);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
         await deleteSale(saleId);
-        toast({ title: "Success!", description: "Sale was deleted." });
+        toast.success("Успех!", { description: "Продажбата беше изтрита успешно." });
         router.push('/sales');
     } catch (error) {
         const err = error as Error;
         console.error("Error deleting sale:", err);
-        toast({ title: "Error", description: err.message || "An error occurred while deleting the sale.", variant: "destructive" });
+        toast.error("Грешка", { description: err.message || "Възникна грешка при изтриването на продажбата." });
     } finally {
         setIsDeleting(false);
     }
@@ -71,17 +69,10 @@ const SaleDetailsPage = () => {
     try {
       await updateSale(saleId, { status: 'completed', isPaid: true });
       setSale(prevSale => prevSale ? { ...prevSale, status: 'completed', isPaid: true } : null);
-      toast({
-        title: "Success!",
-        description: "Payment was registered.",
-      });
+      toast.success("Успех!", { description: "Плащането беше регистрирано успешно." });
     } catch (error) {
       console.error("Error updating status:", error);
-      toast({
-        title: "Error",
-        description: "An error occurred while updating the status.",
-        variant: "destructive",
-      });
+      toast.error("Грешка", { description: "Възникна грешка при актуализирането на статуса." });
     } finally {
       setIsUpdatingStatus(false);
     }

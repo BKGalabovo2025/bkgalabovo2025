@@ -10,12 +10,11 @@ export const FIRESTORE_COLLECTIONS = {
     FAMILIES: 'families',
     INVENTORY_EVENTS: 'inventoryEvents',
     MEMBERS: 'members',
-    PAYMENTS: 'payments',
     PRICES: 'prices',
     PRODUCTS: 'products',
     REMINDERS: 'reminders',
     SALES: 'sales',
     SERVICE_HISTORY: 'serviceHistory',
-    SUBSCRIPTIONS: 'subscriptions',
+    MEMBER_SUBSCRIPTIONS: 'memberSubscriptions',
     USERS: 'users',
 } as const;
