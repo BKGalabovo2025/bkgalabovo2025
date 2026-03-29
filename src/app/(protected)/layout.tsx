@@ -55,7 +55,7 @@ export default function ProtectedLayout({
       <AppSidebar />
       <SidebarInset>
         <MainHeader />
-        <main className="flex-1 p-4 sm:p-6 animate-in fade-in-0 duration-500">
+        <main className="flex-1 pl-64 p-4 sm:p-6 animate-in fade-in-0 duration-500">
           {children}
         </main>
       </SidebarInset>
