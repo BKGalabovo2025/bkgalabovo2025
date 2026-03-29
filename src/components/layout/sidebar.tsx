@@ -18,15 +18,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props} className={cn("bg-sidebar text-sidebar-foreground animate-in slide-in-from-left-2 duration-500", props.className)}>
       <SidebarHeader>
-        <div className="bg-white border-r border-gray-200">
-          <h1 className="bg-white border-r border-gray-200">{clubInfo.name}</h1>
+        <div className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200">
+          <h1 className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200">{clubInfo.name}</h1>
         </div>
       </SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
           <Link href="/dashboard" passHref>
             <SidebarMenuButton isActive={pathname === '/dashboard'}>
-              <Home className="bg-white border-r border-gray-200" />
+              <Home className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Начало</span>
             </SidebarMenuButton>
           </Link>
@@ -34,7 +34,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/members" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/members')}>
-              <Users className="bg-white border-r border-gray-200" />
+              <Users className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Членове</span>
             </SidebarMenuButton>
           </Link>
@@ -43,7 +43,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/subscriptions" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/subscriptions')}>
-              <CreditCard className="bg-white border-r border-gray-200" />
+              <CreditCard className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Абонаменти</span>
             </SidebarMenuButton>
           </Link>
@@ -52,7 +52,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/finances/services" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances/services')}>
-              <Settings className="bg-white border-r border-gray-200" />
+              <Settings className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Услуги</span>
             </SidebarMenuButton>
           </Link>
@@ -60,7 +60,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/finances/prices" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/finances/prices')}>
-              <Tag className="bg-white border-r border-gray-200" />
+              <Tag className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Цени</span>
             </SidebarMenuButton>
           </Link>
@@ -69,7 +69,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/inventory" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/inventory')}>
-              <ShoppingCart className="bg-white border-r border-gray-200" />
+              <ShoppingCart className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Инвентар</span>
             </SidebarMenuButton>
           </Link>
@@ -77,7 +77,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/sales" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/sales')}>
-              <Receipt className="bg-white border-r border-gray-200" />
+              <Receipt className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Продажби</span>
             </SidebarMenuButton>
           </Link>
@@ -85,7 +85,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/schedule" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/schedule')}>
-              <Calendar className="bg-white border-r border-gray-200" />
+              <Calendar className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>График</span>
             </SidebarMenuButton>
           </Link>
@@ -93,7 +93,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/reservations" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reservations')}>
-              <LayoutGrid className="bg-white border-r border-gray-200" />
+              <LayoutGrid className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Резервации на корт</span>
             </SidebarMenuButton>
           </Link>
@@ -101,7 +101,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenuItem>
           <Link href="/reports" passHref>
             <SidebarMenuButton isActive={pathname.startsWith('/reports')}>
-              <FileText className="bg-white border-r border-gray-200" />
+              <FileText className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Справки</span>
             </SidebarMenuButton>
           </Link>
@@ -111,7 +111,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         {user && (
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logout}>
-              <LogOut className="bg-white border-r border-gray-200" />
+              <LogOut className="bg-white border-r border-gray-200 z-50 bg-white border-r border-gray-200" />
               <span>Изход</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
