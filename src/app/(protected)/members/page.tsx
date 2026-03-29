@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { getAllMembers } from '@/services/member-service';
-import { Member } from '@/types/member.types';
+// import { Member } from '@/types/member.types';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

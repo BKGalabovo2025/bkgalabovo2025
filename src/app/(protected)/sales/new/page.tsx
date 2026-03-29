@@ -50,7 +50,7 @@ const NewSalePage = () => {
             }
         };
         fetchMembers();
-    }, [toast]);
+    }, []);
 
     const availableProducts = allProducts.filter(p => (p.stock || 0) > 0);
 
