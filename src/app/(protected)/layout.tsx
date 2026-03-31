@@ -1,66 +1,22 @@
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/sidebar"
 
-'use client';
-
-import { useLayoutEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/layout/sidebar';
-import { MainHeader } from '@/components/layout/main-header';
-import { Loader2 } from 'lucide-react';
-import { Toaster } from 'sonner';
-
-export default function ProtectedLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useLayoutEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        router.replace('/login');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  if (isAuthenticated === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      {/*
-        AppSidebar now renders as a fixed panel on desktop (md+)
-        and as a Sheet/drawer on mobile вЂ” handled automatically by shadcn/ui.
-        No hardcoded ml-64 needed.
-      */}
-      <AppSidebar />
-      <SidebarInset>
-        <MainHeader />
-        <main className="flex-1 ml-64 p-4 sm:p-6 min-h-screen bg-gray-50">
-          {children}
-        </main>
-      </SidebarInset>
-      <Toaster richColors position="top-center" />
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full bg-gray-50">
+        <AppSidebar />
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white sticky top-0 z-40">
+            <SidebarTrigger className="-ml-1" />
+            <div className="h-4 w-[1px] bg-gray-200 mx-2 hidden sm:block" />
+            <h1 className="font-semibold text-gray-800 truncate">Табло за управление</h1>
+          </header>
+          <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+            {children}
+          </main>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
-  );
+  )
 }
-
