@@ -32,10 +32,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref legacyBehavior>
-                <SidebarMenuButton isActive={pathname === item.href} className="w-full gap-3">
+              <Link href={item.href}>
+                <SidebarMenuButton isActive={pathname === item.href} className="w-full gap-3 text-gray-700">
                   <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -44,9 +44,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </div>
       <SidebarFooter className="p-4 border-t">
         {user && (
-          <SidebarMenuButton onClick={logout} className="w-full gap-3 text-red-600 hover:bg-red-50">
+          <SidebarMenuButton onClick={logout} className="w-full gap-3 text-red-600 hover:bg-red-50 hover:text-red-700">
             <LogOut className="h-5 w-5" />
-            <span>Изход</span>
+            <span className="font-medium">Изход</span>
           </SidebarMenuButton>
         )}
       </SidebarFooter>
