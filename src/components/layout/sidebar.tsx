@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { useAuth } from '@/context/auth-context';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarContent } from '@/components/ui/sidebar';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Home, Users, CreditCard, LogOut, ShoppingCart, Receipt, Calendar, FileText, Settings, Tag, LayoutGrid } from 'lucide-react';
 import { clubInfo } from '@/config/club';
 
@@ -28,8 +28,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className="p-4 border-b">
         <h1 className="text-xl font-bold text-blue-600 truncate">{clubInfo.name}</h1>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarMenu className="p-2">
+      <div className="flex-1 overflow-y-auto p-2">
+        <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} passHref legacyBehavior>
@@ -41,7 +41,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarContent>
+      </div>
       <SidebarFooter className="p-4 border-t">
         {user && (
           <SidebarMenuButton onClick={logout} className="w-full gap-3 text-red-600 hover:bg-red-50">
