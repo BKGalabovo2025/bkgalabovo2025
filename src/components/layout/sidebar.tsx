@@ -13,16 +13,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { user, logout } = useAuth();
   
   const menuItems = [
-    { href: '/dashboard', icon: Home, label: 'Начало' },
-    { href: '/members', icon: Users, label: 'Членове' },
-    { href: '/subscriptions', icon: CreditCard, label: 'Абонаменти' },
-    { href: '/finances/services', icon: Settings, label: 'Услуги' },
-    { href: '/finances/prices', icon: Tag, label: 'Цени' },
-    { href: '/inventory', icon: ShoppingCart, label: 'Инвентар' },
-    { href: '/sales', icon: Receipt, label: 'Продажби' },
-    { href: '/schedule', icon: Calendar, label: 'График' },
-    { href: '/reservations', icon: LayoutGrid, label: 'Резервации' },
-    { href: '/reports', icon: FileText, label: 'Справки' },
+    { href: '/dashboard', icon: Home, label: 'РќР°С‡Р°Р»Рѕ' },
+    { href: '/members', icon: Users, label: 'Р§Р»РµРЅРѕРІРµ' },
+    { href: '/subscriptions', icon: CreditCard, label: 'РђР±РѕРЅР°РјРµРЅС‚Рё' },
+    { href: '/finances/services', icon: Settings, label: 'РЈСЃР»СѓРіРё' },
+    { href: '/finances/prices', icon: Tag, label: 'Р¦РµРЅРё' },
+    { href: '/inventory', icon: ShoppingCart, label: 'РРЅРІРµРЅС‚Р°СЂ' },
+    { href: '/sales', icon: Receipt, label: 'РџСЂРѕРґР°Р¶Р±Рё' },
+    { href: '/schedule', icon: Calendar, label: 'Р“СЂР°С„РёРє' },
+    { href: '/reservations', icon: LayoutGrid, label: 'Р РµР·РµСЂРІР°С†РёРё' },
+    { href: '/reports', icon: FileText, label: 'РЎРїСЂР°РІРєРё' },
   ];
 
   return (
@@ -55,7 +55,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             className="flex items-center gap-3 px-3 py-2 w-full text-red-600 hover:bg-red-50 rounded-md transition-colors"
           >
             <LogOut className="h-5 w-5" />
-            <span className="font-medium">Изход</span>
+            <span className="font-medium">РР·С…РѕРґ</span>
           </SidebarMenuButton>
         )}
       </SidebarFooter>

@@ -10,7 +10,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white sticky top-0 z-40">
             <SidebarTrigger className="-ml-1" />
             <div className="h-4 w-[1px] bg-gray-200 mx-2 hidden sm:block" />
-            <h1 className="font-semibold text-gray-800 truncate">Табло за управление</h1>
+            <h1 className="font-semibold text-gray-800 truncate">РўР°Р±Р»Рѕ Р·Р° СѓРїСЂР°РІР»РµРЅРёРµ</h1>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
             {children}
