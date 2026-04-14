@@ -1,7 +1,6 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { Member } from '@/types';
-import { getAllMembers, getMemberById } from '@/services/member-service';
+import { useState, useEffect, useCallback } from "react";
+import { Member } from "@/types";
+import { getAllMembers, getMemberById } from "@/services/member-service";
 
 /**
  * A custom hook to manage fetching all members.
@@ -44,7 +43,7 @@ export const useMember = (memberId: string | null) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMember = useCallback(async () => {
-    if (!memberId || memberId === 'undefined') {
+    if (!memberId || memberId === "undefined") {
       setLoading(false);
       return;
     }
@@ -58,7 +57,10 @@ export const useMember = (memberId: string | null) => {
         setError("Member not found.");
       }
     } catch (err: unknown) {
-      console.error(`useMember - Failed to fetch member with ID ${memberId}:`, err);
+      console.error(
+        `useMember - Failed to fetch member with ID ${memberId}:`,
+        err
+      );
       setError("Failed to load member data.");
     } finally {
       setLoading(false);

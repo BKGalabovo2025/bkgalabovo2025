@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Zod schema for validating club member data.
@@ -6,46 +6,59 @@ import { z } from 'zod';
  * before being used in the application, including robust date validation.
  */
 export const MemberSchema = z.object({
-    // --- Core Fields ---
-    id: z.string().min(1, "ID is a required field."),
-    firstName: z.string().min(1, "First name is required."),
-    lastName: z.string().min(1, "Last name is required."),
-    name: z.string(), // This is a derived field, added in the code, not in the database
-    status: z.enum(['active', 'inactive', 'suspended']),
-    ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
+  // --- Core Fields ---
+  id: z.string().min(1, "ID is a required field."),
+  firstName: z.string().min(1, "First name is required."),
+  lastName: z.string().min(1, "Last name is required."),
+  name: z.string(), // This is a derived field, added in the code, not in the database
+  status: z.enum(["active", "inactive", "suspended"]),
+  ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
 
-    // --- Date Fields (as ISO strings) ---
-    registrationDate: z.string().datetime({ message: "Invalid registration date format" }),
-    updatedAt: z.string().datetime({ message: "Invalid update date format" }).optional(),
-    lastPaymentDate: z.string().datetime({ message: "Invalid last payment date format" }).nullable().optional(),
-    dateOfBirth: z.string().datetime({ message: "Invalid birth date format" }).nullable().optional(),
+  // --- Date Fields (as ISO strings) ---
+  registrationDate: z
+    .string()
+    .datetime({ message: "Invalid registration date format" }),
+  updatedAt: z
+    .string()
+    .datetime({ message: "Invalid update date format" })
+    .optional(),
+  lastPaymentDate: z
+    .string()
+    .datetime({ message: "Invalid last payment date format" })
+    .nullable()
+    .optional(),
+  dateOfBirth: z
+    .string()
+    .datetime({ message: "Invalid birth date format" })
+    .nullable()
+    .optional(),
 
-    // --- Optional Contact & Personal Info ---
-    middleName: z.string().nullable().optional(),
-    gender: z.enum(['male', 'female']).nullable().optional(),
-    email: z.string().trim().email().or(z.literal("")).nullable().optional(),
-    phone: z.string().nullable().optional(),
-    phoneType: z.enum(['personal', 'parent']).nullable().optional(),
-    avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
-    educationInstitution: z.string().nullable().optional(),
-    personalId: z.string().nullable().optional(),
-    address: z.string().nullable().optional(),
-    notes: z.string().nullable().optional(),
+  // --- Optional Contact & Personal Info ---
+  middleName: z.string().nullable().optional(),
+  gender: z.enum(["male", "female"]).nullable().optional(),
+  email: z.string().trim().email().or(z.literal("")).nullable().optional(),
+  phone: z.string().nullable().optional(),
+  phoneType: z.enum(["personal", "parent"]).nullable().optional(),
+  avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
+  educationInstitution: z.string().nullable().optional(),
+  personalId: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 
-    // --- ADDED: Emergency Contact ---
-    emergencyContactName: z.string().nullable().optional(),
-    emergencyContactPhone: z.string().nullable().optional(),
+  // --- ADDED: Emergency Contact ---
+  emergencyContactName: z.string().nullable().optional(),
+  emergencyContactPhone: z.string().nullable().optional(),
 
-    // --- ADDED: Apparel ---
-    apparelSize: z.string().nullable().optional(),
+  // --- ADDED: Apparel ---
+  apparelSize: z.string().nullable().optional(),
 
-    // --- Family & Relations ---
-    familyId: z.string().nullable().optional(),
-    relatedMemberId: z.string().nullable().optional(), // Used for family subscriptions
+  // --- Family & Relations ---
+  familyId: z.string().nullable().optional(),
+  relatedMemberId: z.string().nullable().optional(), // Used for family subscriptions
 
-    // --- Miscellaneous ---
-    suspended: z.boolean().optional(),
-    analysisCache: z.unknown().nullable().optional(),
+  // --- Miscellaneous ---
+  suspended: z.boolean().optional(),
+  analysisCache: z.unknown().nullable().optional(),
 });
 
 /**

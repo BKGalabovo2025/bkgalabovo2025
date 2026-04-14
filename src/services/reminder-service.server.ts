@@ -1,8 +1,7 @@
-
-import { Member } from '@/types/member.types';
-import { Sale } from '@/types';
-import { FIRESTORE_COLLECTIONS } from '@/lib/firebase-collections';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { Member } from "@/types/member.types";
+import { Sale } from "@/types";
+import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 /**
  * Finds members with overdue monthly subscription payments for the current month by fetching fresh data from the database.
@@ -11,7 +10,9 @@ import { getAdminDb } from '@/lib/firebase-admin';
  */
 export const getOverdueMembers = async (): Promise<Member[]> => {
   const adminDb = getAdminDb();
-  const membersCollectionRef = adminDb.collection(FIRESTORE_COLLECTIONS.MEMBERS);
+  const membersCollectionRef = adminDb.collection(
+    FIRESTORE_COLLECTIONS.MEMBERS
+  );
   const salesCollectionRef = adminDb.collection(FIRESTORE_COLLECTIONS.SALES);
 
   const [membersSnapshot, salesSnapshot] = await Promise.all([
@@ -19,20 +20,27 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
     salesCollectionRef.get(),
   ]);
 
-  const allMembers = membersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Member[];
-  const allSales = salesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Sale[];
+  const allMembers = membersSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Member[];
+  const allSales = salesSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Sale[];
 
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  const membersWithOverduePayments = allMembers.filter(member => {
+  const membersWithOverduePayments = allMembers.filter((member) => {
     // Check if the member has an active subscription for the current month.
-    const hasCurrentSubscription = allSales.some(sale =>
-      sale.memberId === member.id &&
-      sale.subscriptionId && // Check if it's a subscription sale
-      new Date(sale.saleDate).getMonth() === currentMonth &&
-      new Date(sale.saleDate).getFullYear() === currentYear
+    const hasCurrentSubscription = allSales.some(
+      (sale) =>
+        sale.memberId === member.id &&
+        sale.subscriptionId && // Check if it's a subscription sale
+        new Date(sale.saleDate).getMonth() === currentMonth &&
+        new Date(sale.saleDate).getFullYear() === currentYear
     );
 
     // If there is no sale for a subscription this month, their payment is overdue.

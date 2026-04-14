@@ -1,11 +1,20 @@
+"use client";
 
-'use client';
-
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  onAuthStateChanged,
+  User,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
@@ -44,10 +53,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [auth]);
 
-  const logout = async () => { // Removed MouseEvent argument
+  const logout = async () => {
+    // Removed MouseEvent argument
     try {
       await firebaseSignOut(auth);
-      router.push('/login');
+      router.push("/login");
     } catch (error) {
       console.error("Error signing out: ", error);
     }

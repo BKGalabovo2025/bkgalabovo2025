@@ -1,12 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { addMember } from '@/services/member-service';
-import { toast } from 'sonner';
-import { MemberForm } from '@/components/members/member-form';
-import { Member } from '@/types/member.types';
+import { useRouter } from "next/navigation";
+import { addMember } from "@/services/member-service";
+import { toast } from "sonner";
+import { MemberForm } from "@/components/members/member-form";
+import { Member } from "@/types/member.types";
 
-type MemberFormValues = Omit<Member, 'id' | 'name' | 'registrationDate' | 'updatedAt'>;
+type MemberFormValues = Omit<
+  Member,
+  "id" | "name" | "registrationDate" | "updatedAt"
+>;
 
 const NewMemberPage = () => {
   const router = useRouter();
@@ -14,12 +17,12 @@ const NewMemberPage = () => {
   const handleSave = async (data: MemberFormValues) => {
     try {
       const newMemberId = await addMember(data);
-      toast.success('Успех!', { description: 'Нов член е добавен успешно.' });
+      toast.success("Успех!", { description: "Нов член е добавен успешно." });
       router.push(`/members/${newMemberId}`);
       router.refresh(); // Refresh the members list page
     } catch (e) {
       console.error("Failed to create member:", e);
-      toast.error('Грешка', { description: 'Неуспешно създаване на член.' });
+      toast.error("Грешка", { description: "Неуспешно създаване на член." });
     }
   };
 

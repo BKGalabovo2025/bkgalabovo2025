@@ -1,27 +1,26 @@
-
-import type { Metadata } from 'next';
-import { Poppins, PT_Sans } from 'next/font/google'; // Import the correct fonts
-import './globals.css';
-import { AuthProvider } from '@/context/auth-context';
-import { Toaster } from 'sonner';
+import type { Metadata } from "next";
+import { Poppins, PT_Sans } from "next/font/google"; // Import the correct fonts
+import "./globals.css";
+import { AuthProvider } from "@/context/auth-context";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 // Font configuration based on docs/blueprint.md
 const fontSans = PT_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-sans', // Use for body text
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-sans", // Use for body text
 });
 
 const fontHeading = Poppins({
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-heading', // Use for headings
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-heading", // Use for headings
 });
 
 export const metadata: Metadata = {
-  title: 'Badminton Club Admin',
-  description: 'Administrative application for a badminton club',
+  title: "Badminton Club Admin",
+  description: "Administrative application for a badminton club",
 };
 
 export default function RootLayout({
@@ -31,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body 
+      <body
         className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased`}
       >
         <ThemeProvider
@@ -41,8 +40,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-              {children}
-              <Toaster richColors closeButton position="top-right" />
+            {children}
+            <Toaster richColors closeButton position="top-right" />
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -1,4 +1,3 @@
-
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
@@ -10,16 +9,15 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
-
 
 // This function ensures the app is initialized only once.
 function getFirebaseApp(): FirebaseApp {
-    if (getApps().length) {
-        return getApp();
-    }
-    return initializeApp(firebaseConfig);
+  if (getApps().length) {
+    return getApp();
+  }
+  return initializeApp(firebaseConfig);
 }
 
 // --- Lazy-loaded, service-specific functions ---
@@ -27,21 +25,18 @@ function getFirebaseApp(): FirebaseApp {
 let db: Firestore;
 
 function getDb(): Firestore {
-    if (!db) {
-        db = getFirestore(getFirebaseApp());
-    }
-    return db;
+  if (!db) {
+    db = getFirestore(getFirebaseApp());
+  }
+  return db;
 }
 
 let auth: Auth;
 function getFirebaseAuth(): Auth {
-    if (!auth) {
-        auth = getAuth(getFirebaseApp());
-    }
-    return auth;
+  if (!auth) {
+    auth = getAuth(getFirebaseApp());
+  }
+  return auth;
 }
 
-export {
-    getFirebaseAuth,
-    getDb,
-};
+export { getFirebaseAuth, getDb };

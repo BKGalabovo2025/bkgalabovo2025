@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface EmptyStateProps {
   Icon: React.ElementType;
@@ -11,7 +11,12 @@ interface EmptyStateProps {
  * Преизползваем компонент за показване на празни състояния.
  * Показва икона, заглавие, описание и опционални бутони за действие.
  */
-export function EmptyState({ Icon, title, description, children }: EmptyStateProps) {
+export function EmptyState({
+  Icon,
+  title,
+  description,
+  children,
+}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg h-full">
       <div className="bg-secondary p-3 rounded-full mb-4">

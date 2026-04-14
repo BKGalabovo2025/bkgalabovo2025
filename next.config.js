@@ -2,9 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {},
-  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS 
-    ? process.env.ALLOWED_DEV_ORIGINS.split(',') 
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
+    ? process.env.ALLOWED_DEV_ORIGINS.split(",")
     : ["*.cloudworkstations.dev"],
 };
 
-module.exports = nextConfig;
+export default nextConfig;

@@ -1,25 +1,47 @@
+"use client";
 
-'use client';
-
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { MemberSchema, Member } from '@/types/member.types';
-import { z } from 'zod';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MemberSchema, Member } from "@/types/member.types";
+import { z } from "zod";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
 
-import { cn } from '@/lib/utils';
-import { CalendarIcon, Save, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
+import { CalendarIcon, Save, X } from "lucide-react";
+import { format } from "date-fns";
 
-const MemberFormSchema = MemberSchema.omit({ id: true, name: true, registrationDate: true, updatedAt: true });
+const MemberFormSchema = MemberSchema.omit({
+  id: true,
+  name: true,
+  registrationDate: true,
+  updatedAt: true,
+});
 type MemberFormValues = z.infer<typeof MemberFormSchema>;
 
 interface MemberFormProps {
@@ -28,30 +50,36 @@ interface MemberFormProps {
   initialData?: Member;
 }
 
-export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) => {
+export const MemberForm = ({
+  onSave,
+  onClose,
+  initialData,
+}: MemberFormProps) => {
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(MemberFormSchema),
     defaultValues: initialData || {
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      personalId: '',
-      educationInstitution: '',
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      personalId: "",
+      educationInstitution: "",
       dateOfBirth: undefined,
-      gender: 'male',
-      phone: '',
-      email: '',
-      address: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      apparelSize: '',
-      status: 'active',
-      notes: '',
+      gender: "male",
+      phone: "",
+      email: "",
+      address: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      apparelSize: "",
+      status: "active",
+      notes: "",
       familyId: undefined,
     },
   });
 
-  const { formState: { isSubmitting } } = form;
+  const {
+    formState: { isSubmitting },
+  } = form;
 
   const onSubmit = async (data: MemberFormValues) => {
     await onSave(data);
@@ -87,7 +115,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Презиме</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -122,7 +150,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Телефон</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -135,15 +163,19 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Имейл</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} value={field.value || ''} />
+                      <Input
+                        type="email"
+                        {...field}
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <div className="pt-4 border-t mt-4">
-                 <h4 className="font-medium mb-2 text-sm">Спешен Контакт</h4>
-                 <div className="grid gap-4">
+                <h4 className="font-medium mb-2 text-sm">Спешен Контакт</h4>
+                <div className="grid gap-4">
                   <FormField
                     name="emergencyContactName"
                     control={form.control}
@@ -151,7 +183,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                       <FormItem>
                         <FormLabel>Име на контакт</FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ''} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -164,13 +196,13 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                       <FormItem>
                         <FormLabel>Телефон на контакт</FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ''} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                 </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -188,7 +220,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>ЕГН</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -201,7 +233,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Учебно заведение</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,7 +255,11 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? format(new Date(field.value), "PPP") : <span>Избери дата</span>}
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Избери дата</span>
+                            )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -231,9 +267,15 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
-                          onSelect={(date) => field.onChange(date?.toISOString())}
-                          disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) =>
+                            field.onChange(date?.toISOString())
+                          }
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
                           initialFocus
                         />
                       </PopoverContent>
@@ -248,7 +290,10 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                 render={({ field }) => (
                   <FormItem className="pt-2">
                     <FormLabel>Пол</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -270,7 +315,7 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem className="sm:col-span-3">
                     <FormLabel>Адрес</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -292,7 +337,11 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem>
                     <FormLabel>Размер екипировка</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} placeholder="напр. M, L, XL" />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        placeholder="напр. M, L, XL"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -304,7 +353,10 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Статус</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -327,9 +379,11 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
                   <FormItem className="sm:col-span-3">
                     <FormLabel>Бележки</FormLabel>
                     <FormControl>
-                      <Textarea {...field} value={field.value || ''} rows={4} />
+                      <Textarea {...field} value={field.value || ""} rows={4} />
                     </FormControl>
-                    <FormDescription>Вътрешни бележки, видими само за администратори.</FormDescription>
+                    <FormDescription>
+                      Вътрешни бележки, видими само за администратори.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -340,11 +394,17 @@ export const MemberForm = ({ onSave, onClose, initialData }: MemberFormProps) =>
 
         {/* Бутони за действие */}
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-            <X className="mr-2 h-4 w-4"/> Отказ
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            <X className="mr-2 h-4 w-4" /> Отказ
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4"/> {initialData ? 'Запазване на промените' : 'Създаване на член'}
+            <Save className="mr-2 h-4 w-4" />{" "}
+            {initialData ? "Запазване на промените" : "Създаване на член"}
           </Button>
         </div>
       </form>

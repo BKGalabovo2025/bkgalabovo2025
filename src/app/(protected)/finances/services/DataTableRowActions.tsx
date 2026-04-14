@@ -1,24 +1,23 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
-    DropdownMenuLabel, 
-    DropdownMenuSeparator, 
-    DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
-import Link from 'next/link'
-import { Service } from './service.types' // FIX: Corrected the import path
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+import { Service } from "./service.types"; // FIX: Corrected the import path
 
 interface DataTableRowActionsProps {
-  service: Service
+  service: Service;
 }
 
 export function DataTableRowActions({ service }: DataTableRowActionsProps) {
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -37,9 +36,9 @@ export function DataTableRowActions({ service }: DataTableRowActionsProps) {
           <Link href={`/finances/services/${service.id}/history`}>История</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-            <Link href={`/finances/services/${service.id}/print`}>Принтирай</Link>
+          <Link href={`/finances/services/${service.id}/print`}>Принтирай</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -1,31 +1,40 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 const daysOfWeek = [
-  { id: 'tuesday', label: 'Вторник', value: 2 },
-  { id: 'wednesday', label: 'Сряда', value: 3 },
-  { id: 'thursday', label: 'Четвъртък', value: 4 },
+  { id: "tuesday", label: "Вторник", value: 2 },
+  { id: "wednesday", label: "Сряда", value: 3 },
+  { id: "thursday", label: "Четвъртък", value: 4 },
 ];
 
-const monthlyScheduleSchema = z.object({
-  month: z.string().min(1, 'Моля, изберете месец.'),
-  days: z.array(z.number()).min(1, 'Моля, изберете поне един ден.'),
-  startTime: z.string().min(1, 'Моля, въведете начален час.'),
-  endTime: z.string().min(1, 'Моля, въведете краен час.'),
-  location: z.string().min(1, 'Моля, въведете локация.'),
-}).refine(data => data.startTime < data.endTime, {
-    message: 'Крайният час трябва да е след началния.',
-    path: ['endTime'],
-});
+const monthlyScheduleSchema = z
+  .object({
+    month: z.string().min(1, "Моля, изберете месец."),
+    days: z.array(z.number()).min(1, "Моля, изберете поне един ден."),
+    startTime: z.string().min(1, "Моля, въведете начален час."),
+    endTime: z.string().min(1, "Моля, въведете краен час."),
+    location: z.string().min(1, "Моля, въведете локация."),
+  })
+  .refine((data) => data.startTime < data.endTime, {
+    message: "Крайният час трябва да е след началния.",
+    path: ["endTime"],
+  });
 
 export type MonthlyScheduleFormData = z.infer<typeof monthlyScheduleSchema>;
 
@@ -35,14 +44,18 @@ interface MonthlyScheduleFormProps {
   isSaving?: boolean;
 }
 
-export default function MonthlyScheduleForm({ onSave, onClose, isSaving }: MonthlyScheduleFormProps) {
+export default function MonthlyScheduleForm({
+  onSave,
+  onClose,
+  isSaving,
+}: MonthlyScheduleFormProps) {
   const form = useForm<MonthlyScheduleFormData>({
     resolver: zodResolver(monthlyScheduleSchema),
     defaultValues: {
-      month: format(new Date(), 'yyyy-MM'),
+      month: format(new Date(), "yyyy-MM"),
       days: [],
-      startTime: '17:00',
-      endTime: '18:30',
+      startTime: "17:00",
+      endTime: "18:30",
       location: 'Спортна зала "Енергетик" град Гълъбово',
     },
   });
@@ -65,40 +78,41 @@ export default function MonthlyScheduleForm({ onSave, onClose, isSaving }: Month
         />
 
         <FormItem>
-            <FormLabel>Дни от седмицата</FormLabel>
-            <div className="flex space-x-4 pt-2">
-                {daysOfWeek.map((day) => (
-                    <FormField
-                        key={day.id}
-                        control={form.control}
-                        name="days"
-                        render={({ field }) => {
-                            return (
-                            <FormItem key={day.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                <FormControl>
-                                <Checkbox
-                                    checked={field.value?.includes(day.value)}
-                                    onCheckedChange={(checked) => {
-                                    return checked
-                                        ? field.onChange([...field.value, day.value])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                            (value) => value !== day.value
-                                            )
-                                        )
-                                    }}
-                                />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                    {day.label}
-                                </FormLabel>
-                            </FormItem>
-                            )
-                        }}
-                    />
-                ))}
-            </div>
-            <FormMessage />
+          <FormLabel>Дни от седмицата</FormLabel>
+          <div className="flex space-x-4 pt-2">
+            {daysOfWeek.map((day) => (
+              <FormField
+                key={day.id}
+                control={form.control}
+                name="days"
+                render={({ field }) => {
+                  return (
+                    <FormItem
+                      key={day.id}
+                      className="flex flex-row items-start space-x-3 space-y-0"
+                    >
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value?.includes(day.value)}
+                          onCheckedChange={(checked) => {
+                            return checked
+                              ? field.onChange([...field.value, day.value])
+                              : field.onChange(
+                                  field.value?.filter(
+                                    (value) => value !== day.value
+                                  )
+                                );
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">{day.label}</FormLabel>
+                    </FormItem>
+                  );
+                }}
+              />
+            ))}
+          </div>
+          <FormMessage />
         </FormItem>
 
         <div className="flex space-x-4">
@@ -145,9 +159,11 @@ export default function MonthlyScheduleForm({ onSave, onClose, isSaving }: Month
         />
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="ghost" onClick={onClose}>Отказ</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Отказ
+          </Button>
           <Button type="submit" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Генерирай
           </Button>
         </div>

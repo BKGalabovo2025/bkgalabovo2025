@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Member, Subscription, ScheduleEvent } from '@/types';
-import { getMemberById, getMembersByIds } from '@/services/member-service';
-import { getFamilyById } from '@/services/family-service';
-import { getSubscriptionsByMemberId } from '@/services/subscription-service';
-import { getAttendancesByMemberId } from '@/services/attendance-service';
+import { useState, useEffect, useCallback } from "react";
+import { Member, Subscription, ScheduleEvent } from "@/types";
+import { getMemberById, getMembersByIds } from "@/services/member-service";
+import { getFamilyById } from "@/services/family-service";
+import { getSubscriptionsByMemberId } from "@/services/subscription-service";
+import { getAttendancesByMemberId } from "@/services/attendance-service";
 
 interface UseMemberProfileReturn {
   member: Member | null;
@@ -28,7 +28,7 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
   const fetchData = useCallback(async () => {
     if (!memberId) {
       setLoading(false);
-      setError('No member ID provided.');
+      setError("No member ID provided.");
       return;
     }
 
@@ -38,13 +38,13 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
     try {
       const memberData = await getMemberById(memberId);
       if (!memberData) {
-        throw new Error('Member not found.');
+        throw new Error("Member not found.");
       }
       setMember(memberData);
 
       const [subscriptionsData, attendancesData] = await Promise.all([
         getSubscriptionsByMemberId(memberId),
-        getAttendancesByMemberId(memberId)
+        getAttendancesByMemberId(memberId),
       ]);
       setSubscriptions(subscriptionsData);
       setAttendances(attendancesData);
@@ -52,20 +52,21 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
       if (memberData.familyId) {
         const family = await getFamilyById(memberData.familyId);
         if (family && family.memberIds) {
-          const otherMemberIds = family.memberIds.filter(id => id !== memberId);
+          const otherMemberIds = family.memberIds.filter(
+            (id) => id !== memberId
+          );
           if (otherMemberIds.length > 0) {
             const membersInFamily = await getMembersByIds(otherMemberIds);
             setFamilyMembers(membersInFamily);
           }
         }
       }
-
     } catch (err: unknown) {
       console.error("Error fetching member profile:", err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unexpected error occurred.');
+        setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
@@ -76,5 +77,13 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
     fetchData();
   }, [fetchData]);
 
-  return { member, subscriptions, familyMembers, attendances, loading, error, refetch: fetchData };
+  return {
+    member,
+    subscriptions,
+    familyMembers,
+    attendances,
+    loading,
+    error,
+    refetch: fetchData,
+  };
 };

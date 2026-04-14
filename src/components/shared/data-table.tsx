@@ -1,7 +1,6 @@
+"use client";
 
-"use client"
- 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   SortingState,
@@ -14,8 +13,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
- 
+} from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -23,21 +22,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[],
-  filterColumnId: string,
-  filterPlaceholder: string,
-  isLoading: boolean,
-  emptyStateMessage: string,
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterColumnId: string;
+  filterPlaceholder: string;
+  isLoading: boolean;
+  emptyStateMessage: string;
   getCellValue?: (row: TData, columnId: string) => TValue;
 }
- 
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -47,9 +46,11 @@ export function DataTable<TData, TValue>({
   emptyStateMessage,
   getCellValue,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
- 
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+
   const table = useReactTable({
     data,
     columns,
@@ -65,8 +66,8 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-  })
- 
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center">
@@ -74,7 +75,9 @@ export function DataTable<TData, TValue>({
           id="table-filter"
           name="table-filter"
           placeholder={filterPlaceholder}
-          value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
             table.getColumn(filterColumnId)?.setFilterValue(event.target.value)
           }
@@ -96,21 +99,24 @@ export function DataTable<TData, TValue>({
                             header.getContext()
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {isLoading ? (
-                <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="ml-2 text-muted-foreground">Зареждане...</p>
-                      </div>
-                    </TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-2 text-muted-foreground">Зареждане...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -120,7 +126,10 @@ export function DataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {getCellValue
-                        ? getCellValue(row.original, cell.column.id) as React.ReactNode
+                        ? (getCellValue(
+                            row.original,
+                            cell.column.id
+                          ) as React.ReactNode)
                         : flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -131,7 +140,10 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   {emptyStateMessage}
                 </TableCell>
               </TableRow>
@@ -139,7 +151,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-       <div className="flex items-center justify-end space-x-2">
+      <div className="flex items-center justify-end space-x-2">
         <Button
           variant="outline"
           size="sm"
@@ -158,5 +170,5 @@ export function DataTable<TData, TValue>({
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,14 +1,19 @@
+"use client";
 
-'use client';
-
-import { ColumnDef } from '@tanstack/react-table';
-import { Subscription } from '@/types';
-import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
-import Link from 'next/link';
+import { ColumnDef } from "@tanstack/react-table";
+import { Subscription } from "@/types";
+import { DataTableColumnHeader } from "@/components/shared/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 
 // Define the shape of the data for the table
 export interface SubscriptionData extends Subscription {
@@ -18,15 +23,17 @@ export interface SubscriptionData extends Subscription {
 }
 
 // Helper function to determine badge color based on status
-const getStatusBadge = (status: 'active' | 'inactive' | 'cancelled' | 'pending_payment') => {
+const getStatusBadge = (
+  status: "active" | "inactive" | "cancelled" | "pending_payment"
+) => {
   switch (status) {
-    case 'active':
+    case "active":
       return <Badge variant="success">Активен</Badge>;
-    case 'pending_payment':
+    case "pending_payment":
       return <Badge variant="secondary">Чакащо плащане</Badge>;
-    case 'inactive':
+    case "inactive":
       return <Badge variant="destructive">Изтекъл</Badge>;
-    case 'cancelled':
+    case "cancelled":
       return <Badge variant="secondary">Отказан</Badge>;
     default:
       return <Badge>{status}</Badge>;
@@ -34,50 +41,57 @@ const getStatusBadge = (status: 'active' | 'inactive' | 'cancelled' | 'pending_p
 };
 
 // Define the columns for the DataTable
-export const columns = (openForm: (subscription: SubscriptionData) => void): ColumnDef<SubscriptionData>[] => [
+export const columns = (
+  openForm: (subscription: SubscriptionData) => void
+): ColumnDef<SubscriptionData>[] => [
   {
-    accessorKey: 'memberLastName',
+    accessorKey: "memberLastName",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Член" />
     ),
     cell: ({ row }) => {
       const memberId = row.original.memberId;
       return (
-          <Link href={`/members/${memberId}`} className="hover:underline text-primary font-medium">
-             {`${row.original.memberFirstName} ${row.original.memberLastName}`}
-          </Link>
+        <Link
+          href={`/members/${memberId}`}
+          className="hover:underline text-primary font-medium"
+        >
+          {`${row.original.memberFirstName} ${row.original.memberLastName}`}
+        </Link>
       );
     },
   },
   {
-    accessorKey: 'serviceName',
-     header: ({ column }) => (
+    accessorKey: "serviceName",
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Абонамент" />
     ),
   },
   {
-    accessorKey: 'status',
-     header: ({ column }) => (
+    accessorKey: "status",
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Статус" />
     ),
     cell: ({ row }) => getStatusBadge(row.original.status),
   },
   {
-    accessorKey: 'startDate',
-     header: ({ column }) => (
+    accessorKey: "startDate",
+    header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Начална дата" />
     ),
-    cell: ({ row }) => new Date(row.original.startDate).toLocaleDateString('bg-BG'),
+    cell: ({ row }) =>
+      new Date(row.original.startDate).toLocaleDateString("bg-BG"),
   },
   {
-    accessorKey: 'endDate',
+    accessorKey: "endDate",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Крайна дата" />
     ),
-    cell: ({ row }) => new Date(row.original.endDate).toLocaleDateString('bg-BG'),
+    cell: ({ row }) =>
+      new Date(row.original.endDate).toLocaleDateString("bg-BG"),
   },
   {
-    id: 'actions',
+    id: "actions",
     cell: ({ row }) => {
       const subscription = row.original;
       return (
@@ -94,10 +108,16 @@ export const columns = (openForm: (subscription: SubscriptionData) => void): Col
               Редактирай
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-               <Link href={`/members/${subscription.memberId}?tab=subscriptions`}>Преглед на абонамента</Link>
+              <Link
+                href={`/members/${subscription.memberId}?tab=subscriptions`}
+              >
+                Преглед на абонамента
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-               <Link href={`/sales/new?memberId=${subscription.memberId}`}>Регистрирай плащане</Link>
+              <Link href={`/sales/new?memberId=${subscription.memberId}`}>
+                Регистрирай плащане
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

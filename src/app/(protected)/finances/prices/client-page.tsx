@@ -1,12 +1,11 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import { Price } from '@/types/index';
-import { DataTable } from '@/components/shared/data-table';
-import { columns } from './columns';
-import { EditPriceDialog } from './edit-price-dialog';
-import { PriceHistoryDialog } from './price-history-dialog';
+import { useState } from "react";
+import { Price } from "@/types/index";
+import { DataTable } from "@/components/shared/data-table";
+import { columns } from "./columns";
+import { EditPriceDialog } from "./edit-price-dialog";
+import { PriceHistoryDialog } from "./price-history-dialog";
 
 interface PricesClientPageProps {
   initialPrices: Price[];
@@ -29,19 +28,22 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
   };
 
   const handlePriceUpdated = (updatedPrice: Price) => {
-    setPrices(currentPrices => 
-        currentPrices.map(p => p.id === updatedPrice.id ? updatedPrice : p)
+    setPrices((currentPrices) =>
+      currentPrices.map((p) => (p.id === updatedPrice.id ? updatedPrice : p))
     );
     setEditModalOpen(false);
   };
 
   return (
     <div>
-      <DataTable 
-        columns={columns({ onEdit: handleOpenEdit, onShowHistory: handleOpenHistory })} 
-        data={prices} 
-        filterColumnId='name'
-        filterPlaceholder='Търсене по име на цена...'
+      <DataTable
+        columns={columns({
+          onEdit: handleOpenEdit,
+          onShowHistory: handleOpenHistory,
+        })}
+        data={prices}
+        filterColumnId="name"
+        filterPlaceholder="Търсене по име на цена..."
         isLoading={false}
         emptyStateMessage="Няма намерени цени."
       />

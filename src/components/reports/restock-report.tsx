@@ -1,12 +1,24 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Product } from '@/types';
-import { getProducts } from '@/services/inventory-service';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Product } from "@/types";
+import { getProducts } from "@/services/inventory-service";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Loader2 } from "lucide-react";
 
 const RestockReport = () => {
   const [productsToRestock, setProductsToRestock] = useState<Product[]>([]);
@@ -18,7 +30,9 @@ const RestockReport = () => {
       try {
         const allProducts = await getProducts();
         const filteredProducts = allProducts.filter(
-          (p) => typeof p.restockThreshold === 'number' && p.stock <= p.restockThreshold
+          (p) =>
+            typeof p.restockThreshold === "number" &&
+            p.stock <= p.restockThreshold
         );
         setProductsToRestock(filteredProducts);
       } catch (error) {
@@ -34,10 +48,10 @@ const RestockReport = () => {
 
   if (isLoading) {
     return (
-        <div className="flex items-center text-sm text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Зареждане на протокола...
-        </div>
+      <div className="flex items-center text-sm text-muted-foreground">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Зареждане на протокола...
+      </div>
     );
   }
 
@@ -46,7 +60,8 @@ const RestockReport = () => {
       <CardHeader>
         <CardTitle>Протокол за презареждане</CardTitle>
         <CardDescription>
-          Списък на продуктите, чиято наличност е достигнала или е под прага за презареждане.
+          Списък на продуктите, чиято наличност е достигнала или е под прага за
+          презареждане.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,7 +73,9 @@ const RestockReport = () => {
               <TableRow>
                 <TableHead>Продукт</TableHead>
                 <TableHead className="text-center">Текуща наличност</TableHead>
-                <TableHead className="text-center">Праг за презареждане</TableHead>
+                <TableHead className="text-center">
+                  Праг за презареждане
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -66,7 +83,9 @@ const RestockReport = () => {
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-center">{product.stock}</TableCell>
-                  <TableCell className="text-center">{product.restockThreshold}</TableCell>
+                  <TableCell className="text-center">
+                    {product.restockThreshold}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

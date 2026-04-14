@@ -1,7 +1,15 @@
-﻿import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/layout/sidebar"
+﻿import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/sidebar";
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full bg-background">
@@ -18,5 +26,5 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
+  );
 }

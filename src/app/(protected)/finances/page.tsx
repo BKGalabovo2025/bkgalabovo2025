@@ -7,7 +7,7 @@ export default function FinancesPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Финансов Модул</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* КАРТА 1 */}
         <Card>
@@ -16,7 +16,9 @@ export default function FinancesPage() {
             <ListTree className="h-5 w-5 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full"><Link href="/finances/services">Каталог</Link></Button>
+            <Button asChild className="w-full">
+              <Link href="/finances/services">Каталог</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -27,7 +29,9 @@ export default function FinancesPage() {
             <CreditCard className="h-5 w-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" className="w-full"><Link href="/subscriptions">Списък</Link></Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/subscriptions">Списък</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -38,7 +42,9 @@ export default function FinancesPage() {
             <History className="h-5 w-5 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" className="w-full"><Link href="/sales">История</Link></Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/sales">История</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

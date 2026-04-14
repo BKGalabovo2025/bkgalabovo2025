@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from "firebase/firestore";
 
 // Represents a single reservation made by an external client
 export interface Reservation {
@@ -9,7 +9,7 @@ export interface Reservation {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
-  status: 'unpaid' | 'paid' | 'cancelled';
+  status: "unpaid" | "paid" | "cancelled";
   totalPrice: number; // in Euro, as whole numbers
   createdAt: Timestamp;
 }
@@ -21,6 +21,6 @@ export interface BlockedSlot {
   startTime: Timestamp;
   endTime: Timestamp;
   // An array of court IDs this slot applies to. If empty, it applies to all courts.
-  courtIds: number[]; 
+  courtIds: number[];
   createdAt: Timestamp;
 }

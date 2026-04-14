@@ -1,9 +1,8 @@
-import { z } from 'zod';
-
+import { z } from "zod";
 
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
-export { type Member,  } from './member.types';
+export { type Member } from "./member.types";
 
 // =================================================================
 //                            CORE TYPES
@@ -14,11 +13,17 @@ export { type Member,  } from './member.types';
  * This ensures that family objects are structured correctly, including timestamps.
  */
 export const FamilySchema = z.object({
-    id: z.string().min(1, "ID is required."),
-    name: z.string().min(1, "Family name is required."),
-    memberIds: z.array(z.string()).default([]),
-    createdAt: z.string().datetime({ message: "Invalid creation date format" }).optional(),
-    updatedAt: z.string().datetime({ message: "Invalid update date format" }).optional(),
+  id: z.string().min(1, "ID is required."),
+  name: z.string().min(1, "Family name is required."),
+  memberIds: z.array(z.string()).default([]),
+  createdAt: z
+    .string()
+    .datetime({ message: "Invalid creation date format" })
+    .optional(),
+  updatedAt: z
+    .string()
+    .datetime({ message: "Invalid update date format" })
+    .optional(),
 });
 
 /**
@@ -35,7 +40,7 @@ export type Product = {
   name: string;
   description?: string;
   price: number;
-  currency: 'EUR';
+  currency: "EUR";
   category: string;
   stock: number; // Current stock level
   imageUrl?: string | null;
@@ -61,27 +66,11 @@ export type Sale = {
   memberId: string;
   saleDate: string; // ISO 8601
   items: SaleItem[];
-  status: 'pending' | 'completed' | 'cancelled';
+  status: "pending" | "completed" | "cancelled";
   isPaid: boolean;
   totalAmount: number; // Corrected field name
-  currency: 'EUR';
+  currency: "EUR";
   subscriptionId?: string | null; // Added for linking sales to subscriptions
-};
-
-/**
- * Represents a financial payment.
- */
-export type Payment = {
-  id: string;
-  memberId: string;
-  paymentDate: string; // ISO 8601
-  amount: number;
-  currency: 'EUR';
-  type: 'subscription' | 'donation' | 'sale' | 'other';
-  method: 'cash' | 'card' | 'bank_transfer';
-  status: 'succeeded' | 'pending' | 'failed';
-  notes?: string;
-  relatedId?: string; // e.g., Sale ID or Subscription ID
 };
 
 // =================================================================
@@ -97,7 +86,7 @@ export type Price = {
   name: string; // A human-readable name (e.g., "Месечен абонамент за деца")
   description?: string; // Optional further details
   value: number; // The price in Euro (always a whole number)
-  currency: 'EUR';
+  currency: "EUR";
   isActive: boolean; // Allows deactivating a price without deleting it
   updatedAt: string; // ISO 8601 timestamp of the last modification
   updatedBy: {
@@ -123,16 +112,20 @@ export type PriceHistory = {
 /**
  * Defines the type for a group targeted by a service.
  */
-export type TargetGroup = 'Деца' | 'Любители' | 'Състезатели' | 'Професионалисти';
+export type TargetGroup =
+  | "Деца"
+  | "Любители"
+  | "Състезатели"
+  | "Професионалисти";
 
 /**
  * Defines a special right granted by a club service.
  */
 export type SpecialRight = {
-  right: 'kartoteka' | 'equipment';
+  right: "kartoteka" | "equipment";
   description: string;
   trigger: {
-    condition: 'IMMEDIATELY' | 'AFTER_N_PAYMENTS';
+    condition: "IMMEDIATELY" | "AFTER_N_PAYMENTS";
     paymentCount?: number;
   };
 };
@@ -143,7 +136,7 @@ export type SpecialRight = {
 export type CancellationPolicy = {
   isAllowed: boolean;
   noticePeriodDays: number;
-  feeType: 'none' | 'fixed' | 'percentage';
+  feeType: "none" | "fixed" | "percentage";
   feeValue: number;
   description: string;
   longTermSicknessDiscount: number; // e.g., 0.5 for 50%
@@ -157,9 +150,9 @@ export type ClubService = {
   name: string;
   description: string;
   price: number;
-  currency: 'EUR';
-  type: 'Абонамент' | 'Еднократно плащане';
-  billingPeriod: 'Месечен' | 'Годишен' | null;
+  currency: "EUR";
+  type: "Абонамент" | "Еднократно плащане";
+  billingPeriod: "Месечен" | "Годишен" | null;
   targetGroups: TargetGroup[];
   isCoachLed: boolean;
   durationMinutes: number;
@@ -170,19 +163,19 @@ export type ClubService = {
     window: {
       startDay: number;
       endDay: number;
-    }
+    };
   };
   specialRights: SpecialRight[];
   cancellationPolicy: CancellationPolicy;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
-  createdBy: { userId: string, userName: string };
-  updatedBy: { userId: string, userName: string };
+  createdBy: { userId: string; userName: string };
+  updatedBy: { userId: string; userName: string };
 };
 
-export type PaymentHistoryItem = { 
-  date: string; 
-  amount: number; 
+export type PaymentHistoryItem = {
+  date: string;
+  amount: number;
   paymentId: string;
   saleId?: string; // Added to link to a specific sale if applicable
 };
@@ -198,10 +191,10 @@ export type Subscription = {
   serviceName: string;
   startDate: string; // ISO 8601
   endDate: string; // ISO 8601
-  status: 'active' | 'inactive' | 'cancelled' | 'pending_payment';
+  status: "active" | "inactive" | "cancelled" | "pending_payment";
   price: number; // The price of the subscription per billing period
   pricePaid: number;
-  currency: 'EUR';
+  currency: "EUR";
   paymentHistory: PaymentHistoryItem[];
   paymentsMadeCount: number;
   totalPaymentsCount: number;
@@ -210,11 +203,6 @@ export type Subscription = {
   linkedSubscriptionId?: string | null; // ID of the corresponding family subscription
 };
 
-
-
-
-
-
 // =================================================================
 //                      SCHEDULING & EVENTS
 // =================================================================
@@ -222,13 +210,17 @@ export type Subscription = {
 /**
  * Defines the types of schedule events.
  */
-export type ScheduleEventType = 'training' | 'competition' | 'camp' | 'event' | 'other';
-
+export type ScheduleEventType =
+  | "training"
+  | "competition"
+  | "camp"
+  | "event"
+  | "other";
 
 export type Attendee = {
-  memberId: string; 
-  name: string; 
-  attended: boolean; 
+  memberId: string;
+  name: string;
+  attended: boolean;
 };
 
 /**
@@ -255,18 +247,18 @@ export type ScheduleEvent = {
  * Describes an event in the inventory log (e.g., restock, correction).
  */
 export type InventoryEvent = {
-    id: string;
-    productId: string;
-    productName: string;
-    createdAt: string; // ISO 8601
-    type: 'restock' | 'sale' | 'correction' | 'initial' | 'price_update';
-    quantityChange: number;
-    notes?: string;
-    relatedSaleId?: string;
-    userId: string;
-    userName: string;
-    oldPrice?: number;
-    newPrice?: number;
+  id: string;
+  productId: string;
+  productName: string;
+  createdAt: string; // ISO 8601
+  type: "restock" | "sale" | "correction" | "initial" | "price_update";
+  quantityChange: number;
+  notes?: string;
+  relatedSaleId?: string;
+  userId: string;
+  userName: string;
+  oldPrice?: number;
+  newPrice?: number;
 };
 
 // =================================================================
@@ -277,16 +269,14 @@ export type InventoryEvent = {
  * Represents a reminder for a specific task.
  */
 export type Reminder = {
-    id: string;
-    title: string;
-    dueDate: string; // ISO 8601
-    isCompleted: boolean;
-    relatedLink?: string;
-    memberId?: string;
-    memberName?: string;
-    description?: string;
-    type: 'payment' | 'inventory' | 'other' | 'error' | 'warning';
-    relatedId?: string;
+  id: string;
+  title: string;
+  dueDate: string; // ISO 8601
+  isCompleted: boolean;
+  relatedLink?: string;
+  memberId?: string;
+  memberName?: string;
+  description?: string;
+  type: "payment" | "inventory" | "other" | "error" | "warning";
+  relatedId?: string;
 };
-
-
