@@ -16,7 +16,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/export-utils";
 
 interface Liability {
   member: Member;
@@ -83,8 +85,25 @@ const LiabilitiesReport = () => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>Справка задължения</CardTitle>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const data = liabilities.map(({ member, subscription, service }) => ({
+              Член: `${member.firstName} ${member.lastName}`,
+              Тип: service?.name || "Н/А",
+              "Краен срок": new Date(subscription.endDate).toLocaleDateString("bg-BG"),
+              "Сума": `${subscription.pricePaid.toFixed(2)} ${subscription.currency}`,
+            }));
+            exportToCSV(data, "Справка-задължения.csv");
+          }}
+          disabled={liabilities.length === 0}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Експорт (CSV)
+        </Button>
       </CardHeader>
       <CardContent>
         {liabilities.length === 0 ? (

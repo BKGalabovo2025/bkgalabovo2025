@@ -24,7 +24,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays, format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/export-utils";
 
 const FinancialReport = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -150,6 +152,29 @@ const FinancialReport = () => {
                 <SelectItem value="inventory">Продажба инвентар</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Export Button */}
+          <div className="flex flex-col space-y-1.5 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                const exportData = filteredSales.map(s => {
+                  const member = s.memberId ? memberMap.get(s.memberId) : null;
+                  return {
+                    "Дата": new Date(s.saleDate).toLocaleDateString("bg-BG"),
+                    "Член": member ? `${member.firstName} ${member.lastName}` : "Н/А",
+                    "Тип": s.subscriptionId ? "Членски внос" : "Продажба инвентар",
+                    "Сума (€)": s.totalAmount.toFixed(2),
+                  };
+                });
+                exportToCSV(exportData, `Финансов-отчет-${format(new Date(), "yyyy-MM-dd")}.csv`);
+              }}
+              disabled={filteredSales.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Експорт (CSV)
+            </Button>
           </div>
         </div>
 

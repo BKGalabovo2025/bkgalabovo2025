@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 export default async function ServiceHistoryPage({
   params,
 }: {
-  params: { serviceId: string };
+  params: Promise<{ serviceId: string }>;
 }) {
   // Per Next.js 13+ App Router, the `params` object can be a promise.
   // We must `await` it before accessing its properties.

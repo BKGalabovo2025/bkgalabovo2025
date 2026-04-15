@@ -74,6 +74,8 @@ export const MemberForm = ({
       status: "active",
       notes: "",
       familyId: undefined,
+      skillLevel: undefined,
+      rating: undefined,
     },
   });
 
@@ -367,6 +369,50 @@ export const MemberForm = ({
                         <SelectItem value="inactive">Неактивен</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="skillLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ниво на умения</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Избери ниво" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="beginner">Начално</SelectItem>
+                        <SelectItem value="intermediate">Средно</SelectItem>
+                        <SelectItem value="advanced">Напреднало</SelectItem>
+                        <SelectItem value="professional">Професионално</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rating"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Рейтинг (0-3000)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

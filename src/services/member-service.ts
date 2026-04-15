@@ -10,6 +10,9 @@ import {
   where,
   serverTimestamp,
   DocumentSnapshot,
+  limit,
+  startAfter,
+  orderBy,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
@@ -51,6 +54,8 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     registrationDate:
       toISODate(data.registrationDate) || new Date().toISOString(),
     updatedAt: toISODate(data.updatedAt),
+    skillLevel: data.skillLevel || null,
+    rating: typeof data.rating === "number" ? data.rating : null,
   };
 
   try {
@@ -107,7 +112,8 @@ export const getAllMembers = async (
 
   const db = getDb();
   const membersCollection = collection(db, MEMBERS_COLLECTION);
-  const querySnapshot = await getDocs(membersCollection);
+  const q = query(membersCollection, orderBy("lastName", "asc"), limit(200)); // Safety limit
+  const querySnapshot = await getDocs(q);
 
   const members = querySnapshot.docs
     .map(docToMember)
@@ -118,6 +124,34 @@ export const getAllMembers = async (
   lastFetchTime = now;
 
   return members;
+};
+
+export interface PagedMembers {
+  members: Member[];
+  lastDoc: DocumentSnapshot | null;
+}
+
+export const getMembersPaged = async (
+  pageSize: number = 20,
+  lastDoc: DocumentSnapshot | null = null
+): Promise<PagedMembers> => {
+  const db = getDb();
+  const membersCollection = collection(db, MEMBERS_COLLECTION);
+
+  let q = query(membersCollection, orderBy("lastName", "asc"), limit(pageSize));
+
+  if (lastDoc) {
+    q = query(q, startAfter(lastDoc));
+  }
+
+  const querySnapshot = await getDocs(q);
+  const members = querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
+  const newLastDoc =
+    querySnapshot.docs.length > 0
+      ? querySnapshot.docs[querySnapshot.docs.length - 1]
+      : null;
+
+  return { members, lastDoc: newLastDoc };
 };
 
 // Изчисляване на възрастовата група на базата на годината на раждане

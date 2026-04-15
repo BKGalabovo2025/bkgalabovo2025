@@ -18,7 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/export-utils";
 
 const RestockReport = () => {
   const [productsToRestock, setProductsToRestock] = useState<Product[]>([]);
@@ -57,12 +59,30 @@ const RestockReport = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Протокол за презареждане</CardTitle>
-        <CardDescription>
-          Списък на продуктите, чиято наличност е достигнала или е под прага за
-          презареждане.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle>Протокол за презареждане</CardTitle>
+          <CardDescription>
+            Списък на продуктите, чиято наличност е достигнала или е под прага за
+            презареждане.
+          </CardDescription>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const data = productsToRestock.map((p) => ({
+              Продукт: p.name,
+              Наличност: p.stock,
+              Праг: p.restockThreshold,
+            }));
+            exportToCSV(data, "Протокол-презареждане.csv");
+          }}
+          disabled={productsToRestock.length === 0}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Експорт (CSV)
+        </Button>
       </CardHeader>
       <CardContent>
         {productsToRestock.length === 0 ? (

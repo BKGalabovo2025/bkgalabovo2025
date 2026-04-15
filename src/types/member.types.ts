@@ -56,6 +56,10 @@ export const MemberSchema = z.object({
   familyId: z.string().nullable().optional(),
   relatedMemberId: z.string().nullable().optional(), // Used for family subscriptions
 
+  // --- Skill & Ranking ---
+  skillLevel: z.enum(["beginner", "intermediate", "advanced", "professional"]).nullable().optional(),
+  rating: z.number().min(0).max(3000).nullable().optional(),
+
   // --- Miscellaneous ---
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),

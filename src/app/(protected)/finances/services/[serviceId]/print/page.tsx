@@ -65,7 +65,7 @@ async function getService(id: string): Promise<Service | null> {
 export default async function ServicePrintPage({
   params,
 }: {
-  params: { serviceId: string };
+  params: Promise<{ serviceId: string }>;
 }) {
   // Per Next.js 13+ App Router, the `params` object can be a promise.
   // We must `await` it before accessing its properties.

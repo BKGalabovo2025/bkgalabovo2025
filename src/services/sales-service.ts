@@ -12,6 +12,7 @@ import {
   orderBy,
   updateDoc,
   deleteDoc,
+  startAfter,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import {
@@ -29,7 +30,7 @@ import {
 
 import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
 
-const docToSale = (doc: DocumentSnapshot): Sale | null => {
+export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
     return null;
   }
@@ -143,9 +144,37 @@ export const getReceiptDetails = async (
 export const getSales = async (): Promise<Sale[]> => {
   const db = getDb();
   const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
-  const q = query(salesCollection, orderBy("saleDate", "desc"));
+  const q = query(salesCollection, orderBy("saleDate", "desc"), limit(100)); // Safety limit
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+};
+
+export interface PagedSales {
+  sales: Sale[];
+  lastDoc: DocumentSnapshot | null;
+}
+
+export const getSalesPaged = async (
+  pageSize: number = 20,
+  lastDoc: DocumentSnapshot | null = null
+): Promise<PagedSales> => {
+  const db = getDb();
+  const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
+
+  let q = query(salesCollection, orderBy("saleDate", "desc"), limit(pageSize));
+
+  if (lastDoc) {
+    q = query(q, startAfter(lastDoc));
+  }
+
+  const querySnapshot = await getDocs(q);
+  const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  const newLastDoc =
+    querySnapshot.docs.length > 0
+      ? querySnapshot.docs[querySnapshot.docs.length - 1]
+      : null;
+
+  return { sales, lastDoc: newLastDoc };
 };
 
 export const getInventorySales = async (): Promise<Sale[]> => {

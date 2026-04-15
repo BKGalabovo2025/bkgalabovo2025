@@ -1,4 +1,7 @@
 import { Member, Sale } from "@/types";
+import { getCountFromServer, collection, query, where } from "firebase/firestore";
+import { getDb } from "@/lib/firebase";
+import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
 
 export type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }
@@ -109,5 +112,26 @@ export const getDashboardStats = (members: Member[], sales: Sale[]) => {
     newMembersChange,
     salesLast30Days: salesCountLast30Days,
     salesChange,
+  };
+};
+/**
+ * Optimized dashboard summary fetching using Firestore Aggregations.
+ * This should be used instead of client-side filtering whenever possible.
+ */
+export const fetchDashboardSummary = async () => {
+  const db = getDb();
+  const membersRef = collection(db, FIRESTORE_COLLECTIONS.MEMBERS);
+  const salesRef = collection(db, FIRESTORE_COLLECTIONS.SALES);
+
+  const [totalMembersSnap, activeMembersSnap, unpaidSalesSnap] = await Promise.all([
+    getCountFromServer(membersRef),
+    getCountFromServer(query(membersRef, where("status", "==", "active"))),
+    getCountFromServer(query(salesRef, where("status", "!=", "completed"))),
+  ]);
+
+  return {
+    totalMembers: totalMembersSnap.data().count,
+    activeMembersCount: activeMembersSnap.data().count,
+    unpaidSales: unpaidSalesSnap.data().count,
   };
 };

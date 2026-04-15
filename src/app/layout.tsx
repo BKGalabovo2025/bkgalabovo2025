@@ -21,6 +21,19 @@ const fontHeading = Poppins({
 export const metadata: Metadata = {
   title: "Badminton Club Admin",
   description: "Administrative application for a badminton club",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Badminton Admin",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

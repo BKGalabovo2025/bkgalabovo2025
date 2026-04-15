@@ -1,0 +1,17 @@
+{
+  "name": "Badminton Club Admin",
+  "short_name": "ClubAdmin",
+  "description": "Administrative application for a badminton club",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
