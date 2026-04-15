@@ -34,13 +34,21 @@ export function PriceHistoryDialog({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      getPriceHistory(price.id)
-        .then(setHistory)
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
-    }
+    const fetchHistory = async () => {
+      if (isOpen) {
+        setIsLoading(true);
+        try {
+          const data = await getPriceHistory(price.id);
+          setHistory(data);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
   }, [isOpen, price.id]);
 
   return (

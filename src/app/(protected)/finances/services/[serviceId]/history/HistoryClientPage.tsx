@@ -64,13 +64,13 @@ export default function HistoryClientPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!serviceId) {
-      setError("Невалидно ID на услугата.");
-      setIsLoading(false);
-      return;
-    }
-
     const fetchDataWithRetry = async () => {
+      if (!serviceId) {
+        setError("Невалидно ID на услугата.");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       const db = getDb();
@@ -109,7 +109,7 @@ export default function HistoryClientPage({
             await sleep(1500);
           } else {
             setError(
-              `Услуга с ID &quot;${serviceId}&quot; не беше намерена. Възможно е все още да се създава или да е била изтрита.`
+              `Услуга с ID &quot;${serviceId}&quot; не беше намерена. Възможно е все още да се създава или да е bila изтрита.`
             );
             setIsLoading(false);
           }

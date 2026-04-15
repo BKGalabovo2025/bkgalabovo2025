@@ -68,6 +68,7 @@ const MembersPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
 
   // Using SWR for automated caching and revalidation
   const {
@@ -103,10 +104,11 @@ const MembersPage = () => {
     return result;
   }, [members, searchTerm]);
 
-  // Reset pagination on search
-  useEffect(() => {
+  // Reset pagination when search term changes
+  if (searchTerm !== prevSearchTerm) {
+    setPrevSearchTerm(searchTerm);
     setCurrentPage(1);
-  }, [searchTerm]);
+  }
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
   const paginatedMembers = useMemo(() => {

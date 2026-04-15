@@ -21,7 +21,6 @@ export const useProducts = () => {
 
   useEffect(() => {
     const db = getDb();
-    setIsLoading(true);
     const productsCollection = collection(db, "products");
     const q = query(productsCollection);
 

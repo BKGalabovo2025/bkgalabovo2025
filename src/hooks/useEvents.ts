@@ -48,7 +48,6 @@ export const useEvents = () => {
 
   useEffect(() => {
     const db = getDb();
-    setIsLoading(true);
     const eventsCollection = collection(db, "events");
     const q = query(eventsCollection, orderBy("startDate", "desc"));
 
