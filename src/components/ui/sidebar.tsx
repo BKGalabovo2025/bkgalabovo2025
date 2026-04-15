@@ -14,7 +14,7 @@ export const SidebarProvider = React.forwardRef<HTMLDivElement, React.ComponentP
     if (onOpenChange) { onOpenChange(nextValue) }
     _setOpen(nextValue)
   }, [onOpenChange, open])
-  const state = open ? "expanded" : "collapsed"
+  const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed"
   const contextValue = React.useMemo(() => ({ state, open, setOpen, isMobile }), [state, open, setOpen, isMobile])
   return (
     <SidebarContext.Provider value={contextValue}>
@@ -71,6 +71,9 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProp
 SidebarInset.displayName = "SidebarInset"
 
 export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(({ className, ...props }, ref) => (
-  <button ref={ref} className={cn("h-7 w-7", className)} {...props}>Меню</button>
+  <button ref={ref} className={cn("h-7 w-7 flex items-center justify-center rounded-md border bg-white shadow-sm", className)} {...props}>
+    <span className="sr-only">Toggle Sidebar</span>
+    ☰
+  </button>
 ))
 SidebarTrigger.displayName = "SidebarTrigger"
