@@ -42,26 +42,16 @@ export default [
       "@next/next": nextPlugin,
     },
     rules: {
-      // Base rules from recommended configs
       ...react.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
+      ...tsPlugin.configs.recommended.rules,
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
-      ...tsPlugin.configs.recommended.rules,
-
-      // Custom rules and overrides
-      "react/react-in-jsx-scope": "off", // Not needed with Next.js
-      "react/prop-types": "off", // Not needed in a TypeScript project
-
-      // React Hooks rules
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-
-      // Warnings for unused variables
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
     settings: {
       react: {
