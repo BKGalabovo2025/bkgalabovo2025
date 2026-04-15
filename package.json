@@ -4,10 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "next lint",
     "lint:css": "stylelint \"src/**/*.css\" --config stylelint.config.cjs",
     "lint:css:fix": "stylelint \"src/**/*.css\" --config stylelint.config.cjs --fix",
     "lint:fix": "eslint . --fix",
