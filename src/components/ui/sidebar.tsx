@@ -1,9 +1,16 @@
+'use client';
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 const SidebarContext = React.createContext<{state: "expanded" | "collapsed", open: boolean, setOpen: (open: boolean) => void, isMobile: boolean} | null>(null)
+
+export function useSidebar() {
+  const context = React.useContext(SidebarContext)
+  if (!context) { throw new Error("useSidebar must be used within a SidebarProvider") }
+  return context
+}
 
 export const SidebarProvider = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"> & {defaultOpen?: boolean, open?: boolean, onOpenChange?: (open: boolean) => void}>(({ defaultOpen = true, open: openProp, onOpenChange, className, children, ...props }, ref) => {
   const isMobile = useIsMobile()
@@ -70,10 +77,12 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProp
 ))
 SidebarInset.displayName = "SidebarInset"
 
-export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(({ className, ...props }, ref) => (
-  <button ref={ref} className={cn("h-7 w-7 flex items-center justify-center rounded-md border bg-white shadow-sm", className)} {...props}>
-    <span className="sr-only">Toggle Sidebar</span>
-    ☰
-  </button>
-))
+export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(({ className, ...props }, ref) => {
+  const { setOpen } = useSidebar()
+  return (
+    <button ref={ref} className={cn("h-8 w-8 flex items-center justify-center rounded-md border bg-white", className)} onClick={() => setOpen((prev: boolean) => !prev)} {...props}>
+      ☰
+    </button>
+  )
+})
 SidebarTrigger.displayName = "SidebarTrigger"
