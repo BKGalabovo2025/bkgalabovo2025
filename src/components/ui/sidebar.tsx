@@ -4,7 +4,12 @@ import { Slot } from "@radix-ui/react-slot"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
-const SidebarContext = React.createContext<{state: "expanded" | "collapsed", open: boolean, setOpen: (open: boolean) => void, isMobile: boolean} | null>(null)
+const SidebarContext = React.createContext<{
+  state: "expanded" | "collapsed", 
+  open: boolean, 
+  setOpen: (value: boolean | ((prev: boolean) => boolean)) => void, 
+  isMobile: boolean
+} | null>(null)
 
 export function useSidebar() {
   const context = React.useContext(SidebarContext)
@@ -16,7 +21,7 @@ export const SidebarProvider = React.forwardRef<HTMLDivElement, React.ComponentP
   const isMobile = useIsMobile()
   const [_open, _setOpen] = React.useState(defaultOpen)
   const open = openProp ?? _open
-  const setOpen = React.useCallback((value: boolean | ((value: boolean) => boolean)) => {
+  const setOpen = React.useCallback((value: boolean | ((prev: boolean) => boolean)) => {
     const nextValue = typeof value === "function" ? value(open) : value
     if (onOpenChange) { onOpenChange(nextValue) }
     _setOpen(nextValue)
@@ -80,7 +85,7 @@ SidebarInset.displayName = "SidebarInset"
 export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(({ className, ...props }, ref) => {
   const { setOpen } = useSidebar()
   return (
-    <button ref={ref} className={cn("h-8 w-8 flex items-center justify-center rounded-md border bg-white", className)} onClick={() => setOpen((prev: boolean) => !prev)} {...props}>
+    <button type="button" ref={ref} className={cn("h-8 w-8 flex items-center justify-center rounded-md border bg-white", className)} onClick={() => setOpen((prev: boolean) => !prev)} {...props}>
       ☰
     </button>
   )
