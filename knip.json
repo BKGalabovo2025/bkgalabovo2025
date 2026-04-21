@@ -1,16 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx", "scripts/**/*.ts"],
-  "ignore": ["src/components/ui/use-toast.ts"],
+  "ignore": [],
   "ignoreDependencies": [
-    "eslint-config-next",
     "tsconfig-paths",
     "autoprefixer",
     "eslint-config-prettier",
-    "lint-staged",
-    "@testing-library/react",
-    "@testing-library/jest-dom",
-    "@testing-library/user-event"
+    "lint-staged"
   ],
   "next": {
     "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]

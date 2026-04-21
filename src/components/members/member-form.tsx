@@ -392,7 +392,9 @@ export const MemberForm = ({
                         <SelectItem value="beginner">Начално</SelectItem>
                         <SelectItem value="intermediate">Средно</SelectItem>
                         <SelectItem value="advanced">Напреднало</SelectItem>
-                        <SelectItem value="professional">Професионално</SelectItem>
+                        <SelectItem value="professional">
+                          Професионално
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

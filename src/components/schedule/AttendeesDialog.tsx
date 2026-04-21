@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -99,14 +99,27 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     }
   };
 
-  const registeredMemberIds = new Set(attendees.map((a) => a.memberId));
-  const availableMembers = members.filter(
-    (m) =>
-      !registeredMemberIds.has(m.id) &&
-      m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const registeredMemberIds = useMemo(
+    () => new Set(attendees.map((a) => a.memberId)),
+    [attendees]
   );
-  const attendeesToShow = attendees.filter((a) =>
-    a.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const availableMembers = useMemo(
+    () =>
+      members.filter(
+        (m) =>
+          !registeredMemberIds.has(m.id) &&
+          m.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [members, registeredMemberIds, searchTerm]
+  );
+
+  const attendeesToShow = useMemo(
+    () =>
+      attendees.filter((a) =>
+        a.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [attendees, searchTerm]
   );
 
   return (

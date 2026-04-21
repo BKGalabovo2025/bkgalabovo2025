@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ScheduleEvent, Attendee } from "@/types";
 import { getEventsByMemberId } from "@/services/schedule-service";
 import {
@@ -61,37 +61,49 @@ export function MemberAttendanceHistory({
   memberId,
 }: MemberAttendanceHistoryProps) {
   const [attendedEvents, setAttendedEvents] = useState<ScheduleEvent[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<ScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
 
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      setLoading(true);
-      try {
-        // 1. Fetch all events the member is associated with.
-        const memberEvents = await getEventsByMemberId(memberId);
-
-        // 2. Filter to include only events where the member's attendance is marked as true.
-        const attendedOnlyEvents = memberEvents.filter((event) => {
-          const attendeeRecord = event.attendees?.find(
-            (a: Attendee) => a.memberId === memberId
-          );
-          return attendeeRecord?.attended === true;
-        });
-
-        setAttendedEvents(attendedOnlyEvents);
-        setFilteredEvents(attendedOnlyEvents);
-      } catch (error) {
-        console.error("Error fetching attendance history:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (memberId) fetchAttendance();
+  const fetchAttendance = useCallback(async () => {
+    if (!memberId) return;
+    setLoading(true);
+    try {
+      const memberEvents = await getEventsByMemberId(memberId);
+      const attendedOnlyEvents = memberEvents.filter((event) => {
+        const attendeeRecord = event.attendees?.find(
+          (a: Attendee) => a.memberId === memberId
+        );
+        return attendeeRecord?.attended === true;
+      });
+      setAttendedEvents(attendedOnlyEvents);
+    } catch (error) {
+      console.error("Error fetching attendance history:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [memberId]);
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [fetchAttendance]);
+
+  const filteredEvents = useMemo(() => {
+    let events = [...attendedEvents];
+    if (selectedMonth !== "all") {
+      const [year, month] = selectedMonth.split("-").map(Number);
+      events = events.filter((event) => {
+        if (!event.startDate) return false;
+        const eventDate = new Date(event.startDate);
+        return getYear(eventDate) === year && getMonth(eventDate) === month;
+      });
+    }
+    if (selectedType !== "all") {
+      events = events.filter((event) => event.type === selectedType);
+    }
+    return events;
+  }, [attendedEvents, selectedMonth, selectedType]);
 
   const monthOptions = useMemo(() => {
     const months = new Set<string>();
@@ -110,25 +122,6 @@ export function MemberAttendanceHistory({
       };
     });
   }, [attendedEvents]);
-
-  useEffect(() => {
-    let events = [...attendedEvents];
-
-    if (selectedMonth !== "all") {
-      const [year, month] = selectedMonth.split("-").map(Number);
-      events = events.filter((event) => {
-        if (!event.startDate) return false;
-        const eventDate = new Date(event.startDate);
-        return getYear(eventDate) === year && getMonth(eventDate) === month;
-      });
-    }
-
-    if (selectedType !== "all") {
-      events = events.filter((event) => event.type === selectedType);
-    }
-
-    setFilteredEvents(events);
-  }, [selectedMonth, selectedType, attendedEvents]);
 
   const currentMonthAttendances = useMemo(() => {
     return attendedEvents.filter((event) => {
@@ -152,9 +145,15 @@ export function MemberAttendanceHistory({
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Невалидна дата";
 
     if (format(start, "ddMMyyyy") === format(end, "ddMMyyyy")) {
-      return `${format(start, "dd MMM yyyy, HH:mm", { locale: bg })} - ${format(end, "HH:mm", { locale: bg })} ч.`;
+      return `${format(start, "dd MMM yyyy, HH:mm", { locale: bg })} - ${format(
+        end,
+        "HH:mm",
+        { locale: bg }
+      )} ч.`;
     }
-    return `${format(start, "dd MMM yyyy, HH:mm", { locale: bg })} ч. - ${format(end, "dd MMM yyyy, HH:mm", { locale: bg })} ч.`;
+    return `${format(start, "dd MMM yyyy, HH:mm", {
+      locale: bg,
+    })} ч. - ${format(end, "dd MMM yyyy, HH:mm", { locale: bg })} ч.`;
   };
 
   if (loading) return <p>Зареждане на историята...</p>;
@@ -258,7 +257,7 @@ export function MemberAttendanceHistory({
             </div>
           )}
         </div>
-      </CardContent>
+      </CradContent>
     </Card>
   );
 }

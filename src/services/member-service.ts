@@ -126,34 +126,6 @@ export const getAllMembers = async (
   return members;
 };
 
-export interface PagedMembers {
-  members: Member[];
-  lastDoc: DocumentSnapshot | null;
-}
-
-export const getMembersPaged = async (
-  pageSize: number = 20,
-  lastDoc: DocumentSnapshot | null = null
-): Promise<PagedMembers> => {
-  const db = getDb();
-  const membersCollection = collection(db, MEMBERS_COLLECTION);
-
-  let q = query(membersCollection, orderBy("lastName", "asc"), limit(pageSize));
-
-  if (lastDoc) {
-    q = query(q, startAfter(lastDoc));
-  }
-
-  const querySnapshot = await getDocs(q);
-  const members = querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
-  const newLastDoc =
-    querySnapshot.docs.length > 0
-      ? querySnapshot.docs[querySnapshot.docs.length - 1]
-      : null;
-
-  return { members, lastDoc: newLastDoc };
-};
-
 // Изчисляване на възрастовата група на базата на годината на раждане
 const calculateAgeGroup = (
   dateOfBirth?: string | Date | null

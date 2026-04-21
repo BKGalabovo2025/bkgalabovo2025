@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
@@ -65,9 +65,12 @@ const NewSalePage = () => {
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] =
     useState<Sale["status"]>("completed");
-  const [totalAmount, setTotalAmount] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const totalAmount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cart]);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -87,14 +90,6 @@ const NewSalePage = () => {
   }, []);
 
   const availableProducts = allProducts.filter((p) => (p.stock || 0) > 0);
-
-  useEffect(() => {
-    const newTotal = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-    setTotalAmount(newTotal);
-  }, [cart]);
 
   const addToCart = (product: Product) => {
     if (!product) return;

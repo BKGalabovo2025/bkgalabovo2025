@@ -156,19 +156,26 @@ const FinancialReport = () => {
 
           {/* Export Button */}
           <div className="flex flex-col space-y-1.5 justify-end">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
-                const exportData = filteredSales.map(s => {
+                const exportData = filteredSales.map((s) => {
                   const member = s.memberId ? memberMap.get(s.memberId) : null;
                   return {
-                    "Дата": new Date(s.saleDate).toLocaleDateString("bg-BG"),
-                    "Член": member ? `${member.firstName} ${member.lastName}` : "Н/А",
-                    "Тип": s.subscriptionId ? "Членски внос" : "Продажба инвентар",
+                    Дата: new Date(s.saleDate).toLocaleDateString("bg-BG"),
+                    Член: member
+                      ? `${member.firstName} ${member.lastName}`
+                      : "Н/А",
+                    Тип: s.subscriptionId
+                      ? "Членски внос"
+                      : "Продажба инвентар",
                     "Сума (€)": s.totalAmount.toFixed(2),
                   };
                 });
-                exportToCSV(exportData, `Финансов-отчет-${format(new Date(), "yyyy-MM-dd")}.csv`);
+                exportToCSV(
+                  exportData,
+                  `Финансов-отчет-${format(new Date(), "yyyy-MM-dd")}.csv`
+                );
               }}
               disabled={filteredSales.length === 0}
             >

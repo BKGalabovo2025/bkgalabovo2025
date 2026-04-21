@@ -91,12 +91,16 @@ const LiabilitiesReport = () => {
           variant="outline"
           size="sm"
           onClick={() => {
-            const data = liabilities.map(({ member, subscription, service }) => ({
-              Член: `${member.firstName} ${member.lastName}`,
-              Тип: service?.name || "Н/А",
-              "Краен срок": new Date(subscription.endDate).toLocaleDateString("bg-BG"),
-              "Сума": `${subscription.pricePaid.toFixed(2)} ${subscription.currency}`,
-            }));
+            const data = liabilities.map(
+              ({ member, subscription, service }) => ({
+                Член: `${member.firstName} ${member.lastName}`,
+                Тип: service?.name || "Н/А",
+                "Краен срок": new Date(subscription.endDate).toLocaleDateString(
+                  "bg-BG"
+                ),
+                Сума: `${subscription.pricePaid.toFixed(2)} ${subscription.currency}`,
+              })
+            );
             exportToCSV(data, "Справка-задължения.csv");
           }}
           disabled={liabilities.length === 0}

@@ -65,11 +65,14 @@ const EditSalePage = () => {
   const [selectedMemberId, setSelectedMemberId] = useState<string>("none");
   const [paymentStatus, setPaymentStatus] =
     useState<Sale["status"]>("completed");
-  const [totalAmount, setTotalAmount] = useState(0);
   const [initialSale, setInitialSale] = useState<Sale | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPageLoading, setPageLoading] = useState(true);
+
+  const totalAmount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cart]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -105,14 +108,6 @@ const EditSalePage = () => {
 
     fetchInitialData();
   }, [saleId, router]);
-
-  useEffect(() => {
-    const newTotal = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-    setTotalAmount(newTotal);
-  }, [cart]);
 
   const addToCart = (product: Product) => {
     if (!product) return;

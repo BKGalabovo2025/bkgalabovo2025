@@ -2,14 +2,22 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    router.replace("/dashboard");
-  }, [router]);
+    if (!loading) {
+      if (user) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/login");
+      }
+    }
+  }, [user, loading, router]);
 
-  // Може да покажете някакъв индикатор за зареждане, докато пренасочването се извършва
+  // Optional: Show a loading indicator while checking auth status
   return null;
 }

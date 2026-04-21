@@ -2,7 +2,15 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Calendar, Users, Award, Shirt, Clock, FileDown } from "lucide-react";
+import {
+  Printer,
+  Calendar,
+  Users,
+  Award,
+  Shirt,
+  Clock,
+  FileDown,
+} from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import Script from "next/script";
 import { toast } from "sonner";
@@ -39,16 +47,26 @@ declare global {
       }) => {
         getImageProperties: (data: string) => { width: number; height: number };
         internal: { pageSize: { getWidth: () => number } };
-        addImage: (data: string, type: string, x: number, y: number, w: number, h: number) => void;
+        addImage: (
+          data: string,
+          type: string,
+          x: number,
+          y: number,
+          w: number,
+          h: number
+        ) => void;
         save: (filename: string) => void;
       };
     };
-    html2canvas: (element: HTMLElement, options?: {
-      scale?: number;
-      useCORS?: boolean;
-      logging?: boolean;
-      backgroundColor?: string | null;
-    }) => Promise<HTMLCanvasElement>;
+    html2canvas: (
+      element: HTMLElement,
+      options?: {
+        scale?: number;
+        useCORS?: boolean;
+        logging?: boolean;
+        backgroundColor?: string | null;
+      }
+    ) => Promise<HTMLCanvasElement>;
   }
 }
 
@@ -109,14 +127,16 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
   const handleDownloadPDF = async () => {
     if (!printableRef.current || !window.jspdf || !window.html2canvas) {
-      toast.error("Библиотеките за PDF все още се зареждат. Моля, опитайте след малко.");
+      toast.error(
+        "Библиотеките за PDF все още се зареждат. Моля, опитайте след малко."
+      );
       return;
     }
 
     try {
       setIsGeneratingPDF(true);
       const element = printableRef.current;
-      
+
       const canvas = await window.html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -137,7 +157,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Service-${service.name.replace(/\s+/g, "_")}.pdf`);
-      
+
       toast.success("PDF файлът беше генериран успешно!");
     } catch (err) {
       console.error("Error generating PDF:", err);
@@ -149,12 +169,12 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
   return (
     <>
-      <Script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" 
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
         strategy="lazyOnload"
       />
-      <Script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
         strategy="lazyOnload"
       />
 
@@ -202,32 +222,46 @@ export default function PrintClientPage({ service }: { service: Service }) {
           </Button>
         </div>
 
-        <div ref={printableRef} className="bg-white p-8 sm:p-16 printable-area border border-gray-100 shadow-sm">
+        <div
+          ref={printableRef}
+          className="bg-white p-8 sm:p-16 printable-area border border-gray-100 shadow-sm"
+        >
           {/* --- HEADER --- */}
           <header className="flex justify-between items-start mb-12 border-b-4 border-gray-900 pb-8">
             <div className="flex items-center">
-                <div className="relative w-16 h-16 mr-6">
-                    <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+              <div className="relative w-16 h-16 mr-6">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 mb-2 uppercase tracking-tight">
+                  {service.name}
+                </h1>
+                <div className="flex items-center text-lg font-bold text-gray-500 uppercase tracking-widest">
+                  <Calendar className="mr-2 h-5 w-5 text-gray-400" />
+                  <span>{service.billingPeriod || service.type}</span>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-black text-gray-900 mb-2 uppercase tracking-tight">{service.name}</h1>
-                  <div className="flex items-center text-lg font-bold text-gray-500 uppercase tracking-widest">
-                    <Calendar className="mr-2 h-5 w-5 text-gray-400" />
-                    <span>{service.billingPeriod || service.type}</span>
-                  </div>
-                </div>
+              </div>
             </div>
             <div className="text-right">
-                <p className="text-xs font-black text-gray-400 uppercase tracking-tighter mb-1">Предложение за услуга</p>
-                <p className="text-4xl font-black text-gray-900">
-                  {formatPrice(service.price)}
-                </p>
+              <p className="text-xs font-black text-gray-400 uppercase tracking-tighter mb-1">
+                Предложение за услуга
+              </p>
+              <p className="text-4xl font-black text-gray-900">
+                {formatPrice(service.price)}
+              </p>
             </div>
           </header>
 
           {/* --- MAIN DESCRIPTION --- */}
           <div className="mb-16">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 border-b pb-2">Описание на услугата</h3>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 border-b pb-2">
+              Описание на услугата
+            </h3>
             <div
               className="prose prose-xl max-w-none text-gray-800"
               dangerouslySetInnerHTML={formatDescription(service.description)}
@@ -237,14 +271,20 @@ export default function PrintClientPage({ service }: { service: Service }) {
           {/* --- ADDITIONAL DETAILS --- */}
           {hasAdditionalInfo && (
             <div className="mt-12 pt-10 border-t-2 border-dashed border-gray-200">
-              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-8">Спецификации и условия</h2>
+              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+                Спецификации и условия
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {service.targetGroups && service.targetGroups.length > 0 && (
                   <div className="flex items-start bg-gray-50 p-6 rounded-lg">
                     <Users className="h-6 w-6 mr-4 mt-0.5 text-gray-900" />
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Целеви групи</p>
-                        <p className="font-bold text-gray-900">{service.targetGroups.join(", ")}</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+                        Целеви групи
+                      </p>
+                      <p className="font-bold text-gray-900">
+                        {service.targetGroups.join(", ")}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -253,8 +293,12 @@ export default function PrintClientPage({ service }: { service: Service }) {
                   <div className="flex items-start bg-gray-50 p-6 rounded-lg">
                     <Clock className="h-6 w-6 mr-4 mt-0.5 text-gray-900" />
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Продължителност</p>
-                        <p className="font-bold text-gray-900">{service.durationMinutes} минути</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+                        Продължителност
+                      </p>
+                      <p className="font-bold text-gray-900">
+                        {service.durationMinutes} минути
+                      </p>
                     </div>
                   </div>
                 )}
@@ -263,13 +307,15 @@ export default function PrintClientPage({ service }: { service: Service }) {
                   <div className="flex items-start bg-gray-50 p-6 rounded-lg col-span-full">
                     <Award className="h-6 w-6 mr-4 mt-0.5 text-gray-900" />
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Картотека</p>
-                        <p className="font-bold text-gray-900">
-                          {service.licenseCondition || "Включена"} 
-                          <span className="ml-2 font-normal text-gray-500">
-                            {formatPaymentCount(service.licensePaymentCount || 0)}
-                          </span>
-                        </p>
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+                        Картотека
+                      </p>
+                      <p className="font-bold text-gray-900">
+                        {service.licenseCondition || "Включена"}
+                        <span className="ml-2 font-normal text-gray-500">
+                          {formatPaymentCount(service.licensePaymentCount || 0)}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 )}
@@ -278,13 +324,15 @@ export default function PrintClientPage({ service }: { service: Service }) {
                   <div className="flex items-start bg-gray-50 p-6 rounded-lg col-span-full">
                     <Shirt className="h-6 w-6 mr-4 mt-0.5 text-gray-900" />
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase mb-1">Екипировка</p>
-                        <p className="font-bold text-gray-900">
-                          {service.apparelCondition || "Предоставена"} 
-                          <span className="ml-2 font-normal text-gray-500">
-                            {formatPaymentCount(service.apparelPaymentCount || 0)}
-                          </span>
-                        </p>
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+                        Екипировка
+                      </p>
+                      <p className="font-bold text-gray-900">
+                        {service.apparelCondition || "Предоставена"}
+                        <span className="ml-2 font-normal text-gray-500">
+                          {formatPaymentCount(service.apparelPaymentCount || 0)}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 )}
@@ -294,12 +342,20 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
           <footer className="mt-24 pt-8 border-t border-gray-100 flex justify-between items-center">
             <div>
-                <p className="text-xs font-bold text-gray-900 uppercase tracking-widest">{clubInfo.name}</p>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Официално предложение</p>
+              <p className="text-xs font-bold text-gray-900 uppercase tracking-widest">
+                {clubInfo.name}
+              </p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">
+                Официално предложение
+              </p>
             </div>
             <div className="text-right">
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Генерирано на</p>
-                <p className="text-xs font-bold text-gray-900">{new Date().toLocaleDateString("bg-BG")}</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                Генерирано на
+              </p>
+              <p className="text-xs font-bold text-gray-900">
+                {new Date().toLocaleDateString("bg-BG")}
+              </p>
             </div>
           </footer>
         </div>
@@ -307,4 +363,3 @@ export default function PrintClientPage({ service }: { service: Service }) {
     </>
   );
 }
-

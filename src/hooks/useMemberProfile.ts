@@ -58,8 +58,14 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
           if (otherMemberIds.length > 0) {
             const membersInFamily = await getMembersByIds(otherMemberIds);
             setFamilyMembers(membersInFamily);
+          } else {
+            setFamilyMembers([]);
           }
+        } else {
+          setFamilyMembers([]);
         }
+      } else {
+        setFamilyMembers([]);
       }
     } catch (err: unknown) {
       console.error("Error fetching member profile:", err);
