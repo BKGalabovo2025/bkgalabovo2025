@@ -257,7 +257,7 @@ export function MemberAttendanceHistory({
             </div>
           )}
         </div>
-      </CradContent>
+      </CardContent>
     </Card>
   );
 }
