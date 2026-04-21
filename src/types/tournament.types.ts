@@ -1,56 +1,18 @@
 import { z } from "zod";
 
-/**
- * Zod schema for tournament definitions.
- * This structure supports various tournament types common in badminton clubs.
- */
-export const TournamentSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1, "Tournament name is required"),
-  date: z.string().datetime(),
+// Схема за валидация с Zod
+export const tournamentSchema = z.object({
+  id: z.string().optional(), // ID от Firestore
+  name: z.string().min(3, { message: "Името трябва да е поне 3 символа" }),
+  description: z.string().optional(),
+  startDate: z.date({ required_error: "Началната дата е задължителна" }),
+  endDate: z.date({ required_error: "Крайната дата е задължителна" }),
   location: z.string().optional(),
-
-  // Status: planned, active, or completed
-  status: z.enum(["planned", "ongoing", "finished"]).default("planned"),
-
-  // Format: single_elimination, round_robin, groups_to_brackets
-  format: z
-    .enum(["single_elimination", "round_robin", "groups"])
-    .default("single_elimination"),
-
-  // Competitive category: beginner, intermediate, advanced, mixed
-  category: z.string().optional(),
-
-  // Lists of member IDs
-  participantIds: z.array(z.string()).default([]),
-
-  // Matches collection - simplified for initial structure
-  matchesIds: z.array(z.string()).default([]),
-
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  ageGroups: z.array(z.string()).min(1, { message: "Изберете поне една възрастова група" }),
+  fee: z.number().min(0).optional(),
+  registrationDeadline: z.date({ required_error: "Крайният срок за записване е задължителен" }),
+  status: z.enum(["Upcoming", "Ongoing", "Completed"]).default("Upcoming"),
 });
 
-export type Tournament = z.infer<typeof TournamentSchema>;
-
-/**
- * Match structure for tracking individual game results.
- */
-export const MatchSchema = z.object({
-  id: z.string().min(1),
-  tournamentId: z.string().min(1),
-  round: z.string().optional(), // 'R16', 'QF', 'SF', 'Final', etc.
-
-  player1Id: z.string().min(1),
-  player2Id: z.string().min(1),
-
-  // Scores: e.g. [[21,18], [19,21], [21,15]]
-  score: z.array(z.array(z.number())).optional(),
-
-  winnerId: z.string().nullable().optional(),
-  status: z.enum(["pending", "live", "completed"]).default("pending"),
-
-  scheduledTime: z.string().datetime().optional(),
-});
-
-export type Match = z.infer<typeof MatchSchema>;
+// TypeScript тип, изведен от схемата
+export type Tournament = z.infer<typeof tournamentSchema>;
