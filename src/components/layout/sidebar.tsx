@@ -12,7 +12,19 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Home, Users, LogOut } from "lucide-react";
+import {
+  Home,
+  Users,
+  LogOut,
+  Landmark,
+  ShoppingCart,
+  Boxes,
+  Calendar,
+  CalendarCheck,
+  Repeat,
+  BarChart,
+  Trophy,
+} from "lucide-react";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
@@ -33,10 +45,83 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === "/members"}>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/members")}>
                 <Link href="/members" className="flex items-center gap-3">
                   <Users size={20} />
                   <span>Членове</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/finances")}>
+                <Link href="/finances" className="flex items-center gap-3">
+                  <Landmark size={20} />
+                  <span>Финанси</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/sales")}>
+                <Link href="/sales" className="flex items-center gap-3">
+                  <ShoppingCart size={20} />
+                  <span>Продажби</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/inventory")}>
+                <Link href="/inventory" className="flex items-center gap-3">
+                  <Boxes size={20} />
+                  <span>Инвентар</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/schedule")}>
+                <Link href="/schedule" className="flex items-center gap-3">
+                  <Calendar size={20} />
+                  <span>График</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/reservations")}
+              >
+                <Link href="/reservations" className="flex items-center gap-3">
+                  <CalendarCheck size={20} />
+                  <span>Резервации</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/subscriptions")}
+              >
+                <Link href="/subscriptions" className="flex items-center gap-3">
+                  <Repeat size={20} />
+                  <span>Абонаменти</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/tournaments")}
+              >
+                <Link href="/tournaments" className="flex items-center gap-3">
+                  <Trophy size={20} />
+                  <span>Турнири</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/reports")}>
+                <Link href="/reports" className="flex items-center gap-3">
+                  <BarChart size={20} />
+                  <span>Отчети</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
