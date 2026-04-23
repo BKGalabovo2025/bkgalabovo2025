@@ -45,6 +45,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   const saleDate = data.saleDate?.toDate?.() || new Date();
   const rawAmount = data.totalAmount;
   const totalAmount = Number(rawAmount) || 0;
+  const createdAt = data.createdAt?.toDate?.() || new Date();
 
   return {
     id: doc.id,
@@ -56,6 +57,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
     totalAmount: totalAmount,
     isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
     subscriptionId: data.subscriptionId || null,
+    createdAt: createdAt.toISOString(),
   };
 };
 

@@ -71,6 +71,7 @@ export type Sale = {
   totalAmount: number; // Corrected field name
   currency: "EUR";
   subscriptionId?: string | null; // Added for linking sales to subscriptions
+  createdAt: string; // ISO 8601
 };
 
 // =================================================================
