@@ -161,7 +161,7 @@ export const getInventorySales = async (): Promise<Sale[]> => {
 };
 
 export const addSale = async (
-  saleData: Omit<Sale, "id">,
+  saleData: Omit<Sale, "id" | "createdAt">,
   userId: string,
   userName: string
 ): Promise<string> => {
@@ -171,8 +171,6 @@ export const addSale = async (
   await runTransaction(db, async (transaction) => {
     transaction.set(newSaleRef, {
       ...saleData,
-      saleDate: Timestamp.fromDate(new Date(saleData.saleDate)),
-      totalAmount: saleData.totalAmount,
       createdAt: Timestamp.now(),
     });
 
