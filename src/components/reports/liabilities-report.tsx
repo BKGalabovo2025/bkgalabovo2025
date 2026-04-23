@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Member, Subscription, ClubService } from "@/types";
-import {
-  getAllMemberSubscriptions,
-  getAllClubServices,
-} from "@/services/subscription-service";
-import { getAllMembers } from "@/services/member-service";
+import { useState } from "react";
+import { Member } from "@/types";
+import { generateLiabilityReport } from "@/services/report-service";
 import {
   Table,
   TableBody,
@@ -18,128 +14,147 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { exportToCSV } from "@/lib/export-utils";
 
-interface Liability {
-  member: Member;
-  subscription: Subscription;
-  service?: ClubService;
-}
+// Генерираме последните 5 години за падащото меню
+const years = Array.from({ length: 5 }, (_, i) =>
+  (new Date().getFullYear() - i).toString()
+);
+const months = [
+  { value: "1", label: "Януари" },
+  { value: "2", label: "Февруари" },
+  { value: "3", label: "Март" },
+  { value: "4", label: "Април" },
+  { value: "5", label: "Май" },
+  { value: "6", label: "Юни" },
+  { value: "7", label: "Юли" },
+  { value: "8", label: "Август" },
+  { value: "9", label: "Септември" },
+  { value: "10", label: "Октомври" },
+  { value: "11", label: "Ноември" },
+  { value: "12", label: "Декември" },
+];
 
 const LiabilitiesReport = () => {
-  const [liabilities, setLiabilities] = useState<Liability[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [unpaidMembers, setUnpaidMembers] = useState<Member[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
-    const fetchLiabilities = async () => {
-      setIsLoading(true);
-      try {
-        const [allSubscriptions, allMembers, allServices] = await Promise.all([
-          getAllMemberSubscriptions(), // FIX: was reading from wrong 'subscriptions' collection
-          getAllMembers(),
-          getAllClubServices(),
-        ]);
+  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
 
-        const unpaidSubscriptions = allSubscriptions.filter(
-          (sub: Subscription) => sub.status === "pending_payment"
-        );
+  const handleGenerateReport = async () => {
+    setIsLoading(true);
+    setHasSearched(true);
+    try {
+      const reportData = await generateLiabilityReport(
+        parseInt(year, 10),
+        parseInt(month, 10)
+      );
+      setUnpaidMembers(reportData);
+    } catch (error) {
+      console.error("Failed to generate liability report:", error);
+      setUnpaidMembers([]); // Clear previous results on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        const memberMap = new Map(allMembers.map((m: Member) => [m.id, m]));
-        const serviceMap = new Map(
-          allServices.map((s: ClubService) => [s.id, s])
-        );
-
-        const combinedLiabilities = unpaidSubscriptions
-          .map((sub: Subscription) => ({
-            subscription: sub,
-            member: memberMap.get(sub.memberId)!,
-            service: serviceMap.get(sub.serviceId),
-          }))
-          .filter(
-            (item: {
-              member: Member | undefined;
-              service: ClubService | undefined;
-            }) => item.member && item.service
-          ) as Liability[];
-
-        setLiabilities(combinedLiabilities);
-      } catch (error) {
-        console.error("Failed to fetch liabilities:", error);
-        // Handle error display in UI
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLiabilities();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Зареждане на
-        справката...
-      </div>
-    );
-  }
+  const handleExport = () => {
+    const dataToExport = unpaidMembers.map((member) => ({
+      Име: member.firstName,
+      Фамилия: member.lastName,
+      Имейл: member.email || "Н/А",
+      Телефон: member.phone || "Н/А",
+    }));
+    exportToCSV(dataToExport, `Справка-задължения-${month}-${year}.csv`);
+  };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle>Справка задължения</CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const data = liabilities.map(
-              ({ member, subscription, service }) => ({
-                Член: `${member.firstName} ${member.lastName}`,
-                Тип: service?.name || "Н/А",
-                "Краен срок": new Date(subscription.endDate).toLocaleDateString(
-                  "bg-BG"
-                ),
-                Сума: `${subscription.pricePaid.toFixed(2)} ${subscription.currency}`,
-              })
-            );
-            exportToCSV(data, "Справка-задължения.csv");
-          }}
-          disabled={liabilities.length === 0}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Експорт (CSV)
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
+        <Select value={year} onValueChange={setYear}>
+          <SelectTrigger>
+            <SelectValue placeholder="Избери година" />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((y) => (
+              <SelectItem key={y} value={y}>
+                {y}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger>
+            <SelectValue placeholder="Избери месец" />
+          </SelectTrigger>
+          <SelectContent>
+            {months.map((m) => (
+              <SelectItem key={m.value} value={m.value}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={handleGenerateReport} disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Генерирай справка
         </Button>
-      </CardHeader>
-      <CardContent>
-        {liabilities.length === 0 ? (
-          <p>Няма намерени задължения.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Име на член</TableHead>
-                <TableHead>Тип абонамент</TableHead>
-                <TableHead>Краен срок</TableHead>
-                <TableHead className="text-right">Дължима сума</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {liabilities.map(({ member, subscription, service }) => (
-                <TableRow key={subscription.id}>
-                  <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
-                  <TableCell>{service?.name || "Няма име"}</TableCell>
-                  <TableCell>
-                    {new Date(subscription.endDate).toLocaleDateString("bg-BG")}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {subscription.pricePaid.toFixed(2)} {subscription.currency}
-                  </TableCell>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Резултати</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={unpaidMembers.length === 0 || isLoading}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Експорт (CSV)
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+            </div>
+          ) : !hasSearched ? (
+            <p>Моля, изберете период и генерирайте справката.</p>
+          ) : unpaidMembers.length === 0 ? (
+            <p>Няма намерени задължения за избрания период.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Име на член</TableHead>
+                  <TableHead>Имейл</TableHead>
+                  <TableHead>Телефон</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {unpaidMembers.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
+                    <TableCell>{member.email || "Н/А"}</TableCell>
+                    <TableCell>{member.phone || "Н/А"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

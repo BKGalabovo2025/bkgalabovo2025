@@ -206,6 +206,23 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
 
+export const hasMemberPaidForMonth = async (
+  memberId: string,
+  year: number,
+  month: number
+): Promise<boolean> => {
+  const sales = await getSalesByMemberId(memberId);
+  return sales.some((sale) => {
+    if (!sale.subscriptionId) {
+      return false; // Игнорираме продажби, които не са за абонамент
+    }
+    const saleDate = new Date(sale.saleDate);
+    return (
+      saleDate.getFullYear() === year && saleDate.getMonth() === month - 1 // Месеците в JS са 0-индексирани
+    );
+  });
+};
+
 export const getSaleById = async (id: string): Promise<Sale | null> => {
   if (!id) return null;
   const saleRef = doc(getSalesCollection(), id);

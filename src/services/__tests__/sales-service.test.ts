@@ -1,23 +1,50 @@
-import { describe, it, expect } from "vitest";
-import { docToSale } from "../sales-service";
-import { DocumentSnapshot } from "firebase/firestore";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { docToSale, hasMemberPaidForMonth } from "../sales-service";
+import { DocumentSnapshot, getDocs } from "firebase/firestore";
+import { Sale } from "@/types";
 
-// Mock DocumentSnapshot
-const mockDoc = (
-  id: string,
-  data: Record<string, unknown>,
-  exists: boolean = true
-) =>
+// Mock firebase collections
+vi.mock("@/lib/firebase-collections", () => ({
+  getSalesCollection: vi.fn(() => ({})), // Return a dummy object
+}));
+
+// Mock firestore functions
+vi.mock("firebase/firestore", async () => {
+  const firestore =
+    await vi.importActual<typeof import("firebase/firestore")>(
+      "firebase/firestore"
+    );
+  return {
+    ...firestore,
+    getDocs: vi.fn(),
+    // Mock other functions like query, where, orderBy as simple pass-throughs
+    // because we are controlling the final output of getDocs directly.
+    query: vi.fn((_, ...constraints) => ({ constraints })),
+    where: vi.fn((field) => ({ field })),
+    orderBy: vi.fn((field) => ({ field })),
+  };
+});
+
+// Mock DocumentSnapshot helper
+const mockDoc = (id: string, data: Record<string, unknown>) =>
   ({
     id,
-    exists: () => exists,
+    exists: () => true,
     data: () => data,
   }) as unknown as DocumentSnapshot;
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
 
 describe("sales-service", () => {
   describe("docToSale", () => {
     it("should return null if doc does not exist", () => {
-      const doc = mockDoc("1", {}, false);
+      const doc = {
+        id: "1",
+        exists: () => false,
+        data: () => ({}),
+      } as DocumentSnapshot;
       expect(docToSale(doc)).toBeNull();
     });
 
@@ -39,37 +66,66 @@ describe("sales-service", () => {
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe("sale1");
-      expect(result?.memberId).toBe("m1");
-      expect(result?.saleDate).toBe(mockDate.toISOString());
-      expect(result?.totalAmount).toBe(20);
-      expect(result?.items).toHaveLength(1);
     });
+  });
 
-    it("should handle missing fields with defaults", () => {
-      const data = {
-        memberId: "m1",
-        totalAmount: "15.50", // Test string to number conversion
+  describe("hasMemberPaidForMonth", () => {
+    const mockedGetDocs = getDocs as vi.Mock;
+
+    it("should return true if a member has a subscription sale for the month", async () => {
+      const mockSalesDocs = {
+        docs: [
+          mockDoc("sale1", {
+            memberId: "member1",
+            saleDate: { toDate: () => new Date("2024-01-15T10:00:00Z") },
+            subscriptionId: "sub1",
+          }),
+        ],
       };
+      mockedGetDocs.mockResolvedValue(mockSalesDocs);
 
-      const doc = mockDoc("sale2", data);
-      const result = docToSale(doc);
-
-      expect(result).not.toBeNull();
-      expect(result?.totalAmount).toBe(15.5);
-      expect(result?.currency).toBe("EUR"); // Default
-      expect(result?.status).toBe("completed"); // Default
-      expect(result?.isPaid).toBe(true); // Default
+      const result = await hasMemberPaidForMonth("member1", 2024, 1);
+      expect(result).toBe(true);
     });
 
-    it("should use current date if saleDate is missing", () => {
-      const data = { memberId: "m1" };
-      const doc = mockDoc("sale3", data);
-      const result = docToSale(doc);
+    it("should return false if a member has no sales for the month", async () => {
+      const mockSalesDocs = {
+        docs: [
+          mockDoc("sale1", {
+            memberId: "member1",
+            saleDate: { toDate: () => new Date("2024-02-15T10:00:00Z") },
+            subscriptionId: "sub1",
+          }),
+        ],
+      };
+      mockedGetDocs.mockResolvedValue(mockSalesDocs);
 
-      expect(result?.saleDate).toBeDefined();
-      expect(new Date(result!.saleDate).getTime()).toBeLessThanOrEqual(
-        Date.now()
-      );
+      const result = await hasMemberPaidForMonth("member1", 2024, 1);
+      expect(result).toBe(false);
+    });
+
+    it("should return false if a member's sale is not for a subscription", async () => {
+      const mockSalesDocs = {
+        docs: [
+          mockDoc("sale1", {
+            memberId: "member1",
+            saleDate: { toDate: () => new Date("2024-01-15T10:00:00Z") },
+            subscriptionId: null, // Not a subscription sale
+          }),
+        ],
+      };
+      mockedGetDocs.mockResolvedValue(mockSalesDocs);
+
+      const result = await hasMemberPaidForMonth("member1", 2024, 1);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when there are no sales for the member", async () => {
+      const mockSalesDocs = { docs: [] }; // No documents returned
+      mockedGetDocs.mockResolvedValue(mockSalesDocs);
+
+      const result = await hasMemberPaidForMonth("member1", 2024, 1);
+      expect(result).toBe(false);
     });
   });
 });

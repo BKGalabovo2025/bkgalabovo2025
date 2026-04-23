@@ -7,6 +7,7 @@ import {
   Timestamp,
   DocumentSnapshot,
   QueryDocumentSnapshot,
+  orderBy,
 } from "firebase/firestore";
 import { ScheduleEvent, Attendee } from "@/types";
 
@@ -53,6 +54,32 @@ const docToScheduleEvent = (
       ? data.attendeeMemberIds
       : [],
   };
+};
+
+/**
+ * Извлича всички събития за даден период.
+ * @param startDate Начална дата.
+ * @param endDate Крайна дата.
+ * @returns Масив от събития.
+ */
+export const getEventsForPeriod = async (
+  startDate: Date,
+  endDate: Date
+): Promise<ScheduleEvent[]> => {
+  const q = query(
+    eventsCollection,
+    where("startDate", ">=", startDate),
+    where("startDate", "<=", endDate),
+    orderBy("startDate", "desc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  const events = snapshot.docs
+    .map(docToScheduleEvent)
+    .filter(Boolean) as ScheduleEvent[];
+
+  return events;
 };
 
 export const getEventsByMemberId = async (

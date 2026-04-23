@@ -113,7 +113,7 @@ export const getAllMembers = async (
 };
 
 // Изчисляване на възрастовата група на базата на годината на раждане
-const calculateAgeGroup = (
+export const calculateAgeGroup = (
   dateOfBirth?: string | Date | null
 ): string | null => {
   if (!dateOfBirth) return null;

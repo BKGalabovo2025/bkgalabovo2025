@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
   docToMember,
   addMember,
   updateMember,
   deleteMember,
+  calculateAgeGroup,
 } from "../member-service";
 import {
   DocumentSnapshot,
@@ -164,6 +165,74 @@ describe("member-service", () => {
 
       expect(doc).toHaveBeenCalledWith(mockCollectionRef, memberId);
       expect(deleteDoc).toHaveBeenCalledWith(mockDocRef);
+    });
+  });
+
+  describe("calculateAgeGroup", () => {
+    // Контролираме времето, за да са предвидими тестовете
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // Задаваме "днешна" дата, за да не се променят резултатите с времето
+      vi.setSystemTime(new Date("2024-01-01T00:00:00Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should return null for null, undefined or invalid date input", () => {
+      expect(calculateAgeGroup(null)).toBeNull();
+      expect(calculateAgeGroup(undefined)).toBeNull();
+      expect(calculateAgeGroup("not a real date")).toBeNull();
+    });
+
+    it('should return "U9" for age difference <= 8', () => {
+      // Роден 2016 -> става на 8 през 2024
+      expect(calculateAgeGroup("2016-05-10")).toBe("U9");
+      // Роден 2017 -> става на 7 през 2024
+      expect(calculateAgeGroup("2017-01-01")).toBe("U9");
+    });
+
+    it('should return "U11" for age difference 9 or 10', () => {
+      // Роден 2015 -> става на 9 през 2024
+      expect(calculateAgeGroup("2015-12-31")).toBe("U11");
+      // Роден 2014 -> става на 10 през 2024
+      expect(calculateAgeGroup("2014-01-01")).toBe("U11");
+    });
+
+    it('should return "U13" for age difference 11 or 12', () => {
+      // Роден 2013 -> става на 11 през 2024
+      expect(calculateAgeGroup("2013-01-01")).toBe("U13");
+      // Роден 2012 -> става на 12 през 2024
+      expect(calculateAgeGroup("2012-01-01")).toBe("U13");
+    });
+
+    it('should return "U15" for age difference 13 or 14', () => {
+      // Роден 2011 -> става на 13 през 2024
+      expect(calculateAgeGroup("2011-01-01")).toBe("U15");
+      // Роден 2010 -> става на 14 през 2024
+      expect(calculateAgeGroup("2010-01-01")).toBe("U15");
+    });
+
+    it('should return "U17" for age difference 15 or 16', () => {
+      // Роден 2009 -> става на 15 през 2024
+      expect(calculateAgeGroup("2009-01-01")).toBe("U17");
+      // Роден 2008 -> става на 16 през 2024
+      expect(calculateAgeGroup("2008-01-01")).toBe("U17");
+    });
+
+    it('should return "U19" for age difference 17 or 18', () => {
+      // Роден 2007 -> става на 17 през 2024
+      expect(calculateAgeGroup("2007-01-01")).toBe("U19");
+      // Роден 2006 -> става на 18 през 2024
+      expect(calculateAgeGroup("2006-01-01")).toBe("U19");
+    });
+
+    it('should return "Мъже/Жени" for age difference >= 19', () => {
+      // Роден 2005 -> става на 19 през 2024
+      expect(calculateAgeGroup("2005-01-01")).toBe("Мъже/Жени");
+      // Роден 1990 -> става на 34 през 2024
+      expect(calculateAgeGroup("1990-01-01")).toBe("Мъже/Жени");
     });
   });
 });
