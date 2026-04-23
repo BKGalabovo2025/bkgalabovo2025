@@ -12,6 +12,7 @@ import {
   limit,
   orderBy,
   deleteDoc,
+  CollectionReference,
 } from "firebase/firestore";
 import { getMembersCollection } from "@/lib/firebase-collections";
 import { Member, MemberSchema } from "@/types/member.types";
@@ -161,7 +162,10 @@ export const addMember = async (
     updatedAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(getMembersCollection(), dataToAdd);
+  const docRef = await addDoc(
+    getMembersCollection() as CollectionReference<Omit<Member, "id">>,
+    dataToAdd
+  );
   return docRef.id;
 };
 
