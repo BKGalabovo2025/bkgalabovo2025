@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMember } from "@/hooks/useMembers";
+import { useMembers } from "@/hooks/useMembers";
 import { updateMember } from "@/services/member-service";
 import { toast } from "sonner";
 import { MemberForm } from "@/components/members/member-form";
@@ -18,7 +18,8 @@ const EditMemberPage = () => {
   const params = useParams();
   const memberId = params.id as string;
 
-  const { member, loading, error } = useMember(memberId);
+  const { members, loading, error } = useMembers();
+  const member = members.find(m => m.id === memberId);
 
   const handleSave = async (data: MemberFormValues) => {
     try {

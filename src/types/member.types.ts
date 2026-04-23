@@ -36,7 +36,7 @@ export const MemberSchema = z.object({
   // --- Optional Contact & Personal Info ---
   middleName: z.string().nullable().optional(),
   gender: z.enum(["male", "female"]).nullable().optional(),
-  email: z.string().trim().email().or(z.literal("")).nullable().optional(),
+  email: z.string().trim().email({ message: "Невалиден имейл адрес" }).or(z.literal("")).nullable().optional(),
   phone: z.string().nullable().optional(),
   phoneType: z.enum(["personal", "parent"]).nullable().optional(),
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),

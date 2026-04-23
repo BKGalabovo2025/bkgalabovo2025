@@ -18,28 +18,31 @@ export const useInventorySales = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchIndex, setRefetchIndex] = useState(0);
 
-  const fetchSales = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const salesData = await getInventorySales();
-      setSales(salesData);
-    } catch (err: unknown) {
-      console.error("Error fetching inventory sales:", err);
-      const errorMessage = "Неуспешно зареждане на продажбите от инвентар.";
-      setError(errorMessage);
-      toast.error("Грешка при зареждане", {
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const refetch = useCallback(() => setRefetchIndex((prev) => prev + 1), []);
 
   useEffect(() => {
+    const fetchSales = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const salesData = await getInventorySales();
+        setSales(salesData);
+      } catch (err: unknown) {
+        console.error("Error fetching inventory sales:", err);
+        const errorMessage = "Неуспешно зареждане на продажбите от инвентар.";
+        setError(errorMessage);
+        toast.error("Грешка при зареждане", {
+          description: errorMessage,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchSales();
-  }, [fetchSales]);
+  }, [refetchIndex]);
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {
@@ -56,5 +59,5 @@ export const useInventorySales = () => {
     }
   }, []);
 
-  return { sales, loading, error, markAsPaid, refetch: fetchSales };
+  return { sales, loading, error, markAsPaid, refetch };
 };

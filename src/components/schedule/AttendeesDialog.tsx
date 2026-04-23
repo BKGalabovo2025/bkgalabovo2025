@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,28 +32,23 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   members,
   onUpdateAttendees,
 }) => {
-  const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddingMode, setIsAddingMode] = useState(false);
 
-  useEffect(() => {
-    if (event?.attendees) {
-      // Map full member info to attendees
-      const attendeesWithNames = event.attendees.map((a) => {
-        const member = members.find((m) => m.id === a.memberId);
-        return {
-          ...a,
-          name: member ? formatFullName(member) : "Неизвестен член",
-        };
-      });
-      setAttendees(attendeesWithNames);
-    } else {
-      setAttendees([]);
-    }
-    // Reset mode when dialog opens
-    setIsAddingMode(false);
+  // Derive base attendees from props
+  const baseAttendees = useMemo(() => {
+    if (!event?.attendees) return [];
+    return event.attendees.map((a) => {
+      const member = members.find((m) => m.id === a.memberId);
+      return {
+        ...a,
+        name: member ? formatFullName(member) : "Неизвестен член",
+      };
+    });
   }, [event, members]);
+
+  const [attendees, setAttendees] = useState(baseAttendees);
 
   const handleToggleAttended = (memberId: string) => {
     setAttendees((prev) =>
@@ -84,7 +79,6 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     if (!event) return;
     setIsSubmitting(true);
     try {
-      // We only need to submit the IDs and attended status
       const payload = attendees.map(({ memberId, attended, name }) => ({
         memberId,
         attended,
@@ -123,16 +117,27 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent key={event?.id} className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {isAddingMode ? "Добавяне на членове" : "Управление на присъствия"}
           </DialogTitle>
           <DialogDescription>
             {isAddingMode
-              ? `Търсете и добавете членове към събитието "${event?.title || ""}".`
-              : `Маркирайте присъствалите на събитието "${event?.title || ""}".`}
+              ? `Търсете и добавете членове към събитието \"${
+                  event?.title || ""
+                }\".`
+              : `Маркирайте присъствалите на събитието \"${
+                  event?.title || ""
+                }\".`}
           </DialogDescription>
         </DialogHeader>
 

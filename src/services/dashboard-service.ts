@@ -1,12 +1,4 @@
 import { Member, Sale } from "@/types";
-import {
-  getCountFromServer,
-  collection,
-  query,
-  where,
-} from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
-import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
 
 export type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }

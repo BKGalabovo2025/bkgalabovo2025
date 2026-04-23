@@ -21,7 +21,7 @@ export const useSales = (memberId?: string) => {
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSales = useCallback(async () => {
+  const refetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -42,8 +42,37 @@ export const useSales = (memberId?: string) => {
   }, [memberId]);
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchSales = async () => {
+      try {
+        const salesData = memberId
+          ? await getSalesByMemberId(memberId)
+          : await getSales();
+        if (isMounted) {
+          setSales(salesData);
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          console.error("Error fetching sales:", err);
+          const errorMessage = "Неуспешно зареждане на продажбите.";
+          setError(errorMessage);
+          toast.error("Грешка при зареждане", {
+            description: errorMessage,
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     fetchSales();
-  }, [fetchSales]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [memberId]);
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {
@@ -60,5 +89,5 @@ export const useSales = (memberId?: string) => {
     }
   }, []);
 
-  return { sales, loading, error, markAsPaid, refetch: fetchSales };
+  return { sales, loading, error, markAsPaid, refetch };
 };

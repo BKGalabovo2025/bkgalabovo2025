@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -531,6 +531,9 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  const refreshData = () => setRefreshCount(count => count + 1);
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -540,29 +543,40 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
     return () => unsubscribe();
   }, []);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [srvs, subs] = await Promise.all([
-        getAllClubServices(),
-        getSubscriptionsByMemberId(memberId),
-      ]);
-      subs.sort(
-        (a, b) =>
-          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      );
-      setSubscriptions(subs);
-      setServices(srvs.filter((s) => s.type === "Абонамент"));
-    } catch {
-      toast.error("Грешка", { description: "Неуспешно зареждане на данните." });
-    } finally {
-      setLoading(false);
-    }
-  }, [memberId]);
-
   useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [srvs, subs] = await Promise.all([
+          getAllClubServices(),
+          getSubscriptionsByMemberId(memberId),
+        ]);
+        if (isMounted) {
+          subs.sort(
+            (a, b) =>
+              new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+          );
+          setSubscriptions(subs);
+          setServices(srvs.filter((s) => s.type === "Абонамент"));
+        }
+      } catch {
+        if (isMounted) {
+          toast.error("Грешка", { description: "Неуспешно зареждане на данните." });
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchData();
-  }, [fetchData]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [memberId, refreshCount]);
 
   if (loading)
     return (
@@ -583,7 +597,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
         <AddSubscriptionDialog
           memberId={memberId}
           services={services}
-          onSubscriptionAdded={fetchData}
+          onSubscriptionAdded={refreshData}
           user={user}
         />
       </CardHeader>
@@ -599,7 +613,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
                 key={sub.id}
                 sub={sub}
                 service={services.find((s) => s.id === sub.serviceId)}
-                onSubscriptionUpdate={fetchData}
+                onSubscriptionUpdate={refreshData}
                 user={user}
               />
             ))}

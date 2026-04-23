@@ -28,7 +28,14 @@ import {
   docToMemberSubscription,
 } from "./subscription-service";
 
-import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
+import {
+  getSalesCollection,
+  getMembersCollection,
+  getMemberSubscriptionsCollection,
+  getClubServicesCollection,
+  getProductsCollection,
+  getInventoryEventsCollection,
+} from "@/lib/firebase-collections";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
@@ -63,8 +70,7 @@ export interface ReceiptDetails {
 export const getReceiptDetails = async (
   saleId: string
 ): Promise<ReceiptDetails | null> => {
-  const db = getDb();
-  const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, saleId);
+  const saleRef = doc(getSalesCollection(), saleId);
   const saleSnap = await getDoc(saleRef);
 
   if (!saleSnap.exists()) {
@@ -80,10 +86,8 @@ export const getReceiptDetails = async (
 
   // --- STAGE 1: Fetch Member and Subscription in parallel ---
   const [memberSnap, subscriptionSnap] = await Promise.all([
-    getDoc(doc(db, FIRESTORE_COLLECTIONS.MEMBERS, sale.memberId)),
-    getDoc(
-      doc(db, FIRESTORE_COLLECTIONS.MEMBER_SUBSCRIPTIONS, sale.subscriptionId)
-    ),
+    getDoc(doc(getMembersCollection(), sale.memberId)),
+    getDoc(doc(getMemberSubscriptionsCollection(), sale.subscriptionId)),
   ]);
 
   if (!memberSnap.exists()) {
@@ -105,12 +109,11 @@ export const getReceiptDetails = async (
 
   // --- STAGE 2: Fetch Service and Related Member in parallel ---
   const serviceRef = doc(
-    db,
-    FIRESTORE_COLLECTIONS.CLUB_SERVICES,
+    getClubServicesCollection(),
     subscription.serviceId
   );
   const relatedMemberRef = member.relatedMemberId
-    ? doc(db, FIRESTORE_COLLECTIONS.MEMBERS, member.relatedMemberId)
+    ? doc(getMembersCollection(), member.relatedMemberId)
     : null;
 
   const [serviceSnap, relatedMemberSnap] = await Promise.all([
@@ -142,18 +145,14 @@ export const getReceiptDetails = async (
 // ... (rest of the existing functions: getSales, addSale, etc.)
 
 export const getSales = async (): Promise<Sale[]> => {
-  const db = getDb();
-  const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
-  const q = query(salesCollection, orderBy("saleDate", "desc"), limit(100)); // Safety limit
+  const q = query(getSalesCollection(), orderBy("saleDate", "desc"), limit(100)); // Safety limit
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
 
 export const getInventorySales = async (): Promise<Sale[]> => {
-  const db = getDb();
-  const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
   const q = query(
-    salesCollection,
+    getSalesCollection(),
     where("subscriptionId", "==", null),
     orderBy("saleDate", "desc")
   );
@@ -167,7 +166,7 @@ export const addSale = async (
   userName: string
 ): Promise<string> => {
   const db = getDb();
-  const newSaleRef = doc(collection(db, FIRESTORE_COLLECTIONS.SALES));
+  const newSaleRef = doc(getSalesCollection());
 
   await runTransaction(db, async (transaction) => {
     transaction.set(newSaleRef, {
@@ -178,11 +177,7 @@ export const addSale = async (
     });
 
     for (const item of saleData.items) {
-      const productRef = doc(
-        db,
-        FIRESTORE_COLLECTIONS.PRODUCTS,
-        item.productId
-      );
+      const productRef = doc(getProductsCollection(), item.productId);
       const productDoc = await transaction.get(productRef);
       if (!productDoc.exists())
         throw new Error(`Product with ID ${item.productId} not found.`);
@@ -203,9 +198,7 @@ export const addSale = async (
         userName: userName,
         relatedSaleId: newSaleRef.id,
       };
-      const eventRef = doc(
-        collection(db, FIRESTORE_COLLECTIONS.INVENTORY_EVENTS)
-      );
+      const eventRef = doc(getInventoryEventsCollection());
       transaction.set(eventRef, eventData);
     }
   });
@@ -215,10 +208,8 @@ export const addSale = async (
 
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
   if (!memberId) return [];
-  const db = getDb();
-  const salesCollection = collection(db, FIRESTORE_COLLECTIONS.SALES);
   const q = query(
-    salesCollection,
+    getSalesCollection(),
     where("memberId", "==", memberId),
     orderBy("saleDate", "desc")
   );
@@ -230,8 +221,7 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
 
 export const getSaleById = async (id: string): Promise<Sale | null> => {
   if (!id) return null;
-  const db = getDb();
-  const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
+  const saleRef = doc(getSalesCollection(), id);
   const docSnap = await getDoc(saleRef);
   return docToSale(docSnap);
 };
@@ -241,8 +231,7 @@ export const updateSale = async (
   data: Partial<Omit<Sale, "id" | "createdAt">>
 ): Promise<void> => {
   if (!id) throw new Error("Sale ID is required for update.");
-  const db = getDb();
-  const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
+  const saleRef = doc(getSalesCollection(), id);
 
   const dataToUpdate: { [key: string]: unknown } = { ...data };
   if (dataToUpdate.saleDate && typeof dataToUpdate.saleDate === "string") {
@@ -254,8 +243,7 @@ export const updateSale = async (
 
 export const deleteSale = async (id: string): Promise<void> => {
   if (!id) throw new Error("Sale ID is required for deletion.");
-  const db = getDb();
-  const saleRef = doc(db, FIRESTORE_COLLECTIONS.SALES, id);
+  const saleRef = doc(getSalesCollection(), id);
   await deleteDoc(saleRef);
 };
 
@@ -273,11 +261,10 @@ export const findOrCreateSaleForSubscription = async (
     let createdSale: Sale | null = null;
     await runTransaction(db, async (transaction) => {
       const subscriptionRef = doc(
-        db,
-        FIRESTORE_COLLECTIONS.MEMBER_SUBSCRIPTIONS,
+        getMemberSubscriptionsCollection(),
         subscription.id
       );
-      const salesCollectionRef = collection(db, FIRESTORE_COLLECTIONS.SALES);
+      const salesCollectionRef = getSalesCollection();
 
       const saleDataForFirestore = {
         memberId: subscription.memberId,
@@ -339,9 +326,8 @@ const getSaleBySubscriptionId = async (
   subscriptionId: string
 ): Promise<Sale | null> => {
   if (!subscriptionId) return null;
-  const db = getDb();
   const q = query(
-    collection(db, FIRESTORE_COLLECTIONS.SALES),
+    getSalesCollection(),
     where("subscriptionId", "==", subscriptionId),
     limit(1)
   );

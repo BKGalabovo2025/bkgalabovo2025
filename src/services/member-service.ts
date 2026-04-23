@@ -1,5 +1,4 @@
 import {
-  collection,
   getDocs,
   addDoc,
   doc,
@@ -11,14 +10,11 @@ import {
   serverTimestamp,
   DocumentSnapshot,
   limit,
-  startAfter,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
-import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
+import { getMembersCollection } from "@/lib/firebase-collections";
 import { Member, MemberSchema } from "@/types/member.types";
-
-const MEMBERS_COLLECTION = FIRESTORE_COLLECTIONS.MEMBERS;
 
 // Converts a Firestore document to a Member object with robust validation.
 export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
@@ -30,14 +26,15 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
   const data = docSnap.data();
 
   // Helper to gracefully convert Timestamps to ISO strings.
-  const toISODate = (date: Timestamp | Date): string | undefined => {
-    if (date instanceof Timestamp) {
+  const toISODate = (date: any): string | undefined => {
+    if (!date) return undefined;
+    // Duck-typing check for Firestore Timestamp
+    if (typeof date.toDate === 'function') {
       return date.toDate().toISOString();
     }
     if (date instanceof Date) {
       return date.toISOString();
     }
-    // Return undefined for invalid or missing dates to let Zod handle it.
     return undefined;
   };
 
@@ -45,7 +42,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     .filter(Boolean)
     .join(" ");
 
-  // Prepare the data for Zod parsing.
+  // Prepare the data for Zod parsing, ensuring derived/converted fields overwrite spread data.
   const dataToParse = {
     ...data,
     id: docSnap.id,
@@ -77,8 +74,7 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
     console.error(`getMemberById was called with an invalid ID: ${id}`);
     return null;
   }
-  const db = getDb();
-  const memberRef = doc(db, MEMBERS_COLLECTION, id);
+  const memberRef = doc(getMembersCollection(), id);
   const docSnap = await getDoc(memberRef);
   return docToMember(docSnap);
 };
@@ -88,9 +84,7 @@ export const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
   if (!ids || ids.length === 0) {
     return [];
   }
-  const db = getDb();
-  const membersCollection = collection(db, MEMBERS_COLLECTION);
-  const q = query(membersCollection, where("__name__", "in", ids));
+  const q = query(getMembersCollection(), where("__name__", "in", ids));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
@@ -110,9 +104,7 @@ export const getAllMembers = async (
     return membersCache;
   }
 
-  const db = getDb();
-  const membersCollection = collection(db, MEMBERS_COLLECTION);
-  const q = query(membersCollection, orderBy("lastName", "asc"), limit(200)); // Safety limit
+  const q = query(getMembersCollection(), orderBy("lastName", "asc"), limit(200)); // Safety limit
   const querySnapshot = await getDocs(q);
 
   const members = querySnapshot.docs
@@ -153,9 +145,6 @@ const calculateAgeGroup = (
 export const addMember = async (
   memberData: Omit<Member, "id" | "name" | "registrationDate" | "updatedAt">
 ): Promise<string> => {
-  const db = getDb();
-  const membersCollection = collection(db, MEMBERS_COLLECTION);
-
   const ageGroup = calculateAgeGroup(memberData.dateOfBirth);
 
   const dataToAdd = {
@@ -168,7 +157,7 @@ export const addMember = async (
     updatedAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(membersCollection, dataToAdd);
+  const docRef = await addDoc(getMembersCollection(), dataToAdd);
   return docRef.id;
 };
 
@@ -177,8 +166,7 @@ export const updateMember = async (
   id: string,
   memberData: Partial<Omit<Member, "id" | "name">>
 ): Promise<void> => {
-  const db = getDb();
-  const memberRef = doc(db, MEMBERS_COLLECTION, id);
+  const memberRef = doc(getMembersCollection(), id);
 
   const dataToUpdate: { [key: string]: unknown } = { ...memberData };
 
@@ -198,4 +186,11 @@ export const updateMember = async (
   dataToUpdate.updatedAt = serverTimestamp();
 
   await updateDoc(memberRef, dataToUpdate);
+};
+
+
+// Deletes a member from the database.
+export const deleteMember = async (id: string): Promise<void> => {
+  const memberRef = doc(getMembersCollection(), id);
+  await deleteDoc(memberRef);
 };

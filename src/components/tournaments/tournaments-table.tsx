@@ -1,21 +1,28 @@
 "use client";
 
 import { Tournament } from "@/types/tournament.types";
+import { columns } from "./columns";
+import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TournamentsTableProps {
   tournaments: Tournament[];
 }
 
 export function TournamentsTable({ tournaments }: TournamentsTableProps) {
-  // TODO: Implement a data table using Shadcn UI
-  // It should display columns for Name, Dates, Status, Age Groups
-  // It should also have buttons for "Edit" and "Delete" on each row
-  // And a main button "Create New Tournament"
+  const router = useRouter();
 
   return (
     <div>
-      <p>Таблицата с турнири ще бъде тук.</p>
-      <pre>{JSON.stringify(tournaments, null, 2)}</pre> {/* Placeholder */} 
+      <div className="flex justify-end mb-4">
+        <Button onClick={() => router.push('/tournaments/new')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Създай нов турнир
+        </Button>
+      </div>
+      <DataTable columns={columns} data={tournaments} />
     </div>
   );
 }

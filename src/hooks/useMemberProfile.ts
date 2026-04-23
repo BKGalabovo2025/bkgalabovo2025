@@ -51,9 +51,9 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
 
       if (memberData.familyId) {
         const family = await getFamilyById(memberData.familyId);
-        if (family && family.memberIds) {
-          const otherMemberIds = family.memberIds.filter(
-            (id) => id !== memberId
+        if (family && family.members) {
+          const otherMemberIds = family.members.filter(
+            (id: string) => id !== memberId
           );
           if (otherMemberIds.length > 0) {
             const membersInFamily = await getMembersByIds(otherMemberIds);
@@ -81,7 +81,7 @@ export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [memberId]);
 
   return {
     member,

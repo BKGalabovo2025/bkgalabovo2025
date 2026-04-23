@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { formatPrice } from "@/lib/currency";
 import { DataTableRowActions } from "./DataTableRowActions";
 import { Service } from "./service.types";
 
@@ -13,14 +12,18 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorFn: (row) => row.price,
-    id: "price",
-    header: "Цена",
-    cell: ({ row }) => {
-      const price = row.original.price; // Price from DB is a whole number (e.g., 20 for 20 EUR)
-      // The formatPrice function now expects a whole number and formats it correctly.
-      return <div>{formatPrice(price)}</div>;
-    },
+  id: "price",
+  header: () => <div className="text-right">Цена</div>,
+  cell: ({ row }) => {
+    const price = parseFloat(row.getValue("price"));
+    const formatted = new Intl.NumberFormat("bg-BG", {
+      style: "currency",
+      currency: "BGN",
+    }).format(price);
+
+    return <div className="text-right font-medium">{formatted}</div>;
   },
+},
   {
     accessorFn: (row) => row.type,
     id: "type",

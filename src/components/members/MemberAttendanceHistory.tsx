@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ScheduleEvent, Attendee } from "@/types";
 import { getEventsByMemberId } from "@/services/schedule-service";
 import {
@@ -66,28 +66,27 @@ export function MemberAttendanceHistory({
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
 
-  const fetchAttendance = useCallback(async () => {
-    if (!memberId) return;
-    setLoading(true);
-    try {
-      const memberEvents = await getEventsByMemberId(memberId);
-      const attendedOnlyEvents = memberEvents.filter((event) => {
-        const attendeeRecord = event.attendees?.find(
-          (a: Attendee) => a.memberId === memberId
-        );
-        return attendeeRecord?.attended === true;
-      });
-      setAttendedEvents(attendedOnlyEvents);
-    } catch (error) {
-      console.error("Error fetching attendance history:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [memberId]);
-
   useEffect(() => {
+    const fetchAttendance = async () => {
+      if (!memberId) return;
+      setLoading(true);
+      try {
+        const memberEvents = await getEventsByMemberId(memberId);
+        const attendedOnlyEvents = memberEvents.filter((event) => {
+          const attendeeRecord = event.attendees?.find(
+            (a: Attendee) => a.memberId === memberId
+          );
+          return attendeeRecord?.attended === true;
+        });
+        setAttendedEvents(attendedOnlyEvents);
+      } catch (error) {
+        console.error("Error fetching attendance history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAttendance();
-  }, [fetchAttendance]);
+  }, [memberId]);
 
   const filteredEvents = useMemo(() => {
     let events = [...attendedEvents];

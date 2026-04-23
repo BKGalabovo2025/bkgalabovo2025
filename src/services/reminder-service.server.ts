@@ -1,6 +1,9 @@
 import { Member } from "@/types/member.types";
 import { Sale } from "@/types";
-import { FIRESTORE_COLLECTIONS } from "@/lib/firebase-collections";
+import {
+  getMembersCollection,
+  getSalesCollection,
+} from "@/lib/firebase-collections";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 /**
@@ -10,10 +13,8 @@ import { getAdminDb } from "@/lib/firebase-admin";
  */
 export const getOverdueMembers = async (): Promise<Member[]> => {
   const adminDb = getAdminDb();
-  const membersCollectionRef = adminDb.collection(
-    FIRESTORE_COLLECTIONS.MEMBERS
-  );
-  const salesCollectionRef = adminDb.collection(FIRESTORE_COLLECTIONS.SALES);
+  const membersCollectionRef = adminDb.collection(getMembersCollection().path);
+  const salesCollectionRef = adminDb.collection(getSalesCollection().path);
 
   const [membersSnapshot, salesSnapshot] = await Promise.all([
     membersCollectionRef.get(),

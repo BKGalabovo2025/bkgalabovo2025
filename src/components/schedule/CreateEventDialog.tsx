@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useId } from "react";
 import {
   Dialog,
   DialogContent,
@@ -36,40 +36,33 @@ const eventTypeTranslations: Record<ScheduleEventType, string> = {
   other: "Друго",
 };
 
+const getDefaultStartTime = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+};
+
+const getDefaultEndTime = (startTime: string) => {
+  const now = new Date(startTime);
+  return new Date(now.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16);
+};
+
 export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
   isOpen,
   onClose,
   onAddEvent,
 }) => {
+  const defaultStartTime = getDefaultStartTime();
+
   const [title, setTitle] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(defaultStartTime);
+  const [endDate, setEndDate] = useState(getDefaultEndTime(defaultStartTime));
   const [type, setType] = useState<ScheduleEventType>("training");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const descriptionId = useId();
-
-  useEffect(() => {
-    if (isOpen) {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      const defaultStartTime = now.toISOString().slice(0, 16);
-
-      const defaultEndTime = new Date(now.getTime() + 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 16);
-
-      setTitle("");
-      setStartDate(defaultStartTime);
-      setEndDate(defaultEndTime);
-      setType("training");
-      setLocation("");
-      setDescription("");
-      setError(null);
-    }
-  }, [isOpen]);
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -106,8 +99,14 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
     }
   };
 
+  // Using a key on the Dialog ensures it re-mounts with fresh state
+  // whenever it's opened. This avoids the need for a useEffect to reset state.
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      key={isOpen ? "open" : "closed"}
+      open={isOpen}
+      onOpenChange={handleClose}
+    >
       <DialogContent
         className="sm:max-w-[480px]"
         aria-describedby={descriptionId}
@@ -126,6 +125,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
               placeholder="Например: Тренировка - Напреднали"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              autoFocus
             />
           </div>
 

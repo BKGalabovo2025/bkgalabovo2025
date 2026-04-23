@@ -39,4 +39,4 @@ function getFirebaseAuth(): Auth {
   return auth;
 }
 
-export { getFirebaseAuth, getDb };
+export { getFirebaseAuth, getDb, db };

@@ -1,75 +1,53 @@
-import { useState, useEffect, useCallback } from "react";
-import { Member } from "@/types";
-import { getAllMembers, getMemberById } from "@/services/member-service";
+'use client';
 
-/**
- * A custom hook to manage fetching all members.
- * It handles loading states and potential errors, providing a clean interface to the components.
- */
-export const useMembers = () => {
+import { useState, useEffect } from 'react';
+import { addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Member } from '@/types/member.types';
+import { getMembersCollection } from '@/lib/firebase-collections';
+
+export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMembers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const allMembers = await getAllMembers();
-      setMembers(allMembers);
-    } catch (err: unknown) {
-      console.error("useMembers - Failed to fetch members:", err);
-      setError("Failed to load members. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const membersCollection = getMembersCollection();
+        const querySnapshot = await getDocs(membersCollection);
+        const membersData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return { ...data, id: doc.id };
+        });
+        setMembers(membersData as Member[]);
+      } catch (err) {
+        setError("Failed to fetch members.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
   }, []);
 
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+  const addMember = async (member: Omit<Member, 'id'>) => {
+    const membersCollection = getMembersCollection();
+    const docRef = await addDoc(membersCollection, member);
+    setMembers(prev => [...prev, { id: docRef.id, ...member }]);
+  };
 
-  // The hook returns the state variables and a refetch function.
-  return { members, loading, error, refetch: fetchMembers };
-};
+  const updateMember = async (id: string, updatedMember: Partial<Member>) => {
+    const memberDoc = doc(db, 'members', id);
+    await updateDoc(memberDoc, updatedMember);
+    setMembers(prev => prev.map(member => (member.id === id ? { ...member, ...updatedMember } : member)));
+  };
 
-/**
- * A custom hook to manage fetching a single member by their ID.
- * It handles loading and error states for fetching a specific member.
- * @param memberId The ID of the member to fetch.
- */
-export const useMember = (memberId: string | null) => {
-  const [member, setMember] = useState<Member | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const deleteMember = async (id: string) => {
+    const memberDoc = doc(db, 'members', id);
+    await deleteDoc(memberDoc);
+    setMembers(prev => prev.filter(member => member.id !== id));
+  };
 
-  const fetchMember = useCallback(async () => {
-    if (!memberId || memberId === "undefined") {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const fetchedMember = await getMemberById(memberId);
-      if (fetchedMember) {
-        setMember(fetchedMember);
-      } else {
-        setError("Member not found.");
-      }
-    } catch (err: unknown) {
-      console.error(
-        `useMember - Failed to fetch member with ID ${memberId}:`,
-        err
-      );
-      setError("Failed to load member data.");
-    } finally {
-      setLoading(false);
-    }
-  }, [memberId]);
-
-  useEffect(() => {
-    fetchMember();
-  }, [fetchMember]);
-
-  return { member, loading, error, refetch: fetchMember };
-};
+  return { members, loading, error, addMember, updateMember, deleteMember };
+}
