@@ -79,16 +79,6 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
   return docToMember(docSnap);
 };
 
-// Fetches multiple members by their IDs.
-// const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
-//   if (!ids || ids.length === 0) {
-//     return [];
-//   }
-//   const q = query(getMembersCollection(), where("__name__", "in", ids));
-//   const querySnapshot = await getDocs(q);
-//   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
-// };
-
 let membersCache: Member[] | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 60 * 1000; // 1 minute cache
