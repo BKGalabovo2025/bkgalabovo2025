@@ -146,9 +146,13 @@ export const addMember = async (
   memberData: Omit<Member, "id" | "name" | "registrationDate" | "updatedAt">
 ): Promise<string> => {
   const ageGroup = calculateAgeGroup(memberData.dateOfBirth);
+  const name = [memberData.firstName, memberData.middleName, memberData.lastName]
+    .filter(Boolean)
+    .join(" ");
 
   const dataToAdd = {
     ...memberData,
+    name,
     ageGroup,
     dateOfBirth: memberData.dateOfBirth
       ? Timestamp.fromDate(new Date(memberData.dateOfBirth))
