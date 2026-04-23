@@ -6,7 +6,6 @@ import {
   getDoc,
   Timestamp,
   query,
-  where,
   serverTimestamp,
   DocumentSnapshot,
   limit,
@@ -30,7 +29,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
   const toISODate = (date: any): string | undefined => {
     if (!date) return undefined;
     // Duck-typing check for Firestore Timestamp
-    if (typeof date.toDate === 'function') {
+    if (typeof date.toDate === "function") {
       return date.toDate().toISOString();
     }
     if (date instanceof Date) {
@@ -81,14 +80,14 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 };
 
 // Fetches multiple members by their IDs.
-export const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
-  if (!ids || ids.length === 0) {
-    return [];
-  }
-  const q = query(getMembersCollection(), where("__name__", "in", ids));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
-};
+// const getMembersByIds = async (ids: string[]): Promise<Member[]> => {
+//   if (!ids || ids.length === 0) {
+//     return [];
+//   }
+//   const q = query(getMembersCollection(), where("__name__", "in", ids));
+//   const querySnapshot = await getDocs(q);
+//   return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
+// };
 
 let membersCache: Member[] | null = null;
 let lastFetchTime = 0;
@@ -105,7 +104,11 @@ export const getAllMembers = async (
     return membersCache;
   }
 
-  const q = query(getMembersCollection(), orderBy("lastName", "asc"), limit(200)); // Safety limit
+  const q = query(
+    getMembersCollection(),
+    orderBy("lastName", "asc"),
+    limit(200)
+  ); // Safety limit
   const querySnapshot = await getDocs(q);
 
   const members = querySnapshot.docs
@@ -147,7 +150,11 @@ export const addMember = async (
   memberData: Omit<Member, "id" | "name" | "registrationDate" | "updatedAt">
 ): Promise<string> => {
   const ageGroup = calculateAgeGroup(memberData.dateOfBirth);
-  const name = [memberData.firstName, memberData.middleName, memberData.lastName]
+  const name = [
+    memberData.firstName,
+    memberData.middleName,
+    memberData.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -195,7 +202,6 @@ export const updateMember = async (
 
   await updateDoc(memberRef, dataToUpdate);
 };
-
 
 // Deletes a member from the database.
 export const deleteMember = async (id: string): Promise<void> => {

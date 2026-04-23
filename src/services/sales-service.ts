@@ -1,5 +1,4 @@
 import {
-  collection,
   getDocs,
   doc,
   getDoc,
@@ -12,7 +11,7 @@ import {
   orderBy,
   updateDoc,
   deleteDoc,
-  startAfter,
+  WithFieldValue,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import {
@@ -27,7 +26,6 @@ import {
   docToClubService,
   docToMemberSubscription,
 } from "./subscription-service";
-
 import {
   getSalesCollection,
   getMembersCollection,
@@ -41,10 +39,8 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
     return null;
   }
-  const data = doc.data() || {};
+  const data = doc.data();
   const saleDate = data.saleDate?.toDate?.() || new Date();
-  const rawAmount = data.totalAmount;
-  const totalAmount = Number(rawAmount) || 0;
   const createdAt = data.createdAt?.toDate?.() || new Date();
 
   return {
@@ -54,7 +50,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
     items: data.items || [],
     status: data.status || "completed",
     currency: data.currency || "EUR",
-    totalAmount: totalAmount,
+    totalAmount: Number(data.totalAmount) || 0,
     isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
     subscriptionId: data.subscriptionId || null,
     createdAt: createdAt.toISOString(),
@@ -64,7 +60,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
 export interface ReceiptDetails {
   sale: Sale;
   member: Member;
-  relatedMember: Member | null; // Added for family subscriptions
+  relatedMember: Member | null;
   service: ClubService;
   subscription: Subscription;
 }
@@ -86,34 +82,25 @@ export const getReceiptDetails = async (
     return null;
   }
 
-  // --- STAGE 1: Fetch Member and Subscription in parallel ---
   const [memberSnap, subscriptionSnap] = await Promise.all([
     getDoc(doc(getMembersCollection(), sale.memberId)),
     getDoc(doc(getMemberSubscriptionsCollection(), sale.subscriptionId)),
   ]);
 
-  if (!memberSnap.exists()) {
-    console.error("No member found with ID:", sale.memberId);
+  if (!memberSnap.exists() || !subscriptionSnap.exists()) {
+    console.error("Member or subscription not found.");
     return null;
   }
+
   const member = docToMember(memberSnap);
-  if (!member) return null;
-
-  if (!subscriptionSnap.exists()) {
-    console.error("No subscription found with ID:", sale.subscriptionId);
-    return null;
-  }
   const subscription = docToMemberSubscription(subscriptionSnap);
-  if (!subscription || !subscription.serviceId) {
-    console.error("Subscription data is incomplete:", subscription);
+
+  if (!member || !subscription || !subscription.serviceId) {
+    console.error("Parsed member or subscription data is incomplete.");
     return null;
   }
 
-  // --- STAGE 2: Fetch Service and Related Member in parallel ---
-  const serviceRef = doc(
-    getClubServicesCollection(),
-    subscription.serviceId
-  );
+  const serviceRef = doc(getClubServicesCollection(), subscription.serviceId);
   const relatedMemberRef = member.relatedMemberId
     ? doc(getMembersCollection(), member.relatedMemberId)
     : null;
@@ -124,9 +111,10 @@ export const getReceiptDetails = async (
   ]);
 
   if (!serviceSnap.exists()) {
-    console.error("No service found with ID:", subscription.serviceId);
+    console.error("Service not found");
     return null;
   }
+
   const service = docToClubService(serviceSnap);
   if (!service) return null;
 
@@ -135,19 +123,15 @@ export const getReceiptDetails = async (
       ? docToMember(relatedMemberSnap)
       : null;
 
-  return {
-    sale,
-    member,
-    relatedMember,
-    service,
-    subscription,
-  };
+  return { sale, member, relatedMember, service, subscription };
 };
 
-// ... (rest of the existing functions: getSales, addSale, etc.)
-
 export const getSales = async (): Promise<Sale[]> => {
-  const q = query(getSalesCollection(), orderBy("saleDate", "desc"), limit(100)); // Safety limit
+  const q = query(
+    getSalesCollection(),
+    orderBy("saleDate", "desc"),
+    limit(100)
+  );
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
@@ -171,35 +155,40 @@ export const addSale = async (
   const newSaleRef = doc(getSalesCollection());
 
   await runTransaction(db, async (transaction) => {
-    transaction.set(newSaleRef, {
+    const salePayload: WithFieldValue<Omit<Sale, "id">> = {
       ...saleData,
       createdAt: Timestamp.now(),
-    });
+    };
+    transaction.set(newSaleRef, salePayload);
 
     for (const item of saleData.items) {
       const productRef = doc(getProductsCollection(), item.productId);
       const productDoc = await transaction.get(productRef);
-      if (!productDoc.exists())
+      if (!productDoc.exists()) {
         throw new Error(`Product with ID ${item.productId} not found.`);
+      }
 
       const currentStock = productDoc.data().stock || 0;
       const newStock = currentStock - item.quantity;
-      if (newStock < 0) throw new Error(`Not enough stock for ${item.name}.`);
+      if (newStock < 0) {
+        throw new Error(`Not enough stock for ${item.name}.`);
+      }
 
       transaction.update(productRef, { stock: newStock });
 
-      const eventData: Omit<InventoryEvent, "id"> = {
+      const eventRef = doc(getInventoryEventsCollection());
+      const eventPayload: WithFieldValue<InventoryEvent> = {
+        id: eventRef.id,
         productId: item.productId,
         productName: item.name,
         type: "sale",
         quantityChange: -item.quantity,
         createdAt: new Date().toISOString(),
-        userId: userId,
-        userName: userName,
+        userId,
+        userName,
         relatedSaleId: newSaleRef.id,
       };
-      const eventRef = doc(getInventoryEventsCollection());
-      transaction.set(eventRef, eventData);
+      transaction.set(eventRef, eventPayload);
     }
   });
 
@@ -214,9 +203,7 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
     orderBy("saleDate", "desc")
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs
-    .map((doc) => docToSale(doc))
-    .filter(Boolean) as Sale[];
+  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
 
 export const getSaleById = async (id: string): Promise<Sale | null> => {
@@ -234,8 +221,8 @@ export const updateSale = async (
   const saleRef = doc(getSalesCollection(), id);
 
   const dataToUpdate: { [key: string]: unknown } = { ...data };
-  if (dataToUpdate.saleDate && typeof dataToUpdate.saleDate === "string") {
-    dataToUpdate.saleDate = Timestamp.fromDate(new Date(dataToUpdate.saleDate));
+  if (data.saleDate) {
+    dataToUpdate.saleDate = Timestamp.fromDate(new Date(data.saleDate));
   }
 
   await updateDoc(saleRef, dataToUpdate);
@@ -258,15 +245,14 @@ export const findOrCreateSaleForSubscription = async (
   if (!firstPayment || !subscription.memberId) return null;
 
   try {
-    let createdSale: Sale | null = null;
-    await runTransaction(db, async (transaction) => {
+    const createdSale = await runTransaction(db, async (transaction) => {
       const subscriptionRef = doc(
         getMemberSubscriptionsCollection(),
         subscription.id
       );
-      const salesCollectionRef = getSalesCollection();
+      const newSaleRef = doc(getSalesCollection());
 
-      const saleDataForFirestore = {
+      const saleDataForFirestore: WithFieldValue<Omit<Sale, "id">> = {
         memberId: subscription.memberId,
         subscriptionId: subscription.id,
         saleDate: Timestamp.fromDate(new Date(firstPayment.date)),
@@ -281,37 +267,39 @@ export const findOrCreateSaleForSubscription = async (
         totalAmount: firstPayment.amount,
         currency: "EUR",
         isPaid: true,
-        status: "completed" as const,
+        status: "completed",
         createdAt: Timestamp.now(),
       };
 
-      const newSaleRef = doc(salesCollectionRef);
       transaction.set(newSaleRef, saleDataForFirestore);
 
-      const updatedPaymentHistory = subscription.paymentHistory.map(
-        (p, index) => {
-          if (index === 0 && !p.saleId) return { ...p, saleId: newSaleRef.id };
-          return p;
-        }
+      const updatedPaymentHistory = subscription.paymentHistory.map((p, i) =>
+        i === 0 ? { ...p, saleId: newSaleRef.id } : p
       );
-
       transaction.update(subscriptionRef, {
         paymentHistory: updatedPaymentHistory,
       });
 
-      const saleSnap = await transaction.get(newSaleRef);
       // Manually construct the Sale object for return to avoid another DB read
-      const saleData = saleSnap.data();
-      createdSale = {
-        id: saleSnap.id,
-        ...saleData,
-        saleDate: (saleData?.saleDate as Timestamp).toDate().toISOString(),
+      const saleToReturn = {
+        id: newSaleRef.id,
+        ...saleDataForFirestore,
+        saleDate: (saleDataForFirestore.saleDate as Timestamp)
+          .toDate()
+          .toISOString(),
+        createdAt: (saleDataForFirestore.createdAt as Timestamp)
+          .toDate()
+          .toISOString(),
       } as Sale;
+
+      return saleToReturn;
     });
 
-    console.log(
-      `Self-healed: Created new sale for subscription ${subscription.id}`
-    );
+    if (createdSale) {
+      console.log(
+        `Self-healed: Created new sale ${createdSale.id} for subscription ${subscription.id}`
+      );
+    }
     return createdSale;
   } catch (error) {
     console.error(

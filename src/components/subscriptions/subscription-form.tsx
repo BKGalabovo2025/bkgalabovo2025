@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -74,14 +74,20 @@ export function SubscriptionForm({
   isSaving,
 }: SubscriptionFormProps) {
   const [periodMonth, setPeriodMonth] = useState(() =>
-    new Date().toISOString().substring(0, 7)
-  ); // YYYY-MM
+    initialData
+      ? initialData.startDate.substring(0, 7)
+      : new Date().toISOString().substring(0, 7)
+  );
   const [periodYear, setPeriodYear] = useState(() =>
-    new Date().getFullYear().toString()
+    initialData
+      ? new Date(initialData.startDate).getFullYear().toString()
+      : new Date().getFullYear().toString()
   );
   const [periodDate, setPeriodDate] = useState(() =>
-    new Date().toISOString().substring(0, 10)
-  ); // YYYY-MM-DD
+    initialData
+      ? initialData.startDate.substring(0, 10)
+      : new Date().toISOString().substring(0, 10)
+  );
 
   const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(subscriptionSchema),
@@ -109,18 +115,14 @@ export function SubscriptionForm({
         },
   });
 
-  const selectedServiceId = form.watch("serviceId");
+  const selectedServiceId = useWatch({
+    control: form.control,
+    name: "serviceId",
+  });
+  const startDate = useWatch({ control: form.control, name: "startDate" });
+  const endDate = useWatch({ control: form.control, name: "endDate" });
   const selectedServiceObj = services.find((s) => s.id === selectedServiceId);
   const billingPeriod = selectedServiceObj?.billingPeriod || null;
-
-  useEffect(() => {
-    if (initialData) {
-      const start = new Date(initialData.startDate);
-      setPeriodYear(start.getFullYear().toString());
-      setPeriodMonth(initialData.startDate.substring(0, 7));
-      setPeriodDate(initialData.startDate.substring(0, 10));
-    }
-  }, [initialData]);
 
   useEffect(() => {
     if (!billingPeriod) {
@@ -333,18 +335,10 @@ export function SubscriptionForm({
             )}
             <div className="text-xs text-blue-700/80 pt-2 font-medium flex flex-col gap-1">
               <span>
-                Начало:{" "}
-                <b>
-                  {new Date(form.watch("startDate")).toLocaleDateString(
-                    "bg-BG"
-                  )}
-                </b>
+                Начало: <b>{new Date(startDate).toLocaleDateString("bg-BG")}</b>
               </span>
               <span>
-                Край:{" "}
-                <b>
-                  {new Date(form.watch("endDate")).toLocaleDateString("bg-BG")}
-                </b>
+                Край: <b>{new Date(endDate).toLocaleDateString("bg-BG")}</b>
               </span>
             </div>
           </div>

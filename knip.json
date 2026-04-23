@@ -5,8 +5,7 @@
   "ignoreDependencies": [
     "tsconfig-paths",
     "autoprefixer",
-    "eslint-config-prettier",
-    "lint-staged"
+    "eslint-config-prettier"
   ],
   "next": {
     "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]

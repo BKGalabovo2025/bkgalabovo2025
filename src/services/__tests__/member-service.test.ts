@@ -12,8 +12,32 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  CollectionReference,
+  DocumentReference,
 } from "firebase/firestore";
 import { Member, MemberFormData } from "@/types/member.types";
+import { getMembersCollection } from "@/lib/firebase-collections";
+
+const mockCollectionRef = {} as CollectionReference;
+const mockDocRef = {} as DocumentReference;
+
+vi.mock("@/lib/firebase-collections", () => ({
+  getMembersCollection: vi.fn(() => mockCollectionRef),
+}));
+
+vi.mock("firebase/firestore", async () => {
+  const firestore =
+    await vi.importActual<typeof import("firebase/firestore")>(
+      "firebase/firestore"
+    );
+  return {
+    ...firestore,
+    addDoc: vi.fn(() => Promise.resolve({ id: "123" })),
+    updateDoc: vi.fn(() => Promise.resolve()),
+    deleteDoc: vi.fn(() => Promise.resolve()),
+    doc: vi.fn(() => mockDocRef),
+  };
+});
 
 // Mock DocumentSnapshot
 const mockDoc = (
@@ -101,8 +125,14 @@ describe("member-service", () => {
       const newId = await addMember(memberData);
 
       expect(addDoc).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining(memberData)
+        mockCollectionRef,
+        expect.objectContaining({
+          firstName: "Test",
+          lastName: "User",
+          email: "test@user.com",
+          status: "active",
+          phone: "123456789",
+        })
       );
       expect(newId).toBe("123");
     });
@@ -118,9 +148,9 @@ describe("member-service", () => {
 
       await updateMember(memberId, updates);
 
-      expect(doc).toHaveBeenCalledWith(expect.anything(), "members", memberId);
+      expect(doc).toHaveBeenCalledWith(mockCollectionRef, memberId);
       expect(updateDoc).toHaveBeenCalledWith(
-        expect.anything(),
+        mockDocRef,
         expect.objectContaining(updates)
       );
     });
@@ -132,8 +162,8 @@ describe("member-service", () => {
 
       await deleteMember(memberId);
 
-      expect(doc).toHaveBeenCalledWith(expect.anything(), "members", memberId);
-      expect(deleteDoc).toHaveBeenCalledWith(expect.anything());
+      expect(doc).toHaveBeenCalledWith(mockCollectionRef, memberId);
+      expect(deleteDoc).toHaveBeenCalledWith(mockDocRef);
     });
   });
 });

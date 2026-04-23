@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
 export { type Member } from "./member.types";
@@ -7,30 +5,6 @@ export { type Member } from "./member.types";
 // =================================================================
 //                            CORE TYPES
 // =================================================================
-
-/**
- * Zod schema for validating family data.
- * This ensures that family objects are structured correctly, including timestamps.
- */
-export const FamilySchema = z.object({
-  id: z.string().min(1, "ID is required."),
-  name: z.string().min(1, "Family name is required."),
-  memberIds: z.array(z.string()).default([]),
-  createdAt: z
-    .string()
-    .datetime({ message: "Invalid creation date format" })
-    .optional(),
-  updatedAt: z
-    .string()
-    .datetime({ message: "Invalid update date format" })
-    .optional(),
-});
-
-/**
- * Represents a family unit, grouping multiple members.
- * Type is inferred from the Zod schema to ensure consistency.
- */
-export type Family = z.infer<typeof FamilySchema>;
 
 /**
  * Represents a physical product sold by the club.

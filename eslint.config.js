@@ -35,6 +35,7 @@ export default [
         "warn",
         { argsIgnorePattern: "^_" },
       ],
+      "react-hooks/incompatible-library": "off",
     },
   },
 ];

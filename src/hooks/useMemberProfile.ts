@@ -1,95 +1,56 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import useSWR from "swr";
 import { Member, Subscription, ScheduleEvent } from "@/types";
-import { getMemberById, getMembersByIds } from "@/services/member-service";
-import { getFamilyById } from "@/services/family-service";
+import { getMemberById } from "@/services/member-service";
 import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { getAttendancesByMemberId } from "@/services/attendance-service";
 
-interface UseMemberProfileReturn {
+interface MemberProfileData {
   member: Member | null;
   subscriptions: Subscription[];
   familyMembers: Member[];
   attendances: ScheduleEvent[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
 }
 
-export const useMemberProfile = (memberId: string): UseMemberProfileReturn => {
-  const [member, setMember] = useState<Member | null>(null);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [familyMembers, setFamilyMembers] = useState<Member[]>([]);
-  const [attendances, setAttendances] = useState<ScheduleEvent[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const fetcher = async (memberId: string): Promise<MemberProfileData> => {
+  if (!memberId) {
+    throw new Error("No member ID provided.");
+  }
 
-  const fetchData = useCallback(async () => {
-    if (!memberId) {
-      setLoading(false);
-      setError("No member ID provided.");
-      return;
-    }
+  const memberData = await getMemberById(memberId);
+  if (!memberData) {
+    throw new Error("Member not found.");
+  }
 
-    setLoading(true);
-    setError(null);
+  const [subscriptionsData, attendancesData] = await Promise.all([
+    getSubscriptionsByMemberId(memberId),
+    getAttendancesByMemberId(memberId),
+  ]);
 
-    try {
-      const memberData = await getMemberById(memberId);
-      if (!memberData) {
-        throw new Error("Member not found.");
-      }
-      setMember(memberData);
-
-      const [subscriptionsData, attendancesData] = await Promise.all([
-        getSubscriptionsByMemberId(memberId),
-        getAttendancesByMemberId(memberId),
-      ]);
-      setSubscriptions(subscriptionsData);
-      setAttendances(attendancesData);
-
-      if (memberData.familyId) {
-        const family = await getFamilyById(memberData.familyId);
-        if (family && family.members) {
-          const otherMemberIds = family.members.filter(
-            (id: string) => id !== memberId
-          );
-          if (otherMemberIds.length > 0) {
-            const membersInFamily = await getMembersByIds(otherMemberIds);
-            setFamilyMembers(membersInFamily);
-          } else {
-            setFamilyMembers([]);
-          }
-        } else {
-          setFamilyMembers([]);
-        }
-      } else {
-        setFamilyMembers([]);
-      }
-    } catch (err: unknown) {
-      console.error("Error fetching member profile:", err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [memberId]);
-
-  useEffect(() => {
-    fetchData();
-  }, [memberId]);
+  const familyMembers: Member[] = [];
 
   return {
-    member,
-    subscriptions,
+    member: memberData,
+    subscriptions: subscriptionsData,
     familyMembers,
-    attendances,
-    loading,
-    error,
-    refetch: fetchData,
+    attendances: attendancesData,
+  };
+};
+
+export const useMemberProfile = (memberId: string) => {
+  const { data, error, isLoading, mutate } = useSWR<MemberProfileData>(
+    memberId ? memberId : null,
+    () => fetcher(memberId)
+  );
+
+  return {
+    member: data?.member || null,
+    subscriptions: data?.subscriptions || [],
+    familyMembers: data?.familyMembers || [],
+    attendances: data?.attendances || [],
+    loading: isLoading,
+    error: error?.message || null,
+    refetch: mutate,
   };
 };

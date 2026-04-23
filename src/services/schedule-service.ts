@@ -6,30 +6,20 @@ import {
   where,
   Timestamp,
   DocumentSnapshot,
-  addDoc,
-  doc,
-  updateDoc,
-  deleteDoc,
-  runTransaction,
-  getDoc,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { ScheduleEvent, Attendee } from "@/types";
 
-const EVENTS_COLLECTION = "events";
+const eventsCollection = collection(getDb(), "events");
 
-interface AttendeeData {
-  memberId: string;
-  name: string;
-  attended: boolean;
-}
-
-const docToScheduleEvent = (doc: DocumentSnapshot | QueryDocumentSnapshot): ScheduleEvent | null => {
+const docToScheduleEvent = (
+  doc: DocumentSnapshot | QueryDocumentSnapshot
+): ScheduleEvent | null => {
   if (!doc.id || !doc.exists()) return null;
   const data = doc.data() || {};
 
   const attendees = (Array.isArray(data.attendees) ? data.attendees : [])
-    .map((item: AttendeeData): Attendee | null => {
+    .map((item: Omit<Attendee, "id">): Attendee | null => {
       if (!item || typeof item !== "object") return null;
       return {
         memberId: typeof item.memberId === "string" ? item.memberId : "",
@@ -68,9 +58,6 @@ const docToScheduleEvent = (doc: DocumentSnapshot | QueryDocumentSnapshot): Sche
 export const getEventsByMemberId = async (
   memberId: string
 ): Promise<ScheduleEvent[]> => {
-  const db = getDb();
-  const eventsCollection = collection(db, EVENTS_COLLECTION);
-
   const q = query(
     eventsCollection,
     where("attendeeMemberIds", "array-contains", memberId)
@@ -89,51 +76,54 @@ export const getEventsByMemberId = async (
   return events;
 };
 
-export const addScheduleEvent = async (event: Omit<ScheduleEvent, 'id'>): Promise<ScheduleEvent> => {
-  const db = getDb();
-  const eventsCollection = collection(db, EVENTS_COLLECTION);
-  const docRef = await addDoc(eventsCollection, event);
-  return { id: docRef.id, ...event };
-}
+// const addScheduleEvent = async (
+//   event: Omit<ScheduleEvent, "id">
+// ): Promise<ScheduleEvent> => {
+//   const docRef = await addDoc(eventsCollection, event);
+//   return { id: docRef.id, ...event };
+// };
 
-export const updateScheduleEvent = async (eventId: string, event: Partial<ScheduleEvent>): Promise<ScheduleEvent> => {
-  const db = getDb();
-  const eventDoc = doc(db, EVENTS_COLLECTION, eventId);
-  await updateDoc(eventDoc, event);
-  const updatedDoc = await getDoc(eventDoc);
-  return docToScheduleEvent(updatedDoc)!;
-}
+// const updateScheduleEvent = async (
+//   eventId: string,
+//   event: Partial<ScheduleEvent>
+// ): Promise<ScheduleEvent> => {
+//   const eventDoc = doc(eventsCollection, eventId);
+//   await updateDoc(eventDoc, event);
+//   const updatedDoc = await getDoc(eventDoc);
+//   return docToScheduleEvent(updatedDoc)!;
+// };
 
-export const deleteScheduleEvent = async (eventId: string): Promise<void> => {
-  const db = getDb();
-  const eventDoc = doc(db, EVENTS_COLLECTION, eventId);
-  await deleteDoc(eventDoc);
-}
+// const deleteScheduleEvent = async (eventId: string): Promise<void> => {
+//   const eventDoc = doc(eventsCollection, eventId);
+//   await deleteDoc(eventDoc);
+// };
 
-export const toggleEventAttendance = async (eventId: string, memberId: string): Promise<ScheduleEvent> => {
-  const db = getDb();
-  const eventDoc = doc(db, EVENTS_COLLECTION, eventId);
+// const toggleEventAttendance = async (
+//   eventId: string,
+//   memberId: string
+// ): Promise<ScheduleEvent> => {
+//   const eventDoc = doc(eventsCollection, eventId);
 
-  await runTransaction(db, async (transaction) => {
-    const eventSnapshot = await transaction.get(eventDoc);
-    if (!eventSnapshot.exists()) {
-      throw new Error("Event not found!");
-    }
+//   await runTransaction(getDb(), async (transaction) => {
+//     const eventSnapshot = await transaction.get(eventDoc);
+//     if (!eventSnapshot.exists()) {
+//       throw new Error("Event not found!");
+//     }
 
-    const eventData = eventSnapshot.data() as ScheduleEvent;
-    const attendee = eventData.attendees.find(a => a.memberId === memberId);
+//     const eventData = eventSnapshot.data() as ScheduleEvent;
+//     const attendee = eventData.attendees.find((a) => a.memberId === memberId);
 
-    if (attendee) {
-      attendee.attended = !attendee.attended;
-    } else {
-      // This part might need adjustment based on how members are added to events
-      // For now, let's assume we can't add new attendees this way.
-      throw new Error("Member not found in event attendees.");
-    }
+//     if (attendee) {
+//       attendee.attended = !attendee.attended;
+//     } else {
+//       // This part might need adjustment based on how members are added to events
+//       // For now, let's assume we can't add new attendees this way.
+//       throw new Error("Member not found in event attendees.");
+//     }
 
-    transaction.update(eventDoc, { attendees: eventData.attendees });
-  });
+//     transaction.update(eventDoc, { attendees: eventData.attendees });
+//   });
 
-  const updatedDoc = await getDoc(eventDoc);
-  return docToScheduleEvent(updatedDoc)!;
-}
+//   const updatedDoc = await getDoc(eventDoc);
+//   return docToScheduleEvent(updatedDoc)!;
+// };

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Member } from '@/types/member.types';
-import { getMembersCollection } from '@/lib/firebase-collections';
+import { useState, useEffect } from "react";
+import { addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Member } from "@/types/member.types";
+import { getMembersCollection } from "@/lib/firebase-collections";
 
 export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -16,12 +16,12 @@ export function useMembers() {
       try {
         const membersCollection = getMembersCollection();
         const querySnapshot = await getDocs(membersCollection);
-        const membersData = querySnapshot.docs.map(doc => {
+        const membersData = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return { ...data, id: doc.id };
         });
         setMembers(membersData as Member[]);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch members.");
       } finally {
         setLoading(false);
@@ -31,22 +31,26 @@ export function useMembers() {
     fetchMembers();
   }, []);
 
-  const addMember = async (member: Omit<Member, 'id'>) => {
+  const addMember = async (member: Omit<Member, "id">) => {
     const membersCollection = getMembersCollection();
     const docRef = await addDoc(membersCollection, member);
-    setMembers(prev => [...prev, { id: docRef.id, ...member }]);
+    setMembers((prev) => [...prev, { id: docRef.id, ...member }]);
   };
 
   const updateMember = async (id: string, updatedMember: Partial<Member>) => {
-    const memberDoc = doc(db, 'members', id);
+    const memberDoc = doc(db, "members", id);
     await updateDoc(memberDoc, updatedMember);
-    setMembers(prev => prev.map(member => (member.id === id ? { ...member, ...updatedMember } : member)));
+    setMembers((prev) =>
+      prev.map((member) =>
+        member.id === id ? { ...member, ...updatedMember } : member
+      )
+    );
   };
 
   const deleteMember = async (id: string) => {
-    const memberDoc = doc(db, 'members', id);
+    const memberDoc = doc(db, "members", id);
     await deleteDoc(memberDoc);
-    setMembers(prev => prev.filter(member => member.id !== id));
+    setMembers((prev) => prev.filter((member) => member.id !== id));
   };
 
   return { members, loading, error, addMember, updateMember, deleteMember };
