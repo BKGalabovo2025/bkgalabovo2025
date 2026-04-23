@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker"; // Assuming you have this component
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   generateAttendanceReport,
   AttendanceReportItem,
@@ -27,6 +28,18 @@ const AttendanceReport = () => {
   const [reportData, setReportData] = useState<AttendanceReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleDateChange =
+    (setter: (date: Date | undefined) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const dateString = e.target.value;
+      if (dateString) {
+        const [year, month, day] = dateString.split("-").map(Number);
+        setter(new Date(year, month - 1, day));
+      } else {
+        setter(undefined);
+      }
+    };
 
   const handleGenerateReport = async () => {
     if (!startDate || !endDate) {
@@ -71,16 +84,26 @@ const AttendanceReport = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-          <DatePicker
-            date={startDate}
-            setDate={setStartDate}
-            placeholder="Начална дата"
-          />
-          <DatePicker
-            date={endDate}
-            setDate={setEndDate}
-            placeholder="Крайна дата"
-          />
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor="startDate">Начална дата</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
+              onChange={handleDateChange(setStartDate)}
+              className="w-[200px]"
+            />
+          </div>
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor="endDate">Крайна дата</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
+              onChange={handleDateChange(setEndDate)}
+              className="w-[200px]"
+            />
+          </div>
           <Button onClick={handleGenerateReport} disabled={isLoading}>
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
