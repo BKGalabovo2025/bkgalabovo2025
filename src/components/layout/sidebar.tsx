@@ -24,6 +24,7 @@ import {
   Repeat,
   BarChart,
   Trophy,
+  Medal,
 } from "lucide-react";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -114,6 +115,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <Link href="/tournaments" className="flex items-center gap-3">
                   <Trophy size={20} />
                   <span>Турнири</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/rankings")}>
+                <Link href="/rankings" className="flex items-center gap-3">
+                  <Medal size={20} />
+                  <span>Ранглиста</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
