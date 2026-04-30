@@ -190,9 +190,9 @@ export default function TournamentDetailsPage() {
     }
   };
 
-  const handleSaveScore = async (matchId: string, result: any) => {
+  const handleSaveScore = async (matchId: string, score: string, winnerEntryId: string) => {
     try {
-      await tournamentService.updateMatchScore(matchId, result);
+      await tournamentService.updateMatchScore(matchId, { score, winnerEntryId });
       toast.success("Резултатът е записан!");
       setSelectedMatch(null);
       await loadData();
