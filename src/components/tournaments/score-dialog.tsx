@@ -91,17 +91,46 @@ export function ScoreDialog({
 
   const updateScore = (gameIdx: number, player: "p1" | "p2", delta: number) => {
     setGames(prev =>
-      prev.map((g, i) =>
-        i === gameIdx ? { ...g, [player]: Math.max(0, g[player] + delta) } : g
-      )
+      prev.map((g, i) => {
+        if (i !== gameIdx) return g;
+        const val = Math.max(0, g[player] + delta);
+        const otherPlayer = player === "p1" ? "p2" : "p1";
+        
+        let newOtherVal = g[otherPlayer];
+        if (delta > 0 && val > 0 && newOtherVal === 0) {
+          if (val < fmt.pointsPerGame - 1) {
+            newOtherVal = fmt.pointsPerGame;
+          } else {
+            newOtherVal = val + 2;
+            if (fmt.extendedPoints && newOtherVal > 30) newOtherVal = 30;
+          }
+        }
+        
+        return { ...g, [player]: val, [otherPlayer]: newOtherVal };
+      })
     );
   };
 
   const setScore = (gameIdx: number, player: "p1" | "p2", value: number) => {
     setGames(prev =>
-      prev.map((g, i) =>
-        i === gameIdx ? { ...g, [player]: Math.max(0, isNaN(value) ? 0 : value) } : g
-      )
+      prev.map((g, i) => {
+        if (i !== gameIdx) return g;
+        const val = Math.max(0, isNaN(value) ? 0 : value);
+        const otherPlayer = player === "p1" ? "p2" : "p1";
+        
+        // Автоматично попълване: ако другият играч е на 0, предлагаме победен резултат
+        let newOtherVal = g[otherPlayer];
+        if (val > 0 && newOtherVal === 0) {
+          if (val < fmt.pointsPerGame - 1) {
+            newOtherVal = fmt.pointsPerGame;
+          } else {
+            newOtherVal = val + 2;
+            if (fmt.extendedPoints && newOtherVal > 30) newOtherVal = 30;
+          }
+        }
+        
+        return { ...g, [player]: val, [otherPlayer]: newOtherVal };
+      })
     );
   };
 
