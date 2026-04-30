@@ -7,13 +7,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 // Font configuration based on docs/blueprint.md
 const fontSans = PT_Sans({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   weight: ["400", "700"],
   variable: "--font-sans", // Use for body text
 });
 
 const fontHeading = Poppins({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   weight: ["600", "700"],
   variable: "--font-heading", // Use for headings
 });

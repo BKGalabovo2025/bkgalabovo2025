@@ -13,19 +13,21 @@ export default function ProtectedLayout({
 }) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full bg-background font-sans">
+      <div className="flex min-h-screen w-full bg-slate-50/50 dark:bg-zinc-950/50 font-sans">
         <AppSidebar />
-        <SidebarInset className="flex flex-col flex-1 min-w-0 overflow-hidden border-l border-gray-100">
+        <SidebarInset className="flex flex-col flex-1 min-w-0 overflow-hidden border-l border-gray-100 dark:border-zinc-800">
           <Toaster position="bottom-right" />
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 sticky top-0 z-30">
-            <SidebarTrigger />
-            <div className="h-4 w-px bg-border mx-2" />
-            <h1 className="font-semibold truncate text-gray-800">
-              СК БК Гълъбово
+          <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-6 sticky top-0 z-30 shadow-sm">
+            <SidebarTrigger className="-ml-1" />
+            <div className="h-4 w-px bg-border mx-1" />
+            <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              БК ГЪЛЪБОВО
             </h1>
           </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto bg-slate-50">
-            <div className="max-w-7xl mx-auto">{children}</div>
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-10 animate-in fade-in duration-500">
+              {children}
+            </div>
           </main>
         </SidebarInset>
       </div>
