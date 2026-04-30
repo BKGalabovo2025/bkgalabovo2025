@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, PT_Sans } from "next/font/google"; // Import the correct fonts
+import { Montserrat, PT_Sans } from "next/font/google"; // Import the correct fonts
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { Toaster } from "sonner";
@@ -12,7 +12,7 @@ const fontSans = PT_Sans({
   variable: "--font-sans", // Use for body text
 });
 
-const fontHeading = Poppins({
+const fontHeading = Montserrat({
   subsets: ["latin", "cyrillic"],
   weight: ["600", "700"],
   variable: "--font-heading", // Use for headings
