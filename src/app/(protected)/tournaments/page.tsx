@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Trophy, Calendar, MapPin, Plus, Users, LayoutList, Pencil, Trash2 } from "lucide-react";
+import { Trophy, Calendar, MapPin, Plus, Users, LayoutList, Pencil, Trash2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
