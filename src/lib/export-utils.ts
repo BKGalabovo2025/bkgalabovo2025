@@ -75,61 +75,80 @@ export async function exportToExcel(options: ExportOptions): Promise<void> {
 // ──────────────────────────────────────────────
 export async function exportToPdf(options: ExportOptions): Promise<void> {
   const { default: jsPDF } = await import("jspdf");
-  const { default: autoTable } = await import("jspdf-autotable");
+  const { default: html2canvas } = await import("html2canvas");
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  // Създаваме временен скрит елемент за рендиране
+  const container = document.createElement("div");
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "1000px"; // Фиксирана ширина за по-добро качество
+  container.style.backgroundColor = "white";
+  container.style.padding = "40px";
+  container.style.fontFamily = "sans-serif";
 
-  // Заглавие
-  doc.setFontSize(18);
-  doc.text(options.title, 14, 20);
+  container.innerHTML = `
+    <h1 style="font-size: 24px; margin-bottom: 5px; color: #1a1a1a;">${options.title}</h1>
+    ${options.subtitle ? `<p style="font-size: 14px; color: #666; margin-bottom: 5px;">${options.subtitle}</p>` : ""}
+    ${options.category ? `<p style="font-size: 16px; color: #3e40c8; margin-bottom: 20px;">Категория: ${options.category}</p>` : ""}
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="background-color: #1e40af; color: white;">
+          <th style="padding: 10px; border: 1px solid #ddd;">#</th>
+          <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Участник</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Изиграни</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Победи</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Загуби</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Т. Разлика</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">% Победи</th>
+          <th style="padding: 10px; border: 1px solid #ddd; background-color: #1e40af;">Точки</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${options.rows.map((r, idx) => `
+          <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${r.position}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${r.name}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.played}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center; color: #16a34a;">${r.wins}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center; color: #dc2626;">${r.losses}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.pointsRatio}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.winRate}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; background-color: ${
+              idx === 0 ? "#fef9c3" : idx === 1 ? "#f1f5f9" : idx === 2 ? "#ffedd5" : "transparent"
+            };">${r.totalPoints}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">
+      Генерирано от BK Gálabovo Management System • ${new Date().toLocaleDateString("bg-BG")}
+    </div>
+  `;
 
-  let yOffset = 28;
+  document.body.appendChild(container);
 
-  if (options.subtitle) {
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(options.subtitle, 14, yOffset);
-    yOffset += 7;
-    doc.setTextColor(0);
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2, // По-високо качество
+      useCORS: true,
+      logging: false,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [canvas.width, canvas.height]
+    });
+
+    doc.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    
+    const filename = `${options.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_")}_класиране.pdf`;
+    doc.save(filename);
+  } finally {
+    document.body.removeChild(container);
   }
-
-  if (options.category) {
-    doc.setFontSize(12);
-    doc.setTextColor(60, 80, 200);
-    doc.text(`Категория: ${options.category}`, 14, yOffset);
-    yOffset += 8;
-    doc.setTextColor(0);
-  }
-
-  autoTable(doc, {
-    startY: yOffset,
-    head: [["#", "Участник", "Изиграни", "Победи", "Загуби", "Т. Разлика", "% Победи", "Точки"]],
-    body: options.rows.map(r => [
-      r.position,
-      r.name,
-      r.played,
-      r.wins,
-      r.losses,
-      r.pointsRatio,
-      r.winRate,
-      r.totalPoints,
-    ]),
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-    },
-    didParseCell: (data) => {
-      if (data.section === "body" && data.column.index === 7) {
-        if (data.row.index === 0) data.cell.styles.fillColor = [253, 224, 71];
-        if (data.row.index === 1) data.cell.styles.fillColor = [203, 213, 225];
-        if (data.row.index === 2) data.cell.styles.fillColor = [253, 186, 116];
-      }
-    },
-  });
-
-  const filename = `${options.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_")}_класиране.pdf`;
-  doc.save(filename);
 }
 
 /**
