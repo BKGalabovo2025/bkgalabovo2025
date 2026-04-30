@@ -102,7 +102,7 @@ export function ScoreDialog({
             newOtherVal = fmt.pointsPerGame;
           } else {
             newOtherVal = val + 2;
-            if (fmt.extendedPoints && newOtherVal > 30) newOtherVal = 30;
+            if (fmt.maxPoints > 0 && newOtherVal > fmt.maxPoints) newOtherVal = fmt.maxPoints;
           }
         }
         
@@ -125,7 +125,7 @@ export function ScoreDialog({
             newOtherVal = fmt.pointsPerGame;
           } else {
             newOtherVal = val + 2;
-            if (fmt.extendedPoints && newOtherVal > 30) newOtherVal = 30;
+            if (fmt.maxPoints > 0 && newOtherVal > fmt.maxPoints) newOtherVal = fmt.maxPoints;
           }
         }
         
