@@ -132,16 +132,26 @@ function calcTournamentStandings(
 // ──────────────────────────────────────────────
 // Основна функция за ранглиста
 // ──────────────────────────────────────────────
-export async function computeGlobalRankings(): Promise<RankingEntry[]> {
+export async function computeGlobalRankings(
+  dateFilter?: { start: Date; end: Date }
+): Promise<RankingEntry[]> {
   // 1. Всички завършени турнири, влизащи в ранглистата
-  const tourSnap = await getDocs(
-    query(
-      collection(db, "tournaments"),
-      where("countsForRanking", "==", true),
-      where("status", "==", "completed")
-    )
+  let q = query(
+    collection(db, "tournaments"),
+    where("countsForRanking", "==", true),
+    where("status", "==", "completed")
   );
-  const tournaments = tourSnap.docs.map(parseDocToTournament);
+
+  const tourSnap = await getDocs(q);
+  let tournaments = tourSnap.docs.map(parseDocToTournament);
+
+  // Филтриране по дата, ако е зададено
+  if (dateFilter) {
+    tournaments = tournaments.filter(t => {
+      const tDate = new Date(t.startDate);
+      return tDate >= dateFilter.start && tDate <= dateFilter.end;
+    });
+  }
 
   if (tournaments.length === 0) return [];
 

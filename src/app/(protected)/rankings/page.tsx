@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trophy, TrendingUp, Star, Users, Award } from "lucide-react";
+import { Trophy, TrendingUp, Star, Users, Award, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CATEGORY_TABS = [
   { id: "all", label: "Общо" },
@@ -29,16 +30,33 @@ export default function RankingsPage() {
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [period, setPeriod] = useState("all");
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(period);
+  }, [period]);
 
-  const loadData = async () => {
+  const getPeriodFilter = (p: string) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    switch (p) {
+      case "year":
+        return { start: new Date(year, 0, 1), end: new Date(year, 11, 31, 23, 59, 59) };
+      case "h1":
+        return { start: new Date(year, 0, 1), end: new Date(year, 5, 30, 23, 59, 59) };
+      case "h2":
+        return { start: new Date(year, 6, 1), end: new Date(year, 11, 31, 23, 59, 59) };
+      default:
+        return undefined;
+    }
+  };
+
+  const loadData = async (p: string) => {
     setLoading(true);
     try {
+      const filter = getPeriodFilter(p);
       const [rankingsData, membersData] = await Promise.all([
-        computeGlobalRankings(),
+        computeGlobalRankings(filter),
         getAllMembers(),
       ]);
 
@@ -110,6 +128,20 @@ export default function RankingsPage() {
           <p className="text-muted-foreground text-sm mt-1">
             Глобално класиране по натрупани точки от всички официални турнири
           </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-[180px] bg-white dark:bg-zinc-950">
+              <SelectValue placeholder="Период" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всичко</SelectItem>
+              <SelectItem value="year">Текуща година (2026)</SelectItem>
+              <SelectItem value="h1">Първо полугодие (Яну-Юни)</SelectItem>
+              <SelectItem value="h2">Второ полугодие (Юли-Дек)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
