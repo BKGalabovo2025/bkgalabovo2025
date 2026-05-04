@@ -33,3 +33,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp/logs
+fix.py
+lint-results.json
+recovered_file.txt
+recovered_services.txt

@@ -1,7 +1,9 @@
 import { collection, FirestoreDataConverter } from "firebase/firestore";
 import { getDb } from "./firebase";
+export { getDb };
 import {
   ClubService,
+  ClubGeneralService,
   InventoryEvent,
   Member,
   Product,
@@ -93,6 +95,20 @@ const inventoryEventConverter: FirestoreDataConverter<InventoryEvent> = {
   },
 };
 
+const clubGeneralServiceConverter: FirestoreDataConverter<ClubGeneralService> = {
+  toFirestore: (service) => {
+    const { ...data } = service;
+    return data;
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      ...data,
+    } as ClubGeneralService;
+  },
+};
+
 // --- Collection Getters ---
 
 export const getMembersCollection = () =>
@@ -102,10 +118,10 @@ export const getSalesCollection = () =>
   collection(getDb(), "sales").withConverter(saleConverter);
 
 export const getClubServicesCollection = () =>
-  collection(getDb(), "club-services").withConverter(clubServiceConverter);
+  collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
 export const getMemberSubscriptionsCollection = () =>
-  collection(getDb(), "member-subscriptions").withConverter(
+  collection(getDb(), "memberSubscriptions").withConverter(
     subscriptionConverter
   );
 
@@ -115,4 +131,9 @@ export const getProductsCollection = () =>
 export const getInventoryEventsCollection = () =>
   collection(getDb(), "inventory-events").withConverter(
     inventoryEventConverter
+  );
+
+export const getClubGeneralServicesCollection = () =>
+  collection(getDb(), "clubGeneralServices").withConverter(
+    clubGeneralServiceConverter
   );

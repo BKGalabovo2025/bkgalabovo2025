@@ -99,22 +99,26 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Генериране на месечен график</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-[95vw] sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900 max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-6 sm:p-10 pb-0 shrink-0">
+          <DialogTitle className="text-2xl sm:text-3xl font-black font-heading text-zinc-900 dark:text-white flex items-center gap-3">
+            Генериране на график
+          </DialogTitle>
+          <DialogDescription className="text-base sm:text-lg text-zinc-500 font-medium">
             Създайте повтарящи се събития за избран месец. Попълнете данните и
-            изберете дните от седмицата, за които да се създадат събития.
+            изберете дните от седмицата.
           </DialogDescription>
         </DialogHeader>
-        <MonthlyScheduleForm
-          onSave={handleGenerate}
-          onClose={onClose}
-          isSaving={isSubmitting}
-        />
-        {error && (
-          <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
-        )}
+        <div className="px-6 sm:px-10 pb-6 sm:pb-10 pt-6 overflow-y-auto flex-1 custom-scrollbar">
+          <MonthlyScheduleForm
+            onSave={handleGenerate}
+            onClose={onClose}
+            isSaving={isSubmitting}
+          />
+          {error && (
+            <p className="text-red-500 font-bold text-sm mt-4 text-center p-3 bg-red-50 rounded-xl border border-red-100">{error}</p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

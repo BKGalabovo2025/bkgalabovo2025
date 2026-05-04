@@ -1,6 +1,7 @@
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   query,
   where,
@@ -9,6 +10,8 @@ import {
   orderBy,
   DocumentSnapshot,
   Timestamp,
+  addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Subscription, ClubService } from "@/types/index";
@@ -120,11 +123,119 @@ export const docToMemberSubscription = (
 
 // --- Service Functions ---
 
+const CLUB_SERVICES_EVENTS_COLLECTION = "clubServiceEvents";
+
+/**
+ * Logs an event in the operational history for club services (subscriptions).
+ */
+const logClubServiceEvent = async (
+  serviceId: string,
+  serviceName: string,
+  type: "create" | "update" | "delete",
+  userId: string,
+  userName: string,
+  details?: string
+) => {
+  try {
+    const db = getDb();
+    await addDoc(collection(db, CLUB_SERVICES_EVENTS_COLLECTION), {
+      serviceId,
+      serviceName,
+      type,
+      userId,
+      userName,
+      details: details || "",
+      createdAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Failed to log club service event:", error);
+  }
+};
+
+/**
+ * Retrieves the operational history for club services.
+ */
+export const getClubServiceEvents = async () => {
+  const db = getDb();
+  const q = query(collection(db, CLUB_SERVICES_EVENTS_COLLECTION), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
 export const getAllClubServices = async (): Promise<ClubService[]> => {
   const db = getDb();
   const q = query(collection(db, SERVICES_COLLECTION), orderBy("name"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docToClubService).filter(Boolean) as ClubService[];
+};
+
+export const addClubService = async (
+  service: Omit<ClubService, "id">,
+  userId: string,
+  userName: string
+): Promise<string> => {
+  const db = getDb();
+  const docRef = await addDoc(collection(db, SERVICES_COLLECTION), {
+    ...service,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdBy: { userId, userName },
+    updatedBy: { userId, userName },
+  });
+  
+  await logClubServiceEvent(docRef.id, service.name, "create", userId, userName, `Създаден абонамент: Цена ${service.price} EUR`);
+  
+  return docRef.id;
+};
+
+export const updateClubService = async (
+  id: string,
+  service: Partial<ClubService>,
+  userId: string,
+  userName: string
+): Promise<void> => {
+  const db = getDb();
+  const serviceRef = doc(db, SERVICES_COLLECTION, id);
+  const oldDoc = await getDoc(serviceRef);
+  
+  let details = "Актуализирани данни за абонамента";
+  let serviceName = service.name || "Неизвестен абонамент";
+
+  if (oldDoc.exists()) {
+    const oldData = oldDoc.data() as ClubService;
+    serviceName = service.name || oldData.name;
+    const changes: string[] = [];
+    
+    if (service.price !== undefined && service.price !== oldData.price) {
+      changes.push(`Цена: ${oldData.price} -> ${service.price} EUR`);
+    }
+    if (service.name !== undefined && service.name !== oldData.name) {
+      changes.push(`Име променено`);
+    }
+    if (service.billingPeriod !== undefined && service.billingPeriod !== oldData.billingPeriod) {
+      changes.push(`Период: ${oldData.billingPeriod} -> ${service.billingPeriod}`);
+    }
+    
+    if (changes.length > 0) {
+      details = changes.join(", ");
+    }
+  }
+
+  await updateDoc(serviceRef, {
+    ...service,
+    updatedAt: new Date().toISOString(),
+    updatedBy: { userId, userName },
+  });
+  
+  await logClubServiceEvent(id, serviceName, "update", userId, userName, details);
+};
+
+export const deleteClubService = async (id: string, userName: string, userId: string, serviceName: string = "Изтрит абонамент"): Promise<void> => {
+  const db = getDb();
+  const serviceRef = doc(db, SERVICES_COLLECTION, id);
+  await deleteDoc(serviceRef);
+  
+  await logClubServiceEvent(id, serviceName, "delete", userId, userName, "Абонаментът е изтрит от каталога");
 };
 
 // --- Subscription Functions ---

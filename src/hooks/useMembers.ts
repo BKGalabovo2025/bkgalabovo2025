@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Member } from "@/types/member.types";
 import { getMembersCollection } from "@/lib/firebase-collections";
+import { getAllMembers } from "@/services/member-service";
 
 export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -14,14 +15,10 @@ export function useMembers() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const membersCollection = getMembersCollection();
-        const querySnapshot = await getDocs(membersCollection);
-        const membersData = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return { ...data, id: doc.id };
-        });
-        setMembers(membersData as Member[]);
-      } catch {
+        const membersData = await getAllMembers(true);
+        setMembers(membersData);
+      } catch (err) {
+        console.error("Error fetching members:", err);
         setError("Failed to fetch members.");
       } finally {
         setLoading(false);

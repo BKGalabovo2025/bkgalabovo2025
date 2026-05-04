@@ -4,14 +4,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useMembers } from "@/hooks/useMembers";
 import { updateMember } from "@/services/member-service";
 import { toast } from "sonner";
-import { MemberForm } from "@/components/members/member-form";
+import { MemberForm, MemberFormValues } from "@/components/members/member-form";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Member } from "@/types/member.types";
-
-type MemberFormValues = Omit<
-  Member,
-  "id" | "name" | "registrationDate" | "updatedAt"
->;
 
 const EditMemberPage = () => {
   const router = useRouter();
@@ -23,7 +18,7 @@ const EditMemberPage = () => {
 
   const handleSave = async (data: MemberFormValues) => {
     try {
-      await updateMember(memberId, data);
+      await updateMember(memberId, data as any);
       toast.success("Успех!", {
         description: "Членът е актуализиран успешно.",
       });

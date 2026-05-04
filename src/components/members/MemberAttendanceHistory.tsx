@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ScheduleEvent, Attendee } from "@/types";
+import { ScheduleEvent, Attendee, Member } from "@/types";
 import { getEventsByMemberId } from "@/services/schedule-service";
 import {
   Card,
@@ -30,6 +30,8 @@ import {
 
 interface MemberAttendanceHistoryProps {
   memberId: string;
+  familyMembers: Member[];
+  showFamily?: boolean;
 }
 
 const StatCard = ({
@@ -59,6 +61,8 @@ const getBulgarianEventType = (type: string) =>
 
 export function MemberAttendanceHistory({
   memberId,
+  familyMembers,
+  showFamily,
 }: MemberAttendanceHistoryProps) {
   const [attendedEvents, setAttendedEvents] = useState<ScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,14 +75,31 @@ export function MemberAttendanceHistory({
       if (!memberId) return;
       setLoading(true);
       try {
-        const memberEvents = await getEventsByMemberId(memberId);
-        const attendedOnlyEvents = memberEvents.filter((event) => {
+        const memberIds = showFamily 
+          ? [memberId, ...familyMembers.map(m => m.id)]
+          : [memberId];
+
+        const eventsResults = await Promise.all(memberIds.map(id => getEventsByMemberId(id)));
+        
+        // Flatten and unique events (in case an event has multiple family members, we might want to show it once or multiple times)
+        // For attendance history, it's better to show it once but maybe indicate who attended.
+        // Actually, let's just collect all unique events where AT LEAST ONE family member attended.
+        
+        const allAttendedEvents: ScheduleEvent[] = [];
+        const eventMap = new Map<string, ScheduleEvent>();
+
+        eventsResults.flat().forEach(event => {
           const attendeeRecord = event.attendees?.find(
-            (a: Attendee) => a.memberId === memberId
+            (a: Attendee) => memberIds.includes(a.memberId) && a.attended === true
           );
-          return attendeeRecord?.attended === true;
+          if (attendeeRecord) {
+            eventMap.set(event.id, event);
+          }
         });
-        setAttendedEvents(attendedOnlyEvents);
+
+        setAttendedEvents(Array.from(eventMap.values()).sort((a, b) => 
+          new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime()
+        ));
       } catch (error) {
         console.error("Error fetching attendance history:", error);
       } finally {
@@ -86,7 +107,7 @@ export function MemberAttendanceHistory({
       }
     };
     fetchAttendance();
-  }, [memberId]);
+  }, [memberId, familyMembers, showFamily]);
 
   const filteredEvents = useMemo(() => {
     let events = [...attendedEvents];

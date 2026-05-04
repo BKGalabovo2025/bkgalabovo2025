@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Printer, AlertCircle, FileDown } from "lucide-react";
+import { Printer, AlertCircle, Download, ArrowLeft, Scissors } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { clubInfo } from "@/config/club";
@@ -17,7 +18,6 @@ interface ReceiptClientPageProps {
   saleId: string;
 }
 
-// Declare global types for CDN-loaded libraries
 declare global {
   interface Window {
     jspdf: {
@@ -39,15 +39,6 @@ declare global {
         save: (filename: string) => void;
       };
     };
-    html2canvas: (
-      element: HTMLElement,
-      options?: {
-        scale?: number;
-        useCORS?: boolean;
-        logging?: boolean;
-        backgroundColor?: string | null;
-      }
-    ) => Promise<HTMLCanvasElement>;
   }
 }
 
@@ -87,7 +78,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
   };
 
   const handleDownloadPDF = async () => {
-    if (!receiptRef.current || !window.jspdf || !window.html2canvas) {
+    if (!receiptRef.current || !window.jspdf || !(window as any).html2canvas) {
       toast.error(
         "Библиотеките за PDF все още се зареждат. Моля, опитайте след малко."
       );
@@ -98,12 +89,54 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
       setIsGeneratingPDF(true);
       const element = receiptRef.current;
 
-      // We use a high scale for better quality in the PDF
-      const canvas = await window.html2canvas(element, {
+      // Use any to bypass conflicting global types
+      const canvas = await (window as any).html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        onclone: (clonedDoc: Document) => {
+          const receipt = clonedDoc.querySelector('.printable-area') as HTMLElement;
+          if (receipt) {
+            receipt.style.backgroundColor = '#ffffff';
+            receipt.style.color = '#000000';
+            
+            // Inject a style to override any oklch/lab colors globally in the clone
+            const styleTag = clonedDoc.createElement('style');
+            styleTag.innerHTML = `
+              * { 
+                color-scheme: light !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .text-emerald-600 { color: #059669 !important; }
+              .text-red-600 { color: #dc2626 !important; }
+              .border-red-600 { border-color: #dc2626 !important; }
+              .bg-black { background-color: #000000 !important; }
+              .bg-zinc-900 { background-color: #18181b !important; }
+              .text-zinc-900 { color: #18181b !important; }
+            `;
+            clonedDoc.head.appendChild(styleTag);
+
+            const allElements = receipt.querySelectorAll('*');
+            allElements.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              // Reset any lab/oklch colors
+              const style = clonedDoc.defaultView?.getComputedStyle(htmlEl);
+              if (style) {
+                if (style.color.includes('lab') || style.color.includes('oklch')) {
+                  htmlEl.style.setProperty('color', '#000000', 'important');
+                }
+                if (style.backgroundColor.includes('lab') || style.backgroundColor.includes('oklch')) {
+                  htmlEl.style.setProperty('background-color', 'transparent', 'important');
+                }
+                if (style.borderColor.includes('lab') || style.borderColor.includes('oklch')) {
+                  htmlEl.style.setProperty('border-color', '#eeeeee', 'important');
+                }
+              }
+            });
+          }
+        }
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -119,13 +152,13 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(
-        `Receipt-${details?.sale?.id.substring(0, 8).toUpperCase() || "N-A"}.pdf`
+        `Kvitancia-${details?.sale?.id.substring(0, 8).toUpperCase() || "N-A"}.pdf`
       );
 
       toast.success("PDF файлът беше генериран успешно!");
     } catch (err) {
       console.error("Error generating PDF:", err);
-      toast.error("Възникна грешка при генерирането на PDF файла.");
+      toast.error("Възникна грешка при генерирането на PDF файла. Моля, използвайте бутона за печат вместо това.");
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -143,11 +176,10 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     );
   }
 
-  const { sale, member, relatedMember, service } = details;
+  const { sale, member, relatedMember } = details;
 
   return (
     <>
-      {/* Load PDF libraries via CDN since we can't install via npm in this restricted environment */}
       <Script
         src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
         strategy="lazyOnload"
@@ -159,277 +191,186 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
       <style>{`
         @media print {
-            @page {
-                margin: 10mm;
-                size: A4;
-            }
-            body {
-                background: white;
-            }
-            body * {
-                visibility: hidden;
-            }
-            .printable-area, .printable-area * {
-                visibility: visible;
-            }
+            @page { margin: 0; size: A4; }
+            body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
             .printable-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
+                position: absolute; left: 0; top: 0; width: 210mm; height: 297mm;
+                border: none !important; margin: 0 !important; box-shadow: none !important;
             }
-            .no-print {
-                display: none !important;
-            }
-            .print-shadow-none {
-                box-shadow: none !important;
-            }
-            /* Force exact colors for printing */
-            .print-bg-gray {
-                background-color: #f3f4f6 !important;
-                -webkit-print-color-adjust: exact;
-            }
-        }
-        
-        /* Receipt Aesthetics */
-        .receipt-container {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            line-height: 1.5;
-        }
-        .receipt-header-title {
-            letter-spacing: 0.1em;
-            color: #1a202c;
-        }
-        .receipt-table th {
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: #4a5568;
-        }
-        .receipt-footer {
-            border-top: 1px dashed #cbd5e0;
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto p-4 sm:p-8 receipt-container">
-        {/* ACTION BAR */}
-        <div className="flex flex-wrap justify-between items-center mb-8 no-print gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">
-            Управление на квитанция
-          </h1>
+      <div className="min-h-screen bg-gray-100 py-12 px-4 flex flex-col items-center no-print">
+        <div className="w-full max-w-[794px] mb-8 flex justify-between items-center">
+          {member?.id !== "GUEST_EXTERNAL" && (
+            <Link
+              href={`/members/${details.member.id}`}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-900 rounded-xl shadow-sm hover:bg-zinc-50 transition-colors font-bold text-sm border border-zinc-200"
+            >
+              <ArrowLeft size={18} />
+              Към профила на члена
+            </Link>
+          )}
           <div className="flex gap-2">
-            <Button
+            <button
               onClick={handlePrint}
-              variant="outline"
-              size="sm"
-              className="bg-white"
+              className="flex items-center gap-2 px-6 py-2 bg-white text-zinc-900 border border-zinc-900 rounded-xl shadow-sm hover:bg-zinc-50 transition-all font-bold"
             >
-              <Printer className="mr-2 h-4 w-4" />
-              Принтирай
-            </Button>
-            <Button
+              <Printer size={20} />
+              Печат
+            </button>
+            <button
               onClick={handleDownloadPDF}
-              variant="default"
-              size="sm"
               disabled={isGeneratingPDF}
+              className="flex items-center gap-2 px-6 py-2 bg-zinc-900 text-white rounded-xl shadow-xl hover:bg-black transition-all font-bold disabled:opacity-50"
             >
-              <FileDown className="mr-2 h-4 w-4" />
-              {isGeneratingPDF ? "Генериране..." : "PDF за имейл"}
-            </Button>
+              <Download size={20} className="text-white" />
+              <span className="text-white">{isGeneratingPDF ? "Генериране..." : "Изтегли PDF"}</span>
+            </button>
           </div>
         </div>
 
-        {/* PRINTABLE AREA */}
-        <div
+        <div 
+          className="bg-white shadow-2xl printable-area relative overflow-hidden" 
+          style={{ 
+            width: '794px', 
+            minHeight: '1123px', 
+            backgroundColor: '#ffffff',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            color: '#000000'
+          }} 
           ref={receiptRef}
-          className="bg-white border border-gray-200 shadow-xl p-8 sm:p-12 printable-area print-shadow-none overflow-hidden rounded-sm"
         >
-          <header className="flex flex-col md:flex-row justify-between items-start pb-8 border-b-2 border-gray-900 gap-6">
-            <div className="flex items-center">
-              <div className="relative w-20 h-20 mr-6">
-                <Image
-                  src="/logo.png"
-                  alt="Лого"
-                  fill
-                  className="object-contain"
-                />
+          {[1, 2].map((i) => (
+            <div key={i} className="relative h-[561.5px] flex flex-col p-12">
+              <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none rotate-[-35deg] text-8xl font-black border-[12px] px-12 py-4 z-0"
+                style={{ 
+                  opacity: sale?.isPaid ? 0.05 : 0.08,
+                  color: sale?.isPaid ? '#000000' : '#dc2626',
+                  borderColor: sale?.isPaid ? '#000000' : '#dc2626'
+                }}
+              >
+                {sale?.isPaid ? "ПЛАТЕНО" : "ОТЛОЖЕНО"}
               </div>
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 mb-1 uppercase tracking-tight">
-                  {clubInfo.name}
-                </h2>
-                <div className="text-sm text-gray-600 space-y-0.5">
-                  <p>{clubInfo.address}</p>
-                  <p>{clubInfo.email}</p>
-                  <p>{clubInfo.contact}</p>
+
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className="flex flex-col gap-4">
+                  <div className="relative w-40 h-16">
+                    <Image
+                      src="/logo.png"
+                      alt="Лого"
+                      fill
+                      sizes="160px"
+                      className="object-contain object-left"
+                      priority
+                    />
+                  </div>
+                  <div className="mt-1">
+                    <h2 className="text-sm font-bold uppercase tracking-tight">{clubInfo.name}</h2>
+                    <div className="text-[10px] mt-0.5 space-y-0.5" style={{ color: '#4b5563' }}>
+                      <p>{clubInfo.address}</p>
+                      <p>Електронна поща: {clubInfo.email}</p>
+                      <p>Телефон: {clubInfo.contact}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-right border-t-2 pt-2" style={{ borderColor: '#000', width: '180px' }}>
+                <h1 className="text-xl font-black uppercase mb-1">{sale?.isPaid ? "КВИТАНЦИЯ" : (sale?.relatedReservationId || details.generalService ? "УСЛУГА" : "ПОРЪЧКА")}</h1>
+                <p className="text-[10px] font-bold mb-4" style={{ color: '#6b7280' }}>№ {sale?.id.slice(-8).toUpperCase()}</p>
+                  <div className="text-[10px]">
+                    <p className="uppercase font-bold" style={{ color: '#9ca3af' }}>Дата</p>
+                    <p className="font-bold">{sale?.saleDate ? new Date(sale.saleDate).toLocaleDateString("bg-BG") : '-'}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <h1 className="text-5xl font-black text-gray-900 receipt-header-title mb-4">
-                КВИТАНЦИЯ
-              </h1>
-              <div className="inline-block bg-gray-900 text-white px-4 py-2 mt-2">
-                <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">
-                  Номер на документ
-                </p>
-                <p className="text-xl font-mono font-bold leading-none">
-                  #{sale?.id.substring(0, 8).toUpperCase() || "N/A"}
-                </p>
-              </div>
-              <p className="text-sm font-medium text-gray-600 mt-4 uppercase tracking-wider">
-                Дата:{" "}
-                {sale?.saleDate
-                  ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "N/A"}
-              </p>
-            </div>
-          </header>
 
-          <main className="mt-12">
-            <div className="grid grid-cols-2 gap-12 mb-12">
-              <div className="border-l-4 border-gray-200 pl-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  ДОСТАВЧИК
-                </h3>
-                <p className="font-bold text-lg text-gray-900">
-                  {clubInfo.name}
+              <div className="mb-6 flex justify-between items-end border-b pb-4 relative z-10" style={{ borderColor: '#f3f4f6' }}>
+                <div>
+                <p className="text-[8px] font-bold uppercase tracking-widest mb-1" style={{ color: '#9ca3af' }}>{member?.id === "GUEST_EXTERNAL" ? "КЛИЕНТ" : "ПОЛУЧАТЕЛ"}</p>
+                <p className="text-xl font-black uppercase">
+                  {member?.id === "GUEST_EXTERNAL" && sale?.clientName 
+                    ? `Външен Клиент - ${sale.clientName}`
+                    : (member ? formatFullName(member) : "---")}
                 </p>
-                <p className="text-gray-600 max-w-xs">{clubInfo.address}</p>
+                  {relatedMember && (
+                    <p className="text-[10px] font-bold mt-0.5" style={{ color: '#4b5563' }}>чрез {formatFullName(relatedMember)}</p>
+                  )}
+                </div>
+                <div className="text-right text-[10px]" style={{ color: '#4b5563' }}>
+                  <p className="font-bold uppercase mb-1" style={{ color: '#9ca3af' }}>{(sale?.relatedReservationId || details.generalService) ? "Информация за услугата" : "Информация за поръчката"}</p>
+                  <p>Статус: <span className="font-black" style={{ color: sale?.isPaid ? '#059669' : '#dc2626' }}>{sale?.isPaid ? "ПЛАТЕНО" : "ОТЛОЖЕНО"}</span></p>
+                  {details.generalService && (
+                    <>
+                      <p>Изпълнител: <span className="font-black text-black">{details.generalService.performerName}</span></p>
+                      <p>Тип: <span className="font-black text-black">{details.generalService.performerType === 'internal' ? 'Вътрешен' : 'Външен'}</span></p>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="text-right border-r-4 border-gray-200 pr-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  ПОЛУЧАТЕЛ
-                </h3>
-                {member ? (
-                  <p className="font-bold text-lg text-gray-900">
-                    {formatFullName(member)}
-                  </p>
-                ) : (
-                  <p className="font-bold text-red-600 underline decoration-wavy">
-                    (Липсва информация)
-                  </p>
-                )}
-                {relatedMember && (
-                  <p className="font-medium text-gray-700 mt-1">
-                    {formatFullName(relatedMember)}
-                  </p>
-                )}
-              </div>
-            </div>
 
-            <table className="w-full text-left mb-12 receipt-table border-collapse">
-              <thead>
-                <tr className="bg-gray-900 text-white">
-                  <th className="p-4 rounded-tl-sm">Описание на услугата</th>
-                  <th className="p-4 text-center">К-во</th>
-                  <th className="p-4 text-right">Ед. цена</th>
-                  <th className="p-4 text-right rounded-tr-sm">Обща сума</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sale?.items && sale.items.length > 0 ? (
-                  sale.items.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="p-5">
-                        <p className="font-bold text-gray-900 text-lg">
-                          {item.name || "(неизвестен артикул)"}
-                        </p>
-                        <p className="text-sm text-gray-500 italic mt-1 font-medium">
-                          {service?.name || "(неспецифицирана категория)"}
-                        </p>
-                      </td>
-                      <td className="p-5 text-center font-bold text-gray-700">
-                        {item.quantity}
-                      </td>
-                      <td className="p-5 text-right font-medium text-gray-600">
-                        {formatPrice(item.price)}
-                      </td>
-                      <td className="p-5 text-right font-black text-gray-900 text-lg">
-                        {formatPrice(item.quantity * item.price)}
-                      </td>
+              <div className="flex-grow mb-6 relative z-10">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th className="p-2 font-bold uppercase tracking-widest text-[8px]">Услуга</th>
+                      <th className="p-2 text-center font-bold uppercase tracking-widest text-[8px] w-16">К-во</th>
+                      <th className="p-2 text-right font-bold uppercase tracking-widest text-[8px] w-24">Ед. цена</th>
+                      <th className="p-2 text-right font-bold uppercase tracking-widest text-[8px] w-24">Общо</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="p-12 text-center text-gray-400 font-medium italic"
-                    >
-                      Списъкът с услуги е празен.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-              <div className="bg-blue-50 p-6 rounded-lg flex-grow border border-blue-100 no-print-background">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">
-                  Начин на плащане
-                </h4>
-                <p className="font-bold text-blue-900 flex items-center">
-                  В брой / Банков превод
-                </p>
-                <div className="mt-4 pt-4 border-t border-blue-100">
-                  <p className="text-xs text-blue-500 font-medium italic">
-                    Този документ служи за потвърждение на направеното плащане.
-                  </p>
+                  </thead>
+                  <tbody>
+                    {sale?.items.map((item, index) => (
+                      <tr key={index} className="border-b" style={{ borderColor: '#f3f4f6' }}>
+                        <td className="p-2 font-bold">{item.name}</td>
+                        <td className="p-2 text-center">{item.quantity}</td>
+                        <td className="p-2 text-right">{formatPrice(item.price)}</td>
+                        <td className="p-2 text-right font-black">{formatPrice(item.quantity * item.price)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="flex justify-between items-end relative z-10">
+                <div className="text-[8px] space-y-1 w-1/2" style={{ color: '#9ca3af' }}>
+                  <p className="font-bold uppercase" style={{ color: '#000' }}>Начин на плащане: {sale?.isPaid ? "В БРОЙ" : "ОТЛОЖЕНО"}</p>
+                  <p>{sale?.isPaid ? "Документът е валиден без мокър печат при потвърдено плащане." : "Документът е валиден само след извършване на плащането."}</p>
+                </div>
+                <div className="w-48">
+                  <div className="flex justify-between items-center bg-black text-white p-3 rounded shadow-lg">
+                    <span className="text-[8px] font-bold uppercase tracking-widest">ОБЩО ЗА ПЛАЩАНЕ</span>
+                    <span className="text-lg font-black">{formatPrice(sale?.totalAmount || 0)}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="w-full md:w-80 space-y-3">
-                <div className="flex justify-between items-center text-gray-500 px-2">
-                  <span className="text-sm font-bold uppercase tracking-wider">
-                    Междинна сума:
-                  </span>
-                  <span className="font-mono">
-                    {formatPrice(sale?.totalAmount || 0)}
-                  </span>
+              <div className="mt-8 grid grid-cols-2 gap-24 relative z-10">
+                <div className="border-t pt-2 text-center" style={{ borderColor: '#000' }}>
+                  <p className="text-[8px] font-bold uppercase">{member?.id === "GUEST_EXTERNAL" ? "Клиент" : "Платец"}</p>
                 </div>
-                <div className="flex justify-between items-center bg-gray-900 text-white p-6 rounded-sm shadow-lg transform scale-105 origin-right">
-                  <span className="text-lg font-black uppercase tracking-widest">
-                    ОБЩО:
-                  </span>
-                  <span className="text-3xl font-black">
-                    {formatPrice(sale?.totalAmount || 0)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-4 px-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    Статус на плащане:
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter ${sale?.isPaid ? "bg-green-100 text-green-700 border border-green-200" : "bg-red-100 text-red-700 border border-red-200"}`}
-                  >
-                    {sale?.isPaid ? "ПЛАТЕНО" : "НЕПЛАТЕНО"}
-                  </span>
+                <div className="border-t pt-2 text-center" style={{ borderColor: '#000' }}>
+                  <p className="text-[8px] font-bold uppercase">Касиер</p>
                 </div>
               </div>
+
+              <div className="mt-4 text-center text-[8px] font-bold tracking-[0.2em]" style={{ color: '#d1d5db' }}>
+                {i === 1 ? "ЕКЗЕМПЛЯР ЗА КЛУБА" : (member?.id === "GUEST_EXTERNAL" ? "" : "ЕКЗЕМПЛЯР ЗА ЧЛЕНА")}
+              </div>
+
+              {i === 1 && (
+                <div className="absolute bottom-0 left-0 w-full flex items-center no-print">
+                  <div className="flex-grow border-t-2 border-dashed border-gray-300"></div>
+                  <div className="px-4 text-[8px] text-gray-300 font-bold flex items-center gap-2 uppercase tracking-[0.3em]">
+                    <Scissors size={10} /> Линия за отрязване
+                  </div>
+                  <div className="flex-grow border-t-2 border-dashed border-gray-300"></div>
+                </div>
+              )}
             </div>
-
-            <footer className="mt-20 pt-10 receipt-footer flex flex-col items-center">
-              <div className="flex justify-between w-full mb-12 px-12 italic text-sm text-gray-400 uppercase font-black">
-                <p>Подпис на платилия: .........................</p>
-                <p>Подпис на касиера: .........................</p>
-              </div>
-              <p className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-widest">
-                Благодарим Ви, че спортувате с нас!
-              </p>
-              <p className="text-xs text-gray-400 font-medium">
-                {clubInfo.name} &copy; {new Date().getFullYear()}
-              </p>
-            </footer>
-          </main>
+          ))}
         </div>
       </div>
     </>

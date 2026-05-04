@@ -21,7 +21,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Repeat } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,7 +49,6 @@ const SubscriptionsPage = () => {
     return () => unsubscribe();
   }, []);
 
-  // Use SWR for complex multi-source data fetching
   const { data, error, isLoading, mutate } = useSWR(
     "subscriptions-page-data",
     async () => {
@@ -85,7 +84,6 @@ const SubscriptionsPage = () => {
 
     const { fetchedServices, fetchedMembers, allSubscriptions } = data;
 
-    // Enrich subscriptions with member and service names using in-memory lookup
     const memberMap = new Map(fetchedMembers.map((m: Member) => [m.id, m]));
     const serviceMap = new Map(
       fetchedServices.map((s: ClubService) => [s.id, s])
@@ -134,7 +132,7 @@ const SubscriptionsPage = () => {
       }
       setIsFormOpen(false);
       setSelectedSubscription(undefined);
-      mutate(); // Trigger SWR re-fetch
+      mutate();
     } catch (err) {
       console.error("Error saving subscription:", err);
       toast.error("Грешка при записа", {
@@ -154,54 +152,56 @@ const SubscriptionsPage = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Управление на абонаменти</CardTitle>
-            <CardDescription>
-              Преглед на всички абонаменти на членове.
-            </CardDescription>
-          </div>
-          <Button onClick={() => openForm()}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Добави абонамент
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns(openForm)}
-            data={subscriptions}
-            isLoading={isLoading}
-            filterColumnId="memberLastName"
-            filterPlaceholder="Филтриране по фамилия..."
-            emptyStateMessage="Все още няма добавени абонаменти."
-          />
-        </CardContent>
-      </Card>
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1">
+          <h1 className="text-5xl font-black tracking-tight font-heading text-zinc-900 dark:text-white flex items-center gap-4">
+            <Repeat className="h-12 w-12 text-blue-600" />
+            Абонаменти
+          </h1>
+          <p className="text-zinc-500 text-lg font-medium">Управление на активните услуги и периодични членства.</p>
+        </div>
+        <Button onClick={() => openForm()} className="h-12 px-10 rounded-[1.25rem] bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-black text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-xl shadow-zinc-900/20">
+          <PlusCircle className="mr-2 h-5 w-5" /> Добави абонамент
+        </Button>
+      </div>
+
+      <div className="bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden transition-all p-4">
+        <DataTable
+          columns={columns(openForm)}
+          data={subscriptions}
+          isLoading={isLoading}
+          filterColumnId="memberLastName"
+          filterPlaceholder="Търсене по фамилия..."
+          emptyStateMessage="Все още няма записани абонаменти."
+        />
+      </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedSubscription
-                ? "Редакция на абонамент"
-                : "Създаване на нов абонамент"}
+        <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900">
+          <DialogHeader className="bg-zinc-50 dark:bg-zinc-800/50 px-10 py-10">
+            <DialogTitle className="font-heading font-black text-3xl text-zinc-900 dark:text-white flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <Repeat className="h-5 w-5 text-white" />
+              </div>
+              {selectedSubscription ? "Редакция" : "Нов абонамент"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base text-zinc-500 font-medium">
               {selectedSubscription
-                ? "Променете данните и запазете."
-                : "Попълнете формата, за да създадете нов абонамент."}
+                ? "Актуализирайте информацията за членския абонамент."
+                : "Конфигурирайте параметрите на новия абонамент."}
             </DialogDescription>
           </DialogHeader>
-          <SubscriptionForm
-            members={members}
-            services={services}
-            onSave={handleSave}
-            onClose={() => setIsFormOpen(false)}
-            initialData={selectedSubscription}
-            isSaving={isSaving}
-          />
+          <div className="px-10 py-10">
+            <SubscriptionForm
+              members={members}
+              services={services}
+              onSave={handleSave}
+              onClose={() => setIsFormOpen(false)}
+              initialData={selectedSubscription}
+              isSaving={isSaving}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

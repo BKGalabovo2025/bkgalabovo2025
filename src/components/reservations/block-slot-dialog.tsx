@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { createBlockedSlot, updateBlockedSlot } from "@/lib/reservations";
 import { BlockedSlot } from "@/types/reservation";
 
@@ -125,19 +125,21 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900 max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-10 pb-0">
+          <DialogTitle className="text-3xl font-black font-heading text-zinc-900 dark:text-white flex items-center gap-3">
+            <Lock className="h-8 w-8 text-blue-600" />
             {isEditMode
               ? "Редактиране на блокирани часове"
               : "Блокиране на часове"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-lg text-zinc-500 font-medium">
             {isEditMode
               ? "Променете данните и натиснете 'Запази промените'."
               : "Изберете период и кортове, които да бъдат блокирани."}
           </DialogDescription>
         </DialogHeader>
+        <div className="px-10 pb-10 pt-6 overflow-y-auto flex-1 custom-scrollbar">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -156,15 +158,16 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Начало</FormLabel>
+                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Начало</FormLabel>
                     <Input
                       type="datetime-local"
+                      className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium"
                       value={
                         field.value
                           ? new Date(
@@ -186,9 +189,10 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                 name="endTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Край</FormLabel>
+                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Край</FormLabel>
                     <Input
                       type="datetime-local"
+                      className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium"
                       value={
                         field.value
                           ? new Date(
@@ -210,21 +214,23 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               control={form.control}
               name="courtIds"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Кортове</FormLabel>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="all-courts"
-                      checked={field.value.length === courtCount}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked ? allCourtIds : [])
-                      }
-                    />
-                    <label htmlFor="all-courts" className="font-medium">
-                      Всички
-                    </label>
+                <FormItem className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <FormLabel className="text-zinc-900 dark:text-white font-black font-heading text-lg">Кортове</FormLabel>
+                    <div className="flex items-center space-x-2 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                      <Checkbox
+                        id="all-courts"
+                        checked={field.value.length === courtCount}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? allCourtIds : [])
+                        }
+                      />
+                      <label htmlFor="all-courts" className="text-xs font-black uppercase tracking-widest">
+                        Всички
+                      </label>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 pt-2">
+                  <div className="grid grid-cols-3 gap-3">
                     {allCourtIds.map((id) => (
                       <FormField
                         key={id}
@@ -233,7 +239,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                         render={({ field: innerField }) => (
                           <FormItem
                             key={id}
-                            className="flex items-center space-x-2"
+                            className="flex items-center space-x-3 bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm"
                           >
                             <FormControl>
                               <Checkbox
@@ -252,7 +258,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
+                            <FormLabel className="font-bold text-sm">
                               Корт {id}
                             </FormLabel>
                           </FormItem>
@@ -264,21 +270,23 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                 </FormItem>
               )}
             />
-            <DialogFooter>
+            <div className="flex gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"
+                className="flex-1 h-14 rounded-2xl border-zinc-200 dark:border-zinc-800 font-black text-xs uppercase tracking-widest"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
               </Button>
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" disabled={isSaving} className="flex-1 h-14 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-black text-xs uppercase tracking-widest shadow-xl shadow-zinc-900/20">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isEditMode ? "Запази промените" : "Блокирай"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

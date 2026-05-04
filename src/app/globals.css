@@ -9,7 +9,7 @@
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 199 89% 48%; /* Sky Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -23,6 +23,13 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.75rem;
+
+    /* Breakpoints */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
   }
 
   .dark {
@@ -32,7 +39,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 199 89% 48%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -60,49 +67,149 @@
     font-family: var(--font-sans), sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading), sans-serif;
     letter-spacing: -0.02em;
   }
 }
 
-/* stylelint-disable at-rule-no-unknown */
-@theme {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-
-/* Custom container utility */
-/* stylelint-disable no-invalid-position-declaration */
-@utility container {
+.container {
   margin-left: auto;
   margin-right: auto;
   width: 100%;
   padding-left: 1rem;
   padding-right: 1rem;
+}
 
-  @media (width >= 640px) {
+@media (width >= 640px) {
+  .container {
     max-width: 640px;
   }
+}
 
-  @media (width >= 768px) {
+@media (width >= 768px) {
+  .container {
     max-width: 768px;
   }
+}
 
-  @media (width >= 1024px) {
+@media (width >= 1024px) {
+  .container {
     max-width: 1024px;
   }
+}
 
-  @media (width >= 1280px) {
+@media (width >= 1280px) {
+  .container {
     max-width: 1280px;
   }
+}
 
-  @media (width >= 1536px) {
+@media (width >= 1536px) {
+  .container {
     max-width: 1536px;
   }
 }
-/* stylelint-enable no-invalid-position-declaration */
-/* stylelint-enable at-rule-no-unknown */
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.glass {
+  background-color: rgb(255 255 255 / 50%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 20%);
+}
+
+.dark .glass {
+  background-color: rgb(9 9 11 / 50%);
+  border-color: rgb(39 39 42 / 50%);
+}
+
+.text-gradient {
+  background-image: linear-gradient(to right, #0ea5e9, #2563eb);
+  background-clip: text;
+  color: transparent;
+}
+
+.premium-header {
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.premium-card {
+  background: rgb(255 255 255 / 80%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 5%);
+}
+
+.dark .premium-card {
+  background: rgb(9 9 11 / 80%);
+  border-color: rgb(255 255 255 / 5%);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 50%);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgb(59 130 246 / 20%);
+  color: #2563eb;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
