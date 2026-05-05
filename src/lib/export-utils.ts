@@ -29,9 +29,18 @@ export interface ExportOptions {
 export async function exportToExcel(options: ExportOptions): Promise<void> {
   const XLSX = await import("xlsx");
 
-  const headers = ["#", "Участник", "Изиграни", "Победи", "Загуби", "Т. Разлика", "% Победи", "Точки"];
+  const headers = [
+    "#",
+    "Участник",
+    "Изиграни",
+    "Победи",
+    "Загуби",
+    "Т. Разлика",
+    "% Победи",
+    "Точки",
+  ];
 
-  const data = options.rows.map(r => [
+  const data = options.rows.map((r) => [
     r.position,
     r.name,
     r.played,
@@ -53,14 +62,14 @@ export async function exportToExcel(options: ExportOptions): Promise<void> {
 
   // Стилизираме ширините на колоните
   worksheet["!cols"] = [
-    { wch: 5 },   // #
-    { wch: 30 },  // Участник
-    { wch: 10 },  // Изиграни
-    { wch: 10 },  // Победи
-    { wch: 10 },  // Загуби
-    { wch: 12 },  // Т. Разлика
-    { wch: 12 },  // % Победи
-    { wch: 10 },  // Точки
+    { wch: 5 }, // #
+    { wch: 30 }, // Участник
+    { wch: 10 }, // Изиграни
+    { wch: 10 }, // Победи
+    { wch: 10 }, // Загуби
+    { wch: 12 }, // Т. Разлика
+    { wch: 12 }, // % Победи
+    { wch: 10 }, // Точки
   ];
 
   const workbook = XLSX.utils.book_new();
@@ -105,7 +114,9 @@ export async function exportToPdf(options: ExportOptions): Promise<void> {
         </tr>
       </thead>
       <tbody>
-        ${options.rows.map((r, idx) => `
+        ${options.rows
+          .map(
+            (r, idx) => `
           <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${r.position}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">${r.name}</td>
@@ -115,14 +126,22 @@ export async function exportToPdf(options: ExportOptions): Promise<void> {
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.pointsRatio}</td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.winRate}</td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; background-color: ${
-              idx === 0 ? "#fef9c3" : idx === 1 ? "#f1f5f9" : idx === 2 ? "#ffedd5" : "transparent"
+              idx === 0
+                ? "#fef9c3"
+                : idx === 1
+                  ? "#f1f5f9"
+                  : idx === 2
+                    ? "#ffedd5"
+                    : "transparent"
             };">${r.totalPoints}</td>
           </tr>
-        `).join("")}
+        `
+          )
+          .join("")}
       </tbody>
     </table>
     <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">
-      Генерирано от BK Gálabovo Management System • ${new Date().toLocaleDateString("bg-BG")}
+      Генерирано от Бадминтон клуб Гълъбово Management System • ${new Date().toLocaleDateString("bg-BG")}
     </div>
   `;
 
@@ -139,11 +158,11 @@ export async function exportToPdf(options: ExportOptions): Promise<void> {
     const doc = new jsPDF({
       orientation: "landscape",
       unit: "px",
-      format: [canvas.width, canvas.height]
+      format: [canvas.width, canvas.height],
     });
 
     doc.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    
+
     const filename = `${options.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_")}_класиране.pdf`;
     doc.save(filename);
   } finally {
@@ -166,7 +185,9 @@ export const exportToCSV = <T extends Record<string, unknown>>(
         const val = obj[header];
         if (val === null || val === undefined) return "";
         const cellValue = String(val).replace(/"/g, '""');
-        return (cellValue.includes(",") || cellValue.includes("\n") || cellValue.includes('"'))
+        return cellValue.includes(",") ||
+          cellValue.includes("\n") ||
+          cellValue.includes('"')
           ? `"${cellValue}"`
           : cellValue;
       })

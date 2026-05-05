@@ -19,7 +19,7 @@ const EditMemberPage = () => {
   const memberId = params.id as string;
 
   const { members, loading, error } = useMembers();
-  const member = members.find(m => m.id === memberId);
+  const member = members.find((m) => m.id === memberId);
 
   const handleSave = async (data: MemberFormValues) => {
     try {

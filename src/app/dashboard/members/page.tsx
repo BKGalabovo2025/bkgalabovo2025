@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useMembers } from '@/hooks/useMembers';
-import { columns } from '@/components/members/columns';
-import { DataTable } from '@/components/ui/data-table';
+import React from "react";
+import { useMembers } from "@/hooks/useMembers";
+import { columns } from "@/components/members/columns";
+import { DataTable } from "@/components/ui/data-table";
 
 const MembersPage = () => {
   const { members, loading, error } = useMembers();

@@ -22,7 +22,7 @@ export function generateBergerMatches(
   const numPlayers = players.length;
   const numRounds = numPlayers - 1;
   const matchesPerRound = numPlayers / 2;
-  
+
   const matches: Omit<Match, "id">[] = [];
 
   for (let round = 0; round < numRounds; round++) {
@@ -35,15 +35,15 @@ export function generateBergerMatches(
         matches.push({
           tournamentId,
           categoryId,
-          stage: "Групова фаза", 
+          stage: "Групова фаза",
           round: round + 1,
           player1EntryId: home.id,
           player2EntryId: away.id,
-          status: "pending"
+          status: "pending",
         });
       }
     }
-    
+
     // Завъртаме играчите за следващия кръг (играчът на индекс 0 остава фиксиран)
     players.splice(1, 0, players.pop()!);
   }

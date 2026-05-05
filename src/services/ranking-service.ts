@@ -1,12 +1,12 @@
 import { getDb } from "@/lib/firebase";
 const db = getDb();
+import { collection, getDocs, query, where } from "firebase/firestore";
 import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-import { Tournament, TournamentEntry, Match, TournamentSchema } from "@/types/tournament.types";
+  Tournament,
+  TournamentEntry,
+  Match,
+  TournamentSchema,
+} from "@/types/tournament.types";
 
 // ──────────────────────────────────────────────
 // Точки за класиране по позиция
@@ -63,10 +63,18 @@ function parseDocToTournament(doc: any): Tournament {
     return TournamentSchema.parse({
       ...data,
       id: doc.id,
-      startDate: data.startDate?.toDate ? data.startDate.toDate().toISOString() : data.startDate,
-      endDate: data.endDate?.toDate ? data.endDate.toDate().toISOString() : data.endDate,
-      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+      startDate: data.startDate?.toDate
+        ? data.startDate.toDate().toISOString()
+        : data.startDate,
+      endDate: data.endDate?.toDate
+        ? data.endDate.toDate().toISOString()
+        : data.endDate,
+      createdAt: data.createdAt?.toDate
+        ? data.createdAt.toDate().toISOString()
+        : data.createdAt,
+      updatedAt: data.updatedAt?.toDate
+        ? data.updatedAt.toDate().toISOString()
+        : data.updatedAt,
     });
   } catch {
     return { ...data, id: doc.id } as Tournament;
@@ -91,16 +99,19 @@ function calcTournamentStandings(
   entries: TournamentEntry[],
   matches: Match[]
 ): Record<string, number> {
-  const standingsMap: Record<string, { wins: number; losses: number; points: number }> = {};
+  const standingsMap: Record<
+    string,
+    { wins: number; losses: number; points: number }
+  > = {};
 
-  entries.forEach(e => {
+  entries.forEach((e) => {
     if (!e.id) return;
     standingsMap[e.id] = { wins: 0, losses: 0, points: 0 };
   });
 
   matches
-    .filter(m => m.status === "completed" && m.winnerEntryId)
-    .forEach(m => {
+    .filter((m) => m.status === "completed" && m.winnerEntryId)
+    .forEach((m) => {
       if (m.player1EntryId && standingsMap[m.player1EntryId]) {
         if (m.winnerEntryId === m.player1EntryId) {
           standingsMap[m.player1EntryId].wins++;
@@ -120,7 +131,9 @@ function calcTournamentStandings(
     });
 
   // Сортираме по точки и връщаме позицията
-  const sorted = Object.entries(standingsMap).sort(([, a], [, b]) => b.points - a.points);
+  const sorted = Object.entries(standingsMap).sort(
+    ([, a], [, b]) => b.points - a.points
+  );
   const positionMap: Record<string, number> = {};
   sorted.forEach(([id], idx) => {
     positionMap[id] = idx + 1;
@@ -132,9 +145,10 @@ function calcTournamentStandings(
 // ──────────────────────────────────────────────
 // Основна функция за ранглиста
 // ──────────────────────────────────────────────
-export async function computeGlobalRankings(
-  dateFilter?: { start: Date; end: Date }
-): Promise<RankingEntry[]> {
+export async function computeGlobalRankings(dateFilter?: {
+  start: Date;
+  end: Date;
+}): Promise<RankingEntry[]> {
   // 1. Всички завършени турнири, влизащи в ранглистата
   let q = query(
     collection(db, "tournaments"),
@@ -147,7 +161,7 @@ export async function computeGlobalRankings(
 
   // Филтриране по дата, ако е зададено
   if (dateFilter) {
-    tournaments = tournaments.filter(t => {
+    tournaments = tournaments.filter((t) => {
       const tDate = new Date(t.startDate);
       return tDate >= dateFilter.start && tDate <= dateFilter.end;
     });
@@ -163,27 +177,35 @@ export async function computeGlobalRankings(
 
     // Entries
     const entriesSnap = await getDocs(
-      query(collection(db, "tournament_entries"), where("tournamentId", "==", tourn.id))
+      query(
+        collection(db, "tournament_entries"),
+        where("tournamentId", "==", tourn.id)
+      )
     );
     const entries = entriesSnap.docs.map(parseDocToEntry);
 
     // Matches
     const matchesSnap = await getDocs(
-      query(collection(db, "tournament_matches"), where("tournamentId", "==", tourn.id))
+      query(
+        collection(db, "tournament_matches"),
+        where("tournamentId", "==", tourn.id)
+      )
     );
     const matches = matchesSnap.docs.map(parseDocToMatch);
 
     // 3. Изчисляваме позиции по категория
     for (const cat of tourn.categories) {
-      const catEntries = entries.filter(e => e.categoryId === cat);
-      const catMatches = matches.filter(m => m.categoryId === cat);
+      const catEntries = entries.filter((e) => e.categoryId === cat);
+      const catMatches = matches.filter((m) => m.categoryId === cat);
 
       if (catEntries.length === 0) continue;
 
       const positionMap = calcTournamentStandings(catEntries, catMatches);
-      const catMatchesCompleted = catMatches.filter(m => m.status === "completed");
+      const catMatchesCompleted = catMatches.filter(
+        (m) => m.status === "completed"
+      );
 
-      catEntries.forEach(entry => {
+      catEntries.forEach((entry) => {
         if (!entry.memberId) return; // Пропускаме гости
 
         const position = positionMap[entry.id!] ?? catEntries.length;
@@ -193,7 +215,7 @@ export async function computeGlobalRankings(
         // Статистики от мачовете
         let entryWins = 0;
         let entryLosses = 0;
-        catMatchesCompleted.forEach(m => {
+        catMatchesCompleted.forEach((m) => {
           if (m.player1EntryId === entry.id || m.player2EntryId === entry.id) {
             if (m.winnerEntryId === entry.id) entryWins++;
             else entryLosses++;
@@ -221,34 +243,56 @@ export async function computeGlobalRankings(
           player.wins += entryWins;
           player.losses += entryLosses;
 
-          if (player.bestPlacement === null || position < player.bestPlacement) {
+          if (
+            player.bestPlacement === null ||
+            position < player.bestPlacement
+          ) {
             player.bestPlacement = position;
           }
 
-          const catLabel = cat === "singles" ? "Единично" : cat === "doubles" ? "Двойки" : "Смесени";
-          const existing = player.categoryBreakdown.find(c => c.category === catLabel);
+          const catLabel =
+            cat === "singles"
+              ? "Единично"
+              : cat === "doubles"
+                ? "Двойки"
+                : "Смесени";
+          const existing = player.categoryBreakdown.find(
+            (c) => c.category === catLabel
+          );
           if (existing) {
             existing.points += finalPoints;
             existing.played++;
           } else {
-            player.categoryBreakdown.push({ category: catLabel, points: finalPoints, played: 1 });
+            player.categoryBreakdown.push({
+              category: catLabel,
+              points: finalPoints,
+              played: 1,
+            });
           }
         };
 
         // Добавяме точки на първия играч
         if (entry.memberId) {
-          addPointsToPlayer(entry.memberId, entry.externalName || entry.memberId);
+          addPointsToPlayer(
+            entry.memberId,
+            entry.externalName || entry.memberId
+          );
         }
-        
+
         // Добавяме точки на партньора (ако има такъв)
         if (entry.partnerMemberId) {
-          addPointsToPlayer(entry.partnerMemberId, entry.partnerExternalName || entry.partnerMemberId);
+          addPointsToPlayer(
+            entry.partnerMemberId,
+            entry.partnerExternalName || entry.partnerMemberId
+          );
         }
       });
     }
   }
 
   // 4. Сортираме и добавяме позиции
-  const sorted = Object.values(playerMap).sort((a, b) => b.totalPoints - a.totalPoints);
+  const sorted = Object.values(playerMap).sort(
+    (a, b) => b.totalPoints - a.totalPoints
+  );
   return sorted.map((p, idx) => ({ ...p, position: idx + 1 }));
 }

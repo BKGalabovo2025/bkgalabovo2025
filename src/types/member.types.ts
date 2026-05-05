@@ -36,7 +36,13 @@ export const MemberSchema = z.object({
   // --- Optional Contact & Personal Info ---
   middleName: z.string().nullable().optional(),
   gender: z.enum(["male", "female"]).nullable().optional(),
-  email: z.string().trim().email({ message: "Невалиден имейл адрес" }).or(z.literal("")).nullable().optional(),
+  email: z
+    .string()
+    .trim()
+    .email({ message: "Невалиден имейл адрес" })
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
   phone: z.string().nullable().optional(),
   phoneType: z.enum(["personal", "parent"]).nullable().optional(),
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
@@ -73,3 +79,11 @@ export const MemberSchema = z.object({
  * This type is used throughout the application to ensure type safety.
  */
 export type Member = z.infer<typeof MemberSchema>;
+
+/**
+ * Data required to create or update a member.
+ */
+export type MemberFormData = Omit<
+  Member,
+  "id" | "name" | "registrationDate" | "updatedAt"
+>;

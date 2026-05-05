@@ -16,21 +16,34 @@ import {
   Timestamp,
   serverTimestamp,
 } from "firebase/firestore";
-import { Tournament, TournamentEntry, Match, TournamentSchema } from "@/types/tournament.types";
+import {
+  Tournament,
+  TournamentEntry,
+  Match,
+  TournamentSchema,
+} from "@/types/tournament.types";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 
 // Utility to parse Firestore docs to our Tournament type
 function docToTournament(docSnapshot: any): Tournament {
   const data = docSnapshot.data();
-  
+
   return TournamentSchema.parse({
     ...data,
     id: docSnapshot.id,
-    startDate: data.startDate?.toDate ? data.startDate.toDate().toISOString() : data.startDate,
-    endDate: data.endDate?.toDate ? data.endDate.toDate().toISOString() : data.endDate,
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+    startDate: data.startDate?.toDate
+      ? data.startDate.toDate().toISOString()
+      : data.startDate,
+    endDate: data.endDate?.toDate
+      ? data.endDate.toDate().toISOString()
+      : data.endDate,
+    createdAt: data.createdAt?.toDate
+      ? data.createdAt.toDate().toISOString()
+      : data.createdAt,
+    updatedAt: data.updatedAt?.toDate
+      ? data.updatedAt.toDate().toISOString()
+      : data.updatedAt,
   });
 }
 
@@ -74,7 +87,7 @@ export const tournamentService = {
     try {
       // Валидация преди запис
       const validatedData = TournamentSchema.omit({ id: true }).parse(data);
-      
+
       const payload = {
         ...validatedData,
         startDate: Timestamp.fromDate(new Date(validatedData.startDate)),
@@ -83,7 +96,10 @@ export const tournamentService = {
         updatedAt: serverTimestamp(),
       };
 
-      const docRef = await addDoc(collection(db, TOURNAMENTS_COLLECTION), payload);
+      const docRef = await addDoc(
+        collection(db, TOURNAMENTS_COLLECTION),
+        payload
+      );
       return docRef.id;
     } catch (error) {
       console.error("Error creating tournament:", error);
@@ -143,12 +159,14 @@ export const tournamentService = {
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(docSnapshot => {
+      return snapshot.docs.map((docSnapshot) => {
         const data = docSnapshot.data();
         return {
           ...data,
           id: docSnapshot.id,
-          registrationDate: data.registrationDate?.toDate ? data.registrationDate.toDate().toISOString() : data.registrationDate,
+          registrationDate: data.registrationDate?.toDate
+            ? data.registrationDate.toDate().toISOString()
+            : data.registrationDate,
         } as TournamentEntry;
       });
     } catch (error) {
@@ -160,7 +178,9 @@ export const tournamentService = {
   /**
    * Добавя участник/двойка към турнир
    */
-  async createTournamentEntry(entry: Omit<TournamentEntry, "id" | "registrationDate">): Promise<string> {
+  async createTournamentEntry(
+    entry: Omit<TournamentEntry, "id" | "registrationDate">
+  ): Promise<string> {
     try {
       // Премахваме всички undefined полета, за да не гърми Firestore
       const cleanEntry = Object.fromEntries(
@@ -197,9 +217,12 @@ export const tournamentService = {
 
   async getTournamentMatches(tournamentId: string): Promise<Match[]> {
     try {
-      const q = query(collection(db, "tournament_matches"), where("tournamentId", "==", tournamentId));
+      const q = query(
+        collection(db, "tournament_matches"),
+        where("tournamentId", "==", tournamentId)
+      );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Match));
+      return snapshot.docs.map((d) => ({ ...d.data(), id: d.id }) as Match);
     } catch (error) {
       console.error("Error fetching matches:", error);
       throw error;
@@ -209,7 +232,7 @@ export const tournamentService = {
   async createMatches(matches: Omit<Match, "id">[]): Promise<void> {
     try {
       const batch = writeBatch(db);
-      matches.forEach(match => {
+      matches.forEach((match) => {
         const docRef = doc(collection(db, "tournament_matches"));
         batch.set(docRef, match);
       });
@@ -229,7 +252,10 @@ export const tournamentService = {
     }
   },
 
-  async updateMatchScore(matchId: string, result: { score: string; winnerEntryId: string }): Promise<void> {
+  async updateMatchScore(
+    matchId: string,
+    result: { score: string; winnerEntryId: string }
+  ): Promise<void> {
     try {
       await updateDoc(doc(db, "tournament_matches", matchId), {
         ...result,
@@ -244,14 +270,17 @@ export const tournamentService = {
 
   async deleteMatchesByTournament(tournamentId: string): Promise<void> {
     try {
-      const q = query(collection(db, "tournament_matches"), where("tournamentId", "==", tournamentId));
+      const q = query(
+        collection(db, "tournament_matches"),
+        where("tournamentId", "==", tournamentId)
+      );
       const snapshot = await getDocs(q);
       const batch = writeBatch(db);
-      snapshot.docs.forEach(d => batch.delete(d.ref));
+      snapshot.docs.forEach((d) => batch.delete(d.ref));
       await batch.commit();
     } catch (error) {
       console.error("Error deleting matches:", error);
       throw error;
     }
-  }
+  },
 };

@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, type Mock } from "vitest";
 import { docToSale, hasMemberPaidForMonth } from "../sales-service";
 import { DocumentSnapshot, getDocs } from "firebase/firestore";
-import { Sale } from "@/types";
 
 // Mock firebase collections
 vi.mock("@/lib/firebase-collections", () => ({
@@ -70,7 +69,7 @@ describe("sales-service", () => {
   });
 
   describe("hasMemberPaidForMonth", () => {
-    const mockedGetDocs = getDocs as vi.Mock;
+    const mockedGetDocs = getDocs as Mock;
 
     it("should return true if a member has a subscription sale for the month", async () => {
       const mockSalesDocs = {

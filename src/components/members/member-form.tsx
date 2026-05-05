@@ -257,7 +257,8 @@ export const MemberForm = ({
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value && !isNaN(new Date(field.value).getTime()) ? (
+                            {field.value &&
+                            !isNaN(new Date(field.value).getTime()) ? (
                               format(new Date(field.value), "PPP")
                             ) : (
                               <span>Избери дата</span>
@@ -270,7 +271,8 @@ export const MemberForm = ({
                         <Calendar
                           mode="single"
                           selected={
-                            field.value && !isNaN(new Date(field.value).getTime())
+                            field.value &&
+                            !isNaN(new Date(field.value).getTime())
                               ? new Date(field.value)
                               : undefined
                           }

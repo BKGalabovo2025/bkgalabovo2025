@@ -4,7 +4,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/sidebar";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 export default function ProtectedLayout({
   children,
@@ -21,7 +21,7 @@ export default function ProtectedLayout({
             <SidebarTrigger className="-ml-1" />
             <div className="h-4 w-px bg-border mx-1" />
             <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              БК ГЪЛЪБОВО
+              БАДМИНТОН КЛУБ ГЪЛЪБОВО
             </h1>
           </header>
           <main className="flex-1 overflow-y-auto">

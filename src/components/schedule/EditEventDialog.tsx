@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,19 +8,19 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { ScheduleEvent, ScheduleEventType } from '@/types';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/select";
+import { ScheduleEvent, ScheduleEventType } from "@/types";
+import { Loader2 } from "lucide-react";
 
 interface EditEventDialogProps {
   isOpen: boolean;
@@ -28,21 +28,21 @@ interface EditEventDialogProps {
   event: ScheduleEvent | null;
   onUpdateEvent: (
     eventId: string,
-    eventData: Partial<Omit<ScheduleEvent, 'id' | 'color'>>
+    eventData: Partial<Omit<ScheduleEvent, "id" | "color">>
   ) => Promise<void>;
 }
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
-  training: 'Тренировка',
-  competition: 'Състезание',
-  camp: 'Лагер',
-  event: 'Събитие',
-  other: 'Друго',
+  training: "Тренировка",
+  competition: "Състезание",
+  camp: "Лагер",
+  event: "Събитие",
+  other: "Друго",
 };
 
 // Helper to format date for datetime-local input
 const toLocalISOString = (dateString: string | undefined | null): string => {
-  if (!dateString) return '';
+  if (!dateString) return "";
   try {
     const date = new Date(dateString);
     const tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
@@ -51,7 +51,7 @@ const toLocalISOString = (dateString: string | undefined | null): string => {
       .slice(0, 16);
     return localISOTime;
   } catch {
-    return ''; // Handle invalid date string gracefully
+    return ""; // Handle invalid date string gracefully
   }
 };
 
@@ -63,12 +63,16 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
 }) => {
   // State is initialized directly from the event prop.
   // The key on DialogContent ensures the form resets when the event changes.
-  const [title, setTitle] = useState(event?.title || '');
-  const [startDate, setStartDate] = useState(toLocalISOString(event?.startDate));
+  const [title, setTitle] = useState(event?.title || "");
+  const [startDate, setStartDate] = useState(
+    toLocalISOString(event?.startDate)
+  );
   const [endDate, setEndDate] = useState(toLocalISOString(event?.endDate));
-  const [type, setType] = useState<ScheduleEventType>(event?.type || 'training');
-  const [location, setLocation] = useState(event?.location || '');
-  const [description, setDescription] = useState(event?.description || '');
+  const [type, setType] = useState<ScheduleEventType>(
+    event?.type || "training"
+  );
+  const [location, setLocation] = useState(event?.location || "");
+  const [description, setDescription] = useState(event?.description || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +80,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
     e.preventDefault();
     if (!event) return;
     if (!title || !startDate || !endDate || !type || !location) {
-      setError('Моля, попълнете всички задължителни полета.');
+      setError("Моля, попълнете всички задължителни полета.");
       return;
     }
 
@@ -94,7 +98,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
       });
       onClose();
     } catch (err) {
-      setError('Възникна грешка при обновяването на събитието.');
+      setError("Възникна грешка при обновяването на събитието.");
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -195,10 +199,11 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Запазване...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    Запазване...
                   </>
                 ) : (
-                  'Запази промените'
+                  "Запази промените"
                 )}
               </Button>
             </DialogFooter>

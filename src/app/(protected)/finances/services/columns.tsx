@@ -12,18 +12,18 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorFn: (row) => row.price,
-  id: "price",
-  header: () => <div className="text-right">Цена</div>,
-  cell: ({ row }) => {
-    const price = parseFloat(row.getValue("price"));
-    const formatted = new Intl.NumberFormat("bg-BG", {
-      style: "currency",
-      currency: "BGN",
-    }).format(price);
+    id: "price",
+    header: () => <div className="text-right">Цена</div>,
+    cell: ({ row }) => {
+      const price = parseFloat(row.getValue("price"));
+      const formatted = new Intl.NumberFormat("bg-BG", {
+        style: "currency",
+        currency: "BGN",
+      }).format(price);
 
-    return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
   },
-},
   {
     accessorFn: (row) => row.type,
     id: "type",

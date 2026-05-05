@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemberForm } from "../member-form";
 import { Member } from "@/types/member.types";
 
@@ -74,9 +69,7 @@ describe("MemberForm", () => {
     });
 
     // Submit the form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Създаване на член/i })
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Създаване на член/i }));
 
     // Wait for the async onSave to be called
     await waitFor(() => {
@@ -95,13 +88,15 @@ describe("MemberForm", () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
     // Attempt to submit an empty form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Създаване на член/i })
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Създаване на член/i }));
 
     // Check for specific validation messages from Zod schema
-    expect(await screen.findByText("First name is required.")).toBeInTheDocument();
-    expect(await screen.findByText("Last name is required.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("First name is required.")
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Last name is required.")
+    ).toBeInTheDocument();
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -127,7 +122,6 @@ describe("MemberForm", () => {
   //   expect(onSave).not.toHaveBeenCalled();
   // });
 
-
   it("should open calendar, select a date, and update the input", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
@@ -140,8 +134,8 @@ describe("MemberForm", () => {
 
     // Check if the button text has been updated to include the selected day
     await waitFor(() => {
-        const buttonWithDate = screen.getByRole("button", { name: /15/i });
-        expect(buttonWithDate).toBeInTheDocument();
+      const buttonWithDate = screen.getByRole("button", { name: /15/i });
+      expect(buttonWithDate).toBeInTheDocument();
     });
   });
 

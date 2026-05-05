@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
@@ -11,13 +11,43 @@ import { TournamentForm } from "@/components/tournaments/tournament-form";
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ArrowLeft, UserPlus, Trash2, Calendar, MapPin, Trophy, ShieldAlert, CheckCircle2, Pencil, FileDown, Download } from "lucide-react";
+import {
+  ArrowLeft,
+  UserPlus,
+  Trash2,
+  Calendar,
+  MapPin,
+  Trophy,
+  ShieldAlert,
+  CheckCircle2,
+  Pencil,
+  FileDown,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { exportToExcel, exportToPdf, type ExportRow } from "@/lib/export-utils";
@@ -31,24 +61,25 @@ export default function TournamentDetailsPage() {
   const [entries, setEntries] = useState<TournamentEntry[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
-  
+
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [activeTab, setActiveTab] = useState("participants");
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [tournData, entriesData, matchesData, membersData] = await Promise.all([
-        tournamentService.getTournamentById(tournamentId),
-        tournamentService.getTournamentEntries(tournamentId),
-        tournamentService.getTournamentMatches(tournamentId),
-        getAllMembers()
-      ]);
+      const [tournData, entriesData, matchesData, membersData] =
+        await Promise.all([
+          tournamentService.getTournamentById(tournamentId),
+          tournamentService.getTournamentEntries(tournamentId),
+          tournamentService.getTournamentMatches(tournamentId),
+          getAllMembers(),
+        ]);
 
       if (!tournData) {
         toast.error("Турнирът не е намерен!");
@@ -57,20 +88,23 @@ export default function TournamentDetailsPage() {
       }
 
       const dict: Record<string, Member> = {};
-      membersData.forEach(m => {
+      membersData.forEach((m) => {
         if (m.id) dict[m.id] = m;
       });
 
       setTournament(tournData);
-      
+
       // Sort entries by registration date (client-side) to avoid missing index errors in Firestore
       const sortedEntries = entriesData.sort((a, b) => {
         if (!a.registrationDate) return 1;
         if (!b.registrationDate) return -1;
-        return new Date(a.registrationDate).getTime() - new Date(b.registrationDate).getTime();
+        return (
+          new Date(a.registrationDate).getTime() -
+          new Date(b.registrationDate).getTime()
+        );
       });
       setEntries(sortedEntries);
-      
+
       setMatches(matchesData);
       setMembersDict(dict);
     } catch (error) {
@@ -79,13 +113,13 @@ export default function TournamentDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tournamentId, router]);
 
   useEffect(() => {
     if (tournamentId) {
-      loadData();
+      Promise.resolve().then(() => loadData());
     }
-  }, [tournamentId]);
+  }, [tournamentId, loadData]);
 
   const handleGenerateMatches = async () => {
     if (!tournament) return;
@@ -93,32 +127,43 @@ export default function TournamentDetailsPage() {
       toast.error("Нужни са поне 2 участника за генериране на схема.");
       return;
     }
-    
+
     if (matches.length > 0) {
-      if (!confirm("Вече има генерирани мачове. Искате ли да ги изтриете и да генерирате нови? Всички въведени резултати ще бъдат загубени!")) return;
+      if (
+        !confirm(
+          "Вече има генерирани мачове. Искате ли да ги изтриете и да генерирате нови? Всички въведени резултати ще бъдат загубени!"
+        )
+      )
+        return;
     }
-    
+
     setIsGenerating(true);
     try {
       if (matches.length > 0) {
         await tournamentService.deleteMatchesByTournament(tournamentId);
       }
-      
+
       let allNewMatches: Omit<Match, "id">[] = [];
-      
+
       // Generate matches per category
-      tournament.categories.forEach(cat => {
-        const catEntries = entries.filter(e => e.categoryId === cat);
-        const newMatches = generateBergerMatches(tournamentId, cat as any, catEntries);
+      tournament.categories.forEach((cat) => {
+        const catEntries = entries.filter((e) => e.categoryId === cat);
+        const newMatches = generateBergerMatches(
+          tournamentId,
+          cat as any,
+          catEntries
+        );
         allNewMatches = [...allNewMatches, ...newMatches];
       });
-      
+
       if (allNewMatches.length === 0) {
-        toast.error("Няма достатъчно участници в отделните категории за мачове.");
+        toast.error(
+          "Няма достатъчно участници в отделните категории за мачове."
+        );
         setIsGenerating(false);
         return;
       }
-      
+
       await tournamentService.createMatches(allNewMatches);
       toast.success("Схемата беше генерирана успешно!");
       await loadData();
@@ -162,11 +207,16 @@ export default function TournamentDetailsPage() {
   };
 
   const handleDeleteEntry = async (entryId: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете този участник от турнира?")) return;
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да изтриете този участник от турнира?"
+      )
+    )
+      return;
     try {
       await tournamentService.deleteTournamentEntry(entryId);
       toast.success("Участникът е премахнат.");
-      setEntries(entries.filter(e => e.id !== entryId));
+      setEntries(entries.filter((e) => e.id !== entryId));
     } catch (error) {
       toast.error("Грешка при изтриване");
     }
@@ -182,27 +232,43 @@ export default function TournamentDetailsPage() {
   };
 
   const getCategoryName = (cat: string) => {
-    switch(cat) {
-      case "singles": return "Единично";
-      case "doubles": return "Двойки";
-      case "mixed": return "Смесени двойки";
-      default: return cat;
+    switch (cat) {
+      case "singles":
+        return "Единично";
+      case "doubles":
+        return "Двойки";
+      case "mixed":
+        return "Смесени двойки";
+      default:
+        return cat;
     }
   };
 
-  const handleSaveScore = async (matchId: string, score: string, winnerEntryId: string) => {
+  const handleSaveScore = async (
+    matchId: string,
+    score: string,
+    winnerEntryId: string
+  ) => {
     try {
-      await tournamentService.updateMatchScore(matchId, { score, winnerEntryId });
+      await tournamentService.updateMatchScore(matchId, {
+        score,
+        winnerEntryId,
+      });
       toast.success("Резултатът е записан!");
       setSelectedMatch(null);
       await loadData();
-      
+
       // Проверка дали всички мачове са приключили
-      const updatedMatches = await tournamentService.getTournamentMatches(tournamentId);
-      const allCompleted = updatedMatches.length > 0 && updatedMatches.every(m => m.status === "completed");
-      
+      const updatedMatches =
+        await tournamentService.getTournamentMatches(tournamentId);
+      const allCompleted =
+        updatedMatches.length > 0 &&
+        updatedMatches.every((m) => m.status === "completed");
+
       if (allCompleted && tournament?.status !== "completed") {
-        const shouldComplete = confirm("Всички срещи в турнира са изиграни! Желаете ли да приключите турнира официално?");
+        const shouldComplete = confirm(
+          "Всички срещи в турнира са изиграни! Желаете ли да приключите турнира официално?"
+        );
         if (shouldComplete) {
           await handleCompleteTournament();
         }
@@ -215,7 +281,9 @@ export default function TournamentDetailsPage() {
   const handleCompleteTournament = async () => {
     if (!tournament?.id) return;
     try {
-      await tournamentService.updateTournament(tournament.id, { status: "completed" });
+      await tournamentService.updateTournament(tournament.id, {
+        status: "completed",
+      });
       toast.success("Турнирът е успешно приключен!");
       await loadData();
     } catch (error) {
@@ -223,9 +291,13 @@ export default function TournamentDetailsPage() {
     }
   };
 
-  const handleExport = async (formatType: "excel" | "pdf", category: string, standings: any[]) => {
+  const handleExport = async (
+    formatType: "excel" | "pdf",
+    category: string,
+    standings: any[]
+  ) => {
     if (!tournament) return;
-    
+
     const rows: ExportRow[] = standings.map((s, idx) => ({
       position: idx + 1,
       name: s.name || getEntryNameById(s.entryId),
@@ -233,14 +305,20 @@ export default function TournamentDetailsPage() {
       wins: s.wins,
       losses: s.losses,
       pointsRatio: `${s.gamesWon}:${s.gamesLost}`,
-      winRate: s.played > 0 ? `${Math.round((s.wins / s.played) * 100)}%` : "0%",
+      winRate:
+        s.played > 0 ? `${Math.round((s.wins / s.played) * 100)}%` : "0%",
       totalPoints: s.points,
     }));
 
     const options = {
       title: tournament.title,
       subtitle: `${format(new Date(tournament.startDate), "dd.MM.yyyy")} - ${tournament.location}`,
-      category: category === "singles" ? "Единично" : category === "doubles" ? "Двойки" : "Смесени",
+      category:
+        category === "singles"
+          ? "Единично"
+          : category === "doubles"
+            ? "Двойки"
+            : "Смесени",
       rows,
     };
 
@@ -248,19 +326,26 @@ export default function TournamentDetailsPage() {
     else await exportToPdf(options);
   };
 
-  const getEntryNameById = (entryId?: string | null) => {
-    if (!entryId) return "Почива (BYE)";
-    const entry = entries.find(e => e.id === entryId);
-    if (!entry) return "Неизвестен";
-    const p1 = getPlayerName(entry.memberId, entry.externalName);
-    if (entry.categoryId === "doubles" || entry.categoryId === "mixed") {
-      const p2 = getPlayerName(entry.partnerMemberId, entry.partnerExternalName);
-      return `${p1} / ${p2}`;
-    }
-    return p1;
-  };
+  const getEntryNameById = useCallback(
+    (entryId?: string | null) => {
+      if (!entryId) return "Почива (BYE)";
+      const entry = entries.find((e) => e.id === entryId);
+      if (!entry) return "Неизвестен";
+      const p1 = getPlayerName(entry.memberId, entry.externalName);
+      if (entry.categoryId === "doubles" || entry.categoryId === "mixed") {
+        const p2 = getPlayerName(
+          entry.partnerMemberId,
+          entry.partnerExternalName
+        );
+        return `${p1} / ${p2}`;
+      }
+      return p1;
+    },
+    [entries, membersDict]
+  );
 
-  if (loading) return <div className="p-12 text-center">Зареждане на детайли...</div>;
+  if (loading)
+    return <div className="p-12 text-center">Зареждане на детайли...</div>;
   if (!tournament) return null;
 
   return (
@@ -272,11 +357,18 @@ export default function TournamentDetailsPage() {
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">{tournament.title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {tournament.title}
+          </h1>
           <div className="flex gap-2 mt-2 text-sm text-muted-foreground">
-            <span className="flex items-center"><Calendar className="mr-1 h-3 w-3" /> {format(new Date(tournament.startDate), "dd.MM.yyyy")}</span>
+            <span className="flex items-center">
+              <Calendar className="mr-1 h-3 w-3" />{" "}
+              {format(new Date(tournament.startDate), "dd.MM.yyyy")}
+            </span>
             <span>&bull;</span>
-            <span className="flex items-center"><MapPin className="mr-1 h-3 w-3" /> {tournament.location}</span>
+            <span className="flex items-center">
+              <MapPin className="mr-1 h-3 w-3" /> {tournament.location}
+            </span>
           </div>
         </div>
         <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
@@ -289,12 +381,12 @@ export default function TournamentDetailsPage() {
           <DialogHeader>
             <DialogTitle>Записване за турнира</DialogTitle>
           </DialogHeader>
-          <EntryForm 
-            tournamentId={tournament.id!} 
-            allowedCategories={tournament.categories} 
+          <EntryForm
+            tournamentId={tournament.id!}
+            allowedCategories={tournament.categories}
             existingEntries={entries}
-            onSave={handleSaveEntry} 
-            onClose={() => setIsEntryDialogOpen(false)} 
+            onSave={handleSaveEntry}
+            onClose={() => setIsEntryDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
@@ -312,8 +404,8 @@ export default function TournamentDetailsPage() {
           />
         </DialogContent>
       </Dialog>
-      
-      <ScoreDialog 
+
+      <ScoreDialog
         key={selectedMatch?.id || "none"}
         isOpen={!!selectedMatch}
         match={selectedMatch}
@@ -325,17 +417,23 @@ export default function TournamentDetailsPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="participants">Участници ({entries.length})</TabsTrigger>
-          <TabsTrigger value="matches">Схема/Мачове ({matches.length})</TabsTrigger>
+          <TabsTrigger value="participants">
+            Участници ({entries.length})
+          </TabsTrigger>
+          <TabsTrigger value="matches">
+            Схема/Мачове ({matches.length})
+          </TabsTrigger>
           <TabsTrigger value="results">Резултати</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="participants" className="mt-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Списък с участници</CardTitle>
-                <CardDescription>Всички регистрирани играчи за този турнир</CardDescription>
+                <CardDescription>
+                  Всички регистрирани играчи за този турнир
+                </CardDescription>
               </div>
               <Button onClick={() => setIsEntryDialogOpen(true)}>
                 <UserPlus className="mr-2 h-4 w-4" /> Запиши участник
@@ -361,21 +459,28 @@ export default function TournamentDetailsPage() {
                     {entries.map((entry) => (
                       <TableRow key={entry.id}>
                         <TableCell>
-                          <Badge variant="secondary">{getCategoryName(entry.categoryId)}</Badge>
+                          <Badge variant="secondary">
+                            {getCategoryName(entry.categoryId)}
+                          </Badge>
                         </TableCell>
                         <TableCell className="font-medium">
                           {getPlayerName(entry.memberId, entry.externalName)}
                         </TableCell>
                         <TableCell>
-                          {(entry.categoryId === "doubles" || entry.categoryId === "mixed") ? 
-                            getPlayerName(entry.partnerMemberId, entry.partnerExternalName) 
-                            : <span className="text-muted-foreground">-</span>
-                          }
+                          {entry.categoryId === "doubles" ||
+                          entry.categoryId === "mixed" ? (
+                            getPlayerName(
+                              entry.partnerMemberId,
+                              entry.partnerExternalName
+                            )
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="text-destructive hover:bg-destructive/10"
                             onClick={() => handleDeleteEntry(entry.id!)}
                           >
@@ -396,42 +501,53 @@ export default function TournamentDetailsPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Генератор на мачове</CardTitle>
-                <CardDescription>Схема на турнира (Система Бергер)</CardDescription>
+                <CardDescription>
+                  Схема на турнира (Система Бергер)
+                </CardDescription>
               </div>
-              <Button 
-                onClick={handleGenerateMatches} 
+              <Button
+                onClick={handleGenerateMatches}
                 disabled={isGenerating || entries.length < 2}
                 variant={matches.length > 0 ? "outline" : "default"}
               >
                 <Trophy className="mr-2 h-4 w-4" />
-                {matches.length > 0 ? "Прегенерирай схемата" : "Генерирай мачове"}
+                {matches.length > 0
+                  ? "Прегенерирай схемата"
+                  : "Генерирай мачове"}
               </Button>
             </CardHeader>
             <CardContent>
               {matches.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">
                   <Trophy className="mx-auto h-12 w-12 mb-4 opacity-20" />
-                  <p>Мачовете ще могат да се генерират, когато всички участници са записани.</p>
+                  <p>
+                    Мачовете ще могат да се генерират, когато всички участници
+                    са записани.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-12">
-                  {tournament.categories.map(cat => {
-                    const catMatches = matches.filter(m => m.categoryId === cat);
+                  {tournament.categories.map((cat) => {
+                    const catMatches = matches.filter(
+                      (m) => m.categoryId === cat
+                    );
                     if (catMatches.length === 0) return null;
-                    
+
                     const pendingMatches = catMatches
-                      .filter(m => m.status !== "completed")
+                      .filter((m) => m.status !== "completed")
                       .sort((a, b) => (a.round || 0) - (b.round || 0));
                     const completedMatches = catMatches
-                      .filter(m => m.status === "completed")
+                      .filter((m) => m.status === "completed")
                       .sort((a, b) => (a.round || 0) - (b.round || 0));
-                    
+
                     return (
                       <div key={cat} className="space-y-6">
                         <div className="bg-muted px-4 py-3 rounded-lg border flex items-center">
-                          <h3 className="text-xl font-semibold uppercase tracking-wider">{getCategoryName(cat)}</h3>
+                          <h3 className="text-xl font-semibold uppercase tracking-wider">
+                            {getCategoryName(cat)}
+                          </h3>
                         </div>
-                        
+
                         {/* Предстоящи мачове */}
                         {pendingMatches.length > 0 && (
                           <div className="ml-4">
@@ -440,28 +556,42 @@ export default function TournamentDetailsPage() {
                               Предстоящи мачове ({pendingMatches.length})
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                              {pendingMatches.map(match => (
-                                <div key={match.id} className="border rounded-lg p-4 flex flex-col justify-between shadow-sm hover:border-primary/50 transition-colors bg-white dark:bg-zinc-950">
+                              {pendingMatches.map((match) => (
+                                <div
+                                  key={match.id}
+                                  className="border rounded-lg p-4 flex flex-col justify-between shadow-sm hover:border-primary/50 transition-colors bg-white dark:bg-zinc-950"
+                                >
                                   <div className="flex justify-between items-center mb-4 border-b pb-2">
-                                    <Badge variant="outline" className="text-[10px]">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px]"
+                                    >
                                       Кръг {match.round}
                                     </Badge>
-                                    <span className="text-xs text-muted-foreground">{match.stage}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {match.stage}
+                                    </span>
                                   </div>
-                                  
+
                                   <div className="space-y-3 mb-4">
                                     <div className="flex justify-between items-center font-medium">
-                                      <span className="truncate pr-2">{getEntryNameById(match.player1EntryId)}</span>
+                                      <span className="truncate pr-2">
+                                        {getEntryNameById(match.player1EntryId)}
+                                      </span>
                                     </div>
-                                    <div className="text-xs text-muted-foreground pl-2 border-l-2 border-primary/30">срещу</div>
+                                    <div className="text-xs text-muted-foreground pl-2 border-l-2 border-primary/30">
+                                      срещу
+                                    </div>
                                     <div className="flex justify-between items-center font-medium">
-                                      <span className="truncate pr-2">{getEntryNameById(match.player2EntryId)}</span>
+                                      <span className="truncate pr-2">
+                                        {getEntryNameById(match.player2EntryId)}
+                                      </span>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="mt-auto pt-3 border-t flex justify-end items-center">
-                                    <Button 
-                                      variant="default" 
+                                    <Button
+                                      variant="default"
                                       size="sm"
                                       className="w-full"
                                       onClick={() => setSelectedMatch(match)}
@@ -483,37 +613,65 @@ export default function TournamentDetailsPage() {
                               Изиграни мачове ({completedMatches.length})
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 opacity-80">
-                              {completedMatches.map(match => (
-                                <div key={match.id} className="border rounded-lg p-4 flex flex-col justify-between shadow-sm bg-muted/30">
+                              {completedMatches.map((match) => (
+                                <div
+                                  key={match.id}
+                                  className="border rounded-lg p-4 flex flex-col justify-between shadow-sm bg-muted/30"
+                                >
                                   <div className="flex justify-between items-center mb-4 border-b pb-2 border-muted-foreground/20">
-                                    <Badge variant="secondary" className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+                                    >
                                       Завършен
                                     </Badge>
-                                    <span className="text-xs text-muted-foreground">Кръг {match.round}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Кръг {match.round}
+                                    </span>
                                   </div>
-                                  
+
                                   <div className="space-y-3 mb-4">
-                                    <div className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player1EntryId ? "text-green-600 dark:text-green-400" : ""}`}>
+                                    <div
+                                      className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player1EntryId ? "text-green-600 dark:text-green-400" : ""}`}
+                                    >
                                       <div className="flex items-center gap-2 truncate pr-2">
-                                        {match.winnerEntryId === match.player1EntryId && <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
-                                        <span className="truncate">{getEntryNameById(match.player1EntryId)}</span>
+                                        {match.winnerEntryId ===
+                                          match.player1EntryId && (
+                                          <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                                        )}
+                                        <span className="truncate">
+                                          {getEntryNameById(
+                                            match.player1EntryId
+                                          )}
+                                        </span>
                                       </div>
                                     </div>
-                                    <div className="text-xs text-muted-foreground pl-2 border-l-2 border-muted-foreground/30">срещу</div>
-                                    <div className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player2EntryId ? "text-green-600 dark:text-green-400" : ""}`}>
+                                    <div className="text-xs text-muted-foreground pl-2 border-l-2 border-muted-foreground/30">
+                                      срещу
+                                    </div>
+                                    <div
+                                      className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player2EntryId ? "text-green-600 dark:text-green-400" : ""}`}
+                                    >
                                       <div className="flex items-center gap-2 truncate pr-2">
-                                        {match.winnerEntryId === match.player2EntryId && <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
-                                        <span className="truncate">{getEntryNameById(match.player2EntryId)}</span>
+                                        {match.winnerEntryId ===
+                                          match.player2EntryId && (
+                                          <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                                        )}
+                                        <span className="truncate">
+                                          {getEntryNameById(
+                                            match.player2EntryId
+                                          )}
+                                        </span>
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="mt-auto pt-3 border-t border-muted-foreground/20 flex justify-between items-center">
                                     <div className="font-bold text-lg font-mono tracking-wider">
                                       {match.score}
                                     </div>
-                                    <Button 
-                                      variant="ghost" 
+                                    <Button
+                                      variant="ghost"
                                       size="sm"
                                       className="h-8 px-2 text-xs"
                                       onClick={() => setSelectedMatch(match)}
@@ -526,7 +684,6 @@ export default function TournamentDetailsPage() {
                             </div>
                           </div>
                         )}
-                        
                       </div>
                     );
                   })}
@@ -537,10 +694,12 @@ export default function TournamentDetailsPage() {
         </TabsContent>
 
         <TabsContent value="results" className="mt-6">
-          {tournament.categories.map(cat => {
-            const catEntries = entries.filter(e => e.categoryId === cat);
-            const catMatches = matches.filter(m => m.categoryId === cat && m.status === "completed");
-            
+          {tournament.categories.map((cat) => {
+            const catEntries = entries.filter((e) => e.categoryId === cat);
+            const catMatches = matches.filter(
+              (m) => m.categoryId === cat && m.status === "completed"
+            );
+
             if (catEntries.length === 0) return null;
 
             // Изчисляваме класирането
@@ -556,7 +715,7 @@ export default function TournamentDetailsPage() {
             };
 
             const standingsMap: Record<string, Standing> = {};
-            catEntries.forEach(e => {
+            catEntries.forEach((e) => {
               if (!e.id) return;
               standingsMap[e.id] = {
                 entryId: e.id,
@@ -570,9 +729,10 @@ export default function TournamentDetailsPage() {
               };
             });
 
-            catMatches.forEach(m => {
-              if (!m.player1EntryId || !m.player2EntryId || !m.winnerEntryId) return;
-              
+            catMatches.forEach((m) => {
+              if (!m.player1EntryId || !m.player2EntryId || !m.winnerEntryId)
+                return;
+
               const p1 = standingsMap[m.player1EntryId];
               const p2 = standingsMap[m.player2EntryId];
               if (!p1 || !p2) return;
@@ -582,7 +742,7 @@ export default function TournamentDetailsPage() {
 
               // Парсираме геймове от резултата
               if (m.score) {
-                m.score.split(",").forEach(s => {
+                m.score.split(",").forEach((s) => {
                   const parts = s.trim().split("-");
                   const s1 = parseInt(parts[0]) || 0;
                   const s2 = parseInt(parts[1]) || 0;
@@ -622,36 +782,42 @@ export default function TournamentDetailsPage() {
                         Класиране – {getCategoryName(cat)}
                       </CardTitle>
                       <CardDescription>
-                        {catMatches.length} от {matches.filter(m => m.categoryId === cat).length} мача изиграни
+                        {catMatches.length} от{" "}
+                        {matches.filter((m) => m.categoryId === cat).length}{" "}
+                        мача изиграни
                       </CardDescription>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="h-8 gap-2"
                         onClick={() => handleExport("excel", cat, standings)}
                       >
                         <FileDown className="h-4 w-4 text-green-600" /> Excel
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="h-8 gap-2"
                         onClick={() => handleExport("pdf", cat, standings)}
                       >
                         <Download className="h-4 w-4 text-red-600" /> PDF
                       </Button>
-                      {tournament.status !== "completed" && matches.filter(m => m.categoryId === cat).every(m => m.status === "completed") && (
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          className="h-8 gap-2 bg-green-600 hover:bg-green-700"
-                          onClick={handleCompleteTournament}
-                        >
-                          <CheckCircle2 className="h-4 w-4" /> Приключи турнира
-                        </Button>
-                      )}
+                      {tournament.status !== "completed" &&
+                        matches
+                          .filter((m) => m.categoryId === cat)
+                          .every((m) => m.status === "completed") && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 gap-2 bg-green-600 hover:bg-green-700"
+                            onClick={handleCompleteTournament}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Приключи
+                            турнира
+                          </Button>
+                        )}
                     </div>
                   </div>
                 </CardHeader>
@@ -662,17 +828,29 @@ export default function TournamentDetailsPage() {
                         <TableHead className="w-10 text-center">#</TableHead>
                         <TableHead>Участник</TableHead>
                         <TableHead className="text-center">Изиграни</TableHead>
-                        <TableHead className="text-center text-green-600">Победи</TableHead>
-                        <TableHead className="text-center text-destructive">Загуби</TableHead>
-                        <TableHead className="text-center">Т. Разлика</TableHead>
-                        <TableHead className="text-center font-bold">Точки</TableHead>
+                        <TableHead className="text-center text-green-600">
+                          Победи
+                        </TableHead>
+                        <TableHead className="text-center text-destructive">
+                          Загуби
+                        </TableHead>
+                        <TableHead className="text-center">
+                          Т. Разлика
+                        </TableHead>
+                        <TableHead className="text-center font-bold">
+                          Точки
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {standings.map((s, idx) => (
                         <TableRow
                           key={s.entryId}
-                          className={idx === 0 && s.played > 0 ? "bg-yellow-50 dark:bg-yellow-900/10" : ""}
+                          className={
+                            idx === 0 && s.played > 0
+                              ? "bg-yellow-50 dark:bg-yellow-900/10"
+                              : ""
+                          }
                         >
                           <TableCell className="text-center font-bold">
                             {idx === 0 && s.wins > 0 ? (
@@ -685,15 +863,30 @@ export default function TournamentDetailsPage() {
                               idx + 1
                             )}
                           </TableCell>
-                          <TableCell className="font-medium">{s.name}</TableCell>
-                          <TableCell className="text-center">{s.played}</TableCell>
-                          <TableCell className="text-center text-green-600 font-semibold">{s.wins}</TableCell>
-                          <TableCell className="text-center text-destructive">{s.losses}</TableCell>
+                          <TableCell className="font-medium">
+                            {s.name}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {s.played}
+                          </TableCell>
+                          <TableCell className="text-center text-green-600 font-semibold">
+                            {s.wins}
+                          </TableCell>
+                          <TableCell className="text-center text-destructive">
+                            {s.losses}
+                          </TableCell>
                           <TableCell className="text-center font-mono text-sm">
                             {s.gamesWon}:{s.gamesLost}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={idx === 0 && s.played > 0 ? "default" : "secondary"} className="font-bold">
+                            <Badge
+                              variant={
+                                idx === 0 && s.played > 0
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="font-bold"
+                            >
                               {s.points}
                             </Badge>
                           </TableCell>

@@ -66,7 +66,9 @@ const DashboardPage = () => {
   return (
     <div className="p-4 sm:p-6 space-y-6">
       <header>
-        <h1 className="text-4xl font-bold font-heading tracking-tight text-zinc-900 dark:text-white">Табло за управление</h1>
+        <h1 className="text-4xl font-bold font-heading tracking-tight text-zinc-900 dark:text-white">
+          Табло за управление
+        </h1>
         <p className="text-muted-foreground">
           Бърз преглед на активността в клуба.
         </p>

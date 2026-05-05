@@ -1,11 +1,10 @@
-
 export default {
   // 1. Първо форматираме и оправяме автоматично всички променени файлове
-  '*.{js,jsx,ts,tsx}': ['eslint --fix', 'prettier --write'],
-  '*.{css}': ['stylelint --fix', 'prettier --write'],
-  '*.json': ['prettier --write'],
+  "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+  "*.{css}": ["stylelint --fix", "prettier --write"],
+  "*.json": ["prettier --write"],
 
   // 2. След това, изпълняваме всички проверки за целия проект.
   // Това се прави като функция, за да се гарантира, че ще се изпълни само веднъж.
-  '**/*': () => 'npm run check-all',
+  "**/*": () => "npm run check-all",
 };

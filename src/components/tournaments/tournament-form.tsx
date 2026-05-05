@@ -2,14 +2,31 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TournamentSchema, Tournament, MATCH_FORMAT_PRESETS } from "@/types/tournament.types";
+import {
+  TournamentSchema,
+  Tournament,
+  MATCH_FORMAT_PRESETS,
+} from "@/types/tournament.types";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Save, X, Star } from "lucide-react";
 import { useState } from "react";
 
@@ -27,7 +44,11 @@ interface TournamentFormProps {
   initialData?: Tournament;
 }
 
-export function TournamentForm({ onSave, onClose, initialData }: TournamentFormProps) {
+export function TournamentForm({
+  onSave,
+  onClose,
+  initialData,
+}: TournamentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<TournamentFormValues>({
@@ -69,7 +90,10 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
               <FormItem className="md:col-span-2">
                 <FormLabel>Име на турнира</FormLabel>
                 <FormControl>
-                  <Input placeholder="Напр. Пролетен турнир Гълъбово 2026" {...field} />
+                  <Input
+                    placeholder="Напр. Пролетен турнир Гълъбово 2026"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -83,12 +107,14 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
               <FormItem>
                 <FormLabel>Начална дата</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field} 
-                    value={field.value ? field.value.split("T")[0] : ""} 
+                  <Input
+                    type="date"
+                    {...field}
+                    value={field.value ? field.value.split("T")[0] : ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const date = e.target.value ? new Date(e.target.value).toISOString() : "";
+                      const date = e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : "";
                       field.onChange(date);
                     }}
                   />
@@ -105,12 +131,14 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
               <FormItem>
                 <FormLabel>Крайна дата</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field} 
-                    value={field.value ? field.value.split("T")[0] : ""} 
+                  <Input
+                    type="date"
+                    {...field}
+                    value={field.value ? field.value.split("T")[0] : ""}
                     onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value).toISOString() : "";
+                      const date = e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : "";
                       field.onChange(date);
                     }}
                   />
@@ -140,16 +168,25 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
             render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel>Формат на игра</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Избери формат" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="berger">Групи (Система на Бергер)</SelectItem>
-                    <SelectItem value="knockout">Директна Елиминация</SelectItem>
-                    <SelectItem value="mixed">Смесен (Групи + Елиминация)</SelectItem>
+                    <SelectItem value="berger">
+                      Групи (Система на Бергер)
+                    </SelectItem>
+                    <SelectItem value="knockout">
+                      Директна Елиминация
+                    </SelectItem>
+                    <SelectItem value="mixed">
+                      Смесен (Групи + Елиминация)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -163,7 +200,10 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
             render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel>Статус</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Избери статус" />
@@ -171,7 +211,9 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="upcoming">Предстоящ (Скрит)</SelectItem>
-                    <SelectItem value="registration_open">Отворено записване</SelectItem>
+                    <SelectItem value="registration_open">
+                      Отворено записване
+                    </SelectItem>
                     <SelectItem value="ongoing">В ход (Играе се)</SelectItem>
                     <SelectItem value="completed">Приключил</SelectItem>
                   </SelectContent>
@@ -191,12 +233,13 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                   Турнирът изисква ли такса от участниците?
                 </p>
               </div>
-              <Checkbox 
+              <Checkbox
                 id="hasFee"
-                checked={form.watch("entryFee") > 0} 
+                checked={form.watch("entryFee") > 0}
                 onCheckedChange={(checked: boolean) => {
                   if (!checked) form.setValue("entryFee", 0);
-                  else if (form.getValues("entryFee") === 0) form.setValue("entryFee", 10);
+                  else if (form.getValues("entryFee") === 0)
+                    form.setValue("entryFee", 10);
                 }}
                 className="h-6 w-6"
               />
@@ -211,13 +254,17 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                     <FormLabel>Сума в Евро (€)</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(Number(e.target.value))} 
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           className="pr-8"
                         />
-                        <span className="absolute right-3 top-2.5 text-muted-foreground">€</span>
+                        <span className="absolute right-3 top-2.5 text-muted-foreground">
+                          €
+                        </span>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -240,7 +287,10 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                     Резултатите ще се валидират спрямо избрания формат.
                   </p>
                 </div>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white dark:bg-zinc-950">
                       <SelectValue placeholder="Избери формат" />
@@ -270,7 +320,8 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                     Влиза в ранглистата
                   </FormLabel>
                   <p className="text-[0.8rem] text-muted-foreground mt-1">
-                    Ако е включено, резултатите ще носят точки за класирането на всеки участник.
+                    Ако е включено, резултатите ще носят точки за класирането на
+                    всеки участник.
                   </p>
                 </div>
                 <FormControl>
@@ -291,7 +342,14 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
               <FormItem>
                 <FormLabel>Коефициент за точки</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.5" {...field} onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(Number(e.target.value))} />
+                  <Input
+                    type="number"
+                    step="0.5"
+                    {...field}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      field.onChange(Number(e.target.value))
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -331,7 +389,7 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                                         field.value?.filter(
                                           (value: string) => value !== item.id
                                         )
-                                      )
+                                      );
                                 }}
                               />
                             </FormControl>
@@ -339,7 +397,7 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
                               {item.label}
                             </FormLabel>
                           </FormItem>
-                        )
+                        );
                       }}
                     />
                   ))}
@@ -356,7 +414,10 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
               <FormItem className="md:col-span-2">
                 <FormLabel>Описание / Бележки</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Допълнителна информация за турнира..." {...field} />
+                  <Textarea
+                    placeholder="Допълнителна информация за турнира..."
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -365,7 +426,12 @@ export function TournamentForm({ onSave, onClose, initialData }: TournamentFormP
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             <X className="mr-2 h-4 w-4" /> Отказ
           </Button>
           <Button type="submit" disabled={isSubmitting}>

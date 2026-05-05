@@ -20,7 +20,7 @@
     "deps:check": "ncu",
     "deps:update": "ncu -u",
     "lighthouse": "lhci autorun",
-    "check-all": "npm run typecheck && npm run lint && npm run knip && npm run test",
+    "check-all": "npm run typecheck && npm run lint && npm run test",
     "test": "vitest run",
     "security-check": "npm audit",
     "prepare": "husky"

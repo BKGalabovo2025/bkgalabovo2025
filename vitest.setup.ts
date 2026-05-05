@@ -2,7 +2,12 @@ import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn(), back: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/",
 }));
@@ -11,8 +16,11 @@ vi.mock("next/navigation", () => ({
 const mockCollectionRef = { path: "mock-collection" } as any;
 const mockDocRef = { id: "mock-doc" } as any;
 
-vi.mock('firebase/firestore', async () => {
-  const firestore = await vi.importActual<typeof import('firebase/firestore')>('firebase/firestore');
+vi.mock("firebase/firestore", async () => {
+  const firestore =
+    await vi.importActual<typeof import("firebase/firestore")>(
+      "firebase/firestore"
+    );
   return {
     ...firestore,
     getFirestore: vi.fn(() => ({})),
@@ -20,9 +28,11 @@ vi.mock('firebase/firestore', async () => {
     collection: vi.fn(() => mockCollectionRef),
     // Mock doc to return a specific reference
     doc: vi.fn(() => mockDocRef),
-    getDoc: vi.fn(() => Promise.resolve({ exists: () => true, data: () => ({})})),
+    getDoc: vi.fn(() =>
+      Promise.resolve({ exists: () => true, data: () => ({}) })
+    ),
     getDocs: vi.fn(() => Promise.resolve({ docs: [] })),
-    addDoc: vi.fn(() => Promise.resolve({ id: '123' })),
+    addDoc: vi.fn(() => Promise.resolve({ id: "123" })),
     updateDoc: vi.fn(() => Promise.resolve()),
     deleteDoc: vi.fn(() => Promise.resolve()),
     serverTimestamp: vi.fn(() => firestore.serverTimestamp()),
@@ -30,11 +40,11 @@ vi.mock('firebase/firestore', async () => {
   };
 });
 
-vi.mock('@/lib/firebase', () => ({
-  getDb: vi.fn(() => ({}))
+vi.mock("@/lib/firebase", () => ({
+  getDb: vi.fn(() => ({})),
 }));
 
-vi.mock('@/lib/firebase-collections', () => ({
-  membersCollection: { path: 'members' },
-  salesCollection: { path: 'sales' },
+vi.mock("@/lib/firebase-collections", () => ({
+  membersCollection: { path: "members" },
+  salesCollection: { path: "sales" },
 }));

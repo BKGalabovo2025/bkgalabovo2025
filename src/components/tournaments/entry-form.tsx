@@ -7,8 +7,21 @@ import { TournamentEntrySchema } from "@/types/tournament.types";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Save, X } from "lucide-react";
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
@@ -26,10 +39,16 @@ interface EntryFormProps {
   onClose: () => void;
 }
 
-export function EntryForm({ tournamentId, allowedCategories, existingEntries, onSave, onClose }: EntryFormProps) {
+export function EntryForm({
+  tournamentId,
+  allowedCategories,
+  existingEntries,
+  onSave,
+  onClose,
+}: EntryFormProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [p1IsGuest, setP1IsGuest] = useState(false);
   const [p2IsGuest, setP2IsGuest] = useState(false);
   const [isBulkMode, setIsBulkMode] = useState(false);
@@ -48,13 +67,15 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
   });
 
   const selectedCategory = form.watch("categoryId");
-  const isDoubles = selectedCategory === "doubles" || selectedCategory === "mixed";
+  const isDoubles =
+    selectedCategory === "doubles" || selectedCategory === "mixed";
 
   // Филтриране на вече записаните членове за ТАЗИ категория
-  const availableMembers = members.filter(m => {
-    const alreadyRegistered = existingEntries.some(e => 
-      e.categoryId === selectedCategory && 
-      (e.memberId === m.id || e.partnerMemberId === m.id)
+  const availableMembers = members.filter((m) => {
+    const alreadyRegistered = existingEntries.some(
+      (e) =>
+        e.categoryId === selectedCategory &&
+        (e.memberId === m.id || e.partnerMemberId === m.id)
     );
     return !alreadyRegistered;
   });
@@ -64,18 +85,18 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
     try {
       if (isBulkMode && !isDoubles) {
         // Bulk save
-        const bulkData = selectedMemberIds.map(mid => ({
+        const bulkData = selectedMemberIds.map((mid) => ({
           tournamentId,
           categoryId: selectedCategory,
           memberId: mid,
-          registrationDate: new Date().toISOString()
+          registrationDate: new Date().toISOString(),
         }));
         await onSave(bulkData);
       } else {
         const cleanData: any = { ...data };
         if (p1IsGuest) delete cleanData.memberId;
         else delete cleanData.externalName;
-        
+
         if (!isDoubles) {
           delete cleanData.partnerMemberId;
           delete cleanData.partnerExternalName;
@@ -83,7 +104,7 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
           if (p2IsGuest) delete cleanData.partnerMemberId;
           else delete cleanData.partnerExternalName;
         }
-        
+
         await onSave(cleanData);
       }
       onClose();
@@ -95,11 +116,15 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
   };
 
   const getCategoryName = (cat: string) => {
-    switch(cat) {
-      case "singles": return "Единично";
-      case "doubles": return "Двойки";
-      case "mixed": return "Смесени двойки";
-      default: return cat;
+    switch (cat) {
+      case "singles":
+        return "Единично";
+      case "doubles":
+        return "Двойки";
+      case "mixed":
+        return "Смесени двойки";
+      default:
+        return cat;
     }
   };
 
@@ -119,8 +144,10 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
-                  {allowedCategories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{getCategoryName(cat)}</SelectItem>
+                  {allowedCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {getCategoryName(cat)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -132,13 +159,15 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
         <div className="flex items-center justify-between gap-4 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex-1">
             <h4 className="text-sm font-semibold">Групово добавяне</h4>
-            <p className="text-[10px] text-muted-foreground">Избери няколко души наведнъж</p>
+            <p className="text-[10px] text-muted-foreground">
+              Избери няколко души наведнъж
+            </p>
           </div>
-          <Checkbox 
-            id="bulkMode" 
-            checked={isBulkMode} 
+          <Checkbox
+            id="bulkMode"
+            checked={isBulkMode}
             disabled={isDoubles}
-            onCheckedChange={(checked) => setIsBulkMode(!!checked)} 
+            onCheckedChange={(checked) => setIsBulkMode(!!checked)}
           />
         </div>
 
@@ -146,23 +175,35 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
           <div className="border rounded-md p-4 space-y-4">
             <FormLabel>Избери участници ({selectedMemberIds.length})</FormLabel>
             <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
-              {availableMembers.map(m => (
-                <div key={m.id} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md transition-colors border border-transparent hover:border-border">
-                  <Checkbox 
-                    id={`member-${m.id}`} 
+              {availableMembers.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md transition-colors border border-transparent hover:border-border"
+                >
+                  <Checkbox
+                    id={`member-${m.id}`}
                     checked={selectedMemberIds.includes(m.id!)}
                     onCheckedChange={(checked) => {
-                      if (checked) setSelectedMemberIds([...selectedMemberIds, m.id!]);
-                      else setSelectedMemberIds(selectedMemberIds.filter(id => id !== m.id));
+                      if (checked)
+                        setSelectedMemberIds([...selectedMemberIds, m.id!]);
+                      else
+                        setSelectedMemberIds(
+                          selectedMemberIds.filter((id) => id !== m.id)
+                        );
                     }}
                   />
-                  <label htmlFor={`member-${m.id}`} className="text-sm cursor-pointer flex-1">
+                  <label
+                    htmlFor={`member-${m.id}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
                     {m.firstName} {m.lastName}
                   </label>
                 </div>
               ))}
               {availableMembers.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">Няма свободни членове за тази категория.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Няма свободни членове за тази категория.
+                </p>
               )}
             </div>
           </div>
@@ -171,19 +212,24 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
             {/* Участник 1 */}
             <div className="border p-4 rounded-md space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-semibold">{isDoubles ? "Играч 1" : "Състезател"}</h4>
+                <h4 className="font-semibold">
+                  {isDoubles ? "Играч 1" : "Състезател"}
+                </h4>
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="p1guest" 
-                    checked={p1IsGuest} 
-                    onCheckedChange={(checked) => setP1IsGuest(!!checked)} 
+                  <Checkbox
+                    id="p1guest"
+                    checked={p1IsGuest}
+                    onCheckedChange={(checked) => setP1IsGuest(!!checked)}
                   />
-                  <label htmlFor="p1guest" className="text-sm font-medium leading-none cursor-pointer">
+                  <label
+                    htmlFor="p1guest"
+                    className="text-sm font-medium leading-none cursor-pointer"
+                  >
                     Гост (Външен)
                   </label>
                 </div>
               </div>
-              
+
               {!p1IsGuest ? (
                 <FormField
                   control={form.control}
@@ -191,14 +237,17 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Избери член на клуба</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Търсене..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
-                          {availableMembers.map(m => (
+                          {availableMembers.map((m) => (
                             <SelectItem key={m.id} value={m.id as string}>
                               {m.firstName} {m.lastName}
                             </SelectItem>
@@ -232,17 +281,20 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">Играч 2 (Партньор)</h4>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="p2guest" 
-                      checked={p2IsGuest} 
-                      onCheckedChange={(checked) => setP2IsGuest(!!checked)} 
+                    <Checkbox
+                      id="p2guest"
+                      checked={p2IsGuest}
+                      onCheckedChange={(checked) => setP2IsGuest(!!checked)}
                     />
-                    <label htmlFor="p2guest" className="text-sm font-medium leading-none cursor-pointer">
+                    <label
+                      htmlFor="p2guest"
+                      className="text-sm font-medium leading-none cursor-pointer"
+                    >
                       Гост (Външен)
                     </label>
                   </div>
                 </div>
-                
+
                 {!p2IsGuest ? (
                   <FormField
                     control={form.control}
@@ -250,14 +302,17 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Избери член на клуба</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Търсене..." />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
-                            {availableMembers.map(m => (
+                            {availableMembers.map((m) => (
                               <SelectItem key={m.id} value={m.id as string}>
                                 {m.firstName} {m.lastName}
                               </SelectItem>
@@ -289,7 +344,12 @@ export function EntryForm({ tournamentId, allowedCategories, existingEntries, on
         )}
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             <X className="mr-2 h-4 w-4" /> Отказ
           </Button>
           <Button type="submit" disabled={isSubmitting}>

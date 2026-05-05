@@ -1,15 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { computeGlobalRankings, RankingEntry } from "@/services/ranking-service";
+import {
+  computeGlobalRankings,
+  RankingEntry,
+} from "@/services/ranking-service";
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Trophy, TrendingUp, Star, Users, Award, Calendar } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CATEGORY_TABS = [
   { id: "all", label: "Общо" },
@@ -25,7 +47,9 @@ function getMedalEmoji(position: number): string {
   return `${position}.`;
 }
 
-function getPeriodFilter(period: string): { start: Date; end: Date } | undefined {
+function getPeriodFilter(
+  period: string
+): { start: Date; end: Date } | undefined {
   const now = new Date();
   if (period === "year") {
     return {
@@ -50,7 +74,6 @@ function getPeriodFilter(period: string): { start: Date; end: Date } | undefined
 
 export default function RankingsPage() {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
-  const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [period, setPeriod] = useState("all");
@@ -65,21 +88,19 @@ export default function RankingsPage() {
       ]);
 
       const dict: Record<string, Member> = {};
-      membersData.forEach(m => {
+      membersData.forEach((m) => {
         if (m.id) dict[m.id] = m;
       });
 
       // Замени memberId с истинското им пълно име
-      const enriched = rankingsData.map(r => ({
+      const enriched = rankingsData.map((r) => ({
         ...r,
-        memberName:
-          dict[r.memberId]
-            ? `${dict[r.memberId].firstName} ${dict[r.memberId].lastName}`
-            : r.memberName,
+        memberName: dict[r.memberId]
+          ? `${dict[r.memberId].firstName} ${dict[r.memberId].lastName}`
+          : r.memberName,
       }));
 
       setRankings(enriched);
-      setMembersDict(dict);
     } catch (error) {
       console.error("Error loading rankings:", error);
     } finally {
@@ -88,7 +109,8 @@ export default function RankingsPage() {
   };
 
   useEffect(() => {
-    loadData(period);
+    // Wrap in Promise to avoid synchronous setState during effect execution
+    Promise.resolve().then(() => loadData(period));
   }, [period]);
 
   // Филтриране по категория
@@ -96,13 +118,15 @@ export default function RankingsPage() {
     if (activeTab === "all") return rankings;
 
     const catLabel =
-      activeTab === "singles" ? "Единично"
-      : activeTab === "doubles" ? "Двойки"
-      : "Смесени";
+      activeTab === "singles"
+        ? "Единично"
+        : activeTab === "doubles"
+          ? "Двойки"
+          : "Смесени";
 
     return rankings
-      .map(r => {
-        const cat = r.categoryBreakdown.find(c => c.category === catLabel);
+      .map((r) => {
+        const cat = r.categoryBreakdown.find((c) => c.category === catLabel);
         if (!cat) return null;
         return { ...r, totalPoints: cat.points, tournamentsPlayed: cat.played };
       })
@@ -157,9 +181,12 @@ export default function RankingsPage() {
         <Card>
           <CardContent className="py-20 text-center text-muted-foreground">
             <Award className="h-16 w-16 mx-auto mb-4 opacity-20" />
-            <p className="text-lg font-medium">Все още няма данни за ранглистата.</p>
+            <p className="text-lg font-medium">
+              Все още няма данни за ранглистата.
+            </p>
             <p className="text-sm mt-2">
-              Все още няма създадени турнири в системата. Натиснете бутона &quot;Създай турнир&quot;, за да започнете.
+              Все още няма създадени турнири в системата. Натиснете бутона
+              &quot;Създай турнир&quot;, за да започнете.
             </p>
           </CardContent>
         </Card>
@@ -172,8 +199,12 @@ export default function RankingsPage() {
               <div className="flex flex-col items-center pt-8">
                 <div className="text-4xl mb-2">🥈</div>
                 <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4 w-full text-center shadow-md border">
-                  <p className="font-semibold text-sm truncate">{topThree[1]?.memberName ?? "—"}</p>
-                  <p className="text-2xl font-bold mt-1">{topThree[1]?.totalPoints ?? 0}</p>
+                  <p className="font-semibold text-sm truncate">
+                    {topThree[1]?.memberName ?? "—"}
+                  </p>
+                  <p className="text-2xl font-bold mt-1">
+                    {topThree[1]?.totalPoints ?? 0}
+                  </p>
                   <p className="text-xs text-muted-foreground">точки</p>
                 </div>
               </div>
@@ -181,8 +212,12 @@ export default function RankingsPage() {
               <div className="flex flex-col items-center">
                 <div className="text-4xl mb-2">🥇</div>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 w-full text-center shadow-lg border-2 border-yellow-300 dark:border-yellow-700">
-                  <p className="font-bold text-sm truncate">{topThree[0]?.memberName ?? "—"}</p>
-                  <p className="text-3xl font-bold mt-1 text-yellow-600">{topThree[0]?.totalPoints ?? 0}</p>
+                  <p className="font-bold text-sm truncate">
+                    {topThree[0]?.memberName ?? "—"}
+                  </p>
+                  <p className="text-3xl font-bold mt-1 text-yellow-600">
+                    {topThree[0]?.totalPoints ?? 0}
+                  </p>
                   <p className="text-xs text-muted-foreground">точки</p>
                 </div>
               </div>
@@ -190,8 +225,12 @@ export default function RankingsPage() {
               <div className="flex flex-col items-center pt-12">
                 <div className="text-4xl mb-2">🥉</div>
                 <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 w-full text-center shadow-md border">
-                  <p className="font-semibold text-sm truncate">{topThree[2]?.memberName ?? "—"}</p>
-                  <p className="text-2xl font-bold mt-1">{topThree[2]?.totalPoints ?? 0}</p>
+                  <p className="font-semibold text-sm truncate">
+                    {topThree[2]?.memberName ?? "—"}
+                  </p>
+                  <p className="text-2xl font-bold mt-1">
+                    {topThree[2]?.totalPoints ?? 0}
+                  </p>
                   <p className="text-xs text-muted-foreground">точки</p>
                 </div>
               </div>
@@ -206,7 +245,9 @@ export default function RankingsPage() {
                   <Users className="h-5 w-5 text-blue-500" />
                   <div>
                     <p className="text-2xl font-bold">{rankings.length}</p>
-                    <p className="text-xs text-muted-foreground">Класирани играчи</p>
+                    <p className="text-xs text-muted-foreground">
+                      Класирани играчи
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -216,7 +257,9 @@ export default function RankingsPage() {
                 <div className="flex items-center gap-3">
                   <TrendingUp className="h-5 w-5 text-green-500" />
                   <div>
-                    <p className="text-2xl font-bold">{rankings[0]?.totalPoints ?? 0}</p>
+                    <p className="text-2xl font-bold">
+                      {rankings[0]?.totalPoints ?? 0}
+                    </p>
                     <p className="text-xs text-muted-foreground">Макс. точки</p>
                   </div>
                 </div>
@@ -227,8 +270,12 @@ export default function RankingsPage() {
                 <div className="flex items-center gap-3">
                   <Trophy className="h-5 w-5 text-yellow-500" />
                   <div>
-                    <p className="text-2xl font-bold">{rankings.reduce((s, r) => s + r.tournamentsPlayed, 0)}</p>
-                    <p className="text-xs text-muted-foreground">Участия общо</p>
+                    <p className="text-2xl font-bold">
+                      {rankings.reduce((s, r) => s + r.tournamentsPlayed, 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Участия общо
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -238,7 +285,9 @@ export default function RankingsPage() {
                 <div className="flex items-center gap-3">
                   <Star className="h-5 w-5 text-purple-500" />
                   <div>
-                    <p className="text-2xl font-bold">{rankings.reduce((s, r) => s + r.wins, 0)}</p>
+                    <p className="text-2xl font-bold">
+                      {rankings.reduce((s, r) => s + r.wins, 0)}
+                    </p>
                     <p className="text-xs text-muted-foreground">Победи общо</p>
                   </div>
                 </div>
@@ -250,17 +299,21 @@ export default function RankingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Пълна ранглиста</CardTitle>
-              <CardDescription>Натрупани точки по всички официални турнири</CardDescription>
+              <CardDescription>
+                Натрупани точки по всички официални турнири
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-6">
-                  {CATEGORY_TABS.map(tab => (
-                    <TabsTrigger key={tab.id} value={tab.id}>{tab.label}</TabsTrigger>
+                  {CATEGORY_TABS.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </TabsTrigger>
                   ))}
                 </TabsList>
 
-                {CATEGORY_TABS.map(tab => (
+                {CATEGORY_TABS.map((tab) => (
                   <TabsContent key={tab.id} value={tab.id}>
                     <Table>
                       <TableHeader>
@@ -268,51 +321,83 @@ export default function RankingsPage() {
                           <TableHead className="w-14 text-center">#</TableHead>
                           <TableHead>Играч</TableHead>
                           <TableHead className="text-center">Турнири</TableHead>
-                          <TableHead className="text-center text-green-600">Победи</TableHead>
-                          <TableHead className="text-center text-destructive">Загуби</TableHead>
-                          <TableHead className="text-center">% Победи</TableHead>
-                          <TableHead className="text-center font-bold">Точки</TableHead>
+                          <TableHead className="text-center text-green-600">
+                            Победи
+                          </TableHead>
+                          <TableHead className="text-center text-destructive">
+                            Загуби
+                          </TableHead>
+                          <TableHead className="text-center">
+                            % Победи
+                          </TableHead>
+                          <TableHead className="text-center font-bold">
+                            Точки
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredRankings.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                            <TableCell
+                              colSpan={7}
+                              className="text-center py-12 text-muted-foreground"
+                            >
                               Няма данни за тази категория
                             </TableCell>
                           </TableRow>
                         ) : (
                           filteredRankings.map((entry) => {
-                            const winRate = entry.wins + entry.losses > 0
-                              ? Math.round((entry.wins / (entry.wins + entry.losses)) * 100)
-                              : 0;
+                            const winRate =
+                              entry.wins + entry.losses > 0
+                                ? Math.round(
+                                    (entry.wins / (entry.wins + entry.losses)) *
+                                      100
+                                  )
+                                : 0;
                             return (
                               <TableRow
                                 key={entry.memberId}
                                 className={
-                                  entry.position === 1 ? "bg-yellow-50/60 dark:bg-yellow-900/10" :
-                                  entry.position === 2 ? "bg-slate-50/60 dark:bg-slate-900/10" :
-                                  entry.position === 3 ? "bg-orange-50/60 dark:bg-orange-900/10" : ""
+                                  entry.position === 1
+                                    ? "bg-yellow-50/60 dark:bg-yellow-900/10"
+                                    : entry.position === 2
+                                      ? "bg-slate-50/60 dark:bg-slate-900/10"
+                                      : entry.position === 3
+                                        ? "bg-orange-50/60 dark:bg-orange-900/10"
+                                        : ""
                                 }
                               >
                                 <TableCell className="text-center text-lg font-bold">
                                   {getMedalEmoji(entry.position)}
                                 </TableCell>
                                 <TableCell>
-                                  <div className="font-semibold">{entry.memberName}</div>
-                                  {tab.id === "all" && entry.categoryBreakdown.length > 0 && (
-                                    <div className="flex gap-1 mt-1">
-                                      {entry.categoryBreakdown.map(c => (
-                                        <Badge key={c.category} variant="secondary" className="text-[10px] px-1.5 py-0">
-                                          {c.category}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
+                                  <div className="font-semibold">
+                                    {entry.memberName}
+                                  </div>
+                                  {tab.id === "all" &&
+                                    entry.categoryBreakdown.length > 0 && (
+                                      <div className="flex gap-1 mt-1">
+                                        {entry.categoryBreakdown.map((c) => (
+                                          <Badge
+                                            key={c.category}
+                                            variant="secondary"
+                                            className="text-[10px] px-1.5 py-0"
+                                          >
+                                            {c.category}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
                                 </TableCell>
-                                <TableCell className="text-center">{entry.tournamentsPlayed}</TableCell>
-                                <TableCell className="text-center text-green-600 font-semibold">{entry.wins}</TableCell>
-                                <TableCell className="text-center text-destructive">{entry.losses}</TableCell>
+                                <TableCell className="text-center">
+                                  {entry.tournamentsPlayed}
+                                </TableCell>
+                                <TableCell className="text-center text-green-600 font-semibold">
+                                  {entry.wins}
+                                </TableCell>
+                                <TableCell className="text-center text-destructive">
+                                  {entry.losses}
+                                </TableCell>
                                 <TableCell className="text-center">
                                   <div className="flex items-center justify-center gap-2">
                                     <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -321,16 +406,26 @@ export default function RankingsPage() {
                                         style={{ width: `${winRate}%` }}
                                       />
                                     </div>
-                                    <span className="text-xs text-muted-foreground">{winRate}%</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {winRate}%
+                                    </span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Badge
-                                    variant={entry.position <= 3 ? "default" : "secondary"}
+                                    variant={
+                                      entry.position <= 3
+                                        ? "default"
+                                        : "secondary"
+                                    }
                                     className={`font-bold text-base px-3 ${
-                                      entry.position === 1 ? "bg-yellow-500 hover:bg-yellow-500" :
-                                      entry.position === 2 ? "bg-slate-400 hover:bg-slate-400" :
-                                      entry.position === 3 ? "bg-orange-400 hover:bg-orange-400" : ""
+                                      entry.position === 1
+                                        ? "bg-yellow-500 hover:bg-yellow-500"
+                                        : entry.position === 2
+                                          ? "bg-slate-400 hover:bg-slate-400"
+                                          : entry.position === 3
+                                            ? "bg-orange-400 hover:bg-orange-400"
+                                            : ""
                                     }`}
                                   >
                                     {entry.totalPoints}
@@ -351,7 +446,9 @@ export default function RankingsPage() {
           {/* Легенда за точки */}
           <Card className="bg-muted/30">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Система за точки</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Система за точки
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
@@ -365,14 +462,20 @@ export default function RankingsPage() {
                   { pos: "7-мо", pts: 10 },
                   { pos: "Участие", pts: 3 },
                 ].map(({ pos, pts }) => (
-                  <div key={pos} className="flex justify-between items-center px-3 py-1.5 bg-background rounded border">
+                  <div
+                    key={pos}
+                    className="flex justify-between items-center px-3 py-1.5 bg-background rounded border"
+                  >
                     <span>{pos}</span>
-                    <Badge variant="outline" className="font-mono">{pts} т.</Badge>
+                    <Badge variant="outline" className="font-mono">
+                      {pts} т.
+                    </Badge>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                * Точките се умножават по коефициента на всеки турнир (настройва се при създаване)
+                * Точките се умножават по коефициента на всеки турнир (настройва
+                се при създаване)
               </p>
             </CardContent>
           </Card>

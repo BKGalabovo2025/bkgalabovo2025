@@ -533,7 +533,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
   const [user, setUser] = useState<User | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
 
-  const refreshData = () => setRefreshCount(count => count + 1);
+  const refreshData = () => setRefreshCount((count) => count + 1);
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -562,7 +562,9 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
         }
       } catch {
         if (isMounted) {
-          toast.error("Грешка", { description: "Неуспешно зареждане на данните." });
+          toast.error("Грешка", {
+            description: "Неуспешно зареждане на данните.",
+          });
         }
       } finally {
         if (isMounted) {
