@@ -1,17 +1,12 @@
 "use client";
 
 import { Member } from "@/types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Mail,
   Phone,
@@ -70,6 +65,9 @@ import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
+import { uploadFile } from "@/services/storage-service";
+import { Camera, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface MemberDetailsCardProps {
   member: Member;
@@ -87,6 +85,8 @@ export const MemberDetailsCard = ({
 }: MemberDetailsCardProps) => {
   const router = useRouter();
   const { idToken } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -133,34 +133,125 @@ export const MemberDetailsCard = ({
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !idToken) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Моля, изберете валидно изображение");
+      return;
+    }
+
+    // Validate size (e.g., 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Изображението е твърде голямо (макс. 2MB)");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const path = `avatars/${member.id}_${Date.now()}`;
+      const downloadUrl = await uploadFile(path, file);
+
+      const result = await updateMemberAction(idToken, member.id, {
+        avatarUrl: downloadUrl,
+      });
+
+      if (result.success) {
+        toast.success("Снимката е обновена успешно");
+        router.refresh();
+      } else {
+        toast.error("Грешка при обновяване на профила");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Грешка при качване на снимката");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => router.push("/members")}>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/members")}
+          className="rounded-xl border-slate-200"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Всички членове
         </Button>
-        <Button onClick={() => router.push(`/members/${member.id}/edit`)}>
+        <Button
+          onClick={() => router.push(`/members/${member.id}/edit`)}
+          className="rounded-xl shadow-lg bg-slate-900"
+        >
           <Pencil className="mr-2 h-4 w-4" /> Редактирай
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={member.avatarUrl ?? undefined} alt={fullName} />
-              <AvatarFallback className="text-2xl">
-                {getInitials(fullName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-3xl font-bold">{fullName}</CardTitle>
-              <CardDescription className="text-lg">
-                Статус: {member.status === "active" ? "Активен" : "Неактивен"}
-              </CardDescription>
+      <Card className="border-none shadow-sm overflow-hidden bg-white">
+        <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-700 w-full" />
+        <CardContent className="px-8 pb-8 -mt-12">
+          <div className="flex flex-col md:flex-row items-end gap-6">
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-4 border-white shadow-xl rounded-3xl bg-slate-100">
+                <AvatarImage
+                  src={member.avatarUrl ?? undefined}
+                  alt={fullName}
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-4xl font-black text-slate-300">
+                  {getInitials(fullName)}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-100 disabled:bg-black/20"
+              >
+                {isUploading ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Camera size={24} />
+                )}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+            </div>
+
+            <div className="flex-1 space-y-1 mb-2">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                {fullName}
+              </h2>
+              <div className="flex items-center gap-2">
+                <Badge
+                  className={cn(
+                    "rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-none shadow-sm",
+                    member.status === "active"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-100 text-slate-500"
+                  )}
+                >
+                  {member.status === "active" ? "Активен" : "Неактивен"}
+                </Badge>
+                {ageGroup && (
+                  <Badge
+                    variant="outline"
+                    className="rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-slate-200"
+                  >
+                    {ageGroup}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
-        </CardHeader>
+        </CardContent>
       </Card>
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">

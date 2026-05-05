@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { formatDateShort } from "@/lib/date-utils";
 import {
   Trophy,
   Calendar,
@@ -24,12 +24,10 @@ import {
   Trash2,
   CheckCircle2,
   Search,
-  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -52,7 +50,7 @@ export default function TournamentsClient({
     try {
       const data = await tournamentService.getTournaments();
       setTournaments(data);
-    } catch (error) {
+    } catch {
       toast.error("Грешка при опресняване");
     }
   };
@@ -88,7 +86,7 @@ export default function TournamentsClient({
       await tournamentService.deleteTournament(id);
       toast.success("Турнирът е изтрит.");
       refreshTournaments();
-    } catch (error) {
+    } catch {
       toast.error("Грешка при изтриване");
     }
   };
@@ -336,7 +334,7 @@ function TournamentCard({
             </p>
             <div className="flex items-center text-slate-700 font-bold text-sm">
               <Calendar className="mr-2 h-4 w-4 text-primary/60" />
-              {format(new Date(tournament.startDate), "dd.MM.yyyy")}
+              {formatDateShort(tournament.startDate)}
             </div>
           </div>
           <div className="space-y-1">

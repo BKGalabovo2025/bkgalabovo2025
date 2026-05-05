@@ -76,4 +76,4 @@ const getAdminAuth = () => {
   return adminAuth;
 };
 
-export { getAdminDb, getAdminAuth };
+export { getAdminDb, getAdminAuth, initializeFirebaseAdmin };

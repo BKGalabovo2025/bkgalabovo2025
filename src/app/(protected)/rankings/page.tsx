@@ -3,6 +3,7 @@ import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
 import RankingsClient from "./RankingsClient";
 import { Metadata } from "next";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -63,5 +64,22 @@ export default async function RankingsPage(props: {
       : r.memberName,
   }));
 
-  return <RankingsClient initialRankings={enrichedRankings} />;
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <PageHeader
+        title="Глобална ранглиста"
+        description="Официално класиране на състезателите въз основа на натрупани точки от клубни и национални турнири."
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Ранглиста" },
+        ]}
+      />
+
+      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
+        <div className="p-8">
+          <RankingsClient initialRankings={enrichedRankings} />
+        </div>
+      </div>
+    </div>
+  );
 }

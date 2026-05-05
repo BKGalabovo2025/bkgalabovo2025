@@ -3,44 +3,28 @@ export const dynamic = "force-dynamic";
 
 import { getAllPrices } from "@/services/price-service";
 import { PricesClientPage } from "./client-page";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function PricesPage() {
   const prices = await getAllPrices();
 
   return (
-    <div className="container mx-auto p-4">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">Начало</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/finances">Финанси</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Управление на цени</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <PageHeader
+        title="Управление на цени"
+        description="Преглед и актуализация на цените за всички услуги и абонаменти в клуба. Всяка промяна се записва в историята."
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Финанси", href: "/finances" },
+          { label: "Цени" },
+        ]}
+      />
 
-      <h1 className="text-3xl font-bold mb-6">Управление на цени</h1>
-      <p className="text-muted-foreground mb-8">
-        Тук можете да преглеждате и актуализирате цените за всички услуги и
-        абонаменти в клуба. Всяка промяна се записва в история, за да се осигури
-        пълна проследяемост.
-      </p>
-
-      <PricesClientPage initialPrices={prices} />
+      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
+        <div className="p-8">
+          <PricesClientPage initialPrices={prices} />
+        </div>
+      </div>
     </div>
   );
 }

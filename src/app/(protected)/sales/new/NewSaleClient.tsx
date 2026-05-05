@@ -48,11 +48,7 @@ export default function NewSaleClient() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const {
-    products: allProducts,
-    isLoading: productsLoading,
-    error: productsError,
-  } = useProducts();
+  const { products: allProducts, isLoading: productsLoading } = useProducts();
   const [members, setMembers] = useState<Member[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
 

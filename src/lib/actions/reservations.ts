@@ -1,6 +1,7 @@
 "use server";
 
-import { getAdminDb, getAdminAuth } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Timestamp } from "firebase-admin/firestore";
@@ -17,15 +18,9 @@ const reservationSchema = z.object({
   status: z.string().default("unpaid"),
 });
 
-const _getUser = async (idToken: string) => {
-  if (!idToken) throw new Error("Missing token");
-  const auth = getAdminAuth();
-  return await auth.verifyIdToken(idToken);
-};
-
 export async function createReservationAction(idToken: string, data: any) {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -98,7 +93,7 @@ export async function updateReservationAction(
   data: any
 ) {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -145,7 +140,7 @@ export async function deleteReservationAction(
   reservationId: string
 ) {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const db = getAdminDb();
     await db.collection("reservations").doc(reservationId).delete();
     revalidatePath("/reservations");
@@ -157,7 +152,7 @@ export async function deleteReservationAction(
 
 export async function createBlockedSlotAction(idToken: string, data: any) {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const db = getAdminDb();
 
     const startTime = Timestamp.fromDate(new Date(data.startTime));

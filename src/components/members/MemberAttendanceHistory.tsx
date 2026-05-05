@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, getYear, getMonth } from "date-fns";
-import { bg } from "date-fns/locale";
+import { getYear, getMonth } from "date-fns";
+import { formatMonthYear, formatTimeRange } from "@/lib/date-utils";
 import {
   CalendarIcon,
   MapPinIcon,
@@ -117,7 +117,7 @@ export function MemberAttendanceHistory({
       const date = new Date(parseInt(year), parseInt(month));
       return {
         value: monthKey,
-        label: format(date, "MMMM yyyy", { locale: bg }),
+        label: formatMonthYear(date),
       };
     });
   }, [attendedEvents]);
@@ -133,27 +133,6 @@ export function MemberAttendanceHistory({
       );
     }).length;
   }, [attendedEvents]);
-
-  const formatEventDate = (
-    startDate?: string | null,
-    endDate?: string | null
-  ) => {
-    if (!startDate || !endDate) return "Няма данни за дата";
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Невалидна дата";
-
-    if (format(start, "ddMMyyyy") === format(end, "ddMMyyyy")) {
-      return `${format(start, "dd MMM yyyy, HH:mm", { locale: bg })} - ${format(
-        end,
-        "HH:mm",
-        { locale: bg }
-      )} ч.`;
-    }
-    return `${format(start, "dd MMM yyyy, HH:mm", {
-      locale: bg,
-    })} ч. - ${format(end, "dd MMM yyyy, HH:mm", { locale: bg })} ч.`;
-  };
 
   if (loading) return <p>Зареждане на историята...</p>;
 
@@ -224,7 +203,10 @@ export function MemberAttendanceHistory({
                   <div className="flex items-center">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     <span>
-                      {formatEventDate(event.startDate, event.endDate)}
+                      {formatTimeRange(
+                        event.startDate || "",
+                        event.endDate || ""
+                      )}
                     </span>
                   </div>
                   {event.location && (

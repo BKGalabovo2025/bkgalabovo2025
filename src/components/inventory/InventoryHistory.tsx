@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { formatPrice } from "@/lib/currency";
+import { formatDateTimeDisplay } from "@/lib/date-utils";
 
 const InventoryHistory = () => {
   const [events, setEvents] = useState<InventoryEvent[]>([]);
@@ -43,7 +45,7 @@ const InventoryHistory = () => {
           <span className="text-green-600">+{event.quantityChange} бр.</span>
         );
       case "price_update":
-        return `стара: ${event.oldPrice?.toFixed(2)} EUR -> нова: ${event.newPrice?.toFixed(2)} EUR`;
+        return `стара: ${formatPrice(event.oldPrice || 0)} -> нова: ${formatPrice(event.newPrice || 0)}`;
       case "sale": // Assuming you might add sales later
         return <span className="text-red-600">{event.quantityChange} бр.</span>;
       case "correction": // For manual corrections
@@ -104,7 +106,7 @@ const InventoryHistory = () => {
               {events.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell>
-                    {new Date(event.createdAt).toLocaleString("bg-BG")}
+                    {formatDateTimeDisplay(event.createdAt)}
                   </TableCell>
                   <TableCell>{event.productName}</TableCell>
                   <TableCell>{getEventTypeLabel(event.type)}</TableCell>

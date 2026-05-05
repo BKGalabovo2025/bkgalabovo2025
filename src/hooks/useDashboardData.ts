@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { Member, Sale, Reminder } from "@/types";
 import { getAllMembers } from "@/services/member-service";
 import { getSales } from "@/services/sales-service";
-import { getDashboardStats, TotalRevenue } from "@/services/dashboard-service";
+import { getLowStockProducts } from "@/services/inventory-service";
+import {
+  getDashboardStats,
+  TotalRevenue,
+  getRevenueTrendData,
+} from "@/services/dashboard-service";
 import { getReminders } from "@/services/reminder-service";
 import { useAuth } from "@/context/auth-context";
 
@@ -17,6 +22,7 @@ type DashboardStats = {
   newMembersChange: number;
   salesLast30Days: number;
   salesChange: number;
+  lowStockCount: number;
 };
 
 export const useDashboardData = () => {
@@ -27,6 +33,9 @@ export const useDashboardData = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [revenueChartData, setRevenueChartData] = useState<
+    { name: string; revenue: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,20 +45,23 @@ export const useDashboardData = () => {
       }
       try {
         setLoading(true);
-        const [membersData, salesData] = await Promise.all([
+        const [membersData, salesData, lowStockData] = await Promise.all([
           getAllMembers(),
           getSales(),
-          // These are not used for the main dashboard view, can be fetched on demand
-          // getAllSubscriptions(),
-          // getProducts(),
+          getLowStockProducts(),
         ]);
 
         const members = Array.isArray(membersData) ? membersData : [];
         const sales = Array.isArray(salesData) ? salesData : [];
+        const lowStock = Array.isArray(lowStockData) ? lowStockData : [];
 
         // Generate stats
-        const dashboardStats = getDashboardStats(members, sales);
+        const dashboardStats = getDashboardStats(members, sales, lowStock);
         setStats(dashboardStats);
+
+        // Generate chart data
+        const chartData = getRevenueTrendData(sales);
+        setRevenueChartData(chartData);
 
         // Generate reminders from the fetched data
         const reminderList = getReminders(members, sales);
@@ -73,5 +85,13 @@ export const useDashboardData = () => {
     fetchData();
   }, [user]);
 
-  return { stats, allMembers, recentSales, reminders, loading, error };
+  return {
+    stats,
+    allMembers,
+    recentSales,
+    reminders,
+    revenueChartData,
+    loading,
+    error,
+  };
 };

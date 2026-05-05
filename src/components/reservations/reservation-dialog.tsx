@@ -40,6 +40,8 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { Reservation } from "@/types/reservation";
+import { formatPrice } from "@/lib/currency";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 
 const reservationSchema = z
   .object({
@@ -245,57 +247,19 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               )}
             />
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <DateTimePicker
                 control={form.control}
                 name="startTime"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Начален час</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={
-                        field.value
-                          ? new Date(
-                              field.value.getTime() -
-                                field.value.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 16)
-                          : ""
-                      }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Начален час"
               />
-              <FormField
+              <DateTimePicker
                 control={form.control}
                 name="endTime"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Краен час</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={
-                        field.value
-                          ? new Date(
-                              field.value.getTime() -
-                                field.value.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 16)
-                          : ""
-                      }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Краен час"
               />
             </div>
             <div className="text-right font-bold text-lg">
-              Общо: {price.toFixed(2)} €
+              Общо: {formatPrice(price)}
             </div>
             <DialogFooter>
               <Button

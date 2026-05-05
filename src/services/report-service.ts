@@ -3,14 +3,6 @@ import { getAllMembers } from "./member-service";
 import { hasMemberPaidForMonth } from "./sales-service";
 import { getEventsForPeriod } from "./schedule-service";
 
-interface LiabilityReportItem {
-  member: Member;
-  unpaidMonths: {
-    year: number;
-    month: number;
-  }[];
-}
-
 export interface AttendanceReportItem {
   member: Member;
   attendanceCount: number;

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Loader2, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatTimeRange } from "@/lib/date-utils";
 import { ReservationDialog } from "./reservation-dialog";
 import { BlockSlotDialog } from "./block-slot-dialog";
 
@@ -46,12 +47,10 @@ const ReservationCard: React.FC<CardProps<Reservation>> = ({
   onSave,
 }) => {
   const style = calculateEventStyle(item.startTime, item.endTime);
-  const startTimeStr = item.startTime
-    .toDate()
-    .toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
-  const endTimeStr = item.endTime
-    .toDate()
-    .toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+  const timeRange = formatTimeRange(
+    item.startTime.toDate(),
+    item.endTime.toDate()
+  );
 
   const statusClasses = {
     paid: "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-100/50",
@@ -97,9 +96,7 @@ const ReservationCard: React.FC<CardProps<Reservation>> = ({
         </Button>
       </div>
       <p className="font-black truncate pr-4">{item.clientName}</p>
-      <p className="font-medium mt-0.5 opacity-80">
-        {startTimeStr} - {endTimeStr}
-      </p>
+      <p className="font-medium mt-0.5 opacity-80">{timeRange}</p>
       <div className="mt-2 inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/50 text-[9px] font-black uppercase tracking-tighter">
         {item.status === "paid" ? "Платено" : "Неплатено"}
       </div>
@@ -165,7 +162,7 @@ interface AgendaViewProps {
 export const AgendaView: React.FC<AgendaViewProps> = ({
   date,
   courtCount,
-  refreshKey,
+  refreshKey: _refreshKey,
 }) => {
   const [events, setEvents] = useState<{
     reservations: Reservation[];

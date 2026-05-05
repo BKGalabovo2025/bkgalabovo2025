@@ -7,7 +7,6 @@ import {
   PlusCircle,
   Repeat,
   Loader2,
-  Calendar,
   Filter,
   ChevronLeft,
   ChevronRight,
@@ -31,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,

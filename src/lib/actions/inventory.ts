@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getAdminDb, getAdminAuth } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schemas ---
@@ -23,19 +24,6 @@ export type InventoryActionState = {
   success?: boolean;
 };
 
-// --- Helper Functions (Private) ---
-
-async function _getUser(idToken: string) {
-  const adminAuth = getAdminAuth();
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    return await adminAuth.getUser(decodedToken.uid);
-  } catch (error: unknown) {
-    console.error("Error verifying ID token:", error);
-    throw new Error("Authentication failed.");
-  }
-}
-
 // --- Public Server Actions ---
 
 /**
@@ -46,7 +34,7 @@ export async function createProductAction(
   productData: any
 ): Promise<InventoryActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const validatedFields = ProductSchema.safeParse(productData);
@@ -98,7 +86,7 @@ export async function updateProductPriceAction(
   newPrice: number
 ): Promise<InventoryActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -147,7 +135,7 @@ export async function restockProductAction(
   notes?: string
 ): Promise<InventoryActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -195,7 +183,7 @@ export async function adjustProductStockAction(
   notes?: string
 ): Promise<InventoryActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -241,7 +229,7 @@ export async function deleteProductAction(
   idToken: string
 ): Promise<InventoryActionState> {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     await adminDb.collection("products").doc(id).delete();

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Product } from "@/types";
+import { docToProduct } from "@/services/inventory-service";
 import { toast } from "sonner";
 import { deleteProductAction } from "@/lib/actions/inventory";
 
@@ -18,13 +19,9 @@ export const useProducts = () => {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const productsData = snapshot.docs.map(
-          (doc) =>
-            ({
-              id: doc.id,
-              ...doc.data(),
-            }) as Product
-        );
+        const productsData = snapshot.docs
+          .map(docToProduct)
+          .filter(Boolean) as Product[];
         setProducts(productsData);
         setIsLoading(false);
       },

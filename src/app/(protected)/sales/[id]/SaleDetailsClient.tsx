@@ -24,7 +24,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
-  ArrowLeft,
   User,
   ShoppingCart,
   Trash2,

@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAdminDb, getAdminAuth } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
 
@@ -13,19 +14,6 @@ export type MemberActionState = {
   data?: any;
 };
 
-// --- Helper Functions (Private) ---
-
-async function _getUser(idToken: string) {
-  const adminAuth = getAdminAuth();
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    return await adminAuth.getUser(decodedToken.uid);
-  } catch (error: unknown) {
-    console.error("Error verifying ID token:", error);
-    throw new Error("Authentication failed.");
-  }
-}
-
 // --- Public Server Actions ---
 
 /**
@@ -36,7 +24,7 @@ export async function createMemberAction(
   memberData: any
 ): Promise<MemberActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     // Validation
@@ -94,7 +82,7 @@ export async function updateMemberAction(
   memberData: any
 ): Promise<MemberActionState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     // Validation (allow partial updates)
@@ -160,7 +148,7 @@ export async function deleteMemberAction(
   idToken: string
 ): Promise<MemberActionState> {
   try {
-    await _getUser(idToken);
+    await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     await adminDb.collection("members").doc(id).delete();

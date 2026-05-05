@@ -1,8 +1,6 @@
 import {
   getDocs,
-  addDoc,
   doc,
-  updateDoc,
   getDoc,
   Timestamp,
   query,
@@ -13,6 +11,8 @@ import {
   deleteDoc,
   CollectionReference,
   startAfter,
+  addDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { getMembersCollection } from "@/lib/firebase-collections";
 import { Member, MemberSchema } from "@/types/member.types";
@@ -206,6 +206,27 @@ export const updateMember = async (
 ): Promise<void> => {
   const memberRef = doc(getMembersCollection(), id);
 
+  // If a new image is being uploaded, we should ideally clean up the old one
+  if (memberData.avatarUrl) {
+    try {
+      const oldDoc = await getDoc(memberRef);
+      const oldData = oldDoc.data();
+      if (oldData?.avatarUrl && oldData.avatarUrl !== memberData.avatarUrl) {
+        // Only try to delete if it's a Firebase Storage URL we own
+        if (oldData.avatarUrl.includes("firebasestorage.googleapis.com")) {
+          const { deleteFile } = await import("./storage-service");
+          // Extract path from URL (a bit complex, maybe just log for now or skip if too risky)
+          // For simplicity, we'll assume the path is 'avatars/{id}' as used in our component
+          await deleteFile(`avatars/${id}`).catch((err) =>
+            console.error("Failed to delete old avatar:", err)
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Error during image cleanup:", err);
+    }
+  }
+
   const dataToUpdate: { [key: string]: unknown } = { ...memberData };
 
   if ("dateOfBirth" in dataToUpdate) {
@@ -230,4 +251,26 @@ export const updateMember = async (
 export const deleteMember = async (id: string): Promise<void> => {
   const memberRef = doc(getMembersCollection(), id);
   await deleteDoc(memberRef);
+};
+
+// --- Bulk Operations ---
+
+export const bulkUpdateMemberStatus = async (
+  memberIds: string[],
+  status: "active" | "inactive" | "suspended"
+): Promise<void> => {
+  const { writeBatch, doc } = await import("firebase/firestore");
+  const { getDb } = await import("@/lib/firebase");
+  const db = getDb();
+  const batch = writeBatch(db);
+
+  memberIds.forEach((id) => {
+    const memberRef = doc(db, "members", id);
+    batch.update(memberRef, {
+      status,
+      updatedAt: serverTimestamp(),
+    });
+  });
+
+  await batch.commit();
 };

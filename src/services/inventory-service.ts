@@ -15,7 +15,7 @@ import { Product, InventoryEvent } from "@/types";
 const PRODUCTS_COLLECTION = "products";
 const EVENTS_COLLECTION = "inventoryEvents";
 
-const docToProduct = (doc: DocumentSnapshot): Product | null => {
+export const docToProduct = (doc: DocumentSnapshot): Product | null => {
   if (!doc.id || !doc.exists()) {
     console.error("docToProduct: Invalid document snapshot.", { id: doc.id });
     return null;
@@ -48,7 +48,9 @@ const docToProduct = (doc: DocumentSnapshot): Product | null => {
   return product;
 };
 
-const docToInventoryEvent = (doc: DocumentSnapshot): InventoryEvent | null => {
+export const docToInventoryEvent = (
+  doc: DocumentSnapshot
+): InventoryEvent | null => {
   if (!doc.id || !doc.exists()) {
     console.error("docToInventoryEvent: Invalid document snapshot.", {
       id: doc.id,
@@ -192,4 +194,15 @@ export const adjustProductStock = async (
     };
     transaction.set(eventRef, eventData);
   });
+};
+
+/**
+ * Returns products that have stock less than or equal to their restockThreshold.
+ */
+export const getLowStockProducts = async (): Promise<Product[]> => {
+  const products = await getProducts();
+  return products.filter(
+    (p) =>
+      typeof p.restockThreshold === "number" && p.stock <= p.restockThreshold
+  );
 };

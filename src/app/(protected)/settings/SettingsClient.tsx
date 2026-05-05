@@ -24,7 +24,6 @@ import {
 import { toast } from "react-hot-toast";
 
 export default function SettingsClient() {
-  const [activeTab, setActiveTab] = useState("general");
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = () => {
@@ -63,11 +62,7 @@ export default function SettingsClient() {
         </Button>
       </PageHeader>
 
-      <Tabs
-        defaultValue="general"
-        className="w-full"
-        onValueChange={setActiveTab}
-      >
+      <Tabs defaultValue="general" className="w-full">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Custom Tabs Sidebar for Bento Feel */}
           <div className="lg:w-64 space-y-2">

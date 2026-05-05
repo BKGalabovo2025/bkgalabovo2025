@@ -1,26 +1,15 @@
 // This component is designed specifically for printing.
 import React from "react";
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
-import { format } from "date-fns";
-import { bg } from "date-fns/locale";
+import { formatDateTimeDisplay } from "@/lib/date-utils";
+
+// Removed local formatDate as we use the centralized one.
 
 interface PrintableEventProps {
   event: ScheduleEvent;
   members: Member[];
   eventTypeTranslations: Record<ScheduleEventType, string>;
 }
-
-// Simplified formatDate function, as data is now pre-processed in the hook.
-const formatDate = (date?: Date | string | null) => {
-  if (!date) return "N/A";
-  try {
-    // The date should now consistently be a Date object or a valid ISO string.
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    return format(dateObj, "d MMMM yyyy 'г.', HH:mm 'ч.'", { locale: bg });
-  } catch {
-    return "Невалидна дата";
-  }
-};
 
 export const PrintableEvent: React.FC<PrintableEventProps> = ({
   event,
@@ -51,10 +40,10 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
         <p className="col-span-2">{event.title}</p>
 
         <p className="font-semibold col-span-1">Начало:</p>
-        <p className="col-span-2">{formatDate(event.startDate)}</p>
+        <p className="col-span-2">{formatDateTimeDisplay(event.startDate)}</p>
 
         <p className="font-semibold col-span-1">Край:</p>
-        <p className="col-span-2">{formatDate(event.endDate)}</p>
+        <p className="col-span-2">{formatDateTimeDisplay(event.endDate)}</p>
 
         <p className="font-semibold col-span-1">Място:</p>
         <p className="col-span-2">{event.location || "Няма посочено"}</p>
@@ -70,8 +59,7 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
         )}
       </div>
       <p className="text-xs text-gray-500 mt-6 pt-2 border-t">
-        Генерирано на:{" "}
-        {format(new Date(), "d MMMM yyyy 'г.' HH:mm 'ч.'", { locale: bg })}
+        Генерирано на: {formatDateTimeDisplay(new Date())}
       </p>
     </div>
   );

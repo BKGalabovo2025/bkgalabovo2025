@@ -17,7 +17,6 @@ import {
   DocumentReference,
 } from "firebase/firestore";
 import { Member, MemberFormData } from "@/types/member.types";
-import { getMembersCollection } from "@/lib/firebase-collections";
 
 const mockCollectionRef = {} as CollectionReference;
 const mockDocRef = {} as DocumentReference;

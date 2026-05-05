@@ -1,12 +1,12 @@
 import { getDb } from "@/lib/firebase";
 const db = getDb();
 import { collection, getDocs, query, where } from "firebase/firestore";
+import { TournamentEntry, Match } from "@/types/tournament.types";
 import {
-  Tournament,
-  TournamentEntry,
-  Match,
-  TournamentSchema,
-} from "@/types/tournament.types";
+  mapDocToTournament,
+  mapDocToEntry,
+  mapDocToMatch,
+} from "@/lib/tournament-mapper";
 
 // ──────────────────────────────────────────────
 // Точки за класиране по позиция
@@ -55,40 +55,6 @@ export interface RankingEntry {
     points: number;
     played: number;
   }[];
-}
-
-function parseDocToTournament(doc: any): Tournament {
-  const data = doc.data();
-  try {
-    return TournamentSchema.parse({
-      ...data,
-      id: doc.id,
-      startDate: data.startDate?.toDate
-        ? data.startDate.toDate().toISOString()
-        : data.startDate,
-      endDate: data.endDate?.toDate
-        ? data.endDate.toDate().toISOString()
-        : data.endDate,
-      createdAt: data.createdAt?.toDate
-        ? data.createdAt.toDate().toISOString()
-        : data.createdAt,
-      updatedAt: data.updatedAt?.toDate
-        ? data.updatedAt.toDate().toISOString()
-        : data.updatedAt,
-    });
-  } catch {
-    return { ...data, id: doc.id } as Tournament;
-  }
-}
-
-function parseDocToEntry(doc: any): TournamentEntry {
-  const data = doc.data();
-  return { ...data, id: doc.id } as TournamentEntry;
-}
-
-function parseDocToMatch(doc: any): Match {
-  const data = doc.data();
-  return { ...data, id: doc.id } as Match;
 }
 
 // ──────────────────────────────────────────────
@@ -157,7 +123,7 @@ export async function computeGlobalRankings(dateFilter?: {
   );
 
   const tourSnap = await getDocs(q);
-  let tournaments = tourSnap.docs.map(parseDocToTournament);
+  let tournaments = tourSnap.docs.map(mapDocToTournament);
 
   // Филтриране по дата, ако е зададено
   if (dateFilter) {
@@ -182,7 +148,7 @@ export async function computeGlobalRankings(dateFilter?: {
         where("tournamentId", "==", tourn.id)
       )
     );
-    const entries = entriesSnap.docs.map(parseDocToEntry);
+    const entries = entriesSnap.docs.map(mapDocToEntry);
 
     // Matches
     const matchesSnap = await getDocs(
@@ -191,7 +157,7 @@ export async function computeGlobalRankings(dateFilter?: {
         where("tournamentId", "==", tourn.id)
       )
     );
-    const matches = matchesSnap.docs.map(parseDocToMatch);
+    const matches = matchesSnap.docs.map(mapDocToMatch);
 
     // 3. Изчисляваме позиции по категория
     for (const cat of tourn.categories) {

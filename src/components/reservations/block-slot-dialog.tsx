@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -168,53 +169,15 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               )}
             />
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <DateTimePicker
                 control={form.control}
                 name="startTime"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Начало</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={
-                        field.value
-                          ? new Date(
-                              field.value.getTime() -
-                                field.value.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 16)
-                          : ""
-                      }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Начало"
               />
-              <FormField
+              <DateTimePicker
                 control={form.control}
                 name="endTime"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Край</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={
-                        field.value
-                          ? new Date(
-                              field.value.getTime() -
-                                field.value.getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 16)
-                          : ""
-                      }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Край"
               />
             </div>
             <FormField

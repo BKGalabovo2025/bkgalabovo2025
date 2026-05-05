@@ -1,0 +1,81 @@
+"use client";
+
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+
+interface DashboardChartsProps {
+  data: { name: string; revenue: number }[];
+}
+
+export const RevenueChart = ({ data }: DashboardChartsProps) => {
+  return (
+    <div className="h-[300px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{
+            top: 10,
+            right: 30,
+            left: 0,
+            bottom: 0,
+          }}
+        >
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
+              <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="#f1f5f9"
+          />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
+            dy={10}
+          />
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
+            tickFormatter={(value) => `${value}лв.`}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#fff",
+              borderRadius: "16px",
+              border: "none",
+              boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+              padding: "12px",
+            }}
+            itemStyle={{
+              color: "#1e293b",
+              fontWeight: "bold",
+              fontSize: "14px",
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke="#2563eb"
+            strokeWidth={3}
+            fillOpacity={1}
+            fill="url(#colorRevenue)"
+            animationDuration={1500}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};

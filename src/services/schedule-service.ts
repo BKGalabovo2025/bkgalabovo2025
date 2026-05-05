@@ -13,7 +13,7 @@ import { ScheduleEvent, Attendee } from "@/types";
 
 const eventsCollection = collection(getDb(), "events");
 
-const docToScheduleEvent = (
+export const docToScheduleEvent = (
   doc: DocumentSnapshot | QueryDocumentSnapshot
 ): ScheduleEvent | null => {
   if (!doc.id || !doc.exists()) return null;

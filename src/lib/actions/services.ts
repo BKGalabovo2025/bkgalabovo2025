@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getAdminDb, getAdminAuth } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schema for Service Validation ---
@@ -30,17 +31,6 @@ export type ServiceState = {
 };
 
 // --- Helper Functions (Private) ---
-
-async function _getUser(idToken: string) {
-  const adminAuth = getAdminAuth();
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    return await adminAuth.getUser(decodedToken.uid);
-  } catch (error: unknown) {
-    console.error("Error verifying ID token:", error);
-    throw new Error("Authentication failed.");
-  }
-}
 
 function _parseFormData(formData: FormData): z.infer<typeof ServiceSchema> {
   return {
@@ -87,7 +77,7 @@ export async function updateClubService(
   formData: FormData
 ): Promise<ServiceState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
     const parsedData = _parseFormData(formData);
 
@@ -147,7 +137,7 @@ export async function createClubService(
   formData: FormData
 ): Promise<ServiceState> {
   try {
-    const user = await _getUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
     const parsedData = _parseFormData(formData);
 

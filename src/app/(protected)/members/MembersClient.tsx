@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   PlusCircle,
   Search,
@@ -26,8 +27,21 @@ import {
   UserMinus,
   Mail,
   Calendar,
+  Download,
+  MoreVertical,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { exportToCSV } from "@/lib/export-utils";
+import { bulkUpdateMemberStatus } from "@/services/member-service";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -52,6 +66,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filteredMembers = useMemo(() => {
     return initialMembers.filter((member) => {
@@ -83,8 +98,46 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     };
   }, [initialMembers]);
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedMembers.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedMembers.map((m) => m.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkStatusUpdate = async (status: "active" | "inactive") => {
+    if (selectedIds.length === 0) return;
+    try {
+      await bulkUpdateMemberStatus(selectedIds, status);
+      toast.success(`Успешно обновени ${selectedIds.length} членове`);
+      setSelectedIds([]);
+      router.refresh();
+    } catch {
+      toast.error("Възникна грешка при обновяването");
+    }
+  };
+
+  const handleExport = () => {
+    const dataToExport = filteredMembers.map((m) => ({
+      Име: `${m.firstName} ${m.lastName}`,
+      Имейл: m.email || "—",
+      Група: m.ageGroup || "—",
+      Статус: m.status === "active" ? "Активен" : "Неактивен",
+      Регистрация: new Date(m.registrationDate).toLocaleDateString("bg-BG"),
+    }));
+    exportToCSV(dataToExport, "members_list.csv");
+    toast.success("Данните са експортирани успешно");
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <PageHeader
         title="Членове на клуба"
         description="Управление на профили, членски карти и статуси на спортистите."
@@ -93,51 +146,60 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           { label: "Членове" },
         ]}
       >
-        <Button
-          onClick={() => router.push("/members/new")}
-          className="rounded-xl shadow-md font-bento"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" /> Нов член
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="rounded-xl border-slate-200 font-black text-[10px] uppercase tracking-widest h-11"
+          >
+            <Download className="mr-2 h-4 w-4" /> Експорт
+          </Button>
+          <Button
+            onClick={() => router.push("/members/new")}
+            className="rounded-xl shadow-lg shadow-blue-900/20 font-black text-[10px] uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 h-11"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" /> Нов член
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Stats Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <BentoCard className="p-6 flex items-center gap-4 bg-blue-50/30 dark:bg-blue-900/10 border-blue-100/50">
-          <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-2xl text-blue-600 dark:text-blue-200">
+        <BentoCard className="p-6 flex items-center gap-4 bg-white border-none shadow-sm">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
             <Users className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-blue-600/70 uppercase tracking-wider">
-              Общо
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Общо членове
             </p>
-            <p className="text-2xl font-bold">{stats.total}</p>
+            <p className="text-2xl font-black text-slate-900">{stats.total}</p>
           </div>
         </BentoCard>
 
-        <BentoCard className="p-6 flex items-center gap-4 bg-emerald-50/30 dark:bg-emerald-900/10 border-emerald-100/50">
-          <div className="p-3 bg-emerald-100 dark:bg-emerald-800 rounded-2xl text-emerald-600 dark:text-emerald-200">
+        <BentoCard className="p-6 flex items-center gap-4 bg-white border-none shadow-sm">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
             <UserCheck className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-emerald-600/70 uppercase tracking-wider">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Активни
             </p>
-            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+            <p className="text-2xl font-black text-emerald-600">
               {stats.active}
             </p>
           </div>
         </BentoCard>
 
-        <BentoCard className="p-6 flex items-center gap-4 bg-slate-50/30 dark:bg-slate-800/10 border-slate-200/50">
-          <div className="p-3 bg-slate-100 dark:bg-slate-700 rounded-2xl text-slate-600 dark:text-slate-300">
+        <BentoCard className="p-6 flex items-center gap-4 bg-white border-none shadow-sm">
+          <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
             <UserMinus className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-600/70 uppercase tracking-wider">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Неактивни
             </p>
-            <p className="text-2xl font-bold text-slate-700 dark:text-slate-400">
+            <p className="text-2xl font-black text-rose-600">
               {stats.inactive}
             </p>
           </div>
@@ -145,30 +207,69 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       </div>
 
       {/* Main Table Bento */}
-      <BentoCard className="overflow-hidden">
-        <div className="p-6 border-b border-slate-100 bg-slate-50/30">
+      <BentoCard className="overflow-hidden border-none shadow-sm bg-white">
+        <div className="p-6 border-b border-slate-50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Търсене по име или имейл..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 rounded-xl border-slate-200 bg-white shadow-sm focus-visible:ring-primary"
-              />
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Търсене по име или имейл..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 rounded-xl border-slate-100 bg-slate-50 shadow-none focus-visible:ring-blue-500 h-11"
+                />
+              </div>
+
+              {selectedIds.length > 0 && (
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4">
+                  <span className="text-xs font-black text-blue-600 uppercase tracking-widest whitespace-nowrap">
+                    {selectedIds.length} избрани
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-lg h-8 px-2"
+                      >
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="rounded-xl border-slate-100 p-2 shadow-xl"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => handleBulkStatusUpdate("active")}
+                        className="flex items-center gap-2 rounded-lg text-xs font-bold text-emerald-600 focus:text-emerald-700"
+                      >
+                        <CheckCircle size={14} /> Активирай
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleBulkStatusUpdate("inactive")}
+                        className="flex items-center gap-2 rounded-lg text-xs font-bold text-slate-500"
+                      >
+                        <XCircle size={14} /> Деактивирай
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
+
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-slate-400 mr-1" />
-              <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+              <div className="flex bg-slate-50 rounded-xl p-1">
                 {(["all", "active", "inactive"] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setStatusFilter(f)}
                     className={cn(
-                      "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                      "px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
                       statusFilter === f
-                        ? "bg-slate-900 text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-900"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-400 hover:text-slate-600"
                     )}
                   >
                     {f === "all"
@@ -184,13 +285,33 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         </div>
 
         <Table>
-          <TableHeader className="bg-slate-50/20">
+          <TableHeader className="bg-slate-50/50">
             <TableRow className="hover:bg-transparent border-slate-100">
-              <TableHead className="w-[300px] py-4">Член</TableHead>
-              <TableHead>Контакт</TableHead>
-              <TableHead>Възраст</TableHead>
-              <TableHead>Регистрация</TableHead>
-              <TableHead className="text-right">Статус</TableHead>
+              <TableHead className="w-12 px-6">
+                <Checkbox
+                  checked={
+                    selectedIds.length === paginatedMembers.length &&
+                    paginatedMembers.length > 0
+                  }
+                  onCheckedChange={toggleSelectAll}
+                  className="rounded-md border-slate-200"
+                />
+              </TableHead>
+              <TableHead className="py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Член
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Контакт
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Възраст
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Регистрация
+              </TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Статус
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -198,31 +319,52 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               paginatedMembers.map((member) => (
                 <TableRow
                   key={member.id}
-                  onClick={() => router.push(`/members/${member.id}`)}
-                  className="cursor-pointer hover:bg-slate-50/50 transition-colors group border-slate-50"
+                  className={cn(
+                    "cursor-pointer hover:bg-slate-50/50 transition-colors group border-slate-50",
+                    selectedIds.includes(member.id) && "bg-blue-50/30"
+                  )}
                 >
-                  <TableCell className="py-4">
+                  <TableCell
+                    className="px-6"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={selectedIds.includes(member.id)}
+                      onCheckedChange={() => toggleSelect(member.id)}
+                      className="rounded-md border-slate-200"
+                    />
+                  </TableCell>
+                  <TableCell
+                    className="py-4"
+                    onClick={() => router.push(`/members/${member.id}`)}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 font-bold group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                      <div className="h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
                         {member.firstName[0]}
                         {member.lastName[0]}
                       </div>
-                      <div className="font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                      <div className="font-black text-sm text-slate-800 group-hover:text-blue-600 transition-colors">
                         {member.firstName} {member.lastName}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    onClick={() => router.push(`/members/${member.id}`)}
+                  >
                     <div className="flex items-center gap-2 text-slate-500">
                       <Mail className="h-3.5 w-3.5" />
-                      <span className="text-sm">{member.email || "—"}</span>
+                      <span className="text-xs font-bold">
+                        {member.email || "—"}
+                      </span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    onClick={() => router.push(`/members/${member.id}`)}
+                  >
                     {member.ageGroup ? (
                       <Badge
                         variant="outline"
-                        className="rounded-lg font-medium bg-white border-slate-200"
+                        className="rounded-lg font-black text-[10px] bg-white border-slate-200 uppercase tracking-widest"
                       >
                         {member.ageGroup}
                       </Badge>
@@ -230,23 +372,28 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-slate-500">
+                  <TableCell
+                    onClick={() => router.push(`/members/${member.id}`)}
+                  >
+                    <div className="flex items-center gap-2 text-slate-400">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span className="text-sm">
+                      <span className="text-[10px] font-black uppercase tracking-widest">
                         {new Date(member.registrationDate).toLocaleDateString(
                           "bg-BG"
                         )}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell
+                    className="text-right"
+                    onClick={() => router.push(`/members/${member.id}`)}
+                  >
                     <Badge
                       className={cn(
-                        "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border-none shadow-sm",
+                        "rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-none shadow-sm",
                         member.status === "active"
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                          ? "bg-emerald-100 text-emerald-700 shadow-emerald-100/50"
+                          : "bg-slate-100 text-slate-500"
                       )}
                     >
                       {member.status === "active" ? "Активен" : "Неактивен"}
@@ -256,11 +403,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-64 text-center">
+                <TableCell colSpan={6} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center text-slate-400">
                     <Users className="h-12 w-12 mb-3 opacity-20" />
-                    <p className="text-lg font-medium">Няма намерени членове</p>
-                    <p className="text-sm">Опитайте с друго име или филтър.</p>
+                    <p className="text-lg font-black text-slate-900 uppercase tracking-tight">
+                      Няма намерени членове
+                    </p>
+                    <p className="text-xs font-bold uppercase tracking-widest mt-1">
+                      Опитайте с друго име или филтър.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -268,22 +419,20 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </TableBody>
         </Table>
 
-        {/* Pagination inside Bento */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-6 border-t border-slate-100 bg-slate-50/10">
-            <p className="text-sm text-slate-500">
+          <div className="flex items-center justify-between p-6 border-t border-slate-50 bg-slate-50/10">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Показани{" "}
-              <span className="font-bold text-slate-900">
+              <span className="text-slate-900">
                 {(currentPage - 1) * ITEMS_PER_PAGE + 1}
               </span>{" "}
               -{" "}
-              <span className="font-bold text-slate-900">
+              <span className="text-slate-900">
                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredMembers.length)}
               </span>{" "}
               от{" "}
-              <span className="font-bold text-slate-900">
-                {filteredMembers.length}
-              </span>
+              <span className="text-slate-900">{filteredMembers.length}</span>
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -295,7 +444,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="px-3 py-1 bg-white rounded-xl text-sm font-bold border border-slate-200 shadow-sm min-w-[60px] text-center">
+              <div className="px-3 py-1 bg-white rounded-xl text-xs font-black border border-slate-100 shadow-sm min-w-[60px] text-center">
                 {currentPage} / {totalPages}
               </div>
               <Button

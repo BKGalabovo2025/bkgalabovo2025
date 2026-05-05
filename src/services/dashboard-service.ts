@@ -1,4 +1,4 @@
-import { Member, Sale } from "@/types";
+import { Member, Sale, Product } from "@/types";
 
 export type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }
@@ -9,11 +9,17 @@ export type TotalRevenue = {
  * This function is defensively coded to handle any data shape without crashing.
  * @param members - An array of all members.
  * @param sales - An array of all sales.
+ * @param lowStockProducts - An array of low stock products.
  * @returns An object containing calculated dashboard statistics, including 30-day trends.
  */
-export const getDashboardStats = (members: Member[], sales: Sale[]) => {
+export const getDashboardStats = (
+  members: Member[],
+  sales: Sale[],
+  lowStockProducts: Product[]
+) => {
   const safeMembers = Array.isArray(members) ? members : [];
   const safeSales = Array.isArray(sales) ? sales : [];
+  const safeLowStock = Array.isArray(lowStockProducts) ? lowStockProducts : [];
 
   // --- Basic Stats ---
   const totalMembers = safeMembers.length;
@@ -23,6 +29,7 @@ export const getDashboardStats = (members: Member[], sales: Sale[]) => {
   const unpaidSales = safeSales.filter(
     (sale) => sale && sale.status !== "completed"
   ).length;
+  const lowStockCount = safeLowStock.length;
 
   // --- Date Ranges for Trend Analysis ---
   const now = new Date();
@@ -109,5 +116,40 @@ export const getDashboardStats = (members: Member[], sales: Sale[]) => {
     newMembersChange,
     salesLast30Days: salesCountLast30Days,
     salesChange,
+    lowStockCount,
   };
+};
+
+/**
+ * Calculates revenue per month for the last 6 months for chart visualization.
+ */
+export const getRevenueTrendData = (sales: Sale[]) => {
+  const safeSales = Array.isArray(sales) ? sales : [];
+  const now = new Date();
+  const months = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthName = d.toLocaleString("default", { month: "short" });
+    const year = d.getFullYear();
+    const month = d.getMonth();
+
+    const monthlyRevenue = safeSales
+      .filter((s) => {
+        const sDate = new Date(s.saleDate);
+        return (
+          sDate.getMonth() === month &&
+          sDate.getFullYear() === year &&
+          s.status === "completed"
+        );
+      })
+      .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+    months.push({
+      name: monthName,
+      revenue: monthlyRevenue,
+    });
+  }
+
+  return months;
 };

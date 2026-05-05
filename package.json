@@ -66,6 +66,7 @@
     "react-dom": "^19",
     "react-hook-form": "^7.73.1",
     "react-hot-toast": "^2.6.0",
+    "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-config-tailwindcss": "^1.0.1",

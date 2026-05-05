@@ -14,13 +14,7 @@ import {
 import { getAllMembers } from "@/services/member-service";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  PlusCircle,
-  CreditCard,
-  UserCheck,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { PlusCircle, CreditCard, UserCheck, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +44,7 @@ export default function SubscriptionsClient() {
     return () => unsubscribe();
   }, []);
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, isLoading, mutate } = useSWR(
     "subscriptions-page-data",
     async () => {
       const [fetchedServices, fetchedMembers, allSubscriptions] =

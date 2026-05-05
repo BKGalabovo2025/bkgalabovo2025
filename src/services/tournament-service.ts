@@ -22,30 +22,15 @@ import {
   Match,
   TournamentSchema,
 } from "@/types/tournament.types";
+import {
+  mapDocToTournament,
+  mapDocToEntry,
+  mapDocToMatch,
+} from "@/lib/tournament-mapper";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 
 // Utility to parse Firestore docs to our Tournament type
-function docToTournament(docSnapshot: any): Tournament {
-  const data = docSnapshot.data();
-
-  return TournamentSchema.parse({
-    ...data,
-    id: docSnapshot.id,
-    startDate: data.startDate?.toDate
-      ? data.startDate.toDate().toISOString()
-      : data.startDate,
-    endDate: data.endDate?.toDate
-      ? data.endDate.toDate().toISOString()
-      : data.endDate,
-    createdAt: data.createdAt?.toDate
-      ? data.createdAt.toDate().toISOString()
-      : data.createdAt,
-    updatedAt: data.updatedAt?.toDate
-      ? data.updatedAt.toDate().toISOString()
-      : data.updatedAt,
-  });
-}
 
 export const tournamentService = {
   /**
@@ -58,7 +43,7 @@ export const tournamentService = {
         orderBy("startDate", "desc")
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(docToTournament);
+      return snapshot.docs.map(mapDocToTournament);
     } catch (error) {
       console.error("Error fetching tournaments:", error);
       throw error;
@@ -73,7 +58,7 @@ export const tournamentService = {
       const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
       const snapshot = await getDoc(docRef);
       if (!snapshot.exists()) return null;
-      return docToTournament(snapshot);
+      return mapDocToTournament(snapshot);
     } catch (error) {
       console.error("Error fetching tournament by id:", error);
       throw error;
@@ -159,16 +144,7 @@ export const tournamentService = {
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((docSnapshot) => {
-        const data = docSnapshot.data();
-        return {
-          ...data,
-          id: docSnapshot.id,
-          registrationDate: data.registrationDate?.toDate
-            ? data.registrationDate.toDate().toISOString()
-            : data.registrationDate,
-        } as TournamentEntry;
-      });
+      return snapshot.docs.map(mapDocToEntry);
     } catch (error) {
       console.error("Error fetching tournament entries:", error);
       throw error;
@@ -222,7 +198,7 @@ export const tournamentService = {
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => ({ ...d.data(), id: d.id }) as Match);
+      return snapshot.docs.map(mapDocToMatch);
     } catch (error) {
       console.error("Error fetching matches:", error);
       throw error;

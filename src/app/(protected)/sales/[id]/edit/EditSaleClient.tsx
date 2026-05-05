@@ -48,11 +48,7 @@ export default function EditSaleClient() {
   const params = useParams();
   const saleId = params.id as string;
 
-  const {
-    products: allProducts,
-    isLoading: productsLoading,
-    error: productsError,
-  } = useProducts();
+  const { products: allProducts, isLoading: productsLoading } = useProducts();
   const [members, setMembers] = useState<Member[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
 

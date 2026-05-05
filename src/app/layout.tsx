@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, PT_Sans, Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
+import { LanguageProvider } from "@/context/language-context";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -57,10 +58,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <Toaster richColors closeButton position="top-right" />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              {children}
+              <Toaster richColors closeButton position="top-right" />
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

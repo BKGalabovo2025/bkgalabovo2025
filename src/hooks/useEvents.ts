@@ -12,21 +12,14 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import { docToScheduleEvent } from "@/services/schedule-service";
+import { toISOStringOrUndefined } from "@/lib/date-utils";
 import { ScheduleEvent, Member, Attendee } from "@/types";
 import { toast } from "sonner";
 import { getAllMembers } from "@/services/member-service";
 import { formatFullName } from "@/lib/utils";
 
 type NewEvent = Omit<ScheduleEvent, "id">;
-
-const toISOStringOrUndefined = (
-  date: Date | Timestamp | string | undefined
-): string | undefined => {
-  if (!date) return undefined;
-  if (date instanceof Timestamp) return date.toDate().toISOString();
-  if (date instanceof Date) return date.toISOString();
-  return date;
-};
 
 export const useEvents = () => {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
@@ -54,22 +47,23 @@ export const useEvents = () => {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const eventsData = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            startDate: toISOStringOrUndefined(data.startDate),
-            endDate: toISOStringOrUndefined(data.endDate),
-            attendees: (data.attendees || []).map((attendee: Attendee) => ({
-              ...attendee,
-              name:
-                members.find((m) => m.id === attendee.memberId)?.name ||
-                attendee.name ||
-                "Unknown",
-            })),
-          } as ScheduleEvent;
-        });
+        const eventsData = snapshot.docs
+          .map((doc) => {
+            const event = docToScheduleEvent(doc);
+            if (!event) return null;
+
+            return {
+              ...event,
+              attendees: (event.attendees || []).map((attendee) => ({
+                ...attendee,
+                name:
+                  members.find((m) => m.id === attendee.memberId)?.name ||
+                  attendee.name ||
+                  "Unknown",
+              })),
+            } as ScheduleEvent;
+          })
+          .filter(Boolean) as ScheduleEvent[];
         setEvents(eventsData);
         setIsLoading(false);
       },
