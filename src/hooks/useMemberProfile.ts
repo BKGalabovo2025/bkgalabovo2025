@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { Member, Subscription, ScheduleEvent } from "@/types";
-import { getMemberById, getMembersByFamilyId } from "@/services/member-service";
+import { getMemberById } from "@/services/member-service";
 import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { getAttendancesByMemberId } from "@/services/attendance-service";
 
@@ -28,11 +28,7 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     getAttendancesByMemberId(memberId),
   ]);
 
-  let familyMembers: Member[] = [];
-  if (memberData.familyId) {
-    const allFamily = await getMembersByFamilyId(memberData.familyId);
-    familyMembers = allFamily.filter(m => m.id !== memberId);
-  }
+  const familyMembers: Member[] = [];
 
   return {
     member: memberData,

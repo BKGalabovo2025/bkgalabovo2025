@@ -220,79 +220,70 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight font-heading text-zinc-900 dark:text-white">
-            График и Събития
-          </h1>
-          <p className="text-muted-foreground text-lg">Планирайте тренировки, лагери и състезания на клуба.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setMonthlyDialogOpen(true)} className="h-11 px-6 rounded-xl border-zinc-200 dark:border-zinc-800 font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all">
-            <Repeat className="mr-2 h-4 w-4 text-zinc-400" />
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+        <h1 className="text-3xl font-bold">График на събитията</h1>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setMonthlyDialogOpen(true)}>
+            <Repeat className="mr-2 h-4 w-4" />
             Шаблонен график
           </Button>
-          <Button onClick={() => setCreateDialogOpen(true)} className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all font-bold">
+          <Button onClick={() => setCreateDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Създай събитие
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="w-full md:w-auto"
-        >
-          <TabsList className="bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-1 h-11 border border-zinc-200 dark:border-zinc-700">
-            <TabsTrigger value="current" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 font-bold font-heading transition-all">Текущи</TabsTrigger>
-            <TabsTrigger value="upcoming" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 font-bold font-heading transition-all">Предстоящи</TabsTrigger>
-            <TabsTrigger value="past" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 font-bold font-heading transition-all">Минали</TabsTrigger>
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        defaultValue="current"
+        className="w-full"
+      >
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+          <TabsList>
+            <TabsTrigger value="current">Текущи</TabsTrigger>
+            <TabsTrigger value="upcoming">Предстоящи</TabsTrigger>
+            <TabsTrigger value="past">Минали</TabsTrigger>
           </TabsList>
-        </Tabs>
-        
-        <div className="w-full md:w-[280px]">
-          <Select
-            onValueChange={(value) =>
-              setFilterType(value as ScheduleEventType | "all")
-            }
-            defaultValue="all"
-          >
-            <SelectTrigger className="h-11 rounded-2xl border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 font-bold">
-              <SelectValue placeholder="Филтрирай по тип" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl">
-              <SelectItem value="all">Всички типове</SelectItem>
-              {Object.entries(eventTypeTranslations).map(([key, value]) => (
-                <SelectItem key={key} value={key}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-auto md:w-[240px]">
+            <Select
+              onValueChange={(value) =>
+                setFilterType(value as ScheduleEventType | "all")
+              }
+              defaultValue="all"
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Филтрирай по тип" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички типове</SelectItem>
+                {Object.entries(eventTypeTranslations).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-6">
-        <Tabs value={activeTab} className="w-full m-0 p-0">
-          <TabsContent value="current" className="mt-0">
-            {renderEventsList(filteredEvents, isLoading, errorObject)}
-          </TabsContent>
-          <TabsContent value="upcoming" className="mt-0">
-            {renderEventsList(filteredEvents, isLoading, errorObject)}
-          </TabsContent>
-          <TabsContent value="past" className="mt-0">
-            {renderEventsList(
-              paginatedEvents,
-              isLoading,
-              errorObject,
-              filteredEvents.length
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="current">
+          {renderEventsList(filteredEvents, isLoading, errorObject)}
+        </TabsContent>
+        <TabsContent value="upcoming">
+          {renderEventsList(filteredEvents, isLoading, errorObject)}
+        </TabsContent>
+        <TabsContent value="past">
+          {renderEventsList(
+            paginatedEvents,
+            isLoading,
+            errorObject,
+            filteredEvents.length
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Dialogs */}
       <CreateEventDialog
@@ -320,22 +311,22 @@ export default function SchedulePage() {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-2xl border-zinc-200 dark:border-zinc-800 shadow-2xl">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-heading text-2xl">
-              Изтриване на събитие
+            <AlertDialogTitle>
+              Наистина ли искате да изтриете това събитие?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-lg">
-              Сигурни ли сте, че искате да премахнете това събитие от графика? Това действие не може да бъде отменено.
+            <AlertDialogDescription>
+              Това действие не може да бъде отменено.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="rounded-xl">Отказ</AlertDialogCancel>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отказ</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="rounded-xl bg-red-500 hover:bg-red-600 font-bold"
+              className="bg-red-500 hover:bg-red-600"
             >
-              Изтрий събитието
+              Изтрий
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -351,20 +342,18 @@ export default function SchedulePage() {
   ) {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center py-32 bg-white/50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
-          <p className="text-muted-foreground font-medium font-heading">Зареждане на събития...</p>
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+          <span>Зареждане на данни...</span>
         </div>
       );
     }
 
     if (error) {
       return (
-        <div className="text-center py-20 bg-red-50 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/20">
-          <p className="text-red-500 font-bold">
-            Грешка при зареждане: {error.message}
-          </p>
-        </div>
+        <p className="text-red-500 text-center py-10">
+          Грешка при зареждане: {error.message}
+        </p>
       );
     }
 
@@ -372,15 +361,14 @@ export default function SchedulePage() {
 
     if (finalTotalEvents === 0) {
       return (
-        <div className="text-center py-32 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl">
-          <PlusCircle className="h-12 w-12 mx-auto mb-4 text-zinc-300" />
-          <h3 className="text-xl font-bold font-heading">
+        <div className="text-center py-10 border-2 border-dashed rounded-lg mt-4">
+          <h3 className="text-xl font-semibold">
             {filterType === "all"
               ? `Няма ${tabTranslations[activeTab]} събития`
               : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
           </h3>
-          <p className="text-muted-foreground mt-2 max-w-sm mx-auto font-medium">
-            Променете филтрите или планирайте ново събитие за този период.
+          <p className="text-muted-foreground mt-2">
+            Можете да промените филтрите или да създадете ново събитие.
           </p>
         </div>
       );
@@ -402,15 +390,12 @@ export default function SchedulePage() {
     );
 
     return (
-      <div className="space-y-12">
-        <div className="space-y-10">
+      <div>
+        <div className="space-y-6">
           {Object.entries(groupedEvents).map(([month, monthEvents]) => (
-            <div key={month} className="space-y-4">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-black font-heading capitalize text-zinc-900 dark:text-white">{month}</h2>
-                <div className="h-px flex-1 bg-zinc-100 dark:bg-zinc-800" />
-              </div>
-              <div className="grid gap-3">
+            <div key={month}>
+              <h2 className="text-xl font-semibold mb-3 capitalize">{month}</h2>
+              <div className="space-y-2">
                 {(monthEvents as ScheduleEvent[]).map(
                   (event: ScheduleEvent) => (
                     <EventListItem
@@ -430,24 +415,20 @@ export default function SchedulePage() {
         </div>
 
         {activeTab === "past" && finalTotalEvents > EVENTS_PER_PAGE && (
-          <div className="flex justify-center items-center gap-6 py-8">
+          <div className="flex justify-center items-center gap-4 mt-8">
             <Button
-              variant="outline"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="rounded-xl font-bold border-zinc-200 dark:border-zinc-800"
             >
               Предишна
             </Button>
-            <span className="font-bold font-heading text-zinc-500">
+            <span>
               Страница {currentPage} от{" "}
               {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
             </span>
             <Button
-              variant="outline"
               onClick={() => setCurrentPage((prev) => prev + 1)}
               disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
-              className="rounded-xl font-bold border-zinc-200 dark:border-zinc-800"
             >
               Следваща
             </Button>

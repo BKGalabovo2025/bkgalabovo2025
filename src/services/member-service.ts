@@ -12,13 +12,9 @@ import {
   orderBy,
   deleteDoc,
   CollectionReference,
-  where,
-  runTransaction,
-  collection,
 } from "firebase/firestore";
-import { getMembersCollection, getDb } from "@/lib/firebase-collections";
+import { getMembersCollection } from "@/lib/firebase-collections";
 import { Member, MemberSchema } from "@/types/member.types";
-import { Family } from "@/types";
 
 // Converts a Firestore document to a Member object with robust validation.
 export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
@@ -201,112 +197,4 @@ export const updateMember = async (
 export const deleteMember = async (id: string): Promise<void> => {
   const memberRef = doc(getMembersCollection(), id);
   await deleteDoc(memberRef);
-};
-
-/**
- * Fetches all members belonging to the same family.
- */
-export const getMembersByFamilyId = async (familyId: string): Promise<Member[]> => {
-  if (!familyId) return [];
-  const q = query(getMembersCollection(), where("familyId", "==", familyId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
-};
-
-export const getFamilyById = async (familyId: string): Promise<Family | null> => {
-  const docRef = doc(getDb(), "families", familyId);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as Family;
-  }
-  return null;
-};
-
-export const linkMembersInFamily = async (memberIds: string[], existingFamilyId?: string): Promise<string> => {
-  const db = getDb();
-  const familyId = existingFamilyId || doc(collection(db, "families")).id;
-  const now = new Date().toISOString();
-
-  await runTransaction(db, async (transaction) => {
-    // 1. Update all members with the familyId
-    for (const id of memberIds) {
-      const memberRef = doc(db, "members", id);
-      transaction.update(memberRef, { 
-        familyId,
-        updatedAt: now
-      });
-    }
-
-    // 2. Update or create the family document
-    const familyRef = doc(db, "families", familyId);
-    const familySnap = await transaction.get(familyRef);
-    
-    if (familySnap.exists()) {
-      const existingData = familySnap.data() as Family;
-      const updatedMemberIds = Array.from(new Set([...existingData.memberIds, ...memberIds]));
-      transaction.update(familyRef, {
-        memberIds: updatedMemberIds,
-        updatedAt: now
-      });
-    } else {
-      // Get first member to use their last name for family name
-      const firstMemberRef = doc(db, "members", memberIds[0]);
-      const firstMemberSnap = await transaction.get(firstMemberRef);
-      const firstMemberData = firstMemberSnap.data() as Member;
-      
-      // Better Bulgarian family naming logic
-      let lastName = firstMemberData.lastName;
-      if (lastName.endsWith("а")) {
-        lastName = lastName.slice(0, -1);
-      }
-      const familyName = `Семейство ${lastName}и`;
-
-      transaction.set(familyRef, {
-        id: familyId,
-        name: familyName,
-        memberIds: memberIds,
-        createdAt: now,
-        updatedAt: now
-      });
-    }
-  });
-
-  return familyId;
-};
-
-export const unlinkMemberFromFamily = async (memberId: string): Promise<void> => {
-  const db = getDb();
-  const memberRef = doc(db, "members", memberId);
-  const memberSnap = await getDoc(memberRef);
-  
-  if (!memberSnap.exists()) return;
-  
-  const memberData = memberSnap.data() as Member;
-  const familyId = memberData.familyId;
-  
-  if (!familyId) return;
-
-  const now = new Date().toISOString();
-
-  await runTransaction(db, async (transaction) => {
-    // 1. Remove familyId from the member
-    transaction.update(memberRef, { 
-      familyId: null,
-      updatedAt: now
-    });
-
-    // 2. Remove memberId from the family document
-    const familyRef = doc(db, "families", familyId);
-    const familySnap = await transaction.get(familyRef);
-    
-    if (familySnap.exists()) {
-      const familyData = familySnap.data() as Family;
-      const updatedMemberIds = familyData.memberIds.filter(id => id !== memberId);
-      
-      transaction.update(familyRef, {
-        memberIds: updatedMemberIds,
-        updatedAt: now
-      });
-    }
-  });
 };

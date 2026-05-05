@@ -8,18 +8,12 @@ import {
   where,
   Timestamp,
   deleteDoc,
-  getDoc,
-  setDoc,
-  orderBy,
-  limit,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Reservation, BlockedSlot } from "@/types/reservation";
-import { getSalesCollection } from "@/lib/firebase-collections";
-import { Sale } from "@/types";
 
 const db = getDb();
-export const reservationsCollection = collection(db, "reservations");
+const reservationsCollection = collection(db, "reservations");
 const blockedSlotsCollection = collection(db, "blockedSlots");
 
 // --- Helper Functions --- //
@@ -90,12 +84,18 @@ const checkForConflicts = async (
 const sendConfirmationEmail = async (
   reservationId: string,
   data: Omit<Reservation, "id" | "createdAt">
-): Promise<boolean> => {
+) => {
   if (!data.clientEmail) {
-    return true; // No email to send, so technically not a failure
+    console.log(
+      `[Email] No email provided for reservation ${reservationId}. Skipping email.`
+    );
+    return;
   }
 
   try {
+    console.log(
+      `[Email] Attempting to send confirmation for reservation ${reservationId} to ${data.clientEmail}`
+    );
     const response = await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -114,13 +114,21 @@ const sendConfirmationEmail = async (
     });
 
     if (!response.ok) {
-      return false;
+      const errorBody = await response.json();
+      throw new Error(
+        `Failed to send email: ${response.status} ${response.statusText} - ${JSON.stringify(errorBody)}`
+      );
     }
 
-    return true;
+    console.log(
+      `[Email] Successfully sent confirmation for reservation ${reservationId}`
+    );
   } catch (error) {
-    console.warn(`[Email] Failed to send email for ${reservationId}:`, error);
-    return false;
+    // IMPORTANT: We only log the error. We don't re-throw it because the reservation itself was successful.
+    console.error(
+      `[Email] CRITICAL: Failed to send confirmation email for reservation ${reservationId}. The reservation IS saved.`,
+      error
+    );
   }
 };
 
@@ -146,9 +154,9 @@ export const createReservation = async (
   });
 
   // After successful creation, try to send an email but don't block the process if it fails
-  const emailSent = await sendConfirmationEmail(docRef.id, reservationData);
+  await sendConfirmationEmail(docRef.id, reservationData);
 
-  return { id: docRef.id, emailSent };
+  return docRef.id;
 };
 
 export const updateReservation = async (
@@ -170,90 +178,6 @@ export const updateReservation = async (
   await updateDoc(docRef, data);
 };
 
-export const updateReservationStatus = async (
-  id: string,
-  status: Reservation["status"]
-) => {
-  const docRef = doc(db, "reservations", id);
-  await updateDoc(docRef, { status });
-
-  // Handle sales sync based on status
-  if (status === "paid") {
-    try {
-      const resSnap = await getDoc(docRef);
-      if (resSnap.exists()) {
-        const resData = resSnap.data() as Reservation;
-        
-        // 1. Check if a sale already exists for this reservation to prevent duplicates
-        const salesRef = getSalesCollection();
-        const q = query(salesRef, where("relatedReservationId", "==", id));
-        const existingSales = await getDocs(q);
-
-        if (existingSales.empty) {
-          await recordReservationAsSale(id, resData);
-        } else {
-          console.log(`Sale already exists for reservation ${id}. Skipping duplication.`);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to record reservation as sale:", error);
-    }
-  } else if (status === "unpaid") {
-    // If toggled back to unpaid, remove the associated sale records from finances
-    try {
-      const salesRef = getSalesCollection();
-      const q = query(salesRef, where("relatedReservationId", "==", id));
-      const existingSales = await getDocs(q);
-      
-      const deletePromises = existingSales.docs.map(saleDoc => 
-        deleteDoc(doc(db, "sales", saleDoc.id))
-      );
-      
-      await Promise.all(deletePromises);
-      if (existingSales.docs.length > 0) {
-        console.log(`Removed ${existingSales.docs.length} associated sale(s) for reservation ${id} as it was marked unpaid.`);
-      }
-    } catch (error) {
-      console.error("Failed to remove sale for unpaid reservation:", error);
-    }
-  }
-};
-
-/**
- * Internal helper to record a paid reservation in the sales collection.
- */
-const recordReservationAsSale = async (reservationId: string, data: Reservation) => {
-  const salesRef = getSalesCollection();
-  
-  // Calculate duration in hours to show correct quantity in the receipt
-  const durationMs = data.endTime.toMillis() - data.startTime.toMillis();
-  const durationHours = Math.max(1, Math.round(durationMs / (1000 * 60 * 60))); 
-  const unitPrice = data.totalPrice / durationHours;
-
-  // Create a sale record linked to this reservation
-  const saleData: Omit<Sale, "id"> = {
-    memberId: "GUEST_EXTERNAL", // Placeholder for non-member reservations
-    saleDate: Timestamp.now().toDate().toISOString(),
-    items: [
-      {
-        productId: `COURT_${data.courtId}`,
-        name: `Наем на Корт ${data.courtId}`,
-        quantity: durationHours,
-        price: unitPrice,
-      }
-    ],
-    status: "completed",
-    isPaid: true,
-    totalAmount: data.totalPrice,
-    currency: "EUR",
-    relatedReservationId: reservationId, // Crucial for tracking and preventing duplicates
-    clientName: data.clientName,
-    createdAt: Timestamp.now().toDate().toISOString(),
-  };
-
-  await addDoc(salesRef, saleData);
-};
-
 export const getReservationsForDay = async (
   date: Date
 ): Promise<Reservation[]> => {
@@ -262,19 +186,6 @@ export const getReservationsForDay = async (
     reservationsCollection,
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
-  );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...(doc.data() as Omit<Reservation, "id">),
-  }));
-};
-
-export const getReservationHistory = async (limitCount = 100): Promise<Reservation[]> => {
-  const q = query(
-    reservationsCollection,
-    orderBy("startTime", "desc"),
-    limit(limitCount)
   );
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map((doc) => ({
@@ -351,36 +262,3 @@ export const deleteBlockedSlot = async (slotId: string) => {
   const docRef = doc(db, "blockedSlots", slotId);
   await deleteDoc(docRef);
 };
-
-/**
- * Working Hours Settings
- */
-const WORKING_HOURS_DOC_ID = "working_hours";
-
-export async function getWorkingHours(): Promise<Record<number, { start: string; end: string; closed?: boolean }>> {
-  const docRef = doc(db, "settings", WORKING_HOURS_DOC_ID);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    return docSnap.data() as Record<number, { start: string; end: string; closed?: boolean }>;
-  }
-
-  // Default values if not set
-  const defaults = {
-    1: { start: "08:00", end: "22:00", closed: false },
-    2: { start: "08:00", end: "22:00", closed: false },
-    3: { start: "08:00", end: "22:00", closed: false },
-    4: { start: "08:00", end: "22:00", closed: false },
-    5: { start: "08:00", end: "22:00", closed: false },
-    6: { start: "09:00", end: "21:00", closed: false },
-    0: { start: "09:00", end: "20:00", closed: false },
-  };
-  
-  await setDoc(docRef, defaults);
-  return defaults;
-}
-
-export async function updateWorkingHours(hours: Record<number, { start: string; end: string; closed?: boolean }>) {
-  const docRef = doc(db, "settings", WORKING_HOURS_DOC_ID);
-  await setDoc(docRef, hours, { merge: true });
-}

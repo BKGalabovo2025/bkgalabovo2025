@@ -8,9 +8,6 @@ import {
   DocumentSnapshot,
   Timestamp,
   runTransaction,
-  addDoc,
-  deleteDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Product, InventoryEvent } from "@/types";
@@ -104,48 +101,6 @@ export const getProducts = async (): Promise<Product[]> => {
   return querySnapshot.docs.map(docToProduct).filter(Boolean) as Product[];
 };
 
-export const addProduct = async (
-  product: Omit<Product, "id">,
-  userId: string,
-  userName: string
-): Promise<string> => {
-  const db = getDb();
-  const docRef = await addDoc(collection(db, PRODUCTS_COLLECTION), {
-    ...product,
-    createdAt: Timestamp.now(),
-  });
-
-  await addDoc(collection(db, EVENTS_COLLECTION), {
-    productId: docRef.id,
-    productName: product.name,
-    type: "initial",
-    quantityChange: product.stock,
-    createdAt: Timestamp.now(),
-    userId,
-    userName,
-    notes: "Първоначално въвеждане",
-  });
-
-  return docRef.id;
-};
-
-export const updateProduct = async (
-  id: string,
-  product: Partial<Product>,
-  userId: string,
-  userName: string
-): Promise<void> => {
-  const db = getDb();
-  const productRef = doc(db, PRODUCTS_COLLECTION, id);
-  await updateDoc(productRef, product);
-};
-
-export const deleteProduct = async (id: string): Promise<void> => {
-  const db = getDb();
-  const productRef = doc(db, PRODUCTS_COLLECTION, id);
-  await deleteDoc(productRef);
-};
-
 export const updateProductPrice = async (
   id: string,
   newPrice: number,
@@ -162,14 +117,14 @@ export const updateProductPrice = async (
     transaction.update(productRef, { price: newPrice });
 
     const eventRef = doc(collection(db, EVENTS_COLLECTION));
-    const eventData = {
+    const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
       type: "price_update",
       quantityChange: 0,
       oldPrice,
       newPrice,
-      createdAt: Timestamp.now(),
+      createdAt: new Date().toISOString(),
       userId,
       userName,
     };
@@ -194,12 +149,12 @@ export const restockProduct = async (
     transaction.update(productRef, { stock: currentStock + quantity });
 
     const eventRef = doc(collection(db, EVENTS_COLLECTION));
-    const eventData = {
+    const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
       type: "restock",
       quantityChange: quantity,
-      createdAt: Timestamp.now(),
+      createdAt: new Date().toISOString(),
       userId,
       userName,
       notes,
@@ -225,12 +180,12 @@ export const adjustProductStock = async (
     transaction.update(productRef, { stock: newStock });
 
     const eventRef = doc(collection(db, EVENTS_COLLECTION));
-    const eventData = {
+    const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
       type: "correction",
       quantityChange: newStock - oldStock,
-      createdAt: Timestamp.now(),
+      createdAt: new Date().toISOString(),
       userId,
       userName,
       notes,

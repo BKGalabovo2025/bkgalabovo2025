@@ -16,6 +16,7 @@ export function AssistantPanel() {
   const [isSending, setIsSending] = useState(false);
 
   const handleSendReminders = async () => {
+    console.log("handleSendReminders called!"); // Added for absolute certainty
     setIsSending(true);
     toast.info("Започва изпращане на напомняния...");
 
@@ -30,6 +31,7 @@ export function AssistantPanel() {
         throw new Error(result.error || "Неуспешно изпращане на напомнянията.");
       }
 
+      // Correctly display the success message from the API response
       toast.success(result.message || "Напомнянията са изпратени успешно.");
     } catch (error) {
       console.error("Failed to send reminders:", error);
@@ -44,37 +46,29 @@ export function AssistantPanel() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-8 px-10 py-10 relative overflow-hidden group">
-      {/* Decorative gradient blur */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-700" />
-      
-      <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-        <div className="h-16 w-16 rounded-[1.5rem] bg-zinc-950 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500">
-          <Zap className="h-8 w-8 text-blue-500 animate-pulse" />
+    <Card className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-200 dark:border-blue-900">
+      <CardHeader>
+        <div className="flex items-center space-x-3">
+          <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <CardTitle>Асистент</CardTitle>
         </div>
-        <div className="space-y-2 text-center md:text-left">
-          <h3 className="text-3xl font-black font-heading text-zinc-950 dark:text-white uppercase tracking-tighter leading-none">Интелигентен асистент</h3>
-          <p className="text-zinc-500 font-bold text-base uppercase tracking-widest text-[10px]">Автоматизирани действия за оптимизиране на клуба</p>
-          <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
-             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Системата е в готовност</span>
-          </div>
+        <CardDescription>
+          Автоматизирани действия за улеснение на управлението.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center space-x-4">
+          <Button onClick={handleSendReminders} disabled={isSending}>
+            {isSending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Изпращане...
+              </>
+            ) : (
+              "Изпрати напомняния за неплатени такси"
+            )}
+          </Button>
         </div>
-      </div>
-
-      <Button 
-        onClick={handleSendReminders} 
-        disabled={isSending}
-        className="relative z-10 h-16 px-10 rounded-[1.5rem] bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-blue-500/30 border-t border-blue-400/30 w-full md:w-auto"
-      >
-        {isSending ? (
-          <>
-            <Loader2 className="mr-3 h-5 w-5 animate-spin" /> Изпращане...
-          </>
-        ) : (
-          "Изпрати напомняния за такси"
-        )}
-      </Button>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

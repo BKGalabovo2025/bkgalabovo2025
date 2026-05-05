@@ -45,10 +45,6 @@ export type Sale = {
   totalAmount: number; // Corrected field name
   currency: "EUR";
   subscriptionId?: string | null; // Added for linking sales to subscriptions
-  relatedReservationId?: string | null; // Added for linking sales to court reservations
-  billingMonth?: number | null; // Added for monthly billing tracking (1-12)
-  billingYear?: number | null; // Added for monthly billing tracking
-  clientName?: string; // Name of external client for receipts
   createdAt: string; // ISO 8601
 };
 
@@ -151,31 +147,6 @@ export type ClubService = {
   createdBy: { userId: string; userName: string };
   updatedBy: { userId: string; userName: string };
 };
-
-/**
- * Represents a general service (e.g., racket stringing) that is not a subscription.
- */
-export type ClubGeneralService = {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency: "EUR";
-  /** How the price is measured: fixed = per service, per_hour = per 60 min, per_unit = per item/piece */
-  pricingUnit: "fixed" | "per_hour" | "per_unit";
-  /** Custom unit label shown when pricingUnit is "per_unit", e.g. "бр.", "м.", "компл." */
-  priceUnit?: string;
-  /** Default duration in minutes, if applicable */
-  durationMinutes?: number;
-  /** internal = club employee, external = outside contractor/partner */
-  performerType: "internal" | "external";
-  performerName: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: { userId: string; userName: string };
-  updatedBy: { userId: string; userName: string };
-};
-
 
 export type PaymentHistoryItem = {
   date: string;
@@ -283,19 +254,4 @@ export type Reminder = {
   description?: string;
   type: "payment" | "inventory" | "other" | "error" | "warning";
   relatedId?: string;
-};
-
-// =================================================================
-//                      FAMILY TYPES
-// =================================================================
-
-/**
- * Represents a family unit in the club.
- */
-export type Family = {
-  id: string;
-  name: string;
-  memberIds: string[];
-  createdAt: string;
-  updatedAt: string;
 };

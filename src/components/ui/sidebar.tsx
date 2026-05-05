@@ -9,10 +9,9 @@ const SidebarContext = React.createContext<{
   open: boolean;
   setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
-  toggleSidebar: () => void;
 } | null>(null);
 
-export function useSidebar() {
+function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider");
@@ -52,22 +51,16 @@ export const SidebarProvider = React.forwardRef<
       },
       [onOpenChange, open]
     );
-
-    const toggleSidebar = React.useCallback(() => {
-      setOpen((prev) => !prev);
-    }, [setOpen]);
-
     const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
     const contextValue = React.useMemo(
-      () => ({ state, open, setOpen, isMobile, toggleSidebar }),
-      [state, open, setOpen, isMobile, toggleSidebar]
+      () => ({ state, open, setOpen, isMobile }),
+      [state, open, setOpen, isMobile]
     );
-
     return (
       <SidebarContext.Provider value={contextValue}>
         <div
           className={cn(
-            "flex min-h-svh w-full bg-zinc-50 dark:bg-zinc-950",
+            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
             className
           )}
           ref={ref}
@@ -84,11 +77,15 @@ SidebarProvider.displayName = "SidebarProvider";
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
+    side?: "left" | "right";
+    variant?: "sidebar" | "floating" | "inset";
     collapsible?: "offcanvas" | "icon" | "none";
   }
 >(
   (
     {
+      side = "left",
+      variant = "sidebar",
       collapsible = "offcanvas",
       className,
       children,
@@ -96,39 +93,17 @@ export const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, open, setOpen } = useSidebar();
-
-    if (isMobile) {
-      return (
-        <>
-          {open && (
-            <div 
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden" 
-              onClick={() => setOpen(false)}
-            />
-          )}
-          <div
-            ref={ref}
-            className={cn(
-              "fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-zinc-950 transition-transform duration-300 md:hidden",
-              open ? "translate-x-0" : "-translate-x-full"
-            )}
-            {...props}
-          >
-            {children}
-          </div>
-        </>
-      );
-    }
-
     return (
       <div
         ref={ref}
         className={cn(
-          "hidden md:flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 transition-all duration-300 overflow-hidden shrink-0",
-          open ? "w-72" : "w-20",
+          "group peer hidden md:block text-sidebar-foreground",
           className
         )}
+        data-state="expanded"
+        data-collapsible={collapsible}
+        data-variant={variant}
+        data-side={side}
         {...props}
       >
         {children}
@@ -145,7 +120,7 @@ export const SidebarContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-1 flex-col overflow-y-auto overflow-x-hidden",
+      "flex min-h-0 flex-1 flex-col gap-2 overflow-auto",
       className
     )}
     {...props}
@@ -159,7 +134,7 @@ export const SidebarGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col p-2", className)}
+    className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
     {...props}
   />
 ));
@@ -171,7 +146,7 @@ export const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col p-4", className)}
+    className={cn("flex flex-col gap-2 p-2", className)}
     {...props}
   />
 ));
@@ -183,7 +158,7 @@ export const SidebarFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col p-4 mt-auto", className)}
+    className={cn("flex flex-col gap-2 p-2", className)}
     {...props}
   />
 ));
@@ -195,7 +170,7 @@ export const SidebarMenu = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ul
     ref={ref}
-    className={cn("flex flex-col gap-1", className)}
+    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
     {...props}
   />
 ));
@@ -207,7 +182,7 @@ export const SidebarMenuItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <li
     ref={ref}
-    className={cn("relative", className)}
+    className={cn("group/menu-item relative", className)}
     {...props}
   />
 ));
@@ -223,9 +198,7 @@ export const SidebarMenuButton = React.forwardRef<
       ref={ref}
       data-active={isActive}
       className={cn(
-        "flex w-full items-center gap-3 rounded-xl p-3 text-left text-sm font-medium transition-all outline-none",
-        "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50",
-        "data-[active=true]:bg-blue-600 data-[active=true]:text-white shadow-sm data-[active=true]:shadow-blue-500/20",
+        "w-full flex items-center gap-2 rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium",
         className
       )}
       {...props}
@@ -241,7 +214,7 @@ export const SidebarInset = React.forwardRef<
   <main
     ref={ref}
     className={cn(
-      "flex flex-1 flex-col min-w-0 bg-white dark:bg-zinc-950",
+      "relative flex min-h-svh flex-1 flex-col bg-background",
       className
     )}
     {...props}
@@ -249,25 +222,23 @@ export const SidebarInset = React.forwardRef<
 ));
 SidebarInset.displayName = "SidebarInset";
 
-import { Menu } from "lucide-react";
-
 export const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
 >(({ className, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar();
+  const { setOpen } = useSidebar();
   return (
     <button
       type="button"
       ref={ref}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all shrink-0",
+        "flex h-8 w-8 items-center justify-center rounded-md border bg-white",
         className
       )}
-      onClick={toggleSidebar}
+      onClick={() => setOpen((prev: boolean) => !prev)}
       {...props}
     >
-      <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+      ☰
     </button>
   );
 });

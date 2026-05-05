@@ -39,7 +39,7 @@ import {
   updateSubscription,
 } from "@/services/subscription-service";
 import { findOrCreateSaleForSubscription } from "@/services/sales-service";
-import { Subscription, ClubService, Member } from "@/types";
+import { Subscription, ClubService } from "@/types";
 import {
   PlusCircle,
   Loader2,
@@ -140,7 +140,7 @@ const AddSubscriptionDialog = ({
           totalPaymentsCount: 1, // Or based on service type
         },
         user.uid,
-        user.displayName || "Система"
+        user.displayName || "System"
       );
 
       toast.success("Успех!", {
@@ -377,7 +377,7 @@ const SubscriptionCard = ({
           totalPaymentsCount: 1,
         },
         user.uid,
-        user.displayName || "Система"
+        user.displayName || "System"
       );
 
       toast.success("Успешно подновен", {
@@ -526,15 +526,7 @@ const RegisterPaymentDialog = ({
   );
 };
 
-export const MemberSubscriptionsTab = ({ 
-  memberId, 
-  familyMembers, 
-  showFamily 
-}: { 
-  memberId: string, 
-  familyMembers: Member[], 
-  showFamily?: boolean 
-}) => {
+export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [services, setServices] = useState<ClubService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -556,17 +548,12 @@ export const MemberSubscriptionsTab = ({
     const fetchData = async () => {
       setLoading(true);
       try {
-        const memberIds = showFamily 
-          ? [memberId, ...familyMembers.map(m => m.id)]
-          : [memberId];
-
-        const [srvs, subsResults] = await Promise.all([
+        const [srvs, subs] = await Promise.all([
           getAllClubServices(),
-          Promise.all(memberIds.map(id => getSubscriptionsByMemberId(id))),
+          getSubscriptionsByMemberId(memberId),
         ]);
-
         if (isMounted) {
-          const subs = subsResults.flat().sort(
+          subs.sort(
             (a, b) =>
               new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
           );
@@ -589,7 +576,7 @@ export const MemberSubscriptionsTab = ({
     return () => {
       isMounted = false;
     };
-  }, [memberId, familyMembers, showFamily, refreshCount]);
+  }, [memberId, refreshCount]);
 
   if (loading)
     return (

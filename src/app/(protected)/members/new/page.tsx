@@ -3,15 +3,20 @@
 import { useRouter } from "next/navigation";
 import { addMember } from "@/services/member-service";
 import { toast } from "sonner";
-import { MemberForm, MemberFormValues } from "@/components/members/member-form";
+import { MemberForm } from "@/components/members/member-form";
 import { Member } from "@/types/member.types";
+
+type MemberFormValues = Omit<
+  Member,
+  "id" | "name" | "registrationDate" | "updatedAt"
+>;
 
 const NewMemberPage = () => {
   const router = useRouter();
 
   const handleSave = async (data: MemberFormValues) => {
     try {
-      const newMemberId = await addMember(data as any);
+      const newMemberId = await addMember(data);
       toast.success("Успех!", { description: "Нов член е добавен успешно." });
       router.push(`/members/${newMemberId}`);
       router.refresh(); // Refresh the members list page

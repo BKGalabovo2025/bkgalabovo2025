@@ -32,10 +32,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createReservation, updateReservation } from "@/lib/reservations";
 import { toast } from "sonner";
-import { getCourtPrice } from "@/services/general-services";
 import { Reservation } from "@/types/reservation";
 
 const reservationSchema = z
@@ -69,17 +68,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [courtPricePerHour, setCourtPricePerHour] = useState<number>(10);
-
-  useEffect(() => {
-    const fetchPrice = async () => {
-      const price = await getCourtPrice();
-      setCourtPricePerHour(price);
-    };
-    if (isOpen) {
-      fetchPrice();
-    }
-  }, [isOpen]);
+  const COURT_PRICE_PER_HOUR = 10;
 
   const isEditMode = !!reservation;
 
@@ -95,10 +84,10 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     if (startTime && endTime && endTime > startTime) {
       const durationHours =
         (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-      return durationHours * courtPricePerHour;
+      return durationHours * COURT_PRICE_PER_HOUR;
     }
     return 0;
-  }, [startTime, endTime, courtPricePerHour]);
+  }, [startTime, endTime]);
 
   useEffect(() => {
     if (isOpen) {
@@ -134,14 +123,8 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
         await updateReservation(reservation.id, dataToSave);
         toast.success("Резервацията е актуализирана успешно!");
       } else {
-        const result = await createReservation({ ...dataToSave, status: "unpaid" });
-        if (result.emailSent) {
-          toast.success("Резервацията е създадена успешно!");
-        } else {
-          toast.success("Резервацията е създадена!", {
-            description: "Възникна проблем с изпращането на потвърждение по имейл.",
-          });
-        }
+        await createReservation({ ...dataToSave, status: "unpaid" });
+        toast.success("Резервацията е създадена успешно!");
       }
       onSave?.();
       setIsOpen(false);
@@ -160,19 +143,17 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900 max-h-[90vh] flex flex-col">
-        <DialogHeader className="p-10 pb-0">
-          <DialogTitle className="text-3xl font-black font-heading text-zinc-900 dark:text-white flex items-center gap-3">
-            <Plus className="h-8 w-8 text-blue-600" />
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
             {isEditMode ? "Редактиране на резервация" : "Нова резервация"}
           </DialogTitle>
-          <DialogDescription className="text-lg text-zinc-500 font-medium">
+          <DialogDescription>
             {isEditMode
               ? "Променете данните по-долу и кликнете 'Запази промените'."
               : "Попълнете данните, за да създадете нова резервация."}
           </DialogDescription>
         </DialogHeader>
-        <div className="px-10 pb-10 pt-6 overflow-y-auto flex-1 custom-scrollbar">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -180,23 +161,23 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               name="clientName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Име на клиент</FormLabel>
+                  <FormLabel>Име на клиент</FormLabel>
                   <FormControl>
-                    <Input placeholder="Иван Иванов" className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium" {...field} />
+                    <Input placeholder="Иван Иванов" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="clientPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Телефон</FormLabel>
+                    <FormLabel>Телефон</FormLabel>
                     <FormControl>
-                      <Input placeholder="0888123456" className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium" {...field} />
+                      <Input placeholder="0888123456" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -207,9 +188,9 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 name="clientEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Имейл</FormLabel>
+                    <FormLabel>Имейл</FormLabel>
                     <FormControl>
-                      <Input placeholder="ivan@email.com" className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium" {...field} />
+                      <Input placeholder="ivan@email.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -221,7 +202,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               name="courtId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Корт</FormLabel>
+                  <FormLabel>Корт</FormLabel>
                   <Select
                     onValueChange={(value) =>
                       field.onChange(parseInt(value, 10))
@@ -229,13 +210,13 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                     value={field.value ? String(field.value) : ""}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-bold">
+                      <SelectTrigger>
                         <SelectValue placeholder="Изберете корт..." />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-2xl border-zinc-100 dark:border-zinc-800 shadow-2xl">
+                    <SelectContent>
                       {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
-                        <SelectItem key={num} value={String(num)} className="rounded-xl font-bold py-3">
+                        <SelectItem key={num} value={String(num)}>
                           Корт {num}
                         </SelectItem>
                       ))}
@@ -245,16 +226,15 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Начален час</FormLabel>
+                    <FormLabel>Начален час</FormLabel>
                     <Input
                       type="datetime-local"
-                      className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium"
                       value={
                         field.value
                           ? new Date(
@@ -276,10 +256,9 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 name="endTime"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="text-zinc-400 font-black uppercase tracking-widest text-[10px] ml-1">Краен час</FormLabel>
+                    <FormLabel>Краен час</FormLabel>
                     <Input
                       type="datetime-local"
-                      className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 font-medium"
                       value={
                         field.value
                           ? new Date(
@@ -297,29 +276,24 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 )}
               />
             </div>
-            <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-              <span className="text-zinc-500 font-bold">Цена за престоя:</span>
-              <span className="text-3xl font-black font-heading text-zinc-900 dark:text-white">
-                {price.toFixed(2)} €
-              </span>
+            <div className="text-right font-bold text-lg">
+              Общо: {price.toFixed(2)} €
             </div>
-            <div className="flex gap-4 pt-4">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 h-14 rounded-2xl border-zinc-200 dark:border-zinc-800 font-black text-xs uppercase tracking-widest"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
               </Button>
-              <Button type="submit" disabled={isSaving} className="flex-1 h-14 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-black text-xs uppercase tracking-widest shadow-xl shadow-zinc-900/20">
+              <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isEditMode ? "Запази промените" : "Запази резервация"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
-        </div>
       </DialogContent>
     </Dialog>
   );

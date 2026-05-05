@@ -81,9 +81,3 @@ export const downloadCSV = <T extends Record<string, any>>(
   link.click();
   document.body.removeChild(link);
 };
-export const formatPrice = (amount: number) => {
-  return new Intl.NumberFormat("bg-BG", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-};
