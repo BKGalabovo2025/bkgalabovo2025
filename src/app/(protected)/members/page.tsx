@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getAllMembers } from "@/services/member-service";
 import MembersClient from "./MembersClient";
 import { Suspense } from "react";

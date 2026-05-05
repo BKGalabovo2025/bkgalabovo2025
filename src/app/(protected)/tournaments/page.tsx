@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { tournamentService } from "@/services/tournament-service";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
