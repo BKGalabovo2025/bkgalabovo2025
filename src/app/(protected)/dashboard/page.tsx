@@ -43,7 +43,7 @@ const DashboardPage = () => {
         <h2 className="text-xl font-semibold mb-2">
           Грешка при зареждане на таблото
         </h2>
-        <p>{error}</p>
+        <p>{String(error)}</p>
       </div>
     );
   }
@@ -62,7 +62,7 @@ const DashboardPage = () => {
 
     return {
       type: isSubscription ? ("fee" as const) : ("inventory" as const),
-      description: firstItem.name || "Неизвестна продажба",
+      description: String(firstItem.name || "Неизвестна продажба"),
     };
   };
 
@@ -86,7 +86,7 @@ const DashboardPage = () => {
           <StatCard
             title="Приходи (30 дни)"
             value={formatPrice(stats.revenueLast30Days || 0)}
-            icon={<TrendingUp />}
+            icon={TrendingUp}
             change={stats.revenueChange}
             color="blue"
           />
@@ -94,16 +94,16 @@ const DashboardPage = () => {
         <div className="md:col-span-12 lg:col-span-3">
           <StatCard
             title="Активни членове"
-            value={stats.activeMembersCount.toString()}
-            icon={<Users />}
+            value={String(stats.activeMembersCount)}
+            icon={Users}
             color="emerald"
           />
         </div>
         <div className="md:col-span-12 lg:col-span-3">
           <StatCard
             title="Нови членове"
-            value={stats.newMembersLast30Days.toString()}
-            icon={<Trophy />}
+            value={String(stats.newMembersLast30Days)}
+            icon={Trophy}
             change={stats.newMembersChange}
             color="amber"
           />
@@ -111,8 +111,8 @@ const DashboardPage = () => {
         <div className="md:col-span-12 lg:col-span-3">
           <StatCard
             title="Продажби"
-            value={(stats.salesLast30Days || 0).toString()}
-            icon={<BarChart />}
+            value={String(stats.salesLast30Days || 0)}
+            icon={BarChart}
             change={stats.salesChange}
             color="purple"
           />
@@ -164,10 +164,10 @@ const DashboardPage = () => {
                         </div>
                         <div className="grid gap-0.5 grow">
                           <p className="text-sm font-semibold text-slate-900">
-                            {memberName}
+                            {String(memberName)}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {saleDetails.description}
+                            {String(saleDetails.description)}
                           </p>
                         </div>
                         <div className="ml-auto text-right">
@@ -206,7 +206,7 @@ const DashboardPage = () => {
 interface StatCardProps {
   title: string;
   value: string;
-  icon: ReactNode;
+  icon: any; // Type as any to allow LucideIcon component reference
   change?: number;
   color?: "blue" | "emerald" | "amber" | "purple";
 }
@@ -214,7 +214,7 @@ interface StatCardProps {
 const StatCard = ({
   title,
   value,
-  icon,
+  icon: Icon,
   change,
   color = "blue",
 }: StatCardProps) => {
@@ -242,9 +242,7 @@ const StatCard = ({
               colorClasses[color]
             )}
           >
-            {isValidElement(icon)
-              ? cloneElement(icon as any, { className: "h-5 w-5" })
-              : icon}
+            <Icon className="h-5 w-5" />
           </div>
           {change !== undefined && (
             <div
@@ -264,10 +262,10 @@ const StatCard = ({
         </div>
         <div className="space-y-1">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-            {title}
+            {String(title)}
           </p>
           <div className="text-2xl font-bold text-slate-900 tracking-tight">
-            {value}
+            {String(value)}
           </div>
         </div>
       </CardContent>
