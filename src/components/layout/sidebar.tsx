@@ -25,6 +25,8 @@ import {
   BarChart,
   Trophy,
   Medal,
+  Settings,
+  User,
 } from "lucide-react";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -202,13 +204,46 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/settings")}
+                className="h-11 px-4 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 rounded-xl transition-all"
+              >
+                <Link href="/settings" className="flex items-center gap-3">
+                  <Settings size={18} />
+                  <span className="font-medium">Настройки</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-gray-100 dark:border-zinc-800">
-        <SidebarMenuButton className="h-11 px-4 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
-          <LogOut size={18} /> <span className="font-medium">Изход</span>
-        </SidebarMenuButton>
+        <SidebarMenu className="gap-1">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="h-11 px-4 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 rounded-xl transition-all cursor-pointer"
+            >
+              <Link
+                href="/settings?tab=profile"
+                className="flex items-center gap-3"
+              >
+                <div className="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                  <User size={14} />
+                </div>
+                <span className="font-medium">Моят Профил</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="h-11 px-4 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
+              <LogOut size={18} /> <span className="font-medium">Изход</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

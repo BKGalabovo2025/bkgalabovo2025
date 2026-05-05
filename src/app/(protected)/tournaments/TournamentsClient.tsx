@@ -6,14 +6,6 @@ import { Tournament } from "@/types/tournament.types";
 import { TournamentForm } from "@/components/tournaments/tournament-form";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -32,11 +24,14 @@ import {
   Trash2,
   CheckCircle2,
   Search,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { BentoCard } from "@/components/ui/bento-card";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
@@ -115,61 +110,67 @@ export default function TournamentsClient({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header Bento */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div className="md:col-span-12 lg:col-span-8 p-8 bg-white dark:bg-zinc-950 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl text-yellow-600">
-              <Trophy className="h-6 w-6" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">Турнири</h1>
-          </div>
-          <p className="text-muted-foreground text-sm max-w-xl">
-            Организирайте и управлявайте спортни събития, схеми на игра и
-            класирания за всички категории.
-          </p>
-          <div className="pt-2 flex flex-col sm:flex-row gap-4">
-            <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Търсене на турнир..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 rounded-xl border-slate-200"
-              />
-            </div>
-            <Button
-              onClick={() => setIsDialogOpen(true)}
-              className="rounded-xl shadow-md"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Нов турнир
-            </Button>
-          </div>
-        </div>
+      <PageHeader
+        title="Турнири"
+        description="Организирайте и управлявайте спортни събития, схеми на игра и класирания."
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Турнири" },
+        ]}
+      >
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          className="rounded-xl shadow-md font-bento"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Нов турнир
+        </Button>
+      </PageHeader>
 
-        <div className="md:col-span-6 lg:col-span-2 p-6 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 flex flex-col items-center justify-center text-center space-y-1">
-          <span className="text-3xl font-bold text-emerald-600">
-            {activeTournaments.length}
-          </span>
-          <span className="text-xs text-emerald-600/70 font-medium uppercase tracking-wider">
-            Активни
-          </span>
-        </div>
-
-        <div className="md:col-span-6 lg:col-span-2 p-6 bg-slate-50/50 dark:bg-slate-800/10 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-1">
-          <span className="text-3xl font-bold text-slate-600">
-            {completedTournaments.length}
-          </span>
-          <span className="text-xs text-slate-600/70 font-medium uppercase tracking-wider">
-            Приключили
-          </span>
-        </div>
+      {/* Stats Bento */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <BentoCard className="p-6 border-b-4 border-b-yellow-400">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-3xl font-black">{activeTournaments.length}</p>
+              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">
+                Активни
+              </p>
+            </div>
+            <Trophy className="h-5 w-5 text-yellow-500" />
+          </div>
+        </BentoCard>
+        <BentoCard className="p-6 border-b-4 border-b-slate-300">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-3xl font-black">
+                {completedTournaments.length}
+              </p>
+              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">
+                Приключили
+              </p>
+            </div>
+            <CheckCircle2 className="h-5 w-5 text-slate-400" />
+          </div>
+        </BentoCard>
+        <BentoCard className="md:col-span-2 p-4 flex items-center px-6">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Търсене на турнир по име или локация..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 rounded-xl border-slate-200 bg-slate-50/50"
+            />
+          </div>
+        </BentoCard>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Нов турнир</DialogTitle>
+            <DialogTitle className="text-2xl font-black font-bento">
+              Нов турнир
+            </DialogTitle>
           </DialogHeader>
           <TournamentForm
             onSave={handleSave}
@@ -182,9 +183,11 @@ export default function TournamentsClient({
         open={!!editingTournament}
         onOpenChange={(open) => !open && setEditingTournament(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Редактиране на турнир</DialogTitle>
+            <DialogTitle className="text-2xl font-black font-bento">
+              Редактиране
+            </DialogTitle>
           </DialogHeader>
           <TournamentForm
             onSave={handleUpdate}
@@ -195,30 +198,33 @@ export default function TournamentsClient({
       </Dialog>
 
       {tournaments.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center p-20 text-center border-dashed rounded-3xl">
-          <div className="rounded-full bg-slate-100 p-6 mb-6">
-            <Trophy className="h-12 w-12 text-slate-300" />
+        <BentoCard className="flex flex-col items-center justify-center py-32 text-center border-dashed">
+          <div className="rounded-3xl bg-slate-100 p-8 mb-6">
+            <Trophy className="h-16 w-16 text-slate-300" />
           </div>
-          <h3 className="text-xl font-semibold">Няма създадени турнири</h3>
-          <p className="text-muted-foreground mt-2 max-w-sm mb-8">
+          <h3 className="text-2xl font-black font-bento">
+            Няма създадени турнири
+          </h3>
+          <p className="text-slate-500 mt-2 max-w-sm mb-8">
             Започнете, като създадете първия турнир за вашия клуб.
           </p>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            variant="outline"
-            className="rounded-xl"
+            className="rounded-xl h-12 px-8 font-bold shadow-lg"
           >
             Създай първия турнир
           </Button>
-        </Card>
+        </BentoCard>
       ) : (
         <div className="space-y-12">
           {activeTournaments.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold flex items-center gap-2 px-1">
-                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                Активни турнири
-              </h2>
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-1">
+                <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                <h2 className="text-xl font-black font-bento uppercase tracking-tight">
+                  Активни събития
+                </h2>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {activeTournaments.map((t) => (
                   <TournamentCard
@@ -233,11 +239,14 @@ export default function TournamentsClient({
           )}
 
           {completedTournaments.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-400 flex items-center gap-2 px-1">
-                <CheckCircle2 className="h-5 w-5" /> Приключили турнири
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80 grayscale-[0.3]">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-1">
+                <CheckCircle2 className="h-6 w-6 text-slate-400" />
+                <h2 className="text-xl font-black font-bento text-slate-400 uppercase tracking-tight">
+                  Архив
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
                 {completedTournaments.map((t) => (
                   <TournamentCard
                     key={t.id}
@@ -268,26 +277,26 @@ function TournamentCard({
     switch (status) {
       case "upcoming":
         return (
-          <Badge className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-50 rounded-lg">
+          <Badge className="bg-blue-100 text-blue-700 border-none rounded-lg font-bold text-[10px] uppercase">
             Предстоящ
           </Badge>
         );
       case "registration_open":
         return (
-          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-lg">
-            Отворено записване
+          <Badge className="bg-emerald-100 text-emerald-700 border-none rounded-lg font-bold text-[10px] uppercase">
+            Записване
           </Badge>
         );
       case "ongoing":
         return (
-          <Badge className="bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-50 rounded-lg">
+          <Badge className="bg-rose-100 text-rose-700 border-none rounded-lg font-bold text-[10px] uppercase">
             В ход
           </Badge>
         );
       case "completed":
         return (
-          <Badge variant="outline" className="rounded-lg">
-            Приключил
+          <Badge className="bg-slate-100 text-slate-500 border-none rounded-lg font-bold text-[10px] uppercase">
+            Завършен
           </Badge>
         );
       default:
@@ -296,13 +305,13 @@ function TournamentCard({
   };
 
   return (
-    <Card className="flex flex-col rounded-2xl border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start mb-3">
+    <BentoCard className="flex flex-col h-full group hover:shadow-xl transition-all duration-500 overflow-hidden">
+      <div className="p-6 pb-4">
+        <div className="flex justify-between items-start mb-4">
           {getStatusBadge(tournament.status)}
           <Badge
-            variant="secondary"
-            className="font-medium text-[10px] uppercase tracking-wider rounded-lg"
+            variant="outline"
+            className="font-bold text-[9px] uppercase tracking-wider rounded-md border-slate-200"
           >
             {tournament.format === "berger"
               ? "Бергер"
@@ -311,22 +320,33 @@ function TournamentCard({
                 : "Микс"}
           </Badge>
         </div>
-        <CardTitle className="line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+        <h3 className="text-xl font-black font-bento leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
           {tournament.title}
-        </CardTitle>
-        <CardDescription className="flex items-center mt-2 text-slate-500">
-          <MapPin className="mr-1 h-3 w-3" /> {tournament.location}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-4">
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center text-slate-600">
-            <Calendar className="mr-2 h-4 w-4 text-slate-400" />
-            <span>{format(new Date(tournament.startDate), "dd.MM.yyyy")}</span>
+        </h3>
+        <div className="flex items-center mt-3 text-slate-400 text-xs font-medium">
+          <MapPin className="mr-1.5 h-3.5 w-3.5" /> {tournament.location}
+        </div>
+      </div>
+
+      <div className="px-6 py-4 bg-slate-50/50 flex-1">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+              Дата
+            </p>
+            <div className="flex items-center text-slate-700 font-bold text-sm">
+              <Calendar className="mr-2 h-4 w-4 text-primary/60" />
+              {format(new Date(tournament.startDate), "dd.MM.yyyy")}
+            </div>
           </div>
-          <div className="flex items-center text-slate-600">
-            <Users className="mr-2 h-4 w-4 text-slate-400" />
-            <span>{tournament.categories?.length || 0} категории</span>
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+              Обхват
+            </p>
+            <div className="flex items-center text-slate-700 font-bold text-sm">
+              <Users className="mr-2 h-4 w-4 text-primary/60" />
+              {tournament.categories?.length || 0} катег.
+            </div>
           </div>
         </div>
 
@@ -334,25 +354,26 @@ function TournamentCard({
           {tournament.categories?.slice(0, 3).map((cat) => (
             <span
               key={cat}
-              className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase tracking-tighter"
+              className="text-[9px] font-black bg-white border border-slate-100 text-slate-500 px-2 py-0.5 rounded-md uppercase"
             >
               {cat === "singles"
-                ? "Единично"
+                ? "Single"
                 : cat === "doubles"
-                  ? "Двойки"
-                  : "Смесени"}
+                  ? "Doubles"
+                  : "Mixed"}
             </span>
           ))}
         </div>
-      </CardContent>
-      <CardFooter className="pt-4 border-t border-slate-50 flex gap-2 p-4">
+      </div>
+
+      <div className="p-4 border-t border-slate-100 flex gap-2 bg-white">
         <Button
           asChild
-          className="flex-1 rounded-xl shadow-sm"
+          className="flex-1 rounded-xl font-bold h-10 shadow-sm"
           variant="default"
         >
           <Link href={`/tournaments/${tournament.id}`}>
-            <LayoutList className="mr-2 h-4 w-4" /> Преглед
+            <LayoutList className="mr-2 h-4 w-4" /> Детайли
           </Link>
         </Button>
         <div className="flex gap-1">
@@ -360,20 +381,20 @@ function TournamentCard({
             variant="outline"
             size="icon"
             onClick={onEdit}
-            className="rounded-xl hover:bg-slate-50"
+            className="rounded-xl h-10 w-10 border-slate-200 text-slate-400 hover:text-primary hover:border-primary transition-colors"
           >
-            <Pencil className="h-4 w-4 text-slate-600" />
+            <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-xl h-10 w-10 text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </BentoCard>
   );
 }

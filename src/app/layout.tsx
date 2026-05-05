@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { Montserrat, PT_Sans } from "next/font/google"; // Import the correct fonts
+import { Montserrat, PT_Sans, Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
-// Font configuration based on docs/blueprint.md
 const fontSans = PT_Sans({
   subsets: ["latin", "cyrillic"],
   weight: ["400", "700"],
-  variable: "--font-sans", // Use for body text
+  variable: "--font-sans",
 });
 
 const fontHeading = Montserrat({
   subsets: ["latin", "cyrillic"],
   weight: ["600", "700"],
-  variable: "--font-heading", // Use for headings
+  variable: "--font-heading",
+});
+
+const fontBento = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-bento",
 });
 
 export const metadata: Metadata = {
@@ -44,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased`}
+        className={`${fontSans.variable} ${fontHeading.variable} ${fontBento.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"
