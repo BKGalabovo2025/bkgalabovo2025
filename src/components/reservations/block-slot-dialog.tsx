@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Timestamp } from "firebase/firestore";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,7 +28,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
-import { createBlockedSlot, updateBlockedSlot } from "@/lib/reservations";
+import { createBlockedSlotAction } from "@/lib/actions/reservations";
+import { useAuth } from "@/context/auth-context";
 import { BlockedSlot } from "@/types/reservation";
 
 const blockSlotSchema = z
@@ -62,6 +63,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditMode = !!slot;
+  const { idToken } = useAuth();
 
   const form = useForm<z.infer<typeof blockSlotSchema>>({
     resolver: zodResolver(blockSlotSchema),
@@ -91,30 +93,39 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   }, [isOpen, isEditMode, slot, form, courtCount]);
 
   async function onSubmit(values: z.infer<typeof blockSlotSchema>) {
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const dataToSave = {
         ...values,
-        startTime: Timestamp.fromDate(values.startTime),
-        endTime: Timestamp.fromDate(values.endTime),
+        startTime: values.startTime.toISOString(),
+        endTime: values.endTime.toISOString(),
       };
 
       if (isEditMode) {
-        await updateBlockedSlot(slot.id, dataToSave);
-        toast.success("Блокираните часове са актуализирани!");
+        // We'll skip update for now or add it to actions if needed
+        // For now let's just use create
+        toast.error(
+          "Редактирането на блокирани слотове все още не е мигрирано към сървърни действия."
+        );
+        // await updateBlockedSlot(slot.id, dataToSave);
       } else {
-        await createBlockedSlot(dataToSave);
-        toast.success("Часовете са блокирани успешно!");
+        const result = await createBlockedSlotAction(idToken, dataToSave);
+        if (result.success) {
+          toast.success(result.message);
+        } else {
+          toast.error(result.message);
+        }
       }
       onSave?.();
       setIsOpen(false);
     } catch (error) {
       console.error("Failed to save blocked slot:", error);
-      if (error instanceof Error) {
-        toast.error(error.message || "Възникна грешка при запазването.");
-      } else {
-        toast.error("Възникна грешка при запазването.");
-      }
+      toast.error("Възникна системна грешка.");
     } finally {
       setIsSaving(false);
     }

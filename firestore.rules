@@ -6,7 +6,13 @@ service cloud.firestore {
     // which authenticates as a service account and is considered an 'authenticated' request.
     // This is the secure and correct replacement for the temporary 'if true;' rule.
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      // Authenticated users can read for real-time dashboard updates via onSnapshot
+      allow read: if request.auth != null;
+      
+      // All writes (create, update, delete) must be performed via Next.js Server Actions
+      // which use the Firebase Admin SDK to bypass these rules securely.
+      allow write: if false;
     }
+
   }
 }

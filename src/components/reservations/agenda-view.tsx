@@ -4,8 +4,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Timestamp } from "firebase/firestore";
 import { Reservation, BlockedSlot } from "@/types/reservation";
 import {
-  getReservationsForDay,
-  getBlockedSlotsForDay,
+  subscribeToReservationsForDay,
+  subscribeToBlockedSlotsForDay,
   deleteReservation,
   deleteBlockedSlot,
 } from "@/lib/reservations";
@@ -159,7 +159,7 @@ const BlockedSlotCard: React.FC<
 interface AgendaViewProps {
   date: Date;
   courtCount: number;
-  refreshKey: number; // Used for forcing re-renders
+  refreshKey: number; // Used for forcing re-renders (legacy, but kept for compatibility)
 }
 
 export const AgendaView: React.FC<AgendaViewProps> = ({
@@ -172,34 +172,38 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
     blockedSlots: BlockedSlot[];
   }>({ reservations: [], blockedSlots: [] });
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshId, setRefreshId] = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [reservations, blockedSlots] = await Promise.all([
-          getReservationsForDay(date),
-          getBlockedSlotsForDay(date),
-        ]);
-        setEvents({ reservations, blockedSlots });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Грешка при зареждане на данните.");
-      } finally {
+    // Subscribe to reservations
+    const unsubReservations = subscribeToReservationsForDay(
+      date,
+      (reservations) => {
+        setEvents((prev) => ({ ...prev, reservations }));
         setIsLoading(false);
       }
-    };
-    fetchData();
-  }, [date, refreshId, refreshKey]); // Rerun on date, parent key, or internal refresh change
+    );
 
-  const handleDataChange = () => setRefreshId((prev) => prev + 1);
+    // Subscribe to blocked slots
+    const unsubBlocked = subscribeToBlockedSlotsForDay(date, (blockedSlots) => {
+      setEvents((prev) => ({ ...prev, blockedSlots }));
+      setIsLoading(false);
+    });
+
+    return () => {
+      unsubReservations();
+      unsubBlocked();
+    };
+  }, [date]); // Re-subscribe when date changes
+
+  const handleDataChange = () => {
+    // With real-time listeners, we don't need to do much here,
+    // but we can trigger a toast or something if needed.
+  };
 
   const handleDeleteReservation = async (id: string) => {
     try {
       await deleteReservation(id);
       toast.success("Резервацията е изтрита.");
-      handleDataChange();
     } catch (error) {
       console.error("Error deleting reservation:", error);
       toast.error("Грешка при изтриване на резервацията.");
@@ -210,7 +214,6 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
     try {
       await deleteBlockedSlot(id);
       toast.success("Блокираният слот е изтрит.");
-      handleDataChange();
     } catch (error) {
       console.error("Error deleting blocked slot:", error);
       toast.error("Грешка при изтриване.");

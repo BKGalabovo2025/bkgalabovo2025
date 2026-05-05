@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Timestamp } from "firebase/firestore";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
@@ -33,7 +33,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { createReservation, updateReservation } from "@/lib/reservations";
+import {
+  createReservationAction,
+  updateReservationAction,
+} from "@/lib/actions/reservations";
+import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { Reservation } from "@/types/reservation";
 
@@ -71,6 +75,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const COURT_PRICE_PER_HOUR = 10;
 
   const isEditMode = !!reservation;
+  const { idToken } = useAuth();
 
   const form = useForm<z.infer<typeof reservationSchema>>({
     resolver: zodResolver(reservationSchema),
@@ -109,32 +114,45 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   }, [isOpen, isEditMode, reservation, initialData, reset]);
 
   async function onSubmit(values: z.infer<typeof reservationSchema>) {
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const dataToSave = {
-        currency: "EUR",
         ...values,
-        startTime: Timestamp.fromDate(values.startTime),
-        endTime: Timestamp.fromDate(values.endTime),
-        totalPrice: price, // store in Euro directly
+        startTime: values.startTime.toISOString(),
+        endTime: values.endTime.toISOString(),
+        totalPrice: price,
+        currency: "EUR",
       };
 
+      let result;
       if (isEditMode) {
-        await updateReservation(reservation.id, dataToSave);
-        toast.success("Резервацията е актуализирана успешно!");
+        result = await updateReservationAction(
+          idToken,
+          reservation.id,
+          dataToSave
+        );
       } else {
-        await createReservation({ ...dataToSave, status: "unpaid" });
-        toast.success("Резервацията е създадена успешно!");
+        result = await createReservationAction(idToken, {
+          ...dataToSave,
+          status: "unpaid",
+        });
       }
-      onSave?.();
-      setIsOpen(false);
+
+      if (result.success) {
+        toast.success(result.message);
+        onSave?.();
+        setIsOpen(false);
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
     } catch (error) {
       console.error("Failed to save reservation:", error);
-      if (error instanceof Error) {
-        toast.error(error.message || "Възникна грешка при запазването.");
-      } else {
-        toast.error("Възникна грешка при запазването.");
-      }
+      toast.error("Възникна системна грешка при запазването.");
     } finally {
       setIsSaving(false);
     }

@@ -19,10 +19,22 @@ import { EditProductDialog } from "@/components/inventory/EditProductDialog";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import InventoryHistory from "@/components/inventory/InventoryHistory";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Input } from "@/components/ui/input";
+import dynamic from "next/dynamic";
+
+const InventoryHistory = dynamic(
+  () => import("@/components/inventory/InventoryHistory"),
+  {
+    loading: () => (
+      <div className="p-20 text-center text-slate-400 font-bold animate-pulse">
+        Зареждане на история...
+      </div>
+    ),
+  }
+);
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +49,7 @@ import {
 
 const ProductList = () => {
   const { products, isLoading, error, deleteProduct } = useProducts();
-  const { user } = useAuth();
+  const { idToken } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -53,8 +65,8 @@ const ProductList = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (productToDelete) {
-      await deleteProduct(productToDelete.id);
+    if (productToDelete && idToken) {
+      await deleteProduct(productToDelete.id, idToken);
       setProductToDelete(null);
     }
   };
@@ -260,7 +272,6 @@ const ProductList = () => {
             setSelectedProduct(null);
           }}
           product={selectedProduct}
-          user={user}
           onProductUpdate={handleProductUpdate}
         />
       )}
@@ -268,8 +279,9 @@ const ProductList = () => {
   );
 };
 
+import { AddProductDialog } from "@/components/inventory/AddProductDialog";
+
 export default function InventoryClient() {
-  const { user } = useAuth();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const handleProductAdded = () => {
@@ -327,12 +339,10 @@ export default function InventoryClient() {
         </TabsContent>
       </Tabs>
 
-      <EditProductDialog
+      <AddProductDialog
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
-        product={null}
-        user={user}
-        onProductUpdate={handleProductAdded}
+        onProductAdded={handleProductAdded}
       />
     </div>
   );

@@ -14,11 +14,11 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Product } from "@/types";
 import {
-  restockProduct,
-  updateProductPrice,
-  adjustProductStock,
-} from "@/services/inventory-service";
-import { User } from "firebase/auth";
+  restockProductAction,
+  updateProductPriceAction,
+  adjustProductStockAction,
+} from "@/lib/actions/inventory";
+import { useAuth } from "@/context/auth-context";
 import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/currency";
 
@@ -27,7 +27,6 @@ interface EditProductDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onProductUpdate: () => void;
-  user: User | null;
 }
 
 export const EditProductDialog = ({
@@ -35,30 +34,16 @@ export const EditProductDialog = ({
   isOpen,
   onClose,
   onProductUpdate,
-  user,
 }: EditProductDialogProps) => {
   const [restockAmount, setRestockAmount] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [adjustmentAmount, setAdjustmentAmount] = useState("");
   const [adjustmentNotes, setAdjustmentNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const getUserInfo = () => {
-    if (!user) {
-      toast.error("Грешка", {
-        description: "Трябва да сте логнат, за да извършите тази операция.",
-      });
-      return null;
-    }
-    return {
-      userId: user.uid,
-      userName: user.displayName || user.email || "Анонимен потребител",
-    };
-  };
+  const { idToken } = useAuth();
 
   const handleRestock = async () => {
-    const userInfo = getUserInfo();
-    if (!product || !restockAmount || !userInfo) return;
+    if (!product || !restockAmount || !idToken) return;
     const amount = parseInt(restockAmount, 10);
     if (isNaN(amount) || amount <= 0) {
       toast.error("Грешка", {
@@ -67,19 +52,18 @@ export const EditProductDialog = ({
       });
       return;
     }
+
     setIsProcessing(true);
     try {
-      await restockProduct(
-        product.id,
-        amount,
-        userInfo.userId,
-        userInfo.userName
-      );
-      toast.success("Успех!", {
-        description: `Артикулът '${product.name}' беше презареден с ${amount} бр.`,
-      });
-      onProductUpdate();
-      onClose();
+      const result = await restockProductAction(product.id, idToken, amount);
+
+      if (result.success) {
+        toast.success("Успех!", { description: result.message });
+        onProductUpdate();
+        onClose();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
     } catch (error) {
       toast.error("Грешка при презареждане", {
         description: (error as Error).message,
@@ -91,9 +75,7 @@ export const EditProductDialog = ({
   };
 
   const handleAdjustment = async () => {
-    const userInfo = getUserInfo();
-    if (!product || !adjustmentAmount || !userInfo) return;
-
+    if (!product || !adjustmentAmount || !idToken) return;
     const amount = parseInt(adjustmentAmount, 10);
 
     if (isNaN(amount) || amount === 0) {
@@ -112,18 +94,25 @@ export const EditProductDialog = ({
 
     setIsProcessing(true);
     try {
-      await adjustProductStock(
+      // For the server action, we send the new target stock if it's "adjustment"
+      // but the action adjustProductStockAction takes newStock.
+      // Wait, our local service was taking "amount" (change).
+      // Let's check adjustProductStockAction again. It takes newStock.
+      const newStock = product.stock + amount;
+      const result = await adjustProductStockAction(
         product.id,
-        amount,
-        userInfo.userId,
-        userInfo.userName,
+        idToken,
+        newStock,
         adjustmentNotes
       );
-      toast.success("Успех!", {
-        description: `Наличността на '${product.name}' беше коригирана с ${amount} бр.`,
-      });
-      onProductUpdate();
-      onClose();
+
+      if (result.success) {
+        toast.success("Успех!", { description: result.message });
+        onProductUpdate();
+        onClose();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
     } catch (error) {
       toast.error("Грешка при корекция", {
         description: (error as Error).message,
@@ -136,8 +125,7 @@ export const EditProductDialog = ({
   };
 
   const handlePriceUpdate = async () => {
-    const userInfo = getUserInfo();
-    if (!product || !newPrice || !userInfo) return;
+    if (!product || !newPrice || !idToken) return;
     const price = parseFloat(newPrice);
     if (isNaN(price) || price < 0) {
       toast.error("Грешка", {
@@ -145,19 +133,18 @@ export const EditProductDialog = ({
       });
       return;
     }
+
     setIsProcessing(true);
     try {
-      await updateProductPrice(
-        product.id,
-        price,
-        userInfo.userId,
-        userInfo.userName
-      );
-      toast.success("Успех!", {
-        description: `Цената на '${product.name}' беше актуализирана.`,
-      });
-      onProductUpdate();
-      onClose();
+      const result = await updateProductPriceAction(product.id, idToken, price);
+
+      if (result.success) {
+        toast.success("Успех!", { description: result.message });
+        onProductUpdate();
+        onClose();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
     } catch (error) {
       toast.error("Грешка при актуализация на цената", {
         description: (error as Error).message,

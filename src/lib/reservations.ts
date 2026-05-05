@@ -8,6 +8,7 @@ import {
   where,
   Timestamp,
   deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Reservation, BlockedSlot } from "@/types/reservation";
@@ -261,4 +262,42 @@ export const getBlockedSlotsForDay = async (
 export const deleteBlockedSlot = async (slotId: string) => {
   const docRef = doc(db, "blockedSlots", slotId);
   await deleteDoc(docRef);
+};
+
+export const subscribeToReservationsForDay = (
+  date: Date,
+  callback: (reservations: Reservation[]) => void
+) => {
+  const { startOfDay, endOfDay } = getDayBoundaries(date);
+  const q = query(
+    reservationsCollection,
+    where("startTime", ">=", startOfDay),
+    where("startTime", "<", endOfDay)
+  );
+  return onSnapshot(q, (snapshot) => {
+    const reservations = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Reservation, "id">),
+    }));
+    callback(reservations);
+  });
+};
+
+export const subscribeToBlockedSlotsForDay = (
+  date: Date,
+  callback: (slots: BlockedSlot[]) => void
+) => {
+  const { startOfDay, endOfDay } = getDayBoundaries(date);
+  const q = query(
+    blockedSlotsCollection,
+    where("startTime", ">=", startOfDay),
+    where("startTime", "<", endOfDay)
+  );
+  return onSnapshot(q, (snapshot) => {
+    const slots = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<BlockedSlot, "id">),
+    }));
+    callback(slots);
+  });
 };

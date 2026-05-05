@@ -4,6 +4,8 @@ import { Slot } from "@radix-ui/react-slot";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
+import { useAppStore } from "@/store/use-app-store";
+
 const SidebarContext = React.createContext<{
   state: "expanded" | "collapsed";
   open: boolean;
@@ -26,52 +28,46 @@ export const SidebarProvider = React.forwardRef<
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
   }
->(
-  (
-    {
-      defaultOpen = true,
-      open: openProp,
-      onOpenChange,
-      className,
-      children,
-      ...props
+>(({ open: openProp, onOpenChange, className, children, ...props }, ref) => {
+  const isMobile = useIsMobile();
+  const { isSidebarOpen, setSidebarOpen } = useAppStore();
+
+  // Support external control via props, but fallback to global store
+  const open = openProp ?? isSidebarOpen;
+
+  const setOpen = React.useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      const nextValue = typeof value === "function" ? value(open) : value;
+      if (onOpenChange) {
+        onOpenChange(nextValue);
+      }
+      setSidebarOpen(nextValue);
     },
-    ref
-  ) => {
-    const isMobile = useIsMobile();
-    const [_open, _setOpen] = React.useState(defaultOpen);
-    const open = openProp ?? _open;
-    const setOpen = React.useCallback(
-      (value: boolean | ((prev: boolean) => boolean)) => {
-        const nextValue = typeof value === "function" ? value(open) : value;
-        if (onOpenChange) {
-          onOpenChange(nextValue);
-        }
-        _setOpen(nextValue);
-      },
-      [onOpenChange, open]
-    );
-    const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
-    const contextValue = React.useMemo(
-      () => ({ state, open, setOpen, isMobile }),
-      [state, open, setOpen, isMobile]
-    );
-    return (
-      <SidebarContext.Provider value={contextValue}>
-        <div
-          className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      </SidebarContext.Provider>
-    );
-  }
-);
+    [onOpenChange, open, setSidebarOpen]
+  );
+
+  const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
+
+  const contextValue = React.useMemo(
+    () => ({ state, open, setOpen, isMobile }),
+    [state, open, setOpen, isMobile]
+  );
+
+  return (
+    <SidebarContext.Provider value={contextValue}>
+      <div
+        className={cn(
+          "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+          className
+        )}
+        ref={ref}
+        {...props}
+      >
+        {children}
+      </div>
+    </SidebarContext.Provider>
+  );
+});
 SidebarProvider.displayName = "SidebarProvider";
 
 export const Sidebar = React.forwardRef<

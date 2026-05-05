@@ -12,6 +12,7 @@ import {
   orderBy,
   deleteDoc,
   CollectionReference,
+  startAfter,
 } from "firebase/firestore";
 import { getMembersCollection } from "@/lib/firebase-collections";
 import { Member, MemberSchema } from "@/types/member.types";
@@ -97,8 +98,8 @@ export const getAllMembers = async (
   const q = query(
     getMembersCollection(),
     orderBy("lastName", "asc"),
-    limit(200)
-  ); // Safety limit
+    limit(1000) // Increased safety limit for "all" members fetch
+  );
   const querySnapshot = await getDocs(q);
 
   const members = querySnapshot.docs
@@ -110,6 +111,38 @@ export const getAllMembers = async (
   lastFetchTime = now;
 
   return members;
+};
+
+// Fetches a paginated slice of members.
+export const getMembersPage = async (
+  pageSize: number = 20,
+  startAfterDocId?: string
+): Promise<{ members: Member[]; lastDocId: string | null }> => {
+  let q = query(
+    getMembersCollection(),
+    orderBy("lastName", "asc"),
+    limit(pageSize)
+  );
+
+  if (startAfterDocId) {
+    const startAfterDoc = await getDoc(
+      doc(getMembersCollection(), startAfterDocId)
+    );
+    if (startAfterDoc.exists()) {
+      q = query(q, startAfter(startAfterDoc));
+    }
+  }
+
+  const querySnapshot = await getDocs(q);
+  const members = querySnapshot.docs
+    .map(docToMember)
+    .filter(Boolean) as Member[];
+  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+  return {
+    members,
+    lastDocId: lastDoc ? lastDoc.id : null,
+  };
 };
 
 // Изчисляване на възрастовата група на базата на годината на раждане

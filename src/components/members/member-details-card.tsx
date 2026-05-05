@@ -26,11 +26,50 @@ import {
   BarChart2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { MemberSalesHistory } from "./member-sales-history";
-import { MemberAttendanceHistory } from "./MemberAttendanceHistory";
-import { MemberSubscriptionsTab } from "./member-subscriptions-tab";
+import dynamic from "next/dynamic";
+
+const MemberSalesHistory = dynamic(
+  () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
+  {
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на история...
+      </div>
+    ),
+  }
+);
+const MemberAttendanceHistory = dynamic(
+  () =>
+    import("./MemberAttendanceHistory").then(
+      (mod) => mod.MemberAttendanceHistory
+    ),
+  {
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на присъствия...
+      </div>
+    ),
+  }
+);
+const MemberSubscriptionsTab = dynamic(
+  () =>
+    import("./member-subscriptions-tab").then(
+      (mod) => mod.MemberSubscriptionsTab
+    ),
+  {
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на абонаменти...
+      </div>
+    ),
+  }
+);
+
 import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
-import { updateMember } from "@/services/member-service";
+
+import { updateMemberAction } from "@/lib/actions/members";
+import { useAuth } from "@/context/auth-context";
+import { toast } from "sonner";
 
 interface MemberDetailsCardProps {
   member: Member;
@@ -47,6 +86,7 @@ export const MemberDetailsCard = ({
   familyMembers,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
+  const { idToken } = useAuth();
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -69,13 +109,28 @@ export const MemberDetailsCard = ({
 
   // 2. Функцията за плащане
   const handlePayment = async () => {
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+
     if (!confirm("Маркиране на месечната такса като платена?")) return;
-    // Тук викаме логиката от нашия payment-service
-    await updateMember(member.id, {
-      lastPaymentDate: new Date().toISOString(),
-    });
-    alert("Успешно платено!");
-    window.location.reload();
+
+    try {
+      const result = await updateMemberAction(idToken, member.id, {
+        lastPaymentDate: new Date().toISOString(),
+      });
+
+      if (result.success) {
+        toast.success("Успешно платено!");
+        router.refresh();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Грешка при плащане");
+    }
   };
 
   return (

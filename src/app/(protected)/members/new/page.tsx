@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { addMember } from "@/services/member-service";
+import { createMemberAction } from "@/lib/actions/members";
+import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { MemberForm } from "@/components/members/member-form";
 import { Member } from "@/types/member.types";
@@ -13,16 +14,34 @@ type MemberFormValues = Omit<
 
 const NewMemberPage = () => {
   const router = useRouter();
+  const { idToken } = useAuth();
 
   const handleSave = async (data: MemberFormValues) => {
+    if (!idToken) {
+      toast.error("Грешка при оторизация", {
+        description: "Моля, влезте отново в профила си.",
+      });
+      return;
+    }
+
     try {
-      const newMemberId = await addMember(data);
-      toast.success("Успех!", { description: "Нов член е добавен успешно." });
-      router.push(`/members/${newMemberId}`);
-      router.refresh(); // Refresh the members list page
+      const result = await createMemberAction(idToken, data);
+
+      if (result.success) {
+        toast.success("Успех!", { description: result.message });
+        router.push(`/members/${result.data?.id}`);
+        router.refresh();
+      } else {
+        toast.error("Грешка", { description: result.message });
+        if (result.errors) {
+          console.error("Validation errors:", result.errors);
+        }
+      }
     } catch (e) {
       console.error("Failed to create member:", e);
-      toast.error("Грешка", { description: "Неуспешно създаване на член." });
+      toast.error("Грешка", {
+        description: "Неуспешно свързване със сървъра.",
+      });
     }
   };
 
