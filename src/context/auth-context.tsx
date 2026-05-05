@@ -5,6 +5,8 @@ import {
   useContext,
   useState,
   useEffect,
+  useMemo,
+  useCallback,
   ReactNode,
 } from "react";
 import {
@@ -58,15 +60,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [auth]);
 
-  const logout = async () => {
-    // Removed MouseEvent argument
+  const logout = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
       router.push("/login");
     } catch (error) {
       console.error("Error signing out: ", error);
     }
-  };
+  }, [auth, router]);
+
+  const value = useMemo(
+    () => ({ user, idToken, loading, logout }),
+    [user, idToken, loading, logout]
+  );
 
   if (loading) {
     return (
@@ -77,11 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  return (
-    <AuthContext.Provider value={{ user, idToken, loading, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

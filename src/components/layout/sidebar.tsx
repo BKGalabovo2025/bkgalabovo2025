@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   return (
     <Sidebar
       {...props}
