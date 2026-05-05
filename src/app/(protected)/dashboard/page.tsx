@@ -11,12 +11,15 @@ import {
   TrendingDown,
   Package,
   CreditCard,
+  Trophy,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { RemindersCard } from "@/components/reminders/reminders-card";
 import { AssistantPanel } from "@/components/dashboard/assistant-panel";
 import { Sale } from "@/types";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { ReactNode, cloneElement, isValidElement } from "react";
 
 const DashboardPage = () => {
   const { stats, allMembers, recentSales, reminders, loading, error } =
@@ -64,138 +67,209 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <header>
-        <h1 className="text-4xl font-bold font-heading tracking-tight text-zinc-900 dark:text-white">
+    <div className="p-6 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-3xl font-semibold font-heading tracking-tight text-slate-900">
           Табло за управление
         </h1>
-        <p className="text-muted-foreground">
-          Бърз преглед на активността в клуба.
+        <p className="text-slate-500 text-sm">
+          Добре дошли в административния панел на Бадминтон клуб Гълъбово.
         </p>
       </header>
 
       <AssistantPanel />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Приходи (30 дни)"
-          value={formatPrice(stats.revenueLast30Days || 0)}
-          icon={<TrendingUp />}
-          change={stats.revenueChange}
-        />
-        <StatCard
-          title="Активни членове"
-          value={stats.activeMembersCount.toString()}
-          icon={<Users />}
-        />
-        <StatCard
-          title="Нови членове (30 дни)"
-          value={stats.newMembersLast30Days.toString()}
-          icon={<Users />}
-          change={stats.newMembersChange}
-        />
-        <StatCard
-          title="Продажби (30 дни)"
-          value={(stats.salesLast30Days || 0).toString()}
-          icon={<BarChart />}
-          change={stats.salesChange}
-        />
-      </div>
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Row 1: Quick Stats */}
+        <div className="md:col-span-12 lg:col-span-3">
+          <StatCard
+            title="Приходи (30 дни)"
+            value={formatPrice(stats.revenueLast30Days || 0)}
+            icon={<TrendingUp />}
+            change={stats.revenueChange}
+            color="blue"
+          />
+        </div>
+        <div className="md:col-span-12 lg:col-span-3">
+          <StatCard
+            title="Активни членове"
+            value={stats.activeMembersCount.toString()}
+            icon={<Users />}
+            color="emerald"
+          />
+        </div>
+        <div className="md:col-span-12 lg:col-span-3">
+          <StatCard
+            title="Нови членове"
+            value={stats.newMembersLast30Days.toString()}
+            icon={<Trophy />}
+            change={stats.newMembersChange}
+            color="amber"
+          />
+        </div>
+        <div className="md:col-span-12 lg:col-span-3">
+          <StatCard
+            title="Продажби"
+            value={(stats.salesLast30Days || 0).toString()}
+            icon={<BarChart />}
+            change={stats.salesChange}
+            color="purple"
+          />
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Последни продажби</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            {recentSales.length > 0 ? (
-              recentSales.map((sale) => {
-                const member = sale.memberId
-                  ? allMembers.find((m) => m.id === sale.memberId)
-                  : null;
-                const memberName = member
-                  ? `${member.firstName} ${member.lastName}`.trim()
-                  : "Продажба в брой";
-                const saleDetails = getSaleDetails(sale);
+        {/* Row 2: Recent Sales & Reminders */}
+        <div className="md:col-span-12 lg:col-span-8">
+          <Card className="h-full shadow-sm border-slate-100 overflow-hidden">
+            <CardHeader className="border-b bg-slate-50/50 py-4 px-6">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-slate-400" />
+                Последни продажби
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-slate-100">
+                {recentSales.length > 0 ? (
+                  recentSales.map((sale) => {
+                    const member = sale.memberId
+                      ? allMembers.find((m) => m.id === sale.memberId)
+                      : null;
+                    const memberName = member
+                      ? `${member.firstName} ${member.lastName}`.trim()
+                      : "Продажба в брой";
+                    const saleDetails = getSaleDetails(sale);
 
-                return (
-                  <div key={sale.id} className="flex items-center gap-4">
-                    <div className="h-10 w-10 flex items-center justify-center bg-secondary rounded-full">
-                      {saleDetails.type === "inventory" ? (
-                        <Package className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="grid gap-1 grow">
-                      <p className="text-sm font-medium leading-none">
-                        {memberName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {saleDetails.description}
-                      </p>
-                    </div>
-                    <div className="ml-auto font-medium text-right">
-                      <div>{formatPrice(sale.totalAmount)}</div>
-                      <div className="text-xs text-muted-foreground font-normal">
-                        {format(new Date(sale.saleDate), "dd.MM.yyyy")}
+                    return (
+                      <div
+                        key={sale.id}
+                        className="flex items-center gap-4 p-4 hover:bg-slate-50/50 transition-colors"
+                      >
+                        <div
+                          className={cn(
+                            "h-10 w-10 flex items-center justify-center rounded-xl",
+                            saleDetails.type === "inventory"
+                              ? "bg-amber-100"
+                              : "bg-blue-100"
+                          )}
+                        >
+                          {saleDetails.type === "inventory" ? (
+                            <Package
+                              className={cn("h-5 w-5", "text-amber-600")}
+                            />
+                          ) : (
+                            <CreditCard
+                              className={cn("h-5 w-5", "text-blue-600")}
+                            />
+                          )}
+                        </div>
+                        <div className="grid gap-0.5 grow">
+                          <p className="text-sm font-semibold text-slate-900">
+                            {memberName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {saleDetails.description}
+                          </p>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <div className="text-sm font-bold text-slate-900">
+                            {formatPrice(sale.totalAmount)}
+                          </div>
+                          <div className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                            {format(new Date(sale.saleDate), "dd MMM")}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <BarChart className="h-12 w-12 mb-2 opacity-20" />
+                    <p className="text-sm">Няма скорошни продажби</p>
                   </div>
-                );
-              })
-            ) : (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                Няма скорошни продажби.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <RemindersCard reminders={reminders} />
+        <div className="md:col-span-12 lg:col-span-4">
+          <RemindersCard
+            reminders={reminders}
+            className="shadow-sm border-slate-100 h-full"
+          />
+        </div>
       </div>
     </div>
   );
 };
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: ReactNode;
+  change?: number;
+  color?: "blue" | "emerald" | "amber" | "purple";
+}
 
 const StatCard = ({
   title,
   value,
   icon,
   change,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  change?: number;
-}) => {
+  color = "blue",
+}: StatCardProps) => {
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    amber: "bg-amber-50 text-amber-600",
+    purple: "bg-purple-50 text-purple-600",
+  };
+
   const changeColor =
     change && change > 0
-      ? "text-green-500"
+      ? "text-emerald-600 bg-emerald-50"
       : change && change < 0
-        ? "text-red-500"
-        : "text-muted-foreground";
-  const changeIcon =
-    change && change > 0 ? (
-      <TrendingUp className="h-4 w-4" />
-    ) : change && change < 0 ? (
-      <TrendingDown className="h-4 w-4" />
-    ) : null;
+        ? "text-rose-600 bg-rose-50"
+        : "text-slate-500 bg-slate-50";
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {change !== undefined && (
-          <p className={`text-xs ${changeColor} flex items-center`}>
-            {changeIcon}
-            {change.toFixed(2)}% спрямо предходния период
+    <Card className="shadow-sm border-slate-100 overflow-hidden group hover:border-primary/20 transition-all duration-300 h-full">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div
+            className={cn(
+              "p-2.5 rounded-xl transition-transform group-hover:scale-110 duration-300",
+              colorClasses[color]
+            )}
+          >
+            {isValidElement(icon)
+              ? cloneElement(icon as any, { className: "h-5 w-5" })
+              : icon}
+          </div>
+          {change !== undefined && (
+            <div
+              className={cn(
+                "text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1",
+                changeColor
+              )}
+            >
+              {change > 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              {Math.abs(change).toFixed(1)}%
+            </div>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            {title}
           </p>
-        )}
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">
+            {value}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

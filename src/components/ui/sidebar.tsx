@@ -97,7 +97,7 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group peer hidden md:block text-sidebar-foreground",
+          "group peer hidden md:block text-sidebar-foreground border-r border-sidebar-border",
           className
         )}
         data-state="expanded"

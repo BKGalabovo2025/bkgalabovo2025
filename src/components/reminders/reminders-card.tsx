@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BellRing, AlertTriangle, XCircle } from "lucide-react";
 import { Reminder } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface RemindersCardProps {
   reminders: Reminder[];
+  className?: string;
 }
 
 const getReminderIcon = (type: Reminder["type"]) => {
@@ -33,9 +35,9 @@ const getReminderLink = (reminder: Reminder): string => {
   }
 };
 
-export function RemindersCard({ reminders }: RemindersCardProps) {
+export function RemindersCard({ reminders, className }: RemindersCardProps) {
   return (
-    <Card>
+    <Card className={cn(className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Напомняния</CardTitle>
         <BellRing className="h-4 w-4 text-muted-foreground" />
