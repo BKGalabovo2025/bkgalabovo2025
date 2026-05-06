@@ -19,6 +19,10 @@ import {
   Home,
   PhoneCall,
   BarChart2,
+  Printer,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -130,6 +134,27 @@ export const MemberDetailsCard = ({
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Грешка при плащане");
+    }
+  };
+
+  const toggleDocumentStatus = async (
+    field: "hasSignedDeclaration" | "hasMedicalCertificate" | "isLicensed",
+    currentValue: boolean | undefined
+  ) => {
+    if (!idToken) return;
+    try {
+      const result = await updateMemberAction(idToken, member.id, {
+        [field]: !currentValue,
+      });
+      if (result.success) {
+        toast.success("Статусът е обновен успешно!");
+        router.refresh();
+      } else {
+        toast.error("Възникна грешка", { description: result.message });
+      }
+    } catch (error) {
+      console.error("Error updating document status:", error);
+      toast.error("Грешка при обновяване");
     }
   };
 
@@ -283,8 +308,9 @@ export const MemberDetailsCard = ({
       </div>
 
       <Tabs defaultValue="personal">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="personal">Лични данни</TabsTrigger>
+          <TabsTrigger value="documents">Документи</TabsTrigger>
           <TabsTrigger value="sales">Финансова история</TabsTrigger>
           <TabsTrigger value="subscriptions">Абонаменти</TabsTrigger>
           <TabsTrigger value="attendance">Присъствия</TabsTrigger>
@@ -387,6 +413,151 @@ export const MemberDetailsCard = ({
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={cn(
+                      "p-3 rounded-full",
+                      member.hasSignedDeclaration
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-amber-100 text-amber-600"
+                    )}
+                  >
+                    {member.hasSignedDeclaration ? (
+                      <CheckCircle className="h-6 w-6" />
+                    ) : (
+                      <AlertTriangle className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">
+                      Декларация за съгласие
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      {member.hasSignedDeclaration
+                        ? "Декларацията е попълнена и подписана."
+                        : "Липсва попълнена декларация."}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      window.open(`/members/${member.id}/declaration`, "_blank")
+                    }
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Принтирай
+                  </Button>
+                  <Button
+                    variant={
+                      member.hasSignedDeclaration ? "outline" : "default"
+                    }
+                    onClick={() =>
+                      toggleDocumentStatus(
+                        "hasSignedDeclaration",
+                        member.hasSignedDeclaration
+                      )
+                    }
+                  >
+                    {member.hasSignedDeclaration
+                      ? "Маркирай като липсваща"
+                      : "Отбележи като предадена"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={cn(
+                      "p-3 rounded-full",
+                      member.hasMedicalCertificate
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-rose-100 text-rose-600"
+                    )}
+                  >
+                    {member.hasMedicalCertificate ? (
+                      <CheckCircle className="h-6 w-6" />
+                    ) : (
+                      <XCircle className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">
+                      Медицинско свидетелство
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      {member.hasMedicalCertificate
+                        ? "Медицинското за текущата година е предадено."
+                        : "ЗАДЪЛЖИТЕЛНО: Не е предадено медицинско свидетелство!"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant={member.hasMedicalCertificate ? "outline" : "default"}
+                  className={
+                    !member.hasMedicalCertificate
+                      ? "bg-rose-600 hover:bg-rose-700 text-white"
+                      : ""
+                  }
+                  onClick={() =>
+                    toggleDocumentStatus(
+                      "hasMedicalCertificate",
+                      member.hasMedicalCertificate
+                    )
+                  }
+                >
+                  {member.hasMedicalCertificate
+                    ? "Отмени предаването"
+                    : "Отбележи като предадено"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={cn(
+                      "p-3 rounded-full",
+                      member.isLicensed
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-slate-200 text-slate-500"
+                    )}
+                  >
+                    {member.isLicensed ? (
+                      <CheckCircle className="h-6 w-6" />
+                    ) : (
+                      <XCircle className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">
+                      Картотека към БФБ
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      {member.isLicensed
+                        ? "Състезателят има активна картотека."
+                        : "Няма активна картотека към федерацията."}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant={member.isLicensed ? "outline" : "default"}
+                  onClick={() =>
+                    toggleDocumentStatus("isLicensed", member.isLicensed)
+                  }
+                >
+                  {member.isLicensed ? "Премахни картотека" : "Картотекирай"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

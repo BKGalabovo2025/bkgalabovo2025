@@ -8,6 +8,7 @@ import {
   Wallet,
   ArrowUpRight,
 } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 export const dynamic = "force-dynamic";
 
@@ -86,36 +87,6 @@ export default function FinancesPage() {
           </Link>
         ))}
       </div>
-
-      {/* Summary Stats Bento Section (Placeholder for future data) */}
-      <BentoCard className="p-10 bg-slate-950 text-white border-none shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Wallet className="h-48 w-48" />
-        </div>
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-3xl font-black mb-4">Финансов преглед</h2>
-            <p className="text-slate-400 max-w-md">
-              Следете в реално време финансовото състояние на клуба. Автоматично
-              генериране на отчети и анализ на приходите.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">
-                Месечен приход
-              </p>
-              <p className="text-2xl font-black text-emerald-400">0.00 лв.</p>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">
-                Активни абонаменти
-              </p>
-              <p className="text-2xl font-black text-blue-400">0</p>
-            </div>
-          </div>
-        </div>
-      </BentoCard>
     </div>
   );
 }

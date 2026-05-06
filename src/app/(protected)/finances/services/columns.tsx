@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableRowActions } from "./DataTableRowActions";
 import { Service } from "./service.types";
+import { formatPrice } from "@/lib/currency";
 
 export const columns: ColumnDef<Service>[] = [
   {
@@ -16,10 +17,7 @@ export const columns: ColumnDef<Service>[] = [
     header: () => <div className="text-right">Цена</div>,
     cell: ({ row }) => {
       const price = parseFloat(row.getValue("price"));
-      const formatted = new Intl.NumberFormat("bg-BG", {
-        style: "currency",
-        currency: "BGN",
-      }).format(price);
+      const formatted = formatPrice(price);
 
       return <div className="text-right font-medium">{formatted}</div>;
     },

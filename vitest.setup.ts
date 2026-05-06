@@ -48,3 +48,10 @@ vi.mock("@/lib/firebase-collections", () => ({
   membersCollection: { path: "members" },
   salesCollection: { path: "sales" },
 }));
+
+// Polyfill ResizeObserver for Radix UI components
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

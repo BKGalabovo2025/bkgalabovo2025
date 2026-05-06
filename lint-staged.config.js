@@ -1,7 +1,7 @@
 export default {
   // 1. Първо форматираме и оправяме автоматично всички променени файлове
   "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-  "*.{css}": ["stylelint --fix", "prettier --write"],
+  "*.css": ["stylelint --fix", "prettier --write"],
   "*.json": ["prettier --write"],
 
   // 2. След това, изпълняваме всички проверки за целия проект.

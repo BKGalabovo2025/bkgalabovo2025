@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Save, X } from "lucide-react";
 import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const MemberFormSchema = MemberSchema.omit({
   id: true,
@@ -76,6 +77,9 @@ export const MemberForm = ({
       familyId: undefined,
       skillLevel: undefined,
       rating: undefined,
+      hasSignedDeclaration: false,
+      hasMedicalCertificate: false,
+      isLicensed: false,
     },
   });
 
@@ -423,6 +427,68 @@ export const MemberForm = ({
                   </FormItem>
                 )}
               />
+              <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
+                <FormField
+                  control={form.control}
+                  name="hasSignedDeclaration"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Подписана декларация</FormLabel>
+                        <FormDescription>
+                          Има ли подписана декларация
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="hasMedicalCertificate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Медицинско свидетелство</FormLabel>
+                        <FormDescription>
+                          Предадено за текущата година
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="isLicensed"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Картотека</FormLabel>
+                        <FormDescription>
+                          Картотекиран в БФБ за годината
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
               {/* Family ID ще се добави на по-късен етап, когато имаме управление на семейства */}
               <FormField
                 name="notes"

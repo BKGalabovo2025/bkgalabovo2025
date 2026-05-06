@@ -9,6 +9,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { formatPrice } from "@/lib/currency";
 
 interface DashboardChartsProps {
   data: { name: string; revenue: number }[];
@@ -17,7 +18,12 @@ interface DashboardChartsProps {
 export const RevenueChart = ({ data }: DashboardChartsProps) => {
   return (
     <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={0}
+      >
         <AreaChart
           data={data}
           margin={{
@@ -49,7 +55,7 @@ export const RevenueChart = ({ data }: DashboardChartsProps) => {
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
-            tickFormatter={(value) => `${value}лв.`}
+            tickFormatter={(value) => formatPrice(value)}
           />
           <Tooltip
             contentStyle={{

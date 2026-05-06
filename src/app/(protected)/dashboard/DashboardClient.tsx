@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { formatPrice } from "@/lib/currency";
 
 // Sub-components for better organization
 const StatCard = ({
@@ -164,7 +165,7 @@ export default function DashboardClient() {
         />
         <StatCard
           title={t("dash.monthly_revenue")}
-          value={`${monthlyRevenue.toFixed(0)} лв.`}
+          value={formatPrice(monthlyRevenue)}
           icon={TrendingUp}
           trend={{
             value: `${revenueTrend > 0 ? "+" : ""}${revenueTrend.toFixed(0)}%`,
@@ -219,9 +220,8 @@ export default function DashboardClient() {
                 по-добре.
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {[
-                  { label: "Заетост", val: "78%", icon: Activity },
                   {
                     label: "Нови",
                     val: stats?.newMembersLast30Days || 0,
@@ -232,7 +232,6 @@ export default function DashboardClient() {
                     val: stats?.salesLast30Days || 0,
                     icon: CreditCard,
                   },
-                  { label: "Цели", val: "92%", icon: Target },
                 ].map((item, i) => (
                   <div
                     key={i}
@@ -253,86 +252,6 @@ export default function DashboardClient() {
         {/* Sidebar */}
         <div className="space-y-8">
           <QuickTasks />
-
-          <BentoCard className="p-6">
-            <h3 className="font-black text-sm mb-6 flex items-center gap-2 uppercase tracking-widest">
-              <Users className="h-4 w-4 text-blue-600" />{" "}
-              {t("dash.coaches_online")}
-            </h3>
-            <div className="space-y-4">
-              {[
-                {
-                  name: "Иван Петров",
-                  status: language === "bg" ? "В тренировка" : "In Session",
-                  img: "IP",
-                },
-                {
-                  name: "Мария Колева",
-                  status: language === "bg" ? "Свободна" : "Available",
-                  img: "MK",
-                },
-                {
-                  name: "Георги Димитров",
-                  status: language === "bg" ? "Почивка" : "Break",
-                  img: "GD",
-                },
-              ].map((coach, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-600 text-xs shadow-sm">
-                    {coach.img}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-black text-slate-800">
-                      {coach.name}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {coach.status}
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      "h-2 w-2 rounded-full",
-                      coach.status ===
-                        (language === "bg" ? "Свободна" : "Available")
-                        ? "bg-emerald-500 shadow-lg shadow-emerald-200"
-                        : coach.status ===
-                            (language === "bg" ? "В тренировка" : "In Session")
-                          ? "bg-amber-500"
-                          : "bg-slate-300"
-                    )}
-                  />
-                </div>
-              ))}
-            </div>
-          </BentoCard>
-
-          <BentoCard className="p-6 bg-slate-900 text-white border-none relative overflow-hidden">
-            <div className="absolute -bottom-4 -right-4 opacity-10">
-              <AlertCircle size={80} />
-            </div>
-            <h3 className="font-black text-sm mb-2 uppercase tracking-widest">
-              {t("dash.maintenance")}
-            </h3>
-            <p className="text-sm text-slate-400 mb-6 font-medium leading-relaxed">
-              Техническа профилактика утре от 08:00 до 10:00.
-            </p>
-            <div className="flex -space-x-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-8 w-8 rounded-full border-2 border-slate-900 bg-slate-700 flex items-center justify-center text-[10px] font-black"
-                >
-                  U{i}
-                </div>
-              ))}
-              <div className="h-8 w-8 rounded-full border-2 border-slate-900 bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">
-                +2
-              </div>
-            </div>
-          </BentoCard>
         </div>
       </div>
     </div>

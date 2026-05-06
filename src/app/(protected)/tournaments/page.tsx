@@ -1,13 +1,12 @@
 export const dynamic = "force-dynamic";
 
-import { tournamentService } from "@/services/tournament-service";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 
-export default async function TournamentsPage() {
-  const tournaments = await tournamentService.getTournaments();
+export default function TournamentsPage() {
+  const tournaments: any[] = [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">

@@ -69,6 +69,12 @@ export const MemberSchema = z.object({
     .optional(),
   rating: z.number().min(0).max(3000).nullable().optional(),
 
+  // --- Administrative & Documents ---
+  hasSignedDeclaration: z.boolean().default(false).optional(),
+  hasMedicalCertificate: z.boolean().default(false).optional(),
+  medicalCertificateDate: z.string().datetime().nullable().optional(),
+  isLicensed: z.boolean().default(false).optional(),
+
   // --- Miscellaneous ---
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),
