@@ -37,9 +37,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [idToken, setIdToken] = useState<string | null>(null); // Added idToken state
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const auth = getFirebaseAuth();
 
   useEffect(() => {
+    // Only initialize Firebase Auth on the client side
+    const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
@@ -58,16 +59,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
+      const auth = getFirebaseAuth();
       await firebaseSignOut(auth);
       router.push("/login");
     } catch (error) {
       console.error("Error signing out: ", error);
     }
-  }, [auth, router]);
+  }, [router]);
 
   const value = useMemo(
     () => ({ user, idToken, loading, logout }),
