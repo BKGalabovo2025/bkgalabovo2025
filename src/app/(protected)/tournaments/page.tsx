@@ -1,12 +1,23 @@
 export const dynamic = "force-dynamic";
 
+import { Tournament } from "@/types/tournament.types";
+import { tournamentService } from "@/services/tournament-service";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 
-export default function TournamentsPage() {
-  const tournaments: any[] = [];
+export default async function TournamentsPage() {
+  let tournaments: Tournament[] = [];
+  let error = null;
+
+  try {
+    tournaments = await tournamentService.getTournaments();
+  } catch (err) {
+    console.error("Error fetching tournaments:", err);
+    error =
+      "Неуспешно зареждане на списъка с турнири. Моля, опитайте по-късно.";
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -19,15 +30,19 @@ export default function TournamentsPage() {
         ]}
       />
 
-      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
-        <div className="p-0">
-          <Suspense fallback={<TournamentsLoading />}>
-            <TournamentsClient
-              initialTournaments={JSON.parse(JSON.stringify(tournaments))}
-            />
-          </Suspense>
+      {error ? (
+        <div className="bg-rose-50 border border-rose-100 rounded-[32px] p-8 text-center">
+          <p className="text-rose-600 font-bold">{error}</p>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
+          <div className="p-0">
+            <Suspense fallback={<TournamentsLoading />}>
+              <TournamentsClient initialTournaments={tournaments} />
+            </Suspense>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

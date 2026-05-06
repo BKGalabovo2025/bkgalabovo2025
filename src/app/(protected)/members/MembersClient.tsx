@@ -45,15 +45,7 @@ import {
 
 const ITEMS_PER_PAGE = 12;
 
-interface Member {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  ageGroup?: string;
-  registrationDate: string;
-  status: "active" | "inactive";
-}
+import { Member } from "@/types";
 
 interface MembersClientProps {
   initialMembers: Member[];

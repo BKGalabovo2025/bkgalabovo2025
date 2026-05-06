@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  ListTree,
-  CreditCard,
-  History,
-  Wallet,
-  ArrowUpRight,
-} from "lucide-react";
-import { formatPrice } from "@/lib/currency";
+import { ListTree, CreditCard, History, ArrowUpRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

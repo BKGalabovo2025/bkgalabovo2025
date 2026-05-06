@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { Member } from "@/types";
 import { getAllMembers } from "@/services/member-service";
 import MembersClient from "./MembersClient";
 import { Suspense } from "react";
@@ -7,7 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 
 export default async function MembersPage() {
-  const members = await getAllMembers();
+  let members: Member[] = [];
+  let error = null;
+
+  try {
+    members = await getAllMembers();
+  } catch (err) {
+    console.error("Error fetching members:", err);
+    error =
+      "Неуспешно зареждане на списъка с членове. Моля, опитайте по-късно.";
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -20,15 +30,19 @@ export default async function MembersPage() {
         ]}
       />
 
-      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
-        <div className="p-0">
-          <Suspense fallback={<MembersLoading />}>
-            <MembersClient
-              initialMembers={JSON.parse(JSON.stringify(members))}
-            />
-          </Suspense>
+      {error ? (
+        <div className="bg-rose-50 border border-rose-100 rounded-[32px] p-8 text-center">
+          <p className="text-rose-600 font-bold">{error}</p>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
+          <div className="p-0">
+            <Suspense fallback={<MembersLoading />}>
+              <MembersClient initialMembers={members} />
+            </Suspense>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,6 @@ import {
   Activity,
   UserPlus,
   CreditCard,
-  Target,
   BarChart3,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

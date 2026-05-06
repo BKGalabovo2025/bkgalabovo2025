@@ -45,24 +45,32 @@ export default async function RankingsPage(props: {
   const period = searchParams.period || "all";
   const filter = getPeriodFilter(period);
 
-  // Сървърно извличане на данни
-  const [rankingsData, membersData] = await Promise.all([
-    computeGlobalRankings(filter),
-    getAllMembers(),
-  ]);
+  let enrichedRankings: any[] = [];
+  let error = null;
 
-  // Обогатяване на данните с истински имена
-  const memberDict: Record<string, Member> = {};
-  membersData.forEach((m) => {
-    if (m.id) memberDict[m.id] = m;
-  });
+  try {
+    // Сървърно извличане на данни
+    const [rankingsData, membersData] = await Promise.all([
+      computeGlobalRankings(filter),
+      getAllMembers(),
+    ]);
 
-  const enrichedRankings = rankingsData.map((r) => ({
-    ...r,
-    memberName: memberDict[r.memberId]
-      ? `${memberDict[r.memberId].firstName} ${memberDict[r.memberId].lastName}`
-      : r.memberName,
-  }));
+    // Обогатяване на данните с истински имена
+    const memberDict: Record<string, Member> = {};
+    membersData.forEach((m) => {
+      if (m.id) memberDict[m.id] = m;
+    });
+
+    enrichedRankings = rankingsData.map((r) => ({
+      ...r,
+      memberName: memberDict[r.memberId]
+        ? `${memberDict[r.memberId].firstName} ${memberDict[r.memberId].lastName}`
+        : r.memberName,
+    }));
+  } catch (err) {
+    console.error("Error computing rankings:", err);
+    error = "Неуспешно зареждане на ранглистата. Моля, опитайте по-късно.";
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -75,11 +83,17 @@ export default async function RankingsPage(props: {
         ]}
       />
 
-      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
-        <div className="p-8">
-          <RankingsClient initialRankings={enrichedRankings} />
+      {error ? (
+        <div className="bg-rose-50 border border-rose-100 rounded-[32px] p-8 text-center">
+          <p className="text-rose-600 font-bold">{error}</p>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden">
+          <div className="p-8">
+            <RankingsClient initialRankings={enrichedRankings} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
