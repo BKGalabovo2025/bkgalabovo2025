@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -110,6 +111,13 @@ export default function DashboardClient() {
   const { stats, revenueChartData, loading } = useDashboardData();
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   const firstName = user?.displayName?.split(" ")[0] || "Админ";
 
   // Use values from stats or fallback to 0/placeholder
@@ -118,6 +126,20 @@ export default function DashboardClient() {
   const salesCount = stats?.salesLast30Days || 0;
   const revenueTrend = stats?.revenueChange || 0;
   const membersTrend = stats?.newMembersChange || 0;
+
+  if (!mounted) {
+    return (
+      <div className="space-y-8 animate-pulse pb-12">
+        <div className="h-32 bg-slate-100 rounded-3xl w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="h-40 bg-slate-100 rounded-3xl" />
+          <div className="h-40 bg-slate-100 rounded-3xl" />
+          <div className="h-40 bg-slate-100 rounded-3xl" />
+          <div className="h-40 bg-slate-100 rounded-3xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">

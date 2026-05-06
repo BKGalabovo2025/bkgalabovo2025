@@ -143,7 +143,14 @@ const FinancialReport = () => {
       }
     };
 
-  if (isLoading) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading || !mounted) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -251,7 +258,12 @@ const FinancialReport = () => {
           </CardHeader>
           <CardContent className="pt-6 h-[300px]">
             {stats.chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                minHeight={0}
+              >
                 <PieChart>
                   <Pie
                     data={stats.chartData}

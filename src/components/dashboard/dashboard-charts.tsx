@@ -9,6 +9,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { useState, useEffect } from "react";
 import { formatPrice } from "@/lib/currency";
 
 interface DashboardChartsProps {
@@ -16,6 +17,19 @@ interface DashboardChartsProps {
 }
 
 export const RevenueChart = ({ data }: DashboardChartsProps) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="h-[300px] w-full bg-slate-50 rounded-xl animate-pulse" />
+    );
+  }
+
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer
