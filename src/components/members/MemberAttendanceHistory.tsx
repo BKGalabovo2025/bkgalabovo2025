@@ -11,12 +11,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format, getYear, getMonth } from "date-fns";
+import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 import { formatTimeRange } from "@/lib/date-utils";
 import {
   CalendarIcon,
-  MapPinIcon,
   InfoIcon,
   Trophy,
   Dumbbell,
@@ -34,14 +33,22 @@ const eventTypeDetails: Record<
   ScheduleEventType,
   { translation: string; icon: React.ElementType; color: string }
 > = {
-  training: { translation: "Тренировки", icon: Dumbbell, color: "text-blue-500" },
+  training: {
+    translation: "Тренировки",
+    icon: Dumbbell,
+    color: "text-blue-500",
+  },
   competition: {
     translation: "Състезания",
     icon: Trophy,
     color: "text-amber-500",
   },
   camp: { translation: "Лагери", icon: Tent, color: "text-green-500" },
-  event: { translation: "Събития", icon: PartyPopper, color: "text-purple-500" },
+  event: {
+    translation: "Събития",
+    icon: PartyPopper,
+    color: "text-purple-500",
+  },
   other: { translation: "Други", icon: HelpCircle, color: "text-slate-500" },
 };
 
@@ -199,19 +206,15 @@ export function MemberAttendanceHistory({
                           </div>
                           <div className="flex items-center gap-1.5">
                             <span className="font-mono">
-                              {formatTimeRange(
-                                event.startDate,
-                                event.endDate,
-                                false
-                              )}
+                              {formatTimeRange(event.startDate, event.endDate)}
                             </span>
                           </div>
                         </div>
-                        {event.description && type !== 'training' && (
-                           <div className="flex items-start gap-1.5 mt-1 text-xs text-slate-400">
-                             <InfoIcon size={12} className="mt-0.5"/>
-                             <p>{event.description}</p>
-                           </div>
+                        {event.description && type !== "training" && (
+                          <div className="flex items-start gap-1.5 mt-1 text-xs text-slate-400">
+                            <InfoIcon size={12} className="mt-0.5" />
+                            <p>{event.description}</p>
+                          </div>
                         )}
                       </div>
                     ))}

@@ -86,7 +86,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     try {
-      if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.getItem === "function") {
+      if (
+        typeof window !== "undefined" &&
+        window.localStorage &&
+        typeof window.localStorage.getItem === "function"
+      ) {
         const savedLang = window.localStorage.getItem("app_lang") as Language;
         if (savedLang) {
           setTimeout(() => setLanguage(savedLang), 0);
@@ -100,7 +104,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     try {
-      if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.setItem === "function") {
+      if (
+        typeof window !== "undefined" &&
+        window.localStorage &&
+        typeof window.localStorage.setItem === "function"
+      ) {
         window.localStorage.setItem("app_lang", lang);
       }
     } catch (e) {

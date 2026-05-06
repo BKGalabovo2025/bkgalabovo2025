@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Printer, AlertCircle, FileDown } from "lucide-react";
+import { Printer, AlertCircle, FileDown, Edit } from "lucide-react";
 import Image from "next/image";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
@@ -417,15 +417,17 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
               </div>
             </div>
 
-            <footer className="mt-20 pt-10 receipt-footer flex flex-col items-center">
+            <footer className="mt-20 pt-10 receipt-footer flex flex-col items-center relative group">
               <div className="flex justify-between w-full mb-12 px-12 italic text-sm text-gray-400 uppercase font-black">
                 <p>Подпис на платилия: .........................</p>
                 <p>Подпис на касиера: .........................</p>
               </div>
-              <p className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-widest">
-                Благодарим Ви, че спортувате с нас!
-              </p>
-              <p className="text-xs text-gray-400 font-medium">
+
+              <div className="text-center">
+                <EditableReceiptMessage />
+              </div>
+
+              <p className="text-xs text-gray-400 font-medium mt-4">
                 {clubInfo.name} &copy; {new Date().getFullYear()}
               </p>
             </footer>
@@ -435,6 +437,67 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     </>
   );
 }
+
+const EditableReceiptMessage = () => {
+  const [message, setMessage] = useState(() => {
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem("receipt-custom-message") ||
+        "Благодарим Ви, че спортувате с нас!"
+      );
+    }
+    return "Благодарим Ви, че спортувате с нас!";
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleSave = () => {
+    localStorage.setItem("receipt-custom-message", message);
+    setIsEditing(false);
+    toast.success("Съобщението е запазено!");
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex flex-col items-center gap-3 no-print">
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="w-full min-w-[300px] p-4 text-sm font-bold text-center border-2 border-primary rounded-xl focus:outline-none"
+          rows={2}
+        />
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsEditing(false)}
+          >
+            Отказ
+          </Button>
+          <Button size="sm" onClick={handleSave}>
+            Запази
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative group cursor-pointer"
+      onClick={() => setIsEditing(true)}
+    >
+      <p className="text-sm font-bold text-gray-900 uppercase tracking-widest">
+        {message}
+      </p>
+      <div className="absolute -right-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity no-print">
+        <Edit className="h-4 w-4 text-blue-500" />
+      </div>
+      <p className="text-[10px] text-blue-500 font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity no-print mt-1">
+        Кликни за редакция
+      </p>
+    </div>
+  );
+};
 
 const ReceiptSkeleton = () => (
   <div className="max-w-4xl mx-auto p-8 space-y-8">

@@ -32,6 +32,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
+import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
 
 const CATEGORY_TABS = [
   { id: "all", label: "Общо" },
@@ -112,19 +113,22 @@ export default function RankingsClient({
           { label: "Ранглиста" },
         ]}
       >
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-slate-400" />
-          <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-full md:w-[220px] rounded-xl border-slate-200 bg-white shadow-sm">
-              <SelectValue placeholder="Период" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всички турнири</SelectItem>
-              <SelectItem value="year">Текуща година (2026)</SelectItem>
-              <SelectItem value="h1">Първо полугодие</SelectItem>
-              <SelectItem value="h2">Второ полугодие</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-slate-400" />
+            <Select value={period} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-full md:w-[220px] rounded-xl border-slate-200 bg-white shadow-sm">
+                <SelectValue placeholder="Период" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички турнири</SelectItem>
+                <SelectItem value="year">Текуща година (2026)</SelectItem>
+                <SelectItem value="h1">Първо полугодие</SelectItem>
+                <SelectItem value="h2">Второ полугодие</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <ShareStoryDialog topThree={topThree} />
         </div>
       </PageHeader>
 

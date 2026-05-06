@@ -8,7 +8,7 @@ describe("Home Page", () => {
     render(
       <LanguageProvider>
         <Page />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
     expect(true).toBe(true);
   });
