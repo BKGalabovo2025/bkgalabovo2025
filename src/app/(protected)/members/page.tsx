@@ -5,7 +5,6 @@ import { getAllMembersServer } from "@/services/member-service.server";
 import MembersClient from "./MembersClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageHeader } from "@/components/layout/page-header";
 
 export default async function MembersPage() {
   let members: Member[] = [];
@@ -21,15 +20,6 @@ export default async function MembersPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <PageHeader
-        title="Членове на клуба"
-        description="Управление на членската маса, проследяване на присъствия, плащания и лични профили на всички състезатели."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Членове" },
-        ]}
-      />
-
       {error ? (
         <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>

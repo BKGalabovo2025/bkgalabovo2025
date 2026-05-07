@@ -17,7 +17,7 @@ export default function ServicesClientPage({ data }: ServicesClientPageProps) {
   const router = useRouter();
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <PageHeader
         title="Каталог на Услуги"
         description="Управление на ценоразпис, инвентар и артикули в бара."
@@ -29,21 +29,24 @@ export default function ServicesClientPage({ data }: ServicesClientPageProps) {
       >
         <Button
           onClick={() => router.push("/finances/services/new")}
-          className="rounded-xl shadow-md font-bento"
+          className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> Добави услуга
+          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+          услуга
         </Button>
       </PageHeader>
 
-      <BentoCard className="overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={data}
-          filterColumnId="name"
-          filterPlaceholder="Търсене по име на услуга..."
-          isLoading={false}
-          emptyStateMessage="Няма намерени услуги."
-        />
+      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
+        <div className="p-8">
+          <DataTable
+            columns={columns}
+            data={data}
+            filterColumnId="name"
+            filterPlaceholder="Търсене по име на услуга..."
+            isLoading={false}
+            emptyStateMessage="Няма намерени услуги."
+          />
+        </div>
       </BentoCard>
     </div>
   );

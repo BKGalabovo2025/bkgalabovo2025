@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
 import {
-  PlusCircle,
   Edit,
   Trash2,
   ImageIcon,
@@ -14,6 +13,7 @@ import {
   Package,
   History,
   Search,
+  Plus,
 } from "lucide-react";
 import { EditProductDialog } from "@/components/inventory/EditProductDialog";
 import { useAuth } from "@/context/auth-context";
@@ -309,19 +309,18 @@ export default function InventoryClient() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
-        title="Инвентар"
-        description="Управление на продукти, складови наличности и история на доставките."
+        title="Склад и наличности"
+        description="Проследяване на спортна екипировка, пера и консумативи. Управление на инвентара и автоматични известия за ниски наличности."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Инвентар" },
+          { label: "Склад" },
         ]}
       >
         <Button
           onClick={() => setIsAddOpen(true)}
-          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
+          className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
         >
-          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
-          продукт
+          <Plus className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави артикул
         </Button>
       </PageHeader>
 

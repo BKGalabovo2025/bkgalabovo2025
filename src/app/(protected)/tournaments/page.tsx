@@ -4,7 +4,6 @@ import { Tournament } from "@/types/tournament.types";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageHeader } from "@/components/layout/page-header";
 import { getTournamentsServer } from "@/services/tournament-service.server";
 
 export default async function TournamentsPage() {
@@ -20,28 +19,15 @@ export default async function TournamentsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <PageHeader
-        title="Турнири и състезания"
-        description="Организиране на спортни събития, управление на участници, схеми и класиране в реално време."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Турнири" },
-        ]}
-      />
-
+    <div className="pb-12">
       {error ? (
         <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-950 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 overflow-hidden shadow-none">
-          <div className="p-0">
-            <Suspense fallback={<TournamentsLoading />}>
-              <TournamentsClient initialTournaments={tournaments} />
-            </Suspense>
-          </div>
-        </div>
+        <Suspense fallback={<TournamentsLoading />}>
+          <TournamentsClient initialTournaments={tournaments} />
+        </Suspense>
       )}
     </div>
   );

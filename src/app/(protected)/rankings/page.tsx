@@ -4,7 +4,6 @@ import { Member } from "@/types/member.types";
 import { RankingEntry } from "@/types/ranking.types";
 import RankingsClient from "./RankingsClient";
 import { Metadata } from "next";
-import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -74,26 +73,13 @@ export default async function RankingsPage(props: {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-      <PageHeader
-        title="Глобална ранглиста"
-        description="Официално класиране на състезателите въз основа на натрупани точки от клубни и национални турнири."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Ранглиста" },
-        ]}
-      />
-
+    <div className="pb-12">
       {error ? (
         <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-950 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 overflow-hidden shadow-none">
-          <div className="p-8">
-            <RankingsClient initialRankings={enrichedRankings} />
-          </div>
-        </div>
+        <RankingsClient initialRankings={enrichedRankings} />
       )}
     </div>
   );

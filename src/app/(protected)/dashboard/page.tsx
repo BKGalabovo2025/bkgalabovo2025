@@ -1,6 +1,5 @@
 import DashboardClient from "./DashboardClient";
 import { Metadata } from "next";
-import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
