@@ -122,7 +122,7 @@ export default function SettingsClient() {
                         Официален Имейл
                       </Label>
                       <Input
-                        defaultValue="info@bkgalabovo.com"
+                        defaultValue="bk_galabovo@abv.bg"
                         className="h-12 rounded-xl border-slate-100 bg-slate-50/50"
                       />
                     </div>
@@ -131,7 +131,7 @@ export default function SettingsClient() {
                         Телефон за връзка
                       </Label>
                       <Input
-                        defaultValue="+359 888 123 456"
+                        defaultValue="+359 899 829 923"
                         className="h-12 rounded-xl border-slate-100 bg-slate-50/50"
                       />
                     </div>
@@ -140,7 +140,7 @@ export default function SettingsClient() {
                         Уебсайт
                       </Label>
                       <Input
-                        defaultValue="https://bkgalabovo.com"
+                        defaultValue="https://bkgalabovo.alle.bg/"
                         className="h-12 rounded-xl border-slate-100 bg-slate-50/50"
                       />
                     </div>

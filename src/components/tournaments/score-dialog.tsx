@@ -73,24 +73,19 @@ export function ScoreDialog({
   onClose,
   onSave,
 }: ScoreDialogProps) {
-  const [games, setGames] = useState<GameScore[]>([{ p1: 0, p2: 0 }]);
+  const [games, setGames] = useState<GameScore[]>(() => {
+    if (match?.score && isOpen) {
+      return parseScoreString(match.score);
+    }
+    return [{ p1: 0, p2: 0 }];
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fmt: MatchFormatPreset = getMatchFormat(matchFormatId);
-  const maxGames = fmt.gamesNeededToWin * 2 - 1; // Best of 3 → 3 games max, Best of 5 → 5 games max
+  const maxGames = fmt.gamesNeededToWin * 2 - 1;
 
-  const [prevMatchId, setPrevMatchId] = useState<string | null>(null);
-  const [prevIsOpen, setPrevIsOpen] = useState(false);
-
-  if (match?.id !== prevMatchId || isOpen !== prevIsOpen) {
-    setPrevMatchId(match?.id || null);
-    setPrevIsOpen(isOpen);
-    if (match && isOpen) {
-      setGames(
-        match.score ? parseScoreString(match.score) : [{ p1: 0, p2: 0 }]
-      );
-    }
-  }
+  // Use useEffect to reset games when match or isOpen changes,
+  // though key={match.id} in parent handles most cases.
 
   if (!match) return null;
 
