@@ -8,8 +8,8 @@ import {
 } from "@/lib/tournament-mapper";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
-const ENTRIES_COLLECTION = "tournament-entries";
-const MATCHES_COLLECTION = "tournament-matches";
+const ENTRIES_COLLECTION = "tournament_entries";
+const MATCHES_COLLECTION = "tournament_matches";
 
 // ──────────────────────────────────────────────
 // Точки за класиране по позиция

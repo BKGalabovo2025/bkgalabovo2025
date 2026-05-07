@@ -4,8 +4,8 @@ import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
-const ENTRIES_COLLECTION = "tournament-entries";
-const MATCHES_COLLECTION = "tournament-matches";
+const ENTRIES_COLLECTION = "tournament_entries";
+const MATCHES_COLLECTION = "tournament_matches";
 
 const PLACEMENT_POINTS: Record<number, number> = {
   1: 100,
