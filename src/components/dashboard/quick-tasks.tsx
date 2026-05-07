@@ -91,7 +91,7 @@ export const QuickTasks = () => {
             </span>
             <button
               onClick={() => deleteTask(task.id)}
-              className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-rose-500 transition-all"
+              className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-rose-500 transition-all"
             >
               <Trash2 size={14} strokeWidth={1.5} />
             </button>

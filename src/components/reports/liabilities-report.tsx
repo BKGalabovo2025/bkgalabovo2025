@@ -260,7 +260,7 @@ const LiabilitiesReport = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
+                        className="rounded-xl text-zinc-600 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
                       >
                         Напомняне
                       </Button>

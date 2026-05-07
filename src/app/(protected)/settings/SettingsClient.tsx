@@ -69,26 +69,26 @@ export default function SettingsClient() {
             <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-3">
               <TabsTrigger
                 value="general"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-400 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
                 <Settings className="mr-4 h-5 w-5" strokeWidth={1.5} /> Общи
               </TabsTrigger>
               <TabsTrigger
                 value="branding"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-400 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
                 <Palette className="mr-4 h-5 w-5" strokeWidth={1.5} />{" "}
                 Брандиране
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-400 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
                 <Shield className="mr-4 h-5 w-5" strokeWidth={1.5} /> Сигурност
               </TabsTrigger>
               <TabsTrigger
                 value="profile"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-400 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
                 <User className="mr-4 h-5 w-5" strokeWidth={1.5} /> Личен Профил
               </TabsTrigger>

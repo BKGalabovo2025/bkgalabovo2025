@@ -393,14 +393,14 @@ function TournamentCard({
             variant="outline"
             size="icon"
             onClick={onEdit}
-            className="rounded-xl h-12 w-12 border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:text-primary hover:border-primary/30 transition-all bg-zinc-50/30 dark:bg-zinc-900/30"
+            className="rounded-xl h-12 w-12 border-zinc-100 dark:border-zinc-800 text-zinc-600 hover:text-primary hover:border-primary/30 transition-all bg-zinc-50/30 dark:bg-zinc-900/30"
           >
             <Pencil className="h-4 w-4" strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl h-12 w-12 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+            className="rounded-xl h-12 w-12 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4" strokeWidth={1.5} />
