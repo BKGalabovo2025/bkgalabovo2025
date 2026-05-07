@@ -1,5 +1,4 @@
 import { getAuth } from "firebase-admin/auth";
-import { initializeFirebaseAdmin } from "./firebase-admin";
 
 // removed top-level call to prevent module evaluation crashes
 

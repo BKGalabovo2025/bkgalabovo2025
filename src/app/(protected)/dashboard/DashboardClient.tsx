@@ -105,7 +105,7 @@ const StatCard = ({
 export default function DashboardClient() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { stats, revenueChartData, loading } = useDashboardData();
+  const { stats, loading } = useDashboardData();
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);

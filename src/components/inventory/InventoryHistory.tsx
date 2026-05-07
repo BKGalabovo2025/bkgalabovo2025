@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getInventoryEvents } from "@/services/inventory-service";
 import { InventoryEvent } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
