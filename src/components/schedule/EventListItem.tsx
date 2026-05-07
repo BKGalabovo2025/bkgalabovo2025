@@ -108,6 +108,19 @@ export const EventListItem: React.FC<EventListItemProps> = ({
                 <Tag size={14} strokeWidth={1.5} />
                 <span className="text-primary/70">{translation}</span>
               </div>
+              {event.attendees && event.attendees.length > 0 && (
+                <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
+                  <Users
+                    size={12}
+                    strokeWidth={2}
+                    className="text-primary/60"
+                  />
+                  <span className="text-zinc-500">
+                    {event.attendees.filter((a) => a.attended).length} /{" "}
+                    {event.attendees.length} присъствали
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
