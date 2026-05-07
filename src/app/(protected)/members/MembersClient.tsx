@@ -266,7 +266,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       "px-4 py-2 text-[10px] font-medium uppercase tracking-widest rounded-lg transition-all",
                       statusFilter === f
                         ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
-                        : "text-zinc-400 hover:text-zinc-600"
+                        : "text-zinc-500 hover:text-zinc-700"
                     )}
                   >
                     {f === "all"
