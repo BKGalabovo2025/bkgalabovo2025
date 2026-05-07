@@ -10,7 +10,9 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {},
+  experimental: {
+    serverComponentsExternalPackages: ["firebase-admin"],
+  },
   turbopack: {},
   images: {
     remotePatterns: [

@@ -1,7 +1,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { initializeFirebaseAdmin } from "./firebase-admin";
 
-initializeFirebaseAdmin();
+// removed top-level call to prevent module evaluation crashes
 
 export async function getAuthUser(idToken: string) {
   try {
