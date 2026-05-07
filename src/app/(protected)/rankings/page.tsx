@@ -1,5 +1,5 @@
-import { computeGlobalRankings } from "@/services/ranking-service";
-import { getAllMembers } from "@/services/member-service";
+import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
+import { getAllMembersServer } from "@/services/member-service.server";
 import { Member } from "@/types/member.types";
 import RankingsClient from "./RankingsClient";
 import { Metadata } from "next";
@@ -51,8 +51,8 @@ export default async function RankingsPage(props: {
   try {
     // Сървърно извличане на данни
     const [rankingsData, membersData] = await Promise.all([
-      computeGlobalRankings(filter),
-      getAllMembers(),
+      computeGlobalRankingsServer(filter),
+      getAllMembersServer(),
     ]);
 
     // Обогатяване на данните с истински имена

@@ -263,7 +263,7 @@ export default function TournamentDetailsPage() {
         await tournamentService.getTournamentMatches(tournamentId);
       const allCompleted =
         updatedMatches.length > 0 &&
-        updatedMatches.every((m) => m.status === "completed");
+        updatedMatches.every((m: Match) => m.status === "completed");
 
       if (allCompleted && tournament?.status !== "completed") {
         const shouldComplete = confirm(

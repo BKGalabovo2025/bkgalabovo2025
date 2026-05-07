@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { Member } from "@/types";
-import { getAllMembers } from "@/services/member-service";
+import { getAllMembersServer } from "@/services/member-service.server";
 import MembersClient from "./MembersClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +12,7 @@ export default async function MembersPage() {
   let error = null;
 
   try {
-    members = await getAllMembers();
+    members = await getAllMembersServer();
   } catch (err) {
     console.error("Error fetching members:", err);
     error =

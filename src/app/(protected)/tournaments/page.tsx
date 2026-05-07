@@ -1,18 +1,18 @@
 export const dynamic = "force-dynamic";
 
 import { Tournament } from "@/types/tournament.types";
-import { tournamentService } from "@/services/tournament-service";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/page-header";
+import { getTournamentsServer } from "@/services/tournament-service.server";
 
 export default async function TournamentsPage() {
   let tournaments: Tournament[] = [];
   let error = null;
 
   try {
-    tournaments = await tournamentService.getTournaments();
+    tournaments = await getTournamentsServer();
   } catch (err) {
     console.error("Error fetching tournaments:", err);
     error =

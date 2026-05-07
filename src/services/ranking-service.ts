@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/firebase";
-const db = getDb();
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { TournamentEntry, Match } from "@/types/tournament.types";
 import {
@@ -7,6 +6,10 @@ import {
   mapDocToEntry,
   mapDocToMatch,
 } from "@/lib/tournament-mapper";
+
+const TOURNAMENTS_COLLECTION = "tournaments";
+const ENTRIES_COLLECTION = "tournament-entries";
+const MATCHES_COLLECTION = "tournament-matches";
 
 // ──────────────────────────────────────────────
 // Точки за класиране по позиция
@@ -115,9 +118,10 @@ export async function computeGlobalRankings(dateFilter?: {
   start: Date;
   end: Date;
 }): Promise<RankingEntry[]> {
+  const db = getDb();
   // 1. Всички завършени турнири, влизащи в ранглистата
   let q = query(
-    collection(db, "tournaments"),
+    collection(db, TOURNAMENTS_COLLECTION),
     where("countsForRanking", "==", true),
     where("status", "==", "completed")
   );
@@ -144,7 +148,7 @@ export async function computeGlobalRankings(dateFilter?: {
     // Entries
     const entriesSnap = await getDocs(
       query(
-        collection(db, "tournament_entries"),
+        collection(db, ENTRIES_COLLECTION),
         where("tournamentId", "==", tourn.id)
       )
     );
@@ -153,7 +157,7 @@ export async function computeGlobalRankings(dateFilter?: {
     // Matches
     const matchesSnap = await getDocs(
       query(
-        collection(db, "tournament_matches"),
+        collection(db, MATCHES_COLLECTION),
         where("tournamentId", "==", tourn.id)
       )
     );

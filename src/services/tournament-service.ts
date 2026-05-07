@@ -1,6 +1,4 @@
 import { getDb } from "@/lib/firebase";
-
-const db = getDb();
 import {
   collection,
   doc,
@@ -29,8 +27,8 @@ import {
 } from "@/lib/tournament-mapper";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
-
-// Utility to parse Firestore docs to our Tournament type
+const ENTRIES_COLLECTION = "tournament-entries";
+const MATCHES_COLLECTION = "tournament-matches";
 
 export const tournamentService = {
   /**
@@ -38,6 +36,7 @@ export const tournamentService = {
    */
   async getTournaments(): Promise<Tournament[]> {
     try {
+      const db = getDb();
       const q = query(
         collection(db, TOURNAMENTS_COLLECTION),
         orderBy("startDate", "desc")
@@ -55,6 +54,7 @@ export const tournamentService = {
    */
   async getTournamentById(id: string): Promise<Tournament | null> {
     try {
+      const db = getDb();
       const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
       const snapshot = await getDoc(docRef);
       if (!snapshot.exists()) return null;
@@ -70,6 +70,7 @@ export const tournamentService = {
    */
   async createTournament(data: Omit<Tournament, "id">): Promise<string> {
     try {
+      const db = getDb();
       // Валидация преди запис
       const validatedData = TournamentSchema.omit({ id: true }).parse(data);
 
@@ -97,6 +98,7 @@ export const tournamentService = {
    */
   async updateTournament(id: string, data: Partial<Tournament>): Promise<void> {
     try {
+      const db = getDb();
       const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
       const payload: any = {
         ...data,
@@ -122,6 +124,7 @@ export const tournamentService = {
    */
   async deleteTournament(id: string): Promise<void> {
     try {
+      const db = getDb();
       const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
       await deleteDoc(docRef);
     } catch (error) {
@@ -130,71 +133,62 @@ export const tournamentService = {
     }
   },
 
-  // -----------------------------------------------------
-  // УЧАСТНИЦИ (ENTRIES)
-  // -----------------------------------------------------
+  // ──────────────────────────────────────────────
+  // Entries (Записвания)
+  // ──────────────────────────────────────────────
 
-  /**
-   * Взема всички записани участници за даден турнир
-   */
   async getTournamentEntries(tournamentId: string): Promise<TournamentEntry[]> {
     try {
+      const db = getDb();
       const q = query(
-        collection(db, "tournament_entries"),
+        collection(db, ENTRIES_COLLECTION),
         where("tournamentId", "==", tournamentId)
+        // Removed orderBy to avoid index errors, sorting handled client-side
       );
       const snapshot = await getDocs(q);
       return snapshot.docs.map(mapDocToEntry);
     } catch (error) {
-      console.error("Error fetching tournament entries:", error);
+      console.error("Error fetching entries:", error);
       throw error;
     }
   },
 
-  /**
-   * Добавя участник/двойка към турнир
-   */
   async createTournamentEntry(
-    entry: Omit<TournamentEntry, "id" | "registrationDate">
+    data: Omit<TournamentEntry, "id">
   ): Promise<string> {
     try {
-      // Премахваме всички undefined полета, за да не гърми Firestore
-      const cleanEntry = Object.fromEntries(
-        Object.entries(entry).filter(([_, v]) => v !== undefined)
-      );
-
-      const docRef = await addDoc(collection(db, "tournament_entries"), {
-        ...cleanEntry,
+      const db = getDb();
+      const payload = {
+        ...data,
         registrationDate: serverTimestamp(),
-      });
+      };
+      const docRef = await addDoc(collection(db, ENTRIES_COLLECTION), payload);
       return docRef.id;
     } catch (error) {
-      console.error("Error creating tournament entry:", error);
+      console.error("Error creating entry:", error);
       throw error;
     }
   },
 
-  /**
-   * Изтрива записване (участник)
-   */
-  async deleteTournamentEntry(entryId: string): Promise<void> {
+  async deleteTournamentEntry(id: string): Promise<void> {
     try {
-      const docRef = doc(db, "tournament_entries", entryId);
-      await deleteDoc(docRef);
+      const db = getDb();
+      await deleteDoc(doc(db, ENTRIES_COLLECTION, id));
     } catch (error) {
-      console.error("Error deleting tournament entry:", error);
+      console.error("Error deleting entry:", error);
       throw error;
     }
   },
 
-  // -----------------------------------------------------
-  // МАЧОВЕ (MATCHES)
-  // -----------------------------------------------------
+  // ──────────────────────────────────────────────
+  // Matches (Мачове)
+  // ──────────────────────────────────────────────
 
   async getTournamentMatches(tournamentId: string): Promise<Match[]> {
     try {
+      const db = getDb();
       const q = query(
-        collection(db, "tournament_matches"),
+        collection(db, MATCHES_COLLECTION),
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
@@ -207,10 +201,15 @@ export const tournamentService = {
 
   async createMatches(matches: Omit<Match, "id">[]): Promise<void> {
     try {
+      const db = getDb();
       const batch = writeBatch(db);
-      matches.forEach((match) => {
-        const docRef = doc(collection(db, "tournament_matches"));
-        batch.set(docRef, match);
+      matches.forEach((m) => {
+        const docRef = doc(collection(db, MATCHES_COLLECTION));
+        batch.set(docRef, {
+          ...m,
+          status: m.status || "pending",
+          updatedAt: serverTimestamp(),
+        });
       });
       await batch.commit();
     } catch (error) {
@@ -219,43 +218,36 @@ export const tournamentService = {
     }
   },
 
-  async updateMatch(matchId: string, data: Partial<Match>): Promise<void> {
-    try {
-      await updateDoc(doc(db, "tournament_matches", matchId), data as any);
-    } catch (error) {
-      console.error("Error updating match:", error);
-      throw error;
-    }
-  },
-
-  async updateMatchScore(
-    matchId: string,
-    result: { score: string; winnerEntryId: string }
-  ): Promise<void> {
-    try {
-      await updateDoc(doc(db, "tournament_matches", matchId), {
-        ...result,
-        status: "completed",
-        updatedAt: serverTimestamp(),
-      } as any);
-    } catch (error) {
-      console.error("Error updating match score:", error);
-      throw error;
-    }
-  },
-
   async deleteMatchesByTournament(tournamentId: string): Promise<void> {
     try {
+      const db = getDb();
       const q = query(
-        collection(db, "tournament_matches"),
+        collection(db, MATCHES_COLLECTION),
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
       const batch = writeBatch(db);
-      snapshot.docs.forEach((d) => batch.delete(d.ref));
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
       await batch.commit();
     } catch (error) {
-      console.error("Error deleting matches:", error);
+      console.error("Error deleting tournament matches:", error);
+      throw error;
+    }
+  },
+
+  async updateMatchScore(id: string, data: Partial<Match>): Promise<void> {
+    try {
+      const db = getDb();
+      const docRef = doc(db, MATCHES_COLLECTION, id);
+      await updateDoc(docRef, {
+        ...data,
+        status: "completed",
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error updating match:", error);
       throw error;
     }
   },
