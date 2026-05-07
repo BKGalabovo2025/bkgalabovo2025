@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { RankingEntry } from "@/services/ranking-service";
+import { RankingEntry } from "@/types/ranking.types";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -339,15 +339,17 @@ export default function RankingsClient({
                             {activeTab === "all" &&
                               entry.categoryBreakdown.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1.5">
-                                  {entry.categoryBreakdown.map((c) => (
-                                    <Badge
-                                      key={c.category}
-                                      variant="secondary"
-                                      className="text-[9px] px-1.5 py-0 rounded-md font-bold uppercase tracking-tighter bg-slate-100 text-slate-500 border-none"
-                                    >
-                                      {c.category}
-                                    </Badge>
-                                  ))}
+                                  {entry.categoryBreakdown.map(
+                                    (c: { category: string }) => (
+                                      <Badge
+                                        key={c.category}
+                                        variant="secondary"
+                                        className="text-[9px] px-1.5 py-0 rounded-md font-bold uppercase tracking-tighter bg-slate-100 text-slate-500 border-none"
+                                      >
+                                        {c.category}
+                                      </Badge>
+                                    )
+                                  )}
                                 </div>
                               )}
                           </TableCell>

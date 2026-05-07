@@ -1,6 +1,7 @@
 import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { Member } from "@/types/member.types";
+import { RankingEntry } from "@/types/ranking.types";
 import RankingsClient from "./RankingsClient";
 import { Metadata } from "next";
 import { PageHeader } from "@/components/layout/page-header";
@@ -45,7 +46,7 @@ export default async function RankingsPage(props: {
   const period = searchParams.period || "all";
   const filter = getPeriodFilter(period);
 
-  let enrichedRankings: any[] = [];
+  let enrichedRankings: RankingEntry[] = [];
   let error = null;
 
   try {
@@ -57,11 +58,11 @@ export default async function RankingsPage(props: {
 
     // Обогатяване на данните с истински имена
     const memberDict: Record<string, Member> = {};
-    membersData.forEach((m) => {
+    membersData.forEach((m: Member) => {
       if (m.id) memberDict[m.id] = m;
     });
 
-    enrichedRankings = rankingsData.map((r) => ({
+    enrichedRankings = rankingsData.map((r: RankingEntry) => ({
       ...r,
       memberName: memberDict[r.memberId]
         ? `${memberDict[r.memberId].firstName} ${memberDict[r.memberId].lastName}`

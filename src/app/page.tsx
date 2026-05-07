@@ -17,10 +17,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  computeGlobalRankings,
-  RankingEntry,
-} from "@/services/ranking-service";
+import { computeGlobalRankings } from "@/services/ranking-service";
+import { RankingEntry } from "@/types/ranking.types";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
 import { Skeleton } from "@/components/ui/skeleton";

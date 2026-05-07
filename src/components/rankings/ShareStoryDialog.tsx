@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { RankingEntry } from "@/services/ranking-service";
+import { RankingEntry } from "@/types/ranking.types";
 import {
   Dialog,
   DialogContent,

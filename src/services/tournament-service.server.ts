@@ -1,5 +1,6 @@
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Tournament } from "@/types/tournament.types";
+import { serializeFirestoreData } from "@/lib/serialize-utils";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 
@@ -13,22 +14,10 @@ export async function getTournamentsServer(): Promise<Tournament[]> {
 
     return snapshot.docs.map((doc) => {
       const data = doc.data();
-      return {
+      return serializeFirestoreData({
         ...data,
         id: doc.id,
-        startDate: data.startDate?.toDate
-          ? data.startDate.toDate().toISOString()
-          : data.startDate,
-        endDate: data.endDate?.toDate
-          ? data.endDate.toDate().toISOString()
-          : data.endDate,
-        createdAt: data.createdAt?.toDate
-          ? data.createdAt.toDate().toISOString()
-          : data.createdAt,
-        updatedAt: data.updatedAt?.toDate
-          ? data.updatedAt.toDate().toISOString()
-          : data.updatedAt,
-      } as Tournament;
+      }) as Tournament;
     });
   } catch (error) {
     console.error("Error fetching tournaments on server:", error);

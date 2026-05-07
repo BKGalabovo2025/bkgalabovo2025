@@ -29,36 +29,7 @@ function getPlacementPoints(position: number): number {
   return PLACEMENT_POINTS[position] ?? 3; // 3 точки за участие
 }
 
-export interface PlayerRanking {
-  memberId: string;
-  memberName: string;
-  totalPoints: number;
-  tournamentsPlayed: number;
-  wins: number;
-  losses: number;
-  bestPlacement: number | null;
-  categoryBreakdown: {
-    category: string;
-    points: number;
-    played: number;
-  }[];
-}
-
-export interface RankingEntry {
-  position: number;
-  memberId: string;
-  memberName: string;
-  totalPoints: number;
-  tournamentsPlayed: number;
-  wins: number;
-  losses: number;
-  bestPlacement: number | null;
-  categoryBreakdown: {
-    category: string;
-    points: number;
-    played: number;
-  }[];
-}
+import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
 
 // ──────────────────────────────────────────────
 // Изчислява класирането от завършен турнир
