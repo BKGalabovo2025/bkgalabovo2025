@@ -4,13 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -164,32 +157,37 @@ const AddSubscriptionDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+        <Button className="h-10 px-6 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 text-[10px] font-medium uppercase tracking-widest shadow-none">
+          <PlusCircle className="mr-2 h-3.5 w-3.5" />
           Добави абонамент
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-zinc-100 shadow-none">
         <DialogHeader>
-          <DialogTitle>Добавяне на нов абонамент</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-light tracking-tight">
+            Добавяне на нов абонамент
+          </DialogTitle>
+          <DialogDescription className="text-sm font-light text-zinc-400">
             Изберете услуга и начална дата, за да създадете нов абонамент за
             члена.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="service" className="text-right">
+        <div className="grid gap-6 py-6">
+          <div className="space-y-2">
+            <label
+              htmlFor="service"
+              className="text-[10px] font-medium uppercase tracking-widest text-zinc-400"
+            >
               Услуга
             </label>
             <Select
               onValueChange={setSelectedServiceId}
               defaultValue={selectedServiceId || undefined}
             >
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50">
                 <SelectValue placeholder="Изберете услуга..." />
               </SelectTrigger>
-              <SelectContent id="service">
+              <SelectContent className="rounded-xl border-zinc-100 shadow-none">
                 {services.map((service) => (
                   <SelectItem key={service.id} value={service.id}>
                     {service.name} ({formatPrice(service.price)})
@@ -198,8 +196,11 @@ const AddSubscriptionDialog = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="start-date" className="text-right">
+          <div className="space-y-2">
+            <label
+              htmlFor="start-date"
+              className="text-[10px] font-medium uppercase tracking-widest text-zinc-400"
+            >
               Начална дата
             </label>
             <Popover>
@@ -207,11 +208,11 @@ const AddSubscriptionDialog = ({
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "col-span-3 justify-start text-left font-normal",
+                    "w-full h-12 justify-start text-left font-light rounded-xl border-zinc-100 bg-zinc-50/50",
                     !startDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4 text-zinc-400" />
                   {startDate ? (
                     format(startDate, "PPP", { locale: bg })
                   ) : (
@@ -219,7 +220,10 @@ const AddSubscriptionDialog = ({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent
+                className="w-auto p-0 rounded-2xl border-zinc-100 shadow-none"
+                align="start"
+              >
                 <Calendar
                   mode="single"
                   selected={startDate}
@@ -230,11 +234,19 @@ const AddSubscriptionDialog = ({
             </Popover>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            className="h-11 rounded-xl border-zinc-100 font-medium text-[11px] uppercase tracking-widest"
+          >
             Отказ
           </Button>
-          <Button onClick={handleAddSubscription} disabled={isLoading}>
+          <Button
+            onClick={handleAddSubscription}
+            disabled={isLoading}
+            className="h-11 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none"
+          >
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -286,11 +298,12 @@ const ReceiptButton = ({
       variant="outline"
       onClick={handleReceiptClick}
       disabled={isLoading}
+      className="h-10 px-4 rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[10px] uppercase tracking-widest"
     >
       {isLoading ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
       ) : (
-        <Receipt className="mr-2 h-4 w-4" />
+        <Receipt className="mr-2 h-3.5 w-3.5" />
       )}
       Квитанция
     </Button>
@@ -318,35 +331,40 @@ const SubscriptionCard = ({
 
     if (sub.status !== "cancelled" && now > endDate) {
       return {
-        icon: <XCircle className="h-4 w-4 text-red-500" />,
+        icon: <XCircle className="h-4 w-4 text-rose-500" />,
         text: "Изтекъл",
-        color: "border-red-500",
+        color: "border-rose-500",
+        bgColor: "bg-rose-50/30",
       };
     }
     switch (sub.status) {
       case "active":
         return {
-          icon: <CheckCircle className="h-4 w-4 text-green-500" />,
+          icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
           text: "Активен",
-          color: "border-green-500",
+          color: "border-emerald-500",
+          bgColor: "bg-emerald-50/30",
         };
       case "pending_payment":
         return {
-          icon: <AlertCircle className="h-4 w-4 text-yellow-500" />,
+          icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
           text: "Чакащо плащане",
-          color: "border-yellow-500",
+          color: "border-amber-500",
+          bgColor: "bg-amber-50/30",
         };
       case "cancelled":
         return {
-          icon: <XCircle className="h-4 w-4 text-gray-500" />,
+          icon: <XCircle className="h-4 w-4 text-zinc-400" />,
           text: "Отменен",
-          color: "border-gray-500",
+          color: "border-zinc-200",
+          bgColor: "bg-zinc-50/30",
         };
       default:
         return {
-          icon: <XCircle className="h-4 w-4 text-gray-500" />,
+          icon: <XCircle className="h-4 w-4 text-zinc-400" />,
           text: "Неактивен",
-          color: "border-gray-500",
+          color: "border-zinc-200",
+          bgColor: "bg-zinc-50/30",
         };
     }
   };
@@ -397,44 +415,67 @@ const SubscriptionCard = ({
 
   return (
     <div
-      className={`border-l-4 ${statusInfo.color} rounded-md bg-muted/20 p-4 mb-4`}
+      className={`border border-zinc-100 rounded-[2rem] p-8 mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
     >
       <div className="flex justify-between items-start">
-        <h4 className="font-bold text-lg">{sub.serviceName}</h4>
-        <div className="flex items-center space-x-2">
+        <h4 className="font-light text-2xl tracking-tight text-zinc-950">
+          {sub.serviceName}
+        </h4>
+        <div className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-zinc-100 bg-white">
           {statusInfo.icon}
-          <span className="font-semibold">{statusInfo.text}</span>
+          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-950">
+            {statusInfo.text}
+          </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm items-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 items-end">
         <div>
-          <p className="text-muted-foreground">Начало</p>
-          <p className="font-medium">
-            <CalendarIcon className="mr-2 h-4 w-4 inline" />{" "}
+          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+            Начало
+          </p>
+          <div className="flex items-center gap-2 text-sm font-light text-zinc-900">
+            <CalendarIcon
+              className="h-3.5 w-3.5 text-zinc-300"
+              strokeWidth={1.5}
+            />{" "}
             {new Date(sub.startDate).toLocaleDateString("bg-BG")}
-          </p>
+          </div>
         </div>
         <div>
-          <p className="text-muted-foreground">Край</p>
-          <p className="font-medium">
-            <CalendarIcon className="mr-2 h-4 w-4 inline" />
+          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+            Край
+          </p>
+          <div className="flex items-center gap-2 text-sm font-light text-zinc-900">
+            <CalendarIcon
+              className="h-3.5 w-3.5 text-zinc-300"
+              strokeWidth={1.5}
+            />
             {new Date(sub.endDate).toLocaleDateString("bg-BG")}
-          </p>
+          </div>
         </div>
         <div>
-          <p className="text-muted-foreground">Платено</p>
-          <p className="font-medium">{formatPrice(sub.pricePaid)}</p>
+          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+            Платено
+          </p>
+          <div className="text-sm font-medium text-zinc-950">
+            {formatPrice(sub.pricePaid)}
+          </div>
         </div>
-        <div className="flex justify-end items-center gap-2">
+        <div className="flex justify-end items-center gap-3">
           {isPaid && (
             <ReceiptButton subscription={sub} onUpdate={onSubscriptionUpdate} />
           )}
           {isExpired && (
-            <Button size="sm" onClick={handleRenew} disabled={isRenewing}>
+            <Button
+              size="sm"
+              onClick={handleRenew}
+              disabled={isRenewing}
+              className="h-10 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] uppercase tracking-widest shadow-none"
+            >
               {isRenewing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
               ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
+                <RefreshCw className="mr-2 h-3.5 w-3.5" />
               )}
               Подновяване
             </Button>
@@ -496,24 +537,46 @@ const RegisterPaymentDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">Регистрирай плащане</Button>
+        <Button
+          size="sm"
+          className="h-10 px-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 font-medium text-[10px] uppercase tracking-widest shadow-none"
+        >
+          Регистрирай плащане
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-[2.5rem] border-zinc-100 shadow-none">
         <DialogHeader>
-          <DialogTitle>Потвърждение на плащане</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-light tracking-tight">
+            Потвърждение на плащане
+          </DialogTitle>
+          <DialogDescription className="text-sm font-light text-zinc-400">
             Прегледайте сумата и потвърдете регистрирането на плащането.
           </DialogDescription>
         </DialogHeader>
-        <p>
-          Ще регистрирате плащане от <strong>{formatPrice(amountToPay)}</strong>{" "}
-          за абонамент <strong>{sub.serviceName}</strong>. Сигурни ли сте?
-        </p>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+        <div className="py-6 space-y-4">
+          <p className="text-sm font-light text-zinc-600 leading-relaxed">
+            Ще регистрирате плащане от{" "}
+            <span className="font-medium text-zinc-950">
+              {formatPrice(amountToPay)}
+            </span>{" "}
+            за абонамент{" "}
+            <span className="font-medium text-zinc-950">{sub.serviceName}</span>
+            . Сигурни ли сте?
+          </p>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            className="h-11 rounded-xl border-zinc-100 font-medium text-[11px] uppercase tracking-widest"
+          >
             Отказ
           </Button>
-          <Button onClick={handlePayment} disabled={isLoading}>
+          <Button
+            onClick={handlePayment}
+            disabled={isLoading}
+            className="h-11 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none"
+          >
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -582,19 +645,24 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
 
   if (loading)
     return (
-      <div className="flex justify-center py-10">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex justify-center py-20">
+        <Loader2
+          className="h-8 w-8 animate-spin text-zinc-200"
+          strokeWidth={1.5}
+        />
       </div>
     );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
         <div>
-          <CardTitle>Абонаменти</CardTitle>
-          <CardDescription>
+          <h2 className="text-3xl font-light tracking-tighter text-zinc-950 mb-2">
+            Абонаменти
+          </h2>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Списък с всички активни и изминали абонаменти.
-          </CardDescription>
+          </p>
         </div>
         <AddSubscriptionDialog
           memberId={memberId}
@@ -602,14 +670,17 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
           onSubscriptionAdded={refreshData}
           user={user}
         />
-      </CardHeader>
-      <CardContent>
+      </div>
+
+      <div>
         {subscriptions.length === 0 ? (
-          <div className="text-center text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-            <p>Няма намерени абонаменти.</p>
+          <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-[2rem]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+              Няма намерени абонаменти.
+            </p>
           </div>
         ) : (
-          <div>
+          <div className="space-y-2">
             {subscriptions.map((sub) => (
               <SubscriptionCard
                 key={sub.id}
@@ -621,7 +692,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

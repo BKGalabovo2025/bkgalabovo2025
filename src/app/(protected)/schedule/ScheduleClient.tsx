@@ -240,19 +240,21 @@ export default function ScheduleClient() {
           { label: "График" },
         ]}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-4">
           <Button
             variant="outline"
             onClick={() => setMonthlyDialogOpen(true)}
-            className="rounded-xl shadow-sm font-bento bg-white"
+            className="rounded-xl border-zinc-200 dark:border-zinc-800 h-12 px-6 font-medium text-[11px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-none"
           >
-            <Repeat className="mr-2 h-4 w-4" /> Шаблонен график
+            <Repeat className="mr-3 h-4 w-4" strokeWidth={1.5} /> Шаблонен
+            график
           </Button>
           <Button
             onClick={() => setCreateDialogOpen(true)}
-            className="rounded-xl shadow-md font-bento"
+            className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
           >
-            <PlusCircle className="mr-2 h-4 w-4" /> Създай събитие
+            <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Създай
+            събитие
           </Button>
         </div>
       </PageHeader>
@@ -263,31 +265,31 @@ export default function ScheduleClient() {
         defaultValue="current"
         className="w-full"
       >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <TabsList className="bg-slate-100 p-1 rounded-2xl w-full md:w-fit">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-full md:w-fit border border-zinc-100 dark:border-zinc-800">
             <TabsTrigger
               value="current"
-              className="rounded-xl px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5"
+              className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
             >
               Текущи
             </TabsTrigger>
             <TabsTrigger
               value="upcoming"
-              className="rounded-xl px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5"
+              className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
             >
               Предстоящи
             </TabsTrigger>
             <TabsTrigger
               value="past"
-              className="rounded-xl px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5"
+              className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
             >
               Минали
             </TabsTrigger>
           </TabsList>
 
-          <div className="w-full md:w-[280px] flex items-center gap-2">
-            <div className="p-2.5 bg-slate-100 rounded-xl">
-              <Filter className="h-4 w-4 text-slate-500" />
+          <div className="w-full md:w-[300px] flex items-center gap-3">
+            <div className="h-12 w-12 flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+              <Filter className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
             </div>
             <Select
               onValueChange={(value) =>
@@ -295,15 +297,22 @@ export default function ScheduleClient() {
               }
               defaultValue="all"
             >
-              <SelectTrigger className="rounded-xl border-slate-100 shadow-sm font-medium">
+              <SelectTrigger className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-none font-light text-sm focus:ring-primary">
                 <SelectValue placeholder="Филтрирай по тип" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                <SelectItem value="all" className="rounded-lg">
+              <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 shadow-none bg-white dark:bg-zinc-950">
+                <SelectItem
+                  value="all"
+                  className="rounded-lg text-sm font-light"
+                >
                   Всички типове
                 </SelectItem>
                 {Object.entries(eventTypeTranslations).map(([key, value]) => (
-                  <SelectItem key={key} value={key} className="rounded-lg">
+                  <SelectItem
+                    key={key}
+                    value={key}
+                    className="rounded-lg text-sm font-light"
+                  >
                     {value}
                   </SelectItem>
                 ))}
@@ -314,17 +323,25 @@ export default function ScheduleClient() {
 
         <div className="space-y-6">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="h-12 w-12 animate-spin text-primary opacity-50" />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+            <div className="flex flex-col items-center justify-center py-40 space-y-6">
+              <Loader2
+                className="h-12 w-12 animate-spin text-primary opacity-20"
+                strokeWidth={1}
+              />
+              <p className="text-zinc-400 font-medium uppercase tracking-[0.2em] text-[10px]">
                 Зареждане на събития...
               </p>
             </div>
           ) : errorObject ? (
-            <div className="text-center py-32 text-rose-500 flex flex-col items-center">
-              <AlertTriangle className="h-12 w-12 mb-4 opacity-50" />
-              <p className="font-bold text-lg">Грешка при зареждане</p>
-              <p className="text-slate-400 text-sm mt-1">
+            <div className="text-center py-40 text-rose-500 flex flex-col items-center">
+              <AlertTriangle
+                className="h-12 w-12 mb-6 opacity-20"
+                strokeWidth={1}
+              />
+              <p className="font-light text-2xl text-zinc-900 dark:text-white">
+                Грешка при зареждане
+              </p>
+              <p className="text-zinc-400 text-sm mt-2 font-light">
                 {errorObject.message}
               </p>
             </div>
@@ -365,23 +382,23 @@ export default function ScheduleClient() {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-3xl">
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-black font-bento">
+            <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
               Наистина ли искате да изтриете това събитие?
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-medium text-slate-500">
+            <AlertDialogDescription className="font-light text-zinc-400 text-sm mt-4 leading-relaxed">
               Това действие не може да бъде отменено. Записът ще бъде премахнат
               окончателно от базата данни.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl font-bold">
+          <AlertDialogFooter className="mt-10 gap-3">
+            <AlertDialogCancel className="rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-6 border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl font-bold shadow-lg shadow-rose-100"
+              className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none"
             >
               Изтрий
             </AlertDialogAction>
@@ -399,14 +416,19 @@ export default function ScheduleClient() {
 
     if (finalTotalEvents === 0) {
       return (
-        <BentoCard className="flex flex-col items-center justify-center py-32 text-center border-dashed border-2 border-slate-100 bg-transparent shadow-none">
-          <CalendarDays className="h-16 w-16 text-slate-100 mb-6" />
-          <h3 className="text-2xl font-black font-bento text-slate-300">
+        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
+          <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
+            <CalendarDays
+              className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
+              strokeWidth={1}
+            />
+          </div>
+          <h3 className="text-3xl font-light text-zinc-900 dark:text-white">
             {filterType === "all"
               ? `Няма ${tabTranslations[activeTab]} събития`
               : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
           </h3>
-          <p className="text-slate-400 mt-2 font-medium max-w-md">
+          <p className="text-zinc-400 mt-4 font-light max-w-sm leading-relaxed">
             Можете да промените филтрите или да създадете ново събитие, за да
             започнете.
           </p>
@@ -433,12 +455,12 @@ export default function ScheduleClient() {
       <div className="space-y-12">
         <div className="space-y-10">
           {Object.entries(groupedEvents).map(([month, monthEvents]) => (
-            <div key={month} className="space-y-4">
-              <div className="flex items-center gap-4">
-                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 flex-shrink-0">
+            <div key={month} className="space-y-8">
+              <div className="flex items-center gap-6 px-1">
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-400 flex-shrink-0">
                   {month}
                 </h2>
-                <div className="h-px w-full bg-slate-100"></div>
+                <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {(monthEvents as ScheduleEvent[]).map(
@@ -460,19 +482,19 @@ export default function ScheduleClient() {
         </div>
 
         {activeTab === "past" && finalTotalEvents > EVENTS_PER_PAGE && (
-          <div className="flex justify-center items-center gap-6 mt-12 bg-white p-4 rounded-2xl shadow-sm w-fit mx-auto border border-slate-50">
+          <div className="flex justify-center items-center gap-8 mt-16 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-900 w-fit mx-auto shadow-none">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="rounded-xl h-10 w-10"
+              className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
             </Button>
-            <span className="font-black text-xs uppercase tracking-widest text-slate-500">
+            <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-400 px-4">
               Страница {currentPage}{" "}
-              <span className="text-slate-200 mx-2">/</span>{" "}
+              <span className="text-zinc-200 dark:text-zinc-800 mx-4">/</span>{" "}
               {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
             </span>
             <Button
@@ -480,9 +502,9 @@ export default function ScheduleClient() {
               size="icon"
               onClick={() => setCurrentPage((prev) => prev + 1)}
               disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
-              className="rounded-xl h-10 w-10"
+              className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
             </Button>
           </div>
         )}

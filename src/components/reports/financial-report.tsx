@@ -152,9 +152,12 @@ const FinancialReport = () => {
 
   if (isLoading || !mounted) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+      <div className="flex flex-col items-center justify-center h-64 space-y-6">
+        <Loader2
+          className="h-10 w-10 animate-spin text-zinc-200"
+          strokeWidth={1}
+        />
+        <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
           Зареждане на финансов отчет...
         </p>
       </div>
@@ -162,50 +165,56 @@ const FinancialReport = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-10 animate-in fade-in duration-700">
       {/* Top Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 bg-zinc-50/50 p-6 rounded-[1.5rem] border border-zinc-100">
+          <div className="space-y-2.5">
+            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
               От дата
             </Label>
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <CalendarIcon
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+                strokeWidth={1.5}
+              />
               <Input
                 type="date"
                 value={dateFrom ? formatDateInput(dateFrom) : ""}
                 onChange={handleDateChange(setDateFrom)}
-                className="pl-10 rounded-xl border-slate-200 bg-white shadow-none h-11 text-xs font-bold"
+                className="pl-12 rounded-xl border-zinc-100 bg-white shadow-none h-12 text-sm font-light focus:ring-zinc-200"
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+          <div className="space-y-2.5">
+            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
               До дата
             </Label>
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <CalendarIcon
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+                strokeWidth={1.5}
+              />
               <Input
                 type="date"
                 value={dateTo ? formatDateInput(dateTo) : ""}
                 onChange={handleDateChange(setDateTo)}
-                className="pl-10 rounded-xl border-slate-200 bg-white shadow-none h-11 text-xs font-bold"
+                className="pl-12 rounded-xl border-zinc-100 bg-white shadow-none h-12 text-sm font-light focus:ring-zinc-200"
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+          <div className="space-y-2.5">
+            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
               Тип приходи
             </Label>
             <Select value={paymentType} onValueChange={setPaymentType}>
-              <SelectTrigger className="rounded-xl border-slate-200 bg-white shadow-none h-11 text-xs font-bold">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-slate-400" />
+              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-white shadow-none text-sm font-light focus:ring-zinc-200">
+                <div className="flex items-center gap-3">
+                  <Filter className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
                   <SelectValue placeholder="Всички" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl">
+              <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
                 <SelectItem value="all">Всички</SelectItem>
                 <SelectItem value="subscriptions">Абонаменти</SelectItem>
                 <SelectItem value="inventory">Инвентар</SelectItem>
@@ -233,114 +242,135 @@ const FinancialReport = () => {
               );
             }}
             disabled={filteredSales.length === 0}
-            className="rounded-xl h-11 border-slate-200 font-black text-[10px] uppercase tracking-widest"
+            className="rounded-xl h-12 border-zinc-100 font-medium text-[11px] uppercase tracking-widest px-8 transition-all hover:bg-zinc-50"
           >
-            <Download className="mr-2 h-4 w-4" /> Експорт (CSV)
+            <Download className="mr-3 h-4 w-4" strokeWidth={1.5} /> Експорт
+            (CSV)
           </Button>
         </div>
       </div>
 
       {/* Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="border-none shadow-sm bg-white overflow-hidden col-span-1 lg:col-span-2">
-          <CardHeader className="border-b border-slate-50 pb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="border border-zinc-100 shadow-none bg-white rounded-[2rem] overflow-hidden col-span-1 lg:col-span-2">
+          <CardHeader className="border-b border-zinc-50 p-8">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900">
+                <CardTitle className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                   Разпределение на приходите
                 </CardTitle>
-                <CardDescription className="text-xs mt-1">
+                <CardDescription className="text-sm font-light mt-2">
                   Визуализация на източниците за избрания период
                 </CardDescription>
               </div>
-              <PieChartIcon className="h-5 w-5 text-blue-500" />
+              <PieChartIcon
+                className="h-5 w-5 text-zinc-200"
+                strokeWidth={1.5}
+              />
             </div>
           </CardHeader>
-          <CardContent className="pt-6 h-[300px]">
+          <CardContent className="p-8 h-[350px]">
             {stats.chartData.length > 0 ? (
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-                minWidth={0}
-                minHeight={0}
-              >
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={stats.chartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={8}
                     dataKey="value"
+                    stroke="none"
                   >
                     {stats.chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        opacity={0.8}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                      borderRadius: "16px",
+                      border: "1px solid #f4f4f5",
+                      boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05)",
+                      fontSize: "12px",
+                      fontWeight: "300",
                     }}
                     formatter={(value: any) => formatPrice(Number(value))}
                   />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    formatter={(value) => (
+                      <span className="text-[10px] uppercase tracking-widest font-medium text-zinc-400">
+                        {value}
+                      </span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 text-xs font-bold uppercase tracking-widest">
+              <div className="flex items-center justify-center h-full text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
                 Няма данни за графиката
               </div>
             )}
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card className="border-none shadow-sm bg-blue-600 text-white overflow-hidden relative">
-            <TrendingUp className="absolute -right-4 -bottom-4 h-32 w-32 opacity-10" />
-            <CardContent className="p-8 relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-widest text-blue-100/70">
+        <div className="space-y-8">
+          <Card className="border-none shadow-none bg-zinc-950 text-white rounded-[2rem] overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
+              <TrendingUp className="h-24 w-24 text-zinc-400" strokeWidth={1} />
+            </div>
+            <CardContent className="p-10 relative z-10">
+              <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-500">
                 Общ Приход
               </p>
-              <h3 className="text-4xl font-black mt-2">
+              <h3 className="text-5xl font-light tracking-tighter mt-6 mb-8">
                 {formatPrice(stats.total)}
               </h3>
-              <div className="mt-6 flex items-center gap-2">
-                <div className="h-2 flex-1 bg-white/20 rounded-full overflow-hidden">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-medium text-zinc-500 tracking-widest">
+                    Дял на абонаментите
+                  </span>
+                  <span className="text-[10px] font-medium tracking-widest">
+                    {Math.round(
+                      (stats.subscriptions / (stats.total || 1)) * 100
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-white"
+                    className="h-full bg-white transition-all duration-1000"
                     style={{
                       width: `${(stats.subscriptions / (stats.total || 1)) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="text-[10px] font-black">
-                  {Math.round((stats.subscriptions / (stats.total || 1)) * 100)}
-                  %
-                </span>
               </div>
-              <p className="text-[10px] uppercase font-bold mt-2 text-blue-100/70">
-                Дял на абонаментите
-              </p>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="border-none shadow-sm bg-white p-4">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+          <div className="grid grid-cols-2 gap-6">
+            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-[1.5rem]">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
                 Абонаменти
               </p>
-              <p className="text-lg font-black text-blue-600 mt-1">
+              <p className="text-xl font-light text-zinc-900 mt-2">
                 {formatPrice(stats.subscriptions)}
               </p>
             </Card>
-            <Card className="border-none shadow-sm bg-white p-4">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-[1.5rem]">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
                 Инвентар
               </p>
-              <p className="text-lg font-black text-emerald-600 mt-1">
+              <p className="text-xl font-light text-zinc-900 mt-2">
                 {formatPrice(stats.inventory)}
               </p>
             </Card>
@@ -349,26 +379,26 @@ const FinancialReport = () => {
       </div>
 
       {/* Detailed Table */}
-      <Card className="border-none shadow-sm bg-white overflow-hidden">
-        <CardHeader className="border-b border-slate-50">
-          <CardTitle className="text-sm font-black uppercase tracking-widest">
+      <Card className="border border-zinc-100 shadow-none bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="border-b border-zinc-50 p-8">
+          <CardTitle className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Детайлен списък
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-slate-50/50">
-              <TableRow className="border-slate-50">
-                <TableHead className="text-[10px] font-black uppercase tracking-widest py-4">
+            <TableHeader className="bg-zinc-50/50">
+              <TableRow className="border-none hover:bg-transparent h-16">
+                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
                   Дата
                 </TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest">
+                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                   Член
                 </TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest">
+                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                   Тип
                 </TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">
+                <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-8">
                   Сума
                 </TableHead>
               </TableRow>
@@ -385,28 +415,28 @@ const FinancialReport = () => {
                   return (
                     <TableRow
                       key={s.id}
-                      className="border-slate-50 group hover:bg-slate-50/50 transition-colors"
+                      className="border-zinc-50 group hover:bg-zinc-50/50 transition-colors h-20"
                     >
-                      <TableCell className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
                         {formatDateShort(s.saleDate)}
                       </TableCell>
-                      <TableCell className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                      <TableCell className="text-sm font-light text-zinc-600">
                         {memberName}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
                           className={cn(
-                            "rounded-lg text-[9px] font-black uppercase tracking-widest border-none px-2 py-0.5",
+                            "rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-3 py-1",
                             isSub
-                              ? "bg-blue-50 text-blue-600"
+                              ? "bg-zinc-100 text-zinc-600"
                               : "bg-emerald-50 text-emerald-600"
                           )}
                         >
                           {isSub ? "Абонамент" : "Инвентар"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-black text-slate-900">
+                      <TableCell className="text-right pr-8 font-medium text-sm text-zinc-900">
                         {formatPrice(s.totalAmount)}
                       </TableCell>
                     </TableRow>
@@ -414,8 +444,8 @@ const FinancialReport = () => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-300">
+                  <TableCell colSpan={4} className="h-48 text-center">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
                       Няма транзакции за този период
                     </p>
                   </TableCell>
@@ -423,15 +453,15 @@ const FinancialReport = () => {
               )}
             </TableBody>
             {filteredSales.length > 0 && (
-              <TableFooter className="bg-slate-50/80 border-t border-slate-100">
-                <TableRow>
+              <TableFooter className="bg-zinc-50/50 border-none">
+                <TableRow className="h-20 hover:bg-transparent">
                   <TableCell
                     colSpan={3}
-                    className="text-right text-[10px] font-black uppercase tracking-widest text-slate-400"
+                    className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-4"
                   >
-                    Общо за периода:
+                    Общо за периода
                   </TableCell>
-                  <TableCell className="text-right font-black text-lg text-slate-900">
+                  <TableCell className="text-right pr-8 font-light text-2xl text-zinc-950">
                     {formatPrice(stats.total)}
                   </TableCell>
                 </TableRow>

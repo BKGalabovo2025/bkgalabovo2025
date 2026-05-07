@@ -194,7 +194,10 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                         field.onChange(checked ? allCourtIds : [])
                       }
                     />
-                    <label htmlFor="all-courts" className="font-medium">
+                    <label
+                      htmlFor="all-courts"
+                      className="text-[11px] font-medium uppercase tracking-widest text-zinc-500 cursor-pointer"
+                    >
                       Всички
                     </label>
                   </div>
@@ -238,16 +241,26 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                 </FormItem>
               )}
             />
-            <DialogFooter>
+            <DialogFooter className="pt-6 gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
+                className="rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] text-zinc-400 hover:text-zinc-900"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
               </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] shadow-none"
+              >
+                {isSaving && (
+                  <Loader2
+                    className="mr-2 h-3 w-3 animate-spin"
+                    strokeWidth={2}
+                  />
+                )}
                 {isEditMode ? "Запази промените" : "Блокирай"}
               </Button>
             </DialogFooter>

@@ -151,48 +151,56 @@ export default function SubscriptionsClient() {
       >
         <Button
           onClick={() => openForm()}
-          className="rounded-xl shadow-md font-bento"
+          className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> Добави абонамент
+          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+          абонамент
         </Button>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <BentoCard className="p-6">
+        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-3xl font-black">{subscriptions.length}</p>
-              <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+              <p className="text-3xl font-light tracking-tighter mb-2">
+                {subscriptions.length}
+              </p>
+              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
                 Общо карти
               </p>
             </div>
-            <CreditCard className="h-5 w-5 text-primary/50" />
+            <CreditCard className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="p-6 border-emerald-100 bg-emerald-50/20">
+        <BentoCard className="p-8 border-zinc-100 bg-white shadow-none rounded-[2rem]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-3xl font-black text-emerald-600">
+              <p className="text-3xl font-light tracking-tighter text-emerald-600 mb-2">
                 {activeCount}
               </p>
-              <p className="text-xs text-emerald-600/50 uppercase font-bold tracking-wider">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
                 Активни
               </p>
             </div>
-            <UserCheck className="h-5 w-5 text-emerald-500/50" />
+            <UserCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="md:col-span-2 p-6 flex items-center bg-slate-900 text-white border-none shadow-xl">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/10 rounded-2xl">
-              <AlertCircle className="h-6 w-6 text-yellow-400" />
+        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-[2rem]">
+          <div className="flex items-center gap-6">
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+              <AlertCircle
+                className="h-6 w-6 text-yellow-400"
+                strokeWidth={1.5}
+              />
             </div>
             <div>
-              <p className="text-white/50 font-bold uppercase tracking-widest text-[10px]">
+              <p className="text-zinc-500 uppercase tracking-[0.3em] text-[9px] mb-2">
                 Важно съобщение
               </p>
-              <p className="text-lg font-bold">Изтичащи абонаменти</p>
-              <p className="text-xs text-white/40">
+              <p className="text-xl font-light text-zinc-100 tracking-tight">
+                Изтичащи абонаменти
+              </p>
+              <p className="text-xs text-zinc-500 mt-1">
                 Проверете картите, които изтичат през следващите 7 дни.
               </p>
             </div>
@@ -200,8 +208,8 @@ export default function SubscriptionsClient() {
         </BentoCard>
       </div>
 
-      <BentoCard className="p-0 overflow-hidden border-none shadow-md">
-        <div className="p-6">
+      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
+        <div className="p-8">
           <DataTable
             columns={columns(openForm)}
             data={subscriptions}
@@ -214,23 +222,29 @@ export default function SubscriptionsClient() {
       </BentoCard>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black font-bento">
-              {selectedSubscription ? "Редакция на абонамент" : "Нов абонамент"}
-            </DialogTitle>
-            <DialogDescription className="font-medium text-slate-500">
-              Попълнете детайлите за клубната карта.
-            </DialogDescription>
-          </DialogHeader>
-          <SubscriptionForm
-            members={members}
-            services={services}
-            onSave={handleSave}
-            onClose={() => setIsFormOpen(false)}
-            initialData={selectedSubscription}
-            isSaving={isSaving}
-          />
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+          <div className="p-8 bg-zinc-50 border-b border-zinc-100">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-medium uppercase tracking-[0.2em] text-zinc-900">
+                {selectedSubscription
+                  ? "Редакция на абонамент"
+                  : "Нов абонамент"}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] uppercase tracking-widest text-zinc-400 mt-2">
+                Попълнете детайлите за клубната карта.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="p-8">
+            <SubscriptionForm
+              members={members}
+              services={services}
+              onSave={handleSave}
+              onClose={() => setIsFormOpen(false)}
+              initialData={selectedSubscription}
+              isSaving={isSaving}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

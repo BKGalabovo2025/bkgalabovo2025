@@ -27,7 +27,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Save, X, Star } from "lucide-react";
+import { Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const CATEGORIES = [
@@ -81,18 +82,21 @@ export function TournamentForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
           <FormField
             control={form.control}
             name="title"
             render={({ field }: { field: any }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Име на турнира</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Име на турнира
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Напр. Пролетен турнир Гълъбово 2026"
                     {...field}
+                    className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                   />
                 </FormControl>
                 <FormMessage />
@@ -105,7 +109,9 @@ export function TournamentForm({
             name="startDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Начална дата</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Начална дата
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="date"
@@ -117,6 +123,7 @@ export function TournamentForm({
                         : "";
                       field.onChange(date);
                     }}
+                    className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                   />
                 </FormControl>
                 <FormMessage />
@@ -129,7 +136,9 @@ export function TournamentForm({
             name="endDate"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel>Крайна дата</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Крайна дата
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="date"
@@ -141,6 +150,7 @@ export function TournamentForm({
                         : "";
                       field.onChange(date);
                     }}
+                    className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                   />
                 </FormControl>
                 <FormMessage />
@@ -153,9 +163,15 @@ export function TournamentForm({
             name="location"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel>Локация</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Локация
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Напр. Спортна зала Гълъбово" {...field} />
+                  <Input
+                    placeholder="Напр. Спортна зала Гълъбово"
+                    {...field}
+                    className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -167,26 +183,22 @@ export function TournamentForm({
             name="format"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel>Формат на игра</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Формат на игра
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
                       <SelectValue placeholder="Избери формат" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="berger">
-                      Групи (Система на Бергер)
-                    </SelectItem>
-                    <SelectItem value="knockout">
-                      Директна Елиминация
-                    </SelectItem>
-                    <SelectItem value="mixed">
-                      Смесен (Групи + Елиминация)
-                    </SelectItem>
+                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
+                    <SelectItem value="berger">Групи (Бергер)</SelectItem>
+                    <SelectItem value="knockout">Елиминация</SelectItem>
+                    <SelectItem value="mixed">Смесен</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -198,23 +210,23 @@ export function TournamentForm({
             control={form.control}
             name="status"
             render={({ field }: { field: any }) => (
-              <FormItem>
-                <FormLabel>Статус</FormLabel>
+              <FormItem className="md:col-span-2">
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Статус на събитието
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
                       <SelectValue placeholder="Избери статус" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="upcoming">Предстоящ (Скрит)</SelectItem>
-                    <SelectItem value="registration_open">
-                      Отворено записване
-                    </SelectItem>
-                    <SelectItem value="ongoing">В ход (Играе се)</SelectItem>
+                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
+                    <SelectItem value="upcoming">Предстоящ</SelectItem>
+                    <SelectItem value="registration_open">Записване</SelectItem>
+                    <SelectItem value="ongoing">В ход</SelectItem>
                     <SelectItem value="completed">Приключил</SelectItem>
                   </SelectContent>
                 </Select>
@@ -223,14 +235,17 @@ export function TournamentForm({
             )}
           />
 
-          <div className="md:col-span-2 space-y-4 border rounded-md p-4 bg-muted/20">
+          <div className="md:col-span-2 space-y-6 p-8 rounded-[2rem] bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900">
             <div className="flex items-center justify-between">
               <div>
-                <FormLabel className="text-base flex items-center gap-2 cursor-pointer">
-                  💰 Такса за участие
+                <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
+                  <span className="p-2 bg-primary/5 rounded-lg text-primary">
+                    💰
+                  </span>{" "}
+                  Такса за участие
                 </FormLabel>
-                <p className="text-[0.8rem] text-muted-foreground mt-1">
-                  Турнирът изисква ли такса от участниците?
+                <p className="text-[11px] text-zinc-400 uppercase tracking-wider mt-1 font-medium">
+                  Турнирът изисква ли такса?
                 </p>
               </div>
               <Checkbox
@@ -241,7 +256,7 @@ export function TournamentForm({
                   else if (form.getValues("entryFee") === 0)
                     form.setValue("entryFee", 10);
                 }}
-                className="h-6 w-6"
+                className="h-6 w-6 rounded-md border-zinc-200"
               />
             </div>
 
@@ -250,8 +265,10 @@ export function TournamentForm({
                 control={form.control}
                 name="entryFee"
                 render={({ field }: { field: any }) => (
-                  <FormItem className="animate-in fade-in slide-in-from-top-2 duration-200">
-                    <FormLabel>Сума в Евро (€)</FormLabel>
+                  <FormItem className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      Сума в Евро (€)
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -260,9 +277,9 @@ export function TournamentForm({
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             field.onChange(Number(e.target.value))
                           }
-                          className="pr-8"
+                          className="h-14 pr-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm font-light shadow-none"
                         />
-                        <span className="absolute right-3 top-2.5 text-muted-foreground">
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 font-light">
                           €
                         </span>
                       </div>
@@ -278,12 +295,15 @@ export function TournamentForm({
             control={form.control}
             name="matchFormatId"
             render={({ field }: { field: any }) => (
-              <FormItem className="md:col-span-2 border rounded-md p-4 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                <div className="mb-3">
-                  <FormLabel className="text-base flex items-center gap-2">
-                    🏸 Система за точкуване
+              <FormItem className="md:col-span-2 p-8 rounded-[2rem] bg-primary/[0.02] border border-primary/10">
+                <div className="mb-6">
+                  <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
+                    <span className="p-2 bg-primary/5 rounded-lg text-primary">
+                      🏸
+                    </span>{" "}
+                    Система за точкуване
                   </FormLabel>
-                  <p className="text-[0.8rem] text-muted-foreground mt-1">
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider mt-1 font-medium">
                     Резултатите ще се валидират спрямо избрания формат.
                   </p>
                 </div>
@@ -292,11 +312,11 @@ export function TournamentForm({
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white dark:bg-zinc-950">
+                    <SelectTrigger className="h-14 rounded-xl border-primary/10 bg-white dark:bg-zinc-950 text-sm font-light shadow-none">
                       <SelectValue placeholder="Избери формат" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
+                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl max-h-[300px]">
                     {MATCH_FORMAT_PRESETS.map((preset: any) => (
                       <SelectItem key={preset.id} value={preset.id}>
                         {preset.label}
@@ -313,22 +333,24 @@ export function TournamentForm({
             control={form.control}
             name="countsForRanking"
             render={({ field }: { field: any }) => (
-              <FormItem className="md:col-span-2 border rounded-md p-4 bg-muted/20 flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel className="text-base flex items-center gap-2 cursor-pointer">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    Влиза в ранглистата
+              <FormItem className="md:col-span-2 p-8 rounded-[2rem] bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900 flex flex-row items-center justify-between">
+                <div className="space-y-1">
+                  <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
+                    <Star
+                      className="h-5 w-5 text-amber-400"
+                      strokeWidth={1.5}
+                    />
+                    Ранглиста
                   </FormLabel>
-                  <p className="text-[0.8rem] text-muted-foreground mt-1">
-                    Ако е включено, резултатите ще носят точки за класирането на
-                    всеки участник.
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">
+                    Резултатите носят точки за класирането
                   </p>
                 </div>
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    className="h-6 w-6"
+                    className="h-7 w-7 rounded-lg border-zinc-200"
                   />
                 </FormControl>
               </FormItem>
@@ -340,7 +362,9 @@ export function TournamentForm({
             name="pointsMultiplier"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel>Коефициент за точки</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Коефициент
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -349,6 +373,7 @@ export function TournamentForm({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       field.onChange(Number(e.target.value))
                     }
+                    className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none"
                   />
                 </FormControl>
                 <FormMessage />
@@ -360,28 +385,36 @@ export function TournamentForm({
             control={form.control}
             name="categories"
             render={() => (
-              <FormItem className="md:col-span-2 border rounded-md p-4 bg-muted/20">
-                <div className="mb-4">
-                  <FormLabel className="text-base">Категории</FormLabel>
-                  <p className="text-[0.8rem] text-muted-foreground">
-                    Изберете в кои дисциплини ще се провежда турнирът.
+              <FormItem className="md:col-span-2 p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                <div className="mb-8">
+                  <FormLabel className="text-base font-light text-zinc-900 dark:text-white">
+                    Категории
+                  </FormLabel>
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium mt-1">
+                    Изберете дисциплини за провеждане
                   </p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {CATEGORIES.map((item) => (
                     <FormField
                       key={item.id}
                       control={form.control}
                       name="categories"
                       render={({ field }: { field: any }) => {
+                        const isChecked = field.value?.includes(item.id as any);
                         return (
                           <FormItem
                             key={item.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
+                            className={cn(
+                              "flex flex-row items-center space-x-4 space-y-0 p-4 rounded-2xl border transition-all cursor-pointer",
+                              isChecked
+                                ? "bg-primary/5 border-primary/20 text-primary"
+                                : "bg-zinc-50/50 border-zinc-100 text-zinc-500 hover:bg-zinc-50"
+                            )}
                           >
                             <FormControl>
                               <Checkbox
-                                checked={field.value?.includes(item.id as any)}
+                                checked={isChecked}
                                 onCheckedChange={(checked: boolean) => {
                                   return checked
                                     ? field.onChange([...field.value, item.id])
@@ -391,9 +424,10 @@ export function TournamentForm({
                                         )
                                       );
                                 }}
+                                className="h-5 w-5 rounded-md"
                               />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">
+                            <FormLabel className="text-xs font-medium uppercase tracking-widest cursor-pointer">
                               {item.label}
                             </FormLabel>
                           </FormItem>
@@ -412,11 +446,14 @@ export function TournamentForm({
             name="description"
             render={({ field }: { field: any }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Описание / Бележки</FormLabel>
+                <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                  Описание / Бележки
+                </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Допълнителна информация за турнира..."
                     {...field}
+                    className="min-h-[120px] rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary p-6"
                   />
                 </FormControl>
                 <FormMessage />
@@ -425,18 +462,26 @@ export function TournamentForm({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-4 pt-10 border-t border-zinc-50 dark:border-zinc-900">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={onClose}
             disabled={isSubmitting}
+            className="rounded-xl h-12 px-8 font-medium uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-600"
           >
-            <X className="mr-2 h-4 w-4" /> Отказ
+            Отказ
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
-            {initialData ? "Запази промените" : "Създай турнир"}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-xl h-12 px-10 font-medium uppercase tracking-widest text-[11px] bg-primary text-white hover:bg-primary/90 shadow-none"
+          >
+            {isSubmitting
+              ? "Обработка..."
+              : initialData
+                ? "Запази промените"
+                : "Създай турнир"}
           </Button>
         </div>
       </form>

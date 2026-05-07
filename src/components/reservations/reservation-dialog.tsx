@@ -258,19 +258,34 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 label="Краен час"
               />
             </div>
-            <div className="text-right font-bold text-lg">
-              Общо: {formatPrice(price)}
+            <div className="pt-6 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
+              <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+                Крайна сума
+              </span>
+              <div className="text-4xl font-light tracking-tight text-zinc-900 dark:text-zinc-100">
+                {formatPrice(price)}
+              </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-6 gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
+                className="rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] text-zinc-400 hover:text-zinc-900"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
               </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] shadow-none"
+              >
+                {isSaving && (
+                  <Loader2
+                    className="mr-2 h-3 w-3 animate-spin"
+                    strokeWidth={2}
+                  />
+                )}
                 {isEditMode ? "Запази промените" : "Запази резервация"}
               </Button>
             </DialogFooter>

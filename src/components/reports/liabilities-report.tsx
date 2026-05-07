@@ -89,18 +89,18 @@ const LiabilitiesReport = () => {
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="p-6 bg-white border-none shadow-sm">
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+        <div className="flex flex-col md:flex-row gap-6 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
+            <div className="space-y-3">
+              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
                 Година
               </Label>
               <Select value={year} onValueChange={setYear}>
-                <SelectTrigger className="rounded-xl border-slate-100 bg-slate-50/50">
+                <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200">
                   <SelectValue placeholder="Избери година" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-100">
+                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
                   {years.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}
@@ -109,15 +109,15 @@ const LiabilitiesReport = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="space-y-3">
+              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
                 Месец
               </Label>
               <Select value={month} onValueChange={setMonth}>
-                <SelectTrigger className="rounded-xl border-slate-100 bg-slate-50/50">
+                <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200">
                   <SelectValue placeholder="Избери месец" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-100">
+                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
                   {months.map((m) => (
                     <SelectItem key={m.value} value={m.value}>
                       {m.label}
@@ -128,16 +128,16 @@ const LiabilitiesReport = () => {
             </div>
           </div>
 
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex gap-3 w-full md:w-auto">
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading}
-              className="flex-1 md:flex-none rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-black text-xs uppercase tracking-widest h-11 px-6 shadow-lg shadow-slate-200"
+              className="flex-1 md:flex-none rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none transition-all"
             >
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-3 h-4 w-4 animate-spin" />
               ) : (
-                <Filter className="mr-2 h-4 w-4" />
+                <Filter className="mr-3 h-4 w-4" strokeWidth={1.5} />
               )}
               Генерирай
             </Button>
@@ -145,9 +145,9 @@ const LiabilitiesReport = () => {
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="rounded-xl border-slate-200 hover:bg-slate-50 font-black text-xs uppercase tracking-widest h-11"
+                className="rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[11px] uppercase tracking-widest h-12 px-8 transition-all"
               >
-                <Download className="mr-2 h-4 w-4" /> Експорт
+                <Download className="mr-3 h-4 w-4" strokeWidth={1.5} /> Експорт
               </Button>
             )}
           </div>
@@ -156,30 +156,30 @@ const LiabilitiesReport = () => {
 
       {/* Summary Stat Card */}
       {hasSearched && !isLoading && unpaidMembers.length > 0 && (
-        <BentoCard className="p-6 bg-rose-50 border-rose-100/50">
-          <div className="flex items-center gap-3 mb-2 text-rose-600">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-widest">
+        <BentoCard className="p-8 bg-white border border-rose-100 rounded-[2rem] shadow-none">
+          <div className="flex items-center gap-4 mb-3 text-rose-500">
+            <AlertCircle className="h-5 w-5" strokeWidth={1.5} />
+            <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
               Общо неплатили за периода
             </span>
           </div>
-          <p className="text-3xl font-black text-rose-900">
-            {unpaidMembers.length} души
+          <p className="text-4xl font-light tracking-tighter text-rose-600">
+            {unpaidMembers.length} <span className="text-xl">души</span>
           </p>
         </BentoCard>
       )}
 
       {/* Results Table Card */}
-      <BentoCard className="p-0 overflow-hidden bg-white border-none shadow-sm">
-        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-          <h3 className="font-black text-sm uppercase tracking-widest text-slate-900 flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-600" />
+      <BentoCard className="p-0 overflow-hidden bg-white border border-zinc-100 shadow-none rounded-[2.5rem]">
+        <div className="p-8 border-b border-zinc-50 flex items-center justify-between">
+          <h3 className="font-medium text-[11px] uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3">
+            <Users className="h-4 w-4 text-primary" strokeWidth={1.5} />
             Списък на длъжници
           </h3>
           {hasSearched && (
             <Badge
               variant={unpaidMembers.length > 0 ? "destructive" : "outline"}
-              className="rounded-lg font-bold"
+              className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest border-none"
             >
               {unpaidMembers.length} задължения
             </Badge>
@@ -187,42 +187,45 @@ const LiabilitiesReport = () => {
         </div>
 
         {isLoading ? (
-          <div className="p-12 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
-            <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+          <div className="p-32 text-center">
+            <Loader2
+              className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
+              strokeWidth={1}
+            />
+            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
               Проверка на плащания...
             </p>
           </div>
         ) : !hasSearched ? (
-          <div className="p-12 text-center">
-            <div className="h-12 w-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Filter className="h-6 w-6 text-slate-300" />
+          <div className="p-32 text-center">
+            <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Filter className="h-8 w-8 text-zinc-200" strokeWidth={1} />
             </div>
-            <p className="text-sm font-bold text-slate-400 italic">
+            <p className="text-sm font-light text-zinc-400 tracking-wide leading-relaxed max-w-xs mx-auto">
               Изберете период, за да видите кой не е платил абонамента си.
             </p>
           </div>
         ) : unpaidMembers.length === 0 ? (
-          <div className="p-12 text-center text-emerald-600">
-            <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Users className="h-6 w-6" />
+          <div className="p-32 text-center text-emerald-600">
+            <div className="h-16 w-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Users className="h-8 w-8" strokeWidth={1} />
             </div>
-            <p className="text-sm font-black uppercase tracking-widest">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em]">
               Браво! Всички са платили.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50/50">
-                <TableRow className="border-slate-50 hover:bg-transparent">
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10">
+              <TableHeader className="bg-zinc-50/50">
+                <TableRow className="border-none hover:bg-transparent h-16">
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
                     Член
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10">
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                     Контакти
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10 text-right">
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
                     Действие
                   </TableHead>
                 </TableRow>
@@ -231,30 +234,33 @@ const LiabilitiesReport = () => {
                 {unpaidMembers.map((member) => (
                   <TableRow
                     key={member.id}
-                    className="border-slate-50 hover:bg-rose-50/20 transition-colors"
+                    className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
                   >
-                    <TableCell className="py-4">
-                      <p className="font-black text-sm text-slate-900">{`${member.firstName} ${member.lastName}`}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <TableCell className="px-8">
+                      <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
+                      <p className="text-[10px] font-light text-rose-500 uppercase tracking-widest mt-1">
                         Неплатен абонамент
                       </p>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
-                          <Mail className="h-3 w-3 text-slate-300" />{" "}
+                    <TableCell>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-light text-zinc-600 flex items-center gap-2">
+                          <Mail
+                            className="h-3.5 w-3.5 text-zinc-300"
+                            strokeWidth={1.5}
+                          />{" "}
                           {member.email || "—"}
                         </span>
-                        <span className="text-xs font-medium text-slate-400">
+                        <span className="text-xs font-light text-zinc-400">
                           {member.phone || "—"}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right py-4">
+                    <TableCell className="text-right pr-8">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-black text-[10px] uppercase tracking-tighter"
+                        className="rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
                       >
                         Напомняне
                       </Button>

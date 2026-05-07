@@ -66,65 +66,132 @@ const InventoryHistory = () => {
   };
 
   const getEventTypeLabel = (type: InventoryEvent["type"]) => {
+    const badgeBase =
+      "px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-widest border shadow-none";
     switch (type) {
       case "restock":
-        return <Badge variant="default">Презареждане</Badge>;
+        return (
+          <Badge
+            className={`${badgeBase} bg-emerald-50/50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/5 dark:border-emerald-500/20`}
+          >
+            Презареждане
+          </Badge>
+        );
       case "price_update":
-        return <Badge variant="secondary">Промяна на цена</Badge>;
+        return (
+          <Badge
+            className={`${badgeBase} bg-amber-50/50 text-amber-600 border-amber-100 dark:bg-amber-500/5 dark:border-amber-500/20`}
+          >
+            Промяна на цена
+          </Badge>
+        );
       case "sale":
-        return <Badge variant="destructive">Продажба</Badge>;
+        return (
+          <Badge
+            className={`${badgeBase} bg-rose-50/50 text-rose-600 border-rose-100 dark:bg-rose-500/5 dark:border-rose-500/20`}
+          >
+            Продажба
+          </Badge>
+        );
       case "correction":
-        return <Badge variant="outline">Корекция</Badge>;
+        return (
+          <Badge
+            className={`${badgeBase} bg-zinc-50/50 text-zinc-600 border-zinc-100 dark:bg-zinc-500/5 dark:border-zinc-500/20`}
+          >
+            Корекция
+          </Badge>
+        );
       case "initial":
-        return <Badge>Първоначално</Badge>;
+        return (
+          <Badge
+            className={`${badgeBase} bg-primary/5 text-primary border-primary/10`}
+          >
+            Първоначално
+          </Badge>
+        );
       default:
-        return <Badge color="gray">{type}</Badge>;
+        return <Badge className={badgeBase}>{type}</Badge>;
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>История на движенията по инвентара</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading && <p>Зареждане на историята...</p>}
-        {error && <p className="text-red-500">{error}</p>}
+    <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-none overflow-hidden">
+      <div className="p-6 border-b border-zinc-100 dark:border-zinc-900">
+        <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+          История на движенията
+        </h3>
+      </div>
+      <div className="p-0">
+        {loading && (
+          <div className="p-8 text-center text-[11px] uppercase tracking-widest text-zinc-400 font-medium animate-pulse">
+            Зареждане на историята...
+          </div>
+        )}
+        {error && (
+          <div className="p-8 text-center text-[11px] uppercase tracking-widest text-rose-400 font-medium">
+            {error}
+          </div>
+        )}
         {!loading && !error && (
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Дата</TableHead>
-                <TableHead>Артикул</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead>Промяна</TableHead>
-                <TableHead>Потребител</TableHead>
-                <TableHead>Бележка</TableHead>
+            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
+              <TableRow className="hover:bg-transparent border-none">
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Дата
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Артикул
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Тип
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
+                  Промяна
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Потребител
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Бележка
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell>
+                <TableRow
+                  key={event.id}
+                  className="border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors"
+                >
+                  <TableCell className="px-6 py-4 text-[11px] font-medium text-zinc-400">
                     {formatDateTimeDisplay(event.createdAt)}
                   </TableCell>
-                  <TableCell>{event.productName}</TableCell>
-                  <TableCell>{getEventTypeLabel(event.type)}</TableCell>
-                  <TableCell>{renderEventDetails(event)}</TableCell>
-                  <TableCell>{event.userName}</TableCell>
-                  <TableCell>{event.notes || "--"}</TableCell>
+                  <TableCell className="px-6 py-4 text-sm font-light text-zinc-900 dark:text-zinc-100">
+                    {event.productName}
+                  </TableCell>
+                  <TableCell className="px-6 py-4">
+                    {getEventTypeLabel(event.type)}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-right font-medium text-sm">
+                    {renderEventDetails(event)}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
+                    {event.userName}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-xs text-zinc-400 italic font-light">
+                    {event.notes || "--"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
         {!loading && events.length === 0 && (
-          <p className="text-center text-gray-500 py-4">
+          <div className="p-12 text-center text-[11px] uppercase tracking-widest text-zinc-400 font-medium">
             Няма записани събития.
-          </p>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

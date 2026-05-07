@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   Form,
   FormControl,
@@ -94,21 +94,26 @@ export const MemberForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Основна информация */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Основна информация</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <BentoCard className="lg:col-span-2 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+            <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
+              Основна информация
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <FormField
                 name="firstName"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Име</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Име
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input
+                        {...field}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -119,9 +124,15 @@ export const MemberForm = ({
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Презиме</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Презиме
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,31 +143,42 @@ export const MemberForm = ({
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Фамилия</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Фамилия
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input
+                        {...field}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </BentoCard>
 
           {/* Контактна информация */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Контакт</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <BentoCard className="p-8 border-zinc-100 shadow-none rounded-[2rem]">
+            <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
+              Контакт
+            </h3>
+            <div className="space-y-6">
               <FormField
                 name="phone"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Телефон</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Телефон
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -167,29 +189,40 @@ export const MemberForm = ({
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Имейл</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Имейл
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         {...field}
                         value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="pt-4 border-t mt-4">
-                <h4 className="font-medium mb-2 text-sm">Спешен Контакт</h4>
-                <div className="grid gap-4">
+              <div className="pt-6 border-t border-zinc-100 mt-6">
+                <h4 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-4">
+                  Спешен Контакт
+                </h4>
+                <div className="grid gap-6">
                   <FormField
                     name="emergencyContactName"
                     control={form.control}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Име на контакт</FormLabel>
+                        <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                          Име на контакт
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ""} />
+                          <Input
+                            {...field}
+                            value={field.value || ""}
+                            className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -200,9 +233,15 @@ export const MemberForm = ({
                     control={form.control}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Телефон на контакт</FormLabel>
+                        <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                          Телефон на контакт
+                        </FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value || ""} />
+                          <Input
+                            {...field}
+                            value={field.value || ""}
+                            className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -210,23 +249,29 @@ export const MemberForm = ({
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </BentoCard>
 
           {/* Лични данни */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Лични данни</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+            <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
+              Лични данни
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <FormField
                 name="personalId"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ЕГН</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      ЕГН
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,9 +282,15 @@ export const MemberForm = ({
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Учебно заведение</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Учебно заведение
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,16 +300,18 @@ export const MemberForm = ({
                 control={form.control}
                 name="dateOfBirth"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col pt-2">
-                    <FormLabel>Дата на раждане</FormLabel>
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
+                      Дата на раждане
+                    </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              "h-12 pl-4 text-left font-light rounded-xl border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50",
+                              !field.value && "text-zinc-400"
                             )}
                           >
                             {field.value &&
@@ -271,7 +324,10 @@ export const MemberForm = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent
+                        className="w-auto p-0 rounded-2xl border-zinc-100"
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={
@@ -298,18 +354,20 @@ export const MemberForm = ({
                 control={form.control}
                 name="gender"
                 render={({ field }) => (
-                  <FormItem className="pt-2">
-                    <FormLabel>Пол</FormLabel>
+                  <FormItem>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Пол
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value || undefined}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl border-zinc-100">
                         <SelectItem value="male">Мъж</SelectItem>
                         <SelectItem value="female">Жена</SelectItem>
                       </SelectContent>
@@ -322,35 +380,44 @@ export const MemberForm = ({
                 name="address"
                 control={form.control}
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-3">
-                    <FormLabel>Адрес</FormLabel>
+                  <FormItem className="sm:col-span-4">
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Адрес
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ""} />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </BentoCard>
 
           {/* Административна информация */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Административна информация</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+            <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
+              Административна информация
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <FormField
                 control={form.control}
                 name="apparelSize"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Размер екипировка</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Размер екипировка
+                    </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         value={field.value || ""}
                         placeholder="напр. M, L, XL"
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
                       />
                     </FormControl>
                     <FormMessage />
@@ -362,17 +429,19 @@ export const MemberForm = ({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Статус</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Статус
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl border-zinc-100">
                         <SelectItem value="active">Активен</SelectItem>
                         <SelectItem value="inactive">Неактивен</SelectItem>
                       </SelectContent>
@@ -386,17 +455,19 @@ export const MemberForm = ({
                 name="skillLevel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ниво на умения</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Ниво на умения
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value || undefined}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0">
                           <SelectValue placeholder="Избери ниво" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl border-zinc-100">
                         <SelectItem value="beginner">Начално</SelectItem>
                         <SelectItem value="intermediate">Средно</SelectItem>
                         <SelectItem value="advanced">Напреднало</SelectItem>
@@ -414,34 +485,40 @@ export const MemberForm = ({
                 name="rating"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Рейтинг (0-3000)</FormLabel>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Рейтинг (0-3000)
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
                         value={field.value || ""}
                         onChange={(e) => field.onChange(Number(e.target.value))}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
+              <div className="sm:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-zinc-100">
                 <FormField
                   control={form.control}
                   name="hasSignedDeclaration"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-6 bg-zinc-50/30">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Подписана декларация</FormLabel>
-                        <FormDescription>
+                        <FormLabel className="text-sm font-medium text-zinc-950">
+                          Подписана декларация
+                        </FormLabel>
+                        <FormDescription className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
                           Има ли подписана декларация
                         </FormDescription>
                       </div>
@@ -452,16 +529,19 @@ export const MemberForm = ({
                   control={form.control}
                   name="hasMedicalCertificate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-6 bg-zinc-50/30">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Медицинско свидетелство</FormLabel>
-                        <FormDescription>
+                        <FormLabel className="text-sm font-medium text-zinc-950">
+                          Медицинско свидетелство
+                        </FormLabel>
+                        <FormDescription className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
                           Предадено за текущата година
                         </FormDescription>
                       </div>
@@ -472,16 +552,19 @@ export const MemberForm = ({
                   control={form.control}
                   name="isLicensed"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-6 bg-zinc-50/30">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Картотека</FormLabel>
-                        <FormDescription>
+                        <FormLabel className="text-sm font-medium text-zinc-950">
+                          Картотека
+                        </FormLabel>
+                        <FormDescription className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
                           Картотекиран в БФБ за годината
                         </FormDescription>
                       </div>
@@ -489,40 +572,51 @@ export const MemberForm = ({
                   )}
                 />
               </div>
-              {/* Family ID ще се добави на по-късен етап, когато имаме управление на семейства */}
               <FormField
                 name="notes"
                 control={form.control}
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-3">
-                    <FormLabel>Бележки</FormLabel>
+                  <FormItem className="sm:col-span-4">
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      Бележки
+                    </FormLabel>
                     <FormControl>
-                      <Textarea {...field} value={field.value || ""} rows={4} />
+                      <Textarea
+                        {...field}
+                        value={field.value || ""}
+                        rows={4}
+                        className="rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 resize-none p-6 font-light"
+                      />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-[10px] font-light uppercase tracking-wider text-zinc-400 ml-1">
                       Вътрешни бележки, видими само за администратори.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </BentoCard>
         </div>
 
         {/* Бутони за действие */}
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-3 pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isSubmitting}
+            className="h-12 px-8 rounded-xl border-zinc-200 text-[11px] font-medium uppercase tracking-[0.2em] hover:bg-zinc-50"
           >
-            <X className="mr-2 h-4 w-4" /> Отказ
+            <X className="mr-2 h-4 w-4" strokeWidth={1.5} /> Отказ
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />{" "}
-            {initialData ? "Запазване на промените" : "Създаване на член"}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-12 px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-900 text-[11px] font-medium uppercase tracking-[0.2em]"
+          >
+            <Save className="mr-2 h-4 w-4" strokeWidth={1.5} />{" "}
+            {initialData ? "Запазване" : "Създаване"}
           </Button>
         </div>
       </form>

@@ -53,10 +53,11 @@ const ReservationCard: React.FC<CardProps<Reservation>> = ({
   );
 
   const statusClasses = {
-    paid: "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm shadow-emerald-100/50",
+    paid: "bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/20 text-emerald-600 shadow-none",
     unpaid:
-      "bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-100/50",
-    cancelled: "bg-slate-50 border-slate-200 text-slate-400 opacity-60",
+      "bg-amber-50/50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/20 text-amber-600 shadow-none",
+    cancelled:
+      "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-400 opacity-60",
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -71,33 +72,37 @@ const ReservationCard: React.FC<CardProps<Reservation>> = ({
   return (
     <div
       className={cn(
-        "absolute w-[92%] left-1/2 -translate-x-1/2 p-3 rounded-xl border text-xs leading-tight transition-all duration-300 group hover:scale-[1.02] hover:shadow-md z-10",
+        "absolute w-[94%] left-1/2 -translate-x-1/2 p-4 rounded-xl border text-[11px] leading-tight transition-all duration-300 group hover:border-primary/30 z-10",
         statusClasses[item.status]
       )}
       style={style}
     >
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex bg-white/50 backdrop-blur-sm rounded-lg border border-white/50">
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all flex bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-lg border border-zinc-100 dark:border-zinc-800">
         <ReservationDialog reservation={item} onSave={onSave}>
           <Button
             variant="ghost"
             size="icon"
-            className="w-7 h-7 hover:bg-white/80 rounded-md"
+            className="w-8 h-8 hover:bg-white dark:hover:bg-zinc-800 rounded-md"
           >
-            <Pencil className="w-3.5 h-3.5 text-primary" />
+            <Pencil className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
           </Button>
         </ReservationDialog>
         <Button
           variant="ghost"
           size="icon"
-          className="w-7 h-7 hover:bg-rose-50 rounded-md"
+          className="w-8 h-8 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md"
           onClick={handleDelete}
         >
-          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+          <Trash2 className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.5} />
         </Button>
       </div>
-      <p className="font-black truncate pr-4">{item.clientName}</p>
-      <p className="font-medium mt-0.5 opacity-80">{timeRange}</p>
-      <div className="mt-2 inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/50 text-[9px] font-black uppercase tracking-tighter">
+      <p className="font-medium text-zinc-900 text-[13px] truncate pr-8 mb-1">
+        {item.clientName}
+      </p>
+      <p className="font-light text-zinc-500 text-[10px] uppercase tracking-widest">
+        {timeRange}
+      </p>
+      <div className="mt-4 inline-flex items-center px-2 py-0.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-[8px] font-medium uppercase tracking-[0.2em] border border-inherit">
         {item.status === "paid" ? "Платено" : "Неплатено"}
       </div>
     </div>
@@ -122,29 +127,29 @@ const BlockedSlotCard: React.FC<
 
   return (
     <div
-      className="absolute w-[92%] left-1/2 -translate-x-1/2 p-3 rounded-xl border bg-slate-100 border-slate-300 text-slate-500 text-xs leading-tight shadow-inner group flex flex-col items-center justify-center text-center pattern-diagonal-stripes"
+      className="absolute w-[94%] left-1/2 -translate-x-1/2 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/30 text-zinc-400 text-[10px] leading-tight shadow-none group flex flex-col items-center justify-center text-center pattern-diagonal-stripes border-dashed z-0"
       style={style}
     >
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex bg-white/50 backdrop-blur-sm rounded-lg">
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all flex bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-lg border border-zinc-100 dark:border-zinc-800">
         <BlockSlotDialog slot={item} onSave={onSave} courtCount={courtCount}>
           <Button
             variant="ghost"
             size="icon"
-            className="w-7 h-7 hover:bg-white/80 rounded-md"
+            className="w-8 h-8 hover:bg-white dark:hover:bg-zinc-800 rounded-md"
           >
-            <Pencil className="w-3.5 h-3.5 text-primary" />
+            <Pencil className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
           </Button>
         </BlockSlotDialog>
         <Button
           variant="ghost"
           size="icon"
-          className="w-7 h-7 hover:bg-rose-50 rounded-md"
+          className="w-8 h-8 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md"
           onClick={handleDelete}
         >
-          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+          <Trash2 className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.5} />
         </Button>
       </div>
-      <p className="font-black uppercase tracking-tighter opacity-80">
+      <p className="font-medium text-[9px] uppercase tracking-[0.3em] opacity-40">
         {item.title}
       </p>
     </div>
@@ -243,17 +248,20 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   }, [events, courtCount]);
 
   return (
-    <div className="grid grid-cols-[auto,1fr] border-t border-l border-border mt-4 bg-muted/20 relative">
+    <div className="grid grid-cols-[auto,1fr] mt-0 bg-white dark:bg-zinc-950 relative">
       {isLoading && (
-        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20">
-          <Loader2 className="w-8 h-8 animate-spin" />
+        <div className="absolute inset-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center z-20">
+          <Loader2
+            className="w-10 h-10 animate-spin text-primary opacity-20"
+            strokeWidth={1}
+          />
         </div>
       )}
-      <div className="flex flex-col">
+      <div className="flex flex-col border-r border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/30">
         {hours.map((hour) => (
           <div
             key={hour}
-            className="h-24 text-right pr-2 pt-1 text-xs text-muted-foreground border-b border-r border-border bg-background"
+            className="h-24 w-20 flex items-center justify-center text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 border-b border-zinc-100 dark:border-zinc-900"
           >{`${String(hour).padStart(2, "0")}:00`}</div>
         ))}
       </div>
@@ -268,16 +276,16 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
           return (
             <div
               key={courtId}
-              className="flex flex-col border-r border-slate-100 relative group/court"
+              className="flex flex-col border-r border-zinc-100 dark:border-zinc-900 relative group/court"
             >
-              <div className="text-center font-black py-4 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-sm z-20 text-[10px] uppercase tracking-[0.2em] text-slate-400 group-hover/court:text-primary transition-colors">
+              <div className="text-center font-medium py-8 border-b border-zinc-100 dark:border-zinc-900 sticky top-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md z-20 text-[11px] uppercase tracking-[0.5em] text-zinc-400 group-hover/court:text-primary transition-all">
                 Корт {courtId}
               </div>
               <div className="relative">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-24 border-b border-border/60"
+                    className="h-24 border-b border-zinc-100/30 dark:border-zinc-900/30"
                   ></div>
                 ))}
                 {courtEvents.reservations.map((res) => (

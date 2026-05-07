@@ -61,19 +61,22 @@ const StatCard = ({
 
   return (
     <BentoCard
-      className={cn("p-6 flex flex-col justify-between h-40", colors[color])}
+      className={cn(
+        "p-6 flex flex-col justify-between h-40 border border-zinc-100 bg-white",
+        colors[color]
+      )}
     >
       <div className="flex items-center justify-between mb-4">
         <div className={cn("p-2.5 rounded-2xl", iconColors[color])}>
-          <Icon className="h-5 w-5" />
+          <Icon className="h-5 w-5" strokeWidth={1.5} />
         </div>
         {trend && (
           <div
             className={cn(
-              "flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg",
+              "flex items-center gap-1 text-[10px] uppercase tracking-widest px-2 py-1 rounded-lg",
               trend.positive
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-rose-100 text-rose-700"
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-rose-50 text-rose-600"
             )}
           >
             {trend.positive ? (
@@ -86,13 +89,13 @@ const StatCard = ({
         )}
       </div>
       <div>
-        <p className="text-xs font-bold opacity-70 uppercase tracking-widest mb-1">
+        <p className="text-[10px] font-medium opacity-60 uppercase tracking-[0.2em] mb-1">
           {title}
         </p>
         {loading ? (
           <Skeleton className="h-9 w-24 bg-current opacity-20" />
         ) : (
-          <p className="text-3xl font-black">{value}</p>
+          <p className="text-3xl font-light tracking-tighter">{value}</p>
         )}
       </div>
     </BentoCard>
@@ -124,12 +127,12 @@ export default function DashboardClient() {
   if (!mounted) {
     return (
       <div className="space-y-8 animate-pulse pb-12">
-        <div className="h-32 bg-slate-100 rounded-3xl w-full" />
+        <div className="h-32 bg-zinc-50 rounded-3xl w-full" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="h-40 bg-slate-100 rounded-3xl" />
-          <div className="h-40 bg-slate-100 rounded-3xl" />
-          <div className="h-40 bg-slate-100 rounded-3xl" />
-          <div className="h-40 bg-slate-100 rounded-3xl" />
+          <div className="h-40 bg-zinc-50 rounded-3xl" />
+          <div className="h-40 bg-zinc-50 rounded-3xl" />
+          <div className="h-40 bg-zinc-50 rounded-3xl" />
+          <div className="h-40 bg-zinc-50 rounded-3xl" />
         </div>
       </div>
     );
@@ -145,13 +148,13 @@ export default function DashboardClient() {
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="rounded-xl border-slate-200 hover:bg-slate-50 transition-all font-black text-xs uppercase tracking-widest"
+            className="rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-medium text-[11px] uppercase tracking-widest h-12 px-6"
             onClick={() => router.push("/schedule")}
           >
             {language === "bg" ? "График" : "Schedule"}
           </Button>
           <Button
-            className="rounded-xl shadow-lg shadow-blue-900/20 transition-all font-black text-xs uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800"
+            className="rounded-xl shadow-none transition-all font-medium text-[11px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8"
             onClick={() => router.push("/reservations/new")}
           >
             {language === "bg" ? "Нова резервация" : "New Reservation"}

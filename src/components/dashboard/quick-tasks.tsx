@@ -50,57 +50,60 @@ export const QuickTasks = () => {
   };
 
   return (
-    <BentoCard className="p-6 h-full flex flex-col">
-      <h3 className="font-bold mb-4 flex items-center gap-2">
-        <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
+    <BentoCard className="p-8 h-full flex flex-col border border-zinc-100 bg-white shadow-none rounded-[2rem]">
+      <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
+        <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />{" "}
         {t("dash.quick_tasks")}
       </h3>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-8">
         <Input
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           placeholder={t("dash.add_task")}
-          className="rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-500"
+          className="h-12 rounded-xl border-zinc-100 bg-zinc-50 focus-visible:ring-zinc-200 text-sm placeholder:text-zinc-400"
           onKeyDown={(e) => e.key === "Enter" && addTask()}
         />
         <Button
           onClick={addTask}
           size="icon"
-          className="rounded-xl bg-slate-900 text-white shrink-0"
+          className="h-12 w-12 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 shrink-0 shadow-none transition-all"
         >
-          <Plus size={18} />
+          <Plus size={18} strokeWidth={1.5} />
         </Button>
       </div>
 
-      <div className="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+      <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center gap-3 group animate-in slide-in-from-left duration-300"
+            className="flex items-center gap-4 group animate-in slide-in-from-left duration-300"
           >
             <Checkbox
               checked={task.completed}
               onCheckedChange={() => toggleTask(task.id)}
-              className="rounded-md border-slate-200 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+              className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950 transition-all"
             />
             <span
-              className={`text-sm flex-1 ${task.completed ? "text-slate-400 line-through" : "text-slate-700"}`}
+              className={`text-sm flex-1 font-light transition-all ${task.completed ? "text-zinc-300 line-through" : "text-zinc-600"}`}
             >
               {task.text}
             </span>
             <button
               onClick={() => deleteTask(task.id)}
-              className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all"
+              className="opacity-0 group-hover:opacity-100 text-zinc-300 hover:text-rose-500 transition-all"
             >
-              <Trash2 size={14} />
+              <Trash2 size={14} strokeWidth={1.5} />
             </button>
           </div>
         ))}
         {tasks.length === 0 && (
-          <p className="text-xs text-slate-400 italic text-center py-8">
-            Няма текущи задачи.
-          </p>
+          <div className="flex flex-col items-center justify-center py-12 opacity-20">
+            <CheckCircle2 size={32} strokeWidth={1} />
+            <p className="text-[10px] uppercase tracking-widest mt-4">
+              Всичко е изпълнено
+            </p>
+          </div>
         )}
       </div>
     </BentoCard>

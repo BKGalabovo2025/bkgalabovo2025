@@ -83,45 +83,48 @@ export const EventListItem: React.FC<EventListItemProps> = ({
   const hiddenAttendeesCount = attendees.length - visibleAttendees.length;
 
   return (
-    <div className="bg-white dark:bg-zinc-900/50 rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-slate-100 dark:border-zinc-800">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-4 flex-grow">
-          <div className={`w-2.5 h-16 rounded-full ${color}`}></div>
+    <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-none hover:border-primary/20 transition-all duration-500 border border-zinc-100 dark:border-zinc-900 group">
+      <div className="flex items-center justify-between p-6">
+        <div className="flex items-center gap-6 flex-grow">
+          <div
+            className={`w-1.5 h-12 rounded-full ${color} opacity-40 group-hover:opacity-100 transition-opacity`}
+          ></div>
           <div className="flex-grow">
-            <div className="font-black text-slate-800 dark:text-slate-100 tracking-tight text-lg">
+            <div className="font-light text-zinc-900 dark:text-zinc-100 tracking-tight text-xl mb-1">
               {event.title}
             </div>
-            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon size={14} />
+            <div className="flex items-center gap-6 text-[11px] font-medium uppercase tracking-widest text-zinc-400 mt-1 flex-wrap">
+              <div className="flex items-center gap-2">
+                <CalendarIcon size={14} strokeWidth={1.5} />
                 <span>{formatDate(event.startDate)}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Clock size={14} />
+              <div className="flex items-center gap-2">
+                <Clock size={14} strokeWidth={1.5} />
                 <span>
                   {formatTime(event.startDate)} - {formatTime(event.endDate)}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Tag size={14} />
-                <span className="font-medium">{translation}</span>
+              <div className="flex items-center gap-2">
+                <Tag size={14} strokeWidth={1.5} />
+                <span className="text-primary/70">{translation}</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
                   onClick={() => onManageAttendees(event)}
                 >
-                  <Users className="h-5 w-5 text-slate-500" />
+                  <Users className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
                 <p>Управление на присъстващи</p>
               </TooltipContent>
             </Tooltip>
@@ -130,12 +133,16 @@ export const EventListItem: React.FC<EventListItemProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
                   onClick={() => onPrint(event)}
                 >
-                  <Printer className="h-5 w-5 text-slate-500" />
+                  <Printer
+                    className="h-4 w-4 text-zinc-400"
+                    strokeWidth={1.5}
+                  />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
                 <p>Принтирай</p>
               </TooltipContent>
             </Tooltip>
@@ -144,12 +151,13 @@ export const EventListItem: React.FC<EventListItemProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
                   onClick={() => onEdit(event)}
                 >
-                  <Edit className="h-5 w-5 text-slate-500" />
+                  <Edit className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
                 <p>Редактирай</p>
               </TooltipContent>
             </Tooltip>
@@ -158,12 +166,13 @@ export const EventListItem: React.FC<EventListItemProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
                   onClick={() => onDelete(event.id)}
                 >
-                  <Trash2 className="h-5 w-5 text-rose-500" />
+                  <Trash2 className="h-4 w-4 text-rose-400" strokeWidth={1.5} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-rose-100 dark:border-rose-900/30">
                 <p>Изтрий</p>
               </TooltipContent>
             </Tooltip>
@@ -172,7 +181,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
       </div>
       {attendees.length > 0 && (
         <div
-          className="px-4 pb-3 pt-2 border-t border-slate-100 dark:border-zinc-800 mt-2 flex items-center gap-4 cursor-pointer rounded-b-2xl hover:bg-slate-50 dark:hover:bg-zinc-800/50"
+          className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-900 flex items-center gap-6 cursor-pointer rounded-b-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
           onClick={() => onManageAttendees(event)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -183,7 +192,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
           tabIndex={0}
           aria-label={`Управление на ${attendees.length} присъстващи`}
         >
-          <strong className="text-sm font-bold uppercase tracking-wider text-slate-400 flex-shrink-0">
+          <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex-shrink-0">
             Присъствали:
           </strong>
           <div className="flex items-center">
@@ -192,17 +201,17 @@ export const EventListItem: React.FC<EventListItemProps> = ({
                 {visibleAttendees.map((member) => (
                   <Tooltip key={member.id}>
                     <TooltipTrigger asChild>
-                      <Avatar className="border-2 border-white dark:border-zinc-900 transition-transform hover:scale-110 hover:z-10 h-9 w-9">
+                      <Avatar className="border-2 border-white dark:border-zinc-950 transition-transform hover:scale-110 hover:z-10 h-10 w-10 shadow-none">
                         <AvatarImage
                           src={member.avatarUrl ?? undefined}
                           alt={formatFullName(member)}
                         />
-                        <AvatarFallback className="font-bold text-xs">
+                        <AvatarFallback className="font-medium text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
                           {getInitials(formatFullName(member))}
                         </AvatarFallback>
                       </Avatar>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
                       <p>{formatFullName(member)}</p>
                     </TooltipContent>
                   </Tooltip>
@@ -210,7 +219,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
               </div>
             </TooltipProvider>
             {hiddenAttendeesCount > 0 && (
-              <div className="ml-1 h-9 w-9 rounded-full bg-slate-100 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 border-2 border-white dark:border-zinc-900 z-0">
+              <div className="ml-2 h-10 w-10 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-[10px] font-medium text-zinc-400 border-2 border-white dark:border-zinc-950 z-0">
                 +{hiddenAttendeesCount}
               </div>
             )}

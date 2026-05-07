@@ -215,8 +215,8 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
       <div className="max-w-4xl mx-auto p-4 sm:p-8 receipt-container">
         {/* ACTION BAR */}
-        <div className="flex flex-wrap justify-between items-center mb-8 no-print gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">
+        <div className="flex flex-wrap justify-between items-center mb-8 no-print gap-4 bg-zinc-50/50 p-6 rounded-[2rem] border border-zinc-100">
+          <h1 className="text-xl font-medium text-zinc-900 uppercase tracking-widest">
             Управление на квитанция
           </h1>
           <div className="flex gap-2">
@@ -244,9 +244,9 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         {/* PRINTABLE AREA */}
         <div
           ref={receiptRef}
-          className="bg-white border border-gray-200 shadow-xl p-8 sm:p-12 printable-area print-shadow-none overflow-hidden rounded-sm"
+          className="bg-white border border-zinc-100 shadow-none p-12 printable-area print-shadow-none overflow-hidden rounded-[2.5rem]"
         >
-          <header className="flex flex-col md:flex-row justify-between items-start pb-8 border-b-2 border-gray-900 gap-6">
+          <header className="flex flex-col md:flex-row justify-between items-start pb-8 border-b border-zinc-100 gap-6">
             <div className="flex items-center">
               <div className="relative w-20 h-20 mr-6">
                 <Image
@@ -257,7 +257,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                 />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-gray-900 mb-1 uppercase tracking-tight">
+                <h2 className="text-2xl font-medium text-zinc-950 mb-1 uppercase tracking-widest">
                   {clubInfo.name}
                 </h2>
                 <div className="text-sm text-gray-600 space-y-0.5">
@@ -268,14 +268,14 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
               </div>
             </div>
             <div className="text-right flex-shrink-0">
-              <h1 className="text-5xl font-black text-gray-900 receipt-header-title mb-4">
+              <h1 className="text-5xl font-light text-zinc-950 receipt-header-title mb-6">
                 КВИТАНЦИЯ
               </h1>
-              <div className="inline-block bg-gray-900 text-white px-4 py-2 mt-2">
-                <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">
+              <div className="inline-block bg-zinc-950 text-white px-6 py-4 mt-2 rounded-2xl">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] opacity-40 mb-2">
                   Номер на документ
                 </p>
-                <p className="text-xl font-mono font-bold leading-none">
+                <p className="text-xl font-mono font-light leading-none tracking-widest">
                   #{sale?.id.substring(0, 8).toUpperCase() || "N/A"}
                 </p>
               </div>
@@ -308,7 +308,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                   ПОЛУЧАТЕЛ
                 </h3>
                 {member ? (
-                  <p className="font-bold text-lg text-gray-900">
+                  <p className="font-medium text-lg text-zinc-900">
                     {formatFullName(member)}
                   </p>
                 ) : (
@@ -326,11 +326,19 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
             <table className="w-full text-left mb-12 receipt-table border-collapse">
               <thead>
-                <tr className="bg-gray-900 text-white">
-                  <th className="p-4 rounded-tl-sm">Описание на услугата</th>
-                  <th className="p-4 text-center">К-во</th>
-                  <th className="p-4 text-right">Ед. цена</th>
-                  <th className="p-4 text-right rounded-tr-sm">Обща сума</th>
+                <tr className="bg-zinc-950 text-white">
+                  <th className="p-6 rounded-tl-[2rem] font-medium tracking-[0.2em]">
+                    Описание на услугата
+                  </th>
+                  <th className="p-6 text-center font-medium tracking-[0.2em]">
+                    К-во
+                  </th>
+                  <th className="p-6 text-right font-medium tracking-[0.2em]">
+                    Ед. цена
+                  </th>
+                  <th className="p-6 text-right rounded-tr-[2rem] font-medium tracking-[0.2em]">
+                    Обща сума
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -341,20 +349,20 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
                       <td className="p-5">
-                        <p className="font-bold text-gray-900 text-lg">
+                        <p className="font-medium text-zinc-900 text-lg">
                           {item.name || "(неизвестен артикул)"}
                         </p>
                         <p className="text-sm text-gray-500 italic mt-1 font-medium">
                           {service?.name || "(неспецифицирана категория)"}
                         </p>
                       </td>
-                      <td className="p-5 text-center font-bold text-gray-700">
+                      <td className="p-6 text-center font-medium text-zinc-600">
                         {item.quantity}
                       </td>
                       <td className="p-5 text-right font-medium text-gray-600">
                         {formatPrice(item.price)}
                       </td>
-                      <td className="p-5 text-right font-black text-gray-900 text-lg">
+                      <td className="p-6 text-right font-medium text-zinc-950 text-lg">
                         {formatPrice(item.quantity * item.price)}
                       </td>
                     </tr>
@@ -373,11 +381,11 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
             </table>
 
             <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-              <div className="bg-blue-50 p-6 rounded-lg flex-grow border border-blue-100 no-print-background">
-                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">
+              <div className="bg-zinc-50 p-8 rounded-[2rem] flex-grow border border-zinc-100 no-print-background">
+                <h4 className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em] mb-4">
                   Начин на плащане
                 </h4>
-                <p className="font-bold text-blue-900 flex items-center">
+                <p className="font-medium text-zinc-600 flex items-center">
                   В брой / Банков превод
                 </p>
                 <div className="mt-4 pt-4 border-t border-blue-100">
@@ -396,11 +404,11 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                     {formatPrice(sale?.totalAmount || 0)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center bg-gray-900 text-white p-6 rounded-sm shadow-lg transform scale-105 origin-right">
-                  <span className="text-lg font-black uppercase tracking-widest">
+                <div className="flex justify-between items-center bg-zinc-950 text-white p-8 rounded-[2rem] shadow-none transform scale-105 origin-right">
+                  <span className="text-sm font-medium uppercase tracking-[0.3em] opacity-40">
                     ОБЩО:
                   </span>
-                  <span className="text-3xl font-black">
+                  <span className="text-3xl font-light">
                     {formatPrice(sale?.totalAmount || 0)}
                   </span>
                 </div>
@@ -409,7 +417,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
                     Статус на плащане:
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter ${sale?.isPaid ? "bg-green-100 text-green-700 border border-green-200" : "bg-red-100 text-red-700 border border-red-200"}`}
+                    className={`px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-[0.2em] shadow-none ${sale?.isPaid ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-rose-50 text-rose-600 border border-rose-100"}`}
                   >
                     {sale?.isPaid ? "ПЛАТЕНО" : "НЕПЛАТЕНО"}
                   </span>
@@ -418,7 +426,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
             </div>
 
             <footer className="mt-20 pt-10 receipt-footer flex flex-col items-center relative group">
-              <div className="flex justify-between w-full mb-12 px-12 italic text-sm text-gray-400 uppercase font-black">
+              <div className="flex justify-between w-full mb-12 px-12 italic text-xs text-zinc-300 uppercase font-medium tracking-[0.2em]">
                 <p>Подпис на платилия: .........................</p>
                 <p>Подпис на касиера: .........................</p>
               </div>

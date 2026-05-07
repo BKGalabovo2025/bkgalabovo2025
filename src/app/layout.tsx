@@ -1,27 +1,15 @@
 import type { Metadata } from "next";
-import { Montserrat, PT_Sans, Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const fontSans = PT_Sans({
+const fontSans = Inter({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "500"],
   variable: "--font-sans",
-});
-
-const fontHeading = Montserrat({
-  subsets: ["latin", "cyrillic"],
-  weight: ["600", "700"],
-  variable: "--font-heading",
-});
-
-const fontBento = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-bento",
 });
 
 export const metadata: Metadata = {
@@ -49,9 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${fontSans.variable} ${fontHeading.variable} ${fontBento.variable} font-sans antialiased`}
-      >
+      <body className={`${fontSans.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

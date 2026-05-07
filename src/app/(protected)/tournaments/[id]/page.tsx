@@ -11,13 +11,7 @@ import { TournamentForm } from "@/components/tournaments/tournament-form";
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   Dialog,
   DialogContent,
@@ -420,19 +414,24 @@ export default function TournamentDetailsPage() {
           </TabsList>
 
           <TabsContent value="participants" className="mt-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+            <BentoCard>
+              <div className="p-8 flex flex-row items-center justify-between border-b border-zinc-100/50">
                 <div>
-                  <CardTitle>Списък с участници</CardTitle>
-                  <CardDescription>
+                  <h3 className="text-lg font-medium text-zinc-900">
+                    Списък с участници
+                  </h3>
+                  <p className="text-sm font-light text-zinc-400 mt-1">
                     Всички регистрирани играчи за този турнир
-                  </CardDescription>
+                  </p>
                 </div>
-                <Button onClick={() => setIsEntryDialogOpen(true)}>
+                <Button
+                  onClick={() => setIsEntryDialogOpen(true)}
+                  className="rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 shadow-none"
+                >
                   <UserPlus className="mr-2 h-4 w-4" /> Запиши участник
                 </Button>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-8">
                 {entries.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <ShieldAlert className="mx-auto h-8 w-8 mb-3 opacity-50" />
@@ -456,7 +455,7 @@ export default function TournamentDetailsPage() {
                               {getCategoryName(entry.categoryId)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium text-zinc-900">
                             {getPlayerName(entry.memberId, entry.externalName)}
                           </TableCell>
                           <TableCell>
@@ -485,31 +484,34 @@ export default function TournamentDetailsPage() {
                     </TableBody>
                   </Table>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </BentoCard>
           </TabsContent>
 
           <TabsContent value="matches" className="mt-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+            <BentoCard>
+              <div className="p-8 flex flex-row items-center justify-between border-b border-zinc-100/50">
                 <div>
-                  <CardTitle>Генератор на мачове</CardTitle>
-                  <CardDescription>
+                  <h3 className="text-lg font-medium text-zinc-900">
+                    Генератор на мачове
+                  </h3>
+                  <p className="text-sm font-light text-zinc-400 mt-1">
                     Схема на турнира (Система Бергер)
-                  </CardDescription>
+                  </p>
                 </div>
                 <Button
                   onClick={handleGenerateMatches}
                   disabled={isGenerating || entries.length < 2}
                   variant={matches.length > 0 ? "outline" : "default"}
+                  className="rounded-xl shadow-none"
                 >
                   <Trophy className="mr-2 h-4 w-4" />
                   {matches.length > 0
                     ? "Прегенерирай схемата"
                     : "Генерирай мачове"}
                 </Button>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="p-8">
                 {matches.length === 0 ? (
                   <div className="py-12 text-center text-muted-foreground">
                     <Trophy className="mx-auto h-12 w-12 mb-4 opacity-20" />
@@ -536,7 +538,7 @@ export default function TournamentDetailsPage() {
                       return (
                         <div key={cat} className="space-y-6">
                           <div className="bg-muted px-4 py-3 rounded-lg border flex items-center">
-                            <h3 className="text-xl font-semibold uppercase tracking-wider">
+                            <h3 className="text-lg font-medium uppercase tracking-widest text-zinc-500">
                               {getCategoryName(cat)}
                             </h3>
                           </div>
@@ -544,15 +546,15 @@ export default function TournamentDetailsPage() {
                           {/* Предстоящи мачове */}
                           {pendingMatches.length > 0 && (
                             <div className="ml-4">
-                              <h4 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                              <h4 className="text-[11px] font-medium text-zinc-400 mb-6 uppercase tracking-[0.2em] flex items-center">
+                                <span className="w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
                                 Предстоящи мачове ({pendingMatches.length})
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                                 {pendingMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="border rounded-lg p-4 flex flex-col justify-between shadow-sm hover:border-primary/50 transition-colors bg-white dark:bg-zinc-950"
+                                    className="border border-zinc-100 rounded-[2rem] p-6 flex flex-col justify-between shadow-none hover:border-zinc-200 transition-all bg-white"
                                   >
                                     <div className="flex justify-between items-center mb-4 border-b pb-2">
                                       <Badge
@@ -567,7 +569,7 @@ export default function TournamentDetailsPage() {
                                     </div>
 
                                     <div className="space-y-3 mb-4">
-                                      <div className="flex justify-between items-center font-medium">
+                                      <div className="flex justify-between items-center font-light text-zinc-900">
                                         <span className="truncate pr-2">
                                           {getEntryNameById(
                                             match.player1EntryId
@@ -577,7 +579,7 @@ export default function TournamentDetailsPage() {
                                       <div className="text-xs text-muted-foreground pl-2 border-l-2 border-primary/30">
                                         срещу
                                       </div>
-                                      <div className="flex justify-between items-center font-medium">
+                                      <div className="flex justify-between items-center font-light text-zinc-900">
                                         <span className="truncate pr-2">
                                           {getEntryNameById(
                                             match.player2EntryId
@@ -590,7 +592,7 @@ export default function TournamentDetailsPage() {
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="w-full"
+                                        className="w-full rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 shadow-none transition-all"
                                         onClick={() => setSelectedMatch(match)}
                                       >
                                         Въведи резултат
@@ -605,20 +607,23 @@ export default function TournamentDetailsPage() {
                           {/* Изиграни мачове */}
                           {completedMatches.length > 0 && (
                             <div className="ml-4">
-                              <h4 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center">
-                                <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+                              <h4 className="text-[11px] font-medium text-zinc-400 mb-6 uppercase tracking-[0.2em] flex items-center">
+                                <CheckCircle2
+                                  className="w-4 h-4 mr-2 text-emerald-500"
+                                  strokeWidth={1.5}
+                                />
                                 Изиграни мачове ({completedMatches.length})
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 opacity-80">
                                 {completedMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="border rounded-lg p-4 flex flex-col justify-between shadow-sm bg-muted/30"
+                                    className="border border-zinc-100 rounded-[2rem] p-6 flex flex-col justify-between shadow-none bg-zinc-50/50"
                                   >
                                     <div className="flex justify-between items-center mb-4 border-b pb-2 border-muted-foreground/20">
                                       <Badge
                                         variant="secondary"
-                                        className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+                                        className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none"
                                       >
                                         Завършен
                                       </Badge>
@@ -629,7 +634,7 @@ export default function TournamentDetailsPage() {
 
                                     <div className="space-y-3 mb-4">
                                       <div
-                                        className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player1EntryId ? "text-green-600 dark:text-green-400" : ""}`}
+                                        className={`flex justify-between items-center font-light ${match.winnerEntryId === match.player1EntryId ? "text-emerald-600" : "text-zinc-500"}`}
                                       >
                                         <div className="flex items-center gap-2 truncate pr-2">
                                           {match.winnerEntryId ===
@@ -647,7 +652,7 @@ export default function TournamentDetailsPage() {
                                         срещу
                                       </div>
                                       <div
-                                        className={`flex justify-between items-center font-medium ${match.winnerEntryId === match.player2EntryId ? "text-green-600 dark:text-green-400" : ""}`}
+                                        className={`flex justify-between items-center font-light ${match.winnerEntryId === match.player2EntryId ? "text-emerald-600" : "text-zinc-500"}`}
                                       >
                                         <div className="flex items-center gap-2 truncate pr-2">
                                           {match.winnerEntryId ===
@@ -664,7 +669,7 @@ export default function TournamentDetailsPage() {
                                     </div>
 
                                     <div className="mt-auto pt-3 border-t border-muted-foreground/20 flex justify-between items-center">
-                                      <div className="font-bold text-lg font-mono tracking-wider">
+                                      <div className="font-light text-lg font-mono tracking-widest text-zinc-900">
                                         {match.score}
                                       </div>
                                       <Button
@@ -686,8 +691,8 @@ export default function TournamentDetailsPage() {
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </BentoCard>
           </TabsContent>
 
           <TabsContent value="results" className="mt-6">
@@ -770,55 +775,57 @@ export default function TournamentDetailsPage() {
               });
 
               return (
-                <Card key={cat} className="mb-6">
-                  <CardHeader>
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Trophy className="h-5 w-5 text-yellow-500" />
-                          Класиране – {getCategoryName(cat)}
-                        </CardTitle>
-                        <CardDescription>
-                          {catMatches.length} от{" "}
-                          {matches.filter((m) => m.categoryId === cat).length}{" "}
-                          мача изиграни
-                        </CardDescription>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-2"
-                          onClick={() => handleExport("excel", cat, standings)}
-                        >
-                          <FileDown className="h-4 w-4 text-green-600" /> Excel
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-2"
-                          onClick={() => handleExport("pdf", cat, standings)}
-                        >
-                          <Download className="h-4 w-4 text-red-600" /> PDF
-                        </Button>
-                        {tournament.status !== "completed" &&
-                          matches
-                            .filter((m) => m.categoryId === cat)
-                            .every((m) => m.status === "completed") && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="h-8 gap-2 bg-green-600 hover:bg-green-700"
-                              onClick={handleCompleteTournament}
-                            >
-                              <CheckCircle2 className="h-4 w-4" /> Приключи
-                              турнира
-                            </Button>
-                          )}
-                      </div>
+                <BentoCard key={cat} className="mb-8">
+                  <div className="p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-zinc-100/50">
+                    <div>
+                      <h3 className="text-lg font-medium text-zinc-900 flex items-center gap-2">
+                        <Trophy
+                          className="h-5 w-5 text-amber-400"
+                          strokeWidth={1.5}
+                        />
+                        Класиране – {getCategoryName(cat)}
+                      </h3>
+                      <p className="text-sm font-light text-zinc-400 mt-1">
+                        {catMatches.length} от{" "}
+                        {matches.filter((m) => m.categoryId === cat).length}{" "}
+                        мача изиграни
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={() => handleExport("excel", cat, standings)}
+                      >
+                        <FileDown className="h-4 w-4 text-green-600" /> Excel
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={() => handleExport("pdf", cat, standings)}
+                      >
+                        <Download className="h-4 w-4 text-red-600" /> PDF
+                      </Button>
+                      {tournament.status !== "completed" &&
+                        matches
+                          .filter((m) => m.categoryId === cat)
+                          .every((m) => m.status === "completed") && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 gap-2 bg-green-600 hover:bg-green-700"
+                            onClick={handleCompleteTournament}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Приключи
+                            турнира
+                          </Button>
+                        )}
+                    </div>
+                  </div>
+
+                  <div className="p-8 pt-0">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -836,7 +843,7 @@ export default function TournamentDetailsPage() {
                           <TableHead className="text-center">
                             Т. Разлика
                           </TableHead>
-                          <TableHead className="text-center font-bold">
+                          <TableHead className="text-center font-medium text-zinc-400">
                             Точки
                           </TableHead>
                         </TableRow>
@@ -851,7 +858,7 @@ export default function TournamentDetailsPage() {
                                 : ""
                             }
                           >
-                            <TableCell className="text-center font-bold">
+                            <TableCell className="text-center font-medium text-zinc-900">
                               {idx === 0 && s.wins > 0 ? (
                                 <span className="text-yellow-500">🥇</span>
                               ) : idx === 1 && s.wins > 0 ? (
@@ -868,7 +875,7 @@ export default function TournamentDetailsPage() {
                             <TableCell className="text-center">
                               {s.played}
                             </TableCell>
-                            <TableCell className="text-center text-green-600 font-semibold">
+                            <TableCell className="text-center text-emerald-600 font-medium">
                               {s.wins}
                             </TableCell>
                             <TableCell className="text-center text-destructive">
@@ -884,7 +891,7 @@ export default function TournamentDetailsPage() {
                                     ? "default"
                                     : "secondary"
                                 }
-                                className="font-bold"
+                                className="font-medium shadow-none"
                               >
                                 {s.points}
                               </Badge>
@@ -894,12 +901,12 @@ export default function TournamentDetailsPage() {
                       </TableBody>
                     </Table>
                     {catMatches.length === 0 && (
-                      <p className="text-center text-sm text-muted-foreground mt-4">
+                      <p className="text-center text-sm font-light text-zinc-400 mt-8">
                         Все още няма изиграни мачове в тази категория.
                       </p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </BentoCard>
               );
             })}
           </TabsContent>

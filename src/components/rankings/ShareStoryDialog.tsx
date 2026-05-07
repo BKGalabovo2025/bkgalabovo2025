@@ -59,37 +59,37 @@ export default function ShareStoryDialog({ topThree }: ShareStoryDialogProps) {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button className="rounded-xl font-black text-xs uppercase tracking-widest bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-900/20">
-            <Share2 className="mr-2 h-4 w-4" /> Сподели Топ 3
+          <Button className="rounded-xl font-medium text-[11px] uppercase tracking-[0.2em] bg-zinc-950 text-white hover:bg-zinc-800 shadow-none h-12 px-8 transition-all">
+            <Share2 className="mr-3 h-4 w-4" strokeWidth={1.5} /> Сподели Топ 3
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-md bg-slate-900 border-slate-800 text-white rounded-[32px] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black font-bento uppercase tracking-tight text-center">
+        <DialogContent className="max-w-md bg-white border border-zinc-100 text-zinc-950 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <DialogHeader className="pt-8 px-8">
+            <DialogTitle className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400 text-center">
               Генериране на Story
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col items-center gap-6 py-4">
+          <div className="flex flex-col items-center gap-8 py-8 px-8">
             {/* Preview of the Story (scaled down) */}
-            <div className="relative w-[240px] h-[426px] shadow-2xl rounded-2xl overflow-hidden ring-1 ring-white/10 scale-90 sm:scale-100 origin-center">
+            <div className="relative w-[240px] h-[426px] shadow-2xl rounded-2xl overflow-hidden ring-1 ring-zinc-100 scale-90 sm:scale-100 origin-center">
               <StoryContent ref={storyRef} topThree={topThree} />
             </div>
 
             <Button
               onClick={handleDownload}
               disabled={isGenerating}
-              className="w-full h-12 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-widest text-xs"
+              className="w-full h-14 rounded-2xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium uppercase tracking-widest text-[11px] shadow-none transition-all"
             >
               {isGenerating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-3 h-4 w-4 animate-spin" />
               ) : (
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="mr-3 h-4 w-4" strokeWidth={1.5} />
               )}
               {isGenerating ? "Генериране..." : "Изтегли за Instagram"}
             </Button>
 
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] text-center">
+            <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-[0.2em] text-center leading-relaxed">
               Изображението ще бъде изтеглено с високо качество (1080x1920)
             </p>
           </div>
@@ -107,42 +107,40 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
       <div
         ref={ref}
         style={{ width: "1080px", height: "1920px" }}
-        className="bg-slate-950 flex flex-col items-center justify-between p-20 relative overflow-hidden"
+        className="bg-white flex flex-col items-center justify-between p-24 relative overflow-hidden"
       >
-        {/* Background Decorative Elements */}
-        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-blue-600/20 rounded-full blur-[200px] -mr-500 -mt-500" />
-        <div className="absolute bottom-0 left-0 w-[1000px] h-[1000px] bg-purple-600/20 rounded-full blur-[200px] -ml-500 -mb-500" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full" />
+        {/* Background Decorative Elements - Subtle and Airy */}
+        <div className="absolute top-0 right-0 w-[1200px] h-[1200px] bg-zinc-50 rounded-full -mr-600 -mt-600" />
+        <div className="absolute bottom-0 left-0 w-[1200px] h-[1200px] bg-zinc-50/50 rounded-full -ml-600 -mb-600" />
 
         {/* Header */}
-        <div className="relative z-10 text-center mt-20">
-          <div className="w-40 h-40 bg-blue-600 rounded-[48px] flex items-center justify-center mx-auto mb-12 shadow-2xl shadow-blue-500/20 rotate-12">
-            <Trophy size={80} className="text-white" />
+        <div className="relative z-10 text-center mt-32">
+          <div className="w-48 h-48 bg-zinc-950 rounded-[64px] flex items-center justify-center mx-auto mb-16 shadow-2xl">
+            <Trophy size={80} className="text-white" strokeWidth={1} />
           </div>
-          <h1 className="text-8xl font-black text-white uppercase tracking-tighter mb-4 leading-[0.8]">
-            BK GALABOVO
+          <h1 className="text-7xl font-light text-zinc-900 uppercase tracking-[0.4em] mb-6">
+            BADMINTON CLUB
           </h1>
-          <p className="text-3xl font-black text-blue-400 uppercase tracking-[0.4em]">
-            OFFICIAL RANKINGS
+          <p className="text-3xl font-medium text-zinc-400 uppercase tracking-[0.6em]">
+            TOP 3 RANKINGS
           </p>
         </div>
 
-        {/* Podium */}
-        <div className="relative z-10 w-full flex items-end justify-center gap-10 mb-20">
+        {/* Podium - Airy Minimalist Version */}
+        <div className="relative z-10 w-full flex items-end justify-center gap-12 mb-32 px-12">
           {/* 2nd Place */}
           {topThree[1] && (
-            <div className="flex flex-col items-center w-80">
-              <div className="text-8xl mb-8">🥈</div>
-              <div className="w-full bg-slate-900/80 backdrop-blur-xl rounded-[40px] p-12 text-center border-t-8 border-slate-400 shadow-2xl">
-                <p className="text-3xl font-black text-white truncate mb-4">
+            <div className="flex flex-col items-center w-[300px]">
+              <div className="text-7xl mb-10 opacity-80">🥈</div>
+              <div className="w-full bg-white border border-zinc-100 rounded-[60px] p-16 text-center shadow-xl">
+                <p className="text-4xl font-light text-zinc-900 truncate mb-6">
                   {topThree[1].memberName}
                 </p>
-                <p className="text-6xl font-black text-slate-300">
+                <p className="text-7xl font-medium text-zinc-300 tracking-tighter">
                   {topThree[1].totalPoints}
                 </p>
-                <p className="text-xl font-bold uppercase tracking-widest text-slate-500 mt-2">
-                  POINTS
+                <p className="text-xl font-medium uppercase tracking-[0.4em] text-zinc-400 mt-4">
+                  PTS
                 </p>
               </div>
             </div>
@@ -150,19 +148,19 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
 
           {/* 1st Place */}
           {topThree[0] && (
-            <div className="flex flex-col items-center w-[400px] mb-20">
-              <div className="text-[120px] mb-8">🥇</div>
-              <div className="w-full bg-blue-600 rounded-[50px] p-16 text-center shadow-[0_0_100px_rgba(37,99,235,0.4)] relative border-t-8 border-yellow-400">
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 px-8 py-3 rounded-2xl font-black text-2xl uppercase tracking-widest">
-                  CHAMPION
+            <div className="flex flex-col items-center w-[400px] mb-24">
+              <div className="text-[140px] mb-12">🥇</div>
+              <div className="w-full bg-zinc-950 rounded-[80px] p-24 text-center shadow-2xl relative">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-zinc-950 border border-zinc-100 px-12 py-4 rounded-full font-medium text-2xl uppercase tracking-[0.3em] shadow-xl">
+                  WINNER
                 </div>
-                <p className="text-4xl font-black text-white truncate mb-6 mt-4">
+                <p className="text-5xl font-light text-white truncate mb-8 mt-4">
                   {topThree[0].memberName}
                 </p>
-                <p className="text-8xl font-black text-white">
+                <p className="text-9xl font-medium text-white tracking-tighter">
                   {topThree[0].totalPoints}
                 </p>
-                <p className="text-2xl font-bold uppercase tracking-widest text-blue-200 mt-2">
+                <p className="text-2xl font-medium uppercase tracking-[0.5em] text-zinc-500 mt-6">
                   POINTS
                 </p>
               </div>
@@ -171,17 +169,17 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
 
           {/* 3rd Place */}
           {topThree[2] && (
-            <div className="flex flex-col items-center w-80">
-              <div className="text-8xl mb-8">🥉</div>
-              <div className="w-full bg-slate-900/80 backdrop-blur-xl rounded-[40px] p-12 text-center border-t-8 border-orange-400 shadow-2xl">
-                <p className="text-3xl font-black text-white truncate mb-4">
+            <div className="flex flex-col items-center w-[300px]">
+              <div className="text-7xl mb-10 opacity-80">🥉</div>
+              <div className="w-full bg-white border border-zinc-100 rounded-[60px] p-16 text-center shadow-xl">
+                <p className="text-4xl font-light text-zinc-900 truncate mb-6">
                   {topThree[2].memberName}
                 </p>
-                <p className="text-6xl font-black text-orange-400">
+                <p className="text-7xl font-medium text-amber-600/60 tracking-tighter">
                   {topThree[2].totalPoints}
                 </p>
-                <p className="text-xl font-bold uppercase tracking-widest text-slate-500 mt-2">
-                  POINTS
+                <p className="text-xl font-medium uppercase tracking-[0.4em] text-zinc-400 mt-4">
+                  PTS
                 </p>
               </div>
             </div>
@@ -189,11 +187,11 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 text-center mb-20">
-          <p className="text-3xl font-black text-white/40 uppercase tracking-[0.5em] mb-4">
+        <div className="relative z-10 text-center mb-32">
+          <p className="text-2xl font-medium text-zinc-200 uppercase tracking-[0.8em] mb-8">
             WWW.BKGALABOVO.BG
           </p>
-          <div className="h-1 w-40 bg-blue-600 mx-auto rounded-full" />
+          <div className="h-1 w-48 bg-zinc-100 mx-auto rounded-full" />
         </div>
       </div>
     );

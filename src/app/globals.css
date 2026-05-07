@@ -3,56 +3,56 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 224 71.4% 4.1%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 89% 96%;
+    --secondary-foreground: 199 89% 20%;
+    --muted: 199 20% 98%;
+    --muted-foreground: 199 10% 40%;
+    --accent: 199 89% 96%;
+    --accent-foreground: 199 89% 20%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 1rem;
+    --destructive-foreground: 0 0% 100%;
+    --border: 199 20% 94%;
+    --input: 199 20% 94%;
+    --ring: 199 89% 48%;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 224 71.4% 4.1%;
-    --sidebar-primary: 221.2 83.2% 53.3%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 221.2 83.2% 53.3%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 199 89% 96%;
+    --sidebar-accent-foreground: 199 89% 20%;
+    --sidebar-border: 199 20% 94%;
+    --sidebar-ring: 199 89% 48%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 4%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 4%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 89% 10%;
+    --secondary-foreground: 199 89% 90%;
+    --muted: 199 20% 10%;
+    --muted-foreground: 199 10% 60%;
+    --accent: 199 89% 10%;
+    --accent-foreground: 199 89% 90%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 199 20% 15%;
+    --input: 199 20% 15%;
+    --ring: 199 89% 48%;
   }
 }
 
@@ -66,6 +66,7 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-sans), sans-serif;
+    font-weight: 400;
   }
 
   h1,
@@ -74,8 +75,22 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-heading), sans-serif;
-    letter-spacing: -0.02em;
+    font-family: var(--font-sans), sans-serif;
+    letter-spacing: -0.01em;
+    font-weight: 500; /* Use medium for titles instead of bold */
+  }
+
+  /* Force remove bold weights globally */
+  b,
+  strong,
+  .font-bold,
+  .font-semibold {
+    font-weight: 500 !important;
+  }
+
+  .font-extrabold,
+  .font-black {
+    font-weight: 500 !important;
   }
 }
 

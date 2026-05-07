@@ -26,7 +26,7 @@ export const RevenueChart = ({ data }: DashboardChartsProps) => {
 
   if (!mounted) {
     return (
-      <div className="h-[300px] w-full bg-slate-50 rounded-xl animate-pulse" />
+      <div className="h-[300px] w-full bg-zinc-50 rounded-2xl animate-pulse" />
     );
   }
 
@@ -49,47 +49,54 @@ export const RevenueChart = ({ data }: DashboardChartsProps) => {
         >
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+              <stop offset="5%" stopColor="#09090b" stopOpacity={0.05} />
+              <stop offset="95%" stopColor="#09090b" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}
-            stroke="#f1f5f9"
+            stroke="#f4f4f5"
           />
           <XAxis
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
+            tick={{
+              fontSize: 10,
+              fill: "#a1a1aa",
+              fontWeight: 500,
+              letterSpacing: "0.1em",
+            }}
             dy={10}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
+            tick={{ fontSize: 10, fill: "#a1a1aa", fontWeight: 500 }}
             tickFormatter={(value) => formatPrice(value)}
           />
           <Tooltip
             contentStyle={{
               backgroundColor: "#fff",
-              borderRadius: "16px",
-              border: "none",
-              boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+              borderRadius: "1rem",
+              border: "1px solid #f4f4f5",
+              boxShadow: "none",
               padding: "12px",
             }}
             itemStyle={{
-              color: "#1e293b",
-              fontWeight: "bold",
-              fontSize: "14px",
+              color: "#09090b",
+              fontWeight: "500",
+              fontSize: "12px",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
             }}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#2563eb"
-            strokeWidth={3}
+            stroke="#09090b"
+            strokeWidth={1.5}
             fillOpacity={1}
             fill="url(#colorRevenue)"
             animationDuration={1500}

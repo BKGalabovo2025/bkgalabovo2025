@@ -49,28 +49,28 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans relative overflow-hidden">
       {/* Background Decorative Elements */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[120px] -mr-64 -mt-64" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[120px] -ml-64 -mb-64" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-zinc-200/20 rounded-full blur-[120px] -mr-64 -mt-64" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-zinc-200/20 rounded-full blur-[120px] -ml-64 -mb-64" />
 
       <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-8 font-black uppercase tracking-widest text-[10px]"
+          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-950 transition-colors mb-8 font-medium uppercase tracking-[0.3em] text-[10px]"
         >
-          <ArrowLeft size={14} /> Обратно към началото
+          <ArrowLeft size={14} strokeWidth={1.5} /> Обратно към началото
         </Link>
 
-        <BentoCard className="p-10 bg-white border-none shadow-2xl shadow-blue-900/5 rounded-[40px]">
+        <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-[2.5rem]">
           <div className="flex flex-col items-center text-center mb-10">
-            <div className="h-16 w-16 bg-blue-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-blue-200 mb-6 transform -rotate-6">
-              <ShieldCheck size={32} />
+            <div className="h-16 w-16 bg-zinc-950 rounded-[1.5rem] flex items-center justify-center text-white shadow-none mb-6 transform -rotate-6 border border-zinc-800">
+              <ShieldCheck size={32} strokeWidth={1.5} />
             </div>
-            <h1 className="text-3xl font-black tracking-tighter text-slate-900 font-bento uppercase">
+            <h1 className="text-3xl font-light tracking-tighter text-zinc-950 font-bento uppercase">
               Админ Портал
             </h1>
-            <p className="text-slate-400 font-bold tracking-widest uppercase text-[10px] mt-2">
+            <p className="text-zinc-400 font-medium tracking-[0.4em] uppercase text-[10px] mt-2">
               Бадминтон Клуб Гълъбово
             </p>
           </div>
@@ -79,7 +79,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1"
+                className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 ml-1"
               >
                 Имейл
               </Label>
@@ -88,7 +88,7 @@ const LoginPage = () => {
                 type="email"
                 placeholder="admin@bkgalabovo.com"
                 required
-                className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-medium px-6"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -98,13 +98,13 @@ const LoginPage = () => {
               <div className="flex justify-between items-center ml-1">
                 <Label
                   htmlFor="password"
-                  className="text-xs font-black uppercase tracking-widest text-slate-500"
+                  className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500"
                 >
                   Парола
                 </Label>
                 <Link
                   href="#"
-                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em] hover:text-zinc-950 transition-colors"
                 >
                   Забравена парола?
                 </Link>
@@ -113,15 +113,15 @@ const LoginPage = () => {
                 id="password"
                 type="password"
                 required
-                className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-medium px-6"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
             {error && (
-              <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl">
-                <p className="text-xs font-bold text-rose-600 text-center">
+              <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-2xl">
+                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-[0.1em] text-center">
                   {error}
                 </p>
               </div>
@@ -129,7 +129,7 @@ const LoginPage = () => {
 
             <Button
               type="submit"
-              className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-95 disabled:opacity-50"
+              className="w-full h-14 bg-zinc-950 hover:bg-zinc-900 text-white font-medium uppercase tracking-[0.2em] text-[11px] rounded-2xl shadow-none transition-all active:scale-95 disabled:opacity-50 border-none"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -140,14 +140,14 @@ const LoginPage = () => {
             </Button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-slate-50 text-center">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="mt-10 pt-8 border-t border-zinc-50 text-center">
+            <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em]">
               Система за управление на спортни клубове
             </p>
           </div>
         </BentoCard>
 
-        <p className="mt-8 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+        <p className="mt-8 text-center text-[10px] font-medium text-zinc-300 uppercase tracking-[0.4em]">
           v2.1.0 • Secure Infrastructure
         </p>
       </div>

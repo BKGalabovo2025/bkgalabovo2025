@@ -35,7 +35,7 @@ describe("MemberForm", () => {
     expect(screen.getByLabelText(/^Име$/i)).toHaveValue("");
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue("");
     expect(
-      screen.getByRole("button", { name: /Създаване на член/i })
+      screen.getByRole("button", { name: /Създаване/i })
     ).toBeInTheDocument();
   });
 
@@ -50,7 +50,7 @@ describe("MemberForm", () => {
     expect(screen.getByLabelText(/Рейтинг/i)).toHaveValue(mockMember.rating);
 
     expect(
-      screen.getByRole("button", { name: /Запазване на промените/i })
+      screen.getByRole("button", { name: /Запазване/i })
     ).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe("MemberForm", () => {
     });
 
     // Submit the form
-    fireEvent.click(screen.getByRole("button", { name: /Създаване на член/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
 
     // Wait for the async onSave to be called
     await waitFor(() => {
@@ -88,7 +88,7 @@ describe("MemberForm", () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
     // Attempt to submit an empty form
-    fireEvent.click(screen.getByRole("button", { name: /Създаване на член/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
 
     // Check for specific validation messages from Zod schema
     expect(

@@ -28,7 +28,7 @@ const InventoryHistory = dynamic(
   () => import("@/components/inventory/InventoryHistory"),
   {
     loading: () => (
-      <div className="p-20 text-center text-slate-400 font-bold animate-pulse">
+      <div className="p-20 text-center text-zinc-400 font-medium uppercase tracking-widest text-[10px] animate-pulse">
         Зареждане на история...
       </div>
     ),
@@ -78,9 +78,12 @@ const ProductList = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+      <div className="flex flex-col items-center justify-center py-24 space-y-6">
+        <Loader2
+          className="h-10 w-10 animate-spin text-primary opacity-20"
+          strokeWidth={1}
+        />
+        <p className="text-zinc-400 font-medium uppercase tracking-widest text-[10px]">
           Зареждане на инвентар...
         </p>
       </div>
@@ -89,7 +92,7 @@ const ProductList = () => {
 
   if (error) {
     return (
-      <div className="py-12 text-center text-rose-500 font-bold">
+      <div className="py-24 text-center text-rose-500 font-light text-xl">
         Грешка при зареждане на продуктите.
       </div>
     );
@@ -97,18 +100,21 @@ const ProductList = () => {
 
   return (
     <AlertDialog>
-      <div className="space-y-6">
+      <div className="space-y-10">
         <div className="relative group max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-primary transition-colors"
+            strokeWidth={1.5}
+          />
           <Input
             placeholder="Търсене на продукт..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-11 h-12 rounded-2xl border-none bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+            className="pl-11 h-12 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all font-light text-sm"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => {
               const isLowStock =
@@ -118,67 +124,76 @@ const ProductList = () => {
               return (
                 <BentoCard
                   key={product.id}
-                  className="group overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col border-none shadow-md bg-white"
+                  className="group overflow-hidden transition-all duration-500 flex flex-col border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-2xl"
                 >
-                  <div className="relative h-56 bg-slate-100 flex items-center justify-center overflow-hidden">
+                  <div className="relative h-64 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-50 dark:border-zinc-800">
                     {product.imageUrl ? (
                       <Image
                         src={product.imageUrl}
                         alt={product.name}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="object-cover group-hover:scale-110 transition-transform duration-1000"
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-200">
-                        <ImageIcon className="h-16 w-16 mb-2 opacity-20" />
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-900 text-zinc-200 dark:text-zinc-800">
+                        <ImageIcon
+                          className="h-16 w-16 mb-2 opacity-20"
+                          strokeWidth={1}
+                        />
+                        <span className="text-[10px] font-medium uppercase tracking-[0.3em] opacity-40">
                           No Image
                         </span>
                       </div>
                     )}
 
                     {/* Status Badges */}
-                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <div className="absolute top-6 left-6 flex flex-col gap-2">
                       {isOutOfStock ? (
-                        <div className="bg-rose-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-lg animate-pulse">
+                        <div className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
                           Изчерпан
                         </div>
                       ) : isLowStock ? (
-                        <div className="bg-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-lg">
+                        <div className="bg-amber-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
                           Ниска наличност
                         </div>
                       ) : null}
                     </div>
 
-                    <div className="absolute top-4 right-4 flex gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="absolute top-6 right-6 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="h-9 w-9 rounded-xl bg-white/95 backdrop-blur-sm shadow-xl hover:bg-white hover:scale-110 active:scale-95 transition-all"
+                        className="h-10 w-10 rounded-xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md shadow-none border border-zinc-100 dark:border-zinc-800 hover:bg-white dark:hover:bg-zinc-800 transition-all"
                         onClick={() => handleEdit(product)}
                       >
-                        <Edit className="h-4 w-4 text-slate-600" />
+                        <Edit
+                          className="h-4 w-4 text-zinc-600 dark:text-zinc-400"
+                          strokeWidth={1.5}
+                        />
                       </Button>
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="secondary"
                           size="icon"
-                          className="h-9 w-9 rounded-xl bg-white/95 backdrop-blur-sm shadow-xl hover:bg-rose-50 hover:text-rose-600 hover:scale-110 active:scale-95 transition-all"
+                          className="h-10 w-10 rounded-xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md shadow-none border border-zinc-100 dark:border-zinc-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 transition-all"
                           onClick={() => setProductToDelete(product)}
                         >
-                          <Trash2 className="h-4 w-4 text-rose-500" />
+                          <Trash2
+                            className="h-4 w-4 text-rose-500"
+                            strokeWidth={1.5}
+                          />
                         </Button>
                       </AlertDialogTrigger>
                     </div>
 
-                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                    <div className="absolute bottom-6 left-6">
                       <div
-                        className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg backdrop-blur-md ${
+                        className={`px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest backdrop-blur-md border ${
                           isOutOfStock
-                            ? "bg-rose-900/80 text-white"
+                            ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
                             : isLowStock
-                              ? "bg-amber-500 text-white"
-                              : "bg-white/90 text-slate-900"
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                              : "bg-white/80 dark:bg-zinc-900/80 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-white"
                         }`}
                       >
                         {product.stock} бр.
@@ -186,24 +201,24 @@ const ProductList = () => {
                     </div>
                   </div>
 
-                  <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div className="p-8 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-4 mb-2">
-                        <h3 className="text-xl font-black font-bento leading-tight group-hover:text-primary transition-colors line-clamp-1">
+                        <h3 className="text-xl font-light leading-tight group-hover:text-primary transition-colors line-clamp-1">
                           {product.name}
                         </h3>
                       </div>
-                      <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mb-4">
+                      <p className="text-zinc-400 text-[10px] font-medium uppercase tracking-[0.2em] mb-6">
                         {product.category || "General"}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                    <div className="flex items-center justify-between pt-6 border-t border-zinc-50 dark:border-zinc-900">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-none mb-2">
                           Цена
                         </span>
-                        <span className="text-2xl font-black text-slate-900 tracking-tighter">
+                        <span className="text-2xl font-light text-zinc-900 dark:text-white tracking-tight">
                           {formatPrice(product.price)}
                         </span>
                       </div>
@@ -211,7 +226,7 @@ const ProductList = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(product)}
-                        className="h-10 px-4 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-primary transition-all"
+                        className="h-10 px-6 rounded-xl font-medium text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-primary transition-all"
                       >
                         Детайли
                       </Button>
@@ -221,15 +236,18 @@ const ProductList = () => {
               );
             })
           ) : (
-            <div className="col-span-full py-32 text-center bg-white rounded-3xl border-2 border-dashed border-slate-100">
-              <Package className="h-16 w-16 text-slate-100 mx-auto mb-6" />
-              <p className="text-slate-400 font-black uppercase tracking-widest text-sm">
+            <div className="col-span-full py-40 text-center bg-zinc-50/30 dark:bg-zinc-900/10 rounded-[2rem] border-2 border-dashed border-zinc-100 dark:border-zinc-900">
+              <Package
+                className="h-16 w-16 text-zinc-200 dark:text-zinc-800 mx-auto mb-8"
+                strokeWidth={1}
+              />
+              <p className="text-zinc-400 font-medium uppercase tracking-widest text-[11px]">
                 Няма намерени продукти
               </p>
               <Button
                 variant="link"
                 onClick={() => setSearchTerm("")}
-                className="mt-2 text-primary font-bold"
+                className="mt-4 text-primary font-medium text-[11px] uppercase tracking-widest"
               >
                 Изчисти търсенето
               </Button>
@@ -238,26 +256,26 @@ const ProductList = () => {
         </div>
       </div>
 
-      <AlertDialogContent className="rounded-3xl">
+      <AlertDialogContent className="rounded-[2.5rem] border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-black font-bento">
+          <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
             Сигурни ли сте?
           </AlertDialogTitle>
-          <AlertDialogDescription className="font-medium text-slate-500">
+          <AlertDialogDescription className="font-light text-zinc-400 text-sm mt-4 leading-relaxed">
             Това ще изтрие перманентно продукта &quot;{productToDelete?.name}
             &quot;. Това действие не може да бъде отменено.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="mt-10 gap-3">
           <AlertDialogCancel
             onClick={() => setProductToDelete(null)}
-            className="rounded-xl font-bold"
+            className="rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-6 border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
           >
             Отказ
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDeleteConfirm}
-            className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl font-bold shadow-lg shadow-rose-100"
+            className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none"
           >
             Изтрий
           </AlertDialogAction>
@@ -300,25 +318,26 @@ export default function InventoryClient() {
       >
         <Button
           onClick={() => setIsAddOpen(true)}
-          className="rounded-xl shadow-md font-bento"
+          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> Добави продукт
+          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+          продукт
         </Button>
       </PageHeader>
 
       <Tabs defaultValue="stock" className="w-full">
-        <TabsList className="bg-slate-100 p-1.5 rounded-2xl w-fit mb-8">
+        <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-fit mb-12 border border-zinc-100 dark:border-zinc-800">
           <TabsTrigger
             value="stock"
-            className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5"
+            className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
           >
-            <Package className="mr-2 h-4 w-4" /> Наличност
+            <Package className="mr-3 h-4 w-4" strokeWidth={1.5} /> Наличност
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5"
+            className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
           >
-            <History className="mr-2 h-4 w-4" /> История
+            <History className="mr-3 h-4 w-4" strokeWidth={1.5} /> История
           </TabsTrigger>
         </TabsList>
 
@@ -333,7 +352,7 @@ export default function InventoryClient() {
           value="history"
           className="mt-0 focus-visible:outline-none outline-none ring-0"
         >
-          <BentoCard className="p-0 overflow-hidden border-none shadow-md">
+          <BentoCard className="p-0 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-[2rem] shadow-none">
             <InventoryHistory />
           </BentoCard>
         </TabsContent>

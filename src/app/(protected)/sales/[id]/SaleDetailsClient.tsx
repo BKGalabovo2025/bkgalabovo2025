@@ -112,7 +112,9 @@ export default function SaleDetailsClient() {
   if (!sale) {
     return (
       <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed">
-        <p className="text-slate-400 font-bold">Продажбата не беше намерена.</p>
+        <p className="text-zinc-400 font-medium">
+          Продажбата не беше намерена.
+        </p>
         <Button variant="link" onClick={() => router.push("/sales")}>
           Назад към продажби
         </Button>
@@ -158,7 +160,7 @@ export default function SaleDetailsClient() {
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-3xl">
               <AlertDialogHeader>
-                <AlertDialogTitle className="font-black text-xl">
+                <AlertDialogTitle className="font-medium text-xl text-zinc-900">
                   Сигурни ли сте?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="font-medium">
@@ -167,12 +169,12 @@ export default function SaleDetailsClient() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="rounded-xl font-bold">
+                <AlertDialogCancel className="rounded-xl font-medium">
                   Отказ
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="rounded-xl font-bold bg-red-500 hover:bg-red-600"
+                  className="rounded-xl font-medium bg-rose-500 hover:bg-rose-600 shadow-none"
                   disabled={isDeleting}
                 >
                   {isDeleting ? (
@@ -191,14 +193,16 @@ export default function SaleDetailsClient() {
           <BentoCard className="p-0 overflow-hidden">
             <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                  <ShoppingCart className="h-5 w-5" />
+                <div className="p-2 bg-zinc-100 rounded-lg text-zinc-950">
+                  <ShoppingCart className="h-5 w-5" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-bold text-lg">Списък с артикули</h3>
+                <h3 className="font-medium text-lg text-zinc-900">
+                  Списък с артикули
+                </h3>
               </div>
               <Badge
                 variant="outline"
-                className="font-black bg-white shadow-sm"
+                className="font-medium bg-white shadow-none border-zinc-100 text-zinc-500"
               >
                 {sale.items.length} продукта
               </Badge>
@@ -211,32 +215,32 @@ export default function SaleDetailsClient() {
                     className="p-6 flex justify-between items-center hover:bg-slate-50/50 transition-colors"
                   >
                     <div className="space-y-1">
-                      <p className="font-black text-slate-700">{item.name}</p>
-                      <p className="text-sm font-bold text-slate-400">
+                      <p className="font-medium text-zinc-900">{item.name}</p>
+                      <p className="text-sm font-light text-zinc-400">
                         {item.quantity} бр. x {formatPrice(item.price)}
                       </p>
                     </div>
-                    <p className="font-black text-lg">
+                    <p className="font-medium text-lg text-zinc-900">
                       {formatPrice(item.quantity * item.price)}
                     </p>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center">
+            <div className="p-8 bg-zinc-950 text-white flex justify-between items-center rounded-b-[2.5rem]">
               <div>
-                <p className="text-[10px] uppercase font-black text-white/40 tracking-widest">
+                <p className="text-[10px] uppercase font-medium text-white/40 tracking-[0.2em]">
                   Обща сума
                 </p>
-                <p className="text-3xl font-black">
+                <p className="text-3xl font-light">
                   {formatPrice(sale.totalAmount)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] uppercase font-black text-white/40 tracking-widest">
+                <p className="text-[10px] uppercase font-medium text-white/40 tracking-[0.2em]">
                   Валута
                 </p>
-                <p className="font-black text-xl">{sale.currency || "EUR"}</p>
+                <p className="font-medium text-xl">{sale.currency || "EUR"}</p>
               </div>
             </div>
           </BentoCard>
@@ -245,29 +249,29 @@ export default function SaleDetailsClient() {
         <div className="space-y-6">
           <BentoCard className="p-6">
             <div className="flex items-center gap-2 mb-6">
-              <User className="h-5 w-5 text-primary" />
-              <h3 className="font-bold text-lg font-bento">Клиент</h3>
+              <User className="h-5 w-5 text-zinc-400" strokeWidth={1.5} />
+              <h3 className="font-medium text-lg text-zinc-900">Клиент</h3>
             </div>
             {sale.memberId && member ? (
               <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <Avatar className="h-14 w-14 border-4 border-white shadow-sm">
+                <Avatar className="h-14 w-14 border-2 border-white shadow-none ring-1 ring-zinc-100">
                   <AvatarImage
                     src={member.avatarUrl ?? undefined}
                     alt={`${member.firstName} ${member.lastName}`}
                   />
-                  <AvatarFallback className="bg-primary/10 text-primary font-black">
+                  <AvatarFallback className="bg-zinc-50 text-zinc-400 font-medium">
                     {member.firstName && member.lastName
                       ? `${member.firstName[0]}${member.lastName[0]}`
                       : "C"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="font-black text-slate-700 truncate">
+                  <p className="font-medium text-zinc-900 truncate">
                     {member.firstName} {member.lastName}
                   </p>
                   <Button
                     variant="link"
-                    className="p-0 h-auto text-primary font-bold text-xs"
+                    className="p-0 h-auto text-blue-500 font-medium text-xs"
                     onClick={() => router.push(`/members/${member.id}`)}
                   >
                     Виж профил
@@ -276,7 +280,7 @@ export default function SaleDetailsClient() {
               </div>
             ) : (
               <div className="p-4 bg-slate-50/50 rounded-2xl border border-dashed text-center">
-                <p className="text-slate-400 font-bold text-sm">
+                <p className="text-zinc-400 font-medium text-sm">
                   Клиент от улицата
                 </p>
               </div>
@@ -285,15 +289,17 @@ export default function SaleDetailsClient() {
 
           <BentoCard className="p-6">
             <div className="flex items-center gap-2 mb-6">
-              <CreditCard className="h-5 w-5 text-primary" />
-              <h3 className="font-bold text-lg font-bento">Плащане</h3>
+              <CreditCard className="h-5 w-5 text-zinc-400" strokeWidth={1.5} />
+              <h3 className="font-medium text-lg text-zinc-900">Плащане</h3>
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-slate-400">Статус</span>
+                <span className="text-sm font-medium text-zinc-400">
+                  Статус
+                </span>
                 <Badge
-                  variant={isPaid ? "success" : "destructive"}
-                  className="text-xs px-3 py-1 font-black shadow-sm"
+                  variant={isPaid ? "secondary" : "destructive"}
+                  className={`text-[10px] px-3 py-1 font-medium shadow-none tracking-widest ${isPaid ? "bg-emerald-50 text-emerald-600 border-emerald-100" : ""}`}
                 >
                   {isPaid ? "ПЛАТЕНО" : "НЕПЛАТЕНО"}
                 </Badge>
@@ -303,7 +309,7 @@ export default function SaleDetailsClient() {
                 <Button
                   onClick={handleMarkAsPaid}
                   disabled={isUpdatingStatus}
-                  className="w-full h-11 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-200 mt-2 transition-all active:scale-95"
+                  className="w-full h-11 rounded-xl font-medium bg-emerald-500 hover:bg-emerald-600 shadow-none mt-2 transition-all active:scale-95 text-white"
                 >
                   {isUpdatingStatus ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -318,8 +324,8 @@ export default function SaleDetailsClient() {
 
           <BentoCard className="p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Hash className="h-5 w-5 text-primary" />
-              <h3 className="font-bold text-lg font-bento">Инфо</h3>
+              <Hash className="h-5 w-5 text-zinc-400" strokeWidth={1.5} />
+              <h3 className="font-medium text-lg text-zinc-900">Инфо</h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -327,10 +333,10 @@ export default function SaleDetailsClient() {
                   <Calendar className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-black text-slate-300 tracking-widest leading-none">
+                  <p className="text-[10px] uppercase font-medium text-zinc-300 tracking-[0.2em] leading-none">
                     Дата
                   </p>
-                  <p className="font-bold text-sm">
+                  <p className="font-medium text-sm text-zinc-600">
                     {new Date(sale.saleDate).toLocaleDateString("bg-BG", {
                       day: "2-digit",
                       month: "long",
@@ -344,10 +350,10 @@ export default function SaleDetailsClient() {
                   <Hash className="h-4 w-4 text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-black text-slate-300 tracking-widest leading-none">
+                  <p className="text-[10px] uppercase font-medium text-zinc-300 tracking-[0.2em] leading-none">
                     ID Продажба
                   </p>
-                  <p className="font-bold text-[10px] text-slate-400 font-mono">
+                  <p className="font-medium text-[10px] text-zinc-400 font-mono">
                     {sale.id}
                   </p>
                 </div>
