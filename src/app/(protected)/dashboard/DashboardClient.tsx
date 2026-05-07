@@ -6,7 +6,6 @@ import { useLanguage } from "@/context/language-context";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { RevenueChart } from "@/components/dashboard/dashboard-charts";
 import { QuickTasks } from "@/components/dashboard/quick-tasks";
 import {
   Users,
@@ -16,10 +15,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   LucideIcon,
-  Activity,
-  UserPlus,
-  CreditCard,
-  BarChart3,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -204,75 +199,12 @@ export default function DashboardClient() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Revenue Trend Chart */}
-          <BentoCard className="p-8 bg-white border-none shadow-sm relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-xl font-black font-bento text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  {t("dash.monthly_report")}
-                </h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                  Анализ на приходите (6 месеца)
-                </p>
-              </div>
-            </div>
-
-            {loading ? (
-              <Skeleton className="h-[300px] w-full rounded-2xl" />
-            ) : (
-              <RevenueChart data={revenueChartData} />
-            )}
-          </BentoCard>
-
-          <BentoCard className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-12 opacity-10 -mr-8 -mt-8 group-hover:scale-110 transition-transform duration-700">
-              <Activity size={240} />
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-2xl font-black mb-2 font-bento uppercase tracking-tight">
-                {t("dash.quick_analysis")}
-              </h3>
-              <p className="text-slate-400 mb-8 max-w-md text-sm font-medium">
-                Вижте най-натоварените часове за днес и планирайте ресурсите си
-                по-добре.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  {
-                    label: "Нови",
-                    val: stats?.newMembersLast30Days || 0,
-                    icon: UserPlus,
-                  },
-                  {
-                    label: "Плащания",
-                    val: stats?.salesLast30Days || 0,
-                    icon: CreditCard,
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10"
-                  >
-                    <item.icon className="h-4 w-4 text-blue-400 mb-2" />
-                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-tighter mb-1">
-                      {item.label}
-                    </p>
-                    <p className="text-xl font-black">{item.val}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </BentoCard>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1">
           <QuickTasks />
+        </div>
+        <div className="lg:col-span-3 space-y-8">
+          {/* Main content area cleared as requested */}
         </div>
       </div>
     </div>
