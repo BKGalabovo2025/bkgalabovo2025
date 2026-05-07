@@ -118,7 +118,7 @@ export default function TournamentsClient({
       >
         <Button
           onClick={() => setIsDialogOpen(true)}
-          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
+          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-zinc-950 text-white hover:bg-zinc-800 shadow-none transition-all"
         >
           <Plus className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нов турнир
         </Button>
@@ -219,7 +219,7 @@ export default function TournamentsClient({
           </p>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="rounded-xl h-14 px-10 font-medium uppercase tracking-widest text-[11px] bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
+            className="rounded-xl h-14 px-10 font-medium uppercase tracking-widest text-[11px] bg-zinc-950 text-white hover:bg-zinc-800 shadow-none transition-all"
           >
             Създай първия турнир
           </Button>
@@ -382,7 +382,7 @@ function TournamentCard({
       <div className="p-6 flex gap-3 bg-white dark:bg-zinc-950 mt-auto">
         <Button
           asChild
-          className="flex-1 rounded-xl font-medium h-12 shadow-none uppercase tracking-widest text-[10px] bg-primary text-white hover:bg-primary/90"
+          className="flex-1 rounded-xl font-medium h-12 shadow-none uppercase tracking-widest text-[10px] bg-zinc-950 text-white hover:bg-zinc-800"
         >
           <Link href={`/tournaments/${tournament.id}`}>
             <LayoutList className="mr-3 h-4 w-4" strokeWidth={1.5} /> Детайли
