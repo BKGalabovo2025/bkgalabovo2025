@@ -25,13 +25,9 @@ export default async function MembersPage() {
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-950 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 overflow-hidden shadow-none">
-          <div className="p-0">
-            <Suspense fallback={<MembersLoading />}>
-              <MembersClient initialMembers={members} />
-            </Suspense>
-          </div>
-        </div>
+        <Suspense fallback={<MembersLoading />}>
+          <MembersClient initialMembers={members} />
+        </Suspense>
       )}
     </div>
   );
