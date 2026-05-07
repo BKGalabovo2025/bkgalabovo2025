@@ -3,7 +3,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-
+import { Menu, X } from "lucide-react";
 import { useAppStore } from "@/store/use-app-store";
 
 const SidebarContext = React.createContext<{
@@ -13,7 +13,7 @@ const SidebarContext = React.createContext<{
   isMobile: boolean;
 } | null>(null);
 
-function useSidebar() {
+export function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider");
@@ -28,46 +28,65 @@ export const SidebarProvider = React.forwardRef<
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
   }
->(({ open: openProp, onOpenChange, className, children, ...props }, ref) => {
-  const isMobile = useIsMobile();
-  const { isSidebarOpen, setSidebarOpen } = useAppStore();
-
-  // Support external control via props, but fallback to global store
-  const open = openProp ?? isSidebarOpen;
-
-  const setOpen = React.useCallback(
-    (value: boolean | ((prev: boolean) => boolean)) => {
-      const nextValue = typeof value === "function" ? value(open) : value;
-      if (onOpenChange) {
-        onOpenChange(nextValue);
-      }
-      setSidebarOpen(nextValue);
+>(
+  (
+    {
+      defaultOpen = true,
+      open: openProp,
+      onOpenChange,
+      className,
+      children,
+      ...props
     },
-    [onOpenChange, open, setSidebarOpen]
-  );
+    ref
+  ) => {
+    const isMobile = useIsMobile();
+    const { isSidebarOpen, setSidebarOpen } = useAppStore();
 
-  const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
+    // On initial mount or mobile transition, ensure sidebar is closed on mobile
+    React.useEffect(() => {
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
+    }, [isMobile, setSidebarOpen]);
 
-  const contextValue = React.useMemo(
-    () => ({ state, open, setOpen, isMobile }),
-    [state, open, setOpen, isMobile]
-  );
+    // Support external control via props, but fallback to global store
+    const open = openProp ?? isSidebarOpen;
 
-  return (
-    <SidebarContext.Provider value={contextValue}>
-      <div
-        className={cn(
-          "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </div>
-    </SidebarContext.Provider>
-  );
-});
+    const setOpen = React.useCallback(
+      (value: boolean | ((prev: boolean) => boolean)) => {
+        const nextValue = typeof value === "function" ? value(open) : value;
+        if (onOpenChange) {
+          onOpenChange(nextValue);
+        }
+        setSidebarOpen(nextValue);
+      },
+      [onOpenChange, open, setSidebarOpen]
+    );
+
+    const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
+
+    const contextValue = React.useMemo(
+      () => ({ state, open, setOpen, isMobile }),
+      [state, open, setOpen, isMobile]
+    );
+
+    return (
+      <SidebarContext.Provider value={contextValue}>
+        <div
+          className={cn(
+            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+            className
+          )}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </div>
+      </SidebarContext.Provider>
+    );
+  }
+);
 SidebarProvider.displayName = "SidebarProvider";
 
 export const Sidebar = React.forwardRef<
@@ -89,6 +108,32 @@ export const Sidebar = React.forwardRef<
     },
     ref
   ) => {
+    const { isMobile, open, setOpen } = useSidebar();
+
+    if (isMobile) {
+      return (
+        <>
+          {open && (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+              onClick={() => setOpen(false)}
+            />
+          )}
+          <div
+            ref={ref}
+            className={cn(
+              "fixed inset-y-0 left-0 z-[60] w-72 bg-white dark:bg-zinc-950 transition-transform duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900",
+              open ? "translate-x-0" : "-translate-x-full",
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </div>
+        </>
+      );
+    }
+
     return (
       <div
         ref={ref}
@@ -96,7 +141,7 @@ export const Sidebar = React.forwardRef<
           "group peer hidden md:block text-sidebar-foreground border-r border-sidebar-border",
           className
         )}
-        data-state="expanded"
+        data-state={open ? "expanded" : "collapsed"}
         data-collapsible={collapsible}
         data-variant={variant}
         data-side={side}
@@ -222,19 +267,23 @@ export const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
 >(({ className, ...props }, ref) => {
-  const { setOpen } = useSidebar();
+  const { open, setOpen } = useSidebar();
   return (
     <button
       type="button"
       ref={ref}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-md border bg-white",
+        "flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-100 bg-white hover:bg-zinc-50 transition-all z-40 relative",
         className
       )}
       onClick={() => setOpen((prev: boolean) => !prev)}
       {...props}
     >
-      ☰
+      {open ? (
+        <X size={18} strokeWidth={1.5} className="text-zinc-900" />
+      ) : (
+        <Menu size={18} strokeWidth={1.5} className="text-zinc-900" />
+      )}
     </button>
   );
 });

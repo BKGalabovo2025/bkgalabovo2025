@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Home,
@@ -31,6 +32,14 @@ import {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
+  const { setOpen, isMobile } = useSidebar();
+
+  React.useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [pathname, isMobile, setOpen]);
+
   return (
     <Sidebar
       {...props}
