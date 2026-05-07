@@ -22,6 +22,23 @@ function initializeFirebaseAdmin() {
       console.log(
         "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
       );
+    } else if (
+      process.env.FIREBASE_PRIVATE_KEY &&
+      process.env.FIREBASE_CLIENT_EMAIL
+    ) {
+      // Fallback to individual environment variables (easier to manage in Vercel)
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId:
+            process.env.FIREBASE_PROJECT_ID ||
+            process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        }),
+      });
+      console.log(
+        "Firebase Admin SDK initialized using individual environment variables."
+      );
     } else if (googleCreds) {
       admin.initializeApp({
         credential: admin.credential.applicationDefault(),
