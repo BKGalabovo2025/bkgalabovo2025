@@ -30,9 +30,12 @@ import {
   User,
 } from "lucide-react";
 
+import { useAuth } from "@/context/auth-context";
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
   const { setOpen, isMobile } = useSidebar();
+  const { logout } = useAuth();
 
   React.useEffect(() => {
     if (isMobile) {
@@ -253,7 +256,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="h-12 px-4 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none">
+            <SidebarMenuButton
+              type="button"
+              onClick={logout}
+              className="h-12 px-4 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
+            >
               <LogOut size={20} strokeWidth={1.5} />{" "}
               <span className="text-[15px]">Изход</span>
             </SidebarMenuButton>
