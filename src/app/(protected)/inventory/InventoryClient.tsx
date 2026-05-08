@@ -223,10 +223,10 @@ const ProductList = () => {
                         </span>
                       </div>
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="sm"
                         onClick={() => handleEdit(product)}
-                        className="h-10 px-6 rounded-xl font-medium text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-primary transition-all"
+                        className="h-10 px-6 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
                       >
                         Детайли
                       </Button>

@@ -9,7 +9,7 @@ import {
   QueryDocumentSnapshot,
   orderBy,
 } from "firebase/firestore";
-import { ScheduleEvent, Attendee } from "@/types";
+import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
 import { toISOStringOrUndefined } from "@/lib/date-utils";
 
 const eventsCollection = collection(getDb(), "events");
@@ -38,11 +38,13 @@ export const docToScheduleEvent = (
     startDate:
       toISOStringOrUndefined(data.startDate) || new Date().toISOString(),
     endDate: toISOStringOrUndefined(data.endDate) || new Date().toISOString(),
-    type: ["training", "competition", "camp", "event", "other"].includes(
+    type: (["training", "competition", "camp", "event", "other"].includes(
       data.type
     )
       ? data.type
-      : "other",
+      : data.title === "Тренировка"
+        ? "training"
+        : "other") as ScheduleEventType,
     location:
       typeof data.location === "string" ? data.location : "Unknown Location",
     attendees: attendees,

@@ -82,18 +82,65 @@ export const EventListItem: React.FC<EventListItemProps> = ({
   const visibleAttendees = attendees.slice(0, MAX_VISIBLE_AVATARS);
   const hiddenAttendeesCount = attendees.length - visibleAttendees.length;
 
+  const now = new Date();
+  const start = new Date(event.startDate);
+  const end = new Date(event.endDate);
+  const isCurrent = now >= start && now <= end;
+
+  const attendedCount = event.attendees?.filter((a) => a.attended).length || 0;
+  const totalCount = event.attendees?.length || 0;
+
   return (
-    <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-none hover:border-primary/20 transition-all duration-500 border border-zinc-100 dark:border-zinc-900 group">
-      <div className="flex items-center justify-between p-6">
-        <div className="flex items-center gap-6 flex-grow">
+    <div
+      className={`bg-white dark:bg-zinc-950 rounded-[2rem] shadow-none transition-all duration-500 border group overflow-hidden ${
+        isCurrent
+          ? "border-zinc-950 dark:border-white ring-1 ring-zinc-950 dark:ring-white"
+          : "border-zinc-100 dark:border-zinc-900 hover:border-zinc-200 dark:hover:border-zinc-800"
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
+        <div className="flex items-start sm:items-center gap-6 flex-grow w-full">
           <div
-            className={`w-1.5 h-12 rounded-full ${color} opacity-40 group-hover:opacity-100 transition-opacity`}
+            className={`w-1.5 h-14 rounded-full ${color} opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block`}
           ></div>
-          <div className="flex-grow">
-            <div className="font-light text-zinc-900 dark:text-zinc-100 tracking-tight text-xl mb-1">
-              {event.title}
+          <div className="flex-grow space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
+                <Tag size={12} strokeWidth={2} className="text-zinc-400" />
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  {translation}
+                </span>
+              </div>
+              {totalCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30">
+                  <Users
+                    size={12}
+                    strokeWidth={2}
+                    className="text-emerald-600 dark:text-emerald-400"
+                  />
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                    {attendedCount} / {totalCount} присъствали
+                  </span>
+                </div>
+              )}
+              {isCurrent && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-950 dark:bg-white">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] font-bold text-white dark:text-zinc-950 uppercase tracking-widest">
+                    В ход
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-6 text-[11px] font-medium uppercase tracking-widest text-zinc-400 mt-1 flex-wrap">
+
+            <h3 className="text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight">
+              {event.title}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium text-zinc-400 tracking-wider">
               <div className="flex items-center gap-2">
                 <CalendarIcon size={14} strokeWidth={1.5} />
                 <span>{formatDate(event.startDate)}</span>
@@ -101,92 +148,100 @@ export const EventListItem: React.FC<EventListItemProps> = ({
               <div className="flex items-center gap-2">
                 <Clock size={14} strokeWidth={1.5} />
                 <span>
-                  {formatTime(event.startDate)} - {formatTime(event.endDate)}
+                  {formatTime(event.startDate)} — {formatTime(event.endDate)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Tag size={14} strokeWidth={1.5} />
-                <span className="text-primary/70">{translation}</span>
+                <span>{event.location}</span>
               </div>
-              {event.attendees && event.attendees.length > 0 && (
-                <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
-                  <Users
-                    size={12}
-                    strokeWidth={2}
-                    className="text-primary/60"
-                  />
-                  <span className="text-zinc-500">
-                    {event.attendees.filter((a) => a.attended).length} /{" "}
-                    {event.attendees.length} присъствали
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-none pt-4 sm:pt-0">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
+                  className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
                   onClick={() => onManageAttendees(event)}
                 >
-                  <Users className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
-                <p>Управление на присъстващи</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
-                  onClick={() => onPrint(event)}
-                >
-                  <Printer
-                    className="h-4 w-4 text-zinc-400"
+                  <Users
+                    className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
                     strokeWidth={1.5}
                   />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
-                <p>Принтирай</p>
+              <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  Присъствия
+                </p>
               </TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
+                  className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
+                  onClick={() => onPrint(event)}
+                >
+                  <Printer
+                    className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
+                    strokeWidth={1.5}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  Принтирай списък
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
                   onClick={() => onEdit(event)}
                 >
-                  <Edit className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
+                  <Edit
+                    className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
+                    strokeWidth={1.5}
+                  />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
-                <p>Редактирай</p>
+              <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  Редактирай
+                </p>
               </TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                  className="h-12 w-12 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all group/btn"
                   onClick={() => onDelete(event.id)}
                 >
-                  <Trash2 className="h-4 w-4 text-rose-400" strokeWidth={1.5} />
+                  <Trash2
+                    className="h-5 w-5 text-rose-400 group-hover/btn:text-rose-600 transition-colors"
+                    strokeWidth={1.5}
+                  />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-rose-100 dark:border-rose-900/30">
-                <p>Изтрий</p>
+              <TooltipContent className="rounded-xl border-rose-100 dark:border-rose-900/30 bg-white dark:bg-zinc-950 px-4 py-2 text-rose-600">
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  Изтрий
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

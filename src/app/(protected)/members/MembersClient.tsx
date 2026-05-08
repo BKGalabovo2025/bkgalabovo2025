@@ -281,143 +281,145 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </div>
         </div>
 
-        <Table>
-          <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
-            <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-900">
-              <TableHead className="w-12 px-8">
-                <Checkbox
-                  checked={
-                    selectedIds.length === paginatedMembers.length &&
-                    paginatedMembers.length > 0
-                  }
-                  onCheckedChange={toggleSelectAll}
-                  className="rounded-md border-zinc-200"
-                />
-              </TableHead>
-              <TableHead className="py-6 px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Член
-              </TableHead>
-              <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Контакт
-              </TableHead>
-              <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Възраст
-              </TableHead>
-              <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Регистрация
-              </TableHead>
-              <TableHead className="text-right px-8 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Статус
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedMembers.length > 0 ? (
-              paginatedMembers.map((member) => (
-                <TableRow
-                  key={member.id}
-                  className={cn(
-                    "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group border-zinc-50 dark:border-zinc-900",
-                    selectedIds.includes(member.id) && "bg-primary/5"
-                  )}
-                >
-                  <TableCell
-                    className="px-8"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Checkbox
-                      checked={selectedIds.includes(member.id)}
-                      onCheckedChange={() => toggleSelect(member.id)}
-                      className="rounded-md border-zinc-200"
-                    />
-                  </TableCell>
-                  <TableCell
-                    className="py-6 px-4"
-                    onClick={() => router.push(`/members/${member.id}`)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-xs group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                        {member.firstName[0]}
-                        {member.lastName[0]}
-                      </div>
-                      <div className="font-medium text-sm text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
-                        {member.firstName} {member.lastName}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    onClick={() => router.push(`/members/${member.id}`)}
-                  >
-                    <div className="flex items-center gap-3 text-zinc-500">
-                      <Mail className="h-3.5 w-3.5" strokeWidth={1.5} />
-                      <span className="text-xs font-light">
-                        {member.email || "—"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    onClick={() => router.push(`/members/${member.id}`)}
-                  >
-                    {member.ageGroup ? (
-                      <Badge
-                        variant="outline"
-                        className="rounded-lg font-medium text-[10px] bg-transparent border-zinc-200 uppercase tracking-widest px-3"
-                      >
-                        {member.ageGroup}
-                      </Badge>
-                    ) : (
-                      "—"
+        <div className="overflow-x-auto">
+          <Table className="min-w-[1000px]">
+            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
+              <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-900">
+                <TableHead className="w-12 px-8">
+                  <Checkbox
+                    checked={
+                      selectedIds.length === paginatedMembers.length &&
+                      paginatedMembers.length > 0
+                    }
+                    onCheckedChange={toggleSelectAll}
+                    className="rounded-md border-zinc-200"
+                  />
+                </TableHead>
+                <TableHead className="py-6 px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                  Член
+                </TableHead>
+                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                  Контакт
+                </TableHead>
+                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                  Възраст
+                </TableHead>
+                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                  Регистрация
+                </TableHead>
+                <TableHead className="text-right px-8 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                  Статус
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedMembers.length > 0 ? (
+                paginatedMembers.map((member) => (
+                  <TableRow
+                    key={member.id}
+                    className={cn(
+                      "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group border-zinc-50 dark:border-zinc-900",
+                      selectedIds.includes(member.id) && "bg-primary/5"
                     )}
-                  </TableCell>
-                  <TableCell
-                    onClick={() => router.push(`/members/${member.id}`)}
                   >
-                    <div className="flex items-center gap-3 text-zinc-400">
-                      <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} />
-                      <span className="text-[10px] font-medium uppercase tracking-widest">
-                        {new Date(member.registrationDate).toLocaleDateString(
-                          "bg-BG"
-                        )}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    className="text-right px-8"
-                    onClick={() => router.push(`/members/${member.id}`)}
-                  >
-                    <Badge
-                      className={cn(
-                        "rounded-lg px-3 py-1 text-[10px] font-medium uppercase tracking-widest border-none shadow-none",
-                        member.status === "active"
-                          ? "bg-emerald-500/10 text-emerald-600"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-                      )}
+                    <TableCell
+                      className="px-8"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {member.status === "active" ? "Активен" : "Неактивен"}
-                    </Badge>
+                      <Checkbox
+                        checked={selectedIds.includes(member.id)}
+                        onCheckedChange={() => toggleSelect(member.id)}
+                        className="rounded-md border-zinc-200"
+                      />
+                    </TableCell>
+                    <TableCell
+                      className="py-6 px-4"
+                      onClick={() => router.push(`/members/${member.id}`)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-xs group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                          {member.firstName[0]}
+                          {member.lastName[0]}
+                        </div>
+                        <div className="font-medium text-sm text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
+                          {member.firstName} {member.lastName}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/members/${member.id}`)}
+                    >
+                      <div className="flex items-center gap-3 text-zinc-500">
+                        <Mail className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <span className="text-xs font-light">
+                          {member.email || "—"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/members/${member.id}`)}
+                    >
+                      {member.ageGroup ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg font-medium text-[10px] bg-transparent border-zinc-200 uppercase tracking-widest px-3"
+                        >
+                          {member.ageGroup}
+                        </Badge>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/members/${member.id}`)}
+                    >
+                      <div className="flex items-center gap-3 text-zinc-400">
+                        <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium uppercase tracking-widest">
+                          {new Date(member.registrationDate).toLocaleDateString(
+                            "bg-BG"
+                          )}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      className="text-right px-8"
+                      onClick={() => router.push(`/members/${member.id}`)}
+                    >
+                      <Badge
+                        className={cn(
+                          "rounded-lg px-3 py-1 text-[10px] font-medium uppercase tracking-widest border-none shadow-none",
+                          member.status === "active"
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                        )}
+                      >
+                        {member.status === "active" ? "Активен" : "Неактивен"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center text-zinc-400">
+                      <Users
+                        className="h-12 w-12 mb-3 opacity-20"
+                        strokeWidth={1}
+                      />
+                      <p className="text-xl font-light text-zinc-900 dark:text-white uppercase tracking-[0.2em]">
+                        Няма намерени членове
+                      </p>
+                      <p className="text-[10px] font-medium uppercase tracking-widest mt-2 text-zinc-400">
+                        Опитайте с друго име или филтър.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center text-zinc-400">
-                    <Users
-                      className="h-12 w-12 mb-3 opacity-20"
-                      strokeWidth={1}
-                    />
-                    <p className="text-xl font-light text-zinc-900 dark:text-white uppercase tracking-[0.2em]">
-                      Няма намерени членове
-                    </p>
-                    <p className="text-[10px] font-medium uppercase tracking-widest mt-2 text-zinc-400">
-                      Опитайте с друго име или филтър.
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (

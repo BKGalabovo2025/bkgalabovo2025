@@ -42,6 +42,7 @@ import {
 import { toast } from "sonner";
 import { exportToExcel, exportToPdf, type ExportRow } from "@/lib/export-utils";
 import { PageHeader } from "@/components/layout/page-header";
+import { cn } from "@/lib/utils";
 
 export default function TournamentDetailsPage() {
   const params = useParams();
@@ -403,14 +404,25 @@ export default function TournamentDetailsPage() {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
-            <TabsTrigger value="participants">
+          <TabsList className="grid w-full grid-cols-3 max-w-md bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-14 border border-zinc-100 dark:border-zinc-800">
+            <TabsTrigger
+              value="participants"
+              className="rounded-xl font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:text-zinc-950 dark:data-[state=active]:text-white text-zinc-500 transition-all"
+            >
               Участници ({entries.length})
             </TabsTrigger>
-            <TabsTrigger value="matches">
+            <TabsTrigger
+              value="matches"
+              className="rounded-xl font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:text-zinc-950 dark:data-[state=active]:text-white text-zinc-500 transition-all"
+            >
               Схема/Мачове ({matches.length})
             </TabsTrigger>
-            <TabsTrigger value="results">Резултати</TabsTrigger>
+            <TabsTrigger
+              value="results"
+              className="rounded-xl font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-none data-[state=active]:text-zinc-950 dark:data-[state=active]:text-white text-zinc-500 transition-all"
+            >
+              Резултати
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="participants" className="mt-6">
@@ -502,10 +514,14 @@ export default function TournamentDetailsPage() {
                 <Button
                   onClick={handleGenerateMatches}
                   disabled={isGenerating || entries.length < 2}
-                  variant={matches.length > 0 ? "outline" : "default"}
-                  className="rounded-xl shadow-none"
+                  className={cn(
+                    "rounded-xl shadow-none font-medium text-[11px] uppercase tracking-widest h-12 px-6 transition-all",
+                    matches.length > 0
+                      ? "bg-white border border-zinc-200 text-zinc-950 hover:bg-zinc-50"
+                      : "bg-zinc-950 text-white hover:bg-zinc-800"
+                  )}
                 >
-                  <Trophy className="mr-2 h-4 w-4" />
+                  <Trophy className="mr-3 h-4 w-4" strokeWidth={1.5} />
                   {matches.length > 0
                     ? "Прегенерирай схемата"
                     : "Генерирай мачове"}
@@ -673,9 +689,9 @@ export default function TournamentDetailsPage() {
                                         {match.score}
                                       </div>
                                       <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
-                                        className="h-8 px-2 text-xs"
+                                        className="h-10 px-4 rounded-xl text-[10px] font-medium uppercase tracking-widest border-zinc-200 hover:bg-zinc-950 hover:text-white transition-all shadow-none"
                                         onClick={() => setSelectedMatch(match)}
                                       >
                                         Редактирай

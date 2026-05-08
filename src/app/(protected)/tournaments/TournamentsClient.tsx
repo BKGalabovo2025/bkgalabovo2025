@@ -379,10 +379,10 @@ function TournamentCard({
         </div>
       </div>
 
-      <div className="p-6 flex gap-3 bg-white dark:bg-zinc-950 mt-auto">
+      <div className="p-6 flex gap-3 bg-white dark:bg-zinc-950 mt-auto border-t border-zinc-50 dark:border-zinc-900">
         <Button
           asChild
-          className="flex-1 rounded-xl font-medium h-12 shadow-none uppercase tracking-widest text-[10px] bg-zinc-950 text-white hover:bg-zinc-800"
+          className="flex-1 rounded-xl font-medium h-12 shadow-none uppercase tracking-widest text-[10px] bg-zinc-950 text-white hover:bg-zinc-800 transition-all"
         >
           <Link href={`/tournaments/${tournament.id}`}>
             <LayoutList className="mr-3 h-4 w-4" strokeWidth={1.5} /> Детайли

@@ -39,44 +39,36 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
         startTime,
         endTime,
         location,
+        title,
       } = formData;
 
       // Default values for event properties not included in the form
-      const title = "Тренировка";
-      const eventType = "training";
-
       const [year, month] = monthString.split("-").map(Number);
 
-      // The month from `new Date()` is 0-indexed, so month - 1 is needed.
-      const numDaysInMonth = new Date(year, month, 0).getDate();
+      // Use a more robust way to get days in month
+      const daysInMonth = new Date(year, month, 0).getDate();
 
-      for (let i = 1; i <= numDaysInMonth; i++) {
-        const date = new Date(year, month - 1, i);
-        const dayOfWeek = date.getDay(); // Sunday is 0, Monday is 1, ..., Saturday is 6
+      for (let i = 1; i <= daysInMonth; i++) {
+        // Create date in local time first
+        const eventDate = new Date(year, month - 1, i);
+        const dayOfWeek = eventDate.getDay();
 
-        // Check if the current day of the week is in the user-selected days array
         if (days.includes(dayOfWeek)) {
-          const [startHour, startMinute] = startTime.split(":").map(Number);
-          const [endHour, endMinute] = endTime.split(":").map(Number);
+          const [startHour, startMin] = startTime.split(":").map(Number);
+          const [endHour, endMin] = endTime.split(":").map(Number);
 
-          const startDate = new Date(
-            year,
-            month - 1,
-            i,
-            startHour,
-            startMinute
-          );
-          const endDate = new Date(year, month - 1, i, endHour, endMinute);
+          const start = new Date(year, month - 1, i, startHour, startMin);
+          const end = new Date(year, month - 1, i, endHour, endMin);
 
           newEvents.push({
-            title: title,
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
-            type: eventType,
+            title: title || "Тренировка",
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+            type: formData.type || "training",
             location: location,
             attendees: [],
             attendeeMemberIds: [],
-            description: `Генерирано събитие от месечен шаблон.`,
+            description: `Автоматично генерирана тренировка за месец ${month}/${year}.`,
           });
         }
       }
@@ -99,22 +91,31 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Генериране на месечен график</DialogTitle>
-          <DialogDescription>
-            Създайте повтарящи се събития за избран месец. Попълнете данните и
-            изберете дните от седмицата, за които да се създадат събития.
-          </DialogDescription>
-        </DialogHeader>
-        <MonthlyScheduleForm
-          onSave={handleGenerate}
-          onClose={onClose}
-          isSaving={isSubmitting}
-        />
-        {error && (
-          <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
-        )}
+      <DialogContent className="sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950">
+        <div className="p-10 pb-0">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-light tracking-tight text-zinc-950 dark:text-white">
+              Месечен график
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 font-light mt-2">
+              Генерирайте автоматично събития за целия месец на базата на избран
+              шаблон.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <div className="p-10 pt-8">
+          <MonthlyScheduleForm
+            onSave={handleGenerate}
+            onClose={onClose}
+            isSaving={isSubmitting}
+          />
+          {error && (
+            <p className="text-[11px] font-medium text-rose-500 uppercase tracking-widest text-center mt-6">
+              {error}
+            </p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

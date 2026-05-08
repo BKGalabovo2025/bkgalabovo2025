@@ -260,10 +260,10 @@ export const MemberDetailsCard = ({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-[0.2em] border-zinc-100",
+                    "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-[0.2em]",
                     member.status === "active"
-                      ? "bg-zinc-950 text-white border-zinc-950"
-                      : "bg-white text-zinc-400"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                      : "bg-rose-50 text-rose-700 border-rose-100"
                   )}
                 >
                   {member.status === "active" ? "Активен" : "Неактивен"}
@@ -318,34 +318,34 @@ export const MemberDetailsCard = ({
       </div>
 
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="w-full h-16 bg-zinc-50/50 border border-zinc-100 p-2 rounded-[1.5rem] mb-8">
+        <TabsList className="w-full h-16 bg-zinc-50/50 border border-zinc-100 p-2 rounded-[1.5rem] mb-8 overflow-x-auto justify-start no-scrollbar md:justify-center scroll-smooth">
           <TabsTrigger
             value="personal"
-            className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest"
+            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Лични данни
           </TabsTrigger>
           <TabsTrigger
             value="documents"
-            className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest"
+            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Документи
           </TabsTrigger>
           <TabsTrigger
             value="sales"
-            className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest"
+            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Финанси
           </TabsTrigger>
           <TabsTrigger
             value="subscriptions"
-            className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest"
+            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Абонаменти
           </TabsTrigger>
           <TabsTrigger
             value="attendance"
-            className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest"
+            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Присъствия
           </TabsTrigger>
