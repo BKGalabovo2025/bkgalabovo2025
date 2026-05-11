@@ -59,7 +59,7 @@ export const MemberForm = ({
 }: MemberFormProps) => {
   const { activeBranch } = useAppStore();
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(MemberFormSchema),
+    resolver: zodResolver(MemberFormSchema) as any,
     defaultValues: initialData || {
       siteId: activeBranch,
       firstName: "",
