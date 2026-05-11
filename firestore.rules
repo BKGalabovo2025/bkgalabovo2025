@@ -27,10 +27,15 @@ service cloud.firestore {
       allow write: if isAdmin() && hasValidSiteId();
     }
 
-    // Публична информация (турнири) - достъпна за четене от всички
+    // Публична информация (турнири и сайтове) - достъпна за четене от всички
     match /tournaments/{docId} {
       allow read: if true;
       allow write: if isAdmin() && hasValidSiteId();
+    }
+
+    match /sites/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Всичко останало е забранено по подразбиране
