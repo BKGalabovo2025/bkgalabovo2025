@@ -199,15 +199,21 @@ export async function updateBlockedSlotAction(
     const startTime = Timestamp.fromDate(new Date(validated.startTime));
     const endTime = Timestamp.fromDate(new Date(validated.endTime));
 
-    await db.collection("blockedSlots").doc(slotId).update({
-      ...validated,
-      startTime,
-      endTime,
-      updatedAt: Timestamp.now(),
-    });
+    await db
+      .collection("blockedSlots")
+      .doc(slotId)
+      .update({
+        ...validated,
+        startTime,
+        endTime,
+        updatedAt: Timestamp.now(),
+      });
 
     revalidatePath("/reservations");
-    return { success: true, message: "Блокираният период е актуализиран успешно." };
+    return {
+      success: true,
+      message: "Блокираният период е актуализиран успешно.",
+    };
   } catch (error: any) {
     console.error("Update Blocked Slot Error:", error);
     return { success: false, message: error.message };

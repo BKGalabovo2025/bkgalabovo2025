@@ -31,7 +31,9 @@ async function migrateSiteId() {
   initAdmin();
   const adminDb = admin.firestore();
 
-  console.log("\n🚀 Стартиране на SiteId миграция за данните на БК Гълъбово...\n");
+  console.log(
+    "\n🚀 Стартиране на SiteId миграция за данните на БК Гълъбово...\n"
+  );
 
   const collectionsToMigrate = [
     "members",
@@ -80,7 +82,9 @@ async function migrateSiteId() {
       );
     }
 
-    console.log("\n🎉 Миграцията завърши успешно! Всички данни имат siteId: 'bkgalabovo'.");
+    console.log(
+      "\n🎉 Миграцията завърши успешно! Всички данни имат siteId: 'bkgalabovo'."
+    );
   } catch (error) {
     console.error("\n❌ Грешка при миграция:", error);
     process.exit(1);

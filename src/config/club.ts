@@ -9,4 +9,3 @@ export const clubInfo = {
   email: siteConfig.contact.email,
   website: siteConfig.contact.website,
 };
-

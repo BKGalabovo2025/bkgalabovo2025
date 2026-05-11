@@ -33,28 +33,28 @@ export interface Reservation {
   siteId: string; // Added for multi-tenancy
   serviceId: string; // Link to ClubService
   serviceName: string;
-  
+
   // Time blocking (including buffers)
   startTime: string; // ISO 8601
   endTime: string; // ISO 8601
-  
+
   // Actual client presence
   clientStartTime: string; // ISO 8601
   clientEndTime: string; // ISO 8601
-  
+
   // Buffers
   bufferAfter?: number; // in minutes
-  
+
   // Resources
   usedResources: ResourceRequirements;
   isExclusive?: boolean;
-  
+
   // Client info (denormalized for display)
   clientId: string;
   clientName: string;
   clientEmail?: string;
   clientPhone: string;
-  
+
   // Additional clients (if session allows multiple)
   additionalClients?: Array<{
     id?: string;
@@ -62,20 +62,20 @@ export interface Reservation {
     email?: string;
     phone?: string;
   }>;
-  
+
   status: ReservationStatus;
   notes: string;
-  
+
   // Payment info
   price: number;
   discountAmount?: number;
   finalPrice: number;
-  
+
   // Admin tracking
   isNew?: boolean;
   teamMemberId?: string;
   teamMemberName?: string;
-  
+
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
@@ -85,7 +85,12 @@ export interface Reservation {
  */
 export interface FirestoreReservation extends Omit<
   Reservation,
-  "startTime" | "endTime" | "clientStartTime" | "clientEndTime" | "createdAt" | "updatedAt"
+  | "startTime"
+  | "endTime"
+  | "clientStartTime"
+  | "clientEndTime"
+  | "createdAt"
+  | "updatedAt"
 > {
   startTime: Timestamp;
   endTime: Timestamp;

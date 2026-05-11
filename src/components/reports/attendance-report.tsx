@@ -39,7 +39,9 @@ const AttendanceReport = () => {
 
   useEffect(() => {
     if (isMounted) {
-      setStartDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+      setStartDate(
+        new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      );
       setEndDate(new Date());
     }
   }, [isMounted]);

@@ -2,12 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/auth-utils";
-import { 
-  createSubscriptionInternal, 
+import {
+  createSubscriptionInternal,
   updateSubscriptionInternal,
-  deleteSubscriptionInternal 
+  deleteSubscriptionInternal,
 } from "@/lib/db/subscriptions";
-import { subscriptionSchema, subscriptionUpdateSchema } from "@/lib/schemas/subscriptions";
+import {
+  subscriptionSchema,
+  subscriptionUpdateSchema,
+} from "@/lib/schemas/subscriptions";
 
 export type SubscriptionActionState = {
   errors?: { [key: string]: string[] | undefined };
@@ -25,13 +28,13 @@ export async function createSubscriptionAction(
 ): Promise<SubscriptionActionState> {
   try {
     const user = await getAuthUser(idToken);
-    
+
     // Validate data
     const validatedData = subscriptionSchema.parse(subscriptionData);
-    
+
     const subId = await createSubscriptionInternal(validatedData, {
       uid: user.uid,
-      email: user.email
+      email: user.email,
     });
 
     revalidatePath("/members");
@@ -64,10 +67,10 @@ export async function updateSubscriptionAction(
 ): Promise<SubscriptionActionState> {
   try {
     await getAuthUser(idToken);
-    
+
     // Validate data
     const validatedData = subscriptionUpdateSchema.parse(subscriptionUpdate);
-    
+
     await updateSubscriptionInternal(id, validatedData);
 
     revalidatePath("/members");
@@ -95,7 +98,7 @@ export async function deleteSubscriptionAction(
 ): Promise<SubscriptionActionState> {
   try {
     await getAuthUser(idToken);
-    
+
     await deleteSubscriptionInternal(id);
 
     revalidatePath("/members");

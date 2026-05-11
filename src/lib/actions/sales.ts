@@ -55,7 +55,7 @@ export async function createSaleAction(
       for (const item of data.items) {
         const productRef = adminDb.collection("products").doc(item.productId);
         const productDoc = await transaction.get(productRef);
-        
+
         if (!productDoc.exists) {
           throw new Error(`Продуктът с ID ${item.productId} не бе намерен.`);
         }
@@ -118,7 +118,9 @@ export async function updateSaleAction(
     const validatedFields = SaleSchema.omit({
       id: true,
       createdAt: true,
-    }).partial().safeParse(saleData);
+    })
+      .partial()
+      .safeParse(saleData);
 
     if (!validatedFields.success) {
       return {
@@ -252,8 +254,8 @@ export async function findOrCreateSaleForSubscriptionAction(
       transaction.set(newSaleRef, saleData);
 
       // Update payment history with saleId
-      const updatedPaymentHistory = (subscription.paymentHistory || []).map((p: any, i: number) =>
-        i === 0 ? { ...p, saleId: newSaleRef.id } : p
+      const updatedPaymentHistory = (subscription.paymentHistory || []).map(
+        (p: any, i: number) => (i === 0 ? { ...p, saleId: newSaleRef.id } : p)
       );
       transaction.update(subscriptionRef, {
         paymentHistory: updatedPaymentHistory,

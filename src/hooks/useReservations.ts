@@ -23,13 +23,15 @@ export const useReservations = (siteId?: string, date?: Date) => {
 
   useEffect(() => {
     if (!siteId) {
-      setIsLoading(false);
+      if (isLoading) setIsLoading(false);
       return;
     }
 
     const db = getDb();
-    const reservationsRef = collection(db, "reservations").withConverter(reservationConverter);
-    
+    const reservationsRef = collection(db, "reservations").withConverter(
+      reservationConverter
+    );
+
     let q = query(reservationsRef, where("siteId", "==", siteId));
 
     if (date) {
@@ -66,40 +68,54 @@ export const useReservations = (siteId?: string, date?: Date) => {
     );
 
     return () => unsubscribe();
-  }, [siteId, date?.toDateString()]);
+  }, [siteId, date, isLoading]);
 
-  const addReservation = useCallback(async (reservation: Omit<Reservation, "id" | "createdAt" | "updatedAt">) => {
-    const db = getDb();
-    try {
-      const docRef = await addDoc(collection(db, "reservations").withConverter(reservationConverter), {
-        ...reservation,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as Reservation);
-      return docRef.id;
-    } catch (err) {
-      console.error("Error adding reservation:", err);
-      toast.error("Грешка при създаване на резервация");
-      throw err;
-    }
-  }, []);
+  const addReservation = useCallback(
+    async (
+      reservation: Omit<Reservation, "id" | "createdAt" | "updatedAt">
+    ) => {
+      const db = getDb();
+      try {
+        const docRef = await addDoc(
+          collection(db, "reservations").withConverter(reservationConverter),
+          {
+            ...reservation,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          } as Reservation
+        );
+        return docRef.id;
+      } catch (err) {
+        console.error("Error adding reservation:", err);
+        toast.error("Грешка при създаване на резервация");
+        throw err;
+      }
+    },
+    []
+  );
 
-  const updateReservationStatus = useCallback(async (id: string, status: ReservationStatus) => {
-    const db = getDb();
-    try {
-      const docRef = doc(db, "reservations", id);
-      await updateDoc(docRef, { status, updatedAt: Timestamp.now() });
-      toast.success("Статусът е обновен");
-    } catch (err) {
-      console.error("Error updating reservation:", err);
-      toast.error("Грешка при обновяване на статуса");
-      throw err;
-    }
-  }, []);
+  const updateReservationStatus = useCallback(
+    async (id: string, status: ReservationStatus) => {
+      const db = getDb();
+      try {
+        const docRef = doc(db, "reservations", id);
+        await updateDoc(docRef, { status, updatedAt: Timestamp.now() });
+        toast.success("Статусът е обновен");
+      } catch (err) {
+        console.error("Error updating reservation:", err);
+        toast.error("Грешка при обновяване на статуса");
+        throw err;
+      }
+    },
+    []
+  );
 
-  const cancelReservation = useCallback(async (id: string) => {
-    return updateReservationStatus(id, "cancelled");
-  }, [updateReservationStatus]);
+  const cancelReservation = useCallback(
+    async (id: string) => {
+      return updateReservationStatus(id, "cancelled");
+    },
+    [updateReservationStatus]
+  );
 
   return {
     reservations,

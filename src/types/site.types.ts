@@ -8,14 +8,14 @@ export interface Site {
   name: string; // Display name
   address?: string;
   isActive: boolean;
-  
+
   // Recovery Zone settings
   recoveryEnabled: boolean;
   recoveryInventory: ResourceRequirements;
-  
+
   // Operating hours for recovery
   operatingHours: {
     start: number; // e.g., 8 for 08:00
-    end: number;   // e.g., 22 for 22:00
+    end: number; // e.g., 22 for 22:00
   };
 }

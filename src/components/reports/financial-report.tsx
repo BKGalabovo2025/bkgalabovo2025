@@ -153,7 +153,10 @@ const FinancialReport = () => {
   if (!isMounted || isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-zinc-400 gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-300" strokeWidth={1.5} />
+        <Loader2
+          className="h-8 w-8 animate-spin text-zinc-300"
+          strokeWidth={1.5}
+        />
         <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
           {!isMounted ? "Инициализиране..." : "Зареждане на отчета..."}
         </span>

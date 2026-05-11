@@ -6,9 +6,9 @@ import { docToClubService } from "@/services/subscription-service";
 import { useReservations } from "./useReservations";
 import { getSiteById } from "@/services/site-service";
 import { Site } from "@/types/site.types";
-import { 
-  calculateAvailability, 
-  isServiceAvailableAcrossSlots
+import {
+  calculateAvailability,
+  isServiceAvailableAcrossSlots,
 } from "@/services/booking/availability";
 
 export const useAvailability = (
@@ -18,8 +18,13 @@ export const useAvailability = (
 ) => {
   const [service, setService] = useState<ClubService | null>(null);
   const [site, setSite] = useState<Site | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<{ time: string; available: boolean; start: Date }[]>([]);
-  const { reservations, isLoading: isReservationsLoading } = useReservations(siteId, date);
+  const [availableSlots, setAvailableSlots] = useState<
+    { time: string; available: boolean; start: Date }[]
+  >([]);
+  const { reservations, isLoading: isReservationsLoading } = useReservations(
+    siteId,
+    date
+  );
   const [isServiceLoading, setIsServiceLoading] = useState(true);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
 
@@ -59,13 +64,21 @@ export const useAvailability = (
   }, [siteId]);
 
   useEffect(() => {
-    if (isReservationsLoading || isServiceLoading || isSiteLoading || !service || !site) {
+    if (
+      isReservationsLoading ||
+      isServiceLoading ||
+      isSiteLoading ||
+      !service ||
+      !site
+    ) {
       setAvailableSlots([]);
       return;
     }
 
     // Use site-specific settings
-    const inventory = site.recoveryEnabled ? site.recoveryInventory : { attachments: { arms: 0, hips: 0, legs: 0 }, compressors: 0 };
+    const inventory = site.recoveryEnabled
+      ? site.recoveryInventory
+      : { attachments: { arms: 0, hips: 0, legs: 0 }, compressors: 0 };
     const operatingHours = site.operatingHours || { start: 8, end: 22 };
 
     // Calculate slots
@@ -76,7 +89,9 @@ export const useAvailability = (
       operatingHours
     );
 
-    const serviceDurationSegments = Math.ceil((service.durationMinutes || 0) / 15);
+    const serviceDurationSegments = Math.ceil(
+      (service.durationMinutes || 0) / 15
+    );
 
     const formattedSlots = slots.map((slot, index) => {
       const isAvailable = isServiceAvailableAcrossSlots(
@@ -88,19 +103,30 @@ export const useAvailability = (
       );
 
       return {
-        time: slot.start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }),
+        time: slot.start.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         available: isAvailable,
         start: slot.start,
       };
     });
 
     setAvailableSlots(formattedSlots);
-  }, [reservations, service, site, date, isReservationsLoading, isServiceLoading, isSiteLoading]);
+  }, [
+    reservations,
+    service,
+    site,
+    date,
+    isReservationsLoading,
+    isServiceLoading,
+    isSiteLoading,
+  ]);
 
   return {
     availableSlots,
     isLoading: isReservationsLoading || isServiceLoading || isSiteLoading,
     service,
-    site
+    site,
   };
 };

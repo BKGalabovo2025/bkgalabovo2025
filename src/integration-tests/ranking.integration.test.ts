@@ -29,7 +29,9 @@ describe("Ranking Integration", () => {
             title: "Tournament 1",
             status: "completed",
             countsForRanking: true,
-            startDate: "2024-01-01",
+            startDate: "2024-01-01T10:00:00Z",
+            endDate: "2024-01-01T18:00:00Z",
+            location: "Test Hall",
             categories: ["singles"],
             pointsMultiplier: 1,
           }),
@@ -70,6 +72,7 @@ describe("Ranking Integration", () => {
 
     // Setup sequence of getDocs calls
     vi.mocked(getDocs)
+      .mockResolvedValue(mockTournaments as any) // Default to tournaments
       .mockResolvedValueOnce(mockTournaments as any)
       .mockResolvedValueOnce(mockEntries as any)
       .mockResolvedValueOnce(mockMatches as any);

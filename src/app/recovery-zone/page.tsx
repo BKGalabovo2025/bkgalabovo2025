@@ -85,7 +85,10 @@ export default function RecoveryZonePage() {
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
+        >
           <ArrowLeft size={16} />
           Portal
         </Link>
@@ -155,7 +158,9 @@ export default function RecoveryZonePage() {
       <section id="benefits" className="py-32 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
-            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">Ползи</p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">
+              Ползи
+            </p>
             <h2 className="text-4xl font-light tracking-tight">
               Научно обоснована
               <span className="text-zinc-500"> терапия</span>
@@ -171,7 +176,9 @@ export default function RecoveryZonePage() {
                   <b.icon size={20} strokeWidth={1.5} />
                 </div>
                 <h3 className="font-medium text-white mb-3">{b.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{b.desc}</p>
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  {b.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -182,7 +189,9 @@ export default function RecoveryZonePage() {
       <section className="py-32 px-6 bg-zinc-900/30">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
-            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">Приставки</p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">
+              Приставки
+            </p>
             <h2 className="text-4xl font-light tracking-tight">
               Три зони на
               <span className="text-zinc-500"> въздействие</span>
@@ -208,8 +217,12 @@ export default function RecoveryZonePage() {
                   <div className="absolute inset-0 bg-linear-to-t from-zinc-900 to-transparent" />
                 </div>
                 <div className="p-8">
-                  <h3 className="text-lg font-medium text-white mb-3">{a.name}</h3>
-                  <p className="text-zinc-500 text-sm leading-relaxed">{a.desc}</p>
+                  <h3 className="text-lg font-medium text-white mb-3">
+                    {a.name}
+                  </h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">
+                    {a.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -221,8 +234,12 @@ export default function RecoveryZonePage() {
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-16">
-            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">FAQ</p>
-            <h2 className="text-4xl font-light tracking-tight">Чести въпроси</h2>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">
+              FAQ
+            </p>
+            <h2 className="text-4xl font-light tracking-tight">
+              Чести въпроси
+            </h2>
           </div>
           <div className="space-y-4">
             {faqs.map((faq) => (
@@ -236,7 +253,9 @@ export default function RecoveryZonePage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-white mb-3">{faq.q}</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">{faq.a}</p>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      {faq.a}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -248,10 +267,13 @@ export default function RecoveryZonePage() {
       {/* Safety */}
       <section className="py-24 px-6 bg-amber-950/20 border-y border-amber-900/20">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-amber-400 mb-4">Важно</p>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-amber-400 mb-4">
+            Важно
+          </p>
           <h2 className="text-3xl font-light mb-6">Противопоказания</h2>
           <p className="text-zinc-400 mb-8">
-            Normatec 3 е безопасна за мнозинството хора, но не се препоръчва при:
+            Normatec 3 е безопасна за мнозинството хора, но не се препоръчва
+            при:
           </p>
           <ul className="space-y-3 text-zinc-400 text-sm">
             {[
@@ -270,8 +292,8 @@ export default function RecoveryZonePage() {
             ))}
           </ul>
           <p className="mt-8 text-sm text-zinc-500 italic">
-            Ако имате медицинско състояние, за което не сте сигурни, консултирайте
-            се с вашия лекар преди сесията.
+            Ако имате медицинско състояние, за което не сте сигурни,
+            консултирайте се с вашия лекар преди сесията.
           </p>
         </div>
       </section>
@@ -279,7 +301,9 @@ export default function RecoveryZonePage() {
       {/* Contact & CTA */}
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-6">Контакт</p>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-6">
+            Контакт
+          </p>
           <h2 className="text-5xl font-light tracking-tight mb-6">
             Готов/а за
             <br />
@@ -316,12 +340,17 @@ export default function RecoveryZonePage() {
           <div className="h-7 w-7 bg-emerald-500 rounded-xl flex items-center justify-center">
             <Activity size={14} className="text-white" />
           </div>
-          <span className="text-sm font-medium text-zinc-400">Recovery Zone by ZM</span>
+          <span className="text-sm font-medium text-zinc-400">
+            Recovery Zone by ZM
+          </span>
         </div>
         <span className="text-[10px] uppercase tracking-widest text-zinc-700">
           © {new Date().getFullYear()} Recovery Zone by ZM
         </span>
-        <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors">
+        <Link
+          href="/"
+          className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
+        >
           ← Обратно към портала
         </Link>
       </footer>

@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,14 +27,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-  getSubscriptionsByMemberId, 
-  getAllClubServices 
+import {
+  getSubscriptionsByMemberId,
+  getAllClubServices,
 } from "@/services/subscription-service";
-import { 
-  createSubscriptionAction, 
+import {
+  createSubscriptionAction,
   updateSubscriptionAction,
-  deleteSubscriptionAction
+  deleteSubscriptionAction,
 } from "@/lib/actions/subscriptions";
 import { findOrCreateSaleForSubscriptionAction } from "@/lib/actions/sales";
 import { Subscription, ClubService } from "@/types";
@@ -294,13 +291,17 @@ const ReceiptButton = ({
         toast.error("Липсва оторизация. Моля, влезте отново.");
         return;
       }
-      const result = await findOrCreateSaleForSubscriptionAction(idToken, subscription);
+      const result = await findOrCreateSaleForSubscriptionAction(
+        idToken,
+        subscription
+      );
       if (result.success && result.data?.id) {
         onUpdate();
         router.push(`/sales/${result.data.id}/receipt`);
       } else {
         toast.error("Грешка", {
-          description: result.message || "Не може да бъде генерирана квитанция.",
+          description:
+            result.message || "Не може да бъде генерирана квитанция.",
         });
       }
     } catch {
@@ -346,8 +347,9 @@ const SubscriptionCard = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете този абонамент?")) return;
-    
+    if (!confirm("Сигурни ли сте, че искате да изтриете този абонамент?"))
+      return;
+
     setIsDeleting(true);
     try {
       if (!idToken) {
@@ -383,7 +385,10 @@ const SubscriptionCard = ({
       }
 
       const nextStartDate = calculateNextStartDate(sub.endDate);
-      const nextEndDate = calculateEndDate(nextStartDate, service.billingPeriod);
+      const nextEndDate = calculateEndDate(
+        nextStartDate,
+        service.billingPeriod
+      );
 
       const result = await createSubscriptionAction(idToken, {
         memberId: sub.memberId,

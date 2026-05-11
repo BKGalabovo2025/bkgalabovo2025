@@ -20,9 +20,12 @@ export async function POST(request: Request) {
 
     // 1. Basic validation
     if (!firstName || !lastName || !email || !siteId) {
-      return new NextResponse("First name, last name, email and siteId are required", {
-        status: 400,
-      });
+      return new NextResponse(
+        "First name, last name, email and siteId are required",
+        {
+          status: 400,
+        }
+      );
     }
 
     // 2. Create the new member

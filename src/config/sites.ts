@@ -20,7 +20,8 @@ export const SITES: Record<string, SiteConfig> = {
     domain: "bkgalabovo.com", // This would be the production domain
     themeColor: "#1e3a8a", // Blue
     contact: {
-      address: "град Гълъбово, п.к 6280, обл. Стара Загора, ул. ”Иван Вазов” №22",
+      address:
+        "град Гълъбово, п.к 6280, обл. Стара Загора, ул. ”Иван Вазов” №22",
       phone: "+359 899 82 99 23",
       email: "bk_galabovo@abv.bg",
       mol: "Мира Георгиева",

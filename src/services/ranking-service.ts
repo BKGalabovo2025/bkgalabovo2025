@@ -91,7 +91,7 @@ export async function computeGlobalRankings(dateFilter?: {
 }): Promise<RankingEntry[]> {
   const db = getDb();
   // 1. Всички завършени турнири, влизащи в ранглистата
-  let q = query(
+  const q = query(
     collection(db, TOURNAMENTS_COLLECTION),
     where("countsForRanking", "==", true),
     where("status", "==", "completed")

@@ -57,7 +57,10 @@ export default function ClubPage() {
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
+        >
           <ArrowLeft size={16} />
           Portal
         </Link>
@@ -126,20 +129,21 @@ export default function ClubPage() {
       <section id="about" className="py-32 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">За клуба</p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">
+              За клуба
+            </p>
             <h2 className="text-4xl font-light tracking-tight mb-6">
-              Организация с
-              <span className="text-zinc-500"> кауза</span>
+              Организация с<span className="text-zinc-500"> кауза</span>
             </h2>
             <p className="text-zinc-400 leading-relaxed mb-6">
-              СНЦ „Бадминтон клуб Гълъбово" е сдружение с нестопанска цел,
-              посветено на развитието на бадминтона в Гълъбово и региона.
-              Клубът организира тренировки, участва в официални турнири и
-              насърчава спортния дух сред всички възрасти.
+              СНЦ „Бадминтон клуб Гълъбово&ldquo; е сдружение с нестопанска цел,
+              посветено на развитието на бадминтона в Гълъбово и региона. Клубът
+              организира тренировки, участва в официални турнири и насърчава
+              спортния дух сред всички възрасти.
             </p>
             <p className="text-zinc-500 leading-relaxed">
-              Ръководен от Мира Георгиева, клубът поддържа активна ранглиста
-              на членовете и участва в официалния национален спортен календар.
+              Ръководен от Мира Георгиева, клубът поддържа активна ранглиста на
+              членовете и участва в официалния национален спортен календар.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -163,7 +167,9 @@ export default function ClubPage() {
       <section className="py-32 px-6 bg-zinc-900/30">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
-            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">Какво предлагаме</p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">
+              Какво предлагаме
+            </p>
             <h2 className="text-4xl font-light tracking-tight">
               Всичко за
               <span className="text-zinc-500"> бадминтона</span>
@@ -179,7 +185,9 @@ export default function ClubPage() {
                   <f.icon size={20} strokeWidth={1.5} />
                 </div>
                 <h3 className="font-medium text-white mb-3">{f.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{f.desc}</p>
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -192,7 +200,9 @@ export default function ClubPage() {
           <div className="bg-zinc-900 border border-blue-600/20 rounded-[3rem] p-12 md:p-16 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -mr-32 -mt-32" />
             <div className="relative z-10">
-              <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-6">Членство</p>
+              <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-6">
+                Членство
+              </p>
               <h2 className="text-4xl font-light tracking-tight mb-6">
                 Стани член на
                 <br />
@@ -216,31 +226,53 @@ export default function ClubPage() {
       {/* Contact */}
       <section className="py-32 px-6 bg-zinc-900/30">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">Контакт</p>
+          <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">
+            Контакт
+          </p>
           <h2 className="text-4xl font-light tracking-tight mb-12">
             Намерете ни
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-              <MapPin size={20} className="text-blue-400 mb-4" strokeWidth={1.5} />
+              <MapPin
+                size={20}
+                className="text-blue-400 mb-4"
+                strokeWidth={1.5}
+              />
               <p className="text-white font-medium mb-2">Адрес</p>
               <p className="text-zinc-500 text-sm leading-relaxed">
-                гр. Гълъбово, п.к. 6280<br />
-                обл. Стара Загора<br />
-                ул. „Иван Вазов" №22
+                гр. Гълъбово, п.к. 6280
+                <br />
+                обл. Стара Загора
+                <br />
+                ул. „Иван Вазов&ldquo; №22
               </p>
             </div>
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-              <Phone size={20} className="text-blue-400 mb-4" strokeWidth={1.5} />
+              <Phone
+                size={20}
+                className="text-blue-400 mb-4"
+                strokeWidth={1.5}
+              />
               <p className="text-white font-medium mb-2">Телефон</p>
-              <a href="tel:+359899829923" className="text-zinc-400 hover:text-blue-400 text-sm transition-colors">
+              <a
+                href="tel:+359899829923"
+                className="text-zinc-400 hover:text-blue-400 text-sm transition-colors"
+              >
                 +359 899 82 99 23
               </a>
             </div>
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-              <Mail size={20} className="text-blue-400 mb-4" strokeWidth={1.5} />
+              <Mail
+                size={20}
+                className="text-blue-400 mb-4"
+                strokeWidth={1.5}
+              />
               <p className="text-white font-medium mb-2">Имейл</p>
-              <a href="mailto:bk_galabovo@abv.bg" className="text-zinc-400 hover:text-blue-400 text-sm transition-colors break-all">
+              <a
+                href="mailto:bk_galabovo@abv.bg"
+                className="text-zinc-400 hover:text-blue-400 text-sm transition-colors break-all"
+              >
                 bk_galabovo@abv.bg
               </a>
             </div>
@@ -254,12 +286,17 @@ export default function ClubPage() {
           <div className="h-7 w-7 bg-blue-600 rounded-xl flex items-center justify-center">
             <Trophy size={14} className="text-white" />
           </div>
-          <span className="text-sm font-medium text-zinc-400">СНЦ „Бадминтон клуб Гълъбово"</span>
+          <span className="text-sm font-medium text-zinc-400">
+            СНЦ „Бадминтон клуб Гълъбово&ldquo;
+          </span>
         </div>
         <span className="text-[10px] uppercase tracking-widest text-zinc-700">
           © {new Date().getFullYear()} БК Гълъбово
         </span>
-        <Link href="/" className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors">
+        <Link
+          href="/"
+          className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
+        >
           ← Обратно към портала
         </Link>
       </footer>

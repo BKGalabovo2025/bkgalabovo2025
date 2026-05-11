@@ -1,8 +1,8 @@
-import { 
-  FirestoreDataConverter, 
-  QueryDocumentSnapshot, 
+import {
+  FirestoreDataConverter,
+  QueryDocumentSnapshot,
   SnapshotOptions,
-  Timestamp 
+  Timestamp,
 } from "firebase/firestore";
 import { Reservation, FirestoreReservation } from "@/types/booking.types";
 
@@ -16,9 +16,13 @@ export const reservationConverter: FirestoreDataConverter<Reservation> = {
       ...reservation,
       startTime: Timestamp.fromDate(new Date(reservation.startTime)),
       endTime: Timestamp.fromDate(new Date(reservation.endTime)),
-      clientStartTime: Timestamp.fromDate(new Date(reservation.clientStartTime)),
+      clientStartTime: Timestamp.fromDate(
+        new Date(reservation.clientStartTime)
+      ),
       clientEndTime: Timestamp.fromDate(new Date(reservation.clientEndTime)),
-      createdAt: reservation.createdAt ? Timestamp.fromDate(new Date(reservation.createdAt)) : Timestamp.now(),
+      createdAt: reservation.createdAt
+        ? Timestamp.fromDate(new Date(reservation.createdAt))
+        : Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
   },

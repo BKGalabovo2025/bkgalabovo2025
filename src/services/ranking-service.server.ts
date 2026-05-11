@@ -76,7 +76,7 @@ export async function computeGlobalRankingsServer(dateFilter?: {
     const db = getAdminDb();
 
     // 1. All completed tournaments that count for ranking
-    let query = db
+    const query = db
       .collection(TOURNAMENTS_COLLECTION)
       .where("countsForRanking", "==", true)
       .where("status", "==", "completed");

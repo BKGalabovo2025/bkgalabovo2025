@@ -7,12 +7,12 @@ import { columns, SubscriptionData } from "@/components/subscriptions/columns";
 import { Subscription, ClubService, Member } from "@/types";
 import {
   getAllClubServices,
-  getAllMemberSubscriptions
+  getAllMemberSubscriptions,
 } from "@/services/subscription-service";
-import { 
-  createSubscriptionAction, 
+import {
+  createSubscriptionAction,
   updateSubscriptionAction,
-  deleteSubscriptionAction
+  deleteSubscriptionAction,
 } from "@/lib/actions/subscriptions";
 import { getAllMembers } from "@/services/member-service";
 import { toast } from "sonner";
@@ -111,7 +111,11 @@ export default function SubscriptionsClient() {
       let result;
 
       if (selectedSubscription) {
-        result = await updateSubscriptionAction(idToken, selectedSubscription.id, formData);
+        result = await updateSubscriptionAction(
+          idToken,
+          selectedSubscription.id,
+          formData
+        );
       } else {
         result = await createSubscriptionAction(idToken, formData);
       }
@@ -139,7 +143,7 @@ export default function SubscriptionsClient() {
       });
       return;
     }
-    
+
     try {
       const idToken = await user.getIdToken();
       const result = await deleteSubscriptionAction(idToken, id);

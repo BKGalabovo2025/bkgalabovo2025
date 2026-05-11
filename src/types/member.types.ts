@@ -38,11 +38,13 @@ export const MemberSchema = z.object({
   middleName: z.string().nullable().optional(),
   gender: z.enum(["male", "female"]).nullable().optional(),
   email: z
-    .preprocess(
-      (v) => (v === "" ? undefined : v),
-      z.string().trim().email({ message: "Invalid email address" }).optional()
-    )
-    .nullable(),
+    .union([
+      z.string().trim().email({ message: "Invalid email address" }),
+      z.literal(""),
+      z.null(),
+      z.undefined(),
+    ])
+    .optional(),
   phone: z.string().nullable().optional(),
   phoneType: z.enum(["personal", "parent"]).nullable().optional(),
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),

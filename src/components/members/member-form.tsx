@@ -96,7 +96,11 @@ export const MemberForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        aria-label="member-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Основна информация */}
           <BentoCard className="lg:col-span-2 p-8 border-zinc-100 shadow-none rounded-4xl">

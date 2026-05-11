@@ -48,7 +48,9 @@ export async function createSubscriptionInternal(
 
     // 3. Update member's last payment date if price > 0
     if (subscriptionData.price > 0) {
-      const memberRef = adminDb.collection("members").doc(subscriptionData.memberId);
+      const memberRef = adminDb
+        .collection("members")
+        .doc(subscriptionData.memberId);
       transaction.update(memberRef, {
         lastPaymentDate: new Date().toISOString(),
         updatedAt: FieldValue.serverTimestamp(),
@@ -68,7 +70,7 @@ export async function updateSubscriptionInternal(
 ): Promise<void> {
   const adminDb = getAdminDb();
   const subRef = adminDb.collection("memberSubscriptions").doc(id);
-  
+
   await subRef.update({
     ...subscriptionUpdate,
     updatedAt: FieldValue.serverTimestamp(),

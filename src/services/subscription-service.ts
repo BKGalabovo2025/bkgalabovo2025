@@ -58,9 +58,10 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
           },
     // Recovery Zone specific fields
     requiredResources: data.requiredResources,
-    isExclusive: typeof data.isExclusive === "boolean" ? data.isExclusive : false,
+    isExclusive:
+      typeof data.isExclusive === "boolean" ? data.isExclusive : false,
     bufferAfter: typeof data.bufferAfter === "number" ? data.bufferAfter : 0,
-    
+
     createdAt:
       typeof data.createdAt === "string"
         ? data.createdAt

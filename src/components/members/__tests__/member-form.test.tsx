@@ -77,7 +77,7 @@ describe("MemberForm", () => {
     });
 
     // Submit the form
-    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
+    fireEvent.submit(screen.getByRole("form", { name: /member-form/i }));
 
     // Wait for the async onSave to be called
     await waitFor(() => {
@@ -96,7 +96,7 @@ describe("MemberForm", () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
     // Attempt to submit an empty form
-    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
+    fireEvent.submit(screen.getByRole("form", { name: /member-form/i }));
 
     // Check for specific validation messages from Zod schema
     expect(
@@ -110,7 +110,7 @@ describe("MemberForm", () => {
 
   it("should mark email as invalid for incorrect format", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
-    
+
     // Fill in required fields to avoid other validation errors
     fireEvent.change(screen.getByLabelText(/^Име$/i), {
       target: { value: "Test" },
@@ -118,17 +118,19 @@ describe("MemberForm", () => {
     fireEvent.change(screen.getByLabelText(/Фамилия/i), {
       target: { value: "User" },
     });
-    
+
     // Enter an invalid email
     const emailInput = screen.getByLabelText(/Имейл/i);
     fireEvent.change(emailInput, { target: { value: "invalid-email" } });
     fireEvent.blur(emailInput);
 
     // Submit the form
-    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
+    fireEvent.submit(screen.getByRole("form", { name: /member-form/i }));
 
     // Check for validation message
-    expect(await screen.findByText("Invalid email address", {}, { timeout: 2000 })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Invalid email address", {}, { timeout: 2000 })
+    ).toBeInTheDocument();
 
     // Ensure onSave was not called
     expect(onSave).not.toHaveBeenCalled();

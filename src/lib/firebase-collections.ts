@@ -1,4 +1,9 @@
-import { collection, FirestoreDataConverter, query, where } from "firebase/firestore";
+import {
+  collection,
+  FirestoreDataConverter,
+  query,
+  where,
+} from "firebase/firestore";
 import { getDb } from "./firebase";
 import { getSiteConfig } from "@/config/sites";
 import {
@@ -120,7 +125,7 @@ export const getInventoryEventsCollection = () =>
 
 // --- Tenant-Aware Query Getters ---
 
-export const getMembersQuery = () => 
+export const getMembersQuery = () =>
   query(getMembersCollection(), where("siteId", "==", getSiteConfig().id));
 
 export const getSalesQuery = () =>
@@ -130,10 +135,16 @@ export const getClubServicesQuery = () =>
   query(getClubServicesCollection(), where("siteId", "==", getSiteConfig().id));
 
 export const getSubscriptionsQuery = () =>
-  query(getMemberSubscriptionsCollection(), where("siteId", "==", getSiteConfig().id));
+  query(
+    getMemberSubscriptionsCollection(),
+    where("siteId", "==", getSiteConfig().id)
+  );
 
 export const getProductsQuery = () =>
   query(getProductsCollection(), where("siteId", "==", getSiteConfig().id));
 
 export const getInventoryEventsQuery = () =>
-  query(getInventoryEventsCollection(), where("siteId", "==", getSiteConfig().id));
+  query(
+    getInventoryEventsCollection(),
+    where("siteId", "==", getSiteConfig().id)
+  );

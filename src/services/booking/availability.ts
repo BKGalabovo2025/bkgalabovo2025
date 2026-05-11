@@ -1,7 +1,7 @@
-import { 
-  AttachmentType, 
-  Reservation, 
-  ResourceRequirements 
+import {
+  AttachmentType,
+  Reservation,
+  ResourceRequirements,
 } from "@/types/booking.types";
 import { ClubService } from "@/types";
 
@@ -45,16 +45,29 @@ export function calculateAvailability(
 
   const scanStart = new Date(targetDate.getTime() - 12 * 60 * 60 * 1000);
   const scanEnd = new Date(targetDate.getTime() + 36 * 60 * 60 * 1000);
-  const scanStartTime = Math.floor(scanStart.getTime() / intervalMs) * intervalMs;
+  const scanStartTime =
+    Math.floor(scanStart.getTime() / intervalMs) * intervalMs;
 
   for (let time = scanStartTime; time < scanEnd.getTime(); time += intervalMs) {
     const slotStart = new Date(time);
     const parts = getSofiaParts(slotStart);
     if (`${parts.year}-${parts.month}-${parts.day}` !== targetDateStr) continue;
     const slotHourDecimal = parts.hour + parts.minute / 60;
-    if (slotHourDecimal < operatingHours.start || slotHourDecimal >= operatingHours.end) continue;
+    if (
+      slotHourDecimal < operatingHours.start ||
+      slotHourDecimal >= operatingHours.end
+    )
+      continue;
 
-    slots.push(createSlot(slotStart, time + intervalMs, reservations, siteInventory, teamMemberId));
+    slots.push(
+      createSlot(
+        slotStart,
+        time + intervalMs,
+        reservations,
+        siteInventory,
+        teamMemberId
+      )
+    );
   }
 
   return slots.sort((a, b) => a.start.getTime() - b.start.getTime());
@@ -126,7 +139,8 @@ export function getSofiaParts(date: Date) {
   });
 
   const parts = format.formatToParts(date);
-  const getPart = (type: string) => parseInt(parts.find((p) => p.type === type)!.value);
+  const getPart = (type: string) =>
+    parseInt(parts.find((p) => p.type === type)!.value);
 
   return {
     day: getPart("day"),
@@ -153,7 +167,8 @@ export function isServiceAvailableAcrossSlots(
 
   for (let i = 0; i < serviceDurationSegments; i++) {
     const slot = slots[startIndex + i];
-    if (!hasRequiredResources(slot, service, isExclusive, siteInventory)) return false;
+    if (!hasRequiredResources(slot, service, isExclusive, siteInventory))
+      return false;
   }
 
   return true;
@@ -171,7 +186,8 @@ function accumulateReservationUsage(
   if (!(start.getTime() < resEnd && endTime > resStart)) return false;
 
   const isLocked =
-    res.isExclusive === true || (!!teamMemberId && res.teamMemberId === teamMemberId);
+    res.isExclusive === true ||
+    (!!teamMemberId && res.teamMemberId === teamMemberId);
 
   const ur = res.usedResources as ResourceRequirements | undefined;
   if (ur) {
@@ -193,23 +209,44 @@ function createSlot(
   teamMemberId?: string
 ): AvailabilitySlot {
   const end = new Date(endTime);
-  const usage: ResourceUsage = { attachments: { arms: 0, hips: 0, legs: 0 }, compressors: 0 };
+  const usage: ResourceUsage = {
+    attachments: { arms: 0, hips: 0, legs: 0 },
+    compressors: 0,
+  };
   let isLocked = false;
 
   for (const res of reservations) {
     if (res.status === "cancelled") continue;
-    const locked = accumulateReservationUsage(res, start, endTime, teamMemberId, usage);
+    const locked = accumulateReservationUsage(
+      res,
+      start,
+      endTime,
+      teamMemberId,
+      usage
+    );
     if (locked) isLocked = true;
   }
 
   return {
     availableResources: {
       attachments: {
-        arms: Math.max(0, (inventory.attachments?.arms ?? 0) - usage.attachments.arms),
-        hips: Math.max(0, (inventory.attachments?.hips ?? 0) - usage.attachments.hips),
-        legs: Math.max(0, (inventory.attachments?.legs ?? 0) - usage.attachments.legs),
+        arms: Math.max(
+          0,
+          (inventory.attachments?.arms ?? 0) - usage.attachments.arms
+        ),
+        hips: Math.max(
+          0,
+          (inventory.attachments?.hips ?? 0) - usage.attachments.hips
+        ),
+        legs: Math.max(
+          0,
+          (inventory.attachments?.legs ?? 0) - usage.attachments.legs
+        ),
       },
-      compressors: Math.max(0, (inventory.compressors || 0) - usage.compressors),
+      compressors: Math.max(
+        0,
+        (inventory.compressors || 0) - usage.compressors
+      ),
     },
     end,
     isLocked,
@@ -219,7 +256,10 @@ function createSlot(
 
 function getRequiredAttachments(service: ClubService): Record<string, number> {
   const resources = service.requiredResources;
-  const atts = (resources?.attachments || {}) as Record<string, number | undefined>;
+  const atts = (resources?.attachments || {}) as Record<
+    string,
+    number | undefined
+  >;
   return {
     arms: atts.arms || 0,
     hips: atts.hips || 0,
@@ -243,18 +283,25 @@ function hasRequiredResources(
   const types: AttachmentType[] = ["legs", "arms", "hips"];
 
   return types.every(
-    (t) => (slot.availableResources.attachments[t] || 0) >= (reqAttachments[t] || 0)
+    (t) =>
+      (slot.availableResources.attachments[t] || 0) >= (reqAttachments[t] || 0)
   );
 }
 
-function isSlotEmpty(slot: AvailabilitySlot, inventory: ResourceRequirements): boolean {
+function isSlotEmpty(
+  slot: AvailabilitySlot,
+  inventory: ResourceRequirements
+): boolean {
   if (!inventory) return true;
-  if (slot.availableResources.compressors !== (inventory.compressors || 0)) return false;
+  if (slot.availableResources.compressors !== (inventory.compressors || 0))
+    return false;
 
   const types: AttachmentType[] = ["legs", "arms", "hips"];
   const invAtts = inventory.attachments || {};
 
-  return types.every((t) => (slot.availableResources.attachments[t] || 0) === (invAtts[t] || 0));
+  return types.every(
+    (t) => (slot.availableResources.attachments[t] || 0) === (invAtts[t] || 0)
+  );
 }
 
 function toTimestamp(val: unknown): number {

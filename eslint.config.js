@@ -1,10 +1,9 @@
 import { createRequire } from "node:module";
+import tseslint from "typescript-eslint";
 
 const require = createRequire(import.meta.url);
 
 // eslint-config-next v15+ exports a flat config array natively via CommonJS.
-// We import it with createRequire to avoid the circular-JSON error that
-// FlatCompat triggers when it tries to serialise the react plugin object.
 const nextConfig = require("eslint-config-next");
 
 export default [
@@ -12,6 +11,8 @@ export default [
   {
     ignores: [
       ".next/**",
+      ".antigravity/**",
+      ".gemini/**",
       "node_modules/**",
       "dist/**",
       "out/**",
@@ -19,18 +20,23 @@ export default [
       "public/**",
       "*.config.*",
       "next-env.d.ts",
+      "scripts/**",
+      "scratch/**",
     ],
   },
 
   // ── Next.js recommended flat config (includes react, react-hooks, a11y …) ─
   ...nextConfig,
 
+  // ── TypeScript-ESLint plugin (provides @typescript-eslint/* rules) ─────────
+  ...tseslint.configs.recommended,
+
   // ── Project-level rule overrides ───────────────────────────────────────────
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     settings: {
       react: {
-        version: "19.0.0", // Explicitly set React version
+        version: "19.0.0",
       },
     },
     rules: {
@@ -40,7 +46,9 @@ export default [
         "warn",
         { argsIgnorePattern: "^_" },
       ],
+      "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/incompatible-library": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 ];

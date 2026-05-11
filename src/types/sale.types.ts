@@ -24,7 +24,10 @@ export const SaleSchema = z.object({
   totalAmount: z.number().nonnegative("Total amount cannot be negative."),
   currency: z.literal("EUR"),
   subscriptionId: z.string().nullable().optional(),
-  createdAt: z.string().datetime({ message: "Invalid creation date format" }).optional(),
+  createdAt: z
+    .string()
+    .datetime({ message: "Invalid creation date format" })
+    .optional(),
 });
 
 export type SaleItem = z.infer<typeof SaleItemSchema>;

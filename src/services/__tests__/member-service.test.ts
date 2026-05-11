@@ -71,6 +71,7 @@ describe("member-service", () => {
         skillLevel: "intermediate",
         rating: 1500,
         status: "active",
+        siteId: "bkgalabovo",
       };
 
       const doc = mockDoc("member1", data);
@@ -89,6 +90,7 @@ describe("member-service", () => {
         firstName: "Jane",
         lastName: "Doe",
         status: "active",
+        siteId: "bkgalabovo",
       };
 
       const doc = mockDoc("member2", data);

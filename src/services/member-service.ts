@@ -14,7 +14,10 @@ import {
   addDoc,
   updateDoc,
 } from "firebase/firestore";
-import { getMembersCollection, getMembersQuery } from "@/lib/firebase-collections";
+import {
+  getMembersCollection,
+  getMembersQuery,
+} from "@/lib/firebase-collections";
 import { getSiteConfig } from "@/config/sites";
 import { Member, MemberSchema } from "@/types/member.types";
 
@@ -120,11 +123,7 @@ export const getMembersPage = async (
   pageSize: number = 20,
   startAfterDocId?: string
 ): Promise<{ members: Member[]; lastDocId: string | null }> => {
-  let q = query(
-    getMembersQuery(),
-    orderBy("lastName", "asc"),
-    limit(pageSize)
-  );
+  let q = query(getMembersQuery(), orderBy("lastName", "asc"), limit(pageSize));
 
   if (startAfterDocId) {
     const startAfterDoc = await getDoc(

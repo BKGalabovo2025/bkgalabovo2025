@@ -121,12 +121,12 @@ export type ClubService = {
   };
   specialRights: SpecialRight[];
   cancellationPolicy: CancellationPolicy;
-  
+
   // Recovery Zone specific fields (for multi-tenancy support)
   requiredResources?: ResourceRequirements;
   isExclusive?: boolean;
   bufferAfter?: number; // in minutes
-  
+
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
   createdBy: { userId: string; userName: string };

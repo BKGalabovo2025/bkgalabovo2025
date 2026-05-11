@@ -123,7 +123,11 @@ export const columns = (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => {
-                if (confirm("Сигурни ли сте, че искате да изтриете този абонамент?")) {
+                if (
+                  confirm(
+                    "Сигурни ли сте, че искате да изтриете този абонамент?"
+                  )
+                ) {
                   onDelete(subscription.id);
                 }
               }}

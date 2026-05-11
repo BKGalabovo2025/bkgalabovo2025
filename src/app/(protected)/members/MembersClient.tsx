@@ -115,7 +115,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         idToken
       );
       if (result.success) {
-        toast.success(result.message || `Успешно обновени ${selectedIds.length} членове`);
+        toast.success(
+          result.message || `Успешно обновени ${selectedIds.length} членове`
+        );
         setSelectedIds([]);
         router.refresh();
       } else {

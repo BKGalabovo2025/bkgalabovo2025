@@ -200,7 +200,9 @@ const LiabilitiesReport = () => {
               strokeWidth={1}
             />
             <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-              {isLoading ? "Проверка на плащания..." : "Зареждане на компонента..."}
+              {isLoading
+                ? "Проверка на плащания..."
+                : "Зареждане на компонента..."}
             </p>
           </div>
         ) : !hasSearched ? (
