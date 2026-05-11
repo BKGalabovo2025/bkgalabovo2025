@@ -27,7 +27,7 @@
       "short_name": "Recovery",
       "description": "Book a recovery session",
       "url": "/recovery",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/recovery-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
