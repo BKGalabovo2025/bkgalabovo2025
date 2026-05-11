@@ -62,9 +62,9 @@ const LoginPage = () => {
           <ArrowLeft size={14} strokeWidth={1.5} /> Обратно към началото
         </Link>
 
-        <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-[2.5rem]">
+        <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-4xl">
           <div className="flex flex-col items-center text-center mb-10">
-            <div className="h-16 w-16 bg-zinc-950 rounded-[1.5rem] flex items-center justify-center text-white shadow-none mb-6 transform -rotate-6 border border-zinc-800">
+            <div className="h-16 w-16 bg-zinc-950 rounded-3xl flex items-center justify-center text-white shadow-none mb-6 transform -rotate-6 border border-zinc-800">
               <ShieldCheck size={32} strokeWidth={1.5} />
             </div>
             <h1 className="text-3xl font-light tracking-tighter text-zinc-950 font-bento uppercase">
@@ -121,7 +121,7 @@ const LoginPage = () => {
 
             {error && (
               <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-2xl">
-                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-[0.1em] text-center">
+                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest text-center">
                   {error}
                 </p>
               </div>

@@ -33,3 +33,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+serviceAccountKey*.json
+
+# temporary files
+env.download
+scripts/set-admin.cjs
+*Нова папка*

@@ -8,7 +8,7 @@ const BentoCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-[2.5rem] border border-zinc-100 bg-white text-zinc-950 shadow-none transition-all",
+      "rounded-4xl border border-zinc-100 bg-white text-zinc-950 shadow-none transition-all",
       className
     )}
     {...props}

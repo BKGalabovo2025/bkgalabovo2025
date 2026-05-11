@@ -108,7 +108,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       onOpenChange={handleClose}
     >
       <DialogContent
-        className="sm:max-w-[540px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950"
+        className="sm:max-w-[540px] rounded-4xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950"
         aria-describedby={descriptionId}
       >
         <div className="p-10 pb-0">

@@ -14,7 +14,9 @@ export async function getAuthUser(idToken: string) {
 
 export async function ensureAdmin(idToken: string) {
   const user = await getAuthUser(idToken);
-  // Optional: check for specific admin claims if they exist
-  // if (!user.admin) throw new Error("Нямате администраторски права.");
+  // Проверка за администраторски права чрез Custom Claims или конкретен имейл
+  if (!user.admin && user.email !== "bkgalabovo2014@gmail.com") {
+    throw new Error("Нямате администраторски права.");
+  }
   return user;
 }

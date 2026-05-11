@@ -91,7 +91,7 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950">
+      <DialogContent className="sm:max-w-xl rounded-4xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950">
         <div className="p-10 pb-0">
           <DialogHeader>
             <DialogTitle className="text-3xl font-light tracking-tight text-zinc-950 dark:text-white">

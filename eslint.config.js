@@ -28,6 +28,11 @@ export default [
   // ── Project-level rule overrides ───────────────────────────────────────────
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
+    settings: {
+      react: {
+        version: "19.0.0", // Explicitly set React version
+      },
+    },
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",

@@ -28,13 +28,15 @@ import {
   Medal,
   Settings,
   User,
+  PanelLeft,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
+import { BranchSelector } from "./branch-selector";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
-  const { setOpen, isMobile } = useSidebar();
+  const { setOpen, isMobile, open } = useSidebar();
   const { logout } = useAuth();
 
   React.useEffect(() => {
@@ -50,20 +52,38 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       className="border-r-0 bg-white dark:bg-zinc-950"
     >
       <SidebarHeader className="h-20 flex items-center px-6 border-none">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
-            <Trophy size={20} />
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+              <Trophy size={20} />
+            </div>
+            {open && (
+              <div className="flex flex-col animate-in fade-in duration-300">
+                <span className="font-medium text-sm tracking-wide whitespace-nowrap text-zinc-900 dark:text-white leading-tight">
+                  БАДМИНТОН КЛУБ
+                </span>
+                <span className="font-light text-xs tracking-[0.2em] whitespace-nowrap text-primary uppercase">
+                  ГЪЛЪБОВО
+                </span>
+              </div>
+            )}
           </div>
-          <div className="flex flex-col">
-            <span className="font-medium text-sm tracking-wide whitespace-nowrap text-zinc-900 dark:text-white leading-tight">
-              БАДМИНТОН КЛУБ
-            </span>
-            <span className="font-light text-xs tracking-[0.2em] whitespace-nowrap text-primary uppercase">
-              ГЪЛЪБОВО
-            </span>
-          </div>
+          {open && (
+            <button
+              onClick={() => setOpen(!open)}
+              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 lg:hidden"
+            >
+              <PanelLeft size={18} />
+            </button>
+          )}
         </div>
       </SidebarHeader>
+
+      {open && (
+        <div className="px-6 mb-4 animate-in fade-in slide-in-from-top-1 duration-500">
+          <BranchSelector />
+        </div>
+      )}
       <SidebarContent className="px-4 py-4">
         <SidebarGroup>
           <SidebarMenu className="gap-2">

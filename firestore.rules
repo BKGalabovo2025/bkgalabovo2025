@@ -1,18 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // This rule allows all authenticated users to read and write to all documents.
-    // Crucially, it also allows server-side access via the Firebase Admin SDK,
-    // which authenticates as a service account and is considered an 'authenticated' request.
-    // This is the secure and correct replacement for the temporary 'if true;' rule.
-    match /{document=**} {
-      // Authenticated users can read for real-time dashboard updates via onSnapshot
-      allow read: if request.auth != null;
-      
-      // All writes (create, update, delete) must be performed via Next.js Server Actions
-      // which use the Firebase Admin SDK to bypass these rules securely.
-      allow write: if false;
+    // Помощна функция за проверка на администратор
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.admin == true || request.auth.token.email == 'bkgalabovo2014@gmail.com');
     }
 
+    // Всички документи в тези колекции са достъпни само за администратори
+    match /members/{docId} { allow read, write: if isAdmin(); }
+    match /sales/{docId} { allow read, write: if isAdmin(); }
+    match /finances/{docId} { allow read, write: if isAdmin(); }
+    match /inventory/{docId} { allow read, write: if isAdmin(); }
+
+    // Резервациите могат да се четат от всеки влязъл, но се променят само от админ
+    match /reservations/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Публична информация (турнири) - достъпна за четене от всички
+    match /tournaments/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Всичко останало е забранено по подразбиране
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
+

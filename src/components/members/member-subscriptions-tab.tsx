@@ -162,7 +162,7 @@ const AddSubscriptionDialog = ({
           Добави абонамент
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-zinc-100 shadow-none">
+      <DialogContent className="sm:max-w-[425px] rounded-4xl border-zinc-100 shadow-none">
         <DialogHeader>
           <DialogTitle className="text-xl font-light tracking-tight">
             Добавяне на нов абонамент
@@ -228,7 +228,7 @@ const AddSubscriptionDialog = ({
                   mode="single"
                   selected={startDate}
                   onSelect={setStartDate}
-                  initialFocus
+                  autoFocus
                 />
               </PopoverContent>
             </Popover>
@@ -415,7 +415,7 @@ const SubscriptionCard = ({
 
   return (
     <div
-      className={`border border-zinc-100 rounded-[2rem] p-8 mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
+      className={`border border-zinc-100 rounded-4xl p-8 mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
     >
       <div className="flex justify-between items-start">
         <h4 className="font-light text-2xl tracking-tight text-zinc-950">
@@ -544,7 +544,7 @@ const RegisterPaymentDialog = ({
           Регистрирай плащане
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-[2.5rem] border-zinc-100 shadow-none">
+      <DialogContent className="rounded-4xl border-zinc-100 shadow-none">
         <DialogHeader>
           <DialogTitle className="text-xl font-light tracking-tight">
             Потвърждение на плащане
@@ -654,7 +654,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
     );
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10">
+    <div className="bg-white border border-zinc-100 rounded-4xl p-10">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
         <div>
           <h2 className="text-3xl font-light tracking-tighter text-zinc-950 mb-2">
@@ -674,7 +674,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
 
       <div>
         {subscriptions.length === 0 ? (
-          <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-[2rem]">
+          <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
             <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
               Няма намерени абонаменти.
             </p>

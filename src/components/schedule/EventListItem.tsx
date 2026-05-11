@@ -92,18 +92,18 @@ export const EventListItem: React.FC<EventListItemProps> = ({
 
   return (
     <div
-      className={`bg-white dark:bg-zinc-950 rounded-[2rem] shadow-none transition-all duration-500 border group overflow-hidden ${
+      className={`bg-white dark:bg-zinc-950 rounded-4xl shadow-none transition-all duration-500 border group overflow-hidden ${
         isCurrent
           ? "border-zinc-950 dark:border-white ring-1 ring-zinc-950 dark:ring-white"
           : "border-zinc-100 dark:border-zinc-900 hover:border-zinc-200 dark:hover:border-zinc-800"
       }`}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
-        <div className="flex items-start sm:items-center gap-6 flex-grow w-full">
+        <div className="flex items-start sm:items-center gap-6 grow w-full">
           <div
             className={`w-1.5 h-14 rounded-full ${color} opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block`}
           ></div>
-          <div className="flex-grow space-y-3">
+          <div className="grow space-y-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
                 <Tag size={12} strokeWidth={2} className="text-zinc-400" />
@@ -260,7 +260,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
           tabIndex={0}
           aria-label={`Управление на ${attendees.length} присъстващи`}
         >
-          <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex-shrink-0">
+          <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 shrink-0">
             Присъствали:
           </strong>
           <div className="flex items-center">

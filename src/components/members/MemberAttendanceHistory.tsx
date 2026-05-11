@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
 import { getEventsByMemberId } from "@/services/schedule-service";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 import { formatTimeRange } from "@/lib/date-utils";
@@ -179,7 +178,7 @@ export function MemberAttendanceHistory({
     <div className="space-y-12">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-8 bg-zinc-950 rounded-[2rem] text-white flex flex-col justify-between h-40 shadow-xl shadow-zinc-950/10">
+        <div className="p-8 bg-zinc-950 rounded-4xl text-white flex flex-col justify-between h-40 shadow-xl shadow-zinc-950/10">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Общо посещения
           </p>
@@ -193,7 +192,7 @@ export function MemberAttendanceHistory({
           </div>
         </div>
 
-        <div className="p-8 bg-white border border-zinc-100 rounded-[2rem] flex flex-col justify-between h-40">
+        <div className="p-8 bg-white border border-zinc-100 rounded-4xl flex flex-col justify-between h-40">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Последна активност
           </p>
@@ -214,7 +213,7 @@ export function MemberAttendanceHistory({
           </div>
         </div>
 
-        <div className="p-8 bg-white border border-zinc-100 rounded-[2rem] flex flex-col justify-between h-40">
+        <div className="p-8 bg-white border border-zinc-100 rounded-4xl flex flex-col justify-between h-40">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Месечен статус
           </p>
@@ -236,11 +235,11 @@ export function MemberAttendanceHistory({
         {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
           <div key={monthKey} className="relative">
             <div className="flex items-center gap-6 mb-8">
-              <h3 className="text-sm font-medium text-zinc-950 uppercase tracking-[0.2em] flex-shrink-0">
+              <h3 className="text-sm font-medium text-zinc-950 uppercase tracking-[0.2em] shrink-0">
                 {monthData.monthName}{" "}
                 <span className="text-zinc-300 ml-1">{monthData.year}</span>
               </h3>
-              <div className="h-px bg-zinc-100 flex-grow" />
+              <div className="h-px bg-zinc-100 grow" />
               <Badge
                 variant="outline"
                 className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest border-zinc-100 text-zinc-400 bg-zinc-50/50"
@@ -285,7 +284,7 @@ export function MemberAttendanceHistory({
                               <p className="text-xs font-medium text-zinc-950 group-hover:text-zinc-900 transition-colors">
                                 {event.title}
                               </p>
-                              <p className="text-[10px] font-light text-zinc-400 uppercase tracking-[0.1em]">
+                              <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
                                 {format(new Date(event.startDate), "dd MMMM", {
                                   locale: bg,
                                 })}

@@ -63,7 +63,7 @@ export default function HomePage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-50">
         <div className="flex flex-col items-center gap-6 animate-pulse">
-          <div className="h-16 w-16 bg-zinc-950 rounded-[2rem] flex items-center justify-center text-white shadow-none border border-zinc-200">
+          <div className="h-16 w-16 bg-zinc-950 rounded-4xl flex items-center justify-center text-white shadow-none border border-zinc-200">
             <Trophy size={32} strokeWidth={1.5} />
           </div>
           <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
@@ -87,10 +87,10 @@ export default function HomePage() {
         </div>
 
         {/* Hero Card */}
-        <BentoCard className="md:col-span-12 p-16 bg-white flex flex-col items-center text-center space-y-8 overflow-hidden relative border-zinc-100 shadow-none rounded-[2.5rem]">
+        <BentoCard className="md:col-span-12 p-16 bg-white flex flex-col items-center text-center space-y-8 overflow-hidden relative border-zinc-100 shadow-none rounded-4xl">
           <div className="absolute top-0 right-0 w-80 h-80 bg-zinc-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-40" />
 
-          <div className="h-24 w-24 bg-zinc-950 rounded-[2.5rem] flex items-center justify-center text-white shadow-none relative z-10 mb-2 transform -rotate-6 transition-transform hover:rotate-0 duration-500 cursor-pointer border border-zinc-800">
+          <div className="h-24 w-24 bg-zinc-950 rounded-4xl flex items-center justify-center text-white shadow-none relative z-10 mb-2 transform -rotate-6 transition-transform hover:rotate-0 duration-500 cursor-pointer border border-zinc-800">
             <Trophy size={48} strokeWidth={1.5} />
           </div>
 
@@ -117,7 +117,7 @@ export default function HomePage() {
         </BentoCard>
 
         {/* Public Ranking */}
-        <BentoCard className="md:col-span-5 p-10 bg-white border-zinc-100 shadow-none rounded-[2.5rem] flex flex-col">
+        <BentoCard className="md:col-span-5 p-10 bg-white border-zinc-100 shadow-none rounded-4xl flex flex-col">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 bg-zinc-50 text-zinc-950 rounded-2xl flex items-center justify-center border border-zinc-100">
@@ -195,7 +195,7 @@ export default function HomePage() {
         {/* Info & CTA Column */}
         <div className="md:col-span-7 grid grid-cols-1 gap-6">
           {/* Upcoming Tournaments */}
-          <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-[2.5rem]">
+          <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-4xl">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 bg-zinc-50 text-zinc-950 rounded-2xl flex items-center justify-center border border-zinc-100">
@@ -219,7 +219,7 @@ export default function HomePage() {
                 tournaments.map((tour) => (
                   <div
                     key={tour.id}
-                    className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 group cursor-pointer hover:bg-zinc-950 hover:text-white transition-all duration-500"
+                    className="p-6 bg-zinc-50 rounded-4xl border border-zinc-100 group cursor-pointer hover:bg-zinc-950 hover:text-white transition-all duration-500"
                   >
                     <p className="font-medium text-sm truncate mb-2">
                       {tour.title}
@@ -250,13 +250,13 @@ export default function HomePage() {
           </BentoCard>
 
           {/* System Status */}
-          <BentoCard className="p-8 bg-white border-zinc-100 shadow-none rounded-[2.5rem] relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+          <BentoCard className="p-8 bg-white border-zinc-100 shadow-none rounded-4xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="absolute top-0 right-0 p-12 opacity-[0.03] -mr-8 -mt-8 text-zinc-950 pointer-events-none">
               <ShieldCheck size={160} strokeWidth={1} />
             </div>
 
             <div className="flex items-center gap-6 relative z-10">
-              <div className="h-16 w-16 bg-zinc-50 rounded-[1.5rem] flex items-center justify-center border border-zinc-100">
+              <div className="h-16 w-16 bg-zinc-50 rounded-3xl flex items-center justify-center border border-zinc-100">
                 <Activity
                   size={32}
                   className="text-zinc-400"

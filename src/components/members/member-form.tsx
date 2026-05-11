@@ -96,7 +96,7 @@ export const MemberForm = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Основна информация */}
-          <BentoCard className="lg:col-span-2 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+          <BentoCard className="lg:col-span-2 p-8 border-zinc-100 shadow-none rounded-4xl">
             <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
               Основна информация
             </h3>
@@ -160,7 +160,7 @@ export const MemberForm = ({
           </BentoCard>
 
           {/* Контактна информация */}
-          <BentoCard className="p-8 border-zinc-100 shadow-none rounded-[2rem]">
+          <BentoCard className="p-8 border-zinc-100 shadow-none rounded-4xl">
             <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
               Контакт
             </h3>
@@ -253,7 +253,7 @@ export const MemberForm = ({
           </BentoCard>
 
           {/* Лични данни */}
-          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-4xl">
             <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
               Лични данни
             </h3>
@@ -342,7 +342,7 @@ export const MemberForm = ({
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
                           }
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -399,7 +399,7 @@ export const MemberForm = ({
           </BentoCard>
 
           {/* Административна информация */}
-          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-[2rem]">
+          <BentoCard className="lg:col-span-3 p-8 border-zinc-100 shadow-none rounded-4xl">
             <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6">
               Административна информация
             </h3>

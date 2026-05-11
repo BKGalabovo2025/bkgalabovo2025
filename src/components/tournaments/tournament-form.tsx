@@ -235,7 +235,7 @@ export function TournamentForm({
             )}
           />
 
-          <div className="md:col-span-2 space-y-6 p-8 rounded-[2rem] bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900">
+          <div className="md:col-span-2 space-y-6 p-8 rounded-4xl bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900">
             <div className="flex items-center justify-between">
               <div>
                 <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
@@ -295,7 +295,7 @@ export function TournamentForm({
             control={form.control}
             name="matchFormatId"
             render={({ field }: { field: any }) => (
-              <FormItem className="md:col-span-2 p-8 rounded-[2rem] bg-primary/[0.02] border border-primary/10">
+              <FormItem className="md:col-span-2 p-8 rounded-4xl bg-primary/[0.02] border border-primary/10">
                 <div className="mb-6">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
                     <span className="p-2 bg-primary/5 rounded-lg text-primary">
@@ -333,7 +333,7 @@ export function TournamentForm({
             control={form.control}
             name="countsForRanking"
             render={({ field }: { field: any }) => (
-              <FormItem className="md:col-span-2 p-8 rounded-[2rem] bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900 flex flex-row items-center justify-between">
+              <FormItem className="md:col-span-2 p-8 rounded-4xl bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900 flex flex-row items-center justify-between">
                 <div className="space-y-1">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
                     <Star
@@ -385,7 +385,7 @@ export function TournamentForm({
             control={form.control}
             name="categories"
             render={() => (
-              <FormItem className="md:col-span-2 p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+              <FormItem className="md:col-span-2 p-8 rounded-4xl border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                 <div className="mb-8">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white">
                     Категории

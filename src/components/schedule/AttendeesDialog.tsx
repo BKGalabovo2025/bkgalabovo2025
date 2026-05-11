@@ -131,7 +131,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     >
       <DialogContent
         key={event?.id}
-        className="sm:max-w-xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950"
+        className="sm:max-w-xl rounded-4xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950"
       >
         <div className="p-10 pb-0">
           <DialogHeader>

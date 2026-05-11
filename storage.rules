@@ -1,9 +1,15 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.admin == true || request.auth.token.email == 'bkgalabovo2014@gmail.com');
+    }
+
     match /{allPaths=**} {
-      // Allow read and write access for all authenticated users
-      allow read, write: if request.auth != null;
+      // Позволяваме четене на всички влезли (за лога, снимки и т.н.)
+      allow read: if request.auth != null;
+      // САМО администратори могат да качват или трият файлове
+      allow write: if isAdmin();
     }
   }
-}
+}

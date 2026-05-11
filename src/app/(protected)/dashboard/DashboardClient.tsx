@@ -115,7 +115,8 @@ export default function DashboardClient() {
     return () => clearTimeout(timer);
   }, []);
 
-  const firstName = user?.displayName?.split(" ")[0] || "Админ";
+  // Greeting logic
+  const firstName = user?.email ? `Админ ${user.email}` : "Админ";
 
   // Use values from stats or fallback to 0/placeholder
   const activeMembers = stats?.activeMembersCount || 0;
@@ -141,7 +142,7 @@ export default function DashboardClient() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">
       <PageHeader
-        title={`${t("dash.welcome")}, ${firstName}! 👋`}
+        title={firstName}
         description={t("dash.subtitle")}
         breadcrumbs={[{ label: "Начало" }]}
       >
