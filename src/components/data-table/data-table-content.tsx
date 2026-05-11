@@ -14,15 +14,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface DataTableContentProps<TData> {
+interface DataTableContentProps<TData, TValue> {
   table: ReactTable<TData>;
-  columns: ColumnDef<TData, unknown>[]; // Replaced any with unknown to fix last linting warning
+  columns: ColumnDef<TData, TValue>[];
 }
 
-export function DataTableContent<TData>({
+export function DataTableContent<TData, TValue>({
   table,
   columns,
-}: DataTableContentProps<TData>) {
+}: DataTableContentProps<TData, TValue>) {
   return (
     <div className="rounded-md border">
       <Table>
