@@ -65,8 +65,14 @@ export default function ClubPage() {
           Portal
         </Link>
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-blue-600 rounded-xl flex items-center justify-center">
-            <Trophy size={14} className="text-white" />
+          <div className="h-8 w-8 relative overflow-hidden rounded-lg bg-white/5 p-1">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={24}
+              height={24}
+              className="object-contain"
+            />
           </div>
           <span className="font-medium text-sm">БК Гълъбово</span>
         </div>

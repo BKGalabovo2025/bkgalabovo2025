@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
@@ -104,9 +105,18 @@ export default function HomePage() {
             onMouseEnter={() => setHovered("bk")}
             onMouseLeave={() => setHovered(null)}
           >
-            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="h-14 w-14 bg-blue-600/10 border border-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400 mb-6 transition-all group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 duration-500">
-              <Trophy size={24} strokeWidth={1.5} />
+            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="h-14 w-14 relative mb-6">
+              <div className="absolute inset-0 bg-blue-600/10 border border-blue-600/20 rounded-2xl transition-all group-hover:bg-blue-600 duration-500" />
+              <div className="absolute inset-0 flex items-center justify-center p-2">
+                <Image
+                  src="/logo.png"
+                  alt="BK Galabovo Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500"
+                />
+              </div>
             </div>
             <h2 className="text-xl font-medium text-white mb-2">БК Гълъбово</h2>
             <p className="text-zinc-500 text-sm leading-relaxed mb-8 flex-1">
@@ -133,9 +143,18 @@ export default function HomePage() {
             onMouseEnter={() => setHovered("recovery")}
             onMouseLeave={() => setHovered(null)}
           >
-            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-emerald-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="h-14 w-14 bg-emerald-600/10 border border-emerald-600/20 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 transition-all group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 duration-500">
-              <Activity size={24} strokeWidth={1.5} />
+            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-emerald-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="h-14 w-14 relative mb-6">
+              <div className="absolute inset-0 bg-emerald-600/10 border border-emerald-600/20 rounded-2xl transition-all group-hover:bg-emerald-500 duration-500" />
+              <div className="absolute inset-0 flex items-center justify-center p-2">
+                <Image
+                  src="/1.png"
+                  alt="Recovery Zone Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500"
+                />
+              </div>
             </div>
             <h2 className="text-xl font-medium text-white mb-2">
               Recovery Zone

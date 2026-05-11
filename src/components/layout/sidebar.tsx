@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import {
@@ -55,8 +56,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader className="h-20 flex items-center px-6 border-none">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
-              <Trophy size={20} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">
+              <Link href="/">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
+              </Link>
             </div>
             {open && (
               <div className="flex flex-col animate-in fade-in duration-300">
