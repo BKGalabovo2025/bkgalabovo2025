@@ -16,7 +16,7 @@ export type SubscriptionActionState = {
   errors?: { [key: string]: string[] | undefined };
   message?: string | null;
   success?: boolean;
-  data?: any;
+  data?: unknown;
 };
 
 /**
@@ -24,7 +24,7 @@ export type SubscriptionActionState = {
  */
 export async function createSubscriptionAction(
   idToken: string,
-  subscriptionData: any
+  subscriptionData: Record<string, unknown>
 ): Promise<SubscriptionActionState> {
   try {
     const user = await getAuthUser(idToken);
@@ -63,7 +63,7 @@ export async function createSubscriptionAction(
 export async function updateSubscriptionAction(
   idToken: string,
   id: string,
-  subscriptionUpdate: any
+  subscriptionUpdate: Record<string, unknown>
 ): Promise<SubscriptionActionState> {
   try {
     await getAuthUser(idToken);

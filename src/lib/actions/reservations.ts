@@ -27,7 +27,10 @@ const blockedSlotSchema = z.object({
   siteId: z.string(),
 });
 
-export async function createReservationAction(idToken: string, data: any) {
+export async function createReservationAction(
+  idToken: string,
+  data: Record<string, unknown>
+) {
   try {
     await getAuthUser(idToken);
     const validated = reservationSchema.parse(data);
@@ -92,16 +95,22 @@ export async function createReservationAction(idToken: string, data: any) {
       message: "Резервацията е създадена успешно.",
       id: newDoc.id,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create Reservation Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при създаване на резервация.",
+    };
   }
 }
 
 export async function updateReservationAction(
   idToken: string,
   reservationId: string,
-  data: any
+  data: Record<string, unknown>
 ) {
   try {
     await getAuthUser(idToken);
@@ -142,8 +151,14 @@ export async function updateReservationAction(
 
     revalidatePath("/reservations");
     return { success: true, message: "Резервацията е актуализирана успешно." };
-  } catch (error: any) {
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при актуализиране на резервация.",
+    };
   }
 }
 
@@ -157,12 +172,21 @@ export async function deleteReservationAction(
     await db.collection("reservations").doc(reservationId).delete();
     revalidatePath("/reservations");
     return { success: true, message: "Резервацията е изтрита." };
-  } catch (error: any) {
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при изтриване на резервация.",
+    };
   }
 }
 
-export async function createBlockedSlotAction(idToken: string, data: any) {
+export async function createBlockedSlotAction(
+  idToken: string,
+  data: Record<string, unknown>
+) {
   try {
     await getAuthUser(idToken);
     const validated = blockedSlotSchema.parse(data);
@@ -180,16 +204,22 @@ export async function createBlockedSlotAction(idToken: string, data: any) {
 
     revalidatePath("/reservations");
     return { success: true, message: "Периодът е блокиран успешно." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create Blocked Slot Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при блокиране на период.",
+    };
   }
 }
 
 export async function updateBlockedSlotAction(
   idToken: string,
   slotId: string,
-  data: any
+  data: Record<string, unknown>
 ) {
   try {
     await getAuthUser(idToken);
@@ -214,9 +244,15 @@ export async function updateBlockedSlotAction(
       success: true,
       message: "Блокираният период е актуализиран успешно.",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update Blocked Slot Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при актуализиране на блокиран период.",
+    };
   }
 }
 
@@ -227,8 +263,14 @@ export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
     await db.collection("blockedSlots").doc(slotId).delete();
     revalidatePath("/reservations");
     return { success: true, message: "Блокираният период е изтрит." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete Blocked Slot Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при изтриване на блокиран период.",
+    };
   }
 }

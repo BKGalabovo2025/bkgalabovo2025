@@ -31,7 +31,7 @@ export type InventoryActionState = {
  */
 export async function createProductAction(
   idToken: string,
-  productData: any
+  productData: Record<string, unknown>
 ): Promise<InventoryActionState> {
   try {
     const user = await getAuthUser(idToken);
@@ -71,9 +71,15 @@ export async function createProductAction(
       success: true,
       message: `Продуктът '${validatedFields.data.name}' бе създаден успешно.`,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("createProductAction Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при създаване на продукт.",
+    };
   }
 }
 
@@ -119,9 +125,15 @@ export async function updateProductPriceAction(
 
     revalidatePath("/inventory");
     return { success: true, message: "Цената бе актуализирана успешно." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("updateProductPriceAction Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при актуализиране на цена.",
+    };
   }
 }
 
@@ -167,9 +179,15 @@ export async function restockProductAction(
 
     revalidatePath("/inventory");
     return { success: true, message: "Наличността бе обновена успешно." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("restockProductAction Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при зареждане на наличност.",
+    };
   }
 }
 
@@ -215,9 +233,15 @@ export async function adjustProductStockAction(
 
     revalidatePath("/inventory");
     return { success: true, message: "Наличността бе коригирана успешно." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("adjustProductStockAction Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при корекция на наличност.",
+    };
   }
 }
 
@@ -236,8 +260,14 @@ export async function deleteProductAction(
 
     revalidatePath("/inventory");
     return { success: true, message: "Продуктът бе изтрит успешно." };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("deleteProductAction Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при изтриване на продукт.",
+    };
   }
 }

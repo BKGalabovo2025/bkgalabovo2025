@@ -35,7 +35,7 @@ interface EntryFormProps {
   tournamentId: string;
   allowedCategories: string[];
   existingEntries: TournamentEntry[];
-  onSave: (data: any | any[]) => Promise<void>;
+  onSave: (data: TournamentEntry | TournamentEntry[]) => Promise<void>;
   onClose: () => void;
 }
 
@@ -59,10 +59,11 @@ export function EntryForm({
   }, []);
 
   const form = useForm<EntryFormValues>({
-    resolver: zodResolver(TournamentEntrySchema) as any,
+    resolver: zodResolver(TournamentEntrySchema),
     defaultValues: {
       tournamentId,
-      categoryId: (allowedCategories[0] as any) || "singles",
+      categoryId:
+        (allowedCategories[0] as "singles" | "doubles" | "mixed") || "singles",
     },
   });
 
@@ -91,9 +92,9 @@ export function EntryForm({
           memberId: mid,
           registrationDate: new Date().toISOString(),
         }));
-        await onSave(bulkData);
+        await onSave(bulkData as TournamentEntry[]);
       } else {
-        const cleanData: any = { ...data };
+        const cleanData: Partial<TournamentEntry> = { ...data };
         if (p1IsGuest) delete cleanData.memberId;
         else delete cleanData.externalName;
 
@@ -105,7 +106,7 @@ export function EntryForm({
           else delete cleanData.partnerExternalName;
         }
 
-        await onSave(cleanData);
+        await onSave(cleanData as TournamentEntry);
       }
       onClose();
     } catch (error) {

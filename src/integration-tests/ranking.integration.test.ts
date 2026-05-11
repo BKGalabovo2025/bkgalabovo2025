@@ -1,6 +1,6 @@
 import { vi, describe, it, expect } from "vitest";
 import { computeGlobalRankings } from "../services/ranking-service";
-import { getDocs } from "firebase/firestore";
+import { getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
 
 // Mocking firestore functions
 vi.mock("firebase/firestore", async () => {
@@ -70,12 +70,19 @@ describe("Ranking Integration", () => {
       ],
     };
 
-    // Setup sequence of getDocs calls
     vi.mocked(getDocs)
-      .mockResolvedValue(mockTournaments as any) // Default to tournaments
-      .mockResolvedValueOnce(mockTournaments as any)
-      .mockResolvedValueOnce(mockEntries as any)
-      .mockResolvedValueOnce(mockMatches as any);
+      .mockResolvedValue(
+        mockTournaments as unknown as QuerySnapshot<DocumentData>
+      ) // Default to tournaments
+      .mockResolvedValueOnce(
+        mockTournaments as unknown as QuerySnapshot<DocumentData>
+      )
+      .mockResolvedValueOnce(
+        mockEntries as unknown as QuerySnapshot<DocumentData>
+      )
+      .mockResolvedValueOnce(
+        mockMatches as unknown as QuerySnapshot<DocumentData>
+      );
 
     const rankings = await computeGlobalRankings();
 

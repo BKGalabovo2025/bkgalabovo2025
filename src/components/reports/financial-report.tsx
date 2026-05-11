@@ -299,7 +299,7 @@ const FinancialReport = () => {
                       fontSize: "12px",
                       fontWeight: "300",
                     }}
-                    formatter={(value: any) => formatPrice(Number(value))}
+                    formatter={(value: unknown) => formatPrice(Number(value))}
                   />
                   <Legend
                     verticalAlign="bottom"

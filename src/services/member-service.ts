@@ -31,16 +31,18 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
   const data = docSnap.data();
 
   // Helper to gracefully convert Timestamps to ISO strings.
-  const toISODate = (date: any): string | undefined => {
+  const toISODate = (
+    date: { toDate?: () => Date } | Date | string | null | undefined
+  ): string | undefined => {
     if (!date) return undefined;
     // Duck-typing check for Firestore Timestamp
-    if (typeof date.toDate === "function") {
-      return date.toDate().toISOString();
+    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
+      return (date as { toDate: () => Date }).toDate().toISOString();
     }
     if (date instanceof Date) {
       return date.toISOString();
     }
-    return undefined;
+    return date as string;
   };
 
   const name = [data.firstName, data.middleName, data.lastName]

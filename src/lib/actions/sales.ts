@@ -10,7 +10,7 @@ export type SaleActionState = {
   errors?: { [key: string]: string[] | undefined };
   message?: string | null;
   success?: boolean;
-  data?: any;
+  data?: unknown;
 };
 
 /**
@@ -19,7 +19,7 @@ export type SaleActionState = {
  */
 export async function createSaleAction(
   idToken: string,
-  saleData: any
+  saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
     const user = await getAuthUser(idToken);
@@ -109,7 +109,7 @@ export async function createSaleAction(
 export async function updateSaleAction(
   id: string,
   idToken: string,
-  saleData: any
+  saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
     await getAuthUser(idToken);
@@ -133,7 +133,7 @@ export async function updateSaleAction(
     const data = validatedFields.data;
     const saleRef = adminDb.collection("sales").doc(id);
 
-    const dataToUpdate: any = { ...data };
+    const dataToUpdate: Record<string, unknown> = { ...data };
     if (data.saleDate) {
       dataToUpdate.saleDate = Timestamp.fromDate(new Date(data.saleDate));
     }
@@ -191,7 +191,7 @@ export async function deleteSaleAction(
  */
 export async function findOrCreateSaleForSubscriptionAction(
   idToken: string,
-  subscription: any
+  subscription: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
     const user = await getAuthUser(idToken);
@@ -216,7 +216,10 @@ export async function findOrCreateSaleForSubscriptionAction(
     }
 
     // 2. No sale found, create one based on first payment
-    const firstPayment = subscription.paymentHistory?.[0];
+    const paymentHistory = subscription.paymentHistory as
+      | Array<{ date: string; amount: number }>
+      | undefined;
+    const firstPayment = paymentHistory?.[0];
     if (!firstPayment || !subscription.memberId) {
       return {
         success: false,
@@ -228,7 +231,7 @@ export async function findOrCreateSaleForSubscriptionAction(
       const newSaleRef = adminDb.collection("sales").doc();
       const subscriptionRef = adminDb
         .collection("member_subscriptions")
-        .doc(subscription.id);
+        .doc(subscription.id as string);
 
       const saleData = {
         siteId: "default",
@@ -254,8 +257,8 @@ export async function findOrCreateSaleForSubscriptionAction(
       transaction.set(newSaleRef, saleData);
 
       // Update payment history with saleId
-      const updatedPaymentHistory = (subscription.paymentHistory || []).map(
-        (p: any, i: number) => (i === 0 ? { ...p, saleId: newSaleRef.id } : p)
+      const updatedPaymentHistory = (paymentHistory || []).map((p, i) =>
+        i === 0 ? { ...p, saleId: newSaleRef.id } : p
       );
       transaction.update(subscriptionRef, {
         paymentHistory: updatedPaymentHistory,

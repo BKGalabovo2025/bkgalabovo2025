@@ -142,7 +142,7 @@ export default function TournamentDetailsPage() {
         const catEntries = entries.filter((e) => e.categoryId === cat);
         const newMatches = generateBergerMatches(
           tournamentId,
-          cat as any,
+          cat as "singles" | "doubles" | "mixed",
           catEntries
         );
         allNewMatches = [...allNewMatches, ...newMatches];
@@ -167,7 +167,7 @@ export default function TournamentDetailsPage() {
     }
   };
 
-  const handleSaveEntry = async (data: any | any[]) => {
+  const handleSaveEntry = async (data: TournamentEntry | TournamentEntry[]) => {
     try {
       if (Array.isArray(data)) {
         for (const entry of data) {
@@ -185,7 +185,7 @@ export default function TournamentDetailsPage() {
     }
   };
 
-  const handleUpdateTournament = async (data: any) => {
+  const handleUpdateTournament = async (data: Partial<Tournament>) => {
     if (!tournament?.id) return;
     try {
       await tournamentService.updateTournament(tournament.id, data);
@@ -289,7 +289,16 @@ export default function TournamentDetailsPage() {
   const handleExport = async (
     formatType: "excel" | "pdf",
     category: string,
-    standings: any[]
+    standings: {
+      name: string;
+      played: number;
+      wins: number;
+      losses: number;
+      gamesWon: number;
+      gamesLost: number;
+      points: number;
+      entryId: string;
+    }[]
   ) => {
     if (!tournament) return;
 
@@ -570,7 +579,7 @@ export default function TournamentDetailsPage() {
                                 {pendingMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="border border-zinc-100 rounded-[2rem] p-6 flex flex-col justify-between shadow-none hover:border-zinc-200 transition-all bg-white"
+                                    className="border border-zinc-100 rounded-4xl p-6 flex flex-col justify-between shadow-none hover:border-zinc-200 transition-all bg-white"
                                   >
                                     <div className="flex justify-between items-center mb-4 border-b pb-2">
                                       <Badge
@@ -634,7 +643,7 @@ export default function TournamentDetailsPage() {
                                 {completedMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="border border-zinc-100 rounded-[2rem] p-6 flex flex-col justify-between shadow-none bg-zinc-50/50"
+                                    className="border border-zinc-100 rounded-4xl p-6 flex flex-col justify-between shadow-none bg-zinc-50/50"
                                   >
                                     <div className="flex justify-between items-center mb-4 border-b pb-2 border-muted-foreground/20">
                                       <Badge
@@ -655,7 +664,7 @@ export default function TournamentDetailsPage() {
                                         <div className="flex items-center gap-2 truncate pr-2">
                                           {match.winnerEntryId ===
                                             match.player1EntryId && (
-                                            <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                                            <Trophy className="w-3 h-3 text-yellow-500 shrink-0" />
                                           )}
                                           <span className="truncate">
                                             {getEntryNameById(
@@ -673,7 +682,7 @@ export default function TournamentDetailsPage() {
                                         <div className="flex items-center gap-2 truncate pr-2">
                                           {match.winnerEntryId ===
                                             match.player2EntryId && (
-                                            <Trophy className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                                            <Trophy className="w-3 h-3 text-yellow-500 shrink-0" />
                                           )}
                                           <span className="truncate">
                                             {getEntryNameById(

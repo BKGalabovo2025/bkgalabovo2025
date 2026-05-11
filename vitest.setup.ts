@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
+import { CollectionReference, DocumentReference } from "firebase/firestore";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -13,8 +14,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Create mock references to be returned by collection() and doc()
-const mockCollectionRef = { path: "mock-collection" } as any;
-const mockDocRef = { id: "mock-doc" } as any;
+const mockCollectionRef = {
+  path: "mock-collection",
+} as unknown as CollectionReference;
+const mockDocRef = { id: "mock-doc" } as unknown as DocumentReference;
 
 vi.mock("firebase/firestore", async () => {
   const firestore =

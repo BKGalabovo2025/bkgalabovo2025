@@ -3,10 +3,8 @@
 import * as React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { getAdminDb } from "@/lib/firebase-admin";
-
-// We'll define a simple PDF component internally or import it
-// For this example, I'll define a very basic structure
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import type { Member } from "@/types/member.types";
 
 const styles = StyleSheet.create({
   page: { padding: 30, fontSize: 12 },
@@ -26,7 +24,7 @@ const styles = StyleSheet.create({
   value: { flex: 1 },
 });
 
-const MemberPDF = ({ member }: { member: any }) => (
+const MemberPDF = ({ member }: { member: Member }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <Text style={styles.title}>Картон на Член</Text>
@@ -60,7 +58,7 @@ export async function generateMemberPDFAction(memberId: string) {
     const doc = await db.collection("members").doc(memberId).get();
 
     if (!doc.exists) throw new Error("Member not found");
-    const member = doc.data();
+    const member = { id: doc.id, ...doc.data() } as Member;
 
     // Render PDF to buffer on the server
     const buffer = await renderToBuffer(<MemberPDF member={member} />);
@@ -71,8 +69,14 @@ export async function generateMemberPDFAction(memberId: string) {
       pdfBase64: buffer.toString("base64"),
       fileName: `member_${memberId}.pdf`,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("PDF Generation Error:", error);
-    return { success: false, message: error.message };
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при генериране на PDF.",
+    };
   }
 }

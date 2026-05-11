@@ -6,8 +6,6 @@ import { Reservation, BlockedSlot } from "@/types/reservation";
 import {
   subscribeToReservationsForDay,
   subscribeToBlockedSlotsForDay,
-  deleteReservation,
-  deleteBlockedSlot,
 } from "@/lib/reservations";
 import {
   deleteReservationAction,

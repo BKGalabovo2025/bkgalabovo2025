@@ -90,8 +90,14 @@ export async function computeGlobalRankingsServer(dateFilter?: {
     // Filter by date if provided
     if (dateFilter) {
       tournaments = tournaments.filter((t) => {
-        const rawDate = t.startDate as any;
-        const tDate = rawDate?.toDate ? rawDate.toDate() : new Date(rawDate);
+        const rawDate = t.startDate as unknown as
+          | { toDate: () => Date }
+          | string
+          | Date;
+        const tDate =
+          typeof (rawDate as { toDate?: () => Date }).toDate === "function"
+            ? (rawDate as { toDate: () => Date }).toDate()
+            : new Date(rawDate as string);
         return tDate >= dateFilter.start && tDate <= dateFilter.end;
       });
     }

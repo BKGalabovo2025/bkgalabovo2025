@@ -48,7 +48,7 @@ export const formatDateTimeLocal = (
 /**
  * Converts various date types to ISO string, or undefined if null/invalid.
  */
-export const toISOStringOrUndefined = (date: any): string | undefined => {
+export const toISOStringOrUndefined = (date: unknown): string | undefined => {
   if (!date) return undefined;
 
   // Handle Firebase Timestamp
@@ -60,7 +60,7 @@ export const toISOStringOrUndefined = (date: any): string | undefined => {
     return date.toDate().toISOString();
   }
 
-  const d = new Date(date);
+  const d = new Date(date as string | number | Date);
   return isValid(d) ? d.toISOString() : undefined;
 };
 

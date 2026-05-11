@@ -11,7 +11,7 @@ export type MemberActionState = {
   errors?: { [key: string]: string[] | undefined };
   message?: string | null;
   success?: boolean;
-  data?: any;
+  data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 // --- Public Server Actions ---
@@ -21,7 +21,7 @@ export type MemberActionState = {
  */
 export async function createMemberAction(
   idToken: string,
-  memberData: any
+  memberData: Record<string, unknown>
 ): Promise<MemberActionState> {
   try {
     const user = await getAuthUser(idToken);
@@ -79,7 +79,7 @@ export async function createMemberAction(
 export async function updateMemberAction(
   id: string,
   idToken: string,
-  memberData: any
+  memberData: Record<string, unknown>
 ): Promise<MemberActionState> {
   try {
     const user = await getAuthUser(idToken);

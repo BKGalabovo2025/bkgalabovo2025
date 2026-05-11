@@ -55,9 +55,9 @@ export default function TournamentsClient({
     }
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: Tournament) => {
     try {
-      await tournamentService.createTournament(data);
+      await tournamentService.createTournament(data as Omit<Tournament, "id">);
       toast.success("Турнирът е създаден успешно!");
       setIsDialogOpen(false);
       refreshTournaments();
@@ -67,10 +67,13 @@ export default function TournamentsClient({
     }
   };
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: Tournament) => {
     if (!editingTournament?.id) return;
     try {
-      await tournamentService.updateTournament(editingTournament.id, data);
+      await tournamentService.updateTournament(
+        editingTournament.id,
+        data as Partial<Tournament>
+      );
       toast.success("Турнирът е обновен успешно!");
       setEditingTournament(null);
       refreshTournaments();
@@ -172,7 +175,7 @@ export default function TournamentsClient({
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] shadow-2xl border-zinc-100">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-5xl shadow-2xl border-zinc-100">
           <DialogHeader>
             <DialogTitle className="text-2xl font-light uppercase tracking-widest text-zinc-900 dark:text-white">
               Нов турнир
@@ -189,7 +192,7 @@ export default function TournamentsClient({
         open={!!editingTournament}
         onOpenChange={(open) => !open && setEditingTournament(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] shadow-2xl border-zinc-100">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-5xl shadow-2xl border-zinc-100">
           <DialogHeader>
             <DialogTitle className="text-2xl font-light uppercase tracking-widest text-zinc-900 dark:text-white">
               Редактиране
@@ -204,7 +207,7 @@ export default function TournamentsClient({
       </Dialog>
 
       {tournaments.length === 0 ? (
-        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] bg-zinc-50/30 dark:bg-zinc-900/10">
+        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10">
           <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
             <Trophy
               className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
@@ -314,7 +317,7 @@ function TournamentCard({
   };
 
   return (
-    <BentoCard className="flex flex-col h-full group hover:border-primary/30 transition-all duration-500 overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-[2rem]">
+    <BentoCard className="flex flex-col h-full group hover:border-primary/30 transition-all duration-500 overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl">
       <div className="p-8 pb-6">
         <div className="flex justify-between items-center mb-6">
           {getStatusBadge(tournament.status)}
@@ -326,7 +329,7 @@ function TournamentCard({
                 : "Микс"}
           </span>
         </div>
-        <h3 className="text-2xl font-light text-zinc-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[4rem]">
+        <h3 className="text-2xl font-light text-zinc-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-16">
           {tournament.title}
         </h3>
         <div className="flex items-center mt-4 text-zinc-400 text-xs font-light tracking-wide">

@@ -1,6 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import {
+  useForm,
+  SubmitHandler,
+  ControllerRenderProps,
+  UseFormReturn,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   TournamentSchema,
@@ -35,7 +40,7 @@ const CATEGORIES = [
   { id: "singles", label: "Единично" },
   { id: "doubles", label: "Двойки" },
   { id: "mixed", label: "Смесени двойки" },
-];
+] as const;
 
 type TournamentFormValues = z.infer<typeof TournamentSchema>;
 
@@ -52,23 +57,26 @@ export function TournamentForm({
 }: TournamentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<TournamentFormValues>({
-    resolver: zodResolver(TournamentSchema) as any,
-    defaultValues: initialData || {
-      title: "",
-      description: "",
-      location: "",
-      status: "upcoming",
-      format: "berger",
-      categories: [],
-      matchFormatId: "official_21",
-      countsForRanking: true,
-      pointsMultiplier: 1,
-      entryFee: 0,
-    },
-  });
+  const form: UseFormReturn<TournamentFormValues> =
+    useForm<TournamentFormValues>({
+      resolver: zodResolver(TournamentSchema),
+      defaultValues: {
+        title: initialData?.title ?? "",
+        description: initialData?.description ?? "",
+        startDate: initialData?.startDate ?? new Date().toISOString(),
+        endDate: initialData?.endDate ?? new Date().toISOString(),
+        location: initialData?.location ?? "",
+        status: initialData?.status ?? "upcoming",
+        format: initialData?.format ?? "berger",
+        categories: initialData?.categories ?? [],
+        matchFormatId: initialData?.matchFormatId ?? "official_21",
+        countsForRanking: initialData?.countsForRanking ?? true,
+        pointsMultiplier: initialData?.pointsMultiplier ?? 1,
+        entryFee: initialData?.entryFee ?? 0,
+      },
+    });
 
-  const onSubmit = async (data: TournamentFormValues) => {
+  const onSubmit: SubmitHandler<TournamentFormValues> = async (data) => {
     setIsSubmitting(true);
     try {
       await onSave(data);
@@ -84,10 +92,10 @@ export function TournamentForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
-          <FormField
+          <FormField<TournamentFormValues, "title">
             control={form.control}
             name="title"
-            render={({ field }: { field: any }) => (
+            render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Име на турнира
@@ -104,10 +112,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "startDate">
             control={form.control}
             name="startDate"
-            render={({ field }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "startDate">;
+            }) => (
               <FormItem>
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Начална дата
@@ -131,10 +143,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "endDate">
             control={form.control}
             name="endDate"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "endDate">;
+            }) => (
               <FormItem>
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Крайна дата
@@ -144,7 +160,7 @@ export function TournamentForm({
                     type="date"
                     {...field}
                     value={field.value ? field.value.split("T")[0] : ""}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const date = e.target.value
                         ? new Date(e.target.value).toISOString()
                         : "";
@@ -158,10 +174,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "location">
             control={form.control}
             name="location"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "location">;
+            }) => (
               <FormItem>
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Локация
@@ -178,10 +198,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "format">
             control={form.control}
             name="format"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "format">;
+            }) => (
               <FormItem>
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Формат на игра
@@ -206,10 +230,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "status">
             control={form.control}
             name="status"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "status">;
+            }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Статус на събитието
@@ -261,10 +289,17 @@ export function TournamentForm({
             </div>
 
             {form.watch("entryFee") > 0 && (
-              <FormField
+              <FormField<TournamentFormValues, "entryFee">
                 control={form.control}
                 name="entryFee"
-                render={({ field }: { field: any }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    TournamentFormValues,
+                    "entryFee"
+                  >;
+                }) => (
                   <FormItem className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                       Сума в Евро (€)
@@ -291,10 +326,17 @@ export function TournamentForm({
             )}
           </div>
 
-          <FormField
+          <FormField<TournamentFormValues, "matchFormatId">
             control={form.control}
             name="matchFormatId"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<
+                TournamentFormValues,
+                "matchFormatId"
+              >;
+            }) => (
               <FormItem className="md:col-span-2 p-8 rounded-4xl bg-primary/[0.02] border border-primary/10">
                 <div className="mb-6">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
@@ -317,7 +359,7 @@ export function TournamentForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="rounded-2xl border-zinc-100 shadow-xl max-h-[300px]">
-                    {MATCH_FORMAT_PRESETS.map((preset: any) => (
+                    {MATCH_FORMAT_PRESETS.map((preset) => (
                       <SelectItem key={preset.id} value={preset.id}>
                         {preset.label}
                       </SelectItem>
@@ -329,10 +371,17 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "countsForRanking">
             control={form.control}
             name="countsForRanking"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<
+                TournamentFormValues,
+                "countsForRanking"
+              >;
+            }) => (
               <FormItem className="md:col-span-2 p-8 rounded-4xl bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900 flex flex-row items-center justify-between">
                 <div className="space-y-1">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
@@ -357,10 +406,17 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "pointsMultiplier">
             control={form.control}
             name="pointsMultiplier"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<
+                TournamentFormValues,
+                "pointsMultiplier"
+              >;
+            }) => (
               <FormItem>
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Коефициент
@@ -381,10 +437,14 @@ export function TournamentForm({
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "categories">
             control={form.control}
             name="categories"
-            render={() => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "categories">;
+            }) => (
               <FormItem className="md:col-span-2 p-8 rounded-4xl border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                 <div className="mb-8">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white">
@@ -395,56 +455,58 @@ export function TournamentForm({
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {CATEGORIES.map((item) => (
-                    <FormField
-                      key={item.id}
-                      control={form.control}
-                      name="categories"
-                      render={({ field }: { field: any }) => {
-                        const isChecked = field.value?.includes(item.id as any);
-                        return (
-                          <FormItem
-                            key={item.id}
-                            className={cn(
-                              "flex flex-row items-center space-x-4 space-y-0 p-4 rounded-2xl border transition-all cursor-pointer",
-                              isChecked
-                                ? "bg-primary/5 border-primary/20 text-primary"
-                                : "bg-zinc-50/50 border-zinc-100 text-zinc-500 hover:bg-zinc-50"
-                            )}
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={isChecked}
-                                onCheckedChange={(checked: boolean) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value: string) => value !== item.id
-                                        )
-                                      );
-                                }}
-                                className="h-5 w-5 rounded-md"
-                              />
-                            </FormControl>
-                            <FormLabel className="text-xs font-medium uppercase tracking-widest cursor-pointer">
-                              {item.label}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
+                  {CATEGORIES.map((item) => {
+                    const isChecked = field.value?.includes(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "flex flex-row items-center space-x-4 space-y-0 p-4 rounded-2xl border transition-all cursor-pointer",
+                          isChecked
+                            ? "bg-primary/5 border-primary/20 text-primary"
+                            : "bg-zinc-50/50 border-zinc-100 text-zinc-500 hover:bg-zinc-50"
+                        )}
+                        onClick={() => {
+                          const current = field.value || [];
+                          const next = isChecked
+                            ? current.filter((v) => v !== item.id)
+                            : [...current, item.id];
+                          field.onChange(next);
+                        }}
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked: boolean) => {
+                              const current = field.value || [];
+                              const next = checked
+                                ? [...current, item.id]
+                                : current.filter((v) => v !== item.id);
+                              field.onChange(next);
+                            }}
+                            className="h-5 w-5 rounded-md"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-xs font-medium uppercase tracking-widest cursor-pointer">
+                          {item.label}
+                        </FormLabel>
+                      </div>
+                    );
+                  })}
                 </div>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <FormField
+          <FormField<TournamentFormValues, "description">
             control={form.control}
             name="description"
-            render={({ field }: { field: any }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<TournamentFormValues, "description">;
+            }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Описание / Бележки

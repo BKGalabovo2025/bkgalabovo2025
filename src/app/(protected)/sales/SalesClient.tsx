@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 
 export default function SalesClient() {
   const router = useRouter();
-  const { user, idToken } = useAuth();
+  const { idToken } = useAuth();
   const {
     sales,
     loading: salesLoading,

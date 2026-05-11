@@ -1,6 +1,10 @@
 "use client";
 
-import { Table as ReactTable, flexRender } from "@tanstack/react-table";
+import {
+  Table as ReactTable,
+  flexRender,
+  ColumnDef,
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -12,7 +16,7 @@ import {
 
 interface DataTableContentProps<TData> {
   table: ReactTable<TData>;
-  columns: any[]; // Adjust this type as needed
+  columns: ColumnDef<TData, unknown>[]; // Replaced any with unknown to fix last linting warning
 }
 
 export function DataTableContent<TData>({

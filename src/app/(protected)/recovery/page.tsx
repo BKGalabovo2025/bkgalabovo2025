@@ -8,10 +8,8 @@ import {
   Clock,
   User,
   Activity,
-  CheckCircle2,
   AlertCircle,
   ChevronRight,
-  Plus,
 } from "lucide-react";
 
 import { useAppStore } from "@/store/use-app-store";
@@ -19,7 +17,7 @@ import { useMembers } from "@/hooks/useMembers";
 import { useReservations } from "@/hooks/useReservations";
 import { useAvailability } from "@/hooks/useAvailability";
 import { getAllClubServices } from "@/services/subscription-service";
-import { ClubService, Member } from "@/types";
+import { ClubService } from "@/types";
 
 import {
   Card,
@@ -30,11 +28,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -46,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function RecoveryPage() {
   const { activeBranch } = useAppStore();
@@ -57,11 +51,7 @@ export default function RecoveryPage() {
   const [services, setServices] = useState<ClubService[]>([]);
 
   // Hooks for booking logic
-  const {
-    reservations,
-    addReservation,
-    isLoading: isResLoading,
-  } = useReservations(activeBranch, date);
+  const { reservations, addReservation } = useReservations(activeBranch, date);
   const {
     availableSlots,
     isLoading: isAvailLoading,
@@ -78,6 +68,7 @@ export default function RecoveryPage() {
         setSelectedServiceId(bookingServices[0].id);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleBooking = async (slotTime: Date) => {
@@ -354,6 +345,3 @@ export default function RecoveryPage() {
     </div>
   );
 }
-
-// Helper components needed for Tabs (since they might not be auto-imported or need definition)
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

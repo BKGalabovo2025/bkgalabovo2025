@@ -46,7 +46,7 @@ export const getAgeGroup = (birthDate: string): string => {
  * @param data Масив от данни.
  * @param filename Име на файла.
  */
-export const downloadCSV = <T extends Record<string, any>>(
+export const downloadCSV = <T extends Record<string, unknown>>(
   data: T[],
   filename: string
 ) => {

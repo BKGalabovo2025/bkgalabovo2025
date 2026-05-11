@@ -100,7 +100,7 @@ export const tournamentService = {
     try {
       const db = getDb();
       const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         ...data,
         updatedAt: serverTimestamp(),
       };

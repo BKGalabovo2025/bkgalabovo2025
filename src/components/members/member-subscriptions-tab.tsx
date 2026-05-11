@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { User } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -295,9 +294,10 @@ const ReceiptButton = ({
         idToken,
         subscription
       );
-      if (result.success && result.data?.id) {
+      const data = result.data as { id: string } | undefined;
+      if (result.success && data?.id) {
         onUpdate();
-        router.push(`/sales/${result.data.id}/receipt`);
+        router.push(`/sales/${data.id}/receipt`);
       } else {
         toast.error("Грешка", {
           description:
@@ -340,7 +340,7 @@ const SubscriptionCard = ({
   sub: Subscription;
   service?: ClubService;
   onSubscriptionUpdate: () => void;
-  user: any;
+  user: User | null;
   idToken: string | null;
 }) => {
   const [isRenewing, setIsRenewing] = useState(false);

@@ -4,30 +4,34 @@ import {
   TournamentEntry,
   Match,
 } from "@/types/tournament.types";
+import type { DocumentSnapshot } from "firebase/firestore";
 
 /**
  * Maps a Firestore document snapshot to a Tournament object,
  * handling Timestamp to ISO string conversions and Zod validation.
  */
-export function mapDocToTournament(docSnapshot: any): Tournament {
+export function mapDocToTournament(docSnapshot: DocumentSnapshot): Tournament {
   const data = docSnapshot.data();
+  if (!data) return { id: docSnapshot.id } as Tournament;
+
+  const toISODate = (
+    date: { toDate?: () => Date } | Date | string | null | undefined
+  ): string | undefined => {
+    if (!date) return undefined;
+    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
+      return (date as { toDate: () => Date }).toDate().toISOString();
+    }
+    return date instanceof Date ? date.toISOString() : (date as string);
+  };
 
   try {
     return TournamentSchema.parse({
       ...data,
       id: docSnapshot.id,
-      startDate: data.startDate?.toDate
-        ? data.startDate.toDate().toISOString()
-        : data.startDate,
-      endDate: data.endDate?.toDate
-        ? data.endDate.toDate().toISOString()
-        : data.endDate,
-      createdAt: data.createdAt?.toDate
-        ? data.createdAt.toDate().toISOString()
-        : data.createdAt,
-      updatedAt: data.updatedAt?.toDate
-        ? data.updatedAt.toDate().toISOString()
-        : data.updatedAt,
+      startDate: toISODate(data.startDate),
+      endDate: toISODate(data.endDate),
+      createdAt: toISODate(data.createdAt),
+      updatedAt: toISODate(data.updatedAt),
     });
   } catch (error) {
     console.warn(`Validation failed for tournament ${docSnapshot.id}:`, error);
@@ -39,27 +43,47 @@ export function mapDocToTournament(docSnapshot: any): Tournament {
 /**
  * Maps a Firestore document snapshot to a TournamentEntry object.
  */
-export function mapDocToEntry(docSnapshot: any): TournamentEntry {
+export function mapDocToEntry(docSnapshot: DocumentSnapshot): TournamentEntry {
   const data = docSnapshot.data();
+  if (!data) return { id: docSnapshot.id } as unknown as TournamentEntry;
+
+  const toISODate = (
+    date: { toDate?: () => Date } | Date | string | null | undefined
+  ): string | undefined => {
+    if (!date) return undefined;
+    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
+      return (date as { toDate: () => Date }).toDate().toISOString();
+    }
+    return date instanceof Date ? date.toISOString() : (date as string);
+  };
+
   return {
     ...data,
     id: docSnapshot.id,
-    registrationDate: data.registrationDate?.toDate
-      ? data.registrationDate.toDate().toISOString()
-      : data.registrationDate,
+    registrationDate: toISODate(data.registrationDate),
   } as TournamentEntry;
 }
 
 /**
  * Maps a Firestore document snapshot to a Match object.
  */
-export function mapDocToMatch(docSnapshot: any): Match {
+export function mapDocToMatch(docSnapshot: DocumentSnapshot): Match {
   const data = docSnapshot.data();
+  if (!data) return { id: docSnapshot.id } as unknown as Match;
+
+  const toISODate = (
+    date: { toDate?: () => Date } | Date | string | null | undefined
+  ): string | undefined => {
+    if (!date) return undefined;
+    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
+      return (date as { toDate: () => Date }).toDate().toISOString();
+    }
+    return date instanceof Date ? date.toISOString() : (date as string);
+  };
+
   return {
     ...data,
     id: docSnapshot.id,
-    updatedAt: data.updatedAt?.toDate
-      ? data.updatedAt.toDate().toISOString()
-      : data.updatedAt,
-  } as Match;
+    updatedAt: toISODate(data.updatedAt),
+  } as unknown as Match;
 }

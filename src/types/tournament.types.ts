@@ -136,13 +136,13 @@ export const TournamentSchema = z.object({
   startDate: z.string().datetime({ message: "Невалидна начална дата" }),
   endDate: z.string().datetime({ message: "Невалидна крайна дата" }),
   location: z.string().min(1, "Локацията е задължителна"),
-  status: TournamentStatusEnum.default("upcoming"),
-  format: TournamentFormatEnum.default("berger"),
+  status: TournamentStatusEnum,
+  format: TournamentFormatEnum,
   categories: z.array(CategoryEnum).min(1, "Изберете поне една категория"),
-  matchFormatId: z.string().default("official_21"), // Формат за точкуване
-  countsForRanking: z.boolean().default(true), // Влиза ли в ранглистата
-  pointsMultiplier: z.number().min(0).default(1),
-  entryFee: z.number().min(0).default(0),
+  matchFormatId: z.string(), // Формат за точкуване
+  countsForRanking: z.boolean(), // Влиза ли в ранглистата
+  pointsMultiplier: z.number().min(0),
+  entryFee: z.number().min(0),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });
