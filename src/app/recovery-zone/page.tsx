@@ -114,9 +114,9 @@ export default function RecoveryZonePage() {
             className="object-cover opacity-20"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950" />
+          <div className="absolute inset-0 bg-linear-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-emerald-900/10 to-transparent" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-32">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium uppercase tracking-widest mb-8">
@@ -205,7 +205,7 @@ export default function RecoveryZonePage() {
                     fill
                     className="object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-zinc-900 to-transparent" />
                 </div>
                 <div className="p-8">
                   <h3 className="text-lg font-medium text-white mb-3">{a.name}</h3>

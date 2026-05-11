@@ -103,7 +103,7 @@ export default function HomePage() {
             onMouseEnter={() => setHovered("bk")}
             onMouseLeave={() => setHovered(null)}
           >
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="h-14 w-14 bg-blue-600/10 border border-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400 mb-6 transition-all group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 duration-500">
               <Trophy size={24} strokeWidth={1.5} />
             </div>
@@ -129,7 +129,7 @@ export default function HomePage() {
             onMouseEnter={() => setHovered("recovery")}
             onMouseLeave={() => setHovered(null)}
           >
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-emerald-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="h-14 w-14 bg-emerald-600/10 border border-emerald-600/20 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 transition-all group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 duration-500">
               <Activity size={24} strokeWidth={1.5} />
             </div>

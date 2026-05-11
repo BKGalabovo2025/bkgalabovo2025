@@ -85,9 +85,9 @@ export default function ClubPage() {
             className="object-cover opacity-20"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950" />
+          <div className="absolute inset-0 bg-linear-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-blue-900/10 to-transparent" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-32">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-600/20 rounded-full text-blue-400 text-xs font-medium uppercase tracking-widest mb-8">
