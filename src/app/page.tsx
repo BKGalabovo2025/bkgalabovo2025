@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import {
   Trophy,
-  Activity,
   ArrowRight,
   ShieldCheck,
   Lock,

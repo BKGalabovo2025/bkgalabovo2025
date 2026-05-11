@@ -51,3 +51,6 @@ recovery-zone-export.json
 lint_output*.txt
 lint_results.txt
 .config/
+.lighthouse-reports/
+tmp/
+.agents/

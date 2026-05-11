@@ -1,0 +1,29 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 1,
+      "startServerCommand": "next start -p 3001",
+      "url": [
+        "http://localhost:3001/",
+        "http://localhost:3001/club",
+        "http://localhost:3001/recovery-zone",
+        "http://localhost:3001/login"
+      ],
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless --disable-gpu --user-data-dir=./.lighthouse-profile"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.7 }],
+        "categories:accessibility": ["warn", { "minScore": 0.8 }],
+        "categories:best-practices": ["warn", { "minScore": 0.8 }],
+        "categories:seo": ["warn", { "minScore": 0.8 }]
+      }
+    }
+  }
+}

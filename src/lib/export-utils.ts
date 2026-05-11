@@ -27,8 +27,31 @@ export interface ExportOptions {
 // EXCEL EXPORT
 // ──────────────────────────────────────────────
 export async function exportToExcel(options: ExportOptions): Promise<void> {
-  const XLSX = await import("xlsx");
+  const ExcelJS = (await import("exceljs")).default;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Класиране");
 
+  // Заглавни редове
+  let currentRow = 1;
+  worksheet.getCell(`A${currentRow}`).value = options.title;
+  worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
+  currentRow++;
+
+  if (options.subtitle) {
+    worksheet.getCell(`A${currentRow}`).value = options.subtitle;
+    worksheet.getCell(`A${currentRow}`).font = { italic: true };
+    currentRow++;
+  }
+
+  if (options.category) {
+    worksheet.getCell(`A${currentRow}`).value =
+      `Категория: ${options.category}`;
+    currentRow++;
+  }
+
+  currentRow++; // Празен ред
+
+  // Заглавия на колоните
   const headers = [
     "#",
     "Участник",
@@ -39,44 +62,54 @@ export async function exportToExcel(options: ExportOptions): Promise<void> {
     "% Победи",
     "Точки",
   ];
+  const headerRow = worksheet.getRow(currentRow);
+  headerRow.values = headers;
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FFE0E0E0" },
+  };
+  currentRow++;
 
-  const data = options.rows.map((r) => [
-    r.position,
-    r.name,
-    r.played,
-    r.wins,
-    r.losses,
-    r.pointsRatio,
-    r.winRate,
-    r.totalPoints,
-  ]);
+  // Данни
+  options.rows.forEach((r) => {
+    worksheet.getRow(currentRow).values = [
+      r.position,
+      r.name,
+      r.played,
+      r.wins,
+      r.losses,
+      r.pointsRatio,
+      r.winRate,
+      r.totalPoints,
+    ];
+    currentRow++;
+  });
 
-  const worksheet = XLSX.utils.aoa_to_sheet([
-    [options.title],
-    options.subtitle ? [options.subtitle] : [],
-    options.category ? [`Категория: ${options.category}`] : [],
-    [],
-    headers,
-    ...data,
-  ]);
-
-  // Стилизираме ширините на колоните
-  worksheet["!cols"] = [
-    { wch: 5 }, // #
-    { wch: 30 }, // Участник
-    { wch: 10 }, // Изиграни
-    { wch: 10 }, // Победи
-    { wch: 10 }, // Загуби
-    { wch: 12 }, // Т. Разлика
-    { wch: 12 }, // % Победи
-    { wch: 10 }, // Точки
+  // Ширини на колоните
+  worksheet.columns = [
+    { key: "pos", width: 5 },
+    { key: "name", width: 30 },
+    { key: "played", width: 12 },
+    { key: "wins", width: 10 },
+    { key: "losses", width: 10 },
+    { key: "ratio", width: 15 },
+    { key: "rate", width: 12 },
+    { key: "points", width: 10 },
   ];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Класиране");
-
-  const filename = `${options.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_")}_класиране.xlsx`;
-  XLSX.writeFile(workbook, filename);
+  // Генериране и изтегляне
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${options.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_")}_класиране.xlsx`;
+  anchor.click();
+  window.URL.revokeObjectURL(url);
 }
 
 // ──────────────────────────────────────────────

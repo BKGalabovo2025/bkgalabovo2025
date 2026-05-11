@@ -6,7 +6,11 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get("session");
 
   // Define public routes
-  const isPublicRoute = pathname === "/login" || pathname === "/";
+  const isPublicRoute =
+    pathname === "/login" ||
+    pathname === "/" ||
+    pathname === "/club" ||
+    pathname === "/recovery-zone";
 
   // If the route is not public and no session exists, redirect to login
   if (!isPublicRoute && !session) {
@@ -33,6 +37,6 @@ export const config = {
      * - icons (manifest icons)
      * - images (public images)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons|images).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons|images|.*\\.png|.*\\.jpg|.*\\.svg|.*\\.webp|.*\\.xml).*)",
   ],
 };

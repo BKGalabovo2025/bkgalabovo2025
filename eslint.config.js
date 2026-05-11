@@ -1,10 +1,14 @@
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+import { FlatCompat } from "@eslint/eslintrc";
 import tseslint from "typescript-eslint";
 
-const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// eslint-config-next v15+ exports a flat config array natively via CommonJS.
-const nextConfig = require("eslint-config-next");
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
 
 export default [
   // ── Global ignores ─────────────────────────────────────────────────────────
@@ -26,7 +30,7 @@ export default [
   },
 
   // ── Next.js recommended flat config (includes react, react-hooks, a11y …) ─
-  ...nextConfig,
+  ...compat.extends("next/core-web-vitals"),
 
   // ── TypeScript-ESLint plugin (provides @typescript-eslint/* rules) ─────────
   ...tseslint.configs.recommended,
