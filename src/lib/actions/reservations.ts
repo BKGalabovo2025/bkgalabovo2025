@@ -16,6 +16,15 @@ const reservationSchema = z.object({
   totalPrice: z.number(),
   currency: z.string().default("EUR"),
   status: z.string().default("unpaid"),
+  siteId: z.string(),
+});
+
+const blockedSlotSchema = z.object({
+  title: z.string().min(3),
+  startTime: z.string(), // ISO string
+  endTime: z.string(), // ISO string
+  courtIds: z.array(z.number()),
+  siteId: z.string(),
 });
 
 export async function createReservationAction(idToken: string, data: any) {
@@ -30,6 +39,7 @@ export async function createReservationAction(idToken: string, data: any) {
     // Conflict check - Reservations
     const reservationsRef = db.collection("reservations");
     const conflictingRes = await reservationsRef
+      .where("siteId", "==", validated.siteId)
       .where("courtId", "==", validated.courtId)
       .where("startTime", "<", endTime)
       .get();
@@ -49,6 +59,7 @@ export async function createReservationAction(idToken: string, data: any) {
     // Conflict check - Blocked Slots
     const blockedRef = db.collection("blockedSlots");
     const blockedSlots = await blockedRef
+      .where("siteId", "==", validated.siteId)
       .where("startTime", "<", endTime)
       .get();
     const hasBlocked = blockedSlots.docs.some((doc) => {
@@ -104,6 +115,7 @@ export async function updateReservationAction(
 
     // Conflict check (excluding current)
     const conflictingRes = await reservationsRef
+      .where("siteId", "==", validated.siteId)
       .where("courtId", "==", validated.courtId)
       .where("startTime", "<", endTime)
       .get();
@@ -153,13 +165,14 @@ export async function deleteReservationAction(
 export async function createBlockedSlotAction(idToken: string, data: any) {
   try {
     await getAuthUser(idToken);
+    const validated = blockedSlotSchema.parse(data);
     const db = getAdminDb();
 
-    const startTime = Timestamp.fromDate(new Date(data.startTime));
-    const endTime = Timestamp.fromDate(new Date(data.endTime));
+    const startTime = Timestamp.fromDate(new Date(validated.startTime));
+    const endTime = Timestamp.fromDate(new Date(validated.endTime));
 
     await db.collection("blockedSlots").add({
-      ...data,
+      ...validated,
       startTime,
       endTime,
       createdAt: Timestamp.now(),
@@ -168,6 +181,48 @@ export async function createBlockedSlotAction(idToken: string, data: any) {
     revalidatePath("/reservations");
     return { success: true, message: "Периодът е блокиран успешно." };
   } catch (error: any) {
+    console.error("Create Blocked Slot Error:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+export async function updateBlockedSlotAction(
+  idToken: string,
+  slotId: string,
+  data: any
+) {
+  try {
+    await getAuthUser(idToken);
+    const validated = blockedSlotSchema.parse(data);
+    const db = getAdminDb();
+
+    const startTime = Timestamp.fromDate(new Date(validated.startTime));
+    const endTime = Timestamp.fromDate(new Date(validated.endTime));
+
+    await db.collection("blockedSlots").doc(slotId).update({
+      ...validated,
+      startTime,
+      endTime,
+      updatedAt: Timestamp.now(),
+    });
+
+    revalidatePath("/reservations");
+    return { success: true, message: "Блокираният период е актуализиран успешно." };
+  } catch (error: any) {
+    console.error("Update Blocked Slot Error:", error);
+    return { success: false, message: error.message };
+  }
+}
+
+export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    await db.collection("blockedSlots").doc(slotId).delete();
+    revalidatePath("/reservations");
+    return { success: true, message: "Блокираният период е изтрит." };
+  } catch (error: any) {
+    console.error("Delete Blocked Slot Error:", error);
     return { success: false, message: error.message };
   }
 }

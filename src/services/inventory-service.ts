@@ -33,6 +33,7 @@ export const docToProduct = (doc: DocumentSnapshot): Product | null => {
 
   const product: Product = {
     id: doc.id,
+    siteId: typeof data.siteId === "string" ? data.siteId : "default",
     name: name,
     description: typeof data.description === "string" ? data.description : "",
     price: typeof data.price === "number" ? data.price : 0,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { Sale, Member } from "@/types";
 import { getSales } from "@/services/sales-service";
 import { getAllMembers } from "@/services/member-service";
@@ -57,13 +58,19 @@ const FinancialReport = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isMounted = useIsMounted();
 
   // Filters
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(
-    addDays(new Date(), -30)
-  );
-  const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [paymentType, setPaymentType] = useState<string>("all");
+
+  useEffect(() => {
+    if (isMounted) {
+      setDateFrom(addDays(new Date(), -30));
+      setDateTo(new Date());
+    }
+  }, [isMounted]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,23 +150,13 @@ const FinancialReport = () => {
       }
     };
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading || !mounted) {
+  if (!isMounted || isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-6">
-        <Loader2
-          className="h-10 w-10 animate-spin text-zinc-200"
-          strokeWidth={1}
-        />
-        <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-          Зареждане на финансов отчет...
-        </p>
+      <div className="flex flex-col items-center justify-center py-20 text-zinc-400 gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-300" strokeWidth={1.5} />
+        <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
+          {!isMounted ? "Инициализиране..." : "Зареждане на отчета..."}
+        </span>
       </div>
     );
   }
@@ -168,7 +165,7 @@ const FinancialReport = () => {
     <div className="space-y-10 animate-in fade-in duration-700">
       {/* Top Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 bg-zinc-50/50 p-6 rounded-[1.5rem] border border-zinc-100">
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 bg-zinc-50/50 p-6 rounded-3xl border border-zinc-100">
           <div className="space-y-2.5">
             <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
               От дата
@@ -252,7 +249,7 @@ const FinancialReport = () => {
 
       {/* Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="border border-zinc-100 shadow-none bg-white rounded-[2rem] overflow-hidden col-span-1 lg:col-span-2">
+        <Card className="border border-zinc-100 shadow-none bg-white rounded-4xl overflow-hidden col-span-1 lg:col-span-2">
           <CardHeader className="border-b border-zinc-50 p-8">
             <div className="flex items-center justify-between">
               <div>
@@ -322,7 +319,7 @@ const FinancialReport = () => {
         </Card>
 
         <div className="space-y-8">
-          <Card className="border-none shadow-none bg-zinc-950 text-white rounded-[2rem] overflow-hidden relative group">
+          <Card className="border-none shadow-none bg-zinc-950 text-white rounded-4xl overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
               <TrendingUp className="h-24 w-24 text-zinc-400" strokeWidth={1} />
             </div>
@@ -358,7 +355,7 @@ const FinancialReport = () => {
           </Card>
 
           <div className="grid grid-cols-2 gap-6">
-            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-[1.5rem]">
+            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-3xl">
               <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
                 Абонаменти
               </p>
@@ -366,7 +363,7 @@ const FinancialReport = () => {
                 {formatPrice(stats.subscriptions)}
               </p>
             </Card>
-            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-[1.5rem]">
+            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-3xl">
               <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
                 Инвентар
               </p>

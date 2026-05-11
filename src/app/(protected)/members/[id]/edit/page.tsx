@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useMembers } from "@/hooks/useMembers";
-import { updateMember } from "@/services/member-service";
+import { updateMemberAction } from "@/lib/actions/members";
+import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { MemberForm } from "@/components/members/member-form";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -19,16 +20,24 @@ const EditMemberPage = () => {
   const memberId = params.id as string;
 
   const { members, loading, error } = useMembers();
+  const { idToken } = useAuth();
   const member = members.find((m) => m.id === memberId);
 
   const handleSave = async (data: MemberFormValues) => {
+    if (!idToken) return;
     try {
-      await updateMember(memberId, data);
-      toast.success("Успех!", {
-        description: "Членът е актуализиран успешно.",
-      });
-      router.push(`/members/${memberId}`);
-      router.refresh(); // Force a refresh to reflect changes
+      const result = await updateMemberAction(memberId, idToken, data);
+      if (result.success) {
+        toast.success("Успех!", {
+          description: result.message || "Членът е актуализиран успешно.",
+        });
+        router.push(`/members/${memberId}`);
+        router.refresh();
+      } else {
+        toast.error("Грешка", {
+          description: result.message || "Неуспешно актуализиране на члена.",
+        });
+      }
     } catch {
       toast.error("Грешка", {
         description: "Неуспешно актуализиране на члена.",

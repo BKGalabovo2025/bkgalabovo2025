@@ -29,6 +29,7 @@ import {
   Settings,
   User,
   PanelLeft,
+  Activity,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -139,6 +140,19 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <Link href="/reservations" className="flex items-center gap-4">
                   <CalendarCheck size={20} strokeWidth={1.5} />
                   <span className="text-[15px]">Резервации</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/recovery")}
+                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+              >
+                <Link href="/recovery" className="flex items-center gap-4">
+                  <Activity size={20} strokeWidth={1.5} />
+                  <span className="text-[15px]">Възстановяване</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

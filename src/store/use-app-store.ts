@@ -30,7 +30,7 @@ export const useAppStore = create<AppState>()(
       setSidebarOpen: (open) => set({ isSidebarOpen: open }),
 
       // Global UI
-      activeBranch: "Централна База", // Default
+      activeBranch: "bkgalabovo", // Default
       setActiveBranch: (branch) => set({ activeBranch: branch }),
 
       // Search/Filter

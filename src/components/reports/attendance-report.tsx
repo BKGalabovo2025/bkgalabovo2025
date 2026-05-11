@@ -1,7 +1,8 @@
 // src/components/reports/attendance-report.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,10 +33,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const AttendanceReport = () => {
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const isMounted = useIsMounted();
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    if (isMounted) {
+      setStartDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+      setEndDate(new Date());
+    }
+  }, [isMounted]);
   const [reportData, setReportData] = useState<AttendanceReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +102,7 @@ const AttendanceReport = () => {
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
         <div className="flex flex-col md:flex-row gap-6 items-end">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
             <div className="space-y-3">
@@ -158,7 +165,7 @@ const AttendanceReport = () => {
       {/* Stats Cards */}
       {reportData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-[2rem] shadow-none">
+          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none">
             <div className="flex items-center gap-4 mb-3 text-zinc-400">
               <Activity className="h-5 w-5" strokeWidth={1.5} />
               <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
@@ -170,7 +177,7 @@ const AttendanceReport = () => {
             </p>
           </BentoCard>
 
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-[2rem] shadow-none">
+          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none">
             <div className="flex items-center gap-4 mb-3 text-zinc-400">
               <Users className="h-5 w-5" strokeWidth={1.5} />
               <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
@@ -182,7 +189,7 @@ const AttendanceReport = () => {
             </p>
           </BentoCard>
 
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-[2rem] shadow-none relative group">
+          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none relative group">
             <Trophy
               className="absolute top-8 right-8 h-8 w-8 text-zinc-100 group-hover:text-amber-100 transition-colors"
               strokeWidth={1}
@@ -220,14 +227,14 @@ const AttendanceReport = () => {
           </Badge>
         </div>
 
-        {isLoading ? (
+        {!isMounted || isLoading ? (
           <div className="p-32 text-center">
             <Loader2
               className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
               strokeWidth={1}
             />
             <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-              Обработка на данни...
+              {!isMounted ? "Инициализиране..." : "Обработка на данни..."}
             </p>
           </div>
         ) : reportData.length > 0 ? (

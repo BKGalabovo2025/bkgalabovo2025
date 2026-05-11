@@ -159,11 +159,11 @@ export function MemberAttendanceHistory({
 
   if (totalEvents === 0) {
     return (
-      <div className="p-16 text-center bg-white border border-zinc-100 rounded-[2.5rem]">
+      <div className="p-16 text-center bg-white border border-zinc-100 rounded-5xl">
         <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <CalendarX className="h-8 w-8 text-zinc-200" strokeWidth={1} />
         </div>
-        <h3 className="text-[11px] font-medium text-zinc-400 uppercase tracking-[0.3em] mb-3">
+        <h3 className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest3 mb-3">
           Няма регистрирани присъствия
         </h3>
         <p className="max-w-md mx-auto text-sm font-light text-zinc-400 leading-relaxed">
@@ -178,8 +178,8 @@ export function MemberAttendanceHistory({
     <div className="space-y-12">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-8 bg-zinc-950 rounded-4xl text-white flex flex-col justify-between h-40 shadow-xl shadow-zinc-950/10">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <div className="p-8 bg-zinc-950 rounded-5xl text-white flex flex-col justify-between h-40 shadow-xl shadow-zinc-950/10">
+          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
             Общо посещения
           </p>
           <div className="flex items-end justify-between">
@@ -192,8 +192,8 @@ export function MemberAttendanceHistory({
           </div>
         </div>
 
-        <div className="p-8 bg-white border border-zinc-100 rounded-4xl flex flex-col justify-between h-40">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <div className="p-8 bg-white border border-zinc-100 rounded-5xl flex flex-col justify-between h-40">
+          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
             Последна активност
           </p>
           <div className="flex items-end justify-between">
@@ -213,8 +213,8 @@ export function MemberAttendanceHistory({
           </div>
         </div>
 
-        <div className="p-8 bg-white border border-zinc-100 rounded-4xl flex flex-col justify-between h-40">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <div className="p-8 bg-white border border-zinc-100 rounded-5xl flex flex-col justify-between h-40">
+          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
             Месечен статус
           </p>
           <div className="flex items-end justify-between">
@@ -235,7 +235,7 @@ export function MemberAttendanceHistory({
         {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
           <div key={monthKey} className="relative">
             <div className="flex items-center gap-6 mb-8">
-              <h3 className="text-sm font-medium text-zinc-950 uppercase tracking-[0.2em] shrink-0">
+              <h3 className="text-sm font-medium text-zinc-950 uppercase tracking-widest2 shrink-0">
                 {monthData.monthName}{" "}
                 <span className="text-zinc-300 ml-1">{monthData.year}</span>
               </h3>
@@ -264,7 +264,7 @@ export function MemberAttendanceHistory({
                           strokeWidth={1.5}
                         />
                       </div>
-                      <h4 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                      <h4 className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
                         {details.translation}{" "}
                         <span className="text-zinc-200 ml-1">
                           / {events.length}

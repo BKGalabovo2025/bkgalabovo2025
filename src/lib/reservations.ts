@@ -9,6 +9,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import { getSiteConfig } from "@/config/sites";
 import { Reservation, BlockedSlot } from "@/types/reservation";
 
 const db = getDb();
@@ -31,11 +32,13 @@ const getDayBoundaries = (date: Date) => {
 // --- Public API --- //
 
 export const getReservationsForDay = async (
-  date: Date
+  date: Date,
+  siteId?: string
 ): Promise<Reservation[]> => {
   const { startOfDay, endOfDay } = getDayBoundaries(date);
   const q = query(
     reservationsCollection,
+    where("siteId", "==", siteId || getSiteConfig().id),
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );
@@ -52,11 +55,13 @@ export const deleteReservation = async (reservationId: string) => {
 };
 
 export const getBlockedSlotsForDay = async (
-  date: Date
+  date: Date,
+  siteId?: string
 ): Promise<BlockedSlot[]> => {
   const { startOfDay, endOfDay } = getDayBoundaries(date);
   const q = query(
     blockedSlotsCollection,
+    where("siteId", "==", siteId || getSiteConfig().id),
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );
@@ -74,11 +79,13 @@ export const deleteBlockedSlot = async (slotId: string) => {
 
 export const subscribeToReservationsForDay = (
   date: Date,
-  callback: (reservations: Reservation[]) => void
+  callback: (reservations: Reservation[]) => void,
+  siteId?: string
 ) => {
   const { startOfDay, endOfDay } = getDayBoundaries(date);
   const q = query(
     reservationsCollection,
+    where("siteId", "==", siteId || getSiteConfig().id),
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );
@@ -93,11 +100,13 @@ export const subscribeToReservationsForDay = (
 
 export const subscribeToBlockedSlotsForDay = (
   date: Date,
-  callback: (slots: BlockedSlot[]) => void
+  callback: (slots: BlockedSlot[]) => void,
+  siteId?: string
 ) => {
   const { startOfDay, endOfDay } = getDayBoundaries(date);
   const q = query(
     blockedSlotsCollection,
+    where("siteId", "==", siteId || getSiteConfig().id),
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );

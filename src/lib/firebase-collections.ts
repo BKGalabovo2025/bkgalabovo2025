@@ -1,5 +1,6 @@
-import { collection, FirestoreDataConverter } from "firebase/firestore";
+import { collection, FirestoreDataConverter, query, where } from "firebase/firestore";
 import { getDb } from "./firebase";
+import { getSiteConfig } from "@/config/sites";
 import {
   ClubService,
   InventoryEvent,
@@ -12,7 +13,7 @@ import {
 const memberConverter: FirestoreDataConverter<Member> = {
   toFirestore: (member) => {
     const { ...data } = member;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -26,7 +27,7 @@ const memberConverter: FirestoreDataConverter<Member> = {
 const saleConverter: FirestoreDataConverter<Sale> = {
   toFirestore: (sale) => {
     const { ...data } = sale;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -40,7 +41,7 @@ const saleConverter: FirestoreDataConverter<Sale> = {
 const clubServiceConverter: FirestoreDataConverter<ClubService> = {
   toFirestore: (service) => {
     const { ...data } = service;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -54,7 +55,7 @@ const clubServiceConverter: FirestoreDataConverter<ClubService> = {
 const subscriptionConverter: FirestoreDataConverter<Subscription> = {
   toFirestore: (subscription) => {
     const { ...data } = subscription;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -68,7 +69,7 @@ const subscriptionConverter: FirestoreDataConverter<Subscription> = {
 const productConverter: FirestoreDataConverter<Product> = {
   toFirestore: (product) => {
     const { ...data } = product;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -82,7 +83,7 @@ const productConverter: FirestoreDataConverter<Product> = {
 const inventoryEventConverter: FirestoreDataConverter<InventoryEvent> = {
   toFirestore: (event) => {
     const { ...data } = event;
-    return data;
+    return { ...data, siteId: getSiteConfig().id };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -93,7 +94,7 @@ const inventoryEventConverter: FirestoreDataConverter<InventoryEvent> = {
   },
 };
 
-// --- Collection Getters ---
+// --- Collection Getters (Raw) ---
 
 export const getMembersCollection = () =>
   collection(getDb(), "members").withConverter(memberConverter);
@@ -116,3 +117,23 @@ export const getInventoryEventsCollection = () =>
   collection(getDb(), "inventory-events").withConverter(
     inventoryEventConverter
   );
+
+// --- Tenant-Aware Query Getters ---
+
+export const getMembersQuery = () => 
+  query(getMembersCollection(), where("siteId", "==", getSiteConfig().id));
+
+export const getSalesQuery = () =>
+  query(getSalesCollection(), where("siteId", "==", getSiteConfig().id));
+
+export const getClubServicesQuery = () =>
+  query(getClubServicesCollection(), where("siteId", "==", getSiteConfig().id));
+
+export const getSubscriptionsQuery = () =>
+  query(getMemberSubscriptionsCollection(), where("siteId", "==", getSiteConfig().id));
+
+export const getProductsQuery = () =>
+  query(getProductsCollection(), where("siteId", "==", getSiteConfig().id));
+
+export const getInventoryEventsQuery = () =>
+  query(getInventoryEventsCollection(), where("siteId", "==", getSiteConfig().id));

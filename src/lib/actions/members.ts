@@ -167,3 +167,41 @@ export async function deleteMemberAction(
     };
   }
 }
+
+/**
+ * Bulk updates the status of multiple members.
+ */
+export async function bulkUpdateMemberStatusAction(
+  memberIds: string[],
+  status: "active" | "inactive" | "suspended",
+  idToken: string
+): Promise<MemberActionState> {
+  try {
+    await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+    const batch = adminDb.batch();
+
+    memberIds.forEach((id) => {
+      const memberRef = adminDb.collection("members").doc(id);
+      batch.update(memberRef, {
+        status,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+
+    await batch.commit();
+
+    revalidatePath("/members");
+
+    return {
+      success: true,
+      message: `Успешно обновени ${memberIds.length} членове.`,
+    };
+  } catch (error: unknown) {
+    console.error("bulkUpdateMemberStatusAction Error:", error);
+    return {
+      success: false,
+      message: "Грешка при масово обновяване на статуса.",
+    };
+  }
+}

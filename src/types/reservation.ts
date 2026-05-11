@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 // Represents a single reservation made by an external client
 export interface Reservation {
   id: string;
+  siteId: string; // Added for multi-tenancy
   courtId: number; // 1-6
   startTime: Timestamp;
   endTime: Timestamp;

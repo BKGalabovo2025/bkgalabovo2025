@@ -42,7 +42,8 @@ const getStatusBadge = (
 
 // Define the columns for the DataTable
 export const columns = (
-  openForm: (subscription: SubscriptionData) => void
+  openForm: (subscription: SubscriptionData) => void,
+  onDelete: (id: string) => void
 ): ColumnDef<SubscriptionData>[] => [
   {
     accessorKey: "memberLastName",
@@ -118,6 +119,16 @@ export const columns = (
               <Link href={`/sales/new?memberId=${subscription.memberId}`}>
                 Регистрирай плащане
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => {
+                if (confirm("Сигурни ли сте, че искате да изтриете този абонамент?")) {
+                  onDelete(subscription.id);
+                }
+              }}
+            >
+              Изтрий
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

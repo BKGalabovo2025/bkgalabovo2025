@@ -58,7 +58,7 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
           </>
         )}
       </div>
-      <p className="text-xs text-gray-500 mt-6 pt-2 border-t">
+      <p className="text-xs text-gray-500 mt-6 pt-2 border-t" suppressHydrationWarning>
         Генерирано на: {formatDateTimeDisplay(new Date())}
       </p>
     </div>

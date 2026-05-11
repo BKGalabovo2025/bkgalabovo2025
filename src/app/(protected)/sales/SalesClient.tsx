@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 import { useInventorySales } from "@/hooks/useInventorySales";
 import { useMembers } from "@/hooks/useMembers";
-import { deleteSale } from "@/services/sales-service";
+import { deleteSaleAction } from "@/lib/actions/sales";
 import { formatPrice } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +51,7 @@ import { cn } from "@/lib/utils";
 
 export default function SalesClient() {
   const router = useRouter();
+  const { user, idToken } = useAuth();
   const {
     sales,
     loading: salesLoading,
@@ -96,12 +98,16 @@ export default function SalesClient() {
   };
 
   const handleDelete = async () => {
-    if (!saleToDelete) return;
+    if (!saleToDelete || !idToken) return;
     setIsDeleting(true);
     try {
-      await deleteSale(saleToDelete);
-      toast.success("Продажбата беше изтрита успешно");
-      refetch();
+      const result = await deleteSaleAction(saleToDelete, idToken);
+      if (result.success) {
+        toast.success(result.message || "Продажбата беше изтрита успешно");
+        refetch();
+      } else {
+        toast.error(result.message || "Грешка при изтриване");
+      }
     } catch (error) {
       console.error("Error deleting sale:", error);
       toast.error("Грешка при изтриване");
@@ -134,7 +140,7 @@ export default function SalesClient() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-3xl font-light tracking-tighter mb-2">
@@ -147,7 +153,7 @@ export default function SalesClient() {
             <ShoppingCart className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-3xl font-light tracking-tighter text-amber-600 mb-2">
@@ -163,7 +169,7 @@ export default function SalesClient() {
             />
           </div>
         </BentoCard>
-        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-[2rem]">
+        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
           <div className="flex items-center gap-6">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
               <Receipt className="h-6 w-6 text-primary" strokeWidth={1.5} />
@@ -282,7 +288,7 @@ export default function SalesClient() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="rounded-[1.5rem] shadow-2xl border-zinc-100 p-2 min-w-[160px]"
+                            className="rounded-3xl shadow-2xl border-zinc-100 p-2 min-w-[160px]"
                           >
                             <DropdownMenuItem
                               className="text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer font-medium rounded-xl p-3"

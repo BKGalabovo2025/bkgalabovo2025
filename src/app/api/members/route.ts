@@ -9,24 +9,25 @@ import { Subscription, Member } from "@/types";
 // Тип за данните, необходими за създаване на нов член
 type NewMemberData = Pick<
   Member,
-  "firstName" | "lastName" | "email" | "status"
+  "firstName" | "lastName" | "email" | "status" | "siteId"
 >;
 
 // POST /api/members - Create a new member and a default subscription
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstName, lastName, email } = body;
+    const { firstName, lastName, email, siteId } = body;
 
     // 1. Basic validation
-    if (!firstName || !lastName || !email) {
-      return new NextResponse("First name, last name, and email are required", {
+    if (!firstName || !lastName || !email || !siteId) {
+      return new NextResponse("First name, last name, email and siteId are required", {
         status: 400,
       });
     }
 
     // 2. Create the new member
     const memberData: NewMemberData = {
+      siteId,
       firstName,
       lastName,
       email,

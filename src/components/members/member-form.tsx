@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon, Save, X } from "lucide-react";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAppStore } from "@/store/use-app-store";
 
 const MemberFormSchema = MemberSchema.omit({
   id: true,
@@ -56,9 +57,11 @@ export const MemberForm = ({
   onClose,
   initialData,
 }: MemberFormProps) => {
+  const { activeBranch } = useAppStore();
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(MemberFormSchema),
     defaultValues: initialData || {
+      siteId: activeBranch,
       firstName: "",
       middleName: "",
       lastName: "",

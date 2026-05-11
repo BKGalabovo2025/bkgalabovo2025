@@ -23,6 +23,7 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
   const data = doc.data() || {};
   return {
     id: doc.id,
+    siteId: data.siteId || "default",
     name: typeof data.name === "string" ? data.name : "Неименувана услуга",
     description: typeof data.description === "string" ? data.description : "",
     price: typeof data.price === "number" ? data.price : 0,
@@ -55,6 +56,11 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
             description: "",
             longTermSicknessDiscount: 0,
           },
+    // Recovery Zone specific fields
+    requiredResources: data.requiredResources,
+    isExclusive: typeof data.isExclusive === "boolean" ? data.isExclusive : false,
+    bufferAfter: typeof data.bufferAfter === "number" ? data.bufferAfter : 0,
+    
     createdAt:
       typeof data.createdAt === "string"
         ? data.createdAt

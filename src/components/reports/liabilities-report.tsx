@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Member } from "@/types";
 import { generateLiabilityReport } from "@/services/report-service";
 import {
@@ -55,9 +55,16 @@ const LiabilitiesReport = () => {
   const [unpaidMembers, setUnpaidMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const [year, setYear] = useState(new Date().getFullYear().toString());
-  const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+    setYear(new Date().getFullYear().toString());
+    setMonth((new Date().getMonth() + 1).toString());
+  }, []);
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
@@ -89,7 +96,7 @@ const LiabilitiesReport = () => {
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
         <div className="flex flex-col md:flex-row gap-6 items-end">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
             <div className="space-y-3">
@@ -156,7 +163,7 @@ const LiabilitiesReport = () => {
 
       {/* Summary Stat Card */}
       {hasSearched && !isLoading && unpaidMembers.length > 0 && (
-        <BentoCard className="p-8 bg-white border border-rose-100 rounded-[2rem] shadow-none">
+        <BentoCard className="p-8 bg-white border border-rose-100 rounded-4xl shadow-none">
           <div className="flex items-center gap-4 mb-3 text-rose-500">
             <AlertCircle className="h-5 w-5" strokeWidth={1.5} />
             <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
@@ -186,14 +193,14 @@ const LiabilitiesReport = () => {
           )}
         </div>
 
-        {isLoading ? (
+        {!mounted || isLoading ? (
           <div className="p-32 text-center">
             <Loader2
               className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
               strokeWidth={1}
             />
             <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-              Проверка на плащания...
+              {isLoading ? "Проверка на плащания..." : "Зареждане на компонента..."}
             </p>
           </div>
         ) : !hasSearched ? (

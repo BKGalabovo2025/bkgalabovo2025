@@ -70,6 +70,14 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
+        "5xl": "2.5rem",
+        "6xl": "3rem",
+      },
+      letterSpacing: {
+        widest2: "0.2em",
+        widest3: "0.3em",
       },
       keyframes: {
         "accordion-down": {

@@ -14,7 +14,8 @@ import {
   addDoc,
   updateDoc,
 } from "firebase/firestore";
-import { getMembersCollection } from "@/lib/firebase-collections";
+import { getMembersCollection, getMembersQuery } from "@/lib/firebase-collections";
+import { getSiteConfig } from "@/config/sites";
 import { Member, MemberSchema } from "@/types/member.types";
 
 // Converts a Firestore document to a Member object with robust validation.
@@ -96,10 +97,11 @@ export const getAllMembers = async (
   }
 
   const q = query(
-    getMembersCollection(),
+    getMembersQuery(),
     orderBy("lastName", "asc"),
     limit(1000) // Increased safety limit for "all" members fetch
   );
+
   const querySnapshot = await getDocs(q);
 
   const members = querySnapshot.docs
@@ -119,7 +121,7 @@ export const getMembersPage = async (
   startAfterDocId?: string
 ): Promise<{ members: Member[]; lastDocId: string | null }> => {
   let q = query(
-    getMembersCollection(),
+    getMembersQuery(),
     orderBy("lastName", "asc"),
     limit(pageSize)
   );
@@ -190,6 +192,7 @@ export const addMember = async (
       : null,
     registrationDate: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    siteId: getSiteConfig().id, // Explicitly add siteId if not handled by converter correctly (converter handles it but extra safety)
   };
 
   const docRef = await addDoc(

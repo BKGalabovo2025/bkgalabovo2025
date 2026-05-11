@@ -34,7 +34,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
-import { bulkUpdateMemberStatus } from "@/services/member-service";
+import { bulkUpdateMemberStatusAction } from "@/lib/actions/members";
+import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -59,6 +60,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     "all" | "active" | "inactive"
   >("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const { idToken } = useAuth();
 
   const filteredMembers = useMemo(() => {
     return initialMembers.filter((member) => {
@@ -105,14 +107,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   };
 
   const handleBulkStatusUpdate = async (status: "active" | "inactive") => {
-    if (selectedIds.length === 0) return;
+    if (selectedIds.length === 0 || !idToken) return;
     try {
-      await bulkUpdateMemberStatus(selectedIds, status);
-      toast.success(`Успешно обновени ${selectedIds.length} членове`);
-      setSelectedIds([]);
-      router.refresh();
+      const result = await bulkUpdateMemberStatusAction(
+        selectedIds,
+        status,
+        idToken
+      );
+      if (result.success) {
+        toast.success(result.message || `Успешно обновени ${selectedIds.length} членове`);
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        toast.error(result.message || "Възникна грешка при обновяването");
+      }
     } catch {
-      toast.error("Възникна грешка при обновяването");
+      toast.error("Възникна сървърна грешка");
     }
   };
 
@@ -162,7 +172,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             <Users className="h-6 w-6" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-[0.1em]">
+            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
               Общо членове
             </p>
             <p className="text-3xl font-light text-zinc-900 dark:text-white">
@@ -176,7 +186,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             <UserCheck className="h-6 w-6" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-[0.1em]">
+            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
               Активни
             </p>
             <p className="text-3xl font-light text-emerald-600">
@@ -190,7 +200,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             <UserMinus className="h-6 w-6" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-[0.1em]">
+            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
               Неактивни
             </p>
             <p className="text-3xl font-light text-rose-600">

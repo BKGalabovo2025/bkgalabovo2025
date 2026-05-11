@@ -7,10 +7,13 @@ import { columns, SubscriptionData } from "@/components/subscriptions/columns";
 import { Subscription, ClubService, Member } from "@/types";
 import {
   getAllClubServices,
-  getAllMemberSubscriptions,
-  createSubscription,
-  updateSubscription,
+  getAllMemberSubscriptions
 } from "@/services/subscription-service";
+import { 
+  createSubscriptionAction, 
+  updateSubscriptionAction,
+  deleteSubscriptionAction
+} from "@/lib/actions/subscriptions";
 import { getAllMembers } from "@/services/member-service";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -104,25 +107,52 @@ export default function SubscriptionsClient() {
     }
     setIsSaving(true);
     try {
+      const idToken = await user.getIdToken();
+      let result;
+
       if (selectedSubscription) {
-        await updateSubscription(selectedSubscription.id, formData);
-        toast.success("Абонаментът е обновен успешно!");
+        result = await updateSubscriptionAction(idToken, selectedSubscription.id, formData);
       } else {
-        await createSubscription(
-          formData,
-          user.uid,
-          user.displayName || "System"
-        );
-        toast.success("Абонаментът е създаден успешно!");
+        result = await createSubscriptionAction(idToken, formData);
       }
-      setIsFormOpen(false);
-      setSelectedSubscription(undefined);
-      mutate();
+
+      if (result.success) {
+        toast.success(result.message);
+        setIsFormOpen(false);
+        setSelectedSubscription(undefined);
+        mutate();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
     } catch (err) {
       console.error("Error saving subscription:", err);
       toast.error("Грешка при записа");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!user) {
+      toast.error("Грешка", {
+        description: "Трябва да сте влезли в системата.",
+      });
+      return;
+    }
+    
+    try {
+      const idToken = await user.getIdToken();
+      const result = await deleteSubscriptionAction(idToken, id);
+
+      if (result.success) {
+        toast.success(result.message);
+        mutate();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
+    } catch (err) {
+      console.error("Error deleting subscription:", err);
+      toast.error("Грешка при изтриването");
     }
   };
 
@@ -159,7 +189,7 @@ export default function SubscriptionsClient() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-[2rem]">
+        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-3xl font-light tracking-tighter mb-2">
@@ -172,7 +202,7 @@ export default function SubscriptionsClient() {
             <CreditCard className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="p-8 border-zinc-100 bg-white shadow-none rounded-[2rem]">
+        <BentoCard className="p-8 border-zinc-100 bg-white shadow-none rounded-4xl">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-3xl font-light tracking-tighter text-emerald-600 mb-2">
@@ -185,7 +215,7 @@ export default function SubscriptionsClient() {
             <UserCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-[2rem]">
+        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
           <div className="flex items-center gap-6">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
               <AlertCircle
@@ -211,7 +241,7 @@ export default function SubscriptionsClient() {
       <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
         <div className="p-8">
           <DataTable
-            columns={columns(openForm)}
+            columns={columns(openForm, handleDelete)}
             data={subscriptions}
             isLoading={isLoading}
             filterColumnId="memberLastName"
@@ -222,7 +252,7 @@ export default function SubscriptionsClient() {
       </BentoCard>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[500px] rounded-4xl border-none shadow-2xl p-0 overflow-hidden">
           <div className="p-8 bg-zinc-50 border-b border-zinc-100">
             <DialogHeader>
               <DialogTitle className="text-lg font-medium uppercase tracking-[0.2em] text-zinc-900">

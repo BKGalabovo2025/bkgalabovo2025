@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
 
 import { getAllMembers } from "@/services/member-service";
-import { addSale } from "@/services/sales-service";
+import { createSaleAction } from "@/lib/actions/sales";
 import { useProducts } from "@/hooks/useProducts";
 import { Member, Sale, Product } from "@/types";
 import { formatPrice } from "@/lib/currency";
@@ -46,7 +46,7 @@ type SaleItem = Sale["items"][0];
 
 export default function NewSaleClient() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, idToken } = useAuth();
 
   const { products: allProducts, isLoading: productsLoading } = useProducts();
   const [members, setMembers] = useState<Member[]>([]);
@@ -146,25 +146,28 @@ export default function NewSaleClient() {
 
     setIsSubmitting(true);
     try {
-      await addSale(
-        {
-          saleDate: new Date().toISOString(),
-          items: cart,
-          memberId:
-            selectedMemberId && selectedMemberId !== "none"
-              ? selectedMemberId
-              : "",
-          status: paymentStatus,
-          isPaid: paymentStatus === "completed",
-          totalAmount: totalAmount,
-          currency: "EUR",
-        } as Omit<Sale, "id">,
-        user.uid,
-        user.displayName || user.email || "Unknown User"
-      );
+      if (!idToken) throw new Error("Missing authentication token.");
 
-      toast.success("Продажбата беше създадена успешно.");
-      router.push("/sales");
+      const result = await createSaleAction(idToken, {
+        saleDate: new Date().toISOString(),
+        items: cart,
+        memberId:
+          selectedMemberId && selectedMemberId !== "none"
+            ? selectedMemberId
+            : "unknown", // Changed "" to "unknown" to satisfy schema if needed, or keep it optional
+        status: paymentStatus,
+        isPaid: paymentStatus === "completed",
+        totalAmount: totalAmount,
+        currency: "EUR",
+        siteId: "default", // Assuming default siteId for now, should ideally come from context
+      });
+
+      if (result.success) {
+        toast.success(result.message || "Продажбата беше създадена успешно.");
+        router.push("/sales");
+      } else {
+        toast.error(result.message || "Възникна грешка при създаването.");
+      }
     } catch (error) {
       console.error("Error creating sale:", error);
       toast.error("Възникна грешка при създаването.");

@@ -73,6 +73,7 @@ export const generateAttendanceReport = async (
         return {
           member: {
             id: memberId,
+            siteId: "default",
             firstName: "Неизвестен",
             lastName: "Член",
             name: "Неизвестен Член", // Добавено

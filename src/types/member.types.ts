@@ -8,6 +8,7 @@ import { z } from "zod";
 export const MemberSchema = z.object({
   // --- Core Fields ---
   id: z.string().min(1, "ID is a required field."),
+  siteId: z.string().min(1, "Site ID is required."), // Added for multi-tenancy
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
   name: z.string(), // This is a derived field, added in the code, not in the database
@@ -37,12 +38,11 @@ export const MemberSchema = z.object({
   middleName: z.string().nullable().optional(),
   gender: z.enum(["male", "female"]).nullable().optional(),
   email: z
-    .string()
-    .trim()
-    .email({ message: "Невалиден имейл адрес" })
-    .or(z.literal(""))
-    .nullable()
-    .optional(),
+    .preprocess(
+      (v) => (v === "" ? undefined : v),
+      z.string().trim().email({ message: "Invalid email address" }).optional()
+    )
+    .nullable(),
   phone: z.string().nullable().optional(),
   phoneType: z.enum(["personal", "parent"]).nullable().optional(),
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),

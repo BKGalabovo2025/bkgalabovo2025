@@ -9,6 +9,10 @@ import {
   deleteReservation,
   deleteBlockedSlot,
 } from "@/lib/reservations";
+import {
+  deleteReservationAction,
+  deleteBlockedSlotAction,
+} from "@/lib/actions/reservations";
 import { cn } from "@/lib/utils";
 import { Loader2, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +20,8 @@ import { toast } from "sonner";
 import { formatTimeRange } from "@/lib/date-utils";
 import { ReservationDialog } from "./reservation-dialog";
 import { BlockSlotDialog } from "./block-slot-dialog";
+import { useAppStore } from "@/store/use-app-store";
+import { useAuth } from "@/context/auth-context";
 
 // --- Helper Functions & Constants --- //
 const AGENDA_START_HOUR = 8;
@@ -102,7 +108,7 @@ const ReservationCard: React.FC<CardProps<Reservation>> = ({
       <p className="font-light text-zinc-500 text-[10px] uppercase tracking-widest">
         {timeRange}
       </p>
-      <div className="mt-4 inline-flex items-center px-2 py-0.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-[8px] font-medium uppercase tracking-[0.2em] border border-inherit">
+      <div className="mt-4 inline-flex items-center px-2 py-0.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-[8px] font-medium uppercase tracking-widest2 border border-inherit">
         {item.status === "paid" ? "Платено" : "Неплатено"}
       </div>
     </div>
@@ -149,7 +155,7 @@ const BlockedSlotCard: React.FC<
           <Trash2 className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.5} />
         </Button>
       </div>
-      <p className="font-medium text-[9px] uppercase tracking-[0.3em] opacity-40">
+      <p className="font-medium text-[9px] uppercase tracking-widest3 opacity-40">
         {item.title}
       </p>
     </div>
@@ -175,6 +181,9 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   }>({ reservations: [], blockedSlots: [] });
   const [isLoading, setIsLoading] = useState(true);
 
+  const { activeBranch } = useAppStore();
+  const { idToken } = useAuth();
+
   useEffect(() => {
     // Subscribe to reservations
     const unsubReservations = subscribeToReservationsForDay(
@@ -182,20 +191,25 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
       (reservations) => {
         setEvents((prev) => ({ ...prev, reservations }));
         setIsLoading(false);
-      }
+      },
+      activeBranch
     );
 
     // Subscribe to blocked slots
-    const unsubBlocked = subscribeToBlockedSlotsForDay(date, (blockedSlots) => {
-      setEvents((prev) => ({ ...prev, blockedSlots }));
-      setIsLoading(false);
-    });
+    const unsubBlocked = subscribeToBlockedSlotsForDay(
+      date,
+      (blockedSlots) => {
+        setEvents((prev) => ({ ...prev, blockedSlots }));
+        setIsLoading(false);
+      },
+      activeBranch
+    );
 
     return () => {
       unsubReservations();
       unsubBlocked();
     };
-  }, [date]); // Re-subscribe when date changes
+  }, [date, activeBranch]); // Re-subscribe when date or activeBranch changes
 
   const handleDataChange = () => {
     // With real-time listeners, we don't need to do much here,
@@ -203,9 +217,14 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteReservation = async (id: string) => {
+    if (!idToken) return;
     try {
-      await deleteReservation(id);
-      toast.success("Резервацията е изтрита.");
+      const result = await deleteReservationAction(idToken, id);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
     } catch (error) {
       console.error("Error deleting reservation:", error);
       toast.error("Грешка при изтриване на резервацията.");
@@ -213,9 +232,14 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteBlockedSlot = async (id: string) => {
+    if (!idToken) return;
     try {
-      await deleteBlockedSlot(id);
-      toast.success("Блокираният слот е изтрит.");
+      const result = await deleteBlockedSlotAction(idToken, id);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
     } catch (error) {
       console.error("Error deleting blocked slot:", error);
       toast.error("Грешка при изтриване.");
@@ -261,7 +285,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
         {hours.map((hour) => (
           <div
             key={hour}
-            className="h-24 w-20 flex items-center justify-center text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 border-b border-zinc-100 dark:border-zinc-900"
+            className="h-24 w-20 flex items-center justify-center text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 border-b border-zinc-100 dark:border-zinc-900"
           >{`${String(hour).padStart(2, "0")}:00`}</div>
         ))}
       </div>
@@ -278,7 +302,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
               key={courtId}
               className="flex flex-col border-r border-zinc-100 dark:border-zinc-900 relative group/court"
             >
-              <div className="text-center font-medium py-8 border-b border-zinc-100 dark:border-zinc-900 sticky top-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md z-20 text-[11px] uppercase tracking-[0.5em] text-zinc-400 group-hover/court:text-primary transition-all">
+              <div className="text-center font-medium py-8 border-b border-zinc-100 dark:border-zinc-900 sticky top-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md z-20 text-[11px] uppercase tracking-[0.4em] text-zinc-400 group-hover/court:text-primary transition-all">
                 Корт {courtId}
               </div>
               <div className="relative">

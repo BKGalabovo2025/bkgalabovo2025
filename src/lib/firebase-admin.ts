@@ -15,13 +15,24 @@ function initializeFirebaseAdmin() {
 
   try {
     if (serviceAccountJson) {
-      const serviceAccount = JSON.parse(serviceAccountJson);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log(
-        "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
-      );
+      try {
+        // Replace literal \n in private_key with real newlines before parsing
+        const sanitized = serviceAccountJson.replace(/\\n/g, "\n");
+        const serviceAccount = JSON.parse(sanitized);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+        });
+        console.log(
+          "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
+        );
+      } catch (parseError) {
+        // JSON parse failed (e.g., corrupted key) - fall through to next method
+        console.warn(
+          "WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON, trying fallback credentials.",
+          parseError
+        );
+        throw parseError; // re-throw to outer catch so we skip the rest
+      }
     } else if (
       process.env.FIREBASE_PRIVATE_KEY &&
       process.env.FIREBASE_CLIENT_EMAIL

@@ -38,10 +38,11 @@ import {
   updateReservationAction,
 } from "@/lib/actions/reservations";
 import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import { Reservation } from "@/types/reservation";
 import { formatPrice } from "@/lib/currency";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { useAppStore } from "@/store/use-app-store";
+import { toast } from "sonner";
+import { Reservation } from "@/types/reservation";
 
 const reservationSchema = z
   .object({
@@ -78,6 +79,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   const isEditMode = !!reservation;
   const { idToken } = useAuth();
+  const { activeBranch } = useAppStore();
 
   const form = useForm<z.infer<typeof reservationSchema>>({
     resolver: zodResolver(reservationSchema),
@@ -125,6 +127,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     try {
       const dataToSave = {
         ...values,
+        siteId: activeBranch,
         startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
         totalPrice: price,
@@ -259,7 +262,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               />
             </div>
             <div className="pt-6 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-              <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+              <span className="text-[10px] font-medium uppercase tracking-widest3 text-zinc-400">
                 Крайна сума
               </span>
               <div className="text-4xl font-light tracking-tight text-zinc-900 dark:text-zinc-100">

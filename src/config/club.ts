@@ -1,7 +1,12 @@
+import { getSiteConfig } from "./sites";
+
+const siteConfig = getSiteConfig();
+
 export const clubInfo = {
-  name: 'СНЦ "Бадминтон клуб Гълъбово"',
-  address: "град Гълъбово, п.к 6280, обл. Стара Загора, ул. ”Иван Вазов” №22",
-  contact: "тел: +359 899 82 99 23 , МОЛ: Мира Георгиева",
-  email: "bk_galabovo@abv.bg",
-  website: "www.bkgalabovo.alle.bg",
+  name: siteConfig.name,
+  address: siteConfig.contact.address,
+  contact: `тел: ${siteConfig.contact.phone} , МОЛ: ${siteConfig.contact.mol}`,
+  email: siteConfig.contact.email,
+  website: siteConfig.contact.website,
 };
+

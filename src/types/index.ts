@@ -1,6 +1,8 @@
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
 export { type Member } from "./member.types";
+import { type ResourceRequirements } from "./booking.types";
+export { type ResourceRequirements };
 
 // =================================================================
 //                            CORE TYPES
@@ -11,6 +13,7 @@ export { type Member } from "./member.types";
  */
 export type Product = {
   id: string;
+  siteId: string; // Added for multi-tenancy
   name: string;
   description?: string;
   price: number;
@@ -21,32 +24,7 @@ export type Product = {
   restockThreshold?: number | null; // Threshold for restock reminders
 };
 
-/**
- * Represents a single item within a sale.
- */
-export type SaleItem = {
-  productId: string;
-  name: string; // Product name at the time of sale
-  quantity: number;
-  price: number; // Price per unit at the time of sale
-};
-
-/**
- * Represents a transaction or sale.
- * UPDATED: Renamed 'total' to 'totalAmount' and added 'subscriptionId'.
- */
-export type Sale = {
-  id: string;
-  memberId: string;
-  saleDate: string; // ISO 8601
-  items: SaleItem[];
-  status: "pending" | "completed" | "cancelled";
-  isPaid: boolean;
-  totalAmount: number; // Corrected field name
-  currency: "EUR";
-  subscriptionId?: string | null; // Added for linking sales to subscriptions
-  createdAt: string; // ISO 8601
-};
+export { type Sale, type SaleItem } from "./sale.types";
 
 // =================================================================
 //                  SUBSCRIPTIONS & SERVICES
@@ -122,6 +100,7 @@ export type CancellationPolicy = {
  */
 export type ClubService = {
   id: string;
+  siteId: string; // Added for multi-tenancy
   name: string;
   description: string;
   price: number;
@@ -142,6 +121,12 @@ export type ClubService = {
   };
   specialRights: SpecialRight[];
   cancellationPolicy: CancellationPolicy;
+  
+  // Recovery Zone specific fields (for multi-tenancy support)
+  requiredResources?: ResourceRequirements;
+  isExclusive?: boolean;
+  bufferAfter?: number; // in minutes
+  
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
   createdBy: { userId: string; userName: string };

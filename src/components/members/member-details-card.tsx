@@ -120,7 +120,7 @@ export const MemberDetailsCard = ({
     if (!confirm("Маркиране на месечната такса като платена?")) return;
 
     try {
-      const result = await updateMemberAction(idToken, member.id, {
+      const result = await updateMemberAction(member.id, idToken, {
         lastPaymentDate: new Date().toISOString(),
       });
 
@@ -142,7 +142,7 @@ export const MemberDetailsCard = ({
   ) => {
     if (!idToken) return;
     try {
-      const result = await updateMemberAction(idToken, member.id, {
+      const result = await updateMemberAction(member.id, idToken, {
         [field]: !currentValue,
       });
       if (result.success) {
@@ -178,7 +178,7 @@ export const MemberDetailsCard = ({
       const path = `avatars/${member.id}_${Date.now()}`;
       const downloadUrl = await uploadFile(path, file);
 
-      const result = await updateMemberAction(idToken, member.id, {
+      const result = await updateMemberAction(member.id, idToken, {
         avatarUrl: downloadUrl,
       });
 
@@ -215,14 +215,14 @@ export const MemberDetailsCard = ({
         </Button>
       </div>
 
-      <div className="overflow-hidden bg-white border border-zinc-100 rounded-[2.5rem] shadow-none">
+      <div className="overflow-hidden bg-white border border-zinc-100 rounded-5xl shadow-none">
         <div className="h-40 bg-zinc-50 w-full relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-zinc-100/50 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-br from-zinc-100/50 to-transparent" />
         </div>
         <div className="px-10 pb-10 -mt-16 relative z-10">
           <div className="flex flex-col md:flex-row items-end gap-8">
             <div className="relative group">
-              <Avatar className="h-40 w-40 border-8 border-white shadow-2xl rounded-[3rem] bg-zinc-50">
+              <Avatar className="h-40 w-40 border-8 border-white shadow-2xl rounded-6xl bg-zinc-50">
                 <AvatarImage
                   src={member.avatarUrl ?? undefined}
                   alt={fullName}
@@ -235,7 +235,7 @@ export const MemberDetailsCard = ({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="absolute inset-2 flex items-center justify-center bg-zinc-950/20 backdrop-blur-sm text-white rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-all disabled:opacity-100"
+                className="absolute inset-2 flex items-center justify-center bg-zinc-950/20 backdrop-blur-sm text-white rounded-5xl opacity-0 group-hover:opacity-100 transition-all disabled:opacity-100"
               >
                 {isUploading ? (
                   <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} />
@@ -260,7 +260,7 @@ export const MemberDetailsCard = ({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-[0.2em]",
+                    "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2",
                     member.status === "active"
                       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                       : "bg-rose-50 text-rose-700 border-rose-100"
@@ -271,7 +271,7 @@ export const MemberDetailsCard = ({
                 {ageGroup && (
                   <Badge
                     variant="outline"
-                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-[0.2em] border-zinc-100 text-zinc-400"
+                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 border-zinc-100 text-zinc-400"
                   >
                     {ageGroup}
                   </Badge>
@@ -280,9 +280,9 @@ export const MemberDetailsCard = ({
             </div>
 
             <div className="mb-4">
-              <div className="bg-zinc-50 border border-zinc-100/50 p-6 rounded-[2rem] flex items-center gap-6">
+              <div className="bg-zinc-50 border border-zinc-100/50 p-6 rounded-4xl flex items-center gap-6">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-1">
+                  <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 mb-1">
                     Финансов статус
                   </p>
                   <div className="flex items-center gap-3">
@@ -318,41 +318,41 @@ export const MemberDetailsCard = ({
       </div>
 
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="w-full h-16 bg-zinc-50/50 border border-zinc-100 p-2 rounded-[1.5rem] mb-8 overflow-x-auto justify-start no-scrollbar md:justify-center scroll-smooth">
+        <TabsList className="w-full h-16 bg-zinc-50/50 border border-zinc-100 p-2 rounded-3xl mb-8 overflow-x-auto justify-start no-scrollbar md:justify-center scroll-smooth">
           <TabsTrigger
             value="personal"
-            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
+            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Лични данни
           </TabsTrigger>
           <TabsTrigger
             value="documents"
-            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
+            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Документи
           </TabsTrigger>
           <TabsTrigger
             value="sales"
-            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
+            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Финанси
           </TabsTrigger>
           <TabsTrigger
             value="subscriptions"
-            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
+            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Абонаменти
           </TabsTrigger>
           <TabsTrigger
             value="attendance"
-            className="flex-shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
+            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
           >
             Присъствия
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10">
+          <div className="bg-white border border-zinc-100 rounded-5xl p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
               <InfoRow icon={Mail} label="Имейл" value={member.email} />
               <InfoRow icon={Phone} label="Телефон" value={member.phone} />
@@ -412,7 +412,7 @@ export const MemberDetailsCard = ({
 
             {familyMembers && familyMembers.length > 0 && (
               <div className="mt-16">
-                <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400 mb-8 flex items-center gap-3">
+                <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-8 flex items-center gap-3">
                   <Users className="h-4 w-4" strokeWidth={1.5} />
                   Членове на семейството
                 </h3>
@@ -452,7 +452,7 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="documents" className="focus-visible:outline-none">
           <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10 space-y-6">
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-[2rem] border border-zinc-100/50">
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
                   className={cn(
@@ -469,7 +469,7 @@ export const MemberDetailsCard = ({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-950 mb-1">
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
                     Декларация за съгласие
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
@@ -511,7 +511,7 @@ export const MemberDetailsCard = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-[2rem] border border-zinc-100/50">
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
                   className={cn(
@@ -528,7 +528,7 @@ export const MemberDetailsCard = ({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-950 mb-1">
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
                     Медицинско свидетелство
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
@@ -558,7 +558,7 @@ export const MemberDetailsCard = ({
               </Button>
             </div>
 
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-[2rem] border border-zinc-100/50">
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
                   className={cn(
@@ -575,7 +575,7 @@ export const MemberDetailsCard = ({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-950 mb-1">
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
                     Картотека към БФБ
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
@@ -645,7 +645,7 @@ const InfoRow = ({
         <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center">
           <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
         </div>
-        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
           {label}
         </span>
       </div>

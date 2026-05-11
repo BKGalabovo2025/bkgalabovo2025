@@ -29,9 +29,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
-import { createBlockedSlotAction } from "@/lib/actions/reservations";
 import { useAuth } from "@/context/auth-context";
 import { BlockedSlot } from "@/types/reservation";
+import { useAppStore } from "@/store/use-app-store";
+import {
+  createBlockedSlotAction,
+  updateBlockedSlotAction,
+} from "@/lib/actions/reservations";
 
 const blockSlotSchema = z
   .object({
@@ -65,6 +69,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
 
   const isEditMode = !!slot;
   const { idToken } = useAuth();
+  const { activeBranch } = useAppStore();
 
   const form = useForm<z.infer<typeof blockSlotSchema>>({
     resolver: zodResolver(blockSlotSchema),
@@ -103,17 +108,22 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
     try {
       const dataToSave = {
         ...values,
+        siteId: activeBranch,
         startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
       };
 
       if (isEditMode) {
-        // We'll skip update for now or add it to actions if needed
-        // For now let's just use create
-        toast.error(
-          "Редактирането на блокирани слотове все още не е мигрирано към сървърни действия."
+        const result = await updateBlockedSlotAction(
+          idToken,
+          slot.id,
+          dataToSave
         );
-        // await updateBlockedSlot(slot.id, dataToSave);
+        if (result.success) {
+          toast.success(result.message);
+        } else {
+          toast.error(result.message);
+        }
       } else {
         const result = await createBlockedSlotAction(idToken, dataToSave);
         if (result.success) {

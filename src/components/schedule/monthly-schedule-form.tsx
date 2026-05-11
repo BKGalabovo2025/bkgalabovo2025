@@ -24,6 +24,8 @@ import {
 import { Loader2, Calendar, MapPin, Clock, Type, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useIsMounted } from "@/hooks/useIsMounted";
+import { useEffect } from "react";
 
 const daysOfWeek = [
   { id: "mon", label: "Пн", value: 1, full: "Понеделник" },
@@ -75,6 +77,14 @@ export default function MonthlyScheduleForm({
       location: 'Спортна зала "Енергетик" град Гълъбово',
     },
   });
+
+  const isMounted = useIsMounted();
+
+  useEffect(() => {
+    if (isMounted) {
+      form.setValue("month", format(new Date(), "yyyy-MM"));
+    }
+  }, [isMounted, form]);
 
   return (
     <Form {...form}>

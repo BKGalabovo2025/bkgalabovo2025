@@ -45,6 +45,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
 
   return {
     id: doc.id,
+    siteId: data.siteId || "default",
     memberId: data.memberId,
     saleDate: saleDate.toISOString(),
     items: data.items || [],
@@ -270,6 +271,7 @@ export const findOrCreateSaleForSubscription = async (
       const newSaleRef = doc(getSalesCollection());
 
       const saleDataForFirestore: WithFieldValue<Omit<Sale, "id">> = {
+        siteId: "default",
         memberId: subscription.memberId,
         subscriptionId: subscription.id,
         saleDate: Timestamp.fromDate(new Date(firstPayment.date)),

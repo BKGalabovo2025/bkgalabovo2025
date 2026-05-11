@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { getSaleById, updateSale } from "@/services/sales-service";
+import { getSaleById } from "@/services/sales-service";
+import { updateSaleAction } from "@/lib/actions/sales";
 import { getAllMembers } from "@/services/member-service";
 import { useProducts } from "@/hooks/useProducts";
 import { Member, Sale, Product } from "@/types";
 import { formatPrice } from "@/lib/currency";
+import { useAuth } from "@/context/auth-context";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +49,7 @@ export default function EditSaleClient() {
   const router = useRouter();
   const params = useParams();
   const saleId = params.id as string;
+  const { idToken } = useAuth();
 
   const { products: allProducts, isLoading: productsLoading } = useProducts();
   const [members, setMembers] = useState<Member[]>([]);
@@ -168,14 +171,24 @@ export default function EditSaleClient() {
 
     setIsSubmitting(true);
     try {
-      await updateSale(saleId, {
+      if (!idToken) {
+        toast.error("Липсва оторизация. Моля, влезте отново.");
+        return;
+      }
+
+      const result = await updateSaleAction(saleId, idToken, {
         items: cart,
         memberId: selectedMemberId === "none" ? undefined : selectedMemberId,
         status: paymentStatus,
+        totalAmount: totalAmount, // Pass totalAmount if needed, though schema might calculate it
       });
 
-      toast.success("Продажбата е актуализирана успешно.");
-      router.push(`/sales/${saleId}`);
+      if (result.success) {
+        toast.success(result.message || "Продажбата е актуализирана успешно.");
+        router.push(`/sales/${saleId}`);
+      } else {
+        toast.error(result.message || "Възникна грешка при обновяване.");
+      }
     } catch (error) {
       console.error("Error updating sale:", error);
       toast.error("Възникна грешка при обновяване.");

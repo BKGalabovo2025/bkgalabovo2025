@@ -3,9 +3,17 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemberForm } from "../member-form";
 import { Member } from "@/types/member.types";
 
+// Mock the app store
+vi.mock("@/store/use-app-store", () => ({
+  useAppStore: () => ({
+    activeBranch: "bkgalabovo",
+  }),
+}));
+
 // Mock data for a member
 const mockMember: Member = {
   id: "member1",
+  siteId: "bkgalabovo",
   firstName: "John",
   lastName: "Doe",
   name: "John Doe",
@@ -100,27 +108,31 @@ describe("MemberForm", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  // TODO: This test is temporarily disabled.
-  // It fails inconsistently in the test environment, although the functionality appears correct in the browser.
-  // The complex Zod schema for the optional email field seems to cause issues with react-hook-form's state update in vitest.
-  // The field correctly prevents submission with invalid data, but the 'aria-invalid' attribute is not updated in time for the assertion.
-  // it("should mark email as invalid for incorrect format", async () => {
-  //   render(<MemberForm onSave={onSave} onClose={onClose} />);
-  //   // Fill in required fields to avoid other validation errors
-  //   fireEvent.change(screen.getByLabelText(/^Име$/i), { target: { value: "Test" } });
-  //   fireEvent.change(screen.getByLabelText(/Фамилия/i), { target: { value: "User" } });
-  //   // Enter an invalid email
-  //   const emailInput = screen.getByLabelText(/Имейл/i);
-  //   fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-  //   // Submit the form
-  //   fireEvent.click(screen.getByRole("button", { name: /Създаване на член/i }));
-  //   // Check if the input field is marked as invalid
-  //   await waitFor(() => {
-  //     expect(emailInput).toHaveAttribute("aria-invalid", "true");
-  //   });
-  //   // Ensure onSave was not called
-  //   expect(onSave).not.toHaveBeenCalled();
-  // });
+  it("should mark email as invalid for incorrect format", async () => {
+    render(<MemberForm onSave={onSave} onClose={onClose} />);
+    
+    // Fill in required fields to avoid other validation errors
+    fireEvent.change(screen.getByLabelText(/^Име$/i), {
+      target: { value: "Test" },
+    });
+    fireEvent.change(screen.getByLabelText(/Фамилия/i), {
+      target: { value: "User" },
+    });
+    
+    // Enter an invalid email
+    const emailInput = screen.getByLabelText(/Имейл/i);
+    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
+    fireEvent.blur(emailInput);
+
+    // Submit the form
+    fireEvent.click(screen.getByRole("button", { name: /Създаване/i }));
+
+    // Check for validation message
+    expect(await screen.findByText("Invalid email address", {}, { timeout: 2000 })).toBeInTheDocument();
+
+    // Ensure onSave was not called
+    expect(onSave).not.toHaveBeenCalled();
+  });
 
   it("should open calendar, select a date, and update the input", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
