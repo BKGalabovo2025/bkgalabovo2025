@@ -18,12 +18,6 @@
     "clean": "rimraf node_modules .next package-lock.json",
     "analyze": "cross-env ANALYZE=true npm run build",
     "check-licenses": "license-checker --summary",
-    "deps:check": "ncu",
-    "deps:unused": "depcheck",
-    "deps:dedupe": "npm dedupe",
-    "deps:doctor": "npm doctor",
-    "deps:fresh": "npm run clean && npm install",
-    "deps:audit": "npm audit fix",
     "deps:update": "ncu -u",
     "lighthouse": "node scripts/lighthouse-audit.js",
     "check-all": "npm run typecheck && npm run lint && npm run test",
@@ -119,14 +113,5 @@
     "typescript-eslint": "^8.59.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.5"
-  },
-  "overrides": {
-    "@modelcontextprotocol/sdk": "^1.25.3",
-    "axios": "^1.7.2",
-    "zod": "^4.4.3",
-    "@tootallnate/once": "3.0.1",
-    "serialize-javascript": "^7.0.5",
-    "tmp": "^0.2.5",
-    "postcss": "^8.5.14"
   }
 }
