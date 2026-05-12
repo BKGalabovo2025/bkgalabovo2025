@@ -31,7 +31,7 @@ const translations = {
     "dash.welcome": "Здравей",
     "dash.subtitle": "Ето какво се случва в клуба днес.",
     "dash.active_members": "Активни членове",
-    "dash.today_training": "Днешни тренировки",
+    "dash.today_training": "Днешни събития",
     "dash.monthly_revenue": "Месечен оборот",
     "dash.low_stock": "Ниска наличност",
     "dash.quick_analysis": "Бърз анализ на натовареността",

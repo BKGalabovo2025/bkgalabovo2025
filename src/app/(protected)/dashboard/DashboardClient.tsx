@@ -7,6 +7,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { QuickTasks } from "@/components/dashboard/quick-tasks";
+import { AttendanceReminder } from "@/components/dashboard/AttendanceReminder";
 import {
   Users,
   Calendar,
@@ -207,7 +208,7 @@ export default function DashboardClient() {
           <QuickTasks />
         </div>
         <div className="lg:col-span-3 space-y-8">
-          {/* Main content area cleared as requested */}
+          <AttendanceReminder />
         </div>
       </div>
     </div>

@@ -33,9 +33,7 @@ export const getDashboardStats = (
     (sale) => sale && sale.status !== "completed"
   ).length;
   const lowStockCount = safeLowStock.length;
-  const trainingsToday = safeEvents.filter(
-    (e) => e && e.type === "training"
-  ).length;
+  const trainingsToday = safeEvents.length;
 
   // --- Date Ranges for Trend Analysis ---
   const now = new Date();

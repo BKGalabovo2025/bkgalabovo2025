@@ -183,15 +183,6 @@ export default function ScheduleClient() {
   }, [members]);
 
   const filteredEvents = useMemo(() => {
-    const now = new Date();
-    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfCurrentMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0
-    );
-    endOfCurrentMonth.setHours(23, 59, 59, 999);
-
     const filtered = (events || [])
       .filter(
         (event) =>
@@ -201,15 +192,22 @@ export default function ScheduleClient() {
         if (filterType !== "all" && event.type !== filterType) return false;
 
         const eventDate = new Date(event.startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
         switch (activeTab) {
           case "current":
-            return (
-              eventDate >= startOfCurrentMonth && eventDate <= endOfCurrentMonth
-            );
+            // Only events for the current day
+            return eventDate >= today && eventDate < tomorrow;
           case "upcoming":
-            return eventDate > endOfCurrentMonth;
+            // All future events (starting from tomorrow)
+            return eventDate >= tomorrow;
           case "past":
-            return eventDate < startOfCurrentMonth;
+            // All past events (starting before today)
+            return eventDate < today;
           default:
             return true;
         }
@@ -234,10 +232,14 @@ export default function ScheduleClient() {
       activeTab === "past" ? paginatedEvents : filteredEvents;
     return (eventsToGroup || []).reduce(
       (acc: Record<string, ScheduleEvent[]>, event: ScheduleEvent) => {
-        const month = new Date(event.startDate).toLocaleString("bg-BG", {
-          month: "long",
-          year: "numeric",
-        });
+        const date = new Date(event.startDate);
+        const month =
+          activeTab === "current"
+            ? "Днес"
+            : date.toLocaleString("bg-BG", {
+                month: "long",
+                year: "numeric",
+              });
         if (!acc[month]) {
           acc[month] = [];
         }
