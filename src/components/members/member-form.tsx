@@ -14,12 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { BentoCard } from "@/components/ui/bento-card";
 import {
@@ -32,9 +26,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Save, X } from "lucide-react";
-import { format } from "date-fns";
+import { Save, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAppStore } from "@/store/use-app-store";
 
@@ -311,48 +303,28 @@ export const MemberForm = ({
                     <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
                       Дата на раждане
                     </FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "h-12 pl-4 text-left font-light rounded-xl border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50",
-                              !field.value && "text-zinc-400"
-                            )}
-                          >
-                            {field.value &&
-                            !isNaN(new Date(field.value).getTime()) ? (
-                              format(new Date(field.value), "PPP")
-                            ) : (
-                              <span>Избери дата</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 rounded-2xl border-zinc-100"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={
-                            field.value &&
-                            !isNaN(new Date(field.value).getTime())
-                              ? new Date(field.value)
-                              : undefined
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={
+                          field.value && !isNaN(new Date(field.value).getTime())
+                            ? new Date(field.value).toISOString().split("T")[0]
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            // Ensure we save as ISO string at start of day UTC
+                            const date = new Date(val);
+                            field.onChange(date.toISOString());
+                          } else {
+                            field.onChange(null);
                           }
-                          onSelect={(date) =>
-                            field.onChange(date?.toISOString())
-                          }
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          autoFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                        }}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

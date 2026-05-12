@@ -136,21 +136,13 @@ describe("MemberForm", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it("should open calendar, select a date, and update the input", async () => {
+  it("should update the date input", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
-    const dateButton = screen.getByText("Избери дата");
-    fireEvent.click(dateButton);
+    const dateInput = screen.getByLabelText(/Дата на раждане/i);
+    fireEvent.change(dateInput, { target: { value: "1990-01-15" } });
 
-    // Wait for the calendar to appear and select a date
-    const dateToSelect = screen.getByText("15"); // Select the 15th of the month
-    fireEvent.click(dateToSelect);
-
-    // Check if the button text has been updated to include the selected day
-    await waitFor(() => {
-      const buttonWithDate = screen.getByRole("button", { name: /15/i });
-      expect(buttonWithDate).toBeInTheDocument();
-    });
+    expect(dateInput).toHaveValue("1990-01-15");
   });
 
   it("should call onClose when the cancel button is clicked", () => {
