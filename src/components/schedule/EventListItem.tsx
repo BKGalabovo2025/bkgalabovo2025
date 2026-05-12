@@ -152,8 +152,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                       className="text-emerald-600 dark:text-emerald-400"
                     />
                     <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                      {attendeesData.attended} / {attendeesData.total}{" "}
-                      присъствали
+                      {attendeesData.attended} / {members.length} присъствали
                     </span>
                   </div>
                 )}
