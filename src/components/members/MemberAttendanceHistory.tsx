@@ -317,7 +317,7 @@ export function MemberAttendanceHistory({
                               <div className="flex items-center gap-1.5 ml-auto">
                                 <MapPin className="h-3 w-3 text-zinc-300" />
                                 <span className="text-[10px] font-light text-zinc-400 truncate max-w-[80px]">
-                                  Гълъбово
+                                  {event.location}
                                 </span>
                               </div>
                             )}
