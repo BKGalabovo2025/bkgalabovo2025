@@ -49,7 +49,6 @@ export const MemberSchema = z.object({
   phoneType: z.enum(["personal", "parent"]).nullable().optional(),
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
   educationInstitution: z.string().nullable().optional(),
-  personalId: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 
@@ -69,7 +68,6 @@ export const MemberSchema = z.object({
     .enum(["beginner", "intermediate", "advanced", "professional"])
     .nullable()
     .optional(),
-  rating: z.number().min(0).max(3000).nullable().optional(),
 
   // --- Administrative & Documents ---
   hasSignedDeclaration: z.boolean().default(false).optional(),

@@ -59,7 +59,6 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
       toISODate(data.registrationDate) || new Date().toISOString(),
     updatedAt: toISODate(data.updatedAt),
     skillLevel: data.skillLevel || null,
-    rating: typeof data.rating === "number" ? data.rating : null,
   };
 
   try {

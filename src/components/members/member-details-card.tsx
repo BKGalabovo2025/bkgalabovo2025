@@ -398,7 +398,6 @@ export const MemberDetailsCard = ({
                 label="Екипировка"
                 value={member.apparelSize}
               />
-              <InfoRow icon={FileText} label="ЕГН" value={member.personalId} />
               <InfoRow icon={Home} label="Адрес" value={member.address} />
               <div className="md:col-span-2">
                 <InfoRow

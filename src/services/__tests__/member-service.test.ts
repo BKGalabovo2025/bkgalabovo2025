@@ -69,7 +69,6 @@ describe("member-service", () => {
         lastName: "Doe",
         dateOfBirth: Timestamp.fromDate(mockDate),
         skillLevel: "intermediate",
-        rating: 1500,
         status: "active",
         siteId: "bkgalabovo",
       };
@@ -82,7 +81,6 @@ describe("member-service", () => {
       expect(result?.name).toBe("John Doe");
       expect(result?.dateOfBirth).toBe(mockDate.toISOString());
       expect(result?.skillLevel).toBe("intermediate");
-      expect(result?.rating).toBe(1500);
     });
 
     it("should handle missing fields with defaults", () => {
@@ -99,7 +97,6 @@ describe("member-service", () => {
       expect(result).not.toBeNull();
       expect(result?.name).toBe("Jane Doe");
       expect(result?.skillLevel).toBeNull();
-      expect(result?.rating).toBeNull();
     });
 
     it("should return null for invalid data", () => {
@@ -144,7 +141,6 @@ describe("member-service", () => {
     it("should call updateDoc with correct id and data", async () => {
       const memberId = "member1";
       const updates: Partial<MemberFormData> = {
-        rating: 1600,
         skillLevel: "advanced",
       };
 

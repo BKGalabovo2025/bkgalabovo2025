@@ -57,7 +57,6 @@ export const MemberForm = ({
       firstName: "",
       middleName: "",
       lastName: "",
-      personalId: "",
       educationInstitution: "",
       dateOfBirth: undefined,
       gender: "male",
@@ -71,7 +70,6 @@ export const MemberForm = ({
       notes: "",
       familyId: undefined,
       skillLevel: undefined,
-      rating: undefined,
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
@@ -258,25 +256,6 @@ export const MemberForm = ({
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
               <FormField
-                name="personalId"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-                      ЕГН
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
                 name="educationInstitution"
                 control={form.control}
                 render={({ field }) => (
@@ -455,27 +434,6 @@ export const MemberForm = ({
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="rating"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-                      Рейтинг (0-3000)
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -23,7 +23,6 @@ const mockMember: Member = {
   registrationDate: new Date().toISOString(),
   phone: "123456789",
   skillLevel: "intermediate",
-  rating: 1500,
   gender: "male",
 };
 
@@ -55,7 +54,6 @@ describe("MemberForm", () => {
     expect(screen.getByLabelText(/^Име$/i)).toHaveValue(mockMember.firstName);
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue(mockMember.lastName);
     expect(screen.getByLabelText(/Имейл/i)).toHaveValue(mockMember.email);
-    expect(screen.getByLabelText(/Рейтинг/i)).toHaveValue(mockMember.rating);
 
     expect(
       screen.getByRole("button", { name: /Запазване/i })
