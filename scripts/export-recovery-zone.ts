@@ -26,15 +26,14 @@ async function exportRecoveryZone() {
   );
 
   const db = getFirestore(recoveryApp);
-  const collectionsToExport = [
-    "members",
-    "sales",
-    "reservations",
-    "tournaments",
-    "SiteConfig",
-    "services",
-    "settings",
-  ];
+  // Автоматично извличане на ВСИЧКИ колекции от корена
+  const collections = await db.listCollections();
+  const collectionsToExport = collections.map((col) => col.id);
+
+  console.log(
+    `- Found ${collectionsToExport.length} root collections: ${collectionsToExport.join(", ")}`
+  );
+
   const exportData: Record<string, any> = {};
 
   for (const collectionName of collectionsToExport) {
@@ -42,9 +41,7 @@ async function exportRecoveryZone() {
     const snapshot = await db.collection(collectionName).get();
 
     if (snapshot.empty) {
-      console.log(
-        `  ! Collection ${collectionName} is empty or does not exist.`
-      );
+      console.log(`  ! Collection ${collectionName} is empty.`);
       continue;
     }
 

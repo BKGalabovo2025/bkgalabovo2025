@@ -75,7 +75,7 @@ export default async function RankingsPage(props: {
   return (
     <div className="pb-12">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
+        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (

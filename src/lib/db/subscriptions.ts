@@ -1,12 +1,13 @@
 import { getAdminDb } from "@/lib/firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { Subscription } from "@/types";
+import { getSiteConfig } from "@/config/sites";
 
 /**
  * Creates a new subscription and an associated sale record using Admin SDK.
  */
 export async function createSubscriptionInternal(
-  subscriptionData: Omit<Subscription, "id">,
+  subscriptionData: Omit<Subscription, "id" | "siteId">,
   user: { uid: string; email?: string | null }
 ): Promise<string> {
   const adminDb = getAdminDb();
@@ -39,6 +40,7 @@ export async function createSubscriptionInternal(
     transaction.set(subRef, {
       ...subscriptionData,
       id: subRef.id,
+      siteId: getSiteConfig().id,
       createdAt: FieldValue.serverTimestamp(),
     });
 

@@ -21,7 +21,7 @@ export default async function MembersPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
+        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (

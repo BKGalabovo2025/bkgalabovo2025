@@ -51,21 +51,29 @@
       ]
     },
     {
-      "collectionGroup": "reservations",
+      "collectionGroup": "members",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "startTime",
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
           "order": "ASCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "blockedSlots",
+      "collectionGroup": "sessions",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "startTime",
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
           "order": "ASCENDING"
         }
       ]

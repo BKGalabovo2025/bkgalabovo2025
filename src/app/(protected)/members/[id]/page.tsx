@@ -26,7 +26,7 @@ const MemberProfilePage = () => {
             { label: "Профил" },
           ]}
         />
-        <div className="bg-white rounded-[32px] p-8 shadow-sm">
+        <div className="bg-white rounded-4xl p-8 shadow-sm">
           <Skeleton className="h-[400px] w-full rounded-2xl" />
         </div>
       </div>

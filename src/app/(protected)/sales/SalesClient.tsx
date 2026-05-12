@@ -186,7 +186,7 @@ export default function SalesClient() {
         </BentoCard>
       </div>
 
-      <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
+      <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-6">
             <Loader2
@@ -330,7 +330,7 @@ export default function SalesClient() {
         open={!!saleToDelete}
         onOpenChange={(open) => !open && setSaleToDelete(null)}
       >
-        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-8">
+        <AlertDialogContent className="rounded-5xl border-none shadow-2xl p-8">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-medium uppercase tracking-[0.2em] text-zinc-900">
               Сигурни ли сте?

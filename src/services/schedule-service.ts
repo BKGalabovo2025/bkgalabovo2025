@@ -1,17 +1,13 @@
-import { getDb } from "@/lib/firebase";
 import {
-  collection,
   getDocs,
   query,
   where,
   DocumentSnapshot,
   QueryDocumentSnapshot,
-  orderBy,
 } from "firebase/firestore";
 import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
 import { toISOStringOrUndefined } from "@/lib/date-utils";
-
-const eventsCollection = collection(getDb(), "events");
+import { getEventsCollection } from "@/lib/firebase-collections";
 
 export const docToScheduleEvent = (
   doc: DocumentSnapshot | QueryDocumentSnapshot
@@ -63,11 +59,13 @@ export const getEventsForPeriod = async (
   startDate: Date,
   endDate: Date
 ): Promise<ScheduleEvent[]> => {
+  console.log(
+    `getEventsForPeriod: Querying from ${startDate.toISOString()} to ${endDate.toISOString()}`
+  );
   const q = query(
-    eventsCollection,
-    where("startDate", ">=", startDate),
-    where("startDate", "<=", endDate),
-    orderBy("startDate", "desc")
+    getEventsCollection(),
+    where("startDate", ">=", startDate.toISOString()),
+    where("startDate", "<=", endDate.toISOString())
   );
 
   const snapshot = await getDocs(q);
@@ -83,7 +81,7 @@ export const getEventsByMemberId = async (
   memberId: string
 ): Promise<ScheduleEvent[]> => {
   const q = query(
-    eventsCollection,
+    getEventsCollection(),
     where("attendeeMemberIds", "array-contains", memberId)
   );
 

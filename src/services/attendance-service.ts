@@ -1,10 +1,8 @@
 "use client";
 
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
+import { query, where, getDocs, orderBy } from "firebase/firestore";
+import { getEventsCollection } from "@/lib/firebase-collections";
 import { ScheduleEvent } from "@/types";
-
-const db = getDb(); // Get the database instance by calling the function
 
 /**
  * Fetches all schedule events that a specific member is associated with.
@@ -21,12 +19,10 @@ export const getAttendancesByMemberId = async (
   }
 
   try {
-    const eventsCollectionRef = collection(db, "events");
-
     // Query for events where the memberId is in the 'attendeeMemberIds' array.
     // This finds every event the member was supposed to attend.
     const q = query(
-      eventsCollectionRef,
+      getEventsCollection(),
       where("attendeeMemberIds", "array-contains", memberId),
       orderBy("startDate", "desc") // Show the most recent events first
     );
@@ -34,8 +30,8 @@ export const getAttendancesByMemberId = async (
     const querySnapshot = await getDocs(q);
 
     const attendances = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
       ...doc.data(),
+      id: doc.id,
     })) as ScheduleEvent[];
 
     return attendances;

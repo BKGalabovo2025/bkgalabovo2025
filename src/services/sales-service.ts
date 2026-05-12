@@ -8,7 +8,6 @@ import {
   query,
   where,
   limit,
-  orderBy,
   updateDoc,
   deleteDoc,
   WithFieldValue,
@@ -27,13 +26,15 @@ import {
   docToMemberSubscription,
 } from "./subscription-service";
 import {
+  getProductsCollection,
+  getInventoryEventsCollection,
+  getSalesQuery,
   getSalesCollection,
   getMembersCollection,
   getMemberSubscriptionsCollection,
   getClubServicesCollection,
-  getProductsCollection,
-  getInventoryEventsCollection,
 } from "@/lib/firebase-collections";
+import { getSiteConfig } from "@/config/sites";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
@@ -128,21 +129,13 @@ export const getReceiptDetails = async (
 };
 
 export const getSales = async (): Promise<Sale[]> => {
-  const q = query(
-    getSalesCollection(),
-    orderBy("saleDate", "desc"),
-    limit(100)
-  );
+  const q = query(getSalesQuery(), limit(100));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
 
 export const getInventorySales = async (): Promise<Sale[]> => {
-  const q = query(
-    getSalesCollection(),
-    where("subscriptionId", "==", null),
-    orderBy("saleDate", "desc")
-  );
+  const q = query(getSalesQuery(), where("subscriptionId", "==", null));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
@@ -188,6 +181,7 @@ export const addSale = async (
         userId,
         userName,
         relatedSaleId: newSaleRef.id,
+        siteId: getSiteConfig().id,
       };
       transaction.set(eventRef, eventPayload);
     }
@@ -198,11 +192,7 @@ export const addSale = async (
 
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
   if (!memberId) return [];
-  const q = query(
-    getSalesCollection(),
-    where("memberId", "==", memberId),
-    orderBy("saleDate", "desc")
-  );
+  const q = query(getSalesQuery(), where("memberId", "==", memberId));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };
@@ -334,7 +324,7 @@ const getSaleBySubscriptionId = async (
 ): Promise<Sale | null> => {
   if (!subscriptionId) return null;
   const q = query(
-    getSalesCollection(),
+    getSalesQuery(),
     where("subscriptionId", "==", subscriptionId),
     limit(1)
   );

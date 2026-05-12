@@ -50,7 +50,7 @@ export const QuickTasks = () => {
   };
 
   return (
-    <BentoCard className="p-8 h-full flex flex-col border border-zinc-100 bg-white shadow-none rounded-[2rem]">
+    <BentoCard className="p-8 h-full flex flex-col border border-zinc-100 bg-white shadow-none rounded-4xl">
       <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
         <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />{" "}
         {t("dash.quick_tasks")}

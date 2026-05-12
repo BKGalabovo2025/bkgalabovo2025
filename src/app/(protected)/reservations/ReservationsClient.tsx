@@ -119,7 +119,7 @@ export default function ReservationsClient() {
         </BentoCard>
 
         {/* Schedule Bento */}
-        <BentoCard className="md:col-span-12 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-[2rem] shadow-none">
+        <BentoCard className="md:col-span-12 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
           <div className="bg-white dark:bg-zinc-950">
             <AgendaView
               refreshKey={refreshKey}

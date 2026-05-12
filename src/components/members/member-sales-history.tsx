@@ -59,7 +59,7 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
   };
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10">
+    <div className="bg-white border border-zinc-100 rounded-5xl p-10">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
         <div>
           <h2 className="text-3xl font-light tracking-tighter text-zinc-950 mb-2">
@@ -87,17 +87,17 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
           />
         </div>
       ) : error ? (
-        <div className="p-10 text-center bg-rose-50 rounded-[2rem] border border-rose-100 text-rose-500 text-sm font-light">
+        <div className="p-10 text-center bg-rose-50 rounded-4xl border border-rose-100 text-rose-500 text-sm font-light">
           Грешка: {error}
         </div>
       ) : sales.length === 0 ? (
-        <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-[2rem]">
+        <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
             Няма регистрирани продажби.
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-[1.5rem] border border-zinc-100">
+        <div className="overflow-hidden rounded-3xl border border-zinc-100">
           <Table>
             <TableHeader>
               <TableRow className="bg-zinc-50/50 border-zinc-100 hover:bg-zinc-50/50">

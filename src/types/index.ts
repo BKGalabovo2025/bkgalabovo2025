@@ -34,6 +34,7 @@ export { type Sale } from "./sale.types";
  */
 export type Price = {
   id: string; // A unique, machine-readable key (e.g., "SUBSCRIPTION_CHILDREN_MONTHLY")
+  siteId: string; // Added for multi-tenancy
   name: string; // A human-readable name (e.g., "Месечен абонамент за деца")
   description?: string; // Optional further details
   value: number; // The price in Euro (always a whole number)
@@ -51,6 +52,7 @@ export type Price = {
  */
 export type PriceHistory = {
   id: string;
+  siteId: string; // Added for multi-tenancy
   priceId: string; // The ID of the Price entity that was changed
   timestamp: string; // ISO 8601 timestamp of when the change occurred
   userId: string;
@@ -144,6 +146,7 @@ export type PaymentHistoryItem = {
  */
 export type Subscription = {
   id: string;
+  siteId: string; // Added for multi-tenancy
   memberId: string;
   serviceId: string;
   serviceName: string;
@@ -206,6 +209,7 @@ export type ScheduleEvent = {
  */
 export type InventoryEvent = {
   id: string;
+  siteId: string; // Added for multi-tenancy
   productId: string;
   productName: string;
   createdAt: string; // ISO 8601

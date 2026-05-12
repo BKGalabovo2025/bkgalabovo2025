@@ -9,6 +9,7 @@ import {
   getRevenueTrendData,
 } from "@/services/dashboard-service";
 import { getReminders } from "@/services/reminder-service";
+import { getEventsForPeriod } from "@/services/schedule-service";
 import { useAuth } from "@/context/auth-context";
 
 type DashboardStats = {
@@ -23,6 +24,7 @@ type DashboardStats = {
   salesLast30Days: number;
   salesChange: number;
   lowStockCount: number;
+  trainingsToday: number;
 };
 
 export const useDashboardData = () => {
@@ -45,18 +47,60 @@ export const useDashboardData = () => {
       }
       try {
         setLoading(true);
-        const [membersData, salesData, lowStockData] = await Promise.all([
-          getAllMembers(),
-          getSales(),
-          getLowStockProducts(),
-        ]);
+        console.log("useDashboardData: Fetching dashboard data...");
+        const now = new Date();
+        const startOfDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const endOfDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59
+        );
+
+        const [membersData, salesData, lowStockData, eventsData] =
+          await Promise.all([
+            getAllMembers().catch((err) => {
+              console.error("Error fetching members:", err);
+              throw err;
+            }),
+            getSales().catch((err) => {
+              console.error("Error fetching sales:", err);
+              throw err;
+            }),
+            getLowStockProducts().catch((err) => {
+              console.error("Error fetching low stock products:", err);
+              throw err;
+            }),
+            getEventsForPeriod(startOfDay, endOfDay).catch((err) => {
+              console.error("Error fetching today's events:", err);
+              return []; // Non-critical, fallback to empty
+            }),
+          ]);
 
         const members = Array.isArray(membersData) ? membersData : [];
         const sales = Array.isArray(salesData) ? salesData : [];
         const lowStock = Array.isArray(lowStockData) ? lowStockData : [];
+        const events = Array.isArray(eventsData) ? eventsData : [];
+        console.log(
+          `useDashboardData: Fetched ${events.length} events for today`
+        );
+        if (events.length > 0) {
+          console.log("First event:", JSON.stringify(events[0]));
+        }
 
         // Generate stats
-        const dashboardStats = getDashboardStats(members, sales, lowStock);
+        const dashboardStats = getDashboardStats(
+          members,
+          sales,
+          lowStock,
+          events
+        );
         setStats(dashboardStats);
 
         // Generate chart data

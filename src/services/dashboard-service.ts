@@ -1,4 +1,4 @@
-import { Member, Sale, Product } from "@/types";
+import { Member, Sale, Product, ScheduleEvent } from "@/types";
 
 export type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }
@@ -10,16 +10,19 @@ export type TotalRevenue = {
  * @param members - An array of all members.
  * @param sales - An array of all sales.
  * @param lowStockProducts - An array of low stock products.
+ * @param events - An array of events (optional).
  * @returns An object containing calculated dashboard statistics, including 30-day trends.
  */
 export const getDashboardStats = (
   members: Member[],
   sales: Sale[],
-  lowStockProducts: Product[]
+  lowStockProducts: Product[],
+  events: ScheduleEvent[] = []
 ) => {
   const safeMembers = Array.isArray(members) ? members : [];
   const safeSales = Array.isArray(sales) ? sales : [];
   const safeLowStock = Array.isArray(lowStockProducts) ? lowStockProducts : [];
+  const safeEvents = Array.isArray(events) ? events : [];
 
   // --- Basic Stats ---
   const totalMembers = safeMembers.length;
@@ -30,6 +33,9 @@ export const getDashboardStats = (
     (sale) => sale && sale.status !== "completed"
   ).length;
   const lowStockCount = safeLowStock.length;
+  const trainingsToday = safeEvents.filter(
+    (e) => e && e.type === "training"
+  ).length;
 
   // --- Date Ranges for Trend Analysis ---
   const now = new Date();
@@ -117,6 +123,7 @@ export const getDashboardStats = (
     salesLast30Days: salesCountLast30Days,
     salesChange,
     lowStockCount,
+    trainingsToday,
   };
 };
 

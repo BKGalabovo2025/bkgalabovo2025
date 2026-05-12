@@ -1,7 +1,6 @@
 // src/services/price-service.ts
 
 import {
-  collection,
   getDocs,
   doc,
   writeBatch,
@@ -11,12 +10,16 @@ import {
   where,
   DocumentSnapshot,
 } from "firebase/firestore";
+import {
+  getPricesCollection,
+  getPricesQuery,
+  getPriceHistoryCollection,
+  getPriceHistoryQuery,
+} from "@/lib/firebase-collections";
 import { getDb } from "@/lib/firebase";
+import { getSiteConfig } from "@/config/sites";
 import { Price, PriceHistory } from "@/types/index";
 import { User } from "firebase/auth";
-
-const PRICES_COLLECTION = "prices";
-const PRICE_HISTORY_COLLECTION = "priceHistory";
 
 // --- Converters ---
 
@@ -31,6 +34,7 @@ const docToPrice = (doc: DocumentSnapshot): Price => {
     isActive: typeof data.isActive === "boolean" ? data.isActive : true,
     updatedAt: data.updatedAt || new Date().toISOString(),
     updatedBy: data.updatedBy || { userId: "system", userName: "System" },
+    siteId: data.siteId || "default",
   };
 };
 
@@ -45,6 +49,7 @@ const docToPriceHistory = (doc: DocumentSnapshot): PriceHistory => {
     oldValue: data.oldValue,
     newValue: data.newValue,
     notes: data.notes || "",
+    siteId: data.siteId || "default",
   };
 };
 
@@ -55,8 +60,7 @@ const docToPriceHistory = (doc: DocumentSnapshot): PriceHistory => {
  * @returns A promise that resolves to an array of Price objects.
  */
 export const getAllPrices = async (): Promise<Price[]> => {
-  const db = getDb();
-  const q = query(collection(db, PRICES_COLLECTION), orderBy("name"));
+  const q = query(getPricesQuery(), orderBy("name"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docToPrice);
 };
@@ -67,9 +71,8 @@ export const getAllPrices = async (): Promise<Price[]> => {
  * @returns A promise that resolves to an array of active Price objects.
  */
 export const getActivePrices = async (): Promise<Price[]> => {
-  const db = getDb();
   const q = query(
-    collection(db, PRICES_COLLECTION),
+    getPricesQuery(),
     where("isActive", "==", true),
     orderBy("name")
   );
@@ -91,8 +94,8 @@ export const updatePrice = async (
   notes?: string
 ): Promise<void> => {
   const db = getDb();
-  const priceRef = doc(db, PRICES_COLLECTION, priceId);
-  const historyRef = doc(collection(db, PRICE_HISTORY_COLLECTION)); // New history entry
+  const priceRef = doc(getPricesCollection(), priceId);
+  const historyRef = doc(getPriceHistoryCollection()); // New history entry
 
   const batch = writeBatch(db);
 
@@ -125,6 +128,7 @@ export const updatePrice = async (
       oldValue: oldValue,
       newValue: newValue,
       notes: notes || "",
+      siteId: getSiteConfig().id,
     };
     batch.set(historyRef, historyEntry);
 
@@ -143,9 +147,8 @@ export const updatePrice = async (
 export const getPriceHistory = async (
   priceId: string
 ): Promise<PriceHistory[]> => {
-  const db = getDb();
   const q = query(
-    collection(db, PRICE_HISTORY_COLLECTION),
+    getPriceHistoryQuery(),
     where("priceId", "==", priceId),
     orderBy("timestamp", "desc")
   );

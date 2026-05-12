@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useId } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const descriptionId = useId();
 
   const handleGenerate = async (formData: MonthlyScheduleFormData) => {
     setError(null);
@@ -91,20 +92,26 @@ export const MonthlyScheduleDialog: React.FC<MonthlyScheduleDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl rounded-4xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950">
-        <div className="p-10 pb-0">
+      <DialogContent
+        className="sm:max-w-xl w-[92vw] rounded-4xl sm:rounded-5xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+        aria-describedby={descriptionId}
+      >
+        <div className="p-6 sm:p-10 pb-0 shrink-0">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-light tracking-tight text-zinc-950 dark:text-white">
+            <DialogTitle className="text-xl sm:text-3xl font-light tracking-tight text-zinc-950 dark:text-white">
               Месечен график
             </DialogTitle>
-            <DialogDescription className="text-zinc-400 font-light mt-2">
+            <DialogDescription
+              id={descriptionId}
+              className="text-zinc-400 font-light mt-1 sm:text-sm text-xs"
+            >
               Генерирайте автоматично събития за целия месец на базата на избран
               шаблон.
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="p-10 pt-8">
+        <div className="p-6 sm:p-10 pt-4 sm:pt-8 overflow-y-auto flex-1 custom-scrollbar overscroll-contain">
           <MonthlyScheduleForm
             onSave={handleGenerate}
             onClose={onClose}

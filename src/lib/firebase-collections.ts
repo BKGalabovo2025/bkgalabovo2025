@@ -13,7 +13,11 @@ import {
   Product,
   Sale,
   Subscription,
+  Price,
+  PriceHistory,
+  ScheduleEvent,
 } from "@/types";
+import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 
 const memberConverter: FirestoreDataConverter<Member> = {
   toFirestore: (member) => {
@@ -24,8 +28,9 @@ const memberConverter: FirestoreDataConverter<Member> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as Member;
+    } as unknown as Member;
   },
 };
 
@@ -38,8 +43,9 @@ const saleConverter: FirestoreDataConverter<Sale> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as Sale;
+    } as unknown as Sale;
   },
 };
 
@@ -52,8 +58,9 @@ const clubServiceConverter: FirestoreDataConverter<ClubService> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as ClubService;
+    } as unknown as ClubService;
   },
 };
 
@@ -66,8 +73,9 @@ const subscriptionConverter: FirestoreDataConverter<Subscription> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as Subscription;
+    } as unknown as Subscription;
   },
 };
 
@@ -80,8 +88,9 @@ const productConverter: FirestoreDataConverter<Product> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as Product;
+    } as unknown as Product;
   },
 };
 
@@ -94,8 +103,142 @@ const inventoryEventConverter: FirestoreDataConverter<InventoryEvent> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
       ...data,
-    } as InventoryEvent;
+    } as unknown as InventoryEvent;
+  },
+};
+
+const tournamentConverter: FirestoreDataConverter<Tournament> = {
+  toFirestore: (tournament) => {
+    const { ...data } = tournament;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as Tournament;
+  },
+};
+
+const entryConverter: FirestoreDataConverter<TournamentEntry> = {
+  toFirestore: (entry) => {
+    const { ...data } = entry;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as TournamentEntry;
+  },
+};
+
+const matchConverter: FirestoreDataConverter<Match> = {
+  toFirestore: (match) => {
+    const { ...data } = match;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as Match;
+  },
+};
+
+const priceConverter: FirestoreDataConverter<Price> = {
+  toFirestore: (price) => {
+    const { ...data } = price;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as Price;
+  },
+};
+
+export interface RecoverySession {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number;
+  category: string;
+  benefits: string[];
+  zones: string[];
+  athleteCount: number;
+  numberOfDays: number;
+  proceduresPerDay: number;
+  sessionType: string;
+  imageUrl?: string;
+  imageHint?: string;
+  isActive: boolean;
+  siteId: string;
+}
+
+const sessionConverter: FirestoreDataConverter<RecoverySession> = {
+  toFirestore: (session) => {
+    const { id, ...data } = session;
+    return { ...data, siteId: "recoveryzone" };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+
+    // Handle 'zones' being either a string or an array
+    let zones: string[] = [];
+    if (Array.isArray(data.zones)) {
+      zones = data.zones;
+    } else if (typeof data.zones === "string") {
+      zones = data.zones.split(",").map((s) => s.trim());
+    }
+
+    return {
+      id: snapshot.id,
+      ...data,
+      zones,
+    } as RecoverySession;
+  },
+};
+
+const priceHistoryConverter: FirestoreDataConverter<PriceHistory> = {
+  toFirestore: (history) => {
+    const { ...data } = history;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as PriceHistory;
+  },
+};
+
+const eventConverter: FirestoreDataConverter<ScheduleEvent> = {
+  toFirestore: (event) => {
+    const { id, ...data } = event;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as ScheduleEvent;
   },
 };
 
@@ -108,10 +251,10 @@ export const getSalesCollection = () =>
   collection(getDb(), "sales").withConverter(saleConverter);
 
 export const getClubServicesCollection = () =>
-  collection(getDb(), "club-services").withConverter(clubServiceConverter);
+  collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
 export const getMemberSubscriptionsCollection = () =>
-  collection(getDb(), "member-subscriptions").withConverter(
+  collection(getDb(), "memberSubscriptions").withConverter(
     subscriptionConverter
   );
 
@@ -119,32 +262,130 @@ export const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
 export const getInventoryEventsCollection = () =>
-  collection(getDb(), "inventory-events").withConverter(
-    inventoryEventConverter
-  );
+  collection(getDb(), "inventoryEvents").withConverter(inventoryEventConverter);
+
+export const getEventsCollection = () =>
+  collection(getDb(), "events").withConverter(eventConverter);
+
+export const getTournamentsCollection = () =>
+  collection(getDb(), "tournaments").withConverter(tournamentConverter);
+
+export const getTournamentEntriesCollection = () =>
+  collection(getDb(), "tournament_entries").withConverter(entryConverter);
+
+export const getTournamentMatchesCollection = () =>
+  collection(getDb(), "tournament_matches").withConverter(matchConverter);
 
 // --- Tenant-Aware Query Getters ---
 
-export const getMembersQuery = () =>
-  query(getMembersCollection(), where("siteId", "==", getSiteConfig().id));
+export const getMembersQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getMembersCollection());
+  return query(getMembersCollection(), where("siteId", "==", siteConfig.id));
+};
 
-export const getSalesQuery = () =>
-  query(getSalesCollection(), where("siteId", "==", getSiteConfig().id));
+export const getSalesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getSalesCollection());
+  return query(getSalesCollection(), where("siteId", "==", siteConfig.id));
+};
 
-export const getClubServicesQuery = () =>
-  query(getClubServicesCollection(), where("siteId", "==", getSiteConfig().id));
+export const getClubServicesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getClubServicesCollection());
+  return query(
+    getClubServicesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
 
-export const getSubscriptionsQuery = () =>
-  query(
+export const getMemberSubscriptionsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo")
+    return query(getMemberSubscriptionsCollection());
+  return query(
     getMemberSubscriptionsCollection(),
-    where("siteId", "==", getSiteConfig().id)
+    where("siteId", "==", siteConfig.id)
   );
+};
 
-export const getProductsQuery = () =>
-  query(getProductsCollection(), where("siteId", "==", getSiteConfig().id));
+export const getProductsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getProductsCollection());
+  return query(getProductsCollection(), where("siteId", "==", siteConfig.id));
+};
 
-export const getInventoryEventsQuery = () =>
-  query(
+export const getInventoryEventsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo")
+    return query(getInventoryEventsCollection());
+  return query(
     getInventoryEventsCollection(),
-    where("siteId", "==", getSiteConfig().id)
+    where("siteId", "==", siteConfig.id)
   );
+};
+
+export const getEventsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getEventsCollection());
+  return query(getEventsCollection(), where("siteId", "==", siteConfig.id));
+};
+
+export const getTournamentsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getTournamentsCollection());
+  return query(
+    getTournamentsCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+export const getTournamentEntriesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo")
+    return query(getTournamentEntriesCollection());
+  return query(
+    getTournamentEntriesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+export const getTournamentMatchesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo")
+    return query(getTournamentMatchesCollection());
+  return query(
+    getTournamentMatchesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+// Pricing Collections
+export const getPricesCollection = () =>
+  collection(getDb(), "prices").withConverter(priceConverter);
+
+export const getPricesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getPricesCollection());
+  return query(getPricesCollection(), where("siteId", "==", siteConfig.id));
+};
+
+export const getPriceHistoryCollection = () =>
+  collection(getDb(), "priceHistory").withConverter(priceHistoryConverter);
+
+export const getPriceHistoryQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getPriceHistoryCollection());
+  return query(
+    getPriceHistoryCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+// Recovery Zone Sessions
+export const getSessionsCollection = () =>
+  collection(getDb(), "sessions").withConverter(sessionConverter);
+
+export const getSessionsQuery = () => {
+  return query(getSessionsCollection(), where("siteId", "==", "recoveryzone"));
+};

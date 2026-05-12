@@ -236,7 +236,7 @@ const ProductList = () => {
               );
             })
           ) : (
-            <div className="col-span-full py-40 text-center bg-zinc-50/30 dark:bg-zinc-900/10 rounded-[2rem] border-2 border-dashed border-zinc-100 dark:border-zinc-900">
+            <div className="col-span-full py-40 text-center bg-zinc-50/30 dark:bg-zinc-900/10 rounded-4xl border-2 border-dashed border-zinc-100 dark:border-zinc-900">
               <Package
                 className="h-16 w-16 text-zinc-200 dark:text-zinc-800 mx-auto mb-8"
                 strokeWidth={1}
@@ -256,7 +256,7 @@ const ProductList = () => {
         </div>
       </div>
 
-      <AlertDialogContent className="rounded-[2.5rem] border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
+      <AlertDialogContent className="rounded-5xl border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
             Сигурни ли сте?
@@ -351,7 +351,7 @@ export default function InventoryClient() {
           value="history"
           className="mt-0 focus-visible:outline-none outline-none ring-0"
         >
-          <BentoCard className="p-0 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-[2rem] shadow-none">
+          <BentoCard className="p-0 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
             <InventoryHistory />
           </BentoCard>
         </TabsContent>

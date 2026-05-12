@@ -186,6 +186,8 @@ export const MatchSchema = z.object({
 
   status: MatchStatusEnum.default("pending"),
   nextMatchId: z.string().optional(), // За свързване на мачове в елиминационна схема
+  updatedAt: z.any().optional(),
+  createdAt: z.any().optional(),
 });
 
 export type Match = z.infer<typeof MatchSchema>;

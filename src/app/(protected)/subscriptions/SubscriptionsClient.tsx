@@ -98,7 +98,7 @@ export default function SubscriptionsClient() {
     };
   }, [data]);
 
-  const handleSave = async (formData: Omit<Subscription, "id">) => {
+  const handleSave = async (formData: Omit<Subscription, "id" | "siteId">) => {
     if (!user) {
       toast.error("Грешка", {
         description: "Трябва да сте влезли в системата.",
@@ -242,7 +242,7 @@ export default function SubscriptionsClient() {
         </BentoCard>
       </div>
 
-      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
+      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
         <div className="p-8">
           <DataTable
             columns={columns(openForm, handleDelete)}

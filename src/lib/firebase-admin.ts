@@ -16,9 +16,15 @@ function initializeFirebaseAdmin() {
   try {
     if (serviceAccountJson) {
       try {
-        // Replace literal \n in private_key with real newlines before parsing
-        const sanitized = serviceAccountJson.replace(/\\n/g, "\n");
-        const serviceAccount = JSON.parse(sanitized);
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        // If the private key in the JSON is a string with escaped \n, JSON.parse handles it correctly.
+        // If it's stored in the JSON as a literal "\n" (e.g. from an env var), we might need to fix it on the object.
+        if (serviceAccount.private_key) {
+          serviceAccount.private_key = serviceAccount.private_key.replace(
+            /\\n/g,
+            "\n"
+          );
+        }
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
         });

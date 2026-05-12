@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  collection,
-  addDoc,
   onSnapshot,
-  query,
-  orderBy,
   doc,
-  updateDoc,
+  setDoc,
   deleteDoc,
   writeBatch,
   Timestamp,
+  addDoc,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import {
+  getEventsCollection,
+  getEventsQuery,
+} from "@/lib/firebase-collections";
 import { docToScheduleEvent } from "@/services/schedule-service";
 import { toISOStringOrUndefined } from "@/lib/date-utils";
 import { ScheduleEvent, Member, Attendee } from "@/types";
@@ -40,9 +41,7 @@ export const useEvents = () => {
   }, []);
 
   useEffect(() => {
-    const db = getDb();
-    const eventsCollection = collection(db, "events");
-    const q = query(eventsCollection, orderBy("startDate", "desc"));
+    const q = getEventsQuery();
 
     const unsubscribe = onSnapshot(
       q,
@@ -81,9 +80,8 @@ export const useEvents = () => {
   }, [members]);
 
   const addEvent = useCallback(async (event: NewEvent) => {
-    const db = getDb();
     try {
-      await addDoc(collection(db, "events"), event);
+      await addDoc(getEventsCollection(), event as ScheduleEvent);
       toast.success("Събитието е създадено успешно", {
         description: `"${event.title}" беше добавено към графика.`,
       });
@@ -99,7 +97,7 @@ export const useEvents = () => {
   const addMultipleEvents = useCallback(async (events: NewEvent[]) => {
     const db = getDb();
     const batch = writeBatch(db);
-    const eventsCollection = collection(db, "events");
+    const eventsCollection = getEventsCollection();
     events.forEach((event) => {
       const docRef = doc(eventsCollection);
       batch.set(docRef, event);
@@ -120,7 +118,6 @@ export const useEvents = () => {
 
   const updateEvent = useCallback(
     async (eventId: string, eventData: Partial<NewEvent>) => {
-      const db = getDb();
       let originalEvents: ScheduleEvent[] = [];
 
       setEvents((currentEvents) => {
@@ -142,8 +139,8 @@ export const useEvents = () => {
       });
 
       try {
-        const eventRef = doc(db, "events", eventId);
-        await updateDoc(eventRef, eventData);
+        const eventRef = doc(getEventsCollection(), eventId);
+        await setDoc(eventRef, eventData as ScheduleEvent, { merge: true });
         toast.success("Събитието е обновено");
       } catch (err) {
         setEvents(originalEvents);
@@ -184,7 +181,6 @@ export const useEvents = () => {
 
   const updateAttendees = useCallback(
     async (eventId: string, newAttendees: Attendee[]) => {
-      const db = getDb();
       let originalEvents: ScheduleEvent[] = [];
 
       const attendeeMemberIds = newAttendees.map((a) => a.memberId);
@@ -209,13 +205,17 @@ export const useEvents = () => {
       });
 
       try {
-        const eventRef = doc(db, "events", eventId);
+        const eventRef = doc(getEventsCollection(), eventId);
         const payload = newAttendees.map(({ memberId, attended, name }) => ({
           memberId,
           attended,
           name,
         }));
-        await updateDoc(eventRef, { attendees: payload, attendeeMemberIds });
+        await setDoc(
+          eventRef,
+          { attendees: payload, attendeeMemberIds } as ScheduleEvent,
+          { merge: true }
+        );
 
         toast.success("Присъствията са обновени", {
           description: "Списъкът с присъстващи е запазен.",

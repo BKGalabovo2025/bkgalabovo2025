@@ -8,11 +8,11 @@ async function getServices(): Promise<Service[]> {
   try {
     const adminDb = getAdminDb();
     const servicesSnapshot = await adminDb
-      .collection("club-services") // Use the collection name directly
+      .collection("clubServices") // Use the collection name directly
       .get();
 
     if (servicesSnapshot.empty) {
-      console.log(`No documents found in club-services collection.`);
+      console.log(`No documents found in clubServices collection.`);
       return [];
     }
 

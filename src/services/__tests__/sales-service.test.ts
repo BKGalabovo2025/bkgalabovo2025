@@ -4,7 +4,8 @@ import { DocumentSnapshot, getDocs } from "firebase/firestore";
 
 // Mock firebase collections
 vi.mock("@/lib/firebase-collections", () => ({
-  getSalesCollection: vi.fn(() => ({})), // Return a dummy object
+  getSalesCollection: vi.fn(() => ({})),
+  getSalesQuery: vi.fn(() => ({})),
 }));
 
 // Mock firestore functions

@@ -21,7 +21,7 @@ export default async function TournamentsPage() {
   return (
     <div className="pb-12">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 text-center">
+        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
           <p className="text-rose-600 font-medium">{error}</p>
         </div>
       ) : (
@@ -44,7 +44,7 @@ function TournamentsLoading() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-64 w-full rounded-[32px]" />
+          <Skeleton key={i} className="h-64 w-full rounded-4xl" />
         ))}
       </div>
     </div>

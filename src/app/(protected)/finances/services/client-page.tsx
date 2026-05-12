@@ -36,7 +36,7 @@ export default function ServicesClientPage({ data }: ServicesClientPageProps) {
         </Button>
       </PageHeader>
 
-      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-[2.5rem]">
+      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
         <div className="p-8">
           <DataTable
             columns={columns}

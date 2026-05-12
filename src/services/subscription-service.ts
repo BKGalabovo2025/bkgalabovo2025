@@ -1,5 +1,4 @@
 import {
-  collection,
   getDocs,
   doc,
   query,
@@ -10,12 +9,16 @@ import {
   DocumentSnapshot,
   Timestamp,
 } from "firebase/firestore";
+import {
+  getMemberSubscriptionsCollection,
+  getMemberSubscriptionsQuery,
+  getClubServicesQuery,
+  getSalesCollection,
+  getMembersCollection,
+} from "@/lib/firebase-collections";
 import { getDb } from "@/lib/firebase";
+import { getSiteConfig } from "@/config/sites";
 import { Subscription, ClubService } from "@/types/index";
-
-const SUBSCRIPTIONS_COLLECTION = "memberSubscriptions";
-const SERVICES_COLLECTION = "clubServices";
-const MEMBERS_COLLECTION = "members"; // Added for fetching member data
 
 // --- Converters ---
 export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
@@ -122,14 +125,14 @@ export const docToMemberSubscription = (
       typeof data.linkedSubscriptionId === "string"
         ? data.linkedSubscriptionId
         : null,
+    siteId: data.siteId || "default",
   };
 };
 
 // --- Service Functions ---
 
 export const getAllClubServices = async (): Promise<ClubService[]> => {
-  const db = getDb();
-  const q = query(collection(db, SERVICES_COLLECTION), orderBy("name"));
+  const q = getClubServicesQuery();
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docToClubService).filter(Boolean) as ClubService[];
 };
@@ -141,11 +144,7 @@ export const getAllClubServices = async (): Promise<ClubService[]> => {
  * Use this for list views instead of looping over members (N+1 bug prevention).
  */
 export const getAllMemberSubscriptions = async (): Promise<Subscription[]> => {
-  const db = getDb();
-  const q = query(
-    collection(db, SUBSCRIPTIONS_COLLECTION),
-    orderBy("startDate", "desc")
-  );
+  const q = query(getMemberSubscriptionsQuery(), orderBy("startDate", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs
     .map(docToMemberSubscription)
@@ -155,9 +154,8 @@ export const getAllMemberSubscriptions = async (): Promise<Subscription[]> => {
 export const getSubscriptionsByMemberId = async (
   memberId: string
 ): Promise<Subscription[]> => {
-  const db = getDb();
   const q = query(
-    collection(db, SUBSCRIPTIONS_COLLECTION),
+    getMemberSubscriptionsQuery(),
     where("memberId", "==", memberId)
   );
   const snapshot = await getDocs(q);
@@ -167,17 +165,19 @@ export const getSubscriptionsByMemberId = async (
 };
 
 export const createSubscription = async (
-  subscription: Omit<Subscription, "id">,
+  subscription: Omit<Subscription, "id" | "siteId">,
   _userId: string,
   _userName: string
 ): Promise<string> => {
   const db = getDb();
-  const subRef = doc(collection(db, "memberSubscriptions"));
+  const subRef = doc(getMemberSubscriptionsCollection());
 
   // FIX: Определяме статуса на базата на цената
   const saleStatus = subscription.price > 0 ? "completed" : "informational";
 
+  const saleRef = doc(getSalesCollection());
   const saleData = {
+    id: saleRef.id,
     memberId: subscription.memberId,
     subscriptionId: subRef.id,
     saleDate: Timestamp.now(),
@@ -193,20 +193,23 @@ export const createSubscription = async (
     currency: subscription.currency,
     isPaid: subscription.pricePaid >= subscription.price,
     status: saleStatus, // <-- FIX: Използваме динамично определения статус
+    siteId: getSiteConfig().id,
   };
 
   await runTransaction(db, async (transaction) => {
     // 1. Записваме абонамента
-    transaction.set(subRef, { ...subscription, id: subRef.id });
+    transaction.set(subRef, {
+      ...subscription,
+      id: subRef.id,
+      siteId: getSiteConfig().id,
+    });
 
     // 2. Записваме продажбата автоматично
-    const saleRef = doc(collection(db, "sales"));
-    transaction.set(saleRef, saleData);
+    transaction.set(saleRef, saleData as any);
 
     // 3. Обновяваме последната дата на плащане в профила на члена, само ако е имало реално плащане
     if (subscription.price > 0) {
-      // <-- FIX
-      const memberRef = doc(db, MEMBERS_COLLECTION, subscription.memberId);
+      const memberRef = doc(getMembersCollection(), subscription.memberId);
       transaction.update(memberRef, {
         lastPaymentDate: new Date().toISOString(),
       });
@@ -220,8 +223,7 @@ export const updateSubscription = async (
   id: string,
   subscriptionUpdate: Partial<Subscription>
 ): Promise<void> => {
-  const db = getDb();
-  const subRef = doc(db, SUBSCRIPTIONS_COLLECTION, id);
+  const subRef = doc(getMemberSubscriptionsCollection(), id);
   const cleanSubscriptionUpdate: { [key: string]: unknown } = {};
   Object.entries(subscriptionUpdate).forEach(([key, value]) => {
     if (value !== undefined) {

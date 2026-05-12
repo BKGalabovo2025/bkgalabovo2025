@@ -20,7 +20,7 @@ export default function ReceiptPage() {
         ]}
       />
 
-      <div className="bg-white dark:bg-zinc-950 rounded-[32px] shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden max-w-2xl mx-auto">
+      <div className="bg-white dark:bg-zinc-950 rounded-4xl shadow-xl shadow-blue-900/5 border border-slate-100 dark:border-zinc-800 overflow-hidden max-w-2xl mx-auto">
         <div className="p-0">
           <ReceiptClientPage saleId={saleId} />
         </div>

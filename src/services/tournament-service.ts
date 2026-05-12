@@ -1,6 +1,25 @@
 import { getDb } from "@/lib/firebase";
 import {
-  collection,
+  getTournamentsCollection,
+  getTournamentsQuery,
+  getTournamentEntriesCollection,
+  getTournamentEntriesQuery,
+  getTournamentMatchesCollection,
+  getTournamentMatchesQuery,
+} from "@/lib/firebase-collections";
+import {
+  Tournament,
+  TournamentEntry,
+  Match,
+  TournamentSchema,
+} from "@/types/tournament.types";
+import {
+  mapDocToTournament,
+  mapDocToEntry,
+  mapDocToMatch,
+} from "@/lib/tournament-mapper";
+
+import {
   doc,
   getDocs,
   getDoc,
@@ -14,21 +33,6 @@ import {
   Timestamp,
   serverTimestamp,
 } from "firebase/firestore";
-import {
-  Tournament,
-  TournamentEntry,
-  Match,
-  TournamentSchema,
-} from "@/types/tournament.types";
-import {
-  mapDocToTournament,
-  mapDocToEntry,
-  mapDocToMatch,
-} from "@/lib/tournament-mapper";
-
-const TOURNAMENTS_COLLECTION = "tournaments";
-const ENTRIES_COLLECTION = "tournament_entries";
-const MATCHES_COLLECTION = "tournament_matches";
 
 export const tournamentService = {
   /**
@@ -36,11 +40,7 @@ export const tournamentService = {
    */
   async getTournaments(): Promise<Tournament[]> {
     try {
-      const db = getDb();
-      const q = query(
-        collection(db, TOURNAMENTS_COLLECTION),
-        orderBy("startDate", "desc")
-      );
+      const q = query(getTournamentsQuery(), orderBy("startDate", "desc"));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(mapDocToTournament);
     } catch (error) {
@@ -54,8 +54,7 @@ export const tournamentService = {
    */
   async getTournamentById(id: string): Promise<Tournament | null> {
     try {
-      const db = getDb();
-      const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
+      const docRef = doc(getTournamentsCollection(), id);
       const snapshot = await getDoc(docRef);
       if (!snapshot.exists()) return null;
       return mapDocToTournament(snapshot);
@@ -70,7 +69,6 @@ export const tournamentService = {
    */
   async createTournament(data: Omit<Tournament, "id">): Promise<string> {
     try {
-      const db = getDb();
       // Валидация преди запис
       const validatedData = TournamentSchema.omit({ id: true }).parse(data);
 
@@ -82,10 +80,7 @@ export const tournamentService = {
         updatedAt: serverTimestamp(),
       };
 
-      const docRef = await addDoc(
-        collection(db, TOURNAMENTS_COLLECTION),
-        payload
-      );
+      const docRef = await addDoc(getTournamentsCollection(), payload);
       return docRef.id;
     } catch (error) {
       console.error("Error creating tournament:", error);
@@ -98,8 +93,7 @@ export const tournamentService = {
    */
   async updateTournament(id: string, data: Partial<Tournament>): Promise<void> {
     try {
-      const db = getDb();
-      const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
+      const docRef = doc(getTournamentsCollection(), id);
       const payload: Record<string, unknown> = {
         ...data,
         updatedAt: serverTimestamp(),
@@ -124,8 +118,7 @@ export const tournamentService = {
    */
   async deleteTournament(id: string): Promise<void> {
     try {
-      const db = getDb();
-      const docRef = doc(db, TOURNAMENTS_COLLECTION, id);
+      const docRef = doc(getTournamentsCollection(), id);
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error deleting tournament:", error);
@@ -139,9 +132,8 @@ export const tournamentService = {
 
   async getTournamentEntries(tournamentId: string): Promise<TournamentEntry[]> {
     try {
-      const db = getDb();
       const q = query(
-        collection(db, ENTRIES_COLLECTION),
+        getTournamentEntriesQuery(),
         where("tournamentId", "==", tournamentId)
         // Removed orderBy to avoid index errors, sorting handled client-side
       );
@@ -157,12 +149,11 @@ export const tournamentService = {
     data: Omit<TournamentEntry, "id">
   ): Promise<string> {
     try {
-      const db = getDb();
       const payload = {
         ...data,
         registrationDate: serverTimestamp(),
       };
-      const docRef = await addDoc(collection(db, ENTRIES_COLLECTION), payload);
+      const docRef = await addDoc(getTournamentEntriesCollection(), payload);
       return docRef.id;
     } catch (error) {
       console.error("Error creating entry:", error);
@@ -172,8 +163,7 @@ export const tournamentService = {
 
   async deleteTournamentEntry(id: string): Promise<void> {
     try {
-      const db = getDb();
-      await deleteDoc(doc(db, ENTRIES_COLLECTION, id));
+      await deleteDoc(doc(getTournamentEntriesCollection(), id));
     } catch (error) {
       console.error("Error deleting entry:", error);
       throw error;
@@ -186,9 +176,8 @@ export const tournamentService = {
 
   async getTournamentMatches(tournamentId: string): Promise<Match[]> {
     try {
-      const db = getDb();
       const q = query(
-        collection(db, MATCHES_COLLECTION),
+        getTournamentMatchesQuery(),
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
@@ -204,7 +193,7 @@ export const tournamentService = {
       const db = getDb();
       const batch = writeBatch(db);
       matches.forEach((m) => {
-        const docRef = doc(collection(db, MATCHES_COLLECTION));
+        const docRef = doc(getTournamentMatchesCollection());
         batch.set(docRef, {
           ...m,
           status: m.status || "pending",
@@ -222,7 +211,7 @@ export const tournamentService = {
     try {
       const db = getDb();
       const q = query(
-        collection(db, MATCHES_COLLECTION),
+        getTournamentMatchesQuery(),
         where("tournamentId", "==", tournamentId)
       );
       const snapshot = await getDocs(q);
@@ -239,8 +228,7 @@ export const tournamentService = {
 
   async updateMatchScore(id: string, data: Partial<Match>): Promise<void> {
     try {
-      const db = getDb();
-      const docRef = doc(db, MATCHES_COLLECTION, id);
+      const docRef = doc(getTournamentMatchesCollection(), id);
       await updateDoc(docRef, {
         ...data,
         status: "completed",

@@ -208,7 +208,7 @@ const AttendanceReport = () => {
       )}
 
       {/* Table Card */}
-      <BentoCard className="p-0 overflow-hidden bg-white border border-zinc-100 shadow-none rounded-[2.5rem]">
+      <BentoCard className="p-0 overflow-hidden bg-white border border-zinc-100 shadow-none rounded-5xl">
         <div className="p-8 border-b border-zinc-50 flex items-center justify-between">
           <h3 className="font-medium text-[11px] uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3">
             <Users className="h-4 w-4 text-primary" strokeWidth={1.5} />

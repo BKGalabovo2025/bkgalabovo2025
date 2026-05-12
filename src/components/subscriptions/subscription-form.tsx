@@ -59,7 +59,7 @@ type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;
 interface SubscriptionFormProps {
   members: Member[];
   services: ClubService[];
-  onSave: (data: Omit<Subscription, "id">) => void;
+  onSave: (data: Omit<Subscription, "id" | "siteId">) => void;
   onClose: () => void;
   initialData?: Subscription;
   isSaving?: boolean;
@@ -171,7 +171,7 @@ export function SubscriptionForm({
       totalPaymentsCount = 1;
     }
 
-    const subscriptionData: Omit<Subscription, "id"> = {
+    const subscriptionData: Omit<Subscription, "id" | "siteId"> = {
       ...data,
       price: selectedService.price,
       serviceName: selectedService.name,

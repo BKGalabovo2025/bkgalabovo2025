@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Create the subscription
-    const subscriptionData: Omit<Subscription, "id"> = {
+    const subscriptionData: Omit<Subscription, "id" | "siteId"> = {
       memberId: newMemberId,
       serviceId: defaultSubscriptionService.id,
       serviceName: defaultSubscriptionService.name,

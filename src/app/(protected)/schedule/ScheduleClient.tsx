@@ -174,6 +174,14 @@ export default function ScheduleClient() {
     setEventToDeleteId(null);
   };
 
+  const membersMap = useMemo(() => {
+    const map: Record<string, Member> = {};
+    (members as Member[]).forEach((m) => {
+      map[m.id] = m;
+    });
+    return map;
+  }, [members]);
+
   const filteredEvents = useMemo(() => {
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -220,6 +228,25 @@ export default function ScheduleClient() {
     const endIndex = startIndex + EVENTS_PER_PAGE;
     return filteredEvents.slice(startIndex, endIndex);
   }, [filteredEvents, currentPage, activeTab]);
+
+  const groupedEvents = useMemo(() => {
+    const eventsToGroup =
+      activeTab === "past" ? paginatedEvents : filteredEvents;
+    return (eventsToGroup || []).reduce(
+      (acc: Record<string, ScheduleEvent[]>, event: ScheduleEvent) => {
+        const month = new Date(event.startDate).toLocaleString("bg-BG", {
+          month: "long",
+          year: "numeric",
+        });
+        if (!acc[month]) {
+          acc[month] = [];
+        }
+        acc[month].push(event);
+        return acc;
+      },
+      {}
+    );
+  }, [filteredEvents, paginatedEvents, activeTab]);
 
   let errorObject: Error | null = null;
   if (error) {
@@ -347,10 +374,16 @@ export default function ScheduleClient() {
             </div>
           ) : (
             <>
-              {activeTab === "current" && renderEventsList(filteredEvents)}
-              {activeTab === "upcoming" && renderEventsList(filteredEvents)}
+              {activeTab === "current" &&
+                renderEventsList(filteredEvents, groupedEvents)}
+              {activeTab === "upcoming" &&
+                renderEventsList(filteredEvents, groupedEvents)}
               {activeTab === "past" &&
-                renderEventsList(paginatedEvents, filteredEvents.length)}
+                renderEventsList(
+                  paginatedEvents,
+                  groupedEvents,
+                  filteredEvents.length
+                )}
             </>
           )}
         </div>
@@ -382,7 +415,7 @@ export default function ScheduleClient() {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-[2rem] border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
+        <AlertDialogContent className="rounded-4xl border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
               Наистина ли искате да изтриете това събитие?
@@ -410,13 +443,14 @@ export default function ScheduleClient() {
 
   function renderEventsList(
     eventsToShow: ScheduleEvent[],
+    grouped: Record<string, ScheduleEvent[]>,
     totalEvents?: number
   ) {
     const finalTotalEvents = totalEvents ?? eventsToShow.length;
 
     if (finalTotalEvents === 0) {
       return (
-        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
+        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
           <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
             <CalendarDays
               className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
@@ -436,28 +470,13 @@ export default function ScheduleClient() {
       );
     }
 
-    const groupedEvents = (eventsToShow || []).reduce(
-      (acc: Record<string, ScheduleEvent[]>, event: ScheduleEvent) => {
-        const month = new Date(event.startDate).toLocaleString("bg-BG", {
-          month: "long",
-          year: "numeric",
-        });
-        if (!acc[month]) {
-          acc[month] = [];
-        }
-        acc[month].push(event);
-        return acc;
-      },
-      {}
-    );
-
     return (
       <div className="space-y-12">
         <div className="space-y-10">
-          {Object.entries(groupedEvents).map(([month, monthEvents]) => (
+          {Object.entries(grouped).map(([month, monthEvents]) => (
             <div key={month} className="space-y-8">
               <div className="flex items-center gap-6 px-1">
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-400 flex-shrink-0">
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-400 shrink-0">
                   {month}
                 </h2>
                 <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
@@ -469,6 +488,7 @@ export default function ScheduleClient() {
                       key={event.id}
                       event={event}
                       members={members as Member[]}
+                      membersMap={membersMap}
                       onEdit={openEditDialog}
                       onDelete={openDeleteDialog}
                       onManageAttendees={openAttendeesDialog}

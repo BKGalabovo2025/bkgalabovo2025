@@ -374,7 +374,7 @@ const FinancialReport = () => {
       </div>
 
       {/* Detailed Table */}
-      <Card className="border border-zinc-100 shadow-none bg-white rounded-[2.5rem] overflow-hidden">
+      <Card className="border border-zinc-100 shadow-none bg-white rounded-5xl overflow-hidden">
         <CardHeader className="border-b border-zinc-50 p-8">
           <CardTitle className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
             Детайлен списък

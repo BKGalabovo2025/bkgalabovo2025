@@ -19,7 +19,7 @@ export const SaleSchema = z.object({
   memberId: z.string().min(1, "Member ID is required."),
   saleDate: z.string().datetime({ message: "Invalid sale date format" }),
   items: z.array(SaleItemSchema).min(1, "At least one item is required."),
-  status: z.enum(["pending", "completed", "cancelled"]),
+  status: z.enum(["pending", "completed", "cancelled", "informational"]),
   isPaid: z.boolean(),
   totalAmount: z.number().nonnegative("Total amount cannot be negative."),
   currency: z.literal("EUR"),

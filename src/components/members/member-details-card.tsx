@@ -451,7 +451,7 @@ export const MemberDetailsCard = ({
         </TabsContent>
 
         <TabsContent value="documents" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10 space-y-6">
+          <div className="bg-white border border-zinc-100 rounded-5xl p-10 space-y-6">
             <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div

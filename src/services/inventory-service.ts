@@ -1,19 +1,20 @@
 import {
-  collection,
   doc,
   getDoc,
   getDocs,
-  query,
-  orderBy,
   DocumentSnapshot,
   Timestamp,
   runTransaction,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
+import {
+  getProductsCollection,
+  getInventoryEventsCollection,
+  getProductsQuery,
+  getInventoryEventsQuery,
+} from "@/lib/firebase-collections";
+import { getSiteConfig } from "@/config/sites";
 import { Product, InventoryEvent } from "@/types";
-
-const PRODUCTS_COLLECTION = "products";
-const EVENTS_COLLECTION = "inventoryEvents";
 
 export const docToProduct = (doc: DocumentSnapshot): Product | null => {
   if (!doc.id || !doc.exists()) {
@@ -79,6 +80,7 @@ export const docToInventoryEvent = (
     notes: typeof data.notes === "string" ? data.notes : undefined,
     oldPrice: typeof data.oldPrice === "number" ? data.oldPrice : undefined,
     newPrice: typeof data.newPrice === "number" ? data.newPrice : undefined,
+    siteId: data.siteId || "default",
   };
   if (!event.productId || !event.userId) {
     return null; // Core fields must exist.
@@ -87,9 +89,7 @@ export const docToInventoryEvent = (
 };
 
 export const getInventoryEvents = async (): Promise<InventoryEvent[]> => {
-  const db = getDb();
-  const eventsCollection = collection(db, EVENTS_COLLECTION);
-  const q = query(eventsCollection, orderBy("createdAt", "desc"));
+  const q = getInventoryEventsQuery();
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs
     .map(docToInventoryEvent)
@@ -97,9 +97,7 @@ export const getInventoryEvents = async (): Promise<InventoryEvent[]> => {
 };
 
 export const getProducts = async (): Promise<Product[]> => {
-  const db = getDb();
-  const productsCollection = collection(db, PRODUCTS_COLLECTION);
-  const q = query(productsCollection, orderBy("name"));
+  const q = getProductsQuery();
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToProduct).filter(Boolean) as Product[];
 };
@@ -111,7 +109,7 @@ export const updateProductPrice = async (
   userName: string
 ): Promise<void> => {
   const db = getDb();
-  const productRef = doc(db, PRODUCTS_COLLECTION, id);
+  const productRef = doc(getProductsCollection(), id);
   const productSnap = await getDoc(productRef);
   if (!productSnap.exists()) throw new Error("Product not found");
   const oldPrice = productSnap.data().price || 0;
@@ -119,7 +117,7 @@ export const updateProductPrice = async (
   await runTransaction(db, async (transaction) => {
     transaction.update(productRef, { price: newPrice });
 
-    const eventRef = doc(collection(db, EVENTS_COLLECTION));
+    const eventRef = doc(getInventoryEventsCollection());
     const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
@@ -130,6 +128,7 @@ export const updateProductPrice = async (
       createdAt: new Date().toISOString(),
       userId,
       userName,
+      siteId: getSiteConfig().id,
     };
     transaction.set(eventRef, eventData);
   });
@@ -143,7 +142,7 @@ export const restockProduct = async (
   notes?: string
 ): Promise<void> => {
   const db = getDb();
-  const productRef = doc(db, PRODUCTS_COLLECTION, id);
+  const productRef = doc(getProductsCollection(), id);
   const productSnap = await getDoc(productRef);
   if (!productSnap.exists()) throw new Error("Product not found");
 
@@ -151,7 +150,7 @@ export const restockProduct = async (
     const currentStock = productSnap.data().stock || 0;
     transaction.update(productRef, { stock: currentStock + quantity });
 
-    const eventRef = doc(collection(db, EVENTS_COLLECTION));
+    const eventRef = doc(getInventoryEventsCollection());
     const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
@@ -161,6 +160,7 @@ export const restockProduct = async (
       userId,
       userName,
       notes,
+      siteId: getSiteConfig().id,
     };
     transaction.set(eventRef, eventData);
   });
@@ -174,7 +174,7 @@ export const adjustProductStock = async (
   notes?: string
 ): Promise<void> => {
   const db = getDb();
-  const productRef = doc(db, PRODUCTS_COLLECTION, id);
+  const productRef = doc(getProductsCollection(), id);
   const productSnap = await getDoc(productRef);
   if (!productSnap.exists()) throw new Error("Product not found");
 
@@ -182,7 +182,7 @@ export const adjustProductStock = async (
     const oldStock = productSnap.data().stock || 0;
     transaction.update(productRef, { stock: newStock });
 
-    const eventRef = doc(collection(db, EVENTS_COLLECTION));
+    const eventRef = doc(getInventoryEventsCollection());
     const eventData: Omit<InventoryEvent, "id"> = {
       productId: id,
       productName: productSnap.data().name,
@@ -192,6 +192,7 @@ export const adjustProductStock = async (
       userId,
       userName,
       notes,
+      siteId: getSiteConfig().id,
     };
     transaction.set(eventRef, eventData);
   });

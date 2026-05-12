@@ -2,6 +2,16 @@ import { vi, describe, it, expect } from "vitest";
 import { computeGlobalRankings } from "../services/ranking-service";
 import { getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
 
+// Mocking firebase-collections
+vi.mock("@/lib/firebase-collections", () => ({
+  getTournamentsCollection: vi.fn(() => ({})),
+  getTournamentsQuery: vi.fn(() => ({})),
+  getTournamentEntriesCollection: vi.fn(() => ({})),
+  getTournamentEntriesQuery: vi.fn(() => ({})),
+  getTournamentMatchesCollection: vi.fn(() => ({})),
+  getTournamentMatchesQuery: vi.fn(() => ({})),
+}));
+
 // Mocking firestore functions
 vi.mock("firebase/firestore", async () => {
   const actual =

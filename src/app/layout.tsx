@@ -9,7 +9,9 @@ import { Analytics } from "@vercel/analytics/next";
 
 const fontSans = Inter({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-sans",
+  variable: "--font-inter",
+  display: "swap",
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -37,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${fontSans.variable} font-sans antialiased`}>
+    <html lang="bg" className={fontSans.variable} suppressHydrationWarning>
+      <body className="antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

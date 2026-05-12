@@ -108,169 +108,181 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       onOpenChange={handleClose}
     >
       <DialogContent
-        className="sm:max-w-[540px] rounded-4xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950"
+        className="sm:max-w-[540px] w-[92vw] rounded-4xl sm:rounded-5xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
         aria-describedby={descriptionId}
       >
-        <div className="p-10 pb-0">
-          <DialogHeader>
-            <DialogTitle className="text-3xl font-light tracking-tight text-zinc-950 dark:text-white">
-              Създаване на събитие
-            </DialogTitle>
-            <DialogDescription
-              id={descriptionId}
-              className="text-zinc-400 font-light mt-2"
-            >
-              Попълнете детайлите по-долу, за да създадете нов запис в клубния
-              график.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-10 pt-8 space-y-6">
-          <div className="space-y-2">
-            <label
-              htmlFor="title"
-              className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-            >
-              Име на събитието
-            </label>
-            <Input
-              id="title"
-              placeholder="Например: Тренировка - Напреднали"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light focus:ring-zinc-950"
-              autoFocus
-            />
+        <div className="flex flex-col h-full overflow-hidden">
+          <div className="p-6 sm:p-8 pb-4 shrink-0 border-b border-zinc-100 dark:border-zinc-900">
+            <DialogHeader>
+              <DialogTitle className="text-xl sm:text-2xl font-light tracking-tight text-zinc-950 dark:text-white">
+                Създаване на събитие
+              </DialogTitle>
+              <DialogDescription
+                id={descriptionId}
+                className="text-zinc-400 font-light mt-1 text-xs sm:text-sm"
+              >
+                Попълнете детайлите, за да добавите нов запис.
+              </DialogDescription>
+            </DialogHeader>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label
-                htmlFor="startDate"
-                className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-              >
-                Начало
-              </label>
-              <Input
-                id="startDate"
-                type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
-              />
-            </div>
-            <div className="space-y-2">
-              <label
-                htmlFor="endDate"
-                className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-              >
-                Край
-              </label>
-              <Input
-                id="endDate"
-                type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
-              />
-            </div>
-          </div>
+          <div className="overflow-y-auto custom-scrollbar flex-1 overscroll-contain">
+            <form
+              id="create-event-form"
+              onSubmit={handleSubmit}
+              className="p-6 sm:p-8 space-y-4 sm:space-y-5"
+            >
+              <div className="space-y-2">
+                <label
+                  htmlFor="title"
+                  className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                >
+                  Име на събитието
+                </label>
+                <Input
+                  id="title"
+                  placeholder="Например: Тренировка - Напреднали"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="h-11 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light focus:ring-zinc-950"
+                  autoFocus
+                />
+              </div>
 
-          <div className="space-y-2">
-            <label
-              htmlFor="location"
-              className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-            >
-              Място
-            </label>
-            <Input
-              id="location"
-              placeholder="Например: Спортна зала 'Енергетик'"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label
-              htmlFor="type"
-              className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-            >
-              Тип на събитието
-            </label>
-            <Select
-              onValueChange={(value: ScheduleEventType) => setType(value)}
-              defaultValue={type}
-            >
-              <SelectTrigger
-                id="type"
-                className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
-              >
-                <SelectValue placeholder="Изберете тип" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
-                {Object.entries(eventTypeTranslations).map(([key, value]) => (
-                  <SelectItem
-                    key={key}
-                    value={key as ScheduleEventType}
-                    className="rounded-lg"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="startDate"
+                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
                   >
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                    Начало
+                  </label>
+                  <Input
+                    id="startDate"
+                    type="datetime-local"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-11 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="endDate"
+                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                  >
+                    Край
+                  </label>
+                  <Input
+                    id="endDate"
+                    type="datetime-local"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-11 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <label
-              htmlFor="description"
-              className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
-            >
-              Описание (по желание)
-            </label>
-            <Textarea
-              id="description"
-              placeholder="Допълнителни бележки..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[100px] rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 shadow-none font-light resize-none"
-            />
-          </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="location"
+                  className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                >
+                  Място
+                </label>
+                <Input
+                  id="location"
+                  placeholder="Например: Спортна зала 'Енергетик'"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="h-11 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                />
+              </div>
 
-          {error && (
-            <p className="text-[11px] font-medium text-rose-500 uppercase tracking-widest text-center">
-              {error}
-            </p>
-          )}
+              <div className="space-y-2">
+                <label
+                  htmlFor="type"
+                  className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                >
+                  Тип на събитието
+                </label>
+                <Select
+                  onValueChange={(value: ScheduleEventType) => setType(value)}
+                  defaultValue={type}
+                >
+                  <SelectTrigger
+                    id="type"
+                    className="h-11 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                  >
+                    <SelectValue placeholder="Изберете тип" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
+                    {Object.entries(eventTypeTranslations).map(
+                      ([key, value]) => (
+                        <SelectItem
+                          key={key}
+                          value={key as ScheduleEventType}
+                          className="rounded-lg"
+                        >
+                          {value}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <DialogFooter className="pt-6 gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="h-12 px-8 rounded-xl font-medium text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-950 transition-all"
-            >
-              Отказ
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-12 px-10 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none transition-all"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-3 h-4 w-4 animate-spin" /> Създаване
-                </>
-              ) : (
-                "Създай събитие"
+              <div className="space-y-2">
+                <label
+                  htmlFor="description"
+                  className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                >
+                  Описание (по желание)
+                </label>
+                <Textarea
+                  id="description"
+                  placeholder="Допълнителни бележки..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="min-h-[80px] rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 shadow-none font-light resize-none"
+                />
+              </div>
+
+              {error && (
+                <p className="text-[11px] font-medium text-rose-500 uppercase tracking-widest text-center">
+                  {error}
+                </p>
               )}
-            </Button>
-          </DialogFooter>
-        </form>
+            </form>
+          </div>
+
+          <div className="p-6 sm:p-8 pt-4 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/20 shrink-0">
+            <DialogFooter className="gap-3 sm:gap-0">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="h-12 px-8 rounded-xl font-medium text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-950 transition-all"
+              >
+                Отказ
+              </Button>
+              <Button
+                type="submit"
+                form="create-event-form"
+                disabled={isSubmitting}
+                className="h-12 px-10 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none transition-all"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-3 h-4 w-4 animate-spin" /> Създаване
+                  </>
+                ) : (
+                  "Създай събитие"
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

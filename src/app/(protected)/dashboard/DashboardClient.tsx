@@ -121,7 +121,6 @@ export default function DashboardClient() {
   // Use values from stats or fallback to 0/placeholder
   const activeMembers = stats?.activeMembersCount || 0;
   const monthlyRevenue = stats?.revenueLast30Days || 0;
-  const salesCount = stats?.salesLast30Days || 0;
   const revenueTrend = stats?.revenueChange || 0;
   const membersTrend = stats?.newMembersChange || 0;
 
@@ -178,7 +177,7 @@ export default function DashboardClient() {
         />
         <StatCard
           title={t("dash.today_training")}
-          value={salesCount}
+          value={stats?.trainingsToday || 0}
           icon={Calendar}
           color="emerald"
           loading={loading}
