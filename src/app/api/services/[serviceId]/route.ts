@@ -56,7 +56,7 @@ async function getService(id: string): Promise<Service | null> {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ serviceId: string }> }
 ) {
   try {

@@ -17,12 +17,11 @@ import { toast } from "sonner";
 
 export const useReservations = (siteId?: string, date?: Date) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!!siteId);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!siteId) {
-      if (isLoading) setIsLoading(false);
       return;
     }
 

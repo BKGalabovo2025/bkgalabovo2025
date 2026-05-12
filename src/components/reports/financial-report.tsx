@@ -61,16 +61,11 @@ const FinancialReport = () => {
   const isMounted = useIsMounted();
 
   // Filters
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(() =>
+    addDays(new Date(), -30)
+  );
+  const [dateTo, setDateTo] = useState<Date | undefined>(() => new Date());
   const [paymentType, setPaymentType] = useState<string>("all");
-
-  useEffect(() => {
-    if (isMounted) {
-      setDateFrom(addDays(new Date(), -30));
-      setDateTo(new Date());
-    }
-  }, [isMounted]);
 
   useEffect(() => {
     const fetchData = async () => {

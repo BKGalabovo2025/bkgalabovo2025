@@ -26,5 +26,3 @@ export const subscriptionSchema = z.object({
 });
 
 export const subscriptionUpdateSchema = subscriptionSchema.partial();
-
-export type SubscriptionFormValues = z.infer<typeof subscriptionSchema>;

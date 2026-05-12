@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, forwardRef } from "react";
 import { RankingEntry } from "@/types/ranking.types";
 import {
   Dialog,
@@ -98,8 +98,6 @@ export default function ShareStoryDialog({ topThree }: ShareStoryDialogProps) {
     </>
   );
 }
-
-import React, { forwardRef } from "react";
 
 const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
   ({ topThree }, ref) => {

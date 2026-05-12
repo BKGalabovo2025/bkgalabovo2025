@@ -1,4 +1,4 @@
-import { initializeApp, cert, getApp, getApps } from "firebase-admin/app";
+import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import * as fs from "fs";
 import * as path from "path";

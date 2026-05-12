@@ -1,7 +1,7 @@
 // src/components/reports/attendance-report.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -34,17 +34,10 @@ import { Badge } from "@/components/ui/badge";
 
 const AttendanceReport = () => {
   const isMounted = useIsMounted();
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-
-  useEffect(() => {
-    if (isMounted) {
-      setStartDate(
-        new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      );
-      setEndDate(new Date());
-    }
-  }, [isMounted]);
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(() => new Date());
   const [reportData, setReportData] = useState<AttendanceReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { useMembers } from "@/hooks/useMembers";
 import { columns } from "@/components/members/columns";
 import { DataTable } from "@/components/ui/data-table";
@@ -17,8 +17,15 @@ const MembersPage = () => {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Members</h1>
+    <div className="space-y-6">
+      <PageHeader
+        title="Members"
+        description="Manage your club members and their subscription status."
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Members" },
+        ]}
+      />
       <DataTable columns={columns} data={members} />
     </div>
   );

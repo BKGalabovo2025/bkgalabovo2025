@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AgendaView } from "@/components/reservations/agenda-view";
 import { ReservationDialog } from "@/components/reservations/reservation-dialog";

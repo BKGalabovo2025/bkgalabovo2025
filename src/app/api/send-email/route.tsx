@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import * as React from "react";
-import { render } from "@react-email/render";
+import { render } from "react-email";
 import { z } from "zod";
 
 import {

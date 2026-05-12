@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { Member } from "@/types";
 import { generateLiabilityReport } from "@/services/report-service";
 import {
@@ -52,19 +53,15 @@ const months = [
 ];
 
 const LiabilitiesReport = () => {
+  const isMounted = useIsMounted();
   const [unpaidMembers, setUnpaidMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-
-  useEffect(() => {
-    setMounted(true);
-    setYear(new Date().getFullYear().toString());
-    setMonth((new Date().getMonth() + 1).toString());
-  }, []);
+  const [year, setYear] = useState(() => new Date().getFullYear().toString());
+  const [month, setMonth] = useState(() =>
+    (new Date().getMonth() + 1).toString()
+  );
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
@@ -193,7 +190,7 @@ const LiabilitiesReport = () => {
           )}
         </div>
 
-        {!mounted || isLoading ? (
+        {!isMounted || isLoading ? (
           <div className="p-32 text-center">
             <Loader2
               className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"

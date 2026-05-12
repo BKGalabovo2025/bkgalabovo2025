@@ -5,29 +5,30 @@ import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const fontSans = Inter({
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500"],
   variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Badminton Club Admin",
-  description: "Administrative application for a badminton club",
+  title: "BK Galabovo & Recovery Zone Admin",
+  description:
+    "Unified administrative platform for BK Galabovo and Recovery Zone - Professional Badminton Management",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Badminton Admin",
+    title: "BK Galabovo Admin",
   },
 };
 
 export const viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#0ea5e9", // Sky-500 matching the brand
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5, // Allow zooming for accessibility
 };
 
 export default function RootLayout({
@@ -50,6 +51,7 @@ export default function RootLayout({
               <Toaster richColors closeButton position="top-right" />
             </AuthProvider>
           </LanguageProvider>
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>

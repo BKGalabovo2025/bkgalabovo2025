@@ -73,7 +73,7 @@ async function _logHistory(
 export async function updateClubService(
   id: string,
   idToken: string,
-  prevState: ServiceState,
+  _prevState: ServiceState,
   formData: FormData
 ): Promise<ServiceState> {
   try {
@@ -133,7 +133,7 @@ export async function updateClubService(
 
 export async function createClubService(
   idToken: string,
-  prevState: ServiceState,
+  _prevState: ServiceState,
   formData: FormData
 ): Promise<ServiceState> {
   try {

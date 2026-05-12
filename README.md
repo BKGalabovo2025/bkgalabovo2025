@@ -17,11 +17,12 @@
 
 Проектът е изграден по най-съвременните стандарти за уеб разработка:
 
-- **Frontend:** [Next.js 15 (App Router)](https://nextjs.org/) за максимална производителност.
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/) + [Shadcn/ui](https://ui.shadcn.com/) с Bento Minimalist дизайн.
+- **Frontend:** [Next.js 16 (App Router)](https://nextjs.org/) за максимална производителност и React 19.
+- **Styling:** [Tailwind CSS 4.3](https://tailwindcss.com/) + [Shadcn/ui](https://ui.shadcn.com/) с Bento Minimalist дизайн.
 - **Backend:** [Firebase Suite](https://firebase.google.com/) (Firestore, Auth, Hosting).
 - **Quality Control:** [Husky](https://typicode.github.io/husky/), [lint-staged](https://github.com/okonet/lint-staged) и [Vitest](https://vitest.dev/).
 - **Monitoring:** Интегриран [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) за одит на производителността и SEO.
+- **Modernization:** ✅ TypeScript 6.0, React Email 6.0, Нулеви уязвимости (0 vulnerabilities).
 - **PWA:** Пълна поддръжка за инсталиране като мобилно/десктоп приложение.
 
 ---

@@ -7,9 +7,11 @@
     "autoprefixer",
     "eslint-config-prettier",
     "lint-staged",
-    "@eslint/eslintrc"
+    "@tailwindcss/postcss",
+    "postcss-load-config",
+    "husky"
   ],
-  "ignoreBinaries": ["lint-staged"],
+  "ignoreBinaries": ["lint-staged", "husky"],
   "next": {
     "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]
   }

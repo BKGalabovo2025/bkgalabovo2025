@@ -1,8 +1,6 @@
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
 export { type Member } from "./member.types";
-import { type ResourceRequirements } from "./booking.types";
-export { type ResourceRequirements };
 
 // =================================================================
 //                            CORE TYPES
@@ -24,7 +22,7 @@ export type Product = {
   restockThreshold?: number | null; // Threshold for restock reminders
 };
 
-export { type Sale, type SaleItem } from "./sale.types";
+export { type Sale } from "./sale.types";
 
 // =================================================================
 //                  SUBSCRIPTIONS & SERVICES
@@ -123,7 +121,7 @@ export type ClubService = {
   cancellationPolicy: CancellationPolicy;
 
   // Recovery Zone specific fields (for multi-tenancy support)
-  requiredResources?: ResourceRequirements;
+  requiredResources?: import("./booking.types").ResourceRequirements;
   isExclusive?: boolean;
   bufferAfter?: number; // in minutes
 
@@ -137,7 +135,7 @@ export type PaymentHistoryItem = {
   date: string;
   amount: number;
   paymentId: string;
-  saleId?: string; // Added to link to a specific sale if applicable
+  saleId?: string;
 };
 
 /**

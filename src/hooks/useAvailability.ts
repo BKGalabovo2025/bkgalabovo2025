@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getDb } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { ClubService } from "@/types";
@@ -18,15 +18,13 @@ export const useAvailability = (
 ) => {
   const [service, setService] = useState<ClubService | null>(null);
   const [site, setSite] = useState<Site | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<
-    { time: string; available: boolean; start: Date }[]
-  >([]);
+  const [isServiceLoading, setIsServiceLoading] = useState(true);
+  const [isSiteLoading, setIsSiteLoading] = useState(true);
+
   const { reservations, isLoading: isReservationsLoading } = useReservations(
     siteId,
     date
   );
-  const [isServiceLoading, setIsServiceLoading] = useState(true);
-  const [isSiteLoading, setIsSiteLoading] = useState(true);
 
   // Fetch Service
   useEffect(() => {
@@ -36,12 +34,17 @@ export const useAvailability = (
         return;
       }
       setIsServiceLoading(true);
-      const db = getDb();
-      const serviceDoc = await getDoc(doc(db, "clubServices", serviceId));
-      if (serviceDoc.exists()) {
-        setService(docToClubService(serviceDoc));
+      try {
+        const db = getDb();
+        const serviceDoc = await getDoc(doc(db, "clubServices", serviceId));
+        if (serviceDoc.exists()) {
+          setService(docToClubService(serviceDoc));
+        }
+      } catch (error) {
+        console.error("Failed to fetch service:", error);
+      } finally {
+        setIsServiceLoading(false);
       }
-      setIsServiceLoading(false);
     };
 
     fetchService();
@@ -55,15 +58,21 @@ export const useAvailability = (
         return;
       }
       setIsSiteLoading(true);
-      const siteData = await getSiteById(siteId);
-      setSite(siteData);
-      setIsSiteLoading(false);
+      try {
+        const siteData = await getSiteById(siteId);
+        setSite(siteData);
+      } catch (error) {
+        console.error("Failed to fetch site:", error);
+      } finally {
+        setIsSiteLoading(false);
+      }
     };
 
     fetchSite();
   }, [siteId]);
 
-  useEffect(() => {
+  // Calculate Availability
+  const availableSlots = useMemo(() => {
     if (
       isReservationsLoading ||
       isServiceLoading ||
@@ -71,8 +80,7 @@ export const useAvailability = (
       !service ||
       !site
     ) {
-      setAvailableSlots([]);
-      return;
+      return [];
     }
 
     // Use site-specific settings
@@ -93,7 +101,7 @@ export const useAvailability = (
       (service.durationMinutes || 0) / 15
     );
 
-    const formattedSlots = slots.map((slot, index) => {
+    return slots.map((slot, index) => {
       const isAvailable = isServiceAvailableAcrossSlots(
         service,
         slots,
@@ -111,8 +119,6 @@ export const useAvailability = (
         start: slot.start,
       };
     });
-
-    setAvailableSlots(formattedSlots);
   }, [
     reservations,
     service,

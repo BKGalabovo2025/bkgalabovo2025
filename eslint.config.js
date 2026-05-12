@@ -1,18 +1,7 @@
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextConfig from "eslint-config-next";
 import tseslint from "typescript-eslint";
-import nextPlugin from "@next/eslint-plugin-next";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-export default [
-  // ── Global ignores ─────────────────────────────────────────────────────────
+export default tseslint.config(
   {
     ignores: [
       ".next/**",
@@ -27,34 +16,14 @@ export default [
       "next-env.d.ts",
       "scripts/**",
       "scratch/**",
+      "e2e/**",
+      "playwright.config.ts",
     ],
   },
-
-  // ── Next.js recommended flat config ────────────────────────────────────────
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // ── Explicit Next.js Plugin for Flat Config (silences warnings) ───────────
-  {
-    plugins: {
-      "@next/next": nextPlugin,
-    },
-    rules: {
-      ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs["core-web-vitals"].rules,
-    },
-  },
-
-  // ── TypeScript-ESLint plugin (provides @typescript-eslint/* rules) ─────────
+  ...nextConfig,
   ...tseslint.configs.recommended,
-
-  // ── Project-level rule overrides ───────────────────────────────────────────
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
-    settings: {
-      react: {
-        version: "19.0.0",
-      },
-    },
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
@@ -63,8 +32,12 @@ export default [
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/incompatible-library": "off",
-      "react-hooks/set-state-in-effect": "off",
+      "@next/next/no-html-link-for-pages": "off",
     },
-  },
-];
+    settings: {
+      react: {
+        version: "19.2.6",
+      },
+    },
+  }
+);
