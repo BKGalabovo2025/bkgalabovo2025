@@ -192,6 +192,7 @@ export default function ScheduleClient() {
         if (filterType !== "all" && event.type !== filterType) return false;
 
         const eventDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate || event.startDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -200,14 +201,14 @@ export default function ScheduleClient() {
 
         switch (activeTab) {
           case "current":
-            // Only events for the current day
-            return eventDate >= today && eventDate < tomorrow;
+            // Active today: starts before tomorrow AND ends after today
+            return eventDate < tomorrow && endDate >= today;
           case "upcoming":
-            // All future events (starting from tomorrow)
+            // Starts from tomorrow onwards
             return eventDate >= tomorrow;
           case "past":
-            // All past events (starting before today)
-            return eventDate < today;
+            // Ended before today
+            return endDate < today;
           default:
             return true;
         }

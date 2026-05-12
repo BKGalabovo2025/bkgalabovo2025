@@ -61,6 +61,8 @@ export const EventListItem = React.memo<EventListItemProps>(
       const d = new Date(event.startDate);
       const de = new Date(event.endDate);
 
+      const isSameDay = d.toDateString() === de.toDateString();
+
       const day = d.getDate().toString().padStart(2, "0");
       const month = (d.getMonth() + 1).toString().padStart(2, "0");
       const year = d.getFullYear();
@@ -75,8 +77,19 @@ export const EventListItem = React.memo<EventListItemProps>(
         minute: "2-digit",
       });
 
+      let fullDate = `${day}.${month}.${year} (${dayOfWeek})`;
+      if (!isSameDay) {
+        const dayEnd = de.getDate().toString().padStart(2, "0");
+        const monthEnd = (de.getMonth() + 1).toString().padStart(2, "0");
+        const yearEnd = de.getFullYear();
+        const dayOfWeekEnd = de.toLocaleDateString("bg-BG", {
+          weekday: "short",
+        });
+        fullDate = `${fullDate} — ${dayEnd}.${monthEnd}.${yearEnd} (${dayOfWeekEnd})`;
+      }
+
       return {
-        full: `${day}.${month}.${year} (${dayOfWeek})`,
+        full: fullDate,
         timeRange: `${timeStart} — ${timeEnd}`,
         isCurrent: new Date() >= d && new Date() <= de,
       };
