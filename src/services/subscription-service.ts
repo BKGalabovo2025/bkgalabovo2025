@@ -205,7 +205,7 @@ export const createSubscription = async (
     });
 
     // 2. Записваме продажбата автоматично
-    transaction.set(saleRef, saleData as any);
+    transaction.set(saleRef, saleData as Record<string, unknown>);
 
     // 3. Обновяваме последната дата на плащане в профила на члена, само ако е имало реално плащане
     if (subscription.price > 0) {

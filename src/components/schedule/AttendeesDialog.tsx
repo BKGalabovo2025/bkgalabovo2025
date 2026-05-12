@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,18 +10,17 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Member, ScheduleEvent, Attendee } from "@/types";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, UserCheck, UserPlus } from "lucide-react";
+import { Loader2, Search, Check } from "lucide-react";
 import { formatFullName } from "@/lib/utils";
 
 interface AttendeesDialogProps {
   isOpen: boolean;
   onClose: () => void;
   event: ScheduleEvent | null;
-  members: Member[]; // Full list of members for adding new attendees
+  members: Member[];
   onUpdateAttendees: (eventId: string, attendees: Attendee[]) => Promise<void>;
 }
 
@@ -34,61 +33,44 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAddingMode, setIsAddingMode] = useState(false);
+  const [attendeeIds, setAttendeeIds] = useState<Set<string>>(new Set());
 
-  // Derive base attendees from props
-  const baseAttendees = useMemo(() => {
-    if (!event?.attendees) return [];
-    return event.attendees.map((a) => {
-      const member = members.find((m) => m.id === a.memberId);
-      return {
-        ...a,
-        name: member ? formatFullName(member) : "Неизвестен член",
-      };
-    });
-  }, [event, members]);
-
-  const [attendees, setAttendees] = useState(baseAttendees);
-
-  const handleToggleAttended = (memberId: string) => {
-    setAttendees((prev) =>
-      prev.map((a) =>
-        a.memberId === memberId ? { ...a, attended: !a.attended } : a
-      )
-    );
-  };
-
-  const handleMarkAllPresent = () => {
-    setAttendees((prev) => prev.map((a) => ({ ...a, attended: true })));
-  };
-
-  const handleAddMemberToAttendees = (member: Member) => {
-    if (!attendees.some((a) => a.memberId === member.id)) {
-      setAttendees((prev) => [
-        ...prev,
-        {
-          memberId: member.id,
-          name: formatFullName(member),
-          attended: true, // Automatically mark as attended when adding
-        },
-      ]);
+  useEffect(() => {
+    if (event && isOpen) {
+      const presentIds = new Set(
+        (event.attendees || []).filter((a) => a.attended).map((a) => a.memberId)
+      );
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAttendeeIds(presentIds);
     }
-  };
+  }, [event, isOpen]);
 
-  const handleRemoveMemberFromAttendees = (memberId: string) => {
-    setAttendees((prev) => prev.filter((a) => a.memberId !== memberId));
+  const handleToggleMember = (member: Member) => {
+    setAttendeeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(member.id)) {
+        next.delete(member.id);
+      } else {
+        next.add(member.id);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async () => {
     if (!event) return;
     setIsSubmitting(true);
     try {
-      const payload = attendees.map(({ memberId, attended, name }) => ({
-        memberId,
-        attended,
-        name,
-      }));
-      await onUpdateAttendees(event.id, payload);
+      const attendees: Attendee[] = Array.from(attendeeIds).map((id) => {
+        const member = members.find((m) => m.id === id);
+        return {
+          memberId: id,
+          name: member ? formatFullName(member) : "Unknown",
+          attended: true,
+        };
+      });
+
+      await onUpdateAttendees(event.id, attendees);
       onClose();
     } catch (error) {
       console.error("Failed to update attendees", error);
@@ -97,28 +79,23 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     }
   };
 
-  const registeredMemberIds = useMemo(
-    () => new Set(attendees.map((a) => a.memberId)),
-    [attendees]
-  );
+  const filteredMembers = useMemo(() => {
+    const search = searchTerm.toLowerCase().trim();
+    if (!search) return members;
+    return members.filter((m) =>
+      formatFullName(m).toLowerCase().includes(search)
+    );
+  }, [members, searchTerm]);
 
-  const availableMembers = useMemo(
-    () =>
-      members.filter(
-        (m) =>
-          !registeredMemberIds.has(m.id) &&
-          m.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [members, registeredMemberIds, searchTerm]
-  );
-
-  const attendeesToShow = useMemo(
-    () =>
-      attendees.filter((a) =>
-        a.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [attendees, searchTerm]
-  );
+  const sortedMembers = useMemo(() => {
+    return [...filteredMembers].sort((a, b) => {
+      const aPresent = attendeeIds.has(a.id);
+      const bPresent = attendeeIds.has(b.id);
+      if (aPresent && !bPresent) return -1;
+      if (!aPresent && bPresent) return 1;
+      return formatFullName(a).localeCompare(formatFullName(b));
+    });
+  }, [filteredMembers, attendeeIds]);
 
   const descriptionId = useId();
 
@@ -126,199 +103,117 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
+        if (!open) onClose();
       }}
     >
       <DialogContent
         key={event?.id}
-        className="sm:max-w-2xl w-[92vw] rounded-4xl sm:rounded-5xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+        className="sm:max-w-lg w-[95vw] rounded-2xl border-none shadow-xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col h-[80vh] max-h-[800px]"
         aria-describedby={descriptionId}
       >
-        <div className="p-6 sm:p-10 pb-0 shrink-0">
+        <div className="p-4 sm:p-6 pb-0 shrink-0 border-b border-zinc-100 dark:border-zinc-900">
           <DialogHeader>
-            <DialogTitle className="text-xl sm:text-3xl font-light tracking-tight text-zinc-950 dark:text-white">
-              {isAddingMode
-                ? "Добавяне на членове"
-                : "Управление на присъствия"}
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-white">
+              Присъстващи
             </DialogTitle>
             <DialogDescription
               id={descriptionId}
-              className="text-zinc-400 font-light mt-1 sm:text-sm text-xs"
+              className="text-xs text-zinc-500 mt-1 line-clamp-1"
             >
-              {isAddingMode
-                ? `Търсете и добавете членове към събитието \"${
-                    event?.title || ""
-                  }\".`
-                : `Маркирайте присъствалите на събитието \"${
-                    event?.title || ""
-                  }\".`}
+              {event?.title || "Събитие"}
             </DialogDescription>
           </DialogHeader>
-        </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
-          <div className="px-6 sm:px-10 pb-0">
-            <div className="mt-8 flex items-center gap-4">
-              <div className="relative flex-1">
-                <Input
-                  placeholder="Търсене по име..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 pl-4 shadow-none font-light"
-                />
-              </div>
-              {!isAddingMode && attendees.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleMarkAllPresent}
-                  className="h-12 px-6 rounded-xl border-zinc-100 dark:border-zinc-800 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all shadow-none"
-                >
-                  Всички присъстват
-                </Button>
-              )}
+          <div className="py-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Input
+                placeholder="Търсене..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-10 rounded-lg border-zinc-200 bg-zinc-50 pl-10 text-sm focus:bg-white transition-all"
+              />
             </div>
           </div>
-
-          <div className="px-6 sm:px-10 py-6 sm:py-8">
-            {isAddingMode ? (
-              <ScrollArea className="h-[400px] rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
-                <div className="p-4 space-y-2">
-                  {availableMembers.length > 0 ? (
-                    availableMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 transition-all"
-                      >
-                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                          {formatFullName(member)}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleAddMemberToAttendees(member)}
-                          className="h-10 px-6 rounded-xl border-zinc-100 dark:border-zinc-800 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all shadow-none"
-                        >
-                          Добави
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-20 text-center">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                        Няма намерени членове
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            ) : (
-              <ScrollArea className="h-[400px] rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
-                <div className="p-4 space-y-2">
-                  {attendeesToShow.length > 0 ? (
-                    attendeesToShow.map((attendee) => (
-                      <div
-                        key={attendee.memberId}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 transition-all group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Checkbox
-                            id={`att-${attendee.memberId}`}
-                            checked={attendee.attended}
-                            onCheckedChange={() =>
-                              handleToggleAttended(attendee.memberId)
-                            }
-                            className="h-5 w-5 rounded-md border-zinc-200 dark:border-zinc-800 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950"
-                          />
-                          <label
-                            htmlFor={`att-${attendee.memberId}`}
-                            className="text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer"
-                          >
-                            {attendee.name}
-                          </label>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            handleRemoveMemberFromAttendees(attendee.memberId)
-                          }
-                          className="h-8 w-8 p-0 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <span className="sr-only">Премахни</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                          </svg>
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-20 text-center">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                        Няма записани членове
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            )}
-          </div>
         </div>
 
-        <DialogFooter className="p-6 sm:p-10 pt-0 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-950 shrink-0">
-          <Button
-            variant="outline"
-            onClick={() => setIsAddingMode(!isAddingMode)}
-            className="w-full sm:w-auto h-12 px-6 rounded-xl border-zinc-100 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all shadow-none"
-          >
-            {isAddingMode ? (
-              <>
-                <UserCheck className="mr-3 h-4 w-4" strokeWidth={1.5} />
-                Маркирай присъствия
-              </>
+        <ScrollArea className="flex-1">
+          <div className="p-2 sm:p-4 space-y-1">
+            {sortedMembers.length > 0 ? (
+              sortedMembers.map((member) => {
+                const isPresent = attendeeIds.has(member.id);
+
+                return (
+                  <div
+                    key={member.id}
+                    onClick={() => handleToggleMember(member)}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all cursor-pointer group ${
+                      isPresent
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-zinc-50 text-zinc-700"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`h-5 w-5 rounded border flex items-center justify-center transition-all shrink-0 ${
+                          isPresent
+                            ? "bg-primary border-primary text-white"
+                            : "border-zinc-300 bg-white"
+                        }`}
+                      >
+                        {isPresent && <Check className="h-3 w-3 stroke-3" />}
+                      </div>
+                      <span className="text-sm font-medium truncate">
+                        {formatFullName(member)}
+                      </span>
+                    </div>
+                    {isPresent && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 px-1.5 py-0.5 rounded text-primary">
+                        Тук
+                      </span>
+                    )}
+                  </div>
+                );
+              })
             ) : (
-              <>
-                <UserPlus className="mr-3 h-4 w-4" strokeWidth={1.5} />
-                Добави членове
-              </>
+              <div className="py-12 text-center">
+                <p className="text-xs text-zinc-400">Няма намерени членове</p>
+              </div>
             )}
-          </Button>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button
-              variant="ghost"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="flex-1 sm:flex-none h-12 px-8 rounded-xl font-medium text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-950 transition-all"
-            >
-              Отказ
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="flex-1 sm:flex-none h-12 px-10 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none transition-all"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                  Запазване
-                </>
-              ) : (
-                "Запази"
-              )}
-            </Button>
+          </div>
+        </ScrollArea>
+
+        <DialogFooter className="p-4 sm:p-6 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <div className="text-xs font-medium text-zinc-500">
+              <span className="text-zinc-900 dark:text-white">
+                {attendeeIds.size}
+              </span>{" "}
+              присъстващи
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="h-9 rounded-lg px-4 text-xs font-medium"
+              >
+                Отказ
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="h-9 rounded-lg px-6 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-white"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  "Запази"
+                )}
+              </Button>
+            </div>
           </div>
         </DialogFooter>
       </DialogContent>

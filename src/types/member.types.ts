@@ -50,6 +50,7 @@ export const MemberSchema = z.object({
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
   educationInstitution: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
+  egn: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 
   // --- ADDED: Emergency Contact ---
@@ -70,10 +71,38 @@ export const MemberSchema = z.object({
     .optional(),
 
   // --- Administrative & Documents ---
-  hasSignedDeclaration: z.boolean().default(false).optional(),
-  hasMedicalCertificate: z.boolean().default(false).optional(),
-  medicalCertificateDate: z.string().datetime().nullable().optional(),
-  isLicensed: z.boolean().default(false).optional(),
+  hasSignedDeclaration: z.boolean().optional(),
+  signedDeclarationPrintedAt: z.string().datetime().nullable().optional(),
+  signedDeclarationHandedAt: z.string().datetime().nullable().optional(),
+
+  hasMedicalCertificate: z.boolean().optional(),
+  medicalCertificateDate: z.string().datetime().nullable().optional(), // This is the date ON the certificate
+  medicalCertificatePrintedAt: z.string().datetime().nullable().optional(),
+  medicalCertificateHandedAt: z.string().datetime().nullable().optional(),
+
+  isLicensed: z.boolean().optional(),
+  isLicensedPrintedAt: z.string().datetime().nullable().optional(),
+  isLicensedHandedAt: z.string().datetime().nullable().optional(),
+
+  hasTravelDeclaration: z.boolean().optional(),
+  travelDeclarationPrintedAt: z.string().datetime().nullable().optional(),
+  travelDeclarationHandedAt: z.string().datetime().nullable().optional(),
+
+  hasSafetyInstruction: z.boolean().optional(),
+  safetyInstructionPrintedAt: z.string().datetime().nullable().optional(),
+  safetyInstructionHandedAt: z.string().datetime().nullable().optional(),
+
+  hasInternalRules: z.boolean().optional(),
+  internalRulesPrintedAt: z.string().datetime().nullable().optional(),
+  internalRulesHandedAt: z.string().datetime().nullable().optional(),
+
+  membershipApplicationPrintedAt: z.string().datetime().nullable().optional(),
+  membershipApplicationHandedAt: z.string().datetime().nullable().optional(),
+  hasMembershipApplication: z.boolean().optional(),
+
+  terminationRequestPrintedAt: z.string().datetime().nullable().optional(),
+  terminationRequestHandedAt: z.string().datetime().nullable().optional(),
+  hasTerminationRequest: z.boolean().optional(),
 
   // --- Miscellaneous ---
   suspended: z.boolean().optional(),

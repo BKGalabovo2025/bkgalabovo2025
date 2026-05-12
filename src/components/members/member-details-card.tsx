@@ -21,7 +21,12 @@ import {
   Printer,
   AlertTriangle,
   CheckCircle,
-  XCircle,
+  UserMinus,
+  ScrollText,
+  ShieldCheck,
+  ClipboardCheck,
+  Stethoscope,
+  Contact,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -75,6 +80,7 @@ import { useRef, useState } from "react";
 interface MemberDetailsCardProps {
   member: Member;
   familyMembers: Member[];
+  onRefresh?: () => void;
 }
 
 const formatPhoneType = (phoneType: string | null | undefined) => {
@@ -85,6 +91,7 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
 export const MemberDetailsCard = ({
   member,
   familyMembers,
+  onRefresh,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
   const { idToken } = useAuth();
@@ -126,6 +133,7 @@ export const MemberDetailsCard = ({
 
       if (result.success) {
         toast.success("Успешно платено!");
+        if (onRefresh) onRefresh();
         router.refresh();
       } else {
         toast.error("Грешка", { description: result.message });
@@ -136,17 +144,59 @@ export const MemberDetailsCard = ({
     }
   };
 
-  const toggleDocumentStatus = async (
-    field: "hasSignedDeclaration" | "hasMedicalCertificate" | "isLicensed",
-    currentValue: boolean | undefined
+  const formatDocDate = (isoString: string | null | undefined) => {
+    if (!isoString) return null;
+    return new Date(isoString).toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const updateDocumentStatus = async (
+    baseField:
+      | "signedDeclaration"
+      | "medicalCertificate"
+      | "isLicensed"
+      | "travelDeclaration"
+      | "safetyInstruction"
+      | "internalRules"
+      | "membershipApplication"
+      | "terminationRequest",
+    action: "print" | "submit" | "cancel"
   ) => {
     if (!idToken) return;
+
+    const updates: Record<string, string | boolean | null> = {};
+    const now = new Date().toISOString();
+
+    // Map base names to actual fields
+    const boolField =
+      baseField === "isLicensed"
+        ? "isLicensed"
+        : `has${baseField.charAt(0).toUpperCase()}${baseField.slice(1)}`;
+    const printedField = `${baseField}PrintedAt`;
+    const handedField = `${baseField}HandedAt`;
+
+    if (action === "print") {
+      updates[printedField] = now;
+    } else if (action === "submit") {
+      updates[boolField] = true;
+      updates[handedField] = now;
+    } else if (action === "cancel") {
+      updates[boolField] = false;
+      // We don't necessarily clear the handed date, or we do?
+      // User said "cancel" (Отмени) should probably clear it.
+      updates[handedField] = null;
+    }
+
     try {
-      const result = await updateMemberAction(member.id, idToken, {
-        [field]: !currentValue,
-      });
+      const result = await updateMemberAction(member.id, idToken, updates);
       if (result.success) {
-        toast.success("Статусът е обновен успешно!");
+        if (action !== "print") {
+          toast.success("Статусът е обновен успешно!");
+        }
+        if (onRefresh) onRefresh();
         router.refresh();
       } else {
         toast.error("Възникна грешка", { description: result.message });
@@ -184,6 +234,7 @@ export const MemberDetailsCard = ({
 
       if (result.success) {
         toast.success("Снимката е обновена успешно");
+        if (onRefresh) onRefresh();
         router.refresh();
       } else {
         toast.error("Грешка при обновяване на профила");
@@ -451,6 +502,214 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="documents" className="focus-visible:outline-none">
           <div className="bg-white border border-zinc-100 rounded-5xl p-10 space-y-6">
+            {/* Membership Application */}
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
+              <div className="flex items-center gap-6">
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl",
+                    member.hasMembershipApplication
+                      ? "bg-zinc-950 text-white"
+                      : "bg-white border border-zinc-100 text-zinc-300"
+                  )}
+                >
+                  <FileText className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                    Молба за членство
+                  </h4>
+                  <p className="text-sm font-light text-zinc-400">
+                    {member.hasMembershipApplication ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предадена на{" "}
+                        {formatDocDate(member.membershipApplicationHandedAt)}
+                      </span>
+                    ) : member.membershipApplicationPrintedAt ? (
+                      <span>
+                        Разпечатана на{" "}
+                        {formatDocDate(member.membershipApplicationPrintedAt)}
+                      </span>
+                    ) : (
+                      "Основен документ за приемане в клуба."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("membershipApplication", "print");
+                    window.open(
+                      `/members/${member.id}/membership-application`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasMembershipApplication &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "membershipApplication",
+                      member.hasMembershipApplication ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasMembershipApplication
+                    ? "Отмени"
+                    : "Отбележи предадена"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Membership Termination */}
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
+              <div className="flex items-center gap-6">
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl",
+                    member.hasTerminationRequest
+                      ? "bg-zinc-950 text-white"
+                      : "bg-white border border-zinc-100 text-zinc-300"
+                  )}
+                >
+                  <UserMinus className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                    Молба за прекратяване
+                  </h4>
+                  <p className="text-sm font-light text-zinc-400">
+                    {member.hasTerminationRequest ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предадена на{" "}
+                        {formatDocDate(member.terminationRequestHandedAt)}
+                      </span>
+                    ) : member.terminationRequestPrintedAt ? (
+                      <span>
+                        Разпечатана на{" "}
+                        {formatDocDate(member.terminationRequestPrintedAt)}
+                      </span>
+                    ) : (
+                      "Документ за прекратяване на членство."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("terminationRequest", "print");
+                    window.open(
+                      `/members/${member.id}/termination-request`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasTerminationRequest &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "terminationRequest",
+                      member.hasTerminationRequest ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasTerminationRequest
+                    ? "Отмени"
+                    : "Отбележи предадена"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Internal Rules */}
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
+              <div className="flex items-center gap-6">
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl",
+                    member.hasInternalRules
+                      ? "bg-zinc-950 text-white"
+                      : "bg-white border border-zinc-100 text-zinc-300"
+                  )}
+                >
+                  <ScrollText className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                    Вътрешен правилник
+                  </h4>
+                  <p className="text-sm font-light text-zinc-400">
+                    {member.hasInternalRules ? (
+                      <span className="text-emerald-600 font-medium">
+                        Приет на {formatDocDate(member.internalRulesHandedAt)}
+                      </span>
+                    ) : member.internalRulesPrintedAt ? (
+                      <span>
+                        Разпечатан на{" "}
+                        {formatDocDate(member.internalRulesPrintedAt)}
+                      </span>
+                    ) : (
+                      "Правила за работа и етика в клуба."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("internalRules", "print");
+                    window.open(
+                      `/members/${member.id}/internal-rules`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasInternalRules &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "internalRules",
+                      member.hasInternalRules ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasInternalRules ? "Отмени" : "Отбележи приет"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Informed Consent Declaration */}
             <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
@@ -469,22 +728,33 @@ export const MemberDetailsCard = ({
                 </div>
                 <div>
                   <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
-                    Декларация за съгласие
+                    Декларация за информирано съгласие
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
-                    {member.hasSignedDeclaration
-                      ? "Декларацията е попълнена и подписана."
-                      : "Липсва попълнена декларация."}
+                    {member.hasSignedDeclaration ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предадена на{" "}
+                        {formatDocDate(member.signedDeclarationHandedAt)}
+                      </span>
+                    ) : member.signedDeclarationPrintedAt ? (
+                      <span>
+                        Разпечатана на{" "}
+                        {formatDocDate(member.signedDeclarationPrintedAt)}
+                      </span>
+                    ) : (
+                      "Липсва декларация!"
+                    )}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest"
-                  onClick={() =>
-                    window.open(`/members/${member.id}/declaration`, "_blank")
-                  }
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("signedDeclaration", "print");
+                    window.open(`/members/${member.id}/declaration`, "_blank");
+                  }}
                 >
                   <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
                   Печат
@@ -497,66 +767,158 @@ export const MemberDetailsCard = ({
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
-                    toggleDocumentStatus(
-                      "hasSignedDeclaration",
-                      member.hasSignedDeclaration
+                    updateDocumentStatus(
+                      "signedDeclaration",
+                      member.hasSignedDeclaration ? "cancel" : "submit"
                     )
                   }
                 >
                   {member.hasSignedDeclaration
-                    ? "Маркирай липсваща"
+                    ? "Отмени"
                     : "Отбележи предадена"}
                 </Button>
               </div>
             </div>
 
+            {/* Participation & Travel Declaration */}
             <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
                   className={cn(
                     "p-4 rounded-2xl",
-                    member.hasMedicalCertificate
+                    member.hasTravelDeclaration
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  {member.hasMedicalCertificate ? (
-                    <CheckCircle className="h-6 w-6" strokeWidth={1.5} />
-                  ) : (
-                    <XCircle className="h-6 w-6" strokeWidth={1.5} />
-                  )}
+                  <ShieldCheck className="h-6 w-6" strokeWidth={1.5} />
                 </div>
                 <div>
                   <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
-                    Медицинско свидетелство
+                    Съгласие за участие и пътуване
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
-                    {member.hasMedicalCertificate
-                      ? "Медицинското е предадено."
-                      : "Липсва медицинско свидетелство!"}
+                    {member.hasTravelDeclaration ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предадено на{" "}
+                        {formatDocDate(member.travelDeclarationHandedAt)}
+                      </span>
+                    ) : member.travelDeclarationPrintedAt ? (
+                      <span>
+                        Разпечатано на{" "}
+                        {formatDocDate(member.travelDeclarationPrintedAt)}
+                      </span>
+                    ) : (
+                      "Съгласие за транспорт и спортни събития."
+                    )}
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
-                  !member.hasMedicalCertificate &&
-                    "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
-                )}
-                onClick={() =>
-                  toggleDocumentStatus(
-                    "hasMedicalCertificate",
-                    member.hasMedicalCertificate
-                  )
-                }
-              >
-                {member.hasMedicalCertificate
-                  ? "Отмени предаването"
-                  : "Отбележи предадено"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("travelDeclaration", "print");
+                    window.open(
+                      `/members/${member.id}/participation-travel`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasTravelDeclaration &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "travelDeclaration",
+                      member.hasTravelDeclaration ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasTravelDeclaration
+                    ? "Отмени"
+                    : "Отбележи предадено"}
+                </Button>
+              </div>
             </div>
 
+            {/* Safety Instruction */}
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
+              <div className="flex items-center gap-6">
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl",
+                    member.hasSafetyInstruction
+                      ? "bg-zinc-950 text-white"
+                      : "bg-white border border-zinc-100 text-zinc-300"
+                  )}
+                >
+                  <ClipboardCheck className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                    Инструктаж за безопасност
+                  </h4>
+                  <p className="text-sm font-light text-zinc-400">
+                    {member.hasSafetyInstruction ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предаден на{" "}
+                        {formatDocDate(member.safetyInstructionHandedAt)}
+                      </span>
+                    ) : member.safetyInstructionPrintedAt ? (
+                      <span>
+                        Разпечатан на{" "}
+                        {formatDocDate(member.safetyInstructionPrintedAt)}
+                      </span>
+                    ) : (
+                      "Правила за пътуване и състезания."
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("safetyInstruction", "print");
+                    window.open(
+                      `/members/${member.id}/safety-instruction`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasSafetyInstruction &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "safetyInstruction",
+                      member.hasSafetyInstruction ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasSafetyInstruction ? "Отмени" : "Отбележи предаден"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Combined Athlete Card (Kartoteka) */}
             <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
               <div className="flex items-center gap-6">
                 <div
@@ -567,36 +929,127 @@ export const MemberDetailsCard = ({
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  {member.isLicensed ? (
-                    <CheckCircle className="h-6 w-6" strokeWidth={1.5} />
-                  ) : (
-                    <XCircle className="h-6 w-6" strokeWidth={1.5} />
-                  )}
+                  <Contact className="h-6 w-6" strokeWidth={1.5} />
                 </div>
                 <div>
                   <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
                     Картотека към БФБ
                   </h4>
                   <p className="text-sm font-light text-zinc-400">
-                    {member.isLicensed
-                      ? "Активна картотека."
-                      : "Няма активна картотека."}
+                    {member.isLicensed ? (
+                      <span className="text-emerald-600 font-medium">
+                        Активна от {formatDocDate(member.isLicensedHandedAt)}
+                      </span>
+                    ) : member.isLicensedPrintedAt ? (
+                      <span>
+                        Разпечатана на{" "}
+                        {formatDocDate(member.isLicensedPrintedAt)}
+                      </span>
+                    ) : (
+                      "Няма активна картотека."
+                    )}
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                className={cn(
-                  "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
-                  !member.isLicensed &&
-                    "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                )}
-                onClick={() =>
-                  toggleDocumentStatus("isLicensed", member.isLicensed)
-                }
-              >
-                {member.isLicensed ? "Премахни" : "Картотекирай"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("isLicensed", "print");
+                    window.open(`/members/${member.id}/athlete-card`, "_blank");
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.isLicensed &&
+                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "isLicensed",
+                      member.isLicensed ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.isLicensed ? "Отмени" : "Активирай"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Medical Certificate */}
+            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
+              <div className="flex items-center gap-6">
+                <div
+                  className={cn(
+                    "p-4 rounded-2xl",
+                    member.hasMedicalCertificate
+                      ? "bg-zinc-950 text-white"
+                      : "bg-white border border-zinc-100 text-zinc-300"
+                  )}
+                >
+                  <Stethoscope className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                    Медицинско свидетелство
+                  </h4>
+                  <p className="text-sm font-light text-zinc-400">
+                    {member.hasMedicalCertificate ? (
+                      <span className="text-emerald-600 font-medium">
+                        Предадено на{" "}
+                        {formatDocDate(member.medicalCertificateHandedAt)}
+                      </span>
+                    ) : member.medicalCertificatePrintedAt ? (
+                      <span>
+                        Разпечатано на{" "}
+                        {formatDocDate(member.medicalCertificatePrintedAt)}
+                      </span>
+                    ) : (
+                      "Липсва медицинско свидетелство!"
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  onClick={() => {
+                    updateDocumentStatus("medicalCertificate", "print");
+                    window.open(
+                      `/members/${member.id}/medical-certificate`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  Печат
+                </Button>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    !member.hasMedicalCertificate &&
+                      "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
+                  )}
+                  onClick={() =>
+                    updateDocumentStatus(
+                      "medicalCertificate",
+                      member.hasMedicalCertificate ? "cancel" : "submit"
+                    )
+                  }
+                >
+                  {member.hasMedicalCertificate
+                    ? "Отмени предаването"
+                    : "Отбележи предадено"}
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>

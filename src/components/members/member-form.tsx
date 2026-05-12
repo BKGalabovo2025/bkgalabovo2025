@@ -335,6 +335,25 @@ export const MemberForm = ({
                 )}
               />
               <FormField
+                control={form.control}
+                name="egn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      ЕГН
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
                 name="address"
                 control={form.control}
                 render={({ field }) => (

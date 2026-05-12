@@ -190,6 +190,7 @@ export interface RecoverySession {
 
 const sessionConverter: FirestoreDataConverter<RecoverySession> = {
   toFirestore: (session) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...data } = session;
     return { ...data, siteId: "recoveryzone" };
   },
@@ -229,6 +230,7 @@ const priceHistoryConverter: FirestoreDataConverter<PriceHistory> = {
 
 const eventConverter: FirestoreDataConverter<ScheduleEvent> = {
   toFirestore: (event) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...data } = event;
     return { ...data, siteId: getSiteConfig().id };
   },

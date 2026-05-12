@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useId } from "react";
+import React, { useState, useId, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -75,6 +75,19 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
   const [description, setDescription] = useState(event?.description || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync state with event prop when dialog opens or event changes
+  useEffect(() => {
+    if (event && isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTitle(event.title || "");
+      setStartDate(toLocalISOString(event.startDate));
+      setEndDate(toLocalISOString(event.endDate));
+      setType(event.type || "training");
+      setLocation(event.location || "");
+      setDescription(event.description || "");
+    }
+  }, [event, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

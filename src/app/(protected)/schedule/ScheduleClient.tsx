@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useEvents } from "@/hooks/useEvents";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   PlusCircle,
@@ -87,6 +88,37 @@ export default function ScheduleClient() {
     null
   );
   const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+
+  // Handle direct links to events (e.g. from attendance history)
+  useEffect(() => {
+    const eventId = searchParams.get("eventId");
+    if (eventId && events.length > 0) {
+      const event = events.find((e) => e.id === eventId);
+      if (event) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedEvent(event);
+        setAttendeesDialogOpen(true);
+
+        // Determine which tab the event should be in
+        const eventDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate || event.startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (eventDate < tomorrow && endDate >= today) {
+          setActiveTab("current");
+        } else if (eventDate >= tomorrow) {
+          setActiveTab("upcoming");
+        } else {
+          setActiveTab("past");
+        }
+      }
+    }
+  }, [searchParams, events]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

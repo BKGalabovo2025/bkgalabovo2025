@@ -33,6 +33,7 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-explicit-any": "warn",
       "@next/next/no-html-link-for-pages": "off",
+      "react-hooks/incompatible-library": "off",
     },
     settings: {
       react: {

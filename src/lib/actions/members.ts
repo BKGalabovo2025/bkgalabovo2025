@@ -49,6 +49,9 @@ export async function createMemberAction(
       .join(" ");
 
     const docRef = await adminDb.collection("members").add({
+      hasSignedDeclaration: false,
+      hasMedicalCertificate: false,
+      isLicensed: false,
       ...data,
       name,
       registrationDate: FieldValue.serverTimestamp(),

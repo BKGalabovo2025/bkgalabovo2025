@@ -337,7 +337,7 @@ export function TournamentForm({
                 "matchFormatId"
               >;
             }) => (
-              <FormItem className="md:col-span-2 p-8 rounded-4xl bg-primary/[0.02] border border-primary/10">
+              <FormItem className="md:col-span-2 p-8 rounded-4xl bg-primary/2 border border-primary/10">
                 <div className="mb-6">
                   <FormLabel className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-3">
                     <span className="p-2 bg-primary/5 rounded-lg text-primary">

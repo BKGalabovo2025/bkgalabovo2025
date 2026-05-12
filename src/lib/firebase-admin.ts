@@ -2,11 +2,13 @@ import * as admin from "firebase-admin";
 
 let adminDb: admin.firestore.Firestore;
 let adminAuth: admin.auth.Auth;
+let adminStorage: admin.storage.Storage;
 
 function initializeFirebaseAdmin() {
   if (admin.apps.length > 0) {
     if (!adminDb) adminDb = admin.firestore();
     if (!adminAuth) adminAuth = admin.auth();
+    if (!adminStorage) adminStorage = admin.storage();
     return;
   }
 
@@ -17,8 +19,6 @@ function initializeFirebaseAdmin() {
     if (serviceAccountJson) {
       try {
         const serviceAccount = JSON.parse(serviceAccountJson);
-        // If the private key in the JSON is a string with escaped \n, JSON.parse handles it correctly.
-        // If it's stored in the JSON as a literal "\n" (e.g. from an env var), we might need to fix it on the object.
         if (serviceAccount.private_key) {
           serviceAccount.private_key = serviceAccount.private_key.replace(
             /\\n/g,
@@ -27,31 +27,32 @@ function initializeFirebaseAdmin() {
         }
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
+          storageBucket: "bkgalabovo2025.firebasestorage.app",
         });
         console.log(
           "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
         );
       } catch (parseError) {
-        // JSON parse failed (e.g., corrupted key) - fall through to next method
         console.warn(
           "WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON, trying fallback credentials.",
           parseError
         );
-        throw parseError; // re-throw to outer catch so we skip the rest
+        throw parseError;
       }
     } else if (
       process.env.FIREBASE_PRIVATE_KEY &&
       process.env.FIREBASE_CLIENT_EMAIL
     ) {
-      // Fallback to individual environment variables (easier to manage in Vercel)
+      const projectId =
+        process.env.FIREBASE_PROJECT_ID ||
+        process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId:
-            process.env.FIREBASE_PROJECT_ID ||
-            process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          projectId: projectId,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
         }),
+        storageBucket: "bkgalabovo2025.firebasestorage.app",
       });
       console.log(
         "Firebase Admin SDK initialized using individual environment variables."
@@ -72,13 +73,12 @@ function initializeFirebaseAdmin() {
 
     adminDb = admin.firestore();
     adminAuth = admin.auth();
+    adminStorage = admin.storage();
   } catch (error) {
     console.error("CRITICAL: Firebase Admin SDK initialization failed.", error);
-    // We don't throw here to avoid top-level module evaluation crashes
   }
 }
 
-// These getter functions ensure that Firebase is initialized only once.
 const getAdminDb = () => {
   if (!adminDb) {
     initializeFirebaseAdmin();
@@ -103,4 +103,16 @@ const getAdminAuth = () => {
   return adminAuth;
 };
 
-export { getAdminDb, getAdminAuth, initializeFirebaseAdmin };
+const getAdminStorage = () => {
+  if (!adminStorage) {
+    initializeFirebaseAdmin();
+  }
+  if (!adminStorage) {
+    throw new Error(
+      "Firebase Admin Storage is not initialized. Check your credentials."
+    );
+  }
+  return adminStorage;
+};
+
+export { getAdminDb, getAdminAuth, getAdminStorage, initializeFirebaseAdmin };

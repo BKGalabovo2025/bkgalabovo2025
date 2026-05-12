@@ -276,7 +276,7 @@ export function MemberAttendanceHistory({
                       {events.map((event) => (
                         <Link
                           key={event.id}
-                          href={`/schedule/${event.id}`}
+                          href={`/schedule?eventId=${event.id}`}
                           className="group relative bg-white border border-zinc-100 rounded-3xl p-6 hover:border-zinc-900 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5"
                         >
                           <div className="flex justify-between items-start mb-4">

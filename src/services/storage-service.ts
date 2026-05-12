@@ -1,33 +1,38 @@
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
-import { getApp } from "firebase/app";
-
 /**
- * Uploads a file to Firebase Storage and returns the download URL.
- * @param path - The path where the file should be stored (e.g., 'avatars/member-id.png')
+ * Uploads a file using the server-side API to bypass CORS issues.
+ * @param path - The path where the file should be stored
  * @param file - The file object to upload
  */
 export const uploadFile = async (path: string, file: File): Promise<string> => {
-  const storage = getStorage(getApp());
-  const storageRef = ref(storage, path);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("path", path);
 
-  await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(storageRef);
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
 
-  return downloadURL;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to upload file");
+  }
+
+  const data = await response.json();
+  return data.downloadUrl;
 };
 
 /**
- * Deletes a file from Firebase Storage.
+ * Deletes a file from Firebase Storage via server-side API.
  * @param path - The path of the file to delete
  */
 export const deleteFile = async (path: string): Promise<void> => {
-  const storage = getStorage(getApp());
-  const storageRef = ref(storage, path);
-  await deleteObject(storageRef);
+  const response = await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to delete file");
+  }
 };

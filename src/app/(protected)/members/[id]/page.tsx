@@ -12,7 +12,8 @@ const MemberProfilePage = () => {
   const params = useParams();
   const memberId = params.id as string;
 
-  const { member, familyMembers, loading, error } = useMemberProfile(memberId);
+  const { member, familyMembers, loading, error, refetch } =
+    useMemberProfile(memberId);
 
   if (loading)
     return (
@@ -76,7 +77,11 @@ const MemberProfilePage = () => {
       />
 
       <div className="px-0 sm:px-0">
-        <MemberDetailsCard member={member} familyMembers={familyMembers} />
+        <MemberDetailsCard
+          member={member}
+          familyMembers={familyMembers}
+          onRefresh={refetch}
+        />
       </div>
     </div>
   );

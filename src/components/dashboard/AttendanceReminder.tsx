@@ -73,7 +73,13 @@ export const AttendanceReminder = () => {
 
       <div className="mt-10 relative z-10">
         <Button
-          onClick={() => router.push("/schedule")}
+          onClick={() =>
+            router.push(
+              todayTrainings.length > 0
+                ? `/schedule?eventId=${todayTrainings[0].id}`
+                : "/schedule"
+            )
+          }
           className="w-full h-14 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 flex items-center justify-between px-6 transition-all group/btn"
         >
           <span className="font-medium text-[11px] uppercase tracking-widest">
