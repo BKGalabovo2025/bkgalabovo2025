@@ -1,18 +1,33 @@
-"use client";
-
-import React, { useState, useEffect, useMemo } from "react";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import React, { useState, useMemo } from "react";
 import * as z from "zod";
-
-import { Button } from "@/components/ui/button";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Loader2,
+  ChevronRight,
+  ChevronLeft,
+  CalendarRange,
+  User,
+  ClipboardCheck,
+  CheckCircle2,
+  Clock,
+  MapPin,
+} from "lucide-react";
+import {
+  createReservationAction,
+  updateReservationAction,
+} from "@/lib/actions/reservations";
+import { useAuth } from "@/context/auth-context";
+import { formatPrice } from "@/lib/currency";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { useAppStore } from "@/store/use-app-store";
+import { toast } from "sonner";
+import { Reservation } from "@/types/reservation";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -25,24 +40,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import {
-  createReservationAction,
-  updateReservationAction,
-} from "@/lib/actions/reservations";
-import { useAuth } from "@/context/auth-context";
-import { formatPrice } from "@/lib/currency";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
-import { useAppStore } from "@/store/use-app-store";
-import { toast } from "sonner";
-import { Reservation } from "@/types/reservation";
+import { Button } from "@/components/ui/button";
 
 const reservationSchema = z
   .object({
@@ -66,10 +64,12 @@ const reservationSchema = z
 
 interface ReservationDialogProps {
   children: React.ReactNode;
-  reservation?: Reservation; // Existing reservation for edit mode
-  initialData?: Partial<z.infer<typeof reservationSchema>>; // For pre-filling new reservations
-  onSave?: () => void; // Callback to refresh data
+  reservation?: Reservation;
+  initialData?: Partial<z.infer<typeof reservationSchema>>;
+  onSave?: () => void;
 }
+
+type Step = "time" | "details" | "review";
 
 export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   children,
@@ -79,8 +79,9 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const COURT_PRICE_PER_HOUR = 10;
+  const [currentStep, setCurrentStep] = useState<Step>("time");
 
+  const COURT_PRICE_PER_HOUR = 10;
   const isEditMode = !!reservation;
   const { getFreshToken } = useAuth();
   const { activeBranch } = useAppStore();
@@ -89,9 +90,10 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     resolver: zodResolver(reservationSchema),
   });
 
-  const { reset, control } = form;
-  const startTime = useWatch({ control, name: "startTime" });
-  const endTime = useWatch({ control, name: "endTime" });
+  const { reset, control, trigger } = form;
+  const watchedValues = useWatch({ control });
+  const { startTime, endTime, courtId, clientName, clientPhone, clientEmail } =
+    watchedValues;
 
   const price = useMemo(() => {
     if (startTime && endTime && endTime > startTime) {
@@ -102,9 +104,11 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     return 0;
   }, [startTime, endTime]);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (isEditMode) {
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      setCurrentStep("time");
+      if (isEditMode && reservation) {
         reset({
           ...reservation,
           startTime: reservation.startTime.toDate(),
@@ -119,7 +123,26 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
         });
       }
     }
-  }, [isOpen, isEditMode, reservation, initialData, reset]);
+  };
+
+  const handleNext = async () => {
+    if (currentStep === "time") {
+      const isValid = await trigger(["courtId", "startTime", "endTime"]);
+      if (isValid) setCurrentStep("details");
+    } else if (currentStep === "details") {
+      const isValid = await trigger([
+        "clientName",
+        "clientPhone",
+        "clientEmail",
+      ]);
+      if (isValid) setCurrentStep("review");
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === "details") setCurrentStep("time");
+    else if (currentStep === "review") setCurrentStep("details");
+  };
 
   async function onSubmit(values: z.infer<typeof reservationSchema>) {
     const token = await getFreshToken(true);
@@ -168,137 +191,315 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     }
   }
 
+  const steps = [
+    { id: "time", label: "Час & Корт", icon: CalendarRange },
+    { id: "details", label: "Клиент", icon: User },
+    { id: "review", label: "Преглед", icon: ClipboardCheck },
+  ];
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditMode ? "Редактиране на резервация" : "Нова резервация"}
-          </DialogTitle>
-          <DialogDescription>
-            {isEditMode
-              ? "Променете данните по-долу и кликнете 'Запази промените'."
-              : "Попълнете данните, за да създадете нова резервация."}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="clientName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Име на клиент</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Иван Иванов" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      <DialogContent className="sm:max-w-lg rounded-4xl border-zinc-100 dark:border-zinc-900 shadow-2xl p-0 overflow-hidden">
+        {/* Wizard Header / Progress */}
+        <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 border-b border-zinc-100 dark:border-zinc-900">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <DialogTitle className="text-2xl font-black text-zinc-950 dark:text-white tracking-tighter uppercase italic">
+                {isEditMode ? "Редактиране" : "Резервация"}
+              </DialogTitle>
+              <DialogDescription className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                {isEditMode
+                  ? "Актуализиране на съществуваща резервация"
+                  : "Създаване на нов график"}
+              </DialogDescription>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              {currentStep === "time" && <CalendarRange className="w-6 h-6" />}
+              {currentStep === "details" && <User className="w-6 h-6" />}
+              {currentStep === "review" && (
+                <ClipboardCheck className="w-6 h-6" />
               )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="clientPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Телефон</FormLabel>
-                    <FormControl>
-                      <Input placeholder="0888123456" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="clientEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Имейл (незадължителен)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ivan@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-            <FormField
-              control={form.control}
-              name="courtId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Корт</FormLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      field.onChange(parseInt(value, 10))
-                    }
-                    value={field.value ? String(field.value) : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Изберете корт..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
-                        <SelectItem key={num} value={String(num)}>
-                          Корт {num}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <DateTimePicker
-                control={form.control}
-                name="startTime"
-                label="Начален час"
-              />
-              <DateTimePicker
-                control={form.control}
-                name="endTime"
-                label="Краен час"
-              />
-            </div>
-            <div className="pt-6 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-              <span className="text-[10px] font-medium uppercase tracking-widest3 text-zinc-400">
-                Крайна сума
-              </span>
-              <div className="text-4xl font-light tracking-tight text-zinc-900 dark:text-zinc-100">
-                {formatPrice(price)}
-              </div>
-            </div>
-            <DialogFooter className="pt-6 gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                className="rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] text-zinc-400 hover:text-zinc-900"
-                onClick={() => setIsOpen(false)}
-              >
-                Отказ
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] shadow-none"
-              >
-                {isSaving && (
-                  <Loader2
-                    className="mr-2 h-3 w-3 animate-spin"
-                    strokeWidth={2}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {steps.map((step, idx) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.id;
+              const isPast = steps.findIndex((s) => s.id === currentStep) > idx;
+
+              return (
+                <React.Fragment key={step.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500",
+                        isActive
+                          ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110"
+                          : isPast
+                            ? "bg-emerald-500 text-white"
+                            : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400"
+                      )}
+                    >
+                      {isPast ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <Icon className="w-4 h-4" />
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-[9px] font-black uppercase tracking-widest hidden sm:block",
+                        isActive
+                          ? "text-zinc-900 dark:text-white"
+                          : "text-zinc-400"
+                      )}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800 mx-2" />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="p-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Step 1: Time & Court */}
+              {currentStep === "time" && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <FormField
+                    control={form.control}
+                    name="courtId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                          <MapPin className="w-3 h-3" /> Изберете Корт
+                        </FormLabel>
+                        <div className="grid grid-cols-3 gap-3">
+                          {Array.from({ length: 6 }, (_, i) => i + 1).map(
+                            (num) => (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => field.onChange(num)}
+                                className={cn(
+                                  "h-14 rounded-2xl font-bold transition-all border-2",
+                                  field.value === num
+                                    ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                                    : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                )}
+                              >
+                                {num}
+                              </button>
+                            )
+                          )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
+                  <div className="grid grid-cols-2 gap-4">
+                    <DateTimePicker
+                      control={form.control}
+                      name="startTime"
+                      label="Начален час"
+                    />
+                    <DateTimePicker
+                      control={form.control}
+                      name="endTime"
+                      label="Краен час"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Client Details */}
+              {currentStep === "details" && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <FormField
+                    control={form.control}
+                    name="clientName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          Пълно име
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Иван Иванов"
+                            className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="clientPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            Телефон
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="0888..."
+                              className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="clientEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            Имейл (опц.)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="email@..."
+                              className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Review */}
+              {currentStep === "review" && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 space-y-4">
+                    <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold">
+                          {courtId}
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                            Избран Корт
+                          </p>
+                          <p className="text-sm font-bold text-zinc-900 dark:text-white">
+                            Корт № {courtId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                          Обща Сума
+                        </p>
+                        <p className="text-xl font-black text-primary tracking-tight">
+                          {formatPrice(price)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> График
+                        </p>
+                        <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          {startTime?.toLocaleDateString("bg-BG")}
+                          <br />
+                          {startTime?.toLocaleTimeString("bg-BG", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}{" "}
+                          -{" "}
+                          {endTime?.toLocaleTimeString("bg-BG", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                          <User className="w-3 h-3" /> Клиент
+                        </p>
+                        <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 truncate">
+                          {clientName}
+                          <br />
+                          {clientPhone}
+                          {clientEmail && (
+                            <span className="block opacity-60 text-[10px]">
+                              {clientEmail}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 text-amber-700 dark:text-amber-400">
+                    <CheckCircle2 className="w-5 h-5 shrink-0" />
+                    <p className="text-[10px] font-bold uppercase tracking-tight leading-relaxed">
+                      Моля, прегледайте данните внимателно преди да финализирате
+                      резервацията.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Wizard Footer */}
+              <div className="flex items-center gap-3 pt-4">
+                {currentStep !== "time" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="h-14 rounded-2xl px-6 border-zinc-200 dark:border-zinc-800 font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> Назад
+                  </Button>
                 )}
-                {isEditMode ? "Запази промените" : "Запази резервация"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+
+                {currentStep !== "review" ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="flex-1 h-14 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-black/10"
+                  >
+                    Продължи <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="flex-1 h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-primary/20 border-none"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : isEditMode ? (
+                      "Запази промените"
+                    ) : (
+                      "Финализирай резервация"
+                    )}
+                  </Button>
+                )}
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

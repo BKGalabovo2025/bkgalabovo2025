@@ -215,4 +215,40 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-zinc-200 dark:bg-zinc-800 rounded-full transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700;
   }
+
+  /* --- Print Utilities --- */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .printable-area,
+    .printable-area * {
+      visibility: visible;
+    }
+    .printable-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 210mm !important;
+      height: 297mm !important;
+      margin: 0 !important;
+      padding: 10mm !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .no-print-visible {
+      display: flex !important; /* Keep the separator line during print */
+    }
+    @page {
+      size: a4;
+      margin: 0;
+    }
+  }
+
+  .no-print-visible {
+    display: flex;
+  }
 }

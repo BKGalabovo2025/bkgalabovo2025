@@ -42,93 +42,98 @@ export default function ReservationsClient() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
         title="Резервации"
-        description="График на кортовете и управление на заетостта в реално време."
+        description="Управление на кортовете и заетостта в реално време."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Резервации" },
         ]}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <BlockSlotDialog onSave={handleSave} courtCount={COURT_COUNT}>
             <Button
               variant="outline"
-              className="rounded-xl border-zinc-200 dark:border-zinc-800 h-12 px-6 font-medium text-[11px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              className="rounded-xl border-zinc-200 dark:border-zinc-800 h-11 px-5 font-bold text-[10px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800"
             >
-              <ShieldAlert className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              <ShieldAlert
+                className="mr-2.5 h-4 w-4 text-zinc-400"
+                strokeWidth={2}
+              />
               Блокирай
             </Button>
           </BlockSlotDialog>
           <ReservationDialog onSave={handleSave}>
-            <Button className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all">
-              <Plus className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нова
-              резервация
+            <Button className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-11 px-6 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all border-none">
+              <Plus className="mr-2.5 h-4 w-4" strokeWidth={2.5} /> Нова
+              Резервация
             </Button>
           </ReservationDialog>
         </div>
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Date Selector Bento */}
-        <BentoCard className="md:col-span-12 p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-2xl shadow-none">
-          <div className="flex items-center gap-5">
-            <div className="h-14 w-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary">
-              <CalendarIcon className="h-6 w-6" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-1">
-                Текуща дата
-              </p>
-              <p className="text-2xl font-light text-zinc-900 dark:text-white">
-                {currentDate.toLocaleDateString("bg-BG", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-zinc-950 p-5 rounded-4xl border border-zinc-100 dark:border-zinc-900 shadow-sm shadow-black/2">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10">
+            <CalendarIcon className="h-5 w-5" strokeWidth={2} />
           </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-0.5">
+              График за деня
+            </p>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+              {currentDate.toLocaleDateString("bg-BG", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+              {new Date().toDateString() === currentDate.toDateString() && (
+                <span className="text-[9px] bg-primary/10 text-primary px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">
+                  Днес
+                </span>
+              )}
+            </h2>
+          </div>
+        </div>
 
-          <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1.5 rounded-2xl gap-2 border border-zinc-100 dark:border-zinc-800">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goToPreviousDay}
-              className="h-12 w-12 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-none transition-all"
-            >
-              <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={goToToday}
-              className="px-8 h-12 font-medium text-[11px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-none transition-all"
-            >
-              Днес
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goToNextDay}
-              className="h-12 w-12 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-none transition-all"
-            >
-              <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
-            </Button>
-          </div>
-        </BentoCard>
-
-        {/* Schedule Bento */}
-        <BentoCard className="md:col-span-12 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
-          <div className="bg-white dark:bg-zinc-950">
-            <AgendaView
-              refreshKey={refreshKey}
-              date={currentDate}
-              courtCount={COURT_COUNT}
-            />
-          </div>
-        </BentoCard>
+        <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1 rounded-2xl gap-1 border border-zinc-100 dark:border-zinc-800">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToPreviousDay}
+            className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+          >
+            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={goToToday}
+            className="px-6 h-10 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+          >
+            Днес
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToNextDay}
+            className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+          >
+            <ChevronRight className="h-4 w-4" strokeWidth={2} />
+          </Button>
+        </div>
       </div>
+
+      <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
+        <div className="bg-white dark:bg-zinc-950">
+          <AgendaView
+            key={`${currentDate.toISOString()}-${refreshKey}`}
+            refreshKey={refreshKey}
+            date={currentDate}
+            courtCount={COURT_COUNT}
+          />
+        </div>
+      </BentoCard>
     </div>
   );
 }

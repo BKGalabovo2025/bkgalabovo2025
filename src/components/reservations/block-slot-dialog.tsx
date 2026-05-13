@@ -36,6 +36,7 @@ import {
   createBlockedSlotAction,
   updateBlockedSlotAction,
 } from "@/lib/actions/reservations";
+import { cn } from "@/lib/utils";
 
 const blockSlotSchema = z
   .object({
@@ -148,30 +149,33 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-md rounded-4xl border-zinc-100 dark:border-zinc-900 shadow-2xl">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-white">
             {isEditMode
-              ? "Редактиране на блокирани часове"
+              ? "Редактиране на блокиран период"
               : "Блокиране на часове"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
             {isEditMode
               ? "Променете данните и натиснете 'Запази промените'."
               : "Изберете период и кортове, които да бъдат блокирани."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Причина</FormLabel>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    Причина
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Напр. Поддръжка, Турнир..."
+                      className="rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium h-12"
                       {...field}
                     />
                   </FormControl>
@@ -196,67 +200,68 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               name="courtIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Кортове</FormLabel>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="all-courts"
-                      checked={field.value.length === courtCount}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked ? allCourtIds : [])
-                      }
-                    />
-                    <label
-                      htmlFor="all-courts"
-                      className="text-[11px] font-medium uppercase tracking-widest text-zinc-500 cursor-pointer"
-                    >
-                      Всички
-                    </label>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 pt-2">
-                    {allCourtIds.map((id) => (
-                      <FormField
-                        key={id}
-                        control={form.control}
-                        name="courtIds"
-                        render={({ field: innerField }) => (
-                          <FormItem
-                            key={id}
-                            className="flex items-center space-x-2"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={innerField.value?.includes(id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? innerField.onChange([
-                                        ...innerField.value,
-                                        id,
-                                      ])
-                                    : innerField.onChange(
-                                        innerField.value?.filter(
-                                          (value) => value !== id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Корт {id}
-                            </FormLabel>
-                          </FormItem>
-                        )}
+                  <div className="flex items-center justify-between mb-2">
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                      Избор на кортове
+                    </FormLabel>
+                    <div className="flex items-center space-x-2 bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                      <Checkbox
+                        id="all-courts"
+                        checked={field.value.length === courtCount}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? allCourtIds : [])
+                        }
+                        className="rounded-md"
                       />
+                      <label
+                        htmlFor="all-courts"
+                        className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer"
+                      >
+                        Всички
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    {allCourtIds.map((id) => (
+                      <div
+                        key={id}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer",
+                          field.value?.includes(id)
+                            ? "bg-primary/5 border-primary/20 text-primary"
+                            : "bg-zinc-50/50 border-zinc-100 text-zinc-400 hover:border-zinc-200"
+                        )}
+                        onClick={() => {
+                          const isSelected = field.value?.includes(id);
+                          if (isSelected) {
+                            field.onChange(
+                              field.value.filter((v: number) => v !== id)
+                            );
+                          } else {
+                            field.onChange([...field.value, id]);
+                          }
+                        }}
+                      >
+                        <Checkbox
+                          checked={field.value?.includes(id)}
+                          className="rounded-md"
+                        />
+                        <span className="text-xs font-bold uppercase tracking-wider">
+                          Корт {id}
+                        </span>
+                      </div>
                     ))}
                   </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <DialogFooter className="pt-6 gap-3">
+            <DialogFooter className="pt-4 gap-3">
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] text-zinc-400 hover:text-zinc-900"
+                className="rounded-xl px-8 font-bold uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
@@ -264,7 +269,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8 font-medium uppercase tracking-widest text-[11px] shadow-none"
+                className="bg-zinc-900 dark:bg-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white rounded-xl px-8 h-12 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-black/10 border-none transition-all"
               >
                 {isSaving && (
                   <Loader2

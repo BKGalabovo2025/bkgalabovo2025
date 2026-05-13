@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
-import { Timestamp } from "firebase/firestore";
+import { useEffect, useState, useMemo } from "react";
 import { Reservation, BlockedSlot } from "@/types/reservation";
 import {
   subscribeToReservationsForDay,
@@ -10,194 +9,65 @@ import {
 import {
   deleteReservationAction,
   deleteBlockedSlotAction,
+  markReservationAsPaidAction,
 } from "@/lib/actions/reservations";
 import { cn } from "@/lib/utils";
-import { Loader2, Trash2, Pencil } from "lucide-react";
+import {
+  Loader2,
+  Trash2,
+  Pencil,
+  Lock,
+  Clock,
+  User,
+  Phone,
+  Tag,
+  CheckCircle2,
+  FileText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { formatTimeRange } from "@/lib/date-utils";
 import { ReservationDialog } from "./reservation-dialog";
 import { BlockSlotDialog } from "./block-slot-dialog";
+import { DonationReceiptDialog } from "./donation-receipt-dialog";
 import { useAppStore } from "@/store/use-app-store";
 import { useAuth } from "@/context/auth-context";
-
-// --- Helper Functions & Constants --- //
-const AGENDA_START_HOUR = 8;
-const HOUR_HEIGHT_REM = 6;
-const hours = Array.from({ length: 15 }, (_, i) => AGENDA_START_HOUR + i);
-
-const calculateEventStyle = (startTime: Timestamp, endTime: Timestamp) => {
-  const start = startTime.toDate();
-  const end = endTime.toDate();
-  const startOffsetMinutes =
-    (start.getHours() - AGENDA_START_HOUR) * 60 + start.getMinutes();
-  const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-  const top = (startOffsetMinutes / 60) * HOUR_HEIGHT_REM;
-  const height = (durationMinutes / 60) * HOUR_HEIGHT_REM;
-  return { top: `${top}rem`, height: `${height}rem` };
-};
-
-// --- Sub-components --- //
-
-interface CardProps<T> {
-  item: T;
-  onDelete: (id: string) => void;
-  onSave: () => void;
-}
-
-const ReservationCard: React.FC<CardProps<Reservation>> = ({
-  item,
-  onDelete,
-  onSave,
-}) => {
-  const style = calculateEventStyle(item.startTime, item.endTime);
-  const timeRange = formatTimeRange(
-    item.startTime.toDate(),
-    item.endTime.toDate()
-  );
-
-  const statusClasses = {
-    paid: "bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/20 text-emerald-600 shadow-none",
-    unpaid:
-      "bg-amber-50/50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/20 text-amber-600 shadow-none",
-    cancelled:
-      "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-400 opacity-60",
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (
-      window.confirm("Сигурни ли сте, че искате да изтриете тази резервация?")
-    ) {
-      onDelete(item.id);
-    }
-  };
-
-  return (
-    <div
-      className={cn(
-        "absolute w-[94%] left-1/2 -translate-x-1/2 p-4 rounded-xl border text-[11px] leading-tight transition-all duration-300 group hover:border-primary/30 z-10",
-        statusClasses[item.status]
-      )}
-      style={style}
-    >
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all flex bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-lg border border-zinc-100 dark:border-zinc-800">
-        <ReservationDialog reservation={item} onSave={onSave}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 hover:bg-white dark:hover:bg-zinc-800 rounded-md"
-          >
-            <Pencil className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
-          </Button>
-        </ReservationDialog>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-8 h-8 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md"
-          onClick={handleDelete}
-        >
-          <Trash2 className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.5} />
-        </Button>
-      </div>
-      <p className="font-medium text-zinc-900 text-[13px] truncate pr-8 mb-1">
-        {item.clientName}
-      </p>
-      <p className="font-light text-zinc-500 text-[10px] uppercase tracking-widest">
-        {timeRange}
-      </p>
-      <div className="mt-4 inline-flex items-center px-2 py-0.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-[8px] font-medium uppercase tracking-widest2 border border-inherit">
-        {item.status === "paid" ? "Платено" : "Неплатено"}
-      </div>
-    </div>
-  );
-};
-
-const BlockedSlotCard: React.FC<
-  CardProps<BlockedSlot> & { courtCount: number }
-> = ({ item, onDelete, onSave, courtCount }) => {
-  const style = calculateEventStyle(item.startTime, item.endTime);
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (
-      window.confirm(
-        "Сигурни ли сте, че искате да изтриете този блокиран слот?"
-      )
-    ) {
-      onDelete(item.id);
-    }
-  };
-
-  return (
-    <div
-      className="absolute w-[94%] left-1/2 -translate-x-1/2 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-50/30 dark:bg-zinc-900/30 text-zinc-400 text-[10px] leading-tight shadow-none group flex flex-col items-center justify-center text-center pattern-diagonal-stripes border-dashed z-0"
-      style={style}
-    >
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all flex bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-lg border border-zinc-100 dark:border-zinc-800">
-        <BlockSlotDialog slot={item} onSave={onSave} courtCount={courtCount}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 hover:bg-white dark:hover:bg-zinc-800 rounded-md"
-          >
-            <Pencil className="w-3.5 h-3.5 text-zinc-400" strokeWidth={1.5} />
-          </Button>
-        </BlockSlotDialog>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-8 h-8 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md"
-          onClick={handleDelete}
-        >
-          <Trash2 className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.5} />
-        </Button>
-      </div>
-      <p className="font-medium text-[9px] uppercase tracking-widest3 opacity-40">
-        {item.title}
-      </p>
-    </div>
-  );
-};
-
-// --- Main Component --- //
+import { formatPrice } from "@/lib/currency";
 
 interface AgendaViewProps {
   date: Date;
   courtCount: number;
-  refreshKey: number; // Used for forcing re-renders (legacy, but kept for compatibility)
+  refreshKey: number;
 }
 
-export const AgendaView: React.FC<AgendaViewProps> = ({
+type AgendaItem =
+  | { type: "reservation"; data: Reservation }
+  | { type: "blocked"; data: BlockedSlot };
+
+export function AgendaView({
   date,
   courtCount,
   refreshKey: _refreshKey,
-}) => {
-  const [events, setEvents] = useState<{
-    reservations: Reservation[];
-    blockedSlots: BlockedSlot[];
-  }>({ reservations: [], blockedSlots: [] });
+}: AgendaViewProps) {
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const { activeBranch } = useAppStore();
   const { getFreshToken } = useAuth();
 
   useEffect(() => {
-    // Subscribe to reservations
     const unsubReservations = subscribeToReservationsForDay(
       date,
-      (reservations) => {
-        setEvents((prev) => ({ ...prev, reservations }));
+      (res) => {
+        setReservations(res);
         setIsLoading(false);
       },
       activeBranch
     );
 
-    // Subscribe to blocked slots
     const unsubBlocked = subscribeToBlockedSlotsForDay(
       date,
-      (blockedSlots) => {
-        setEvents((prev) => ({ ...prev, blockedSlots }));
+      (slots) => {
+        setBlockedSlots(slots);
         setIsLoading(false);
       },
       activeBranch
@@ -207,26 +77,36 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
       unsubReservations();
       unsubBlocked();
     };
-  }, [date, activeBranch]); // Re-subscribe when date or activeBranch changes
+  }, [date, activeBranch]);
 
-  const handleDataChange = () => {
-    // With real-time listeners, we don't need to do much here,
-    // but we can trigger a toast or something if needed.
-  };
+  const sortedItems = useMemo(() => {
+    const items: AgendaItem[] = [
+      ...reservations.map((r) => ({ type: "reservation" as const, data: r })),
+      ...blockedSlots.map((s) => ({ type: "blocked" as const, data: s })),
+    ];
+
+    return items.sort((a, b) => {
+      const timeA = a.data.startTime.toDate().getTime();
+      const timeB = b.data.startTime.toDate().getTime();
+      if (timeA !== timeB) return timeA - timeB;
+      // Secondary sort by court
+      const courtA =
+        a.type === "reservation" ? a.data.courtId : a.data.courtIds[0] || 0;
+      const courtB =
+        b.type === "reservation" ? b.data.courtId : b.data.courtIds[0] || 0;
+      return courtA - courtB;
+    });
+  }, [reservations, blockedSlots]);
 
   const handleDeleteReservation = async (id: string) => {
     const token = await getFreshToken(true);
     if (!token) return;
     try {
       const result = await deleteReservationAction(token, id);
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
     } catch (error) {
-      console.error("Error deleting reservation:", error);
-      toast.error("Грешка при изтриване на резервацията.");
+      toast.error("Грешка при изтриване.");
     }
   };
 
@@ -235,105 +115,253 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
     if (!token) return;
     try {
       const result = await deleteBlockedSlotAction(token, id);
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
+    } catch (error) {
+      toast.error("Грешка при изтриване.");
+    }
+  };
+
+  const handleMarkAsPaid = async (id: string) => {
+    const token = await getFreshToken(true);
+    if (!token) return;
+    try {
+      const result = await markReservationAsPaidAction(token, id);
       if (result.success) {
         toast.success(result.message);
       } else {
         toast.error(result.message);
       }
     } catch (error) {
-      console.error("Error deleting blocked slot:", error);
-      toast.error("Грешка при изтриване.");
+      toast.error("Грешка при актуализиране на плащане.");
     }
   };
 
-  const eventsByCourt = useMemo(() => {
-    const grouped: {
-      [key: number]: {
-        reservations: Reservation[];
-        blockedSlots: BlockedSlot[];
-      };
-    } = {};
-    for (let i = 1; i <= courtCount; i++) {
-      grouped[i] = { reservations: [], blockedSlots: [] };
-    }
-    events.reservations.forEach((res) => {
-      if (grouped[res.courtId]) grouped[res.courtId].reservations.push(res);
-    });
-    events.blockedSlots.forEach((slot) => {
-      const courtsToBlock =
-        slot.courtIds.length > 0
-          ? slot.courtIds
-          : Array.from({ length: courtCount }, (_, i) => i + 1);
-      courtsToBlock.forEach((courtId) => {
-        if (grouped[courtId]) grouped[courtId].blockedSlots.push(slot);
-      });
-    });
-    return grouped;
-  }, [events, courtCount]);
+  if (isLoading) {
+    return (
+      <div className="p-12 w-full flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2
+            className="h-10 w-10 animate-spin text-primary/30"
+            strokeWidth={1.5}
+          />
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">
+            Синхронизиране...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (sortedItems.length === 0) {
+    return (
+      <div className="p-20 text-center flex flex-col items-center justify-center">
+        <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-3xl flex items-center justify-center mb-6 border border-zinc-100 dark:border-zinc-800">
+          <Clock className="w-6 h-6 text-zinc-300" strokeWidth={1.5} />
+        </div>
+        <h3 className="text-zinc-900 dark:text-white font-semibold mb-2">
+          Няма планирани събития
+        </h3>
+        <p className="text-zinc-400 text-sm max-w-xs mx-auto">
+          За избраната дата няма открити резервации или блокирани часове.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-[auto,1fr] mt-0 bg-white dark:bg-zinc-950 relative">
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center z-20">
-          <Loader2
-            className="w-10 h-10 animate-spin text-primary opacity-20"
-            strokeWidth={1}
-          />
-        </div>
-      )}
-      <div className="flex flex-col border-r border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/30">
-        {hours.map((hour) => (
-          <div
-            key={hour}
-            className="h-24 w-20 flex items-center justify-center text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 border-b border-zinc-100 dark:border-zinc-900"
-          >{`${String(hour).padStart(2, "0")}:00`}</div>
-        ))}
-      </div>
-      <div
-        style={{ gridTemplateColumns: `repeat(${courtCount}, 1fr)` }}
-        className="grid w-full"
-      >
-        {Object.keys(eventsByCourt).map((courtIdStr) => {
-          const courtId = parseInt(courtIdStr, 10);
-          const courtEvents = eventsByCourt[courtId];
+    <div className="p-4 md:p-8 space-y-4">
+      {sortedItems.map((item, index) => {
+        const isReservation = item.type === "reservation";
+        const data = item.data;
+        const startTime = data.startTime.toDate();
+        const endTime = data.endTime.toDate();
 
-          return (
-            <div
-              key={courtId}
-              className="flex flex-col border-r border-zinc-100 dark:border-zinc-900 relative group/court"
-            >
-              <div className="text-center font-medium py-8 border-b border-zinc-100 dark:border-zinc-900 sticky top-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md z-20 text-[11px] uppercase tracking-[0.4em] text-zinc-400 group-hover/court:text-primary transition-all">
-                Корт {courtId}
+        return (
+          <div
+            key={isReservation ? data.id : `blocked-${data.id}-${index}`}
+            className={cn(
+              "group relative flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-4xl border transition-all duration-300",
+              isReservation
+                ? "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 hover:border-primary/20 hover:shadow-xl hover:shadow-black/5"
+                : "bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200/50 dark:border-zinc-800/50 border-dashed"
+            )}
+          >
+            {/* Time Column */}
+            <div className="flex flex-row md:flex-col items-center md:items-start gap-3 md:w-32 shrink-0">
+              <div className="flex items-center gap-2 text-primary">
+                <Clock className="w-4 h-4" strokeWidth={2.5} />
+                <span className="font-black text-sm tracking-tight">
+                  {startTime.toLocaleTimeString("bg-BG", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
-              <div className="relative">
-                {hours.map((hour) => (
-                  <div
-                    key={hour}
-                    className="h-24 border-b border-zinc-100/30 dark:border-zinc-900/30"
-                  ></div>
-                ))}
-                {courtEvents.reservations.map((res) => (
-                  <ReservationCard
-                    key={res.id}
-                    item={res}
-                    onDelete={handleDeleteReservation}
-                    onSave={handleDataChange}
-                  />
-                ))}
-                {courtEvents.blockedSlots.map((slot) => (
-                  <BlockedSlotCard
-                    key={slot.id}
-                    item={slot}
-                    onDelete={handleDeleteBlockedSlot}
-                    onSave={handleDataChange}
-                    courtCount={courtCount}
-                  />
-                ))}
+              <div className="h-px w-4 bg-zinc-200 dark:bg-zinc-800 md:hidden" />
+              <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
+                до{" "}
+                {endTime.toLocaleTimeString("bg-BG", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            {/* Content Column */}
+            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6">
+              {/* Court Badge */}
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center justify-center min-w-12 h-12 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10">
+                  <span className="text-[8px] font-black uppercase tracking-tighter opacity-50">
+                    Корт
+                  </span>
+                  <span className="text-sm font-bold leading-none whitespace-nowrap">
+                    {isReservation
+                      ? (data as Reservation).courtId
+                      : (data as BlockedSlot).courtIds.join(", ")}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    {isReservation ? (
+                      <User className="w-4 h-4 text-zinc-400" />
+                    ) : (
+                      <Lock className="w-4 h-4 text-zinc-400" />
+                    )}
+                    <h4 className="font-bold text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
+                      {isReservation
+                        ? (data as Reservation).clientName
+                        : (data as BlockedSlot).title}
+                    </h4>
+                  </div>
+                  {isReservation && (
+                    <div className="flex items-center gap-4 text-zinc-500 text-xs font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3 h-3 opacity-50" />
+                        {(data as Reservation).clientPhone}
+                      </div>
+                      {(data as Reservation).clientEmail && (
+                        <div className="hidden sm:flex items-center gap-1.5">
+                          <Tag className="w-3 h-3 opacity-50" />
+                          {(data as Reservation).clientEmail}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Status & Price */}
+              <div className="md:ml-auto flex items-center gap-6">
+                {isReservation ? (
+                  <>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">
+                        Статус
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border",
+                          (data as Reservation).status === "paid"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800"
+                            : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800"
+                        )}
+                      >
+                        {(data as Reservation).status === "paid"
+                          ? "Платено"
+                          : "Неплатено"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end min-w-[80px]">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">
+                        Сума
+                      </span>
+                      <span className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">
+                        {formatPrice((data as Reservation).totalPrice)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="px-4 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                    Блокиран период
+                  </div>
+                )}
               </div>
             </div>
-          );
-        })}
-      </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-zinc-100 dark:border-zinc-900">
+              {isReservation && (data as Reservation).status !== "paid" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+                  onClick={() => handleMarkAsPaid(data.id)}
+                  title="Маркирай като платено"
+                >
+                  <CheckCircle2 className="w-5 h-5" />
+                </Button>
+              )}
+
+              {isReservation && (data as Reservation).status === "paid" && (
+                <DonationReceiptDialog reservation={data as Reservation}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-11 w-11 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                    title="Издай документ"
+                  >
+                    <FileText className="w-5 h-5" />
+                  </Button>
+                </DonationReceiptDialog>
+              )}
+
+              {isReservation ? (
+                <ReservationDialog
+                  reservation={data as Reservation}
+                  onSave={() => {}}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-11 w-11 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                  >
+                    <Pencil className="w-4 h-4 text-zinc-400" />
+                  </Button>
+                </ReservationDialog>
+              ) : (
+                <BlockSlotDialog
+                  slot={data as BlockedSlot}
+                  courtCount={courtCount}
+                  onSave={() => {}}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-11 w-11 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                  >
+                    <Pencil className="w-4 h-4 text-zinc-400" />
+                  </Button>
+                </BlockSlotDialog>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+                onClick={() =>
+                  isReservation
+                    ? handleDeleteReservation(data.id)
+                    : handleDeleteBlockedSlot(data.id)
+                }
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
-};
+}
