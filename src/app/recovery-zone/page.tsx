@@ -66,22 +66,15 @@ export default async function RecoveryZonePage() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 px-6 py-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-4 group">
-            <div className="h-12 w-12 relative overflow-hidden rounded-2xl bg-white/5 p-2 transition-all group-hover:bg-white/10 group-hover:scale-105 active:scale-95">
+          <Link href="/" className="flex items-center group">
+            <div className="h-14 w-48 relative overflow-hidden transition-all hover:scale-105 active:scale-95">
               <Image
-                src="/RECOVERY%20ZM%20ZONE%20BADMINTON.png"
-                alt="Logo"
+                src="/1.png"
+                alt="Recovery Zone by ZM"
                 fill
-                className="object-contain p-1"
+                priority
+                className="object-contain"
               />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-base font-bold tracking-tight">
-                {site.name || "Recovery Zone"}
-              </span>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] font-bold">
-                by ZM
-              </span>
             </div>
           </Link>
 
@@ -493,22 +486,14 @@ export default async function RecoveryZonePage() {
       {/* Footer */}
       <footer className="px-8 py-12 border-t border-white/5 bg-zinc-950">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 relative overflow-hidden rounded-xl bg-white/5 p-1.5">
+          <div className="flex items-center">
+            <div className="h-10 w-40 relative overflow-hidden">
               <Image
-                src="/RECOVERY%20ZM%20ZONE%20BADMINTON.png"
-                alt="Logo"
+                src="/1.png"
+                alt="Recovery Zone by ZM"
                 fill
-                className="object-contain p-1"
+                className="object-contain"
               />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-wider">
-                {site.name || "Recovery Zone"}
-              </span>
-              <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">
-                by ZM
-              </span>
             </div>
           </div>
 
