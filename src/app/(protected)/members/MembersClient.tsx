@@ -147,7 +147,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12 px-4 sm:px-6 lg:px-8">
       <PageHeader
         title="Членове на клуба"
         description="Управление на профили, членски карти и статуси на спортистите."
@@ -220,10 +220,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
       {/* Main Table Bento */}
       <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-5xl">
-        <div className="p-8 border-b border-zinc-50 dark:border-zinc-900">
+        <div className="p-6 border-b border-zinc-50 dark:border-zinc-900">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6 w-full md:w-auto">
-              <div className="relative w-full md:w-96">
+              <div className="relative w-full md:w-80">
                 <Search
                   className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
                   strokeWidth={1.5}
@@ -300,10 +300,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <Table className="min-w-[1000px]">
+          <Table className="min-w-[900px]">
             <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
               <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-900">
-                <TableHead className="w-12 px-8">
+                <TableHead className="w-[50px] px-4">
                   <Checkbox
                     checked={
                       selectedIds.length === paginatedMembers.length &&
@@ -313,19 +313,19 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     className="rounded-md border-zinc-200"
                   />
                 </TableHead>
-                <TableHead className="py-6 px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                <TableHead className="py-6 px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 min-w-[180px]">
                   Член
                 </TableHead>
-                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                <TableHead className="px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 min-w-[200px]">
                   Контакт
                 </TableHead>
-                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                <TableHead className="px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[90px]">
                   Възраст
                 </TableHead>
-                <TableHead className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                <TableHead className="px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[140px]">
                   Регистрация
                 </TableHead>
-                <TableHead className="text-right px-8 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                <TableHead className="text-right px-6 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[110px]">
                   Статус
                 </TableHead>
               </TableRow>
@@ -341,7 +341,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     )}
                   >
                     <TableCell
-                      className="px-8"
+                      className="px-4"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Checkbox
@@ -401,7 +401,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       </div>
                     </TableCell>
                     <TableCell
-                      className="text-right px-8"
+                      className="text-right px-6"
                       onClick={() => router.push(`/members/${member.id}`)}
                     >
                       <Badge
@@ -441,7 +441,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-8 border-t border-zinc-50 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
+          <div className="flex items-center justify-between p-6 border-t border-zinc-50 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
               Показани{" "}
               <span className="text-zinc-900 dark:text-white">
