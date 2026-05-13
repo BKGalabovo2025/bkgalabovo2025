@@ -105,6 +105,9 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                   Дата
                 </TableHead>
                 <TableHead className="h-12 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                  Услуга / Продукт
+                </TableHead>
+                <TableHead className="h-12 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                   Статус
                 </TableHead>
                 <TableHead className="h-12 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right">
@@ -122,6 +125,13 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                   sale.totalAmount
                 );
 
+                const itemsList = sale.items
+                  .map(
+                    (item) =>
+                      `${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ""}`
+                  )
+                  .join(", ");
+
                 return (
                   <TableRow
                     key={sale.id}
@@ -130,6 +140,19 @@ export const MemberSalesHistory = ({ memberId }: MemberSalesHistoryProps) => {
                   >
                     <TableCell className="py-5 font-light text-sm text-zinc-600 pl-6">
                       {new Date(sale.saleDate).toLocaleDateString("bg-BG")}
+                    </TableCell>
+                    <TableCell className="py-5 max-w-[300px]">
+                      <div
+                        className="text-xs font-medium text-zinc-900 truncate"
+                        title={itemsList}
+                      >
+                        {itemsList}
+                      </div>
+                      {sale.subscriptionId && (
+                        <div className="text-[10px] text-zinc-400 uppercase tracking-widest mt-1">
+                          Абонамент
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge

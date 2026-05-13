@@ -63,8 +63,8 @@ export interface ReceiptDetails {
   sale: Sale;
   member: Member;
   relatedMember: Member | null;
-  service: ClubService;
-  subscription: Subscription;
+  service: ClubService | null;
+  subscription: Subscription | null;
 }
 
 export const getReceiptDetails = async (
@@ -79,46 +79,47 @@ export const getReceiptDetails = async (
   }
 
   const sale = docToSale(saleSnap);
-  if (!sale || !sale.memberId || !sale.subscriptionId) {
-    console.error("Sale data is incomplete:", sale);
+  if (!sale || !sale.memberId) {
+    console.error("Sale data is incomplete (missing memberId):", sale);
     return null;
   }
 
-  const [memberSnap, subscriptionSnap] = await Promise.all([
-    getDoc(doc(getMembersCollection(), sale.memberId)),
-    getDoc(doc(getMemberSubscriptionsCollection(), sale.subscriptionId)),
-  ]);
-
-  if (!memberSnap.exists() || !subscriptionSnap.exists()) {
-    console.error("Member or subscription not found.");
+  const memberSnap = await getDoc(doc(getMembersCollection(), sale.memberId));
+  if (!memberSnap.exists()) {
+    console.error("Member not found for sale:", sale.memberId);
     return null;
   }
 
   const member = docToMember(memberSnap);
-  const subscription = docToMemberSubscription(subscriptionSnap);
+  if (!member) return null;
 
-  if (!member || !subscription || !subscription.serviceId) {
-    console.error("Parsed member or subscription data is incomplete.");
-    return null;
+  let subscription: Subscription | null = null;
+  let service: ClubService | null = null;
+
+  if (sale.subscriptionId) {
+    const subscriptionSnap = await getDoc(
+      doc(getMemberSubscriptionsCollection(), sale.subscriptionId)
+    );
+    if (subscriptionSnap.exists()) {
+      subscription = docToMemberSubscription(subscriptionSnap);
+      if (subscription?.serviceId) {
+        const serviceSnap = await getDoc(
+          doc(getClubServicesCollection(), subscription.serviceId)
+        );
+        if (serviceSnap.exists()) {
+          service = docToClubService(serviceSnap);
+        }
+      }
+    }
   }
 
-  const serviceRef = doc(getClubServicesCollection(), subscription.serviceId);
   const relatedMemberRef = member.relatedMemberId
     ? doc(getMembersCollection(), member.relatedMemberId)
     : null;
 
-  const [serviceSnap, relatedMemberSnap] = await Promise.all([
-    getDoc(serviceRef),
-    relatedMemberRef ? getDoc(relatedMemberRef) : Promise.resolve(null),
-  ]);
-
-  if (!serviceSnap.exists()) {
-    console.error("Service not found");
-    return null;
-  }
-
-  const service = docToClubService(serviceSnap);
-  if (!service) return null;
+  const relatedMemberSnap = relatedMemberRef
+    ? await getDoc(relatedMemberRef)
+    : null;
 
   const relatedMember =
     relatedMemberSnap && relatedMemberSnap.exists()

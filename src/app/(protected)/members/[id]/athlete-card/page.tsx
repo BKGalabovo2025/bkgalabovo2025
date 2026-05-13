@@ -178,6 +178,22 @@ const AthleteCardPage = () => {
         useCORS: true, // Allow cross-origin images (avatars)
         backgroundColor: "#ffffff",
         logging: false,
+        onclone: (clonedDoc: Document) => {
+          // html2canvas fails on modern CSS color functions like lab() and oklch()
+          // which are common in Tailwind v4. We strip them from the cloned document styles.
+          const styleTags = clonedDoc.getElementsByTagName("style");
+          for (let i = 0; i < styleTags.length; i++) {
+            const style = styleTags[i];
+            if (
+              style.innerHTML.includes("lab(") ||
+              style.innerHTML.includes("oklch(")
+            ) {
+              style.innerHTML = style.innerHTML
+                .replace(/lab\([^)]+\)/g, "#000000")
+                .replace(/oklch\([^)]+\)/g, "#000000");
+            }
+          }
+        },
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -253,6 +269,46 @@ const AthleteCardPage = () => {
       <style
         dangerouslySetInnerHTML={{
           __html: `
+        /* Fix html2canvas parsing issues with modern CSS colors (oklch, lab) */
+        .print-area {
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --slate-950: #020617;
+            
+            --zinc-950: #09090b;
+
+            /* Map Tailwind V4 variables to Hex */
+            --color-slate-50: var(--slate-50);
+            --color-slate-100: var(--slate-100);
+            --color-slate-200: var(--slate-200);
+            --color-slate-300: var(--slate-300);
+            --color-slate-400: var(--slate-400);
+            --color-slate-500: var(--slate-500);
+            --color-slate-600: var(--slate-600);
+            --color-slate-700: var(--slate-700);
+            --color-slate-800: var(--slate-800);
+            --color-slate-900: var(--slate-900);
+            --color-slate-950: var(--slate-950);
+            --color-zinc-950: var(--zinc-950);
+        }
+        
+        /* Direct class overrides for absolute safety */
+        .print-area .text-slate-400 { color: #94a3b8 !important; }
+        .print-area .text-slate-500 { color: #64748b !important; }
+        .print-area .border-slate-300 { border-color: #cbd5e1 !important; }
+        .print-area .border-slate-400 { border-color: #94a3b8 !important; }
+        .print-area .border-slate-600 { border-color: #475569 !important; }
+        .print-area .bg-slate-50 { background-color: #f8fafc !important; }
+        .print-area .bg-zinc-950 { background-color: #09090b !important; }
+
         @media print {
           body * { visibility: hidden; }
           .print-area, .print-area * { visibility: visible; }

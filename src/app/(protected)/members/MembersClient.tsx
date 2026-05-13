@@ -63,19 +63,25 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const { idToken } = useAuth();
 
   const filteredMembers = useMemo(() => {
-    return initialMembers.filter((member) => {
-      const matchesSearch =
-        `${member.firstName} ${member.lastName}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (member.email &&
-          member.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    return initialMembers
+      .filter((member) => {
+        const matchesSearch =
+          `${member.firstName} ${member.lastName}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (member.email &&
+            member.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesStatus =
-        statusFilter === "all" || member.status === statusFilter;
+        const matchesStatus =
+          statusFilter === "all" || member.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
-    });
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+        return nameA.localeCompare(nameB, "bg");
+      });
   }, [initialMembers, searchTerm, statusFilter]);
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
