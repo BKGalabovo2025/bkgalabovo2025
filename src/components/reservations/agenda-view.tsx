@@ -180,7 +180,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const { activeBranch } = useAppStore();
-  const { idToken } = useAuth();
+  const { getFreshToken } = useAuth();
 
   useEffect(() => {
     // Subscribe to reservations
@@ -215,9 +215,10 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteReservation = async (id: string) => {
-    if (!idToken) return;
+    const token = await getFreshToken();
+    if (!token) return;
     try {
-      const result = await deleteReservationAction(idToken, id);
+      const result = await deleteReservationAction(token, id);
       if (result.success) {
         toast.success(result.message);
       } else {
@@ -230,9 +231,10 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteBlockedSlot = async (id: string) => {
-    if (!idToken) return;
+    const token = await getFreshToken();
+    if (!token) return;
     try {
-      const result = await deleteBlockedSlotAction(idToken, id);
+      const result = await deleteBlockedSlotAction(token, id);
       if (result.success) {
         toast.success(result.message);
       } else {

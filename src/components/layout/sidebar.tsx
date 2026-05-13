@@ -73,6 +73,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   alt="Logo"
                   width={40}
                   height={40}
+                  style={{ width: "auto", height: "auto" }}
                   className="object-contain"
                 />
               </Link>

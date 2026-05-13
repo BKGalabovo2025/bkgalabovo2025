@@ -130,7 +130,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, [user, activeBranch]);
+  }, [user?.uid, activeBranch]);
 
   return {
     stats,

@@ -113,6 +113,7 @@ const LoginPage = () => {
                 id="password"
                 type="password"
                 required
+                autoComplete="current-password"
                 className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -63,6 +63,7 @@ function GlobalHeader() {
                     alt={site.title}
                     width={24}
                     height={24}
+                    style={{ width: "auto", height: "auto" }}
                     className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
                   />
                 </div>

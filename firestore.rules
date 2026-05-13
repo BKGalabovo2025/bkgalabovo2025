@@ -43,6 +43,16 @@ service cloud.firestore {
       allow write: if isAdmin() && hasValidSiteId();
     }
 
+    match /reservations/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin() && hasValidSiteId();
+    }
+
+    match /blockedSlots/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin() && hasValidSiteId();
+    }
+
     match /{path=**}/reservations/{docId} {
       allow read: if request.auth != null;
       allow write: if isAdmin() && hasValidSiteId();

@@ -50,7 +50,11 @@ const reservationSchema = z
       .string()
       .min(2, { message: "Името трябва да е поне 2 символа." }),
     clientPhone: z.string().min(9, { message: "Невалиден телефонен номер." }),
-    clientEmail: z.string().email({ message: "Невалиден имейл адрес." }),
+    clientEmail: z
+      .string()
+      .email({ message: "Невалиден имейл адрес." })
+      .optional()
+      .or(z.literal("")),
     courtId: z.number().min(1, { message: "Моля, изберете корт" }).max(6),
     startTime: z.date(),
     endTime: z.date(),
@@ -78,7 +82,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const COURT_PRICE_PER_HOUR = 10;
 
   const isEditMode = !!reservation;
-  const { idToken } = useAuth();
+  const { getFreshToken } = useAuth();
   const { activeBranch } = useAppStore();
 
   const form = useForm<z.infer<typeof reservationSchema>>({
@@ -118,7 +122,8 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   }, [isOpen, isEditMode, reservation, initialData, reset]);
 
   async function onSubmit(values: z.infer<typeof reservationSchema>) {
-    if (!idToken) {
+    const token = await getFreshToken();
+    if (!token) {
       toast.error("Грешка при оторизация");
       return;
     }
@@ -137,12 +142,12 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
       let result;
       if (isEditMode) {
         result = await updateReservationAction(
-          idToken,
+          token,
           reservation.id,
           dataToSave
         );
       } else {
-        result = await createReservationAction(idToken, {
+        result = await createReservationAction(token, {
           ...dataToSave,
           status: "unpaid",
         });
@@ -211,7 +216,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 name="clientEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Имейл</FormLabel>
+                    <FormLabel>Имейл (незадължителен)</FormLabel>
                     <FormControl>
                       <Input placeholder="ivan@email.com" {...field} />
                     </FormControl>

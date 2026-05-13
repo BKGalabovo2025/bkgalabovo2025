@@ -10,7 +10,7 @@ import {
   ReactNode,
 } from "react";
 import {
-  onAuthStateChanged,
+  onIdTokenChanged,
   User,
   signOut as firebaseSignOut,
 } from "firebase/auth";
@@ -23,6 +23,7 @@ interface AuthContextType {
   idToken: string | null; // Added idToken
   loading: boolean;
   logout: () => Promise<void>;
+  getFreshToken: (force?: boolean) => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   idToken: null, // Added idToken
   loading: true,
   logout: async () => {},
+  getFreshToken: async () => null,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Only initialize Firebase Auth on the client side
     const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
         setUser(user);
@@ -58,7 +60,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Periodically refresh the token every 10 minutes to ensure it's always valid
+    const refreshInterval = setInterval(
+      async () => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          try {
+            const token = await currentUser.getIdToken(true);
+            setIdToken(token);
+          } catch (error) {
+            console.error("Token refresh failed:", error);
+          }
+        }
+      },
+      10 * 60 * 1000
+    );
+
+    return () => {
+      unsubscribe();
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const logout = useCallback(async () => {
@@ -71,9 +92,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [router]);
 
+  const getFreshToken = useCallback(async (force = false) => {
+    const auth = getFirebaseAuth();
+    if (!auth.currentUser) return null;
+    try {
+      const token = await auth.currentUser.getIdToken(force);
+      setIdToken(token);
+      return token;
+    } catch (error) {
+      console.error("Error getting fresh token:", error);
+      return null;
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, idToken, loading, logout }),
-    [user, idToken, loading, logout]
+    () => ({ user, idToken, loading, logout, getFreshToken }),
+    [user, idToken, loading, logout, getFreshToken]
   );
 
   if (loading) {

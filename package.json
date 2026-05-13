@@ -27,7 +27,8 @@
     "prepare": "husky",
     "migrate:bkgalabovo": "tsx scripts/migrate-bkgalabovo-site-id.ts",
     "migrate:recoveryzone": "tsx scripts/import-recovery-zone.ts",
-    "deploy:rules": "npx -y firebase-tools@latest deploy --only firestore:rules --project bkgalabovo2025"
+    "deploy:rules": "npx -y firebase-tools@latest deploy --only firestore:rules --project bkgalabovo2025",
+    "deploy:indexes": "npx -y firebase-tools@latest deploy --only firestore:indexes --project bkgalabovo2025"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

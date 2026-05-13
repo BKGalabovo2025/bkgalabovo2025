@@ -68,7 +68,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditMode = !!slot;
-  const { idToken } = useAuth();
+  const { getFreshToken } = useAuth();
   const { activeBranch } = useAppStore();
 
   const form = useForm<z.infer<typeof blockSlotSchema>>({
@@ -99,7 +99,8 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   }, [isOpen, isEditMode, slot, form, courtCount]);
 
   async function onSubmit(values: z.infer<typeof blockSlotSchema>) {
-    if (!idToken) {
+    const token = await getFreshToken();
+    if (!token) {
       toast.error("Грешка при оторизация");
       return;
     }
@@ -115,7 +116,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
 
       if (isEditMode) {
         const result = await updateBlockedSlotAction(
-          idToken,
+          token,
           slot.id,
           dataToSave
         );
@@ -125,7 +126,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
           toast.error(result.message);
         }
       } else {
-        const result = await createBlockedSlotAction(idToken, dataToSave);
+        const result = await createBlockedSlotAction(token, dataToSave);
         if (result.success) {
           toast.success(result.message);
         } else {
