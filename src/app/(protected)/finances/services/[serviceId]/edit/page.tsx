@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useActionState } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useFormState } from "react-dom";
 import { updateClubService, ServiceState } from "@/lib/actions/services";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
@@ -40,7 +39,7 @@ export default function EditServicePage() {
     return updateClubService(serviceId, idToken, prevState, formData);
   };
 
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     updateServiceWithToken,
     initialState
   );
