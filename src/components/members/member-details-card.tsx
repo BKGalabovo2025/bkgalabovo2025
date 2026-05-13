@@ -27,6 +27,9 @@ import {
   ClipboardCheck,
   Stethoscope,
   Contact,
+  Trash2,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -70,11 +73,10 @@ const MemberSubscriptionsTab = dynamic(
 
 import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
 
-import { updateMemberAction } from "@/lib/actions/members";
+import { updateMemberAction, deleteMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { uploadFile } from "@/services/storage-service";
-import { Camera, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 
 interface MemberDetailsCardProps {
@@ -141,6 +143,34 @@ export const MemberDetailsCard = ({
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Грешка при плащане");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Сигурни ли сте, че искате да изтриете ${fullName}? Всички негови данни, включително история на плащания и присъствия, ще бъдат изтрити завинаги.`
+      )
+    )
+      return;
+
+    try {
+      const result = await deleteMemberAction(member.id, idToken);
+      if (result.success) {
+        toast.success("Членът е изтрит успешно");
+        router.push("/members");
+        setTimeout(() => router.refresh(), 100);
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Възникна сървърна грешка");
     }
   };
 
@@ -257,12 +287,21 @@ export const MemberDetailsCard = ({
         >
           <ArrowLeft className="mr-3 h-4 w-4" strokeWidth={1.5} /> Всички
         </Button>
-        <Button
-          onClick={() => router.push(`/members/${member.id}/edit`)}
-          className="h-10 sm:h-12 w-full sm:w-auto px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest shadow-none transition-all"
-        >
-          <Pencil className="mr-3 h-4 w-4" strokeWidth={1.5} /> Редактирай
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button
+            onClick={() => router.push(`/members/${member.id}/edit`)}
+            className="h-10 sm:h-12 flex-1 sm:flex-none px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest shadow-none transition-all"
+          >
+            <Pencil className="mr-3 h-4 w-4" strokeWidth={1.5} /> Редактирай
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDelete}
+            className="h-10 sm:h-12 px-4 rounded-xl border-rose-100 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all shadow-none"
+          >
+            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden bg-white border border-zinc-100 rounded-5xl shadow-none">

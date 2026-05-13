@@ -31,10 +31,14 @@ import {
   MoreVertical,
   CheckCircle,
   XCircle,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
-import { bulkUpdateMemberStatusAction } from "@/lib/actions/members";
+import {
+  bulkUpdateMemberStatusAction,
+  deleteMemberAction,
+} from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import {
@@ -149,6 +153,38 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     }));
     exportToCSV(dataToExport, "members_list.csv");
     toast.success("Данните са експортирани успешно");
+  };
+
+  const handleDeleteMember = async (
+    e: React.MouseEvent,
+    id: string,
+    name: string
+  ) => {
+    e.stopPropagation();
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Наистина ли искате да изтриете ${name}? Това действие е необратимо.`
+      )
+    )
+      return;
+
+    try {
+      const result = await deleteMemberAction(id, idToken);
+      if (result.success) {
+        toast.success("Членът е изтрит");
+        router.refresh();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Възникна сървърна грешка");
+    }
   };
 
   return (
@@ -362,6 +398,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     <TableHead className="text-right px-6 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[120px]">
                       Статус
                     </TableHead>
+                    <TableHead className="w-[60px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -460,6 +497,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                               : "Неактивен"}
                           </Badge>
                         </TableCell>
+                        <TableCell className="px-4">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) =>
+                              handleDeleteMember(
+                                e,
+                                member.id,
+                                `${member.firstName} ${member.lastName}`
+                              )
+                            }
+                            className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -514,16 +567,32 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           </div>
                         </div>
                       </div>
-                      <Badge
-                        className={cn(
-                          "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
-                          member.status === "active"
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-                        )}
-                      >
-                        {member.status === "active" ? "Активен" : "Неактивен"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          className={cn(
+                            "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
+                            member.status === "active"
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                          )}
+                        >
+                          {member.status === "active" ? "Активен" : "Неактивен"}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) =>
+                            handleDeleteMember(
+                              e,
+                              member.id,
+                              `${member.firstName} ${member.lastName}`
+                            )
+                          }
+                          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-900">
                       <div className="flex items-center gap-1.5 text-zinc-400">
