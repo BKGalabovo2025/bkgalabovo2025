@@ -1,40 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound, useParams } from "next/navigation";
-import ServiceForm from "./ServiceForm";
+import { notFound, useParams, useRouter } from "next/navigation";
+import { useFormState } from "react-dom";
+import { updateClubService, ServiceState } from "@/lib/actions/services";
+import { useAuth } from "@/context/auth-context";
+import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
+import { ServiceForm } from "@/components/finances/ServiceForm";
+import { Service } from "../../service.types";
 import { Loader2 } from "lucide-react";
-import { getActivePrices } from "@/services/price-service";
-import { Price } from "@/types";
 
-// --- Type Definition ---
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  description: string;
-  type: string;
-  billingPeriod?: string;
-  targetGroups?: string[];
-  grantsLicense?: boolean;
-  licenseCondition?: string;
-  licensePaymentCount?: number;
-  grantsApparel?: boolean;
-  apparelCondition?: string;
-  apparelPaymentCount?: number;
-  durationMinutes?: number;
-  priceId?: string;
-}
-
-// --- Page Component (Client Component) ---
 export default function EditServicePage() {
   const params = useParams();
+  const router = useRouter();
   const serviceId = params.serviceId as string;
+  const { idToken } = useAuth();
+
   const [service, setService] = useState<Service | null>(null);
-  const [activePrices, setActivePrices] = useState<Price[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  const initialState: ServiceState = {
+    message: "",
+    success: false,
+    errors: {},
+  };
+
+  const updateServiceWithToken = async (
+    prevState: ServiceState,
+    formData: FormData
+  ): Promise<ServiceState> => {
+    if (!idToken) {
+      return {
+        success: false,
+        message: "Няма валиден токен за оторизация. Моля, влезте отново.",
+      };
+    }
+    return updateClubService(serviceId, idToken, prevState, formData);
+  };
+
+  const [state, formAction] = useFormState(
+    updateServiceWithToken,
+    initialState
+  );
 
   useEffect(() => {
     if (!serviceId) return;
@@ -42,16 +51,10 @@ export default function EditServicePage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const serviceResponse = await fetch(`/api/services/${serviceId}`);
-        if (!serviceResponse.ok) {
-          throw new Error("Failed to fetch service");
-        }
-        const serviceData = await serviceResponse.json();
-
-        const pricesData = await getActivePrices();
-
-        setService(serviceData);
-        setActivePrices(pricesData);
+        const response = await fetch(`/api/services/${serviceId}`);
+        if (!response.ok) throw new Error("Failed to fetch service");
+        const data = await response.json();
+        setService(data);
       } catch (err) {
         setError(true);
         console.error(err);
@@ -62,21 +65,56 @@ export default function EditServicePage() {
     fetchData();
   }, [serviceId]);
 
+  useEffect(() => {
+    if (state?.message) {
+      if (state.success) {
+        toast.success("Готово!", { description: state.message });
+        router.push("/finances/services");
+      } else {
+        toast.error("Грешка", { description: state.message });
+      }
+    }
+  }, [state, router]);
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2
+          className="h-10 w-10 animate-spin text-zinc-300"
+          strokeWidth={1}
+        />
+        <p className="text-sm text-zinc-400 uppercase tracking-widest font-light">
+          Зареждане на услуга...
+        </p>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !service) {
     notFound();
   }
 
-  if (!service) {
-    return null; // Or some other placeholder
-  }
+  return (
+    <div className="space-y-12 animate-in fade-in duration-700">
+      <PageHeader
+        title="Редакция на Услуга"
+        description={`Промяна на детайлите за "${service.name}"`}
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Финанси", href: "/finances" },
+          { label: "Услуги", href: "/finances/services" },
+          { label: "Редакция" },
+        ]}
+      />
 
-  return <ServiceForm service={service} activePrices={activePrices} />;
+      <div className="max-w-6xl">
+        <ServiceForm
+          initialData={service}
+          onSubmit={formAction}
+          onCancel={() => router.back()}
+          errors={state?.errors}
+        />
+      </div>
+    </div>
+  );
 }

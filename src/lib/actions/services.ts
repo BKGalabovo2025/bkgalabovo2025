@@ -8,19 +8,24 @@ import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
-  name: z.string().min(3, "Името трябва да е поне 3 символа."),
-  priceId: z.string().min(1, "Моля, изберете цена."),
-  description: z.string().min(10, "Описанието трябва да е поне 10 символа."),
+  name: z.string().min(2, "Името трябва да е поне 2 символа."),
+  price: z.coerce.number().min(0, "Цената трябва да е положително число."),
+  currency: z.string().default("EUR"),
+  description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
   type: z.enum(["Абонамент", "Еднократно плащане"]),
-  targetGroups: z.array(z.string()).optional(),
-  billingPeriod: z.string().optional(),
-  grantsLicense: z.boolean().optional(),
+  targetGroups: z.array(z.string()).default([]),
+  billingPeriod: z.string().optional().nullable(),
+  grantsLicense: z.boolean().default(false),
   licenseCondition: z.string().optional(),
   licensePaymentCount: z.coerce.number().optional(),
-  grantsApparel: z.boolean().optional(),
+  grantsApparel: z.boolean().default(false),
   apparelCondition: z.string().optional(),
   apparelPaymentCount: z.coerce.number().optional(),
   durationMinutes: z.coerce.number().optional(),
+  isCoachLed: z.boolean().default(true),
+  requiresBooking: z.boolean().default(false),
+  maxMembers: z.coerce.number().optional(),
+  minMembers: z.coerce.number().optional(),
 });
 
 // --- Type for Server Action State ---
@@ -32,10 +37,11 @@ export type ServiceState = {
 
 // --- Helper Functions (Private) ---
 
-function _parseFormData(formData: FormData): z.infer<typeof ServiceSchema> {
+function _parseFormData(formData: FormData) {
   return {
     name: formData.get("name") as string,
-    priceId: formData.get("priceId") as string,
+    price: formData.get("price"),
+    currency: (formData.get("currency") as string) || "EUR",
     description: formData.get("description") as string,
     type: formData.get("type") as "Абонамент" | "Еднократно плащане",
     targetGroups: formData.getAll("targetGroups") as string[],
@@ -43,10 +49,24 @@ function _parseFormData(formData: FormData): z.infer<typeof ServiceSchema> {
     grantsApparel: formData.get("grantsApparel") === "on",
     billingPeriod: formData.get("billingPeriod") as string,
     licenseCondition: formData.get("licenseCondition") as string,
-    licensePaymentCount: Number(formData.get("licensePaymentCount")),
+    licensePaymentCount: formData.get("licensePaymentCount")
+      ? Number(formData.get("licensePaymentCount"))
+      : undefined,
     apparelCondition: formData.get("apparelCondition") as string,
-    apparelPaymentCount: Number(formData.get("apparelPaymentCount")),
-    durationMinutes: Number(formData.get("durationMinutes")),
+    apparelPaymentCount: formData.get("apparelPaymentCount")
+      ? Number(formData.get("apparelPaymentCount"))
+      : undefined,
+    durationMinutes: formData.get("durationMinutes")
+      ? Number(formData.get("durationMinutes"))
+      : undefined,
+    isCoachLed: formData.get("isCoachLed") === "on",
+    requiresBooking: formData.get("requiresBooking") === "on",
+    maxMembers: formData.get("maxMembers")
+      ? Number(formData.get("maxMembers"))
+      : undefined,
+    minMembers: formData.get("minMembers")
+      ? Number(formData.get("minMembers"))
+      : undefined,
   };
 }
 
@@ -70,6 +90,65 @@ async function _logHistory(
 
 // --- Public Server Actions ---
 
+export async function createClubService(
+  idToken: string,
+  _prevState: ServiceState,
+  formData: FormData
+): Promise<ServiceState> {
+  try {
+    const user = await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+    const rawData = _parseFormData(formData);
+
+    const validatedFields = ServiceSchema.safeParse(rawData);
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: "Моля, проверете въведените данни.",
+      };
+    }
+
+    const data = validatedFields.data;
+    const serviceId = `svc_${Date.now()}`;
+
+    await adminDb
+      .collection("clubServices")
+      .doc(serviceId)
+      .set({
+        ...data,
+        id: serviceId,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        createdBy: {
+          userId: user.uid,
+          userName: user.displayName || user.email,
+        },
+      });
+
+    await _logHistory(
+      adminDb,
+      serviceId,
+      user.uid,
+      user.displayName || user.email || "Unknown User",
+      "create",
+      `Създадена услуга: ${data.name}`
+    );
+
+    revalidatePath("/finances/services");
+    return {
+      success: true,
+      message: `Услугата '${data.name}' беше създадена успешно.`,
+    };
+  } catch (error: unknown) {
+    console.error("Server Action Error:", error);
+    return {
+      success: false,
+      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+    };
+  }
+}
+
 export async function updateClubService(
   id: string,
   idToken: string,
@@ -79,113 +158,83 @@ export async function updateClubService(
   try {
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
-    const parsedData = _parseFormData(formData);
+    const rawData = _parseFormData(formData);
 
-    const validatedFields = ServiceSchema.safeParse(parsedData);
+    const validatedFields = ServiceSchema.safeParse(rawData);
     if (!validatedFields.success) {
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Validation failed.",
+        message: "Моля, проверете въведените данни.",
       };
     }
 
-    const { priceId, ...dataToSave } = validatedFields.data;
+    const data = validatedFields.data;
 
-    const priceRef = adminDb.collection("prices").doc(priceId);
-    const priceSnap = await priceRef.get();
-    if (!priceSnap.exists) throw new Error("Selected price is invalid.");
-    const priceData = priceSnap.data()!;
-
-    const serviceRef = adminDb.collection("clubServices").doc(id);
-    await serviceRef.update({
-      ...dataToSave,
-      price: priceData.value,
-      currency: priceData.currency,
-      priceId,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedBy: { userId: user.uid, userName: user.displayName || user.email },
-    });
+    await adminDb
+      .collection("clubServices")
+      .doc(id)
+      .update({
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: {
+          userId: user.uid,
+          userName: user.displayName || user.email,
+        },
+      });
 
     await _logHistory(
       adminDb,
       id,
       user.uid,
-      user.displayName || "Unknown User",
+      user.displayName || user.email || "Unknown User",
       "update",
-      "Service details updated."
+      `Обновена услуга: ${data.name}`
     );
 
     revalidatePath("/finances/services");
-    revalidatePath(`/finances/services/${id}/history`);
+    revalidatePath(`/finances/services/${id}`);
     return {
       success: true,
-      message: `Service '${dataToSave.name}' updated successfully.`,
+      message: `Услугата '${data.name}' беше обновена успешно.`,
     };
   } catch (error: unknown) {
     console.error("Server Action Error:", error);
     return {
       success: false,
-      message: `Server Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
     };
   }
 }
 
-export async function createClubService(
-  idToken: string,
-  _prevState: ServiceState,
-  formData: FormData
-): Promise<ServiceState> {
+export async function deleteClubService(idToken: string, id: string) {
   try {
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
-    const parsedData = _parseFormData(formData);
 
-    const validatedFields = ServiceSchema.safeParse(parsedData);
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        errors: validatedFields.error.flatten().fieldErrors,
-        message: "Validation failed.",
-      };
+    const serviceRef = adminDb.collection("clubServices").doc(id);
+    const serviceSnap = await serviceRef.get();
+
+    if (!serviceSnap.exists) {
+      return { success: false, message: "Услугата не е намерена." };
     }
 
-    const { priceId, ...dataToSave } = validatedFields.data;
-
-    const priceRef = adminDb.collection("prices").doc(priceId);
-    const priceSnap = await priceRef.get();
-    if (!priceSnap.exists) throw new Error("Selected price is invalid.");
-    const priceData = priceSnap.data()!;
-
-    const docRef = await adminDb.collection("clubServices").add({
-      ...dataToSave,
-      price: priceData.value,
-      currency: priceData.currency,
-      priceId,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-      createdBy: { userId: user.uid, userName: user.displayName || user.email },
-    });
+    const serviceData = serviceSnap.data();
+    await serviceRef.delete();
 
     await _logHistory(
       adminDb,
-      docRef.id,
+      id,
       user.uid,
-      user.displayName || "Unknown User",
-      "create",
-      "Service created."
+      user.displayName || user.email || "Unknown User",
+      "delete",
+      `Изтрита услуга: ${serviceData?.name}`
     );
 
     revalidatePath("/finances/services");
-    return {
-      success: true,
-      message: `Service '${dataToSave.name}' created successfully.`,
-    };
-  } catch (error: unknown) {
-    console.error("Server Action Error:", error);
-    return {
-      success: false,
-      message: `Server Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-    };
+    return { success: true, message: "Услугата беше изтрита успешно." };
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    return { success: false, message: "Възникна грешка при изтриването." };
   }
 }

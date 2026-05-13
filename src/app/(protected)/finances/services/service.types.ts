@@ -1,12 +1,62 @@
 import { z } from "zod";
 
+export const SpecialRightSchema = z.object({
+  right: z.string(),
+  description: z.string(),
+  trigger: z
+    .object({
+      condition: z.enum(["IMMEDIATE", "AFTER_N_PAYMENTS"]),
+      paymentCount: z.number().optional(),
+    })
+    .optional(),
+});
+
+export const CancellationPolicySchema = z.object({
+  isAllowed: z.boolean().default(true),
+  noticePeriodDays: z.number().default(5),
+  feeType: z.enum(["none", "fixed", "percentage"]).default("none"),
+  feeValue: z.number().default(0),
+  description: z.string().optional(),
+  longTermSicknessDiscount: z.number().default(0.5),
+});
+
+export const PaymentRulesSchema = z.object({
+  window: z
+    .object({
+      startDay: z.number().default(1),
+      endDay: z.number().default(10),
+    })
+    .optional(),
+});
+
 export const ServiceSchema = z.object({
   id: z.string(),
   name: z.string(),
-  price: z.number(),
   description: z.string(),
-  type: z.string(),
-  billingPeriod: z.string(),
+  price: z.number(),
+  currency: z.string().default("EUR"),
+  type: z.enum(["Абонамент", "Еднократно плащане"]),
+  targetGroups: z.array(z.string()).default([]),
+  billingPeriod: z.string().nullable().optional(),
+  durationMinutes: z.number().optional(),
+  isCoachLed: z.boolean().default(true),
+  requiresBooking: z.boolean().default(false),
+  grantsLicense: z.boolean().default(false),
+  licenseCondition: z.string().optional(),
+  licensePaymentCount: z.number().optional(),
+  grantsApparel: z.boolean().default(false),
+  apparelCondition: z.string().optional(),
+  apparelPaymentCount: z.number().optional(),
+  maxMembers: z.number().optional(),
+  minMembers: z.number().optional(),
+  specialRights: z.array(SpecialRightSchema).optional(),
+  cancellationPolicy: CancellationPolicySchema.optional(),
+  paymentRules: PaymentRulesSchema.optional(),
+  createdAt: z.any().optional(),
+  updatedAt: z.any().optional(),
 });
 
 export type Service = z.infer<typeof ServiceSchema>;
+export type SpecialRight = z.infer<typeof SpecialRightSchema>;
+export type CancellationPolicy = z.infer<typeof CancellationPolicySchema>;
+export type PaymentRules = z.infer<typeof PaymentRulesSchema>;
