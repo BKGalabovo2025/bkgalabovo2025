@@ -82,6 +82,7 @@ import { useRef, useState } from "react";
 interface MemberDetailsCardProps {
   member: Member;
   familyMembers: Member[];
+  family?: import("@/hooks/useMemberProfile").Family | null;
   onRefresh?: () => void;
 }
 
@@ -93,6 +94,7 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
 export const MemberDetailsCard = ({
   member,
   familyMembers,
+  family,
   onRefresh,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
@@ -365,6 +367,15 @@ export const MemberDetailsCard = ({
                     {ageGroup}
                   </Badge>
                 )}
+                {family && (
+                  <Badge
+                    variant="outline"
+                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 bg-zinc-950 text-white border-zinc-950 cursor-pointer hover:bg-zinc-800 transition-colors"
+                    onClick={() => router.push(`/families/${family.id}`)}
+                  >
+                    Семейство: {family.name}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -447,6 +458,16 @@ export const MemberDetailsCard = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
               <InfoRow icon={Mail} label="Имейл" value={member.email} />
               <InfoRow icon={Phone} label="Телефон" value={member.phone} />
+              <InfoRow
+                icon={Users}
+                label="Семейство"
+                value={family?.name}
+                onClick={
+                  family
+                    ? () => router.push(`/families/${family.id}`)
+                    : undefined
+                }
+              />
               <InfoRow
                 icon={PhoneCall}
                 label="Тип на телефона"
@@ -1169,33 +1190,40 @@ const InfoRow = ({
   label,
   value,
   isBlock = false,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | null | undefined;
   isBlock?: boolean;
+  onClick?: () => void;
 }) => {
   if (value === null || value === undefined || value === "") return null;
 
   return (
     <div
+      onClick={onClick}
       className={cn(
         "flex py-4 sm:py-6 border-b border-zinc-50 last:border-0",
+        onClick && "cursor-pointer group/row",
         isBlock
           ? "flex-col items-start gap-3 sm:gap-4"
           : "flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0">
-          <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
+        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0 group-hover/row:bg-zinc-100 transition-colors">
+          <Icon
+            className="h-3.5 w-3.5 text-zinc-400 group-hover/row:text-zinc-950 transition-colors"
+            strokeWidth={1.5}
+          />
         </div>
-        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 group-hover/row:text-zinc-950 transition-colors">
           {label}
         </span>
       </div>
       {!isBlock ? (
-        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0">
+        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0 group-hover/row:font-medium transition-all">
           {value}
         </span>
       ) : (

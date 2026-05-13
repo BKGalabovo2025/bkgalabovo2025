@@ -59,6 +59,18 @@ export async function createMemberAction(
       createdBy: { uid: user.uid, email: user.email },
     });
 
+    // If member is created with a familyId, update the family document
+    if (data.familyId) {
+      await adminDb
+        .collection("families")
+        .doc(data.familyId as string)
+        .update({
+          memberIds: FieldValue.arrayUnion(docRef.id),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      revalidatePath(`/families/${data.familyId}`);
+    }
+
     revalidatePath("/members");
     revalidatePath("/dashboard");
 
@@ -126,6 +138,33 @@ export async function updateMemberAction(
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: { uid: user.uid, email: user.email },
     });
+
+    // Handle family changes if familyId is provided in the update
+    if (data.familyId !== undefined && data.familyId !== currentData.familyId) {
+      // Remove from old family
+      if (currentData.familyId) {
+        await adminDb
+          .collection("families")
+          .doc(currentData.familyId)
+          .update({
+            memberIds: FieldValue.arrayRemove(id),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        revalidatePath(`/families/${currentData.familyId}`);
+      }
+
+      // Add to new family
+      if (data.familyId) {
+        await adminDb
+          .collection("families")
+          .doc(data.familyId as string)
+          .update({
+            memberIds: FieldValue.arrayUnion(id),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        revalidatePath(`/families/${data.familyId}`);
+      }
+    }
 
     revalidatePath("/members");
     revalidatePath(`/members/${id}`);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
@@ -14,6 +14,8 @@ type MemberFormValues = Omit<
 
 const NewMemberPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const familyId = searchParams.get("familyId");
   const { idToken } = useAuth();
 
   const handleSave = async (data: MemberFormValues) => {
@@ -52,7 +54,11 @@ const NewMemberPage = () => {
   return (
     <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold mb-4">Добавяне на нов член</h1>
-      <MemberForm onSave={handleSave} onClose={handleClose} />
+      <MemberForm
+        onSave={handleSave}
+        onClose={handleClose}
+        initialData={familyId ? ({ familyId } as any) : undefined}
+      />
     </div>
   );
 };

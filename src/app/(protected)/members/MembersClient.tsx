@@ -39,6 +39,7 @@ import {
   bulkUpdateMemberStatusAction,
   deleteMemberAction,
 } from "@/lib/actions/members";
+import { CreateFamilyDialog } from "@/components/families/CreateFamilyDialog";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import {
@@ -726,21 +727,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               );
             })}
 
-            <BentoCard
-              className="p-6 flex flex-col items-center justify-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-3xl shadow-none cursor-pointer hover:border-zinc-300 transition-all group"
-              onClick={() =>
-                toast.info(
-                  "Функционалността за нови семейства ще бъде добавена скоро."
-                )
-              }
-            >
-              <div className="p-4 bg-white dark:bg-zinc-800 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                <PlusCircle className="h-6 w-6 text-zinc-400" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                Ново семейство
-              </p>
-            </BentoCard>
+            <CreateFamilyDialog />
           </div>
         </TabsContent>
       </Tabs>

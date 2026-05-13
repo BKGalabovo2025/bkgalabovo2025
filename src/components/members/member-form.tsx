@@ -52,7 +52,7 @@ export const MemberForm = ({
   const { activeBranch } = useAppStore();
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(MemberFormSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       siteId: activeBranch,
       firstName: "",
       middleName: "",
@@ -73,6 +73,8 @@ export const MemberForm = ({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
+      egn: "",
+      ...initialData,
     },
   });
 
