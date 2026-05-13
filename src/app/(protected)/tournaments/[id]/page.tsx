@@ -55,6 +55,7 @@ export default function TournamentDetailsPage() {
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
 
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -63,6 +64,8 @@ export default function TournamentDetailsPage() {
   const [activeTab, setActiveTab] = useState("participants");
 
   const loadData = useCallback(async () => {
+    if (!tournamentId) return;
+
     setLoading(true);
     try {
       const [tournData, entriesData, matchesData, membersData] =
@@ -108,10 +111,12 @@ export default function TournamentDetailsPage() {
   }, [tournamentId, router]);
 
   useEffect(() => {
-    if (tournamentId) {
-      Promise.resolve().then(() => loadData());
-    }
-  }, [tournamentId, loadData]);
+    const timer = setTimeout(() => {
+      setMounted(true);
+      loadData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadData]);
 
   const handleGenerateMatches = async () => {
     if (!tournament) return;
@@ -348,7 +353,7 @@ export default function TournamentDetailsPage() {
     [entries, getPlayerName]
   );
 
-  if (loading)
+  if (!mounted || loading)
     return <div className="p-12 text-center">Зареждане на детайли...</div>;
   if (!tournament) return null;
 

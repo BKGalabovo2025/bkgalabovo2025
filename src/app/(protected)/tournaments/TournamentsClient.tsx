@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
 import { TournamentForm } from "@/components/tournaments/tournament-form";
@@ -31,6 +31,8 @@ import { Input } from "@/components/ui/input";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 
+import { useAppStore } from "@/store/use-app-store";
+
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
 }
@@ -38,6 +40,8 @@ interface TournamentsClientProps {
 export default function TournamentsClient({
   initialTournaments,
 }: TournamentsClientProps) {
+  const { activeBranch } = useAppStore();
+  const [mounted, setMounted] = useState(false);
   const [tournaments, setTournaments] =
     useState<Tournament[]>(initialTournaments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,14 +50,28 @@ export default function TournamentsClient({
   );
   const [searchTerm, setSearchTerm] = useState("");
 
-  const refreshTournaments = async () => {
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const refreshTournaments = useCallback(async () => {
     try {
       const data = await tournamentService.getTournaments();
       setTournaments(data);
     } catch {
       toast.error("Грешка при опресняване");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        refreshTournaments();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [activeBranch, mounted, refreshTournaments]);
 
   const handleSave = async (data: Tournament) => {
     try {
@@ -108,6 +126,8 @@ export default function TournamentsClient({
   const completedTournaments = filteredTournaments.filter(
     (t) => t.status === "completed"
   );
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
