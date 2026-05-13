@@ -88,6 +88,16 @@ async function _logHistory(
   });
 }
 
+function cleanObject(obj: any) {
+  const newObj: any = {};
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined) {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
+}
+
 // --- Public Server Actions ---
 
 export async function createClubService(
@@ -109,7 +119,7 @@ export async function createClubService(
       };
     }
 
-    const data = validatedFields.data;
+    const data = cleanObject(validatedFields.data);
     const serviceId = `svc_${Date.now()}`;
 
     await adminDb
@@ -169,7 +179,7 @@ export async function updateClubService(
       };
     }
 
-    const data = validatedFields.data;
+    const data = cleanObject(validatedFields.data);
 
     await adminDb
       .collection("clubServices")

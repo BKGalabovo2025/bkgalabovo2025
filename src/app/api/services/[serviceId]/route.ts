@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serializeFirestoreData } from "@/lib/serialize-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,10 @@ async function getService(id: string) {
     return null;
   }
 
-  return {
+  return serializeFirestoreData({
     id: docSnap.id,
     ...docSnap.data(),
-  };
+  });
 }
 
 export async function GET(

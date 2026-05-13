@@ -50,7 +50,7 @@ export default function FinancesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {financeLinks.map((item) => (
           <Link key={item.href} href={item.href} className="group">
-            <BentoCard className="p-10 h-full flex flex-col justify-between transition-all duration-500 group-hover:bg-zinc-950 group-hover:text-white border-zinc-100 bg-white shadow-none rounded-[3rem] group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:shadow-zinc-200">
+            <BentoCard className="p-10 h-full flex flex-col justify-between transition-all duration-500 group-hover:bg-zinc-950 group-hover:text-white border-zinc-100 bg-white shadow-none rounded-6xl group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:shadow-zinc-200">
               <div className="relative z-10">
                 <div className="flex justify-between items-start mb-12">
                   <div className="p-4 rounded-3xl bg-zinc-50 border border-zinc-100 text-zinc-900 transition-all duration-500 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/20">
