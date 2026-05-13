@@ -75,7 +75,7 @@ export const SidebarProvider = React.forwardRef<
       <SidebarContext.Provider value={contextValue}>
         <div
           className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+            "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
             className
           )}
           ref={ref}
@@ -121,8 +121,10 @@ export const Sidebar = React.forwardRef<
           )}
           <div
             ref={ref}
+            role="dialog"
+            aria-modal="true"
             className={cn(
-              "fixed inset-y-0 left-0 z-[100] w-[280px] bg-white dark:bg-zinc-950 transition-transform duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900 shadow-2xl",
+              "fixed inset-y-0 left-0 z-999 w-[280px] bg-white dark:bg-zinc-950 flex flex-col transition-transform duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900 shadow-2xl pointer-events-auto overflow-y-auto",
               open ? "translate-x-0" : "-translate-x-full",
               className
             )}
@@ -274,7 +276,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       aria-label={open ? "Затвори меню" : "Отвори меню"}
       className={cn(
-        "flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white hover:bg-zinc-50 transition-all z-[70] relative shadow-sm active:scale-95",
+        "flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white hover:bg-zinc-50 transition-all z-70 relative shadow-sm active:scale-95",
         className
       )}
       onClick={(e) => {

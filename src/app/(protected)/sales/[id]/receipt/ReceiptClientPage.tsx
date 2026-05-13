@@ -66,36 +66,45 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc: Document) => {
-          // IMPORTANT: Isolate the printable element to avoid html2canvas parsing
-          // problematic CSS (like lab() or oklch()) in the rest of the application.
+          // 1. SANITIZE STYLESHEETS: html2canvas crashes on lab(), oklch(), etc.
+          // We must strip these from the cloned document's head styles.
+          const styleTags = clonedDoc.getElementsByTagName("style");
+          for (let i = 0; i < styleTags.length; i++) {
+            const style = styleTags[i];
+            if (style.innerHTML) {
+              // Replace any lab(), oklch(), lch(), oklab() with a safe color
+              style.innerHTML = style.innerHTML.replace(
+                /(lab|oklch|lch|oklab)\([^)]+\)/g,
+                "inherit"
+              );
+            }
+          }
+
+          // 2. ISOLATE CONTENT: Clear body and only re-add the printable area
           const printable = clonedDoc.querySelector(
             ".printable-area"
           ) as HTMLElement;
           if (printable) {
-            // Clear body and only re-add the printable area
             const body = clonedDoc.body;
             body.innerHTML = "";
             body.appendChild(printable);
 
-            // Apply essential styles for the snapshot
+            // 3. REFINE PRINTABLE STYLES: Ensure clean background and spacing
             printable.style.boxShadow = "none";
             printable.style.border = "none";
             printable.style.margin = "0";
-            printable.style.padding = "40px"; // Give some breathing room in the PDF
+            printable.style.padding = "40px";
             printable.style.width = "auto";
             printable.style.background = "white";
 
-            // Force standard colors for any elements that might use modern CSS colors
+            // 4. FORCE LEGACY COLORS: Override primary brand colors
             const all = printable.querySelectorAll("*");
             all.forEach((el) => {
               if (el instanceof HTMLElement) {
-                // If the element has a color or background color, we ensure it's not lab/oklch
-                // Since window.getComputedStyle can be slow, we only override if needed
                 if (
                   el.classList.contains("text-primary") ||
                   el.classList.contains("bg-primary")
                 ) {
-                  // Primary color in our config is #0ea5e9 or similar
                   if (el.classList.contains("text-primary"))
                     el.style.color = "#0ea5e9";
                   if (el.classList.contains("bg-primary"))

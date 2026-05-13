@@ -34,13 +34,22 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
+import { useAppStore } from "@/store/use-app-store";
 import { BranchSelector } from "./branch-selector";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
   const { setOpen, isMobile, open } = useSidebar();
   const { logout } = useAuth();
+  const { activeBranch } = useAppStore();
 
+  const isRecoveryZone = activeBranch === "recoveryzone";
+  const brandLogo = isRecoveryZone ? "/1.png" : "/logo.png";
+
+  const brandTitle = isRecoveryZone ? "RECOVERY ZONE" : "БАДМИНТОН КЛУБ";
+  const brandSubtitle = isRecoveryZone ? "by ZM" : "ГЪЛЪБОВО";
+
+  // Close sidebar on mobile when navigating
   React.useEffect(() => {
     if (isMobile) {
       setOpen(false);
@@ -53,16 +62,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       collapsible="icon"
       className="border-r-0 bg-white dark:bg-zinc-950"
     >
-      <SidebarHeader className="h-20 flex items-center px-6 border-none">
+      <SidebarHeader className="h-auto py-6 flex flex-col gap-4 px-6 border-none">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">
               <Link href="/">
                 <Image
-                  src="/logo.png"
+                  src={brandLogo}
                   alt="Logo"
-                  width={32}
-                  height={32}
+                  width={40}
+                  height={40}
                   className="object-contain"
                 />
               </Link>
@@ -70,10 +79,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             {open && (
               <div className="flex flex-col animate-in fade-in duration-300">
                 <span className="font-medium text-sm tracking-wide whitespace-nowrap text-zinc-900 dark:text-white leading-tight">
-                  БАДМИНТОН КЛУБ
+                  {brandTitle}
                 </span>
                 <span className="font-light text-xs tracking-[0.2em] whitespace-nowrap text-primary uppercase">
-                  ГЪЛЪБОВО
+                  {brandSubtitle}
                 </span>
               </div>
             )}
@@ -87,30 +96,34 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </button>
           )}
         </div>
-      </SidebarHeader>
 
-      {open && (
-        <div className="px-6 mb-4 animate-in fade-in slide-in-from-top-1 duration-500">
-          <BranchSelector />
-        </div>
-      )}
+        {open && (
+          <div className="animate-in fade-in slide-in-from-top-1 duration-500">
+            <BranchSelector />
+          </div>
+        )}
+      </SidebarHeader>
       <SidebarContent className="px-4 py-4">
         <SidebarGroup>
-          <SidebarMenu className="gap-2">
+          <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={pathname === "/dashboard"}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none active:bg-primary/10"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none active:bg-primary/10"
               >
-                <Link href="/dashboard" className="flex items-center gap-4">
-                  <Home size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Начало</span>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Home size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Начало</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-4 mt-2 text-[11px] font-medium text-zinc-400 uppercase tracking-[0.15em]">
+            <div className="px-4 py-2 mt-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
               Управление
             </div>
 
@@ -118,11 +131,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/members")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/members" className="flex items-center gap-4">
-                  <Users size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Членове</span>
+                <Link
+                  href="/members"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Users size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Членове</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -131,11 +148,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/schedule")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/schedule" className="flex items-center gap-4">
-                  <Calendar size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">График</span>
+                <Link
+                  href="/schedule"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Calendar size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">График</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -144,11 +165,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/reservations")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/reservations" className="flex items-center gap-4">
-                  <CalendarCheck size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Резервации</span>
+                <Link
+                  href="/reservations"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <CalendarCheck size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Резервации</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -157,16 +182,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/recovery")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/recovery" className="flex items-center gap-4">
-                  <Activity size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Възстановяване</span>
+                <Link
+                  href="/recovery"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Activity size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Възстановяване</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-4 mt-2 text-[11px] font-medium text-zinc-400 uppercase tracking-[0.15em]">
+            <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
               Финанси
             </div>
 
@@ -174,11 +203,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/finances")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/finances" className="flex items-center gap-4">
-                  <Landmark size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Финанси</span>
+                <Link
+                  href="/finances"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Landmark size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Финанси</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -187,11 +220,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/sales")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/sales" className="flex items-center gap-4">
-                  <ShoppingCart size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Продажби</span>
+                <Link
+                  href="/sales"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <ShoppingCart size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Продажби</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -200,28 +237,36 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/inventory")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/inventory" className="flex items-center gap-4">
-                  <Boxes size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Инвентар</span>
+                <Link
+                  href="/inventory"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Boxes size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Инвентар</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-4 mt-2 text-[11px] font-medium text-zinc-400 uppercase tracking-[0.15em]">
-              Спорт
+            <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+              Система
             </div>
 
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/subscriptions")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/subscriptions" className="flex items-center gap-4">
-                  <Repeat size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Абонаменти</span>
+                <Link
+                  href="/subscriptions"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Repeat size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Абонаменти</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -230,11 +275,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/tournaments")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/tournaments" className="flex items-center gap-4">
-                  <Trophy size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Турнири</span>
+                <Link
+                  href="/tournaments"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Trophy size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Турнири</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -243,11 +292,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/rankings")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/rankings" className="flex items-center gap-4">
-                  <Medal size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Ранглиста</span>
+                <Link
+                  href="/rankings"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Medal size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Ранглиста</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -256,11 +309,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/reports")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/reports" className="flex items-center gap-4">
-                  <BarChart size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Отчети</span>
+                <Link
+                  href="/reports"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <BarChart size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Отчети</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -269,11 +326,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/settings")}
-                className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
-                <Link href="/settings" className="flex items-center gap-4">
-                  <Settings size={20} strokeWidth={1.5} />
-                  <span className="text-[15px]">Настройки</span>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Settings size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Настройки</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -285,16 +346,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="h-12 px-4 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all cursor-pointer border-none"
+              className="h-11 px-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all border-none"
             >
               <Link
                 href="/settings?tab=profile"
-                className="flex items-center gap-4"
+                className="flex items-center gap-3 w-full"
+                onClick={() => isMobile && setOpen(false)}
               >
-                <div className="h-8 w-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 transition-colors">
-                  <User size={16} />
+                <div className="h-7 w-7 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 transition-colors">
+                  <User size={14} />
                 </div>
-                <span className="text-[15px]">Профил</span>
+                <span className="text-[14px]">Профил</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -302,10 +364,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               type="button"
               onClick={logout}
-              className="h-12 px-4 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
+              className="h-11 px-3 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
             >
-              <LogOut size={20} strokeWidth={1.5} />{" "}
-              <span className="text-[15px]">Изход</span>
+              <LogOut size={18} strokeWidth={1.5} />{" "}
+              <span className="text-[14px]">Изход</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
