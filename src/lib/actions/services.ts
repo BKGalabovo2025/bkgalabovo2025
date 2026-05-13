@@ -12,20 +12,20 @@ const ServiceSchema = z.object({
   price: z.coerce.number().min(0, "Цената трябва да е положително число."),
   currency: z.string().default("EUR"),
   description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
-  type: z.enum(["Абонамент", "Еднократно плащане"]),
+  type: z.enum(["Абонамент", "Годишен абонамент", "Еднократно плащане"]),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().optional().nullable(),
   grantsLicense: z.boolean().default(false),
-  licenseCondition: z.string().optional(),
-  licensePaymentCount: z.coerce.number().optional(),
+  licenseCondition: z.string().optional().nullable(),
+  licensePaymentCount: z.coerce.number().optional().nullable(),
   grantsApparel: z.boolean().default(false),
-  apparelCondition: z.string().optional(),
-  apparelPaymentCount: z.coerce.number().optional(),
-  durationMinutes: z.coerce.number().optional(),
+  apparelCondition: z.string().optional().nullable(),
+  apparelPaymentCount: z.coerce.number().optional().nullable(),
+  durationMinutes: z.coerce.number().optional().nullable(),
   isCoachLed: z.boolean().default(true),
   requiresBooking: z.boolean().default(false),
-  maxMembers: z.coerce.number().optional(),
-  minMembers: z.coerce.number().optional(),
+  maxMembers: z.coerce.number().optional().nullable(),
+  minMembers: z.coerce.number().optional().nullable(),
 });
 
 // --- Type for Server Action State ---
@@ -38,35 +38,42 @@ export type ServiceState = {
 // --- Helper Functions (Private) ---
 
 function _parseFormData(formData: FormData) {
+  const getStr = (key: string) => {
+    const val = formData.get(key);
+    return val === null ? undefined : (val as string);
+  };
+
+  const getNum = (key: string) => {
+    const val = formData.get(key);
+    if (val === null || val === "") return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  };
+
+  const getBool = (key: string) => {
+    const val = formData.get(key);
+    return val === "on" || val === "true";
+  };
+
   return {
-    name: formData.get("name") as string,
-    price: formData.get("price"),
-    currency: (formData.get("currency") as string) || "EUR",
-    description: formData.get("description") as string,
-    type: formData.get("type") as "Абонамент" | "Еднократно плащане",
+    name: getStr("name"),
+    price: formData.get("price"), // Let Zod handle coercion
+    currency: getStr("currency") || "EUR",
+    description: getStr("description"),
+    type: getStr("type"),
     targetGroups: formData.getAll("targetGroups") as string[],
-    grantsLicense: formData.get("grantsLicense") === "on",
-    grantsApparel: formData.get("grantsApparel") === "on",
-    billingPeriod: formData.get("billingPeriod") as string,
-    licenseCondition: formData.get("licenseCondition") as string,
-    licensePaymentCount: formData.get("licensePaymentCount")
-      ? Number(formData.get("licensePaymentCount"))
-      : undefined,
-    apparelCondition: formData.get("apparelCondition") as string,
-    apparelPaymentCount: formData.get("apparelPaymentCount")
-      ? Number(formData.get("apparelPaymentCount"))
-      : undefined,
-    durationMinutes: formData.get("durationMinutes")
-      ? Number(formData.get("durationMinutes"))
-      : undefined,
-    isCoachLed: formData.get("isCoachLed") === "on",
-    requiresBooking: formData.get("requiresBooking") === "on",
-    maxMembers: formData.get("maxMembers")
-      ? Number(formData.get("maxMembers"))
-      : undefined,
-    minMembers: formData.get("minMembers")
-      ? Number(formData.get("minMembers"))
-      : undefined,
+    grantsLicense: getBool("grantsLicense"),
+    grantsApparel: getBool("grantsApparel"),
+    billingPeriod: getStr("billingPeriod"),
+    licenseCondition: getStr("licenseCondition"),
+    licensePaymentCount: getNum("licensePaymentCount"),
+    apparelCondition: getStr("apparelCondition"),
+    apparelPaymentCount: getNum("apparelPaymentCount"),
+    durationMinutes: getNum("durationMinutes"),
+    isCoachLed: getBool("isCoachLed"),
+    requiresBooking: getBool("requiresBooking"),
+    maxMembers: getNum("maxMembers"),
+    minMembers: getNum("minMembers"),
   };
 }
 
@@ -91,7 +98,7 @@ async function _logHistory(
 function cleanObject(obj: any) {
   const newObj: any = {};
   Object.keys(obj).forEach((key) => {
-    if (obj[key] !== undefined) {
+    if (obj[key] !== undefined && obj[key] !== null) {
       newObj[key] = obj[key];
     }
   });
@@ -106,16 +113,23 @@ export async function createClubService(
   formData: FormData
 ): Promise<ServiceState> {
   try {
+    if (!idToken) throw new Error("Missing ID Token");
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
     const rawData = _parseFormData(formData);
 
     const validatedFields = ServiceSchema.safeParse(rawData);
     if (!validatedFields.success) {
+      const issues = validatedFields.error.issues;
+      const firstIssue = issues.length > 0 ? issues[0] : null;
+      const errorMsg = firstIssue
+        ? `${firstIssue.path.join(".")}: ${firstIssue.message}`
+        : "Validation Error";
+
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Моля, проверете въведените данни.",
+        message: `Грешка във валидацията: ${errorMsg}`,
       };
     }
 
@@ -166,16 +180,23 @@ export async function updateClubService(
   formData: FormData
 ): Promise<ServiceState> {
   try {
+    if (!id || !idToken) throw new Error("Missing ID or ID Token");
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
     const rawData = _parseFormData(formData);
 
     const validatedFields = ServiceSchema.safeParse(rawData);
     if (!validatedFields.success) {
+      const issues = validatedFields.error.issues;
+      const firstIssue = issues.length > 0 ? issues[0] : null;
+      const errorMsg = firstIssue
+        ? `${firstIssue.path.join(".")}: ${firstIssue.message}`
+        : "Validation Error";
+
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Моля, проверете въведените данни.",
+        message: `Грешка във валидацията: ${errorMsg}`,
       };
     }
 

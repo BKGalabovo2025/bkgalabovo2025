@@ -47,6 +47,9 @@ export function ServiceForm({
   const [apparelCondition, setApparelCondition] = useState<string>(
     initialData?.apparelCondition || "After N payments"
   );
+  const [billingPeriod, setBillingPeriod] = useState<string>(
+    initialData?.billingPeriod || "Месечен"
+  );
 
   return (
     <form
@@ -170,7 +173,7 @@ export function ServiceForm({
                   Целеви групи
                 </Label>
                 <div className="grid grid-cols-1 gap-3 pt-2">
-                  {["Деца", "Любители", "Състезатели"].map((group) => (
+                  {["Деца", "Любители"].map((group) => (
                     <label
                       key={group}
                       className="flex items-center gap-3 p-4 rounded-2xl border border-zinc-100 bg-zinc-50 cursor-pointer hover:bg-zinc-100 transition-colors"
@@ -189,21 +192,34 @@ export function ServiceForm({
                     </label>
                   ))}
                 </div>
+                {errors?.targetGroups && (
+                  <p className="text-xs text-red-500 ml-1">
+                    {errors.targetGroups[0]}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4">
                 <Label className="text-zinc-500 font-medium ml-1 text-xs uppercase tracking-widest">
                   Тип на услугата
                 </Label>
+                <input type="hidden" name="type" value={serviceType} />
                 <RadioGroup
-                  name="type"
                   value={serviceType}
-                  onValueChange={setServiceType}
+                  onValueChange={(val) => {
+                    setServiceType(val);
+                    if (val === "Годишен абонамент")
+                      setBillingPeriod("Годишен");
+                    else if (val === "Абонамент") setBillingPeriod("Месечен");
+                    else if (val === "Еднократно плащане")
+                      setBillingPeriod("Дневен");
+                  }}
                   className="grid grid-cols-1 gap-3 pt-2"
                   required
                 >
                   {[
                     { value: "Абонамент", label: "Месечен абонамент" },
+                    { value: "Годишен абонамент", label: "Годишен абонамент" },
                     {
                       value: "Еднократно плащане",
                       label: "Еднократно посещение",
@@ -227,6 +243,9 @@ export function ServiceForm({
                     </label>
                   ))}
                 </RadioGroup>
+                {errors?.type && (
+                  <p className="text-xs text-red-500 ml-1">{errors.type[0]}</p>
+                )}
               </div>
             </div>
           </BentoCard>
@@ -243,189 +262,206 @@ export function ServiceForm({
             </div>
 
             <div className="space-y-8">
-              {serviceType === "Абонамент" ? (
-                <div className="space-y-6 animate-in slide-in-from-right-4">
-                  <div className="space-y-2">
-                    <Label className="text-zinc-500 font-medium ml-1">
-                      Период на фактуриране
-                    </Label>
-                    <Select
-                      name="billingPeriod"
-                      defaultValue={initialData?.billingPeriod || "Месечен"}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Месечен">Месечен</SelectItem>
-                        <SelectItem value="Годишен">Годишен</SelectItem>
-                        <SelectItem value="Сезонен">Сезонен</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-4 p-5 rounded-3xl bg-zinc-50 border border-zinc-100">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="grantsLicense" className="font-medium">
-                        Дава право на картотека
-                      </Label>
-                      <Checkbox
-                        id="grantsLicense"
-                        name="grantsLicense"
-                        checked={grantsLicense}
-                        onCheckedChange={(c) => setGrantsLicense(c === true)}
-                      />
-                    </div>
-                    {grantsLicense && (
-                      <div className="space-y-3 pt-2 animate-in fade-in">
-                        <Select
-                          name="licenseCondition"
-                          value={licenseCondition}
-                          onValueChange={setLicenseCondition}
-                        >
-                          <SelectTrigger className="h-10 rounded-lg bg-white border-zinc-200 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Immediately">Веднага</SelectItem>
-                            <SelectItem value="After N payments">
-                              След N плащания
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {licenseCondition === "After N payments" && (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              name="licensePaymentCount"
-                              type="number"
-                              defaultValue={
-                                initialData?.licensePaymentCount || 1
-                              }
-                              className="h-10 w-20 bg-white"
-                            />
-                            <span className="text-xs text-zinc-500">
-                              вноски
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-4 p-5 rounded-3xl bg-zinc-50 border border-zinc-100">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="grantsApparel" className="font-medium">
-                        Дава право на екипировка
-                      </Label>
-                      <Checkbox
-                        id="grantsApparel"
-                        name="grantsApparel"
-                        checked={grantsApparel}
-                        onCheckedChange={(c) => setGrantsApparel(c === true)}
-                      />
-                    </div>
-                    {grantsApparel && (
-                      <div className="space-y-3 pt-2 animate-in fade-in">
-                        <Select
-                          name="apparelCondition"
-                          value={apparelCondition}
-                          onValueChange={setApparelCondition}
-                        >
-                          <SelectTrigger className="h-10 rounded-lg bg-white border-zinc-200 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Immediately">Веднага</SelectItem>
-                            <SelectItem value="After N payments">
-                              След N плащания
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {apparelCondition === "After N payments" && (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              name="apparelPaymentCount"
-                              type="number"
-                              defaultValue={
-                                initialData?.apparelPaymentCount || 6
-                              }
-                              className="h-10 w-20 bg-white"
-                            />
-                            <span className="text-xs text-zinc-500">
-                              вноски
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+              <div className="space-y-6 animate-in slide-in-from-right-4">
+                <div className="space-y-2">
+                  <Label className="text-zinc-500 font-medium ml-1">
+                    Период на фактуриране
+                  </Label>
+                  <input
+                    type="hidden"
+                    name="billingPeriod"
+                    value={billingPeriod || ""}
+                  />
+                  <Select
+                    value={billingPeriod}
+                    onValueChange={setBillingPeriod}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Месечен">Месечен</SelectItem>
+                      <SelectItem value="Годишен">Годишен</SelectItem>
+                      <SelectItem value="Дневен">Дневен</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors?.billingPeriod && (
+                    <p className="text-xs text-red-500 ml-1">
+                      {errors.billingPeriod[0]}
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-6 animate-in slide-in-from-right-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="durationMinutes"
-                      className="text-zinc-500 font-medium ml-1"
-                    >
-                      Продължителност (минути)
-                    </Label>
-                    <Input
-                      id="durationMinutes"
-                      name="durationMinutes"
-                      type="number"
-                      defaultValue={initialData?.durationMinutes || 90}
-                      className="h-12 rounded-xl border-zinc-100 bg-zinc-50"
-                    />
+
+                {serviceType === "Абонамент" ||
+                serviceType === "Годишен абонамент" ? (
+                  <div className="space-y-6 animate-in slide-in-from-right-4">
+                    <div className="space-y-4 p-5 rounded-3xl bg-zinc-50 border border-zinc-100">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="grantsLicense" className="font-medium">
+                          Дава право на картотека
+                        </Label>
+                        <Checkbox
+                          id="grantsLicense"
+                          name="grantsLicense"
+                          checked={grantsLicense}
+                          onCheckedChange={(c) => setGrantsLicense(c === true)}
+                        />
+                      </div>
+                      {grantsLicense && (
+                        <div className="space-y-3 pt-2 animate-in fade-in">
+                          <Select
+                            name="licenseCondition"
+                            value={licenseCondition}
+                            onValueChange={setLicenseCondition}
+                          >
+                            <SelectTrigger className="h-10 rounded-lg bg-white border-zinc-200 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Immediately">
+                                Веднага
+                              </SelectItem>
+                              <SelectItem value="After N payments">
+                                След N плащания
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {licenseCondition === "After N payments" && (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                name="licensePaymentCount"
+                                type="number"
+                                defaultValue={
+                                  initialData?.licensePaymentCount || 1
+                                }
+                                className="h-10 w-20 bg-white"
+                              />
+                              <span className="text-xs text-zinc-500">
+                                вноски
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-4 p-5 rounded-3xl bg-zinc-50 border border-zinc-100">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="grantsApparel" className="font-medium">
+                          Дава право на екипировка
+                        </Label>
+                        <Checkbox
+                          id="grantsApparel"
+                          name="grantsApparel"
+                          checked={grantsApparel}
+                          onCheckedChange={(c) => setGrantsApparel(c === true)}
+                        />
+                      </div>
+                      {grantsApparel && (
+                        <div className="space-y-3 pt-2 animate-in fade-in">
+                          <Select
+                            name="apparelCondition"
+                            value={apparelCondition}
+                            onValueChange={setApparelCondition}
+                          >
+                            <SelectTrigger className="h-10 rounded-lg bg-white border-zinc-200 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Immediately">
+                                Веднага
+                              </SelectItem>
+                              <SelectItem value="After N payments">
+                                След N плащания
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {apparelCondition === "After N payments" && (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                name="apparelPaymentCount"
+                                type="number"
+                                defaultValue={
+                                  initialData?.apparelPaymentCount || 6
+                                }
+                                className="h-10 w-20 bg-white"
+                              />
+                              <span className="text-xs text-zinc-500">
+                                вноски
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 border border-zinc-100">
-                    <Label
-                      htmlFor="requiresBooking"
-                      className="font-medium cursor-pointer"
-                    >
-                      Изисква предварителна резервация
+                ) : (
+                  <div className="space-y-6 animate-in slide-in-from-right-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="durationMinutes"
+                        className="text-zinc-500 font-medium ml-1"
+                      >
+                        Продължителност (минути)
+                      </Label>
+                      <Input
+                        id="durationMinutes"
+                        name="durationMinutes"
+                        type="number"
+                        defaultValue={initialData?.durationMinutes || 90}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 border border-zinc-100">
+                      <Label
+                        htmlFor="requiresBooking"
+                        className="font-medium cursor-pointer"
+                      >
+                        Изисква предварителна резервация
+                      </Label>
+                      <Checkbox
+                        id="requiresBooking"
+                        name="requiresBooking"
+                        defaultChecked={initialData?.requiresBooking}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-6 border-t border-zinc-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="isCoachLed" className="font-medium">
+                      С присъствие на треньор
                     </Label>
                     <Checkbox
-                      id="requiresBooking"
-                      name="requiresBooking"
-                      defaultChecked={initialData?.requiresBooking}
+                      id="isCoachLed"
+                      name="isCoachLed"
+                      defaultChecked={initialData?.isCoachLed ?? true}
                     />
                   </div>
-                </div>
-              )}
-
-              <div className="pt-6 border-t border-zinc-100 space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="isCoachLed" className="font-medium">
-                    С присъствие на треньор
-                  </Label>
-                  <Checkbox
-                    id="isCoachLed"
-                    name="isCoachLed"
-                    defaultChecked={initialData?.isCoachLed ?? true}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Мин. участници
-                    </Label>
-                    <Input
-                      name="minMembers"
-                      type="number"
-                      defaultValue={initialData?.minMembers || 1}
-                      className="h-10 rounded-lg bg-zinc-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Макс. участници
-                    </Label>
-                    <Input
-                      name="maxMembers"
-                      type="number"
-                      defaultValue={initialData?.maxMembers || 1}
-                      className="h-10 rounded-lg bg-zinc-50"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                        Мин. участници
+                      </Label>
+                      <Input
+                        name="minMembers"
+                        type="number"
+                        defaultValue={initialData?.minMembers || 1}
+                        className="h-10 rounded-lg bg-zinc-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                        Макс. участници
+                      </Label>
+                      <Input
+                        name="maxMembers"
+                        type="number"
+                        defaultValue={initialData?.maxMembers || 1}
+                        className="h-10 rounded-lg bg-zinc-50"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
