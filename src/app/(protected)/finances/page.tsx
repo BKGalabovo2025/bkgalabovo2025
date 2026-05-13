@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default function FinancesPage() {
   const financeLinks = [
     {
-      title: "Основен каталог",
+      title: "Каталог Тренировки",
       description:
-        "Основен каталог на предлаганите абонаменти, индивидуални тренировки.",
+        "Каталог на предлаганите абонаменти, еднократни и индивидуални тренировки.",
       href: "/finances/services",
       icon: ListTree,
       color: "blue",

@@ -23,8 +23,8 @@ export default function ServicesClientPage({ data }: ServicesClientPageProps) {
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-24">
       <PageHeader
-        title="Основен каталог"
-        description="Каталог на предлаганите абонаменти, индивидуални тренировки и допълнителни услуги."
+        title="Каталог Тренировки"
+        description="Каталог на предлаганите абонаменти, еднократни и индивидуални тренировки."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Каталози", href: "/finances" },
