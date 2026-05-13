@@ -249,31 +249,30 @@ export const MemberDetailsCard = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
         <Button
           variant="outline"
           onClick={() => router.push("/members")}
-          className="h-12 px-6 rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[11px] uppercase tracking-widest transition-all"
+          className="h-10 sm:h-12 w-full sm:w-auto px-6 rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest transition-all"
         >
           <ArrowLeft className="mr-3 h-4 w-4" strokeWidth={1.5} /> Всички
-          членове
         </Button>
         <Button
           onClick={() => router.push(`/members/${member.id}/edit`)}
-          className="h-12 px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest shadow-none transition-all"
+          className="h-10 sm:h-12 w-full sm:w-auto px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest shadow-none transition-all"
         >
           <Pencil className="mr-3 h-4 w-4" strokeWidth={1.5} /> Редактирай
         </Button>
       </div>
 
       <div className="overflow-hidden bg-white border border-zinc-100 rounded-5xl shadow-none">
-        <div className="h-40 bg-zinc-50 w-full relative">
+        <div className="h-32 sm:h-40 bg-zinc-50 w-full relative">
           <div className="absolute inset-0 bg-linear-to-br from-zinc-100/50 to-transparent" />
         </div>
-        <div className="px-10 pb-10 -mt-16 relative z-10">
-          <div className="flex flex-col md:flex-row items-end gap-8">
+        <div className="px-6 sm:px-10 pb-8 sm:pb-10 -mt-12 sm:-mt-16 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 text-center md:text-left">
             <div className="relative group">
-              <Avatar className="h-40 w-40 border-8 border-white shadow-2xl rounded-6xl bg-zinc-50">
+              <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 border-white shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50">
                 <AvatarImage
                   src={member.avatarUrl ?? undefined}
                   alt={fullName}
@@ -303,11 +302,11 @@ export const MemberDetailsCard = ({
               />
             </div>
 
-            <div className="flex-1 space-y-4 mb-4">
-              <h2 className="text-5xl font-light text-zinc-950 tracking-tighter">
+            <div className="flex-1 space-y-3 sm:space-y-4 mb-2 sm:mb-4">
+              <h2 className="text-3xl sm:text-5xl font-light text-zinc-950 tracking-tighter">
                 {fullName}
               </h2>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center md:justify-start gap-3">
                 <Badge
                   variant="outline"
                   className={cn(
@@ -330,8 +329,8 @@ export const MemberDetailsCard = ({
               </div>
             </div>
 
-            <div className="mb-4">
-              <div className="bg-zinc-50 border border-zinc-100/50 p-6 rounded-4xl flex items-center gap-6">
+            <div className="mb-2 sm:mb-4 w-full md:w-auto">
+              <div className="bg-zinc-50 border border-zinc-100/50 p-4 sm:p-6 rounded-3xl sm:rounded-4xl flex items-center justify-between md:justify-start gap-4 md:gap-6">
                 <div>
                   <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 mb-1">
                     Финансов статус
@@ -369,41 +368,43 @@ export const MemberDetailsCard = ({
       </div>
 
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="w-full h-16 bg-zinc-50/50 border border-zinc-100 p-2 rounded-3xl mb-8 overflow-x-auto justify-start no-scrollbar md:justify-center scroll-smooth">
-          <TabsTrigger
-            value="personal"
-            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
-          >
-            Лични данни
-          </TabsTrigger>
-          <TabsTrigger
-            value="documents"
-            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
-          >
-            Документи
-          </TabsTrigger>
-          <TabsTrigger
-            value="sales"
-            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
-          >
-            Финанси
-          </TabsTrigger>
-          <TabsTrigger
-            value="subscriptions"
-            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
-          >
-            Абонаменти
-          </TabsTrigger>
-          <TabsTrigger
-            value="attendance"
-            className="shrink-0 md:flex-1 px-6 md:px-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950"
-          >
-            Присъствия
-          </TabsTrigger>
-        </TabsList>
+        <div className="relative group">
+          <TabsList className="w-full h-auto bg-zinc-50/50 border border-zinc-100 p-1 rounded-2xl sm:rounded-3xl mb-8 flex flex-nowrap overflow-x-auto no-scrollbar justify-start md:justify-center gap-1 scroll-smooth">
+            <TabsTrigger
+              value="personal"
+              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Данни
+            </TabsTrigger>
+            <TabsTrigger
+              value="documents"
+              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Документи
+            </TabsTrigger>
+            <TabsTrigger
+              value="sales"
+              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Финанси
+            </TabsTrigger>
+            <TabsTrigger
+              value="subscriptions"
+              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Абонаменти
+            </TabsTrigger>
+            <TabsTrigger
+              value="attendance"
+              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Присъствия
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="personal" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-5xl p-10">
+          <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
               <InfoRow icon={Mail} label="Имейл" value={member.email} />
               <InfoRow icon={Phone} label="Телефон" value={member.phone} />
@@ -501,25 +502,28 @@ export const MemberDetailsCard = ({
         </TabsContent>
 
         <TabsContent value="documents" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-5xl p-10 space-y-6">
+          <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-4 sm:space-y-6">
             {/* Membership Application */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasMembershipApplication
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <FileText className="h-6 w-6" strokeWidth={1.5} />
+                  <FileText
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Молба за членство
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasMembershipApplication ? (
                       <span className="text-emerald-600 font-medium">
                         Предадена на{" "}
@@ -536,10 +540,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("membershipApplication", "print");
                     window.open(
@@ -548,13 +552,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasMembershipApplication &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -573,23 +580,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Membership Termination */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasTerminationRequest
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <UserMinus className="h-6 w-6" strokeWidth={1.5} />
+                  <UserMinus
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Молба за прекратяване
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasTerminationRequest ? (
                       <span className="text-emerald-600 font-medium">
                         Предадена на{" "}
@@ -606,10 +616,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("terminationRequest", "print");
                     window.open(
@@ -618,13 +628,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasTerminationRequest &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -643,23 +656,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Internal Rules */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasInternalRules
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <ScrollText className="h-6 w-6" strokeWidth={1.5} />
+                  <ScrollText
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Вътрешен правилник
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasInternalRules ? (
                       <span className="text-emerald-600 font-medium">
                         Приет на {formatDocDate(member.internalRulesHandedAt)}
@@ -675,10 +691,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("internalRules", "print");
                     window.open(
@@ -687,13 +703,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasInternalRules &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -710,27 +729,33 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Informed Consent Declaration */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasSignedDeclaration
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
                   {member.hasSignedDeclaration ? (
-                    <CheckCircle className="h-6 w-6" strokeWidth={1.5} />
+                    <CheckCircle
+                      className="h-5 w-5 sm:h-6 sm:w-6"
+                      strokeWidth={1.5}
+                    />
                   ) : (
-                    <AlertTriangle className="h-6 w-6" strokeWidth={1.5} />
+                    <AlertTriangle
+                      className="h-5 w-5 sm:h-6 sm:w-6"
+                      strokeWidth={1.5}
+                    />
                   )}
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Декларация за информирано съгласие
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasSignedDeclaration ? (
                       <span className="text-emerald-600 font-medium">
                         Предадена на{" "}
@@ -747,22 +772,25 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("signedDeclaration", "print");
                     window.open(`/members/${member.id}/declaration`, "_blank");
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasSignedDeclaration &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -781,23 +809,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Participation & Travel Declaration */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasTravelDeclaration
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <ShieldCheck className="h-6 w-6" strokeWidth={1.5} />
+                  <ShieldCheck
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Съгласие за участие и пътуване
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasTravelDeclaration ? (
                       <span className="text-emerald-600 font-medium">
                         Предадено на{" "}
@@ -814,10 +845,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("travelDeclaration", "print");
                     window.open(
@@ -826,13 +857,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasTravelDeclaration &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -851,23 +885,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Safety Instruction */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasSafetyInstruction
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <ClipboardCheck className="h-6 w-6" strokeWidth={1.5} />
+                  <ClipboardCheck
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Инструктаж за безопасност
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasSafetyInstruction ? (
                       <span className="text-emerald-600 font-medium">
                         Предаден на{" "}
@@ -884,10 +921,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("safetyInstruction", "print");
                     window.open(
@@ -896,13 +933,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasSafetyInstruction &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -919,23 +959,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Combined Athlete Card (Kartoteka) */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.isLicensed
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <Contact className="h-6 w-6" strokeWidth={1.5} />
+                  <Contact
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Картотека към БФБ
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.isLicensed ? (
                       <span className="text-emerald-600 font-medium">
                         Активна от {formatDocDate(member.isLicensedHandedAt)}
@@ -951,22 +994,25 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("isLicensed", "print");
                     window.open(`/members/${member.id}/athlete-card`, "_blank");
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.isLicensed &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
@@ -983,23 +1029,26 @@ export const MemberDetailsCard = ({
             </div>
 
             {/* Medical Certificate */}
-            <div className="flex items-center justify-between p-8 bg-zinc-50/50 rounded-4xl border border-zinc-100/50">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+              <div className="flex items-center gap-4 sm:gap-6 w-full">
                 <div
                   className={cn(
-                    "p-4 rounded-2xl",
+                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
                     member.hasMedicalCertificate
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  <Stethoscope className="h-6 w-6" strokeWidth={1.5} />
+                  <Stethoscope
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div>
-                  <h4 className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
                     Медицинско свидетелство
                   </h4>
-                  <p className="text-sm font-light text-zinc-400">
+                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
                     {member.hasMedicalCertificate ? (
                       <span className="text-emerald-600 font-medium">
                         Предадено на{" "}
@@ -1016,10 +1065,10 @@ export const MemberDetailsCard = ({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                 <Button
                   variant="outline"
-                  className="h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
                   onClick={() => {
                     updateDocumentStatus("medicalCertificate", "print");
                     window.open(
@@ -1028,13 +1077,16 @@ export const MemberDetailsCard = ({
                     );
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                  <Printer
+                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    strokeWidth={1.5}
+                  />
                   Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 px-6 rounded-xl border-zinc-100 font-medium text-[10px] uppercase tracking-widest transition-all",
+                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
                     !member.hasMedicalCertificate &&
                       "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
                   )}
@@ -1046,7 +1098,7 @@ export const MemberDetailsCard = ({
                   }
                 >
                   {member.hasMedicalCertificate
-                    ? "Отмени предаването"
+                    ? "Отмени"
                     : "Отбележи предадено"}
                 </Button>
               </div>
@@ -1089,12 +1141,14 @@ const InfoRow = ({
   return (
     <div
       className={cn(
-        "flex py-6 border-b border-zinc-50 last:border-0",
-        isBlock ? "flex-col items-start gap-4" : "items-center justify-between"
+        "flex py-4 sm:py-6 border-b border-zinc-50 last:border-0",
+        isBlock
+          ? "flex-col items-start gap-3 sm:gap-4"
+          : "flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0">
           <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
         </div>
         <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
@@ -1102,7 +1156,9 @@ const InfoRow = ({
         </span>
       </div>
       {!isBlock ? (
-        <span className="text-sm font-light text-zinc-900">{value}</span>
+        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0">
+          {value}
+        </span>
       ) : (
         <span className="text-sm font-light text-zinc-400 leading-relaxed max-w-xl pl-12">
           {value}

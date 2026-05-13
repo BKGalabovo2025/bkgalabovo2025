@@ -473,53 +473,53 @@ const SubscriptionCard = ({
 
   return (
     <div
-      className={`border border-zinc-100 rounded-4xl p-8 mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
+      className={`border border-zinc-100 rounded-3xl sm:rounded-4xl p-5 sm:p-8 mb-4 sm:mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
     >
-      <div className="flex justify-between items-start">
-        <h4 className="font-light text-2xl tracking-tight text-zinc-950">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <h4 className="font-light text-xl sm:text-2xl tracking-tight text-zinc-950">
           {sub.serviceName}
         </h4>
-        <div className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-zinc-100 bg-white">
+        <div className="flex items-center space-x-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-zinc-100 bg-white shrink-0">
           {statusInfo.icon}
-          <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-950">
+          <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-950">
             {statusInfo.text}
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 items-end">
-        <div>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8 mt-6 sm:mt-8 items-end">
+        <div className="space-y-1">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
             Начало
           </p>
-          <div className="flex items-center gap-2 text-sm font-light text-zinc-900">
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-sm font-light text-zinc-900">
             <CalendarIcon
-              className="h-3.5 w-3.5 text-zinc-300"
+              className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-zinc-300"
               strokeWidth={1.5}
             />{" "}
             {new Date(sub.startDate).toLocaleDateString("bg-BG")}
           </div>
         </div>
-        <div>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+        <div className="space-y-1">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
             Край
           </p>
-          <div className="flex items-center gap-2 text-sm font-light text-zinc-900">
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-sm font-light text-zinc-900">
             <CalendarIcon
-              className="h-3.5 w-3.5 text-zinc-300"
+              className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-zinc-300"
               strokeWidth={1.5}
             />
             {new Date(sub.endDate).toLocaleDateString("bg-BG")}
           </div>
         </div>
-        <div>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 mb-2">
+        <div className="space-y-1">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
             Платено
           </p>
-          <div className="text-sm font-medium text-zinc-950">
+          <div className="text-[11px] sm:text-sm font-medium text-zinc-950">
             {formatPrice(sub.pricePaid)}
           </div>
         </div>
-        <div className="flex justify-end items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap justify-start lg:justify-end items-center gap-2 sm:gap-3 col-span-2 lg:col-span-1 pt-4 sm:pt-0 border-t border-zinc-100/30 sm:border-t-0">
           {isPaid && (
             <ReceiptButton subscription={sub} onUpdate={onSubscriptionUpdate} />
           )}
@@ -528,7 +528,7 @@ const SubscriptionCard = ({
               size="sm"
               onClick={handleRenew}
               disabled={isRenewing}
-              className="h-10 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] uppercase tracking-widest2 shadow-none"
+              className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest2 shadow-none"
             >
               {isRenewing ? (
                 <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
@@ -550,7 +550,7 @@ const SubscriptionCard = ({
             variant="ghost"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="h-10 w-10 p-0 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+            className="h-10 w-10 p-0 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-50 transition-colors shrink-0"
           >
             {isDeleting ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -733,10 +733,10 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
     );
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-5xl p-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
         <div>
-          <h2 className="text-3xl font-light tracking-tighter text-zinc-950 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
             Абонаменти
           </h2>
           <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
@@ -760,7 +760,7 @@ export const MemberSubscriptionsTab = ({ memberId }: { memberId: string }) => {
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {subscriptions.map((sub) => (
               <SubscriptionCard
                 key={sub.id}

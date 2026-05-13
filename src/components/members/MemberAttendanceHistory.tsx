@@ -175,57 +175,63 @@ export function MemberAttendanceHistory({
   }
 
   return (
-    <div className="space-y-12">
+    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-12">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-8 bg-zinc-950 rounded-5xl text-white flex flex-col justify-between h-40 shadow-xl shadow-zinc-950/10">
-          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="p-6 sm:p-8 bg-zinc-950 rounded-3xl sm:rounded-5xl text-white flex flex-col justify-between h-32 sm:h-40 shadow-xl shadow-zinc-950/10">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
             Общо посещения
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-5xl font-light tracking-tighter">
+            <h2 className="text-3xl sm:text-5xl font-light tracking-tighter">
               {totalEvents}
             </h2>
-            <div className="h-12 w-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              <Dumbbell className="h-5 w-5 text-white" strokeWidth={1.5} />
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 bg-white border border-zinc-100 rounded-5xl flex flex-col justify-between h-40">
-          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-            Последна активност
-          </p>
-          <div className="flex items-end justify-between">
-            <h2 className="text-xl font-light text-zinc-950">
-              {attendedEvents.length > 0
-                ? format(new Date(attendedEvents[0].startDate), "dd MMM", {
-                    locale: bg,
-                  })
-                : "—"}
-            </h2>
-            <div className="h-12 w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
-              <CalendarIcon
-                className="h-5 w-5 text-zinc-300"
+            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <Dumbbell
+                className="h-4 w-4 sm:h-5 sm:w-5 text-white"
                 strokeWidth={1.5}
               />
             </div>
           </div>
         </div>
 
-        <div className="p-8 bg-white border border-zinc-100 rounded-5xl flex flex-col justify-between h-40">
-          <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+        <div className="p-6 sm:p-8 bg-white border border-zinc-100 rounded-3xl sm:rounded-5xl flex flex-col justify-between h-32 sm:h-40">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+            Последна активност
+          </p>
+          <div className="flex items-end justify-between">
+            <h2 className="text-base sm:text-xl font-light text-zinc-950">
+              {attendedEvents.length > 0
+                ? format(new Date(attendedEvents[0].startDate), "dd MMM", {
+                    locale: bg,
+                  })
+                : "—"}
+            </h2>
+            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+              <CalendarIcon
+                className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-300"
+                strokeWidth={1.5}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-8 bg-white border border-zinc-100 rounded-3xl sm:rounded-5xl flex flex-col justify-between h-32 sm:h-40 sm:col-span-2 lg:col-span-1">
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
             Месечен статус
           </p>
           <div className="flex items-end justify-between">
             <Badge
               variant="outline"
-              className="bg-green-50 text-green-600 border-green-100 rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest"
+              className="bg-green-50 text-green-600 border-green-100 rounded-full px-3 py-0.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-widest"
             >
               Активен
             </Badge>
-            <div className="h-12 w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
+            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+              <Trophy
+                className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-300"
+                strokeWidth={1.5}
+              />
             </div>
           </div>
         </div>
