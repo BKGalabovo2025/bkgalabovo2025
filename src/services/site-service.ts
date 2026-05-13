@@ -8,13 +8,42 @@ import {
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Site, Therapist } from "@/types/site.types";
-import { DocumentSnapshot, QueryDocumentSnapshot } from "firebase/firestore";
 
 const SITES_COLLECTION = "sites";
 
-export const docToSite = (
-  doc: DocumentSnapshot | QueryDocumentSnapshot | any
-): Site | null => {
+interface SiteDocumentData {
+  name?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  logo?: string;
+  inventory?: import("@/types/site.types").SiteInventory;
+  recoveryInventory?: {
+    compressors?: number;
+    attachments?: {
+      legs?: number;
+      arms?: number;
+      hips?: number;
+    };
+  };
+  schedule?: import("@/types/site.types").SiteSchedule | null;
+  isActive?: boolean;
+  recoveryEnabled?: boolean;
+  therapists?: Partial<Therapist>[];
+  teamIntro?: string;
+  bookingRules?: Site["bookingRules"];
+  marketing?: Site["marketing"];
+  benefits?: Site["benefits"];
+  attachments?: Site["attachments"];
+  contraindications?: string[];
+}
+
+export const docToSite = (doc: {
+  id: string;
+  exists: (() => boolean) | boolean;
+  data: () => SiteDocumentData | undefined;
+}): Site | null => {
   const exists = typeof doc.exists === "function" ? doc.exists() : doc.exists;
   if (!doc.id || !exists) return null;
   const data = doc.data() || {};
