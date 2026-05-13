@@ -5,7 +5,7 @@ export const SpecialRightSchema = z.object({
   description: z.string(),
   trigger: z
     .object({
-      condition: z.enum(["IMMEDIATE", "AFTER_N_PAYMENTS"]),
+      condition: z.string(),
       paymentCount: z.number().optional(),
     })
     .optional(),
@@ -14,7 +14,7 @@ export const SpecialRightSchema = z.object({
 export const CancellationPolicySchema = z.object({
   isAllowed: z.boolean().default(true),
   noticePeriodDays: z.number().default(5),
-  feeType: z.enum(["none", "fixed", "percentage"]).default("none"),
+  feeType: z.string().default("none"),
   feeValue: z.number().default(0),
   description: z.string().optional(),
   longTermSicknessDiscount: z.number().default(0.5),
@@ -35,7 +35,7 @@ export const ServiceSchema = z.object({
   description: z.string(),
   price: z.number(),
   currency: z.string().default("EUR"),
-  type: z.enum(["Абонамент", "Еднократно плащане"]),
+  type: z.string(),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().nullable().optional(),
   durationMinutes: z.number().optional(),
