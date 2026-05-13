@@ -122,7 +122,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   }, [isOpen, isEditMode, reservation, initialData, reset]);
 
   async function onSubmit(values: z.infer<typeof reservationSchema>) {
-    const token = await getFreshToken();
+    const token = await getFreshToken(true);
     if (!token) {
       toast.error("Грешка при оторизация");
       return;

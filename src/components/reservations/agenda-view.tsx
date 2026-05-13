@@ -215,7 +215,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteReservation = async (id: string) => {
-    const token = await getFreshToken();
+    const token = await getFreshToken(true);
     if (!token) return;
     try {
       const result = await deleteReservationAction(token, id);
@@ -231,7 +231,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({
   };
 
   const handleDeleteBlockedSlot = async (id: string) => {
-    const token = await getFreshToken();
+    const token = await getFreshToken(true);
     if (!token) return;
     try {
       const result = await deleteBlockedSlotAction(token, id);

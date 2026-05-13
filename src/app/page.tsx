@@ -111,9 +111,8 @@ export default function HomePage() {
                 <Image
                   src="/logo.png"
                   alt="BK Galabovo Logo"
-                  width={40}
-                  height={40}
-                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500"
+                  fill
+                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500 p-2"
                 />
               </div>
             </div>
@@ -149,9 +148,8 @@ export default function HomePage() {
                 <Image
                   src="/1.png"
                   alt="Recovery Zone Logo"
-                  width={40}
-                  height={40}
-                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500"
+                  fill
+                  className="object-contain transition-all group-hover:brightness-0 group-hover:invert duration-500 p-2"
                 />
               </div>
             </div>

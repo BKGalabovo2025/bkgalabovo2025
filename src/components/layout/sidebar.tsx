@@ -67,13 +67,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">
-              <Link href="/">
+              <Link href="/" className="relative h-10 w-10">
                 <Image
                   src={brandLogo}
                   alt="Logo"
-                  width={40}
-                  height={40}
-                  style={{ width: "auto", height: "auto" }}
+                  fill
                   className="object-contain"
                 />
               </Link>

@@ -99,7 +99,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   }, [isOpen, isEditMode, slot, form, courtCount]);
 
   async function onSubmit(values: z.infer<typeof blockSlotSchema>) {
-    const token = await getFreshToken();
+    const token = await getFreshToken(true);
     if (!token) {
       toast.error("Грешка при оторизация");
       return;

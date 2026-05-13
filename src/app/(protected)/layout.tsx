@@ -58,14 +58,14 @@ function GlobalHeader() {
                       : "border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900"
                   }`}
                 >
-                  <Image
-                    src={site.logo}
-                    alt={site.title}
-                    width={24}
-                    height={24}
-                    style={{ width: "auto", height: "auto" }}
-                    className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
-                  />
+                  <div className="relative h-6 w-6">
+                    <Image
+                      src={site.logo}
+                      alt={site.title}
+                      fill
+                      className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
+                    />
+                  </div>
                 </div>
 
                 {isActive && (

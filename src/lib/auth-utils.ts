@@ -1,13 +1,17 @@
-import { getAuth } from "firebase-admin/auth";
+import { getAdminAuth } from "@/lib/firebase-admin";
 
 // removed top-level call to prevent module evaluation crashes
 
 export async function getAuthUser(idToken: string) {
   try {
-    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const adminAuth = getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
     return decodedToken;
   } catch (error) {
-    console.error("Error verifying ID token:", error);
+    console.error("Error verifying ID token detail:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+    }
     throw new Error("Невалидна оторизация.");
   }
 }
