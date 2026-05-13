@@ -114,13 +114,12 @@ export async function POST(request: Request) {
     }
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: user,
         pass: pass, // This should be a Google App Password
-      },
-      tls: {
-        rejectUnauthorized: false,
       },
     });
 
