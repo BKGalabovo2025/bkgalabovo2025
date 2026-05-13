@@ -208,7 +208,7 @@ export function ServiceForm({
                   value={serviceType}
                   onValueChange={(val) => {
                     setServiceType(val);
-                    if (val === "Годишен абонамент")
+                    if (val === "Годишен абонамент" || val === "Членски внос")
                       setBillingPeriod("Годишен");
                     else if (val === "Абонамент") setBillingPeriod("Месечен");
                     else if (val === "Еднократно плащане")
@@ -224,6 +224,7 @@ export function ServiceForm({
                       value: "Еднократно плащане",
                       label: "Еднократно посещение",
                     },
+                    { value: "Членски внос", label: "Членски внос" },
                   ].map((option) => (
                     <label
                       key={option.value}

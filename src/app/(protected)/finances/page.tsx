@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export default function FinancesPage() {
   const financeLinks = [
     {
-      title: "Меню и Услуги",
+      title: "Основен каталог",
       description:
-        "Основен каталог на предлаганите абонаменти, индивидуални тренировки и артикули.",
+        "Основен каталог на предлаганите абонаменти, индивидуални тренировки.",
       href: "/finances/services",
       icon: ListTree,
       color: "blue",
@@ -39,11 +39,11 @@ export default function FinancesPage() {
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-24">
       <PageHeader
-        title="Финансов Модул"
-        description="Централизирана система за управление на финансовите потоци, услугите и абонаментите."
+        title="Каталози"
+        description="Централизирана система за управление на каталозите от услуги, абонаменти и ценоразписи."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Финанси" },
+          { label: "Каталози" },
         ]}
       />
 

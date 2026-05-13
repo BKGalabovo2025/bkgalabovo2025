@@ -190,7 +190,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
 
             <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Финанси
+              Каталози
             </div>
 
             <SidebarMenuItem>
@@ -205,7 +205,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Landmark size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Финанси</span>
+                  <span className="text-[14px]">Каталози</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

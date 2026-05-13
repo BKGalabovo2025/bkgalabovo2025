@@ -15,7 +15,7 @@ export default async function PricesPage() {
         description="Преглед и актуализация на цените за всички услуги и абонаменти в клуба. Всяка промяна се записва в историята."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Финанси", href: "/finances" },
+          { label: "Каталози", href: "/finances" },
           { label: "Цени" },
         ]}
       />

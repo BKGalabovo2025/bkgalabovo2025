@@ -35,8 +35,10 @@ export function ServiceMenu({ services }: ServiceMenuProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const subscriptions = services.filter((s) => s.type === "Абонамент");
-  const oneTime = services.filter((s) => s.type !== "Абонамент");
+  const monthlySubs = services.filter((s) => s.type === "Абонамент");
+  const annualSubs = services.filter((s) => s.type === "Годишен абонамент");
+  const membershipFees = services.filter((s) => s.type === "Членски внос");
+  const oneTime = services.filter((s) => s.type === "Еднократно плащане");
 
   const handleDelete = async (id: string, name: string) => {
     if (!idToken) return;
@@ -52,19 +54,71 @@ export function ServiceMenu({ services }: ServiceMenuProps) {
 
   return (
     <div className="space-y-16">
-      {/* Subscriptions Section */}
-      {subscriptions.length > 0 && (
+      {/* Monthly Subscriptions Section */}
+      {monthlySubs.length > 0 && (
         <section className="space-y-8">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-zinc-100" />
             <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
-              Абонаментни Планове
+              Месечни Абонаменти
             </h3>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {subscriptions.map((service) => (
+            {monthlySubs.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onEdit={() =>
+                  router.push(`/finances/services/${service.id}/edit`)
+                }
+                onDelete={() => handleDelete(service.id, service.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Annual Subscriptions Section */}
+      {annualSubs.length > 0 && (
+        <section className="space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-zinc-100" />
+            <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
+              Годишни Абонаменти
+            </h3>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {annualSubs.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onEdit={() =>
+                  router.push(`/finances/services/${service.id}/edit`)
+                }
+                onDelete={() => handleDelete(service.id, service.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Membership Fees Section */}
+      {membershipFees.length > 0 && (
+        <section className="space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-zinc-100" />
+            <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
+              Членски Внос
+            </h3>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {membershipFees.map((service) => (
               <ServiceCard
                 key={service.id}
                 service={service}
@@ -122,7 +176,11 @@ function ServiceCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const isSubscription = service.type === "Абонамент";
+  const isSubscription = [
+    "Абонамент",
+    "Годишен абонамент",
+    "Членски внос",
+  ].includes(service.type);
 
   return (
     <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 transition-all duration-500 rounded-5xl p-8 flex flex-col h-full">
@@ -131,7 +189,9 @@ function ServiceCard({
         <div
           className={`p-3 rounded-2xl ${isSubscription ? "bg-zinc-950 text-white" : "bg-zinc-50 text-zinc-900"}`}
         >
-          {isSubscription ? (
+          {service.type === "Членски внос" ? (
+            <UserCheck className="h-5 w-5" strokeWidth={1.5} />
+          ) : isSubscription ? (
             <Calendar className="h-5 w-5" strokeWidth={1.5} />
           ) : (
             <Zap className="h-5 w-5" strokeWidth={1.5} />

@@ -100,7 +100,7 @@ export default function EditServicePage() {
         description={`Промяна на детайлите за "${service.name}"`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Финанси", href: "/finances" },
+          { label: "Каталози", href: "/finances" },
           { label: "Услуги", href: "/finances/services" },
           { label: "Редакция" },
         ]}

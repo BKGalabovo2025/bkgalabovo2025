@@ -55,7 +55,7 @@ export default function NewServicePage() {
         description="Добавяне на нов абонаментен план или индивидуална тренировка към каталога."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Финанси", href: "/finances" },
+          { label: "Каталози", href: "/finances" },
           { label: "Услуги", href: "/finances/services" },
           { label: "Нова услуга" },
         ]}

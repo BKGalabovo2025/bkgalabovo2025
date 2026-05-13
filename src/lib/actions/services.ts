@@ -12,7 +12,12 @@ const ServiceSchema = z.object({
   price: z.coerce.number().min(0, "Цената трябва да е положително число."),
   currency: z.string().default("EUR"),
   description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
-  type: z.enum(["Абонамент", "Годишен абонамент", "Еднократно плащане"]),
+  type: z.enum([
+    "Абонамент",
+    "Годишен абонамент",
+    "Еднократно плащане",
+    "Членски внос",
+  ]),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().optional().nullable(),
   grantsLicense: z.boolean().default(false),
