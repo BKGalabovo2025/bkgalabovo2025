@@ -14,26 +14,17 @@ import {
   History,
   Search,
   Plus,
+  LayoutGrid,
 } from "lucide-react";
+import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import { EditProductDialog } from "@/components/inventory/EditProductDialog";
+import InventoryHistory from "@/components/inventory/InventoryHistory";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Input } from "@/components/ui/input";
-import dynamic from "next/dynamic";
-
-const InventoryHistory = dynamic(
-  () => import("@/components/inventory/InventoryHistory"),
-  {
-    loading: () => (
-      <div className="p-20 text-center text-zinc-400 font-medium uppercase tracking-widest text-[10px] animate-pulse">
-        Зареждане на история...
-      </div>
-    ),
-  }
-);
 
 import {
   AlertDialog,
@@ -301,6 +292,8 @@ import { AddProductDialog } from "@/components/inventory/AddProductDialog";
 
 export default function InventoryClient() {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("inventory");
+  useInventoryEvents();
 
   const handleProductAdded = () => {
     setIsAddOpen(false);
@@ -324,13 +317,13 @@ export default function InventoryClient() {
         </Button>
       </PageHeader>
 
-      <Tabs defaultValue="stock" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-fit mb-12 border border-zinc-100 dark:border-zinc-800">
           <TabsTrigger
-            value="stock"
+            value="inventory"
             className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
           >
-            <Package className="mr-3 h-4 w-4" strokeWidth={1.5} /> Наличност
+            <LayoutGrid className="mr-3 h-4 w-4" strokeWidth={1.5} /> Наличност
           </TabsTrigger>
           <TabsTrigger
             value="history"
@@ -341,7 +334,7 @@ export default function InventoryClient() {
         </TabsList>
 
         <TabsContent
-          value="stock"
+          value="inventory"
           className="mt-0 focus-visible:outline-none outline-none ring-0"
         >
           <ProductList />

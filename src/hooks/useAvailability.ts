@@ -83,11 +83,40 @@ export const useAvailability = (
       return [];
     }
 
-    // Use site-specific settings
-    const inventory = site.recoveryEnabled
-      ? site.recoveryInventory
-      : { attachments: { arms: 0, hips: 0, legs: 0 }, compressors: 0 };
-    const operatingHours = site.operatingHours || { start: 8, end: 22 };
+    // Use standardized inventory
+    const inventory = site.inventory || {
+      attachments: { arms: 0, hips: 0, legs: 0 },
+      compressors: 0,
+    };
+
+    // Determine operating hours for the specific day
+    const dayNames = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ] as const;
+    const dayName = dayNames[date.getDay()];
+    const daySchedule = site.schedule ? site.schedule[dayName] : null;
+
+    let operatingHours = { start: 8, end: 22 };
+
+    if (daySchedule) {
+      if (!daySchedule.isOpen) return []; // Site is closed on this day
+
+      const parseTime = (timeStr: string) => {
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        return hours + minutes / 60;
+      };
+
+      operatingHours = {
+        start: parseTime(daySchedule.open),
+        end: parseTime(daySchedule.close),
+      };
+    }
 
     // Calculate slots
     const slots = calculateAvailability(
@@ -101,6 +130,16 @@ export const useAvailability = (
       (service.durationMinutes || 0) / 15
     );
 
+    // Filter slots based on booking rules
+    const now = new Date();
+    const minHours = site.bookingRules?.minHoursBeforeBooking || 0;
+    const maxDays = site.bookingRules?.maxDaysInAdvance || 7;
+
+    const minTime = now.getTime() + minHours * 60 * 60 * 1000;
+    const maxTime = new Date(now);
+    maxTime.setHours(23, 59, 59, 999);
+    maxTime.setDate(maxTime.getDate() + maxDays);
+
     return slots.map((slot, index) => {
       const isAvailable = isServiceAvailableAcrossSlots(
         service,
@@ -110,13 +149,18 @@ export const useAvailability = (
         inventory
       );
 
+      // Check against booking rules
+      const slotTime = slot.start.getTime();
+      const withinRules = slotTime >= minTime && slotTime <= maxTime.getTime();
+
       return {
         time: slot.start.toLocaleTimeString("bg-BG", {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        available: isAvailable,
+        available: isAvailable && withinRules,
         start: slot.start,
+        outsideRules: !withinRules,
       };
     });
   }, [

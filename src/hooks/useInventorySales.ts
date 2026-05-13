@@ -11,6 +11,8 @@ const updateSaleStatus = async (
   await updateSale(saleId, { status });
 };
 
+import { useAppStore } from "@/store/use-app-store";
+
 /**
  * Hook specifically for fetching inventory sales (POS sales), excluding subscription-related sales.
  */
@@ -19,6 +21,7 @@ export const useInventorySales = () => {
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchIndex, setRefetchIndex] = useState(0);
+  const { activeBranch } = useAppStore();
 
   const refetch = useCallback(() => setRefetchIndex((prev) => prev + 1), []);
 
@@ -42,7 +45,7 @@ export const useInventorySales = () => {
     };
 
     fetchSales();
-  }, [refetchIndex]);
+  }, [refetchIndex, activeBranch]);
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {

@@ -87,6 +87,7 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 
 let membersCache: Member[] | null = null;
 let lastFetchTime = 0;
+let cachedSiteId: string | null = null;
 const CACHE_DURATION = 60 * 1000; // 1 minute cache
 
 // Fetches all members from the database with a simple in-memory cache.
@@ -94,9 +95,15 @@ export const getAllMembers = async (
   forceRefetch = false
 ): Promise<Member[]> => {
   const now = Date.now();
+  const currentSiteId = getSiteConfig().id;
 
-  // Return cached data if available and not expired
-  if (!forceRefetch && membersCache && now - lastFetchTime < CACHE_DURATION) {
+  // Return cached data if available, not expired, and matches the current site
+  if (
+    !forceRefetch &&
+    membersCache &&
+    cachedSiteId === currentSiteId &&
+    now - lastFetchTime < CACHE_DURATION
+  ) {
     return membersCache;
   }
 
@@ -115,6 +122,7 @@ export const getAllMembers = async (
   // Update cache
   membersCache = members;
   lastFetchTime = now;
+  cachedSiteId = currentSiteId;
 
   return members;
 };

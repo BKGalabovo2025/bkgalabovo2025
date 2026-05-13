@@ -16,6 +16,7 @@ import {
   Price,
   PriceHistory,
   ScheduleEvent,
+  ClientPackage,
 } from "@/types";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 
@@ -244,6 +245,22 @@ const eventConverter: FirestoreDataConverter<ScheduleEvent> = {
   },
 };
 
+const clientPackageConverter: FirestoreDataConverter<ClientPackage> = {
+  toFirestore: (pkg) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = pkg;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "recoveryzone",
+      ...data,
+    } as unknown as ClientPackage;
+  },
+};
+
 // --- Collection Getters (Raw) ---
 
 export const getMembersCollection = () =>
@@ -277,6 +294,9 @@ export const getTournamentEntriesCollection = () =>
 
 export const getTournamentMatchesCollection = () =>
   collection(getDb(), "tournament_matches").withConverter(matchConverter);
+
+export const getClientPackagesCollection = () =>
+  collection(getDb(), "client_packages").withConverter(clientPackageConverter);
 
 // --- Tenant-Aware Query Getters ---
 
@@ -390,4 +410,19 @@ export const getSessionsCollection = () =>
 
 export const getSessionsQuery = () => {
   return query(getSessionsCollection(), where("siteId", "==", "recoveryzone"));
+};
+
+export const getClientPackagesQuery = (memberId?: string) => {
+  const siteConfig = getSiteConfig();
+  let q = query(getClientPackagesCollection());
+
+  if (siteConfig.id !== "bkgalabovo") {
+    q = query(q, where("siteId", "==", siteConfig.id));
+  }
+
+  if (memberId) {
+    q = query(q, where("memberId", "==", memberId));
+  }
+
+  return q;
 };

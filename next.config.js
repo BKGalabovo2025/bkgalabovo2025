@@ -26,6 +26,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "i.pravatar.cc",
+      },
     ],
   },
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS

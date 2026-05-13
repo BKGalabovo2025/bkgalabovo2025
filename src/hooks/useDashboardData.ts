@@ -27,8 +27,11 @@ type DashboardStats = {
   trainingsToday: number;
 };
 
+import { useAppStore } from "@/store/use-app-store";
+
 export const useDashboardData = () => {
   const { user } = useAuth();
+  const { activeBranch } = useAppStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
@@ -127,7 +130,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, activeBranch]);
 
   return {
     stats,

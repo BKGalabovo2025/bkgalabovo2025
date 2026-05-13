@@ -89,13 +89,19 @@ export const subscribeToReservationsForDay = (
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );
-  return onSnapshot(q, (snapshot) => {
-    const reservations = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<Reservation, "id">),
-    }));
-    callback(reservations);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const reservations = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Reservation, "id">),
+      }));
+      callback(reservations);
+    },
+    (err) => {
+      console.error("Error subscribing to reservations:", err);
+    }
+  );
 };
 
 export const subscribeToBlockedSlotsForDay = (
@@ -110,11 +116,17 @@ export const subscribeToBlockedSlotsForDay = (
     where("startTime", ">=", startOfDay),
     where("startTime", "<", endOfDay)
   );
-  return onSnapshot(q, (snapshot) => {
-    const slots = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<BlockedSlot, "id">),
-    }));
-    callback(slots);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const slots = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<BlockedSlot, "id">),
+      }));
+      callback(slots);
+    },
+    (err) => {
+      console.error("Error subscribing to blocked slots:", err);
+    }
+  );
 };

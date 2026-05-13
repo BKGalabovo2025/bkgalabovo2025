@@ -22,11 +22,14 @@ import { formatFullName } from "@/lib/utils";
 
 type NewEvent = Omit<ScheduleEvent, "id">;
 
+import { useAppStore } from "@/store/use-app-store";
+
 export const useEvents = () => {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { activeBranch } = useAppStore();
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -38,7 +41,7 @@ export const useEvents = () => {
       }
     };
     fetchMembers();
-  }, []);
+  }, [activeBranch]);
 
   useEffect(() => {
     const q = getEventsQuery();
@@ -77,7 +80,7 @@ export const useEvents = () => {
     );
 
     return () => unsubscribe();
-  }, [members]);
+  }, [members, activeBranch]);
 
   const addEvent = useCallback(async (event: NewEvent) => {
     try {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -19,17 +20,66 @@ import {
   Building2,
   Camera,
   CheckCircle2,
-  Trophy,
+  Activity,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { getAllSites, updateSite } from "@/services/site-service";
+import { Site } from "@/types/site.types";
 
 export default function SettingsClient() {
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formData, setFormData] = useState<{
+    [key: string]: Partial<Site>;
+  }>({});
 
-  const handleSave = () => {
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const allSites = await getAllSites();
+
+        // Initialize form data
+        const initialFormData: { [key: string]: Partial<Site> } = {};
+        allSites.forEach((site) => {
+          initialFormData[site.id] = { ...site };
+        });
+        setFormData(initialFormData);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+        toast.error("Грешка при зареждане на настройките.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const handleInputChange = (
+    siteId: string,
+    field: keyof Site,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [siteId]: {
+        ...prev[siteId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      // Save each site's settings
+      const savePromises = Object.entries(formData).map(([id, data]) =>
+        updateSite({ ...data, id })
+      );
+
+      await Promise.all(savePromises);
+
       toast.success("Настройките са запазени успешно!", {
         style: {
           borderRadius: "1.5rem",
@@ -39,11 +89,30 @@ export default function SettingsClient() {
           fontSize: "0.875rem",
         },
       });
-    }, 1000);
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Грешка при запазване на настройките.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-zinc-500 font-light uppercase tracking-widest text-xs">
+          Зареждане на настройки...
+        </p>
+      </div>
+    );
+  }
+
+  const bkgData = formData["bkgalabovo"] || {};
+  const rzData = formData["recoveryzone"] || {};
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <PageHeader
         title="Настройки"
         description="Управление на системните параметри, сигурността и брандирането на клуба."
@@ -117,7 +186,14 @@ export default function SettingsClient() {
                         Име на клуба
                       </Label>
                       <Input
-                        defaultValue="Бадминтон Клуб Гълъбово"
+                        value={bkgData.name || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "bkgalabovo",
+                            "name",
+                            e.target.value
+                          )
+                        }
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -126,7 +202,14 @@ export default function SettingsClient() {
                         Официален Имейл
                       </Label>
                       <Input
-                        defaultValue="bk_galabovo@abv.bg"
+                        value={bkgData.email || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "bkgalabovo",
+                            "email",
+                            e.target.value
+                          )
+                        }
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -135,7 +218,14 @@ export default function SettingsClient() {
                         Телефон за връзка
                       </Label>
                       <Input
-                        defaultValue="+359 899 829 923"
+                        value={bkgData.phone || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "bkgalabovo",
+                            "phone",
+                            e.target.value
+                          )
+                        }
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -144,8 +234,93 @@ export default function SettingsClient() {
                         Уебсайт
                       </Label>
                       <Input
-                        defaultValue="https://bkgalabovo.alle.bg/"
+                        value={bkgData.website || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "bkgalabovo",
+                            "website",
+                            e.target.value
+                          )
+                        }
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </BentoCard>
+
+                <BentoCard className="p-10 space-y-8 md:col-span-2 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                  <div className="flex items-center gap-4 mb-2">
+                    <Activity
+                      className="h-5 w-5 text-[#00f2fe]"
+                      strokeWidth={1.5}
+                    />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Информация за Зоната
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        Име на обекта
+                      </Label>
+                      <Input
+                        value={rzData.name || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        Официален Имейл
+                      </Label>
+                      <Input
+                        value={rzData.email || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "email",
+                            e.target.value
+                          )
+                        }
+                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        Телефон за връзка
+                      </Label>
+                      <Input
+                        value={rzData.phone || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "phone",
+                            e.target.value
+                          )
+                        }
+                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        Уебсайт / Социални мрежи
+                      </Label>
+                      <Input
+                        value={rzData.website || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "website",
+                            e.target.value
+                          )
+                        }
+                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
                       />
                     </div>
                   </div>
@@ -204,7 +379,7 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Визуална Идентичност
+                      Визуална Идентичност - Бадминтон Клуб
                     </h3>
                   </div>
 
@@ -214,8 +389,14 @@ export default function SettingsClient() {
                         Лого на Клуба
                       </Label>
                       <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
-                        <div className="h-28 w-28 bg-primary rounded-3xl flex items-center justify-center text-white shadow-none">
-                          <Trophy size={48} strokeWidth={1.5} />
+                        <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
+                          <Image
+                            src="/logo.png"
+                            alt="BKG Logo"
+                            width={80}
+                            height={80}
+                            className="object-contain"
+                          />
                         </div>
                         <div className="space-y-3">
                           <Button
@@ -241,9 +422,16 @@ export default function SettingsClient() {
                           Основен Цвят
                         </Label>
                         <div className="flex gap-3">
-                          <div className="h-14 w-14 rounded-xl bg-primary border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <div className="h-14 w-14 rounded-xl bg-[#00AEEF] border-4 border-white dark:border-zinc-800 shadow-none" />
                           <Input
-                            defaultValue="#00AEEF"
+                            value={bkgData.primaryColor || "#00AEEF"}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "bkgalabovo",
+                                "primaryColor",
+                                e.target.value
+                              )
+                            }
                             className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
                           />
                         </div>
@@ -255,7 +443,101 @@ export default function SettingsClient() {
                         <div className="flex gap-3">
                           <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
                           <Input
-                            defaultValue="#000000"
+                            value={bkgData.accentColor || "#000000"}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "bkgalabovo",
+                                "accentColor",
+                                e.target.value
+                              )
+                            }
+                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </BentoCard>
+
+                <BentoCard className="md:col-span-8 p-10 space-y-10 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                  <div className="flex items-center gap-4">
+                    <Palette
+                      className="h-5 w-5 text-[#00f2fe]"
+                      strokeWidth={1.5}
+                    />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Визуална Идентичност - Recovery Zone
+                    </h3>
+                  </div>
+
+                  <div className="space-y-8">
+                    <div className="space-y-4">
+                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        Лого на Зоната
+                      </Label>
+                      <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
+                        <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
+                          <Image
+                            src="/1.png"
+                            alt="RZ Logo"
+                            width={80}
+                            height={80}
+                            className="object-contain"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Button
+                            variant="outline"
+                            className="rounded-xl border-zinc-200 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-6 bg-white dark:bg-zinc-900"
+                          >
+                            <Camera
+                              className="mr-3 h-4 w-4"
+                              strokeWidth={1.5}
+                            />{" "}
+                            Промени Лого
+                          </Button>
+                          <p className="text-[11px] text-zinc-400 uppercase font-light tracking-wide">
+                            Препоръчителен размер: 512x512px (PNG, SVG)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                          Основен Цвят
+                        </Label>
+                        <div className="flex gap-3">
+                          <div className="h-14 w-14 rounded-xl bg-[#00f2fe] border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <Input
+                            value={rzData.primaryColor || "#00f2fe"}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "recoveryzone",
+                                "primaryColor",
+                                e.target.value
+                              )
+                            }
+                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                          Акцентен Цвят
+                        </Label>
+                        <div className="flex gap-3">
+                          <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <Input
+                            value={rzData.accentColor || "#18181b"}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "recoveryzone",
+                                "accentColor",
+                                e.target.value
+                              )
+                            }
                             className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
                           />
                         </div>

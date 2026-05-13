@@ -31,11 +31,18 @@ export function SessionsSection() {
 
   useEffect(() => {
     const q = query(getSessionsQuery(), orderBy("name", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => doc.data() as RecoverySession);
-      setSessions(docs);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const docs = snapshot.docs.map((doc) => doc.data() as RecoverySession);
+        setSessions(docs);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching sessions:", err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, []);

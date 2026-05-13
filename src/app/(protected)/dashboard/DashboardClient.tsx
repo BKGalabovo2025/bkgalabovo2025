@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/currency";
 
+import { useAppStore } from "@/store/use-app-store";
+
 // Sub-components for better organization
 const StatCard = ({
   title,
@@ -107,6 +109,7 @@ export default function DashboardClient() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { stats, loading } = useDashboardData();
+  const { activeBranch } = useAppStore();
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
@@ -116,8 +119,18 @@ export default function DashboardClient() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Greeting logic
-  const firstName = user?.email ? `Админ ${user.email}` : "Админ";
+  // Branch-specific display logic
+  const isRecoveryZone = activeBranch === "recoveryzone";
+
+  const displayEmail = isRecoveryZone
+    ? "recoveryzonebyzm@gmail.com"
+    : user?.email || "bkgalabovo2014@gmail.com";
+
+  const displayGreeting = isRecoveryZone
+    ? "Ето какво се случва в зоната за възстановяване днес."
+    : "Ето какво се случва в клуба днес.";
+
+  const firstName = `Админ ${displayEmail}`;
 
   // Use values from stats or fallback to 0/placeholder
   const activeMembers = stats?.activeMembersCount || 0;
@@ -143,7 +156,7 @@ export default function DashboardClient() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">
       <PageHeader
         title={firstName}
-        description={t("dash.subtitle")}
+        description={displayGreeting}
         breadcrumbs={[{ label: "Начало" }]}
       >
         <div className="flex gap-3">

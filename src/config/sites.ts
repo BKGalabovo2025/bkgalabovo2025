@@ -43,7 +43,13 @@ export const SITES: Record<string, SiteConfig> = {
   },
 };
 
-export const getSiteConfig = () => {
-  const siteId = process.env.NEXT_PUBLIC_SITE_ID || "bkgalabovo";
+import { useAppStore } from "@/store/use-app-store";
+
+export const getSiteConfig = (): SiteConfig => {
+  // Use the activeBranch from the store for runtime switching
+  // We use getState() to access it outside of React components
+  const activeBranch = useAppStore.getState()?.activeBranch;
+  const siteId =
+    activeBranch || process.env.NEXT_PUBLIC_SITE_ID || "bkgalabovo";
   return SITES[siteId] || SITES.bkgalabovo;
 };

@@ -16,6 +16,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { useMembers } from "@/hooks/useMembers";
 import { useReservations } from "@/hooks/useReservations";
 import { useAvailability } from "@/hooks/useAvailability";
+import { usePackages } from "@/hooks/usePackages";
 import { getAllClubServices } from "@/services/subscription-service";
 import { ClubService } from "@/types";
 
@@ -58,6 +59,18 @@ export default function RecoveryPage() {
     service,
     site,
   } = useAvailability(activeBranch, selectedServiceId, date);
+
+  const { packages, deductSession } = usePackages(selectedMemberId);
+
+  const activePackage = useMemo(() => {
+    if (!selectedServiceId) return null;
+    return packages.find(
+      (p) =>
+        p.serviceId === selectedServiceId &&
+        p.sessionsRemaining > 0 &&
+        p.status === "active"
+    );
+  }, [packages, selectedServiceId]);
 
   // Load services on mount
   React.useEffect(() => {
@@ -108,6 +121,13 @@ export default function RecoveryPage() {
         price: service.price || 0,
         finalPrice: service.price || 0,
       });
+
+      if (activePackage) {
+        const success = await deductSession(activePackage.id);
+        if (success) {
+          toast.success("Използвано е посещение от пакет");
+        }
+      }
 
       toast.success("Резервацията е успешно създадена");
     } catch (err) {
@@ -192,6 +212,47 @@ export default function RecoveryPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {selectedMemberId && (
+                <div className="pt-4 border-t space-y-3">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-emerald-500" />
+                    Активни пакети
+                  </h4>
+                  {packages.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">
+                      Няма активни пакети за този член.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {packages.map((pkg) => (
+                        <div
+                          key={pkg.id}
+                          className={cn(
+                            "p-2 rounded-lg border text-sm flex justify-between items-center",
+                            pkg.sessionsRemaining > 0
+                              ? "bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800"
+                              : "bg-zinc-50 border-zinc-100 opacity-60"
+                          )}
+                        >
+                          <div>
+                            <p className="font-medium">{pkg.serviceName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Оставащи: {pkg.sessionsRemaining} от{" "}
+                              {pkg.totalSessions}
+                            </p>
+                          </div>
+                          {pkg.sessionsRemaining > 0 && (
+                            <Badge className="bg-emerald-500 hover:bg-emerald-600">
+                              Активен
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

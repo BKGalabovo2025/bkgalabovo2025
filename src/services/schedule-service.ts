@@ -7,7 +7,7 @@ import {
 } from "firebase/firestore";
 import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
 import { toISOStringOrUndefined } from "@/lib/date-utils";
-import { getEventsCollection } from "@/lib/firebase-collections";
+import { getEventsQuery } from "@/lib/firebase-collections";
 
 export const docToScheduleEvent = (
   doc: DocumentSnapshot | QueryDocumentSnapshot
@@ -63,7 +63,7 @@ export const getEventsForPeriod = async (
     `getEventsForPeriod: Querying from ${startDate.toISOString()} to ${endDate.toISOString()}`
   );
   const q = query(
-    getEventsCollection(),
+    getEventsQuery(),
     where("startDate", ">=", startDate.toISOString()),
     where("startDate", "<=", endDate.toISOString())
   );
@@ -81,7 +81,7 @@ export const getEventsByMemberId = async (
   memberId: string
 ): Promise<ScheduleEvent[]> => {
   const q = query(
-    getEventsCollection(),
+    getEventsQuery(),
     where("attendeeMemberIds", "array-contains", memberId)
   );
 

@@ -43,19 +43,13 @@ export const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile();
     const { isSidebarOpen, setSidebarOpen } = useAppStore();
 
-    // On initial mount or mobile transition, ensure sidebar is closed on mobile
-    React.useEffect(() => {
-      if (isMobile) {
-        setSidebarOpen(false);
-      }
-    }, [isMobile, setSidebarOpen]);
-
     // Support external control via props, but fallback to global store
     const open = openProp ?? isSidebarOpen;
 
     const setOpen = React.useCallback(
       (value: boolean | ((prev: boolean) => boolean)) => {
         const nextValue = typeof value === "function" ? value(open) : value;
+        console.log("Sidebar: setting open to", nextValue);
         if (onOpenChange) {
           onOpenChange(nextValue);
         }
@@ -124,8 +118,10 @@ export const Sidebar = React.forwardRef<
             role="dialog"
             aria-modal="true"
             className={cn(
-              "fixed inset-y-0 left-0 z-999 w-[280px] bg-white dark:bg-zinc-950 flex flex-col transition-transform duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900 shadow-2xl pointer-events-auto overflow-y-auto",
-              open ? "translate-x-0" : "-translate-x-full",
+              "fixed inset-y-0 left-0 z-999 w-[280px] bg-white dark:bg-zinc-950 flex flex-col transition-all duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900 shadow-2xl pointer-events-auto overflow-y-auto",
+              open
+                ? "translate-x-0 opacity-100 visible"
+                : "-translate-x-full opacity-0 invisible",
               className
             )}
             {...props}

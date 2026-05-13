@@ -4,18 +4,23 @@ import { useState, useEffect } from "react";
 import { addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Member } from "@/types/member.types";
-import { getMembersCollection } from "@/lib/firebase-collections";
+import {
+  getMembersQuery,
+  getMembersCollection,
+} from "@/lib/firebase-collections";
+import { useAppStore } from "@/store/use-app-store";
 
 export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { activeBranch } = useAppStore();
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const membersCollection = getMembersCollection();
-        const querySnapshot = await getDocs(membersCollection);
+        const membersQuery = getMembersQuery();
+        const querySnapshot = await getDocs(membersQuery);
         const membersData = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return { ...data, id: doc.id };
@@ -29,7 +34,7 @@ export function useMembers() {
     };
 
     fetchMembers();
-  }, []);
+  }, [activeBranch]);
 
   const addMember = async (member: Omit<Member, "id">) => {
     const membersCollection = getMembersCollection();

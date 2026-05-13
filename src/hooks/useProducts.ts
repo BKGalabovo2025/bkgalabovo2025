@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
+import { onSnapshot } from "firebase/firestore";
 import { Product } from "@/types";
 import { docToProduct } from "@/services/inventory-service";
 import { toast } from "sonner";
 import { deleteProductAction } from "@/lib/actions/inventory";
 
+import { getProductsQuery } from "@/lib/firebase-collections";
+import { useAppStore } from "@/store/use-app-store";
+
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { activeBranch } = useAppStore();
 
   useEffect(() => {
-    const db = getDb();
-    const productsCollection = collection(db, "products");
-    const q = query(productsCollection, orderBy("name"));
+    const q = getProductsQuery();
 
     const unsubscribe = onSnapshot(
       q,
@@ -34,7 +35,7 @@ export const useProducts = () => {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [activeBranch]);
 
   const deleteProduct = useCallback(
     async (productId: string, idToken: string) => {

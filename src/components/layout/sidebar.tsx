@@ -28,15 +28,12 @@ import {
   Trophy,
   Medal,
   Settings,
-  User,
   PanelLeft,
   Activity,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
-import { BranchSelector } from "./branch-selector";
-
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
   const { setOpen, isMobile, open } = useSidebar();
@@ -49,11 +46,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const brandTitle = isRecoveryZone ? "RECOVERY ZONE" : "БАДМИНТОН КЛУБ";
   const brandSubtitle = isRecoveryZone ? "by ZM" : "ГЪЛЪБОВО";
 
+  // Track previous pathname to detect real navigation
+  const prevPathname = React.useRef(pathname);
+
   // Close sidebar on mobile when navigating
   React.useEffect(() => {
-    if (isMobile) {
+    if (isMobile && pathname !== prevPathname.current) {
       setOpen(false);
     }
+    prevPathname.current = pathname;
   }, [pathname, isMobile, setOpen]);
 
   return (
@@ -96,12 +97,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </button>
           )}
         </div>
-
-        {open && (
-          <div className="animate-in fade-in slide-in-from-top-1 duration-500">
-            <BranchSelector />
-          </div>
-        )}
       </SidebarHeader>
       <SidebarContent className="px-4 py-4">
         <SidebarGroup>
@@ -343,23 +338,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter className="p-6 border-none">
         <SidebarMenu className="gap-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="h-11 px-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all border-none"
-            >
-              <Link
-                href="/settings?tab=profile"
-                className="flex items-center gap-3 w-full"
-                onClick={() => isMobile && setOpen(false)}
-              >
-                <div className="h-7 w-7 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 transition-colors">
-                  <User size={14} />
-                </div>
-                <span className="text-[14px]">Профил</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               type="button"
