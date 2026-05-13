@@ -7,7 +7,6 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
-import { getAdminDb } from "@/lib/firebase-admin";
 import { Site } from "@/types/site.types";
 
 const SITES_COLLECTION = "sites";
@@ -80,6 +79,7 @@ export const updateSite = async (site: Partial<Site> & { id: string }) => {
 
 export const getAllSites = async (): Promise<Site[]> => {
   if (typeof window === "undefined") {
+    const { getAdminDb } = await import("@/lib/firebase-admin");
     const adminDb = getAdminDb();
     const snapshot = await adminDb.collection(SITES_COLLECTION).get();
     if (snapshot.empty) {
@@ -132,6 +132,7 @@ const getDefaultSites = (): Site[] => [
 
 export const getSiteById = async (id: string): Promise<Site | null> => {
   if (typeof window === "undefined") {
+    const { getAdminDb } = await import("@/lib/firebase-admin");
     const adminDb = getAdminDb();
     const docRef = adminDb.collection(SITES_COLLECTION).doc(id);
     const snapshot = await docRef.get();
