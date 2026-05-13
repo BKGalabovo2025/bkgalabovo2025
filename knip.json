@@ -4,14 +4,10 @@
   "ignore": [],
   "ignoreDependencies": [
     "tsconfig-paths",
-    "autoprefixer",
     "eslint-config-prettier",
-    "lint-staged",
-    "@tailwindcss/postcss",
-    "postcss-load-config",
-    "husky"
+    "lint-staged"
   ],
-  "ignoreBinaries": ["lint-staged", "husky"],
+  "ignoreBinaries": ["lint-staged"],
   "next": {
     "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]
   }
