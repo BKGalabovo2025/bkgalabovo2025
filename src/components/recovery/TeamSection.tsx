@@ -20,12 +20,14 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.4em] text-emerald-400 mb-6 font-bold">
+            <p className="text-[10px] uppercase tracking-[0.4em] bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-6 font-bold">
               Нашият Екип
             </p>
             <h2 className="text-5xl md:text-7xl font-light tracking-tight mb-10 leading-[0.95]">
               Хора със <br />
-              <span className="text-emerald-400">споделена мисия</span>
+              <span className="bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                споделена мисия
+              </span>
             </h2>
             <div className="space-y-6 text-zinc-400 text-lg font-light leading-relaxed whitespace-pre-wrap">
               {teamIntro ||
@@ -41,7 +43,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               >
                 <div className="relative w-24 h-24 rounded-3xl overflow-hidden mb-6 border border-white/10 group-hover:border-emerald-500/30 transition-colors">
                   <Image
-                    src={member.image || "/placeholder-avatar.png"}
+                    src={member.image || "/logo.png"}
                     alt={member.name}
                     fill
                     sizes="96px"
@@ -51,7 +53,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
                 <h3 className="text-2xl font-medium text-zinc-100 mb-2">
                   {member.name}
                 </h3>
-                <p className="text-emerald-400 text-xs uppercase tracking-widest font-bold mb-6">
+                <p className="bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent text-xs uppercase tracking-widest font-bold mb-6">
                   {member.role || "Терапевт"}
                 </p>
                 <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
@@ -62,7 +64,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
                   {member.phone && (
                     <a
                       href={`tel:${member.phone}`}
-                      className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:bg-emerald-500 hover:text-white transition-all"
+                      className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white transition-all"
                     >
                       <Phone size={18} />
                     </a>

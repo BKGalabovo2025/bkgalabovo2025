@@ -66,14 +66,14 @@ export default async function RecoveryZonePage() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 px-6 py-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center group">
-            <div className="h-14 w-48 relative overflow-hidden transition-all hover:scale-105 active:scale-95">
+          <Link href="/" className="group">
+            <div className="h-14 w-48 relative overflow-hidden bg-white rounded-2xl p-2 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/10">
               <Image
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
                 priority
-                className="object-contain"
+                className="object-contain scale-110"
               />
             </div>
           </Link>
@@ -107,7 +107,7 @@ export default async function RecoveryZonePage() {
 
           <a
             href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
-            className="px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all active:scale-95 shadow-2xl shadow-white/10"
+            className="px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white transition-all active:scale-95 shadow-2xl shadow-white/10"
           >
             Резервирай
           </a>
@@ -117,8 +117,8 @@ export default async function RecoveryZonePage() {
       {/* Hero Section */}
       <section className="relative pt-48 pb-32 px-6 overflow-hidden min-h-[90vh] flex items-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[150px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[150px] rounded-full" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[150px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[150px] rounded-full" />
         </div>
 
         <div className="max-w-7xl mx-auto w-full relative z-10">
@@ -133,7 +133,9 @@ export default async function RecoveryZonePage() {
               <h1 className="text-6xl md:text-8xl font-light tracking-tight mb-10 leading-[0.9] text-white">
                 Твоето тяло <br />
                 <span className="text-zinc-500 italic">заслужава</span> <br />
-                <span className="text-emerald-400">най-доброто.</span>
+                <span className="bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                  най-доброто.
+                </span>
               </h1>
               <p className="text-zinc-400 text-lg md:text-xl max-w-lg mb-12 font-light leading-relaxed">
                 Открий силата на динамичната компресия с Normatec 3. Ускори
@@ -142,45 +144,25 @@ export default async function RecoveryZonePage() {
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <a
                   href="#pricing"
-                  className="w-full sm:w-auto px-12 py-6 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl text-xs font-bold transition-all shadow-2xl shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-3"
+                  className="w-full sm:w-auto px-12 py-6 bg-linear-to-r from-purple-500 to-emerald-500 hover:opacity-90 text-white rounded-2xl text-xs font-bold transition-all shadow-2xl shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-3"
                 >
                   ВИЖ ПРОГРАМИТЕ <ChevronDown size={16} />
                 </a>
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="h-10 w-10 rounded-full border-2 border-black bg-zinc-800 overflow-hidden"
-                    >
-                      <Image
-                        src={`https://i.pravatar.cc/150?u=${i + 10}`}
-                        alt="User"
-                        width={40}
-                        height={40}
-                      />
-                    </div>
-                  ))}
-                  <div className="h-10 px-4 rounded-full border-2 border-black bg-zinc-900 flex items-center justify-center">
-                    <span className="text-[10px] font-bold text-emerald-400">
-                      +100 ДОВОЛНИ
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 
             <div className="relative group">
-              <div className="absolute inset-0 bg-emerald-500/10 blur-[100px] rounded-full group-hover:bg-emerald-500/20 transition-all duration-1000" />
-              <div className="relative aspect-square md:aspect-video rounded-6xl overflow-hidden border border-white/5 shadow-2xl">
+              <div className="absolute inset-0 bg-linear-to-tr from-purple-500/20 to-emerald-500/20 blur-[100px] rounded-full group-hover:from-purple-500/30 group-hover:to-emerald-500/30 transition-all duration-1000" />
+              <div className="relative aspect-square md:aspect-video rounded-6xl overflow-hidden border border-white/5 shadow-2xl bg-zinc-900">
                 <Image
-                  src="/recovery-hero.webp"
-                  alt="Recovery Hero"
+                  src="/1.png"
+                  alt="Recovery Zone by ZM"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                  className="object-contain p-12 transition-transform duration-1000 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
                 <div className="absolute bottom-10 left-10 right-10 p-8 rounded-3xl bg-black/40 backdrop-blur-md border border-white/10">
                   <div className="flex items-center gap-6">
                     <div className="h-12 w-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shrink-0">
@@ -213,7 +195,7 @@ export default async function RecoveryZonePage() {
                   key={idx}
                   className="group p-10 rounded-5xl bg-zinc-900/40 border border-white/5 hover:border-emerald-500/30 hover:bg-zinc-900 transition-all duration-500"
                 >
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-400 mb-8 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-emerald-500/20">
+                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-8 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-emerald-500/20">
                     <Icon size={28} />
                   </div>
                   <h3 className="text-xl font-medium text-white mb-4">
@@ -233,7 +215,7 @@ export default async function RecoveryZonePage() {
       <section className="py-32 px-6 bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="mb-20 text-center">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-emerald-400 mb-6 font-bold">
+            <p className="text-[10px] uppercase tracking-[0.4em] bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-6 font-bold">
               Технологии
             </p>
             <h2 className="text-5xl md:text-6xl font-light tracking-tight">
@@ -252,7 +234,7 @@ export default async function RecoveryZonePage() {
                 )}
               >
                 <div className="flex-1 w-full relative group">
-                  <div className="absolute inset-0 bg-emerald-500/5 blur-[80px] rounded-full group-hover:bg-emerald-500/10 transition-all duration-700" />
+                  <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-emerald-500/10 blur-[80px] rounded-full group-hover:from-purple-500/20 group-hover:to-emerald-500/20 transition-all duration-700" />
                   <div className="relative aspect-square md:aspect-4/3 rounded-6xl overflow-hidden border border-white/5">
                     <Image
                       src={item.image}
@@ -354,7 +336,7 @@ export default async function RecoveryZonePage() {
 
               <div className="space-y-10">
                 <div className="flex items-center gap-6 group">
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all">
                     <Mail size={24} />
                   </div>
                   <div>
@@ -371,7 +353,7 @@ export default async function RecoveryZonePage() {
                 </div>
 
                 <div className="flex items-center gap-6 group">
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all">
                     <Clock size={24} />
                   </div>
                   <div>
@@ -445,7 +427,7 @@ export default async function RecoveryZonePage() {
                 </div>
 
                 <div className="flex items-center gap-6 group">
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all">
                     <MapPin size={24} />
                   </div>
                   <div>
@@ -473,7 +455,7 @@ export default async function RecoveryZonePage() {
                 </p>
                 <a
                   href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
-                  className="w-full flex items-center justify-center gap-3 px-10 py-6 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl text-sm font-bold transition-all shadow-2xl shadow-emerald-500/30"
+                  className="w-full flex items-center justify-center gap-3 px-10 py-6 bg-linear-to-r from-purple-500 to-emerald-500 hover:opacity-90 text-white rounded-2xl text-sm font-bold transition-all shadow-2xl shadow-emerald-500/30"
                 >
                   ЗАПАЗИ ЧАС СЕГА
                 </a>

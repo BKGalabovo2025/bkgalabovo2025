@@ -65,7 +65,7 @@ export function SessionsSection() {
     <section id="pricing" className="py-32 px-6 bg-zinc-950">
       <div className="max-w-4xl mx-auto">
         <div className="mb-16 text-center">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-400 mb-4">
+          <p className="text-[11px] uppercase tracking-[0.4em] bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-4 font-bold">
             Цени и услуги (EURO)
           </p>
           <h2 className="text-4xl md:text-5xl font-light tracking-tight">
@@ -86,7 +86,7 @@ export function SessionsSection() {
               className={cn(
                 "px-5 py-2.5 rounded-full text-[10px] font-bold tracking-widest transition-all uppercase",
                 activeCategory === cat.id
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                  ? "bg-linear-to-r from-purple-500 to-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                   : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"
               )}
             >
@@ -120,7 +120,7 @@ export function SessionsSection() {
                       className={cn(
                         "text-xl font-medium transition-colors",
                         expandedId === session.id
-                          ? "text-emerald-400"
+                          ? "bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent"
                           : "text-zinc-200 group-hover:text-white"
                       )}
                     >
@@ -152,7 +152,7 @@ export function SessionsSection() {
 
                 <div className="flex items-center justify-between md:justify-end gap-10">
                   <div className="text-3xl font-light text-zinc-300">
-                    <span className="text-emerald-400 font-medium">
+                    <span className="bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent font-bold">
                       {session.price}
                     </span>
                     <span className="text-zinc-600 text-lg ml-1">€</span>
@@ -161,7 +161,7 @@ export function SessionsSection() {
                     className={cn(
                       "h-12 w-12 rounded-full flex items-center justify-center border transition-all duration-500",
                       expandedId === session.id
-                        ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                        ? "bg-linear-to-r from-purple-500 to-emerald-500 border-transparent text-white shadow-lg shadow-emerald-500/20"
                         : "bg-white/5 border-white/5 text-zinc-500 group-hover:text-zinc-300 group-hover:border-white/10"
                     )}
                   >
@@ -274,7 +274,7 @@ export function SessionsSection() {
                       </p>
                       <a
                         href="mailto:recoveryzonebyzm@gmail.com"
-                        className="w-full sm:w-auto px-10 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                        className="w-full sm:w-auto px-10 py-4 bg-linear-to-r from-purple-500 to-emerald-500 hover:opacity-90 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                       >
                         ЗАПАЗИ ЧАС СЕГА
                       </a>
