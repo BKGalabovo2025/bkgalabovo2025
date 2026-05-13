@@ -7,11 +7,14 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
-import { Site } from "@/types/site.types";
+import { Site, Therapist } from "@/types/site.types";
+import { DocumentSnapshot, QueryDocumentSnapshot } from "firebase/firestore";
 
 const SITES_COLLECTION = "sites";
 
-export const docToSite = (doc: any): Site | null => {
+export const docToSite = (
+  doc: DocumentSnapshot | QueryDocumentSnapshot | any
+): Site | null => {
   const exists = typeof doc.exists === "function" ? doc.exists() : doc.exists;
   if (!doc.id || !exists) return null;
   const data = doc.data() || {};
@@ -42,13 +45,15 @@ export const docToSite = (doc: any): Site | null => {
     schedule: data.schedule || null,
     isActive: data.isActive ?? true,
     recoveryEnabled: data.recoveryEnabled ?? false,
-    therapists: (data.therapists || []).map((t: any, idx: number) => ({
-      ...t,
-      id:
-        t.id ||
-        t.name?.toLowerCase().replace(/\s+/g, "-") ||
-        `therapist-${idx}`,
-    })),
+    therapists: (data.therapists || []).map(
+      (t: Partial<Therapist>, idx: number) => ({
+        ...t,
+        id:
+          t.id ||
+          t.name?.toLowerCase().replace(/\s+/g, "-") ||
+          `therapist-${idx}`,
+      })
+    ) as Therapist[],
     teamIntro: data.teamIntro || "",
     bookingRules: data.bookingRules || {
       minHoursBeforeBooking: 1,

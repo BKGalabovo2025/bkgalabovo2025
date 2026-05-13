@@ -10,6 +10,7 @@ import {
   calculateAvailability,
   isServiceAvailableAcrossSlots,
 } from "@/services/booking/availability";
+import { ResourceRequirements } from "@/types/booking.types";
 
 export const useAvailability = (
   siteId: string | undefined,
@@ -84,9 +85,13 @@ export const useAvailability = (
     }
 
     // Use standardized inventory
-    const inventory = site.inventory || {
-      attachments: { arms: 0, hips: 0, legs: 0 },
-      compressors: 0,
+    const inventory: ResourceRequirements = {
+      compressors: site.inventory?.compressors || 0,
+      attachments: site.inventory?.attachments || {
+        arms: 0,
+        hips: 0,
+        legs: 0,
+      },
     };
 
     // Determine operating hours for the specific day

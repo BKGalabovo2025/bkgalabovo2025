@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft, Download, Loader2 } from "lucide-react";
@@ -19,11 +20,12 @@ const AthleteCard = ({ member }: { member: Member }) => {
         <div className="flex justify-between items-start mb-6">
           <div className="w-24 h-32 border-2 border-slate-400 flex items-center justify-center overflow-hidden bg-slate-50">
             {member.avatarUrl ? (
-              <img
+              <Image
                 src={member.avatarUrl}
                 alt={`${member.firstName} ${member.lastName}`}
-                className="w-full h-full object-cover"
-                crossOrigin="anonymous"
+                fill
+                className="object-cover"
+                unoptimized
               />
             ) : (
               <div className="text-[10px] text-slate-400 uppercase italic text-center px-2">

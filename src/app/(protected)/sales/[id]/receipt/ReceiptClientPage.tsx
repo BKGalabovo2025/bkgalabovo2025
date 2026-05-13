@@ -114,7 +114,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
             });
           }
         },
-      } as any);
+      });
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({

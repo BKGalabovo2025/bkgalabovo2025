@@ -1,4 +1,18 @@
 /**
+ * Represents the physical assets and equipment available at a site.
+ */
+export interface SiteInventory {
+  courts?: number;
+  machines?: number;
+  compressors?: number;
+  attachments?: {
+    legs?: number;
+    arms?: number;
+    hips?: number;
+  };
+}
+
+/**
  * Represents a member of the recovery team.
  */
 export interface Therapist {
@@ -49,7 +63,7 @@ export interface Site {
 
   // Recovery Zone settings
   recoveryEnabled: boolean;
-  inventory: any; // Standardized inventory for both sites
+  inventory: SiteInventory; // Standardized inventory for both sites
 
   // Enriched settings
   therapists?: Therapist[];

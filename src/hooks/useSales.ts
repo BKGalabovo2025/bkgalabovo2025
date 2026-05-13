@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { useAppStore } from "@/store/use-app-store";
 
 import { Sale } from "@/types";
 import {
@@ -21,7 +20,6 @@ export const useSales = (memberId?: string) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { activeBranch } = useAppStore();
 
   const refetch = useCallback(async () => {
     setIsLoading(true);
@@ -41,7 +39,7 @@ export const useSales = (memberId?: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [memberId, activeBranch]);
+  }, [memberId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -74,7 +72,7 @@ export const useSales = (memberId?: string) => {
     return () => {
       isMounted = false;
     };
-  }, [memberId, activeBranch]);
+  }, [memberId]);
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {

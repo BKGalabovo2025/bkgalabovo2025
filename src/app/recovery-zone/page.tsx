@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     "Възстановете се по-бързо с най-съвременната технология Hyperice Normatec 3. Професионално решение за спортисти и активни хора.",
 };
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, React.ElementType> = {
   Wind,
   Heart,
   ShieldCheck,
@@ -497,6 +497,6 @@ export default async function RecoveryZonePage() {
   );
 }
 
-function cn(...classes: any[]) {
+function cn(...classes: (string | boolean | undefined | null)[]) {
   return classes.filter(Boolean).join(" ");
 }
