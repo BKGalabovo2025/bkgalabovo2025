@@ -18,6 +18,8 @@ import {
   ScheduleEvent,
   ClientPackage,
   GeneralService,
+  Reservation,
+  BlockedSlot,
 } from "@/types";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 
@@ -277,6 +279,38 @@ const clientPackageConverter: FirestoreDataConverter<ClientPackage> = {
   },
 };
 
+const reservationConverter: FirestoreDataConverter<Reservation> = {
+  toFirestore: (res) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = res;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as Reservation;
+  },
+};
+
+const blockedSlotConverter: FirestoreDataConverter<BlockedSlot> = {
+  toFirestore: (slot) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = slot;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as BlockedSlot;
+  },
+};
+
 // --- Collection Getters (Raw) ---
 
 export const getMembersCollection = () =>
@@ -318,6 +352,12 @@ export const getGeneralServicesCollection = () =>
   collection(getDb(), "clubGeneralServices").withConverter(
     generalServiceConverter
   );
+
+export const getReservationsCollection = () =>
+  collection(getDb(), "reservations").withConverter(reservationConverter);
+
+export const getBlockedSlotsCollection = () =>
+  collection(getDb(), "blockedSlots").withConverter(blockedSlotConverter);
 
 // --- Tenant-Aware Query Getters ---
 
@@ -454,6 +494,24 @@ export const getGeneralServicesQuery = () => {
     return query(getGeneralServicesCollection());
   return query(
     getGeneralServicesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+export const getReservationsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getReservationsCollection());
+  return query(
+    getReservationsCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+export const getBlockedSlotsQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getBlockedSlotsCollection());
+  return query(
+    getBlockedSlotsCollection(),
     where("siteId", "==", siteConfig.id)
   );
 };

@@ -23,5 +23,6 @@ export interface BlockedSlot {
   endTime: Timestamp;
   // An array of court IDs this slot applies to. If empty, it applies to all courts.
   courtIds: number[];
+  siteId: string;
   createdAt: Timestamp;
 }

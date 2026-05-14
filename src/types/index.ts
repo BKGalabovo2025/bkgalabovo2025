@@ -2,6 +2,7 @@
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
+export { type Reservation, type BlockedSlot } from "./reservation";
 
 // =================================================================
 //                            CORE TYPES
