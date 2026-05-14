@@ -193,7 +193,8 @@ export interface RecoverySession {
   name: string;
   description: string;
   price: number;
-  duration: number;
+  duration?: number;
+  durationMinutes: number;
   category: string;
   benefits: string[];
   zones: string[];
@@ -211,7 +212,11 @@ const sessionConverter: FirestoreDataConverter<RecoverySession> = {
   toFirestore: (session) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...data } = session;
-    return { ...data, siteId: "recoveryzone" };
+    return { 
+      ...data, 
+      durationMinutes: session.durationMinutes || session.duration || 30,
+      siteId: "recoveryzone" 
+    };
   },
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options);
@@ -228,6 +233,7 @@ const sessionConverter: FirestoreDataConverter<RecoverySession> = {
       id: snapshot.id,
       ...data,
       zones,
+      durationMinutes: data.durationMinutes || data.duration || 30,
     } as RecoverySession;
   },
 };
@@ -330,6 +336,15 @@ export const getMemberSubscriptionsCollection = () =>
 export const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
+export const getTournamentCollection = () =>
+  collection(getDb(), "tournaments").withConverter(tournamentConverter);
+
+export const getTournamentEntriesCollection = () =>
+  collection(getDb(), "tournament_entries").withConverter(entryConverter);
+
+export const getTournamentMatchesCollection = () =>
+  collection(getDb(), "tournament_matches").withConverter(matchConverter);
+
 export const getInventoryEventsCollection = () =>
   collection(getDb(), "inventoryEvents").withConverter(inventoryEventConverter);
 
@@ -338,12 +353,6 @@ export const getEventsCollection = () =>
 
 export const getTournamentsCollection = () =>
   collection(getDb(), "tournaments").withConverter(tournamentConverter);
-
-export const getTournamentEntriesCollection = () =>
-  collection(getDb(), "tournament_entries").withConverter(entryConverter);
-
-export const getTournamentMatchesCollection = () =>
-  collection(getDb(), "tournament_matches").withConverter(matchConverter);
 
 export const getClientPackagesCollection = () =>
   collection(getDb(), "client_packages").withConverter(clientPackageConverter);

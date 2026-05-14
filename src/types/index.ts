@@ -128,6 +128,12 @@ export type ClubService = {
   requiredResources?: import("./booking.types").ResourceRequirements;
   isExclusive?: boolean;
   bufferAfter?: number; // in minutes
+  category?: string;
+  zones?: string[];
+  athleteCount?: number;
+  numberOfDays?: number;
+  proceduresPerDay?: number;
+  sessionType?: string;
 
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601

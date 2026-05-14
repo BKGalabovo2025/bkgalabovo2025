@@ -100,8 +100,8 @@ async function _logHistory(
   });
 }
 
-function cleanObject(obj: any) {
-  const newObj: any = {};
+function cleanObject(obj: Record<string, unknown>) {
+  const newObj: Record<string, unknown> = {};
   Object.keys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       newObj[key] = obj[key];
@@ -272,5 +272,164 @@ export async function deleteClubService(idToken: string, id: string) {
   } catch (error) {
     console.error("Error deleting service:", error);
     return { success: false, message: "Възникна грешка при изтриването." };
+  }
+}
+
+// --- Recovery Session Actions ---
+
+const RecoverySessionSchema = z.object({
+  name: z.string().min(2, "Името трябва да е поне 2 символа."),
+  description: z.string().optional().default(""),
+  price: z.coerce.number().min(0),
+  durationMinutes: z.coerce.number().min(1),
+  category: z.string().min(1),
+  zones: z.array(z.string()).default([]),
+  athleteCount: z.coerce.number().min(1).default(1),
+  numberOfDays: z.coerce.number().min(1).default(1),
+  proceduresPerDay: z.coerce.number().min(1).default(1),
+  sessionType: z.string().optional().default("Възстановяване"),
+  requiredResources: z.object({
+    attachments: z.object({
+      arms: z.coerce.number().min(0).default(0),
+      hips: z.coerce.number().min(0).default(0),
+      legs: z.coerce.number().min(0).default(0),
+    }),
+    compressors: z.coerce.number().min(0).default(0),
+  }),
+});
+
+export async function createRecoverySession(
+  idToken: string,
+  _prevState: ServiceState,
+  formData: FormData
+): Promise<ServiceState> {
+  try {
+    if (!idToken) throw new Error("Missing ID Token");
+    await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+
+    const rawData = {
+      name: formData.get("name"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      durationMinutes: formData.get("duration"),
+      category: formData.get("category"),
+      zones: formData.get("zones")?.toString().split(",").filter(Boolean) || [],
+      athleteCount: formData.get("athleteCount"),
+      numberOfDays: formData.get("numberOfDays"),
+      proceduresPerDay: formData.get("proceduresPerDay"),
+      sessionType: formData.get("sessionType"),
+      requiredResources: {
+        attachments: {
+          arms: formData.get("req_arms") || 0,
+          hips: formData.get("req_hips") || 0,
+          legs: formData.get("req_legs") || 0,
+        },
+        compressors: formData.get("req_compressors") || 0,
+      },
+    };
+
+    const validatedFields = RecoverySessionSchema.safeParse(rawData);
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: "Грешка във валидацията.",
+      };
+    }
+
+    const data = validatedFields.data;
+    const sessionId = `rec_${Date.now()}`;
+
+    await adminDb.collection("sessions").doc(sessionId).set({
+      ...data,
+      id: sessionId,
+      siteId: "recoveryzone",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/finances/recovery");
+    return {
+      success: true,
+      message: `Процедурата '${data.name}' беше създадена успешно.`,
+    };
+  } catch (error) {
+    console.error("Error creating recovery session:", error);
+    return { success: false, message: "Грешка при сървъра." };
+  }
+}
+
+export async function updateRecoverySession(
+  id: string,
+  idToken: string,
+  _prevState: ServiceState,
+  formData: FormData
+): Promise<ServiceState> {
+  try {
+    if (!id || !idToken) throw new Error("Missing ID or ID Token");
+    await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+
+    const rawData = {
+      name: formData.get("name"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      durationMinutes: formData.get("duration"),
+      category: formData.get("category"),
+      zones: formData.get("zones")?.toString().split(",").filter(Boolean) || [],
+      athleteCount: formData.get("athleteCount"),
+      numberOfDays: formData.get("numberOfDays"),
+      proceduresPerDay: formData.get("proceduresPerDay"),
+      sessionType: formData.get("sessionType"),
+      requiredResources: {
+        attachments: {
+          arms: formData.get("req_arms") || 0,
+          hips: formData.get("req_hips") || 0,
+          legs: formData.get("req_legs") || 0,
+        },
+        compressors: formData.get("req_compressors") || 0,
+      },
+    };
+
+    const validatedFields = RecoverySessionSchema.safeParse(rawData);
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: "Грешка във валидацията.",
+      };
+    }
+
+    const data = validatedFields.data;
+
+    await adminDb.collection("sessions").doc(id).update({
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/finances/recovery");
+    revalidatePath(`/finances/recovery/${id}`);
+    return {
+      success: true,
+      message: `Процедурата '${data.name}' беше обновена успешно.`,
+    };
+  } catch (error) {
+    console.error("Error updating recovery session:", error);
+    return { success: false, message: "Грешка при сървъра." };
+  }
+}
+
+export async function deleteRecoverySession(idToken: string, id: string) {
+  try {
+    await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+    await adminDb.collection("sessions").doc(id).delete();
+    revalidatePath("/finances/recovery");
+    return { success: true, message: "Процедурата беше изтрита успешно." };
+  } catch (error) {
+    console.error("Error deleting recovery session:", error);
+    return { success: false, message: "Грешка при изтриването." };
   }
 }

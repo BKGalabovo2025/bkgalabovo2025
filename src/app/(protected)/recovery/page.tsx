@@ -44,7 +44,12 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function RecoveryPage() {
-  const { activeBranch } = useAppStore();
+  const { activeBranch, setActiveBranch } = useAppStore();
+
+  React.useEffect(() => {
+    setActiveBranch("recoveryzone");
+  }, [setActiveBranch]);
+
   const { members } = useMembers();
 
   const [date, setDate] = useState<Date>(new Date());

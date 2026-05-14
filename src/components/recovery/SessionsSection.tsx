@@ -17,10 +17,10 @@ import { cn } from "@/lib/utils";
 
 const categories = [
   { id: "all", label: "ВСИЧКИ" },
-  { id: "Единични", label: "ЕДИНИЧНИ" },
-  { id: "Комбинирани", label: "КОМБИНИРАНИ" },
-  { id: "Турнирни", label: "ТУРНИРНИ" },
-  { id: "VIP", label: "VIP" },
+  { id: "ЕДИНИЧНИ СЕСИИ", label: "ЕДИНИЧНИ" },
+  { id: "КОМБИНИРАНИ СЕСИИ", label: "КОМБИНИРАНИ" },
+  { id: "ТУРНИРНИ СЕСИИ", label: "ТУРНИРНИ" },
+  { id: "VIP СЕСИИ", label: "VIP" },
 ];
 
 export function SessionsSection() {
@@ -52,6 +52,16 @@ export function SessionsSection() {
     return s.category === activeCategory;
   });
 
+  const getDurationLabel = (session: RecoverySession) => {
+    const duration = session.durationMinutes || session.duration;
+    
+    // ONLY VIP sessions get the split label
+    if (duration === 45 && session.sessionType === "VIP") {
+      return "15 мин + 30 мин";
+    }
+    return `${duration} мин`;
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center">
@@ -62,7 +72,7 @@ export function SessionsSection() {
   }
 
   return (
-    <section id="pricing" className="py-32 px-6 bg-zinc-950">
+    <section id="pricing" className="py-32 px-6 bg-zinc-950 scroll-mt-32">
       <div className="max-w-4xl mx-auto">
         <div className="mb-16 text-center">
           <p className="text-[11px] uppercase tracking-[0.4em] bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-4 font-bold">
@@ -133,7 +143,7 @@ export function SessionsSection() {
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
                       <Clock size={14} className="text-emerald-500/40" />
-                      <span>{session.duration} мин</span>
+                      <span>{getDurationLabel(session)}</span>
                     </div>
                     {session.athleteCount > 1 && (
                       <div className="flex items-center gap-1.5 text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
@@ -205,7 +215,7 @@ export function SessionsSection() {
                               <Target size={12} /> Целеви зони
                             </h4>
                             <div className="flex flex-wrap gap-2">
-                              {session.zones.map((zone, idx) => (
+                              {Array.from(new Set(session.zones || [])).map((zone, idx) => (
                                 <span
                                   key={idx}
                                   className="px-4 py-1.5 rounded-xl bg-zinc-800 text-[10px] text-zinc-300 border border-white/5 uppercase tracking-widest font-medium"

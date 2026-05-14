@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AgendaView } from "@/components/reservations/agenda-view";
 import { ReservationDialog } from "@/components/reservations/reservation-dialog";
@@ -18,10 +18,18 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReservationHistory } from "@/components/reservations/reservation-history";
 import { History, LayoutGrid } from "lucide-react";
+import { useAppStore } from "@/store/use-app-store";
 
 const COURT_COUNT = 6;
 
 export default function ReservationsClient() {
+  const { activeBranch } = useAppStore();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState("schedule");
@@ -51,29 +59,41 @@ export default function ReservationsClient() {
     setActiveTab("schedule");
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
         title="Резервации"
-        description="Управление на кортовете и заетостта в реално време."
+        description={
+          activeBranch === "bkgalabovo"
+            ? "Управление на кортовете и заетостта в реално време."
+            : "Управление на резервации за възстановителни процедури в recoveryzone."
+        }
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
+          {
+            label: activeBranch === "bkgalabovo" ? "Клуб" : "Възстановяване",
+            href: activeBranch === "bkgalabovo" ? "/dashboard" : "/recovery",
+          },
           { label: "Резервации" },
         ]}
       >
         <div className="flex items-center gap-3">
-          <BlockSlotDialog onSave={handleSave} courtCount={COURT_COUNT}>
-            <Button
-              variant="outline"
-              className="rounded-xl border-zinc-200 dark:border-zinc-800 h-11 px-5 font-bold text-[10px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            >
-              <ShieldAlert
-                className="mr-2.5 h-4 w-4 text-zinc-400"
-                strokeWidth={2}
-              />
-              Блокирай
-            </Button>
-          </BlockSlotDialog>
+          {activeBranch === "bkgalabovo" && (
+            <BlockSlotDialog onSave={handleSave} courtCount={COURT_COUNT}>
+              <Button
+                variant="outline"
+                className="rounded-xl border-zinc-200 dark:border-zinc-800 h-11 px-5 font-bold text-[10px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              >
+                <ShieldAlert
+                  className="mr-2.5 h-4 w-4 text-zinc-400"
+                  strokeWidth={2}
+                />
+                Блокирай
+              </Button>
+            </BlockSlotDialog>
+          )}
           <ReservationDialog onSave={handleSave}>
             <Button className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-11 px-6 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all border-none">
               <Plus className="mr-2.5 h-4 w-4" strokeWidth={2.5} /> Нова

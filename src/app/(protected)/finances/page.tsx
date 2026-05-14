@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Boxes,
   Wrench,
+  Activity,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,15 @@ export default function FinancesPage() {
       icon: Wrench,
       color: "rose",
       badge: "Services",
+    },
+    {
+      title: "Каталог Възстановяване",
+      description:
+        "Управление на процедури за възстановяване, пакети и сесии в Recovery Zone.",
+      href: "/finances/recovery",
+      icon: Activity,
+      color: "cyan",
+      badge: "Recovery",
     },
     {
       title: "Каталог Магазин",

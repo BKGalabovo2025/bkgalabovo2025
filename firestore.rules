@@ -8,11 +8,9 @@ service cloud.firestore {
 
     // Проверка за валиден идентификатор на сайта (Multi-tenancy)
     function hasValidSiteId() {
-      // При изтриване няма данни, затова разрешаваме. 
-      // При създаване/обновяване изискваме наличие на siteId, който да е валиден.
-      return request.method == 'delete' || 
+      return request.method in ['get', 'list', 'delete'] || 
              (request.resource.data.keys().hasAll(['siteId']) && 
-             request.resource.data.siteId in ['bkgalabovo', 'recoveryzone']);
+              request.resource.data.siteId in ['bkgalabovo', 'recoveryzone']);
     }
 
     // Членове - четене от влезли, промяна от админ

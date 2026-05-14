@@ -13,6 +13,7 @@ import {
   getMemberSubscriptionsCollection,
   getMemberSubscriptionsQuery,
   getClubServicesQuery,
+  getSessionsQuery,
   getSalesCollection,
   getMembersCollection,
 } from "@/lib/firebase-collections";
@@ -84,6 +85,60 @@ export const docToClubService = (doc: DocumentSnapshot): ClubService | null => {
   };
 };
 
+export const sessionToClubService = (
+  doc: DocumentSnapshot
+): ClubService | null => {
+  if (!doc.id || !doc.exists()) return null;
+  const data = doc.data() || {};
+  return {
+    id: doc.id,
+    siteId: "recoveryzone",
+    name: typeof data.name === "string" ? data.name : "Неименувана услуга",
+    description: typeof data.description === "string" ? data.description : "",
+    price: typeof data.price === "number" ? data.price : 0,
+    currency: "EUR",
+    type: "Еднократно плащане",
+    billingPeriod: null,
+    targetGroups: [],
+    isCoachLed: false,
+    durationMinutes: typeof data.duration === "number" ? data.duration : 0,
+    requiresBooking: true,
+    category: typeof data.category === "string" ? data.category : "Други",
+    zones: Array.isArray(data.zones)
+      ? data.zones
+      : typeof data.zones === "string"
+        ? data.zones.split(",").map((z: string) => z.trim())
+        : [],
+    athleteCount: typeof data.athleteCount === "number" ? data.athleteCount : 1,
+    numberOfDays: typeof data.numberOfDays === "number" ? data.numberOfDays : 1,
+    proceduresPerDay:
+      typeof data.proceduresPerDay === "number" ? data.proceduresPerDay : 1,
+    sessionType:
+      typeof data.sessionType === "string" ? data.sessionType : "Възстановяване",
+    minMembers: 0,
+    maxMembers: 0,
+    specialRights: [],
+    cancellationPolicy: {
+      isAllowed: false,
+      noticePeriodDays: 0,
+      feeType: "none",
+      feeValue: 0,
+      description: "",
+      longTermSicknessDiscount: 0,
+    },
+    createdAt:
+      typeof data.createdAt === "string"
+        ? data.createdAt
+        : new Date().toISOString(),
+    updatedAt:
+      typeof data.updatedAt === "string"
+        ? data.updatedAt
+        : new Date().toISOString(),
+    createdBy: { userId: "", userName: "" },
+    updatedBy: { userId: "", userName: "" },
+  };
+};
+
 export const docToMemberSubscription = (
   doc: DocumentSnapshot
 ): Subscription | null => {
@@ -132,6 +187,16 @@ export const docToMemberSubscription = (
 // --- Service Functions ---
 
 export const getAllClubServices = async (): Promise<ClubService[]> => {
+  const siteConfig = getSiteConfig();
+
+  if (siteConfig.id === "recoveryzone") {
+    const q = getSessionsQuery();
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(sessionToClubService)
+      .filter(Boolean) as ClubService[];
+  }
+
   const q = getClubServicesQuery();
   const snapshot = await getDocs(q);
   return snapshot.docs.map(docToClubService).filter(Boolean) as ClubService[];

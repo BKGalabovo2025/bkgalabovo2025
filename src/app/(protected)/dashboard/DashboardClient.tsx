@@ -169,7 +169,7 @@ export default function DashboardClient() {
           </Button>
           <Button
             className="rounded-xl shadow-none transition-all font-medium text-[11px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8"
-            onClick={() => router.push("/reservations/new")}
+            onClick={() => router.push("/reservations")}
           >
             {language === "bg" ? "Нова резервация" : "New Reservation"}
           </Button>

@@ -37,6 +37,7 @@ interface SiteDocumentData {
   benefits?: Site["benefits"];
   attachments?: Site["attachments"];
   contraindications?: string[];
+  faqs?: { q: string; a: string }[];
 }
 
 export const docToSite = (doc: {
@@ -102,6 +103,7 @@ export const docToSite = (doc: {
     benefits: data.benefits || [],
     attachments: data.attachments || [],
     contraindications: data.contraindications || [],
+    faqs: data.faqs || [],
   };
 };
 

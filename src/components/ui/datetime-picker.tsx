@@ -13,12 +13,14 @@ interface DateTimePickerProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
   label: string;
+  disabled?: boolean;
 }
 
 export function DateTimePicker<TFieldValues extends FieldValues>({
   control,
   name,
   label,
+  disabled,
 }: DateTimePickerProps<TFieldValues>) {
   return (
     <FormField
@@ -30,6 +32,7 @@ export function DateTimePicker<TFieldValues extends FieldValues>({
           <FormControl>
             <Input
               type="datetime-local"
+              disabled={disabled}
               value={formatDateTimeLocal(field.value)}
               onChange={(e) => {
                 const val = e.target.value;

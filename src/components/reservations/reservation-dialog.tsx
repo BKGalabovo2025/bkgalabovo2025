@@ -7,11 +7,13 @@ import {
   ChevronRight,
   ChevronLeft,
   CalendarRange,
+  Calendar,
   User,
   ClipboardCheck,
   CheckCircle2,
   Clock,
   MapPin,
+  Activity,
 } from "lucide-react";
 import {
   createReservationAction,
@@ -23,6 +25,8 @@ import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { useAppStore } from "@/store/use-app-store";
 import { toast } from "sonner";
 import { Reservation } from "@/types/reservation";
+import { ClubService } from "@/types";
+import { getAllClubServices } from "@/services/subscription-service";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -53,7 +57,9 @@ const reservationSchema = z
       .email({ message: "Невалиден имейл адрес." })
       .optional()
       .or(z.literal("")),
-    courtId: z.number().min(1, { message: "Моля, изберете корт" }).max(6),
+    courtId: z.number().optional(),
+    serviceId: z.string().optional(),
+    selectedZone: z.string().optional(),
     startTime: z.date(),
     endTime: z.date(),
   })
@@ -80,11 +86,28 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("time");
+  const [services, setServices] = useState<ClubService[]>([]);
+  const { activeBranch } = useAppStore();
+  const isRecoveryZone = activeBranch === "recoveryzone";
+
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isRecoveryZone) {
+      getAllClubServices().then((data) => {
+        setServices(data.filter((s) => s.requiresBooking));
+      });
+    }
+  }, [isRecoveryZone]);
+
+  const { getFreshToken } = useAuth();
 
   const COURT_PRICE_PER_HOUR = 10;
   const isEditMode = !!reservation;
-  const { getFreshToken } = useAuth();
-  const { activeBranch } = useAppStore();
 
   const form = useForm<z.infer<typeof reservationSchema>>({
     resolver: zodResolver(reservationSchema),
@@ -92,17 +115,55 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   const { reset, control, trigger } = form;
   const watchedValues = useWatch({ control });
-  const { startTime, endTime, courtId, clientName, clientPhone, clientEmail } =
-    watchedValues;
+  const {
+    startTime,
+    endTime,
+    courtId,
+    serviceId,
+    clientName,
+    clientPhone,
+    clientEmail,
+    selectedZone,
+  } = watchedValues;
+
+  // Auto-calculate endTime based on service duration
+  React.useEffect(() => {
+    if (isRecoveryZone && serviceId && startTime) {
+      const selectedService = services.find((s) => s.id === serviceId);
+      if (selectedService && selectedService.durationMinutes) {
+        const newEndTime = new Date(
+          startTime.getTime() + selectedService.durationMinutes * 60000
+        );
+        // Only update if it's different to avoid infinite loop
+        if (!endTime || endTime.getTime() !== newEndTime.getTime()) {
+          form.setValue("endTime", newEndTime);
+        }
+      }
+    }
+  }, [serviceId, startTime, isRecoveryZone, services, form, endTime]);
 
   const price = useMemo(() => {
+    if (isRecoveryZone) {
+      const selectedService = services.find((s) => s.id === serviceId);
+      return selectedService?.price || 0;
+    }
     if (startTime && endTime && endTime > startTime) {
       const durationHours =
         (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
       return durationHours * COURT_PRICE_PER_HOUR;
     }
     return 0;
-  }, [startTime, endTime]);
+  }, [startTime, endTime, serviceId, isRecoveryZone, services]);
+
+  const groupedServices = useMemo(() => {
+    const groups: { [key: string]: ClubService[] } = {};
+    services.forEach((s) => {
+      const cat = s.category || "Други";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(s);
+    });
+    return groups;
+  }, [services]);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -127,7 +188,20 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   const handleNext = async () => {
     if (currentStep === "time") {
-      const isValid = await trigger(["courtId", "startTime", "endTime"]);
+      const fieldsToTrigger: Array<keyof z.infer<typeof reservationSchema>> = [
+        "startTime",
+        "endTime",
+      ];
+      if (!isRecoveryZone) fieldsToTrigger.push("courtId");
+      else {
+        fieldsToTrigger.push("serviceId");
+        const selectedService = services.find(s => s.id === serviceId);
+        if (selectedService && (selectedService.zones?.length || 0) > 1) {
+          fieldsToTrigger.push("selectedZone");
+        }
+      }
+
+      const isValid = await trigger(fieldsToTrigger);
       if (isValid) setCurrentStep("details");
     } else if (currentStep === "details") {
       const isValid = await trigger([
@@ -153,13 +227,37 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
     setIsSaving(true);
     try {
+      const selectedService = services.find((s) => s.id === values.serviceId);
+      
+      // Dynamic resource adjustment based on selected zone
+      let finalResources = selectedService?.requiredResources;
+      if (values.selectedZone && finalResources) {
+        // If a specific zone is chosen, we narrow down the resources to just that zone + 1 compressor
+        const zone = values.selectedZone;
+        finalResources = {
+          compressors: 1,
+          attachments: {
+            legs: zone === "Крака" ? 1 : 0,
+            arms: zone === "Ръце" ? 1 : 0,
+            hips: zone === "Таз" ? 1 : 0,
+          }
+        };
+      }
+
       const dataToSave = {
         ...values,
         siteId: activeBranch,
         startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
         totalPrice: price,
+        price: price,
+        finalPrice: price,
         currency: "EUR",
+        serviceName: selectedService?.name,
+        usedResources: finalResources,
+        selectedZone: values.selectedZone,
+        isExclusive: selectedService?.isExclusive,
+        bufferAfter: selectedService?.bufferAfter,
       };
 
       let result;
@@ -192,10 +290,16 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   }
 
   const steps = [
-    { id: "time", label: "Час & Корт", icon: CalendarRange },
+    {
+      id: "time",
+      label: !isRecoveryZone ? "Час & Корт" : "Услуга & Час",
+      icon: !isRecoveryZone ? Calendar : Activity,
+    },
     { id: "details", label: "Клиент", icon: User },
     { id: "review", label: "Преглед", icon: ClipboardCheck },
   ];
+
+  if (!mounted) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -268,43 +372,144 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-8 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Step 1: Time & Court */}
               {currentStep === "time" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <FormField
-                    control={form.control}
-                    name="courtId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                          <MapPin className="w-3 h-3" /> Изберете Корт
-                        </FormLabel>
-                        <div className="grid grid-cols-3 gap-3">
-                          {Array.from({ length: 6 }, (_, i) => i + 1).map(
-                            (num) => (
-                              <button
-                                key={num}
-                                type="button"
-                                onClick={() => field.onChange(num)}
-                                className={cn(
-                                  "h-14 rounded-2xl font-bold transition-all border-2",
-                                  field.value === num
-                                    ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
-                                    : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
-                                )}
-                              >
-                                {num}
-                              </button>
-                            )
-                          )}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {!isRecoveryZone ? (
+                    <FormField
+                      control={form.control}
+                      name="courtId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                            <MapPin className="w-3 h-3" /> Изберете Корт
+                          </FormLabel>
+                          <div className="grid grid-cols-3 gap-3">
+                            {Array.from({ length: 6 }, (_, i) => i + 1).map(
+                              (num) => (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  onClick={() => field.onChange(num)}
+                                  className={cn(
+                                    "h-14 rounded-2xl font-bold transition-all border-2",
+                                    field.value === num
+                                      ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                                      : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                  )}
+                                >
+                                  {num}
+                                </button>
+                              )
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="serviceId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                            <Activity className="w-3 h-3" /> Изберете Услуга
+                          </FormLabel>
+                          <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-100 dark:scrollbar-thumb-zinc-800">
+                            {Object.entries(groupedServices).map(
+                              ([category, catServices]) => (
+                                <div key={category} className="space-y-3">
+                                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 pl-1">
+                                    {category}
+                                  </h3>
+                                  <div className="space-y-2">
+                                    {catServices.map((s) => (
+                                      <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => {
+                                          field.onChange(s.id);
+                                          // Auto-set end time based on duration
+                                          if (startTime) {
+                                            form.setValue(
+                                              "endTime",
+                                              new Date(
+                                                startTime.getTime() +
+                                                  s.durationMinutes * 60000
+                                              )
+                                            );
+                                          }
+                                        }}
+                                        className={cn(
+                                          "w-full px-5 h-14 rounded-2xl font-bold transition-all border-2 flex items-center justify-between",
+                                          field.value === s.id
+                                            ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                                            : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                        )}
+                                      >
+                                        <span className="text-xs uppercase tracking-tight">
+                                          {s.name}
+                                        </span>
+                                        <span className="text-[10px] opacity-70">
+                                          {s.durationMinutes} мин •{" "}
+                                          {formatPrice(s.price)}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Zone Selection for Recovery Zone */}
+                  {isRecoveryZone && serviceId && (
+                    <FormField
+                      control={form.control}
+                      name="selectedZone"
+                      render={({ field }) => {
+                        const selectedService = services.find(s => s.id === serviceId);
+                        const availableZones = selectedService?.zones || [];
+                        
+                        if (availableZones.length <= 1) return <div className="hidden" />;
+
+                        return (
+                          <FormItem className="animate-in slide-in-from-top-2 duration-300">
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                              <Activity className="w-3 h-3" /> Коя зона ще се ползва?
+                            </FormLabel>
+                            <div className="grid grid-cols-3 gap-2">
+                              {availableZones.map((zone) => (
+                                <button
+                                  key={zone}
+                                  type="button"
+                                  onClick={() => field.onChange(zone)}
+                                  className={cn(
+                                    "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
+                                    field.value === zone
+                                      ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                                      : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                  )}
+                                >
+                                  {zone}
+                                </button>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <DateTimePicker
                       control={form.control}
@@ -315,6 +520,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                       control={form.control}
                       name="endTime"
                       label="Краен час"
+                      disabled={isRecoveryZone}
                     />
                   </div>
                 </div>
@@ -391,15 +597,24 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                   <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 space-y-4">
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold">
-                          {courtId}
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center font-bold">
+                          {!isRecoveryZone ? (
+                            courtId
+                          ) : (
+                            <Activity className="w-5 h-5" />
+                          )}
                         </div>
-                        <div>
+                        <div className="max-w-[180px]">
                           <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
-                            Избран Корт
+                            {!isRecoveryZone
+                              ? "Избран Корт"
+                              : "Избрана Услуга"}
                           </p>
-                          <p className="text-sm font-bold text-zinc-900 dark:text-white">
-                            Корт № {courtId}
+                          <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">
+                            {!isRecoveryZone
+                              ? `Корт № ${courtId}`
+                              : services.find((s) => s.id === serviceId)?.name ||
+                                "Услуга"}
                           </p>
                         </div>
                       </div>
@@ -448,6 +663,17 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                         </p>
                       </div>
                     </div>
+
+                    {selectedZone && (
+                      <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                          <Activity className="w-3 h-3" /> Избрана Зона
+                        </p>
+                        <p className="text-sm font-bold text-cyan-600 uppercase tracking-wider">
+                          {selectedZone}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 text-amber-700 dark:text-amber-400">

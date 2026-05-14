@@ -1,6 +1,10 @@
+"use client";
+
+import React from "react";
 import Image from "next/image";
 import { Therapist } from "@/types/site.types";
 import { Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TeamSectionProps {
   therapists: Therapist[];
@@ -8,7 +12,12 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   if (!therapists || therapists.length === 0) return null;
+
+  const displayIntro = teamIntro || "Ние сме активни хора, които вярват в силата на правилното възстановяване.";
+  const shouldTruncate = displayIntro.length > 200;
 
   return (
     <section
@@ -29,9 +38,25 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
                 споделена мисия
               </span>
             </h2>
-            <div className="space-y-6 text-zinc-400 text-lg font-light leading-relaxed whitespace-pre-wrap">
-              {teamIntro ||
-                "Ние сме активни хора, които вярват в силата на правилното възстановяване."}
+            <div className="space-y-6">
+              <div className={cn(
+                "text-zinc-400 text-lg font-light leading-relaxed whitespace-pre-wrap transition-all duration-700",
+                !isExpanded && shouldTruncate ? "max-h-32 overflow-hidden relative" : "max-h-[2000px]"
+              )}>
+                {displayIntro}
+                {!isExpanded && shouldTruncate && (
+                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-zinc-950 to-transparent pointer-events-none" />
+                )}
+              </div>
+              {shouldTruncate && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="inline-flex items-center gap-2 mt-2 text-xs font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 transition-colors group"
+                >
+                  <span className="h-px w-8 bg-emerald-500/30 group-hover:w-12 transition-all" />
+                  {isExpanded ? "Свий текста" : "Прочети цялата мисия"}
+                </button>
+              )}
             </div>
           </div>
 

@@ -15,13 +15,20 @@ const reservationSchema = z.object({
   clientName: z.string().min(2),
   clientPhone: z.string().min(9),
   clientEmail: z.string().email().optional().or(z.literal("")),
-  courtId: z.number().min(1).max(6),
+  courtId: z.number().optional(),
+  serviceId: z.string().optional(),
+  serviceName: z.string().optional(),
   startTime: z.string(), // ISO string
   endTime: z.string(), // ISO string
   totalPrice: z.number(),
   currency: z.string().default("EUR"),
   status: z.string().default("unpaid"),
   siteId: z.string(),
+  price: z.number().optional(),
+  finalPrice: z.number().optional(),
+  usedResources: z.any().optional(),
+  isExclusive: z.boolean().optional(),
+  bufferAfter: z.number().optional(),
 });
 
 const blockedSlotSchema = z.object({
@@ -44,45 +51,50 @@ export async function createReservationAction(
     const startTime = Timestamp.fromDate(new Date(validated.startTime));
     const endTime = Timestamp.fromDate(new Date(validated.endTime));
 
-    // Conflict check - Reservations
+    // Conflict check - Reservations (only for courts for now)
     const reservationsRef = db.collection("reservations");
-    const conflictingRes = await reservationsRef
-      .where("siteId", "==", validated.siteId)
-      .where("courtId", "==", validated.courtId)
-      .where("startTime", "<", endTime)
-      .get();
+    if (validated.siteId === "bkgalabovo" && validated.courtId) {
+      const conflictingRes = await reservationsRef
+        .where("siteId", "==", validated.siteId)
+        .where("courtId", "==", validated.courtId)
+        .where("startTime", "<", endTime)
+        .get();
 
-    const hasConflict = conflictingRes.docs.some((doc) => {
-      const res = doc.data();
-      return res.endTime > startTime;
-    });
+      const hasConflict = conflictingRes.docs.some((doc) => {
+        const res = doc.data();
+        return res.endTime > startTime;
+      });
 
-    if (hasConflict) {
-      return {
-        success: false,
-        message: "Избраният период се застъпва със съществуваща резервация.",
-      };
+      if (hasConflict) {
+        return {
+          success: false,
+          message: "Избраният период се застъпва със съществуваща резервация.",
+        };
+      }
     }
 
-    // Conflict check - Blocked Slots
-    const blockedRef = db.collection("blockedSlots");
-    const blockedSlots = await blockedRef
-      .where("siteId", "==", validated.siteId)
-      .where("startTime", "<", endTime)
-      .get();
-    const hasBlocked = blockedSlots.docs.some((doc) => {
-      const slot = doc.data();
-      const overlapsTime = slot.endTime > startTime;
-      const appliesToCourt =
-        slot.courtIds.length === 0 || slot.courtIds.includes(validated.courtId);
-      return overlapsTime && appliesToCourt;
-    });
+    // Conflict check - Blocked Slots (only for courts for now)
+    if (validated.siteId === "bkgalabovo" && validated.courtId) {
+      const blockedRef = db.collection("blockedSlots");
+      const blockedSlots = await blockedRef
+        .where("siteId", "==", validated.siteId)
+        .where("startTime", "<", endTime)
+        .get();
+      const hasBlocked = blockedSlots.docs.some((doc) => {
+        const slot = doc.data();
+        const overlapsTime = slot.endTime > startTime;
+        const appliesToCourt =
+          slot.courtIds.length === 0 ||
+          slot.courtIds.includes(validated.courtId!);
+        return overlapsTime && appliesToCourt;
+      });
 
-    if (hasBlocked) {
-      return {
-        success: false,
-        message: "Избраният период е блокиран от администратор.",
-      };
+      if (hasBlocked) {
+        return {
+          success: false,
+          message: "Избраният период е блокиран от администратор.",
+        };
+      }
     }
 
     const docData = {
@@ -162,24 +174,26 @@ export async function updateReservationAction(
 
     const reservationsRef = db.collection("reservations");
 
-    // Conflict check (excluding current)
-    const conflictingRes = await reservationsRef
-      .where("siteId", "==", validated.siteId)
-      .where("courtId", "==", validated.courtId)
-      .where("startTime", "<", endTime)
-      .get();
+    // Conflict check (excluding current, only for courts)
+    if (validated.siteId === "bkgalabovo" && validated.courtId) {
+      const conflictingRes = await reservationsRef
+        .where("siteId", "==", validated.siteId)
+        .where("courtId", "==", validated.courtId)
+        .where("startTime", "<", endTime)
+        .get();
 
-    const hasConflict = conflictingRes.docs.some((doc) => {
-      if (doc.id === reservationId) return false;
-      const res = doc.data();
-      return res.endTime > startTime;
-    });
+      const hasConflict = conflictingRes.docs.some((doc) => {
+        if (doc.id === reservationId) return false;
+        const res = doc.data();
+        return res.endTime > startTime;
+      });
 
-    if (hasConflict) {
-      return {
-        success: false,
-        message: "Промяната се застъпва със съществуваща резервация.",
-      };
+      if (hasConflict) {
+        return {
+          success: false,
+          message: "Промяната се застъпва със съществуваща резервация.",
+        };
+      }
     }
 
     await reservationsRef.doc(reservationId).update({

@@ -105,7 +105,7 @@ export default function ProtectedLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const { isSidebarOpen, setSidebarOpen } = useAppStore();
+  const { isSidebarOpen, setSidebarOpen, activeBranch } = useAppStore();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -120,14 +120,17 @@ export default function ProtectedLayout({
   return (
     <SidebarProvider open={isSidebarOpen} onOpenChange={setSidebarOpen}>
       <div className="flex min-h-screen w-full bg-slate-50/50 dark:bg-zinc-950/50 font-sans">
-        <AppSidebar />
+        <AppSidebar key={`sidebar-${activeBranch}`} />
         <SidebarInset className="flex flex-col flex-1 min-w-0 border-l border-gray-100 dark:border-zinc-800 relative bg-slate-50/50 dark:bg-zinc-950/50">
           <Toaster position="bottom-right" />
 
-          <GlobalHeader />
+          <GlobalHeader key={`header-${activeBranch}`} />
 
           <main className="flex-1 overflow-y-auto">
-            <div className="max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+            <div 
+              key={`content-${activeBranch}`}
+              className="max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"
+            >
               {children}
             </div>
           </main>

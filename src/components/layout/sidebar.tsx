@@ -28,20 +28,26 @@ import {
   Medal,
   Settings,
   PanelLeft,
-  Activity,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
   const { setOpen, isMobile, open } = useSidebar();
   const { logout } = useAuth();
-  const { activeBranch } = useAppStore();
+  const { activeBranch, setActiveBranch } = useAppStore();
+
+  // Handle Hydration
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const isRecoveryZone = activeBranch === "recoveryzone";
   const brandLogo = isRecoveryZone ? "/1.png" : "/logo.png";
-
   const brandTitle = isRecoveryZone ? "RECOVERY ZONE" : "БАДМИНТОН КЛУБ";
   const brandSubtitle = isRecoveryZone ? "by ZM" : "ГЪЛЪБОВО";
 
@@ -55,6 +61,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     }
     prevPathname.current = pathname;
   }, [pathname, isMobile, setOpen]);
+
+  if (!mounted) {
+    return (
+      <Sidebar {...props} collapsible="icon" className="border-r-0 bg-white dark:bg-zinc-950">
+        <SidebarHeader className="h-auto py-6 px-6" />
+        <SidebarContent className="px-4 py-4" />
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar
@@ -137,22 +152,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/schedule")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/schedule"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
+            {!isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/schedule")}
+                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
                 >
-                  <Calendar size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">График</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                  <Link
+                    href="/schedule"
+                    className="flex items-center gap-3 w-full"
+                    onClick={() => {
+                      setActiveBranch("bkgalabovo");
+                      if (isMobile) setOpen(false);
+                    }}
+                  >
+                    <Calendar size={18} strokeWidth={1.5} />
+                    <span className="text-[14px]">График</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -166,24 +186,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <CalendarCheck size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Резервации</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/recovery")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/recovery"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <Activity size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Възстановяване</span>
+                  <span className="text-[14px]">
+                    {!isRecoveryZone ? "Резервации (Кортове)" : "Резервации & Релакс"}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -247,39 +252,43 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/tournaments")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/tournaments"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
+            {!isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/tournaments")}
+                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
                 >
-                  <Trophy size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Турнири</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                  <Link
+                    href="/tournaments"
+                    className="flex items-center gap-3 w-full"
+                    onClick={() => isMobile && setOpen(false)}
+                  >
+                    <Trophy size={18} strokeWidth={1.5} />
+                    <span className="text-[14px]">Турнири</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/rankings")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/rankings"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
+            {!isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/rankings")}
+                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
                 >
-                  <Medal size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Ранглиста</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                  <Link
+                    href="/rankings"
+                    className="flex items-center gap-3 w-full"
+                    onClick={() => isMobile && setOpen(false)}
+                  >
+                    <Medal size={18} strokeWidth={1.5} />
+                    <span className="text-[14px]">Ранглиста</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <SidebarMenuButton

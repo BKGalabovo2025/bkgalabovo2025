@@ -108,4 +108,8 @@ export interface Site {
     points: string[];
   }[];
   contraindications?: string[];
+  faqs?: {
+    q: string;
+    a: string;
+  }[];
 }

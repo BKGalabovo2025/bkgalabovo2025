@@ -23,6 +23,7 @@ import {
   Tag,
   CheckCircle2,
   FileText,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -214,19 +215,27 @@ export function AgendaView({
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-center justify-center min-w-12 h-12 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10">
                   <span className="text-[8px] font-black uppercase tracking-tighter opacity-50">
-                    Корт
+                    {activeBranch === "bkgalabovo" ? "Корт" : "Услуга"}
                   </span>
                   <span className="text-sm font-bold leading-none whitespace-nowrap">
                     {isReservation
-                      ? (data as Reservation).courtId
-                      : (data as BlockedSlot).courtIds.join(", ")}
+                      ? activeBranch === "bkgalabovo"
+                        ? (data as Reservation).courtId
+                        : (data as Reservation).serviceName
+                      : (data as BlockedSlot).courtIds.length > 0
+                      ? (data as BlockedSlot).courtIds.join(", ")
+                      : "Всички"}
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     {isReservation ? (
-                      <User className="w-4 h-4 text-zinc-400" />
+                      activeBranch === "bkgalabovo" ? (
+                        <User className="w-4 h-4 text-zinc-400" />
+                      ) : (
+                        <Activity className="w-4 h-4 text-primary" />
+                      )
                     ) : (
                       <Lock className="w-4 h-4 text-zinc-400" />
                     )}

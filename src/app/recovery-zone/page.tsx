@@ -4,14 +4,9 @@ import Image from "next/image";
 import { SessionsSection } from "@/components/recovery/SessionsSection";
 import { TeamSection } from "@/components/recovery/TeamSection";
 import {
-  Activity,
   ArrowLeft,
-  Check,
   Mail,
   ChevronDown,
-  Wind,
-  Heart,
-  Flame,
   ShieldCheck,
   Info,
   MapPin,
@@ -27,14 +22,7 @@ export const metadata: Metadata = {
     "Възстановете се по-бързо с най-съвременната технология Hyperice Normatec 3. Професионално решение за спортисти и активни хора.",
 };
 
-const iconMap: Record<string, React.ElementType> = {
-  Wind,
-  Heart,
-  ShieldCheck,
-  Flame,
-  Activity,
-  Info,
-};
+
 
 function formatSchedule(day?: DaySchedule) {
   if (!day || !day.isOpen) return "Затворено";
@@ -57,39 +45,38 @@ export default async function RecoveryZonePage() {
     );
   }
 
-  const benefits = site.benefits || [];
   const attachments = site.attachments || [];
   const contraindications = site.contraindications || [];
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 selection:bg-emerald-500/30">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-8">
+      <nav className="fixed top-0 w-full z-50 px-6 py-4 bg-black/40 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="group">
-            <div className="h-14 w-48 relative overflow-hidden bg-white rounded-2xl p-2 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-white/10">
+            <div className="h-10 w-40 relative overflow-hidden bg-white/5 rounded-xl p-1.5 transition-all hover:scale-105 active:scale-95 border border-white/10 group-hover:bg-white/10">
               <Image
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
                 priority
-                className="object-contain scale-110"
+                className="object-contain"
               />
             </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-12 text-[10px] uppercase tracking-[0.3em] font-bold text-zinc-400">
             <a
-              href="#about"
+              href="#info"
               className="hover:text-emerald-400 transition-colors"
             >
-              За нас
+              Информация
             </a>
             <a
               href="#pricing"
               className="hover:text-emerald-400 transition-colors"
             >
-              Цени
+              Каталог Възстановяване
             </a>
             <a
               href="#team"
@@ -107,7 +94,7 @@ export default async function RecoveryZonePage() {
 
           <a
             href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
-            className="px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white transition-all active:scale-95 shadow-2xl shadow-white/10"
+            className="px-6 py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white transition-all active:scale-95 shadow-xl shadow-white/5"
           >
             Резервирай
           </a>
@@ -184,89 +171,164 @@ export default async function RecoveryZonePage() {
         </div>
       </section>
 
-      {/* Benefits Grid */}
-      <section id="about" className="py-32 px-6">
+      {/* Information Hub */}
+      <section id="info" className="py-32 px-6 scroll-mt-32">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, idx) => {
-              const Icon = iconMap[benefit.icon] || Info;
-              return (
-                <div
-                  key={idx}
-                  className="group p-10 rounded-5xl bg-zinc-900/40 border border-white/5 hover:border-emerald-500/30 hover:bg-zinc-900 transition-all duration-500"
-                >
-                  <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-8 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-emerald-500/20">
-                    <Icon size={28} />
-                  </div>
-                  <h3 className="text-xl font-medium text-white mb-4">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-zinc-500 text-sm leading-relaxed font-light group-hover:text-zinc-400 transition-colors">
-                    {benefit.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Attachments Showcase */}
-      <section className="py-32 px-6 bg-zinc-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-20 text-center">
+          {/* Header */}
+          <div className="mb-32 text-center">
             <p className="text-[10px] uppercase tracking-[0.4em] bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent mb-6 font-bold">
-              Технологии
+              ИНФОРМАЦИЯ
             </p>
-            <h2 className="text-5xl md:text-6xl font-light tracking-tight">
-              Персонализирана <br />{" "}
-              <span className="text-zinc-500 italic">компресия за теб</span>
+            <h2 className="text-5xl md:text-7xl font-light tracking-tight mb-8">
+              Твоето тяло <br />{" "}
+              <span className="text-zinc-500 italic">заслужава най-доброто</span>
             </h2>
           </div>
 
-          <div className="space-y-32">
-            {attachments.map((item, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "flex flex-col lg:flex-row items-center gap-20",
-                  idx % 2 === 1 && "lg:flex-row-reverse"
-                )}
-              >
-                <div className="flex-1 w-full relative group">
-                  <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-emerald-500/10 blur-[80px] rounded-full group-hover:from-purple-500/20 group-hover:to-emerald-500/20 transition-all duration-700" />
-                  <div className="relative aspect-square md:aspect-4/3 rounded-6xl overflow-hidden border border-white/5">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1 max-w-xl">
-                  <h3 className="text-4xl font-light mb-8 text-white">
-                    {item.name}
-                  </h3>
-                  <p className="text-zinc-500 text-lg mb-10 font-light leading-relaxed">
-                    {item.desc}
-                  </p>
-                  <ul className="space-y-6">
-                    {item.points.map((point, pIdx) => (
-                      <li key={pIdx} className="flex items-center gap-4 group">
-                        <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                          <Check size={14} />
-                        </div>
-                        <span className="text-sm text-zinc-300 font-light">
-                          {point}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
+            {/* Left Column: Story & Mission */}
+            <div className="lg:col-span-7 space-y-24">
+              <div className="relative group p-10 md:p-16 rounded-6xl bg-zinc-900/40 border border-white/5 overflow-hidden transition-all duration-700 hover:bg-zinc-900/60">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-[100px] rounded-full" />
+                <h3 className="text-3xl font-light mb-12 text-white flex items-center gap-4">
+                  <span className="h-px w-12 bg-purple-500/50" />
+                  Мисия и История
+                </h3>
+                <div className="prose prose-invert max-w-none">
+                  {site.teamIntro ? (
+                    <div className="space-y-8">
+                      {site.teamIntro.split('\n\n').map((paragraph, pIdx) => (
+                        <p key={pIdx} className="text-zinc-400 text-lg font-light leading-relaxed">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-zinc-400 text-lg font-light leading-relaxed">
+                      От личен опит към споделена мисия. Ние вярваме, че качественото възстановяване е ключът към дълготрайното здраве и високите постижения.
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
+
+              {/* Technology Showcase */}
+              <div className="space-y-16">
+                <h3 className="text-3xl font-light text-white flex items-center gap-4 px-4">
+                  <span className="h-px w-12 bg-emerald-500/50" />
+                  Технологии и Оборудване
+                </h3>
+                <div className="grid grid-cols-1 gap-12">
+                  {attachments.map((item, idx) => (
+                    <div key={idx} className="group relative flex flex-col md:flex-row gap-10 p-8 rounded-5xl bg-zinc-900/30 border border-white/5 hover:border-emerald-500/20 transition-all duration-500">
+                      <div className="w-full md:w-64 h-64 relative rounded-4xl overflow-hidden shrink-0 border border-white/5">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                      </div>
+                      <div className="flex-1 py-4">
+                        <h4 className="text-xl font-medium text-white mb-4">{item.name}</h4>
+                        <p className="text-zinc-500 text-sm mb-8 font-light leading-relaxed group-hover:text-zinc-400 transition-colors">
+                          {item.desc}
+                        </p>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {item.points.map((point, pIdx) => (
+                            <li key={pIdx} className="flex items-center gap-3 text-xs text-zinc-400 font-light">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/40" />
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: FAQ & Safety */}
+            <div className="lg:col-span-5 space-y-12">
+              {/* FAQ Section */}
+              <div className="p-10 md:p-12 rounded-6xl bg-zinc-900/40 border border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full" />
+                <div className="flex items-center gap-4 mb-10">
+                  <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <Info size={24} />
+                  </div>
+                  <h3 className="text-2xl font-light">Често задавани въпроси</h3>
+                </div>
+
+                <div className="space-y-8">
+                  {(site.faqs && site.faqs.length > 0 ? site.faqs : [
+                    {
+                      q: "Колко често мога да ползвам Normatec?",
+                      a: "Можете да използвате системата ежедневно. За оптимални резултати препоръчваме сесии от 15 до 45 минути след тренировка."
+                    },
+                    {
+                      q: "Боли ли процедурата?",
+                      a: "В никакъв случай. Динамичната компресия наподобява приятен, дълбок масаж. Можете да регулирате интензивността сами."
+                    },
+                    {
+                      q: "Кога е най-добре да се прави?",
+                      a: "Най-голям ефект има веднага след физическо натоварване, но е отлично и вечер за релакс и подобряване на съня."
+                    }
+                  ]).map((faq, idx) => (
+                    <div key={idx} className="group cursor-default">
+                      <p className="text-sm font-medium text-white mb-3 group-hover:text-emerald-400 transition-colors">
+                        {faq.q}
+                      </p>
+                      <p className="text-xs text-zinc-500 font-light leading-relaxed">
+                        {faq.a}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Safety / Contraindications */}
+              <div className="p-10 md:p-12 rounded-6xl bg-zinc-900/40 border border-white/5 relative overflow-hidden group">
+                <div className="absolute bottom-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full" />
+                <div className="flex items-center gap-4 mb-10">
+                  <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-light">Важна информация и Безопасност</h3>
+                    <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mt-1">Противопоказания</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {contraindications.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all">
+                      <div className="h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-amber-500 transition-all">
+                        <span className="text-[10px] text-amber-500 group-hover:text-white font-bold">{idx + 1}</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 leading-relaxed font-light hover:text-zinc-300 transition-colors">
+                        {item}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Special Offer Card */}
+              <div className="p-12 rounded-6xl bg-linear-to-br from-purple-500/10 to-emerald-500/10 border border-emerald-500/20 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <h4 className="text-xl font-light mb-6 text-white">Член на БК Гълъбово?</h4>
+                <p className="text-zinc-500 text-sm mb-8 font-light leading-relaxed">
+                  Използвайте Вашия специален промо код за 50% отстъпка при първото посещение.
+                </p>
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5">
+                  <code className="text-emerald-400 font-black tracking-widest">BKGALABOVO</code>
+                  <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-white/40 text-[10px] font-bold">
+                    50%
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -280,45 +342,8 @@ export default async function RecoveryZonePage() {
         teamIntro={site.teamIntro || ""}
       />
 
-      {/* Contraindications */}
-      <section className="py-32 px-6">
-        <div className="max-w-4xl mx-auto p-12 md:p-20 rounded-6xl bg-zinc-900/40 border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full" />
-
-          <div className="flex items-center gap-4 mb-12">
-            <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-              <Info size={24} />
-            </div>
-            <div>
-              <h2 className="text-3xl font-light">Важна информация</h2>
-              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mt-1">
-                Противопоказания
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {contraindications.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group"
-              >
-                <div className="h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-amber-500 transition-all">
-                  <span className="text-[10px] text-amber-500 group-hover:text-white font-bold">
-                    {idx + 1}
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed font-light group-hover:text-zinc-200 transition-colors">
-                  {item}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Contact Section */}
-      <section id="contact" className="py-32 px-6 relative bg-zinc-950">
+      <section id="contact" className="py-32 px-6 relative bg-zinc-950 scroll-mt-32">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
             <div>
@@ -495,8 +520,4 @@ export default async function RecoveryZonePage() {
       </footer>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(" ");
 }
