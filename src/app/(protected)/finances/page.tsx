@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { ListTree, CreditCard, History, ArrowUpRight } from "lucide-react";
+import {
+  ListTree,
+  CreditCard,
+  History,
+  ArrowUpRight,
+  Boxes,
+  Wrench,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +22,24 @@ export default function FinancesPage() {
       icon: ListTree,
       color: "blue",
       badge: "Menu",
+    },
+    {
+      title: "Каталог Услуги",
+      description:
+        "Допълнителни клубни услуги като наплитане на ракети, наем на корт и други специфични дейности.",
+      href: "/finances/general-services",
+      icon: Wrench,
+      color: "rose",
+      badge: "Services",
+    },
+    {
+      title: "Каталог Магазин",
+      description:
+        "Проследяване на спортна екипировка, пера и консумативи. Управление на инвентара и автоматични известия за ниски наличности.",
+      href: "/inventory",
+      icon: Boxes,
+      color: "purple",
+      badge: "Shop",
     },
     {
       title: "Активни Абонаменти",
@@ -47,7 +72,7 @@ export default function FinancesPage() {
         ]}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {financeLinks.map((item) => (
           <Link key={item.href} href={item.href} className="group">
             <BentoCard className="p-10 h-full flex flex-col justify-between transition-all duration-500 group-hover:bg-zinc-950 group-hover:text-white border-zinc-100 bg-white shadow-none rounded-6xl group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:shadow-zinc-200">

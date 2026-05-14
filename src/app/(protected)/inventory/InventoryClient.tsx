@@ -75,7 +75,7 @@ const ProductList = () => {
           strokeWidth={1}
         />
         <p className="text-zinc-400 font-medium uppercase tracking-widest text-[10px]">
-          Зареждане на инвентар...
+          Зареждане на продукти...
         </p>
       </div>
     );
@@ -302,11 +302,12 @@ export default function InventoryClient() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
-        title="Склад и наличности"
+        title="Каталог Магазин"
         description="Проследяване на спортна екипировка, пера и консумативи. Управление на инвентара и автоматични известия за ниски наличности."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Склад" },
+          { label: "Каталози", href: "/finances" },
+          { label: "Каталог Магазин" },
         ]}
       >
         <Button

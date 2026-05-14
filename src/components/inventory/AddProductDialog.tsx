@@ -90,7 +90,7 @@ export const AddProductDialog = ({
             Добавяне на продукт
           </DialogTitle>
           <DialogDescription className="font-medium text-slate-500">
-            Въведете детайлите за новия продукт в инвентара.
+            Въведете детайлите за новия продукт в каталога.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

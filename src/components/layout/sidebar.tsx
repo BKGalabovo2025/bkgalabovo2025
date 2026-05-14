@@ -20,7 +20,6 @@ import {
   LogOut,
   Landmark,
   ShoppingCart,
-  Boxes,
   Calendar,
   CalendarCheck,
   Repeat,
@@ -223,23 +222,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <ShoppingCart size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Продажби</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/inventory")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/inventory"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <Boxes size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Инвентар</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

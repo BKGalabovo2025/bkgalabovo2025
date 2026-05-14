@@ -17,6 +17,7 @@ import {
   PriceHistory,
   ScheduleEvent,
   ClientPackage,
+  GeneralService,
 } from "@/types";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 
@@ -152,6 +153,21 @@ const matchConverter: FirestoreDataConverter<Match> = {
       siteId: data.siteId || "bkgalabovo",
       ...data,
     } as unknown as Match;
+  },
+};
+
+const generalServiceConverter: FirestoreDataConverter<GeneralService> = {
+  toFirestore: (service) => {
+    const { ...data } = service;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as GeneralService;
   },
 };
 
@@ -298,6 +314,11 @@ export const getTournamentMatchesCollection = () =>
 export const getClientPackagesCollection = () =>
   collection(getDb(), "client_packages").withConverter(clientPackageConverter);
 
+export const getGeneralServicesCollection = () =>
+  collection(getDb(), "clubGeneralServices").withConverter(
+    generalServiceConverter
+  );
+
 // --- Tenant-Aware Query Getters ---
 
 export const getMembersQuery = () => {
@@ -425,4 +446,14 @@ export const getClientPackagesQuery = (memberId?: string) => {
   }
 
   return q;
+};
+
+export const getGeneralServicesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo")
+    return query(getGeneralServicesCollection());
+  return query(
+    getGeneralServicesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
 };

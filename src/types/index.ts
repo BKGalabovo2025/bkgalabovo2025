@@ -134,6 +134,25 @@ export type ClubService = {
   updatedBy: { userId: string; userName: string };
 };
 
+/**
+ * Represents a general service offered by the club (e.g., racket stringing).
+ */
+export type GeneralService = {
+  id: string;
+  siteId: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  performerName: string;
+  performerType: "internal" | "external";
+  pricingUnit: "fixed" | "per_hour" | "per_session";
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+  createdBy: { userId: string; userName: string };
+  updatedBy?: { userId: string; userName: string };
+};
+
 export type PaymentHistoryItem = {
   date: string;
   amount: number;
