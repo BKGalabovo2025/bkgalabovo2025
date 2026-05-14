@@ -1,18 +1,78 @@
 import { Timestamp } from "firebase/firestore";
 
-// Represents a single reservation made by an external client
+/**
+ * Defines the possible states for a reservation.
+ * Combines Court statuses and Recovery Zone statuses.
+ */
+export type ReservationStatus =
+  | "unpaid"
+  | "paid"
+  | "cancelled"
+  | "checked-in"
+  | "completed"
+  | "no-show"
+  | "pending"
+  | "scheduled"
+  | "confirmed"; // Legacy status found in some docs
+
+/**
+ * Represents a single reservation in the system.
+ * Unified to support both Court bookings and Recovery Zone services.
+ */
 export interface Reservation {
   id: string;
-  siteId: string; // Added for multi-tenancy
-  courtId: number; // 1-6
+  siteId: string;
+
+  // Court Specific
+  courtId?: number; // 1-6
+  totalPrice?: number; // in Euro
+
+  // Recovery Specific
+  serviceId?: string;
+  serviceName?: string;
+  usedResources?: {
+    attachments: Partial<Record<string, number>>;
+    compressors: number;
+  };
+  isExclusive?: boolean;
+  price?: number;
+  finalPrice?: number;
+  discountAmount?: number;
+
+  // Shared Time Fields
   startTime: Timestamp;
   endTime: Timestamp;
+  clientStartTime?: Timestamp;
+  clientEndTime?: Timestamp;
+
+  // Client Info
+  clientId?: string;
   clientName: string;
   clientPhone: string;
-  clientEmail: string;
-  status: "unpaid" | "paid" | "cancelled";
-  totalPrice: number; // in Euro, as whole numbers
+  clientEmail?: string;
+
+  // Shared State
+  status: ReservationStatus;
+  notes?: string;
+  bufferAfter?: number; // in minutes
+
+  // Audit Tracking
   createdAt: Timestamp;
+  updatedAt?: Timestamp;
+  createdBy?: {
+    userId: string;
+    userName: string;
+  };
+  updatedBy?: {
+    userId: string;
+    userName: string;
+  };
+
+  // Legacy fields
+  isNew?: boolean;
+  teamMemberId?: string;
+  teamMemberName?: string;
+  currency?: string;
 }
 
 // Represents a time slot that is blocked for internal activities (e.g., training)

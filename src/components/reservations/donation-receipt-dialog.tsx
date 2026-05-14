@@ -97,7 +97,7 @@ const DocumentCopy = ({
                 ползване на бадминтон корт
               </td>
               <td className="p-3 text-center border-r border-black font-bold">
-                {reservation.courtId}
+                {reservation.courtId || "-"}
               </td>
               <td className="p-3 text-center border-r border-black">
                 {formattedDate}
@@ -105,7 +105,7 @@ const DocumentCopy = ({
                 {timeRange} ({durationHours} ч.)
               </td>
               <td className="p-3 text-right font-bold">
-                {formatPrice(reservation.totalPrice)}
+                {formatPrice(reservation.totalPrice ?? reservation.price ?? 0)}
               </td>
             </tr>
             <tr>
@@ -116,7 +116,7 @@ const DocumentCopy = ({
                 Обща стойност:
               </td>
               <td className="p-2 text-right font-bold text-xs">
-                {formatPrice(reservation.totalPrice)}
+                {formatPrice(reservation.totalPrice ?? reservation.price ?? 0)}
               </td>
             </tr>
           </tbody>

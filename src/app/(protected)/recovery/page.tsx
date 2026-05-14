@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { Timestamp } from "firebase/firestore";
 import { useAppStore } from "@/store/use-app-store";
 import { useMembers } from "@/hooks/useMembers";
 import { useReservations } from "@/hooks/useReservations";
@@ -106,10 +107,10 @@ export default function RecoveryPage() {
         clientEmail: member.email || "",
         serviceId: service.id,
         serviceName: service.name,
-        startTime: slotTime.toISOString(),
-        endTime: endTime.toISOString(),
-        clientStartTime: slotTime.toISOString(),
-        clientEndTime: endTime.toISOString(),
+        startTime: Timestamp.fromDate(slotTime),
+        endTime: Timestamp.fromDate(endTime),
+        clientStartTime: Timestamp.fromDate(slotTime),
+        clientEndTime: Timestamp.fromDate(endTime),
         status: "scheduled",
         usedResources: service.requiredResources || {
           attachments: {},
@@ -374,9 +375,9 @@ export default function RecoveryPage() {
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {format(
-                                    new Date(res.startTime),
+                                    res.startTime.toDate(),
                                     "HH:mm"
-                                  )} - {format(new Date(res.endTime), "HH:mm")}
+                                  )} - {format(res.endTime.toDate(), "HH:mm")}
                                 </span>
                               </div>
                             </div>

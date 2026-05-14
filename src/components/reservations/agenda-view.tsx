@@ -91,9 +91,9 @@ export function AgendaView({
       if (timeA !== timeB) return timeA - timeB;
       // Secondary sort by court
       const courtA =
-        a.type === "reservation" ? a.data.courtId : a.data.courtIds[0] || 0;
+        (a.type === "reservation" ? a.data.courtId : a.data.courtIds[0]) ?? 0;
       const courtB =
-        b.type === "reservation" ? b.data.courtId : b.data.courtIds[0] || 0;
+        (b.type === "reservation" ? b.data.courtId : b.data.courtIds[0]) ?? 0;
       return courtA - courtB;
     });
   }, [reservations, blockedSlots]);
@@ -279,7 +279,11 @@ export function AgendaView({
                         Сума
                       </span>
                       <span className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">
-                        {formatPrice((data as Reservation).totalPrice)}
+                        {formatPrice(
+                          (data as Reservation).totalPrice ??
+                            (data as Reservation).price ??
+                            0
+                        )}
                       </span>
                     </div>
                   </>

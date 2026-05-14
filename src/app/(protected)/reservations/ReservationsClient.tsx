@@ -15,11 +15,16 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReservationHistory } from "@/components/reservations/reservation-history";
+import { History, LayoutGrid } from "lucide-react";
+
 const COURT_COUNT = 6;
 
 export default function ReservationsClient() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState("schedule");
 
   const goToPreviousDay = () => {
     const newDate = new Date(currentDate);
@@ -39,6 +44,11 @@ export default function ReservationsClient() {
 
   const handleSave = () => {
     setRefreshKey((prevKey) => prevKey + 1);
+  };
+
+  const handleViewInCalendar = (date: Date) => {
+    setCurrentDate(date);
+    setActiveTab("schedule");
   };
 
   return (
@@ -73,67 +83,98 @@ export default function ReservationsClient() {
         </div>
       </PageHeader>
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-zinc-950 p-5 rounded-4xl border border-zinc-100 dark:border-zinc-900 shadow-sm shadow-black/2">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10">
-            <CalendarIcon className="h-5 w-5" strokeWidth={2} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-0.5">
-              График за деня
-            </p>
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
-              {currentDate.toLocaleDateString("bg-BG", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-              {new Date().toDateString() === currentDate.toDateString() && (
-                <span className="text-[9px] bg-primary/10 text-primary px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-zinc-950 p-3 pr-5 rounded-4xl border border-zinc-100 dark:border-zinc-900 shadow-sm shadow-black/2">
+          <TabsList className="bg-zinc-100/50 dark:bg-zinc-900/50 p-1 rounded-3xl h-14 border border-zinc-200/50 dark:border-zinc-800/50">
+            <TabsTrigger
+              value="schedule"
+              className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              График
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+            >
+              <History className="h-4 w-4" />
+              История
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "schedule" && (
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex items-center gap-4 border-r border-zinc-100 dark:border-zinc-900 pr-6">
+                <div className="h-10 w-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary border border-primary/10">
+                  <CalendarIcon className="h-4 w-4" strokeWidth={2} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    {currentDate.toLocaleDateString("bg-BG", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                    {new Date().toDateString() ===
+                      currentDate.toDateString() && (
+                      <span className="text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                        Днес
+                      </span>
+                    )}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1 rounded-2xl gap-1 border border-zinc-100 dark:border-zinc-800">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goToPreviousDay}
+                  className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={goToToday}
+                  className="px-6 h-10 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                >
                   Днес
-                </span>
-              )}
-            </h2>
-          </div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goToNextDay}
+                  className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                >
+                  <ChevronRight className="h-4 w-4" strokeWidth={2} />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1 rounded-2xl gap-1 border border-zinc-100 dark:border-zinc-800">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={goToPreviousDay}
-            className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
-          >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={goToToday}
-            className="px-6 h-10 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
-          >
-            Днес
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={goToNextDay}
-            className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
-          >
-            <ChevronRight className="h-4 w-4" strokeWidth={2} />
-          </Button>
-        </div>
-      </div>
+        <TabsContent value="schedule" className="mt-0 outline-none">
+          <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
+            <div className="bg-white dark:bg-zinc-950">
+              <AgendaView
+                key={`${currentDate.toISOString()}-${refreshKey}`}
+                refreshKey={refreshKey}
+                date={currentDate}
+                courtCount={COURT_COUNT}
+              />
+            </div>
+          </BentoCard>
+        </TabsContent>
 
-      <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
-        <div className="bg-white dark:bg-zinc-950">
-          <AgendaView
-            key={`${currentDate.toISOString()}-${refreshKey}`}
-            refreshKey={refreshKey}
-            date={currentDate}
-            courtCount={COURT_COUNT}
-          />
-        </div>
-      </BentoCard>
+        <TabsContent value="history" className="mt-0 outline-none">
+          <ReservationHistory onViewInCalendar={handleViewInCalendar} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

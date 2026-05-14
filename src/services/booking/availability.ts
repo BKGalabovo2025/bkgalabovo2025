@@ -1,8 +1,5 @@
-import {
-  AttachmentType,
-  Reservation,
-  ResourceRequirements,
-} from "@/types/booking.types";
+import { AttachmentType, ResourceRequirements } from "@/types/booking.types";
+import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
 
 export const DEFAULT_INVENTORY: ResourceRequirements = {

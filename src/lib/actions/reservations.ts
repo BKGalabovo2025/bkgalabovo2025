@@ -37,7 +37,7 @@ export async function createReservationAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -90,6 +90,10 @@ export async function createReservationAction(
       startTime,
       endTime,
       createdAt: Timestamp.now(),
+      createdBy: {
+        userId: user.uid,
+        userName: user.name || user.email || "Unknown",
+      },
     };
 
     const newDoc = await reservationsRef.add(docData);
@@ -117,12 +121,19 @@ export async function markReservationAsPaidAction(
   reservationId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const db = getAdminDb();
-    await db.collection("reservations").doc(reservationId).update({
-      status: "paid",
-      updatedAt: Timestamp.now(),
-    });
+    await db
+      .collection("reservations")
+      .doc(reservationId)
+      .update({
+        status: "paid",
+        updatedAt: Timestamp.now(),
+        updatedBy: {
+          userId: user.uid,
+          userName: user.name || user.email || "Unknown",
+        },
+      });
     revalidatePath("/reservations");
     return { success: true, message: "Резервацията е маркирана като платена." };
   } catch (error: unknown) {
@@ -142,7 +153,7 @@ export async function updateReservationAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -176,6 +187,10 @@ export async function updateReservationAction(
       startTime,
       endTime,
       updatedAt: Timestamp.now(),
+      updatedBy: {
+        userId: user.uid,
+        userName: user.name || user.email || "Unknown",
+      },
     });
 
     revalidatePath("/reservations");

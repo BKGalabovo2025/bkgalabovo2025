@@ -11,8 +11,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
-import { Reservation, ReservationStatus } from "@/types/booking.types";
-import { reservationConverter } from "@/services/booking/converters";
+import { Reservation } from "@/types/reservation";
 import { toast } from "sonner";
 
 export const useReservations = (siteId?: string, date?: Date) => {
@@ -26,9 +25,7 @@ export const useReservations = (siteId?: string, date?: Date) => {
     }
 
     const db = getDb();
-    const reservationsRef = collection(db, "reservations").withConverter(
-      reservationConverter
-    );
+    const reservationsRef = collection(db, "reservations");
 
     let q = query(reservationsRef, where("siteId", "==", siteId));
 
@@ -53,7 +50,10 @@ export const useReservations = (siteId?: string, date?: Date) => {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const data = snapshot.docs.map((doc) => doc.data());
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Reservation[];
         setReservations(data);
         setIsLoading(false);
       },
@@ -66,22 +66,16 @@ export const useReservations = (siteId?: string, date?: Date) => {
     );
 
     return () => unsubscribe();
-  }, [siteId, date, isLoading]);
+  }, [siteId, date]);
 
   const addReservation = useCallback(
-    async (
-      reservation: Omit<Reservation, "id" | "createdAt" | "updatedAt">
-    ) => {
+    async (reservation: Omit<Reservation, "id" | "createdAt">) => {
       const db = getDb();
       try {
-        const docRef = await addDoc(
-          collection(db, "reservations").withConverter(reservationConverter),
-          {
-            ...reservation,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          } as Reservation
-        );
+        const docRef = await addDoc(collection(db, "reservations"), {
+          ...reservation,
+          createdAt: Timestamp.now(),
+        });
         return docRef.id;
       } catch (err) {
         console.error("Error adding reservation:", err);
@@ -93,7 +87,7 @@ export const useReservations = (siteId?: string, date?: Date) => {
   );
 
   const updateReservationStatus = useCallback(
-    async (id: string, status: ReservationStatus) => {
+    async (id: string, status: Reservation["status"]) => {
       const db = getDb();
       try {
         const docRef = doc(db, "reservations", id);
