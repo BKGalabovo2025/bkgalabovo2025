@@ -20,12 +20,19 @@ export const AttendanceReminder = () => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    return events.filter((event) => {
-      const eventDate = new Date(event.startDate);
-      return (
-        event.type === "training" && eventDate >= today && eventDate < tomorrow
+    return events
+      .filter((event) => {
+        const eventDate = new Date(event.startDate);
+        return (
+          event.type === "training" &&
+          eventDate >= today &&
+          eventDate < tomorrow
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       );
-    });
   }, [events]);
 
   if (isLoading) {
@@ -59,7 +66,21 @@ export const AttendanceReminder = () => {
               <p className="text-2xl font-light text-zinc-900 leading-tight">
                 {training.title}
               </p>
-              <p className="text-zinc-400 text-sm mt-2 font-light">
+              <p className="text-zinc-400 text-sm mt-2 font-light flex items-center gap-1.5">
+                <span className="text-zinc-900 font-medium">
+                  {new Date(training.startDate).toLocaleDateString("bg-BG", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}{" "}
+                  <span className="text-zinc-400 font-light lowercase">
+                    (
+                    {new Date(training.startDate).toLocaleDateString("bg-BG", {
+                      weekday: "short",
+                    })}
+                    )
+                  </span>
+                </span>
+                <span className="mx-1 opacity-20">•</span>
                 {new Date(training.startDate).toLocaleTimeString("bg-BG", {
                   hour: "2-digit",
                   minute: "2-digit",

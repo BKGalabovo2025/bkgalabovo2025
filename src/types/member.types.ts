@@ -28,11 +28,7 @@ export const MemberSchema = z.object({
     .datetime({ message: "Invalid last payment date format" })
     .nullable()
     .optional(),
-  dateOfBirth: z
-    .string()
-    .datetime({ message: "Invalid birth date format" })
-    .nullable()
-    .optional(),
+  dateOfBirth: z.string().nullable().optional(),
 
   // --- Optional Contact & Personal Info ---
   middleName: z.string().nullable().optional(),

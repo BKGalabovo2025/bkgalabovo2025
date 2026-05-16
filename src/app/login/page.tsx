@@ -25,7 +25,8 @@ const LoginPage = () => {
 
     try {
       const auth = getFirebaseAuth();
-      await signInWithEmailAndPassword(auth, email, password);
+      // Trim email to avoid common login mistakes
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към таблото за управление...",
       });
@@ -33,6 +34,10 @@ const LoginPage = () => {
     } catch (err) {
       let errorMessage = "Възникна грешка при входа. Моля, опитайте отново.";
       const firebaseError = err as AuthError;
+
+      console.error("Firebase Login Error Code:", firebaseError.code);
+      console.error("Full Firebase Error:", firebaseError);
+
       if (
         firebaseError.code === "auth/user-not-found" ||
         firebaseError.code === "auth/wrong-password" ||
@@ -41,7 +46,6 @@ const LoginPage = () => {
         errorMessage = "Грешен имейл или парола.";
       }
       setError(errorMessage);
-      console.error("Firebase Login Error:", err);
       toast.error("Грешка при вход", { description: errorMessage });
     } finally {
       setIsLoading(false);

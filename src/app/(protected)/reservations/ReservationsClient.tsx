@@ -25,8 +25,9 @@ const COURT_COUNT = 6;
 export default function ReservationsClient() {
   const { activeBranch } = useAppStore();
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

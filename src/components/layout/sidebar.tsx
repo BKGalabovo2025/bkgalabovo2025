@@ -64,7 +64,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   if (!mounted) {
     return (
-      <Sidebar {...props} collapsible="icon" className="border-r-0 bg-white dark:bg-zinc-950">
+      <Sidebar
+        {...props}
+        collapsible="icon"
+        className="border-r-0 bg-white dark:bg-zinc-950"
+      >
         <SidebarHeader className="h-auto py-6 px-6" />
         <SidebarContent className="px-4 py-4" />
       </Sidebar>
@@ -187,7 +191,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <CalendarCheck size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">
-                    {!isRecoveryZone ? "Резервации (Кортове)" : "Резервации & Релакс"}
+                    {!isRecoveryZone
+                      ? "Резервации (Кортове)"
+                      : "Резервации & Релакс"}
                   </span>
                 </Link>
               </SidebarMenuButton>
@@ -232,7 +238,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
 
             <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Система
+              Администрация
             </div>
 
             <SidebarMenuItem>
@@ -247,7 +253,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Repeat size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Абонаменти</span>
+                  <span className="text-[14px]">Членство</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

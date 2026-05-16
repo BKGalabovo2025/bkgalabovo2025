@@ -68,7 +68,7 @@ const MemberProfilePage = () => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <PageHeader
         title={fullName}
-        description={`Управление на профил, абонаменти и присъствия за ${fullName}.`}
+        description={`Управление на профил, членство и присъствия за ${fullName}.`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Членове", href: "/members" },

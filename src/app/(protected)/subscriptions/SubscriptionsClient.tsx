@@ -17,7 +17,14 @@ import {
 import { getAllMembers } from "@/services/member-service";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, CreditCard, UserCheck, AlertCircle } from "lucide-react";
+import {
+  PlusCircle,
+  CreditCard,
+  UserCheck,
+  AlertCircle,
+  RefreshCcw,
+  Sparkles,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +37,10 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { User } from "firebase/auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
+import { getDocs, query, where } from "firebase/firestore";
+import { getEventsCollection } from "@/lib/firebase-collections";
+import { ScheduleEvent } from "@/types";
+import { getMembershipSuggestions } from "@/lib/membership-utils";
 
 export default function SubscriptionsClient() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -86,6 +97,7 @@ export default function SubscriptionsClient() {
           ...sub,
           serviceName: service?.name || "Unknown Service",
           memberFirstName: member?.firstName || "Unknown",
+          memberMiddleName: member?.middleName || "",
           memberLastName: member?.lastName || "Member",
         };
       }
@@ -97,6 +109,131 @@ export default function SubscriptionsClient() {
       subscriptions: enrichedSubscriptions,
     };
   }, [data]);
+
+  const handleAutoSync = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    const toastId = toast.loading("Синхронизиране на посещения и плащания...");
+
+    try {
+      const idToken = await user.getIdToken();
+      const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+
+      // 1. Fetch events for the month
+      const eventsSnap = await getDocs(
+        query(
+          getEventsCollection(),
+          where("startDate", ">=", `${currentMonth}-01`),
+          where("startDate", "<=", `${currentMonth}-31`)
+        )
+      );
+      const events = eventsSnap.docs.map((d) => d.data() as ScheduleEvent);
+
+      // 2. Identify members with attendance
+      const attendedMemberIds = new Set<string>();
+      events.forEach((e) => {
+        e.attendeeMemberIds?.forEach((id) => attendedMemberIds.add(id));
+      });
+
+      if (attendedMemberIds.size === 0) {
+        toast.dismiss(toastId);
+        toast.info("Няма засечени посещения за текущия месец.");
+        setIsSaving(false);
+        return;
+      }
+
+      // 3. Filter members who already have a subscription for this month
+      const createdCount = { count: 0 };
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      for (const memberId of attendedMemberIds) {
+        const member = members.find((m) => m.id === memberId);
+        if (!member) continue;
+
+        // Check 1: Already has a subscription for this month
+        const hasSub = subscriptions.some((s) => {
+          if (s.memberId !== memberId) return false;
+          if (s.status === "cancelled") return false;
+
+          const start = new Date(s.startDate);
+          const end = new Date(s.endDate);
+          return start <= lastDayOfMonth && end >= firstDayOfMonth;
+        });
+
+        if (hasSub) continue;
+
+        // Check 2: Check registration date - don't generate sub for months before registration
+        const regDate = new Date(member.registrationDate);
+        if (regDate > lastDayOfMonth) continue;
+
+        const attendanceInMonth = events.filter((e) =>
+          e.attendeeMemberIds?.includes(memberId)
+        ).length;
+        const suggestions = getMembershipSuggestions(
+          member,
+          services,
+          attendanceInMonth
+        );
+
+        if (suggestions.length > 0) {
+          const best = suggestions[0].service;
+
+          // Calculate valid start date (max of first of month or registration date)
+          const validStartDate =
+            regDate > firstDayOfMonth ? regDate : firstDayOfMonth;
+
+          // Get actual last day of month
+          const actualLastDay = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            0
+          );
+          actualLastDay.setHours(23, 59, 59, 999);
+
+          const newSub: Omit<Subscription, "id" | "siteId"> = {
+            memberId: member.id,
+            serviceId: best.id,
+            serviceName: best.name,
+            startDate: validStartDate.toISOString(),
+            endDate: actualLastDay.toISOString(),
+            status: "pending_payment",
+            price: best.price,
+            pricePaid: 0,
+            currency: best.currency,
+            paymentsMadeCount: 0,
+            totalPaymentsCount: 1,
+            licenseGranted: false,
+            apparelGranted: false,
+            linkedSubscriptionId: null,
+            paymentHistory: [],
+          };
+
+          await createSubscriptionAction(idToken, newSub);
+          createdCount.count++;
+        }
+      }
+
+      toast.dismiss(toastId);
+      if (createdCount.count > 0) {
+        toast.success(
+          `Успешно генерирани ${createdCount.count} нови неплатени членства.`
+        );
+        mutate();
+      } else {
+        toast.info(
+          "Всички присъстващи членове вече имат регистрирано членство."
+        );
+      }
+    } catch (err) {
+      console.error("Error during auto-sync:", err);
+      toast.dismiss(toastId);
+      toast.error("Грешка при автоматичното синхронизиране.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSave = async (formData: Omit<Subscription, "id" | "siteId">) => {
     if (!user) {
@@ -173,23 +310,43 @@ export default function SubscriptionsClient() {
     return end >= new Date() && s.status === "active";
   }).length;
 
+  const pendingCount = subscriptions.filter(
+    (s) => s.status === "pending_payment"
+  ).length;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
-        title="Абонаменти"
-        description="Управление на клубни карти, предплатени услуги и валидност на абонаментите."
+        title="Членство"
+        description="Управление на клубни карти, предплатени услуги и валидност на членството."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Абонаменти" },
+          { label: "Членство" },
         ]}
       >
-        <Button
-          onClick={() => openForm()}
-          className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
-        >
-          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
-          абонамент
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleAutoSync}
+            disabled={isSaving}
+            variant="outline"
+            className="rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50 h-12 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+          >
+            {isSaving ? (
+              <RefreshCcw className="mr-3 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-3 h-4 w-4 text-amber-500" />
+            )}
+            Умно генериране
+          </Button>
+
+          <Button
+            onClick={() => openForm()}
+            className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+          >
+            <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+            плащане
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -206,6 +363,7 @@ export default function SubscriptionsClient() {
             <CreditCard className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
           </div>
         </BentoCard>
+
         <BentoCard className="p-8 border-zinc-100 bg-white shadow-none rounded-4xl">
           <div className="flex justify-between items-start">
             <div>
@@ -219,57 +377,70 @@ export default function SubscriptionsClient() {
             <UserCheck className="h-5 w-5 text-emerald-500" strokeWidth={1.5} />
           </div>
         </BentoCard>
-        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
-          <div className="flex items-center gap-6">
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-              <AlertCircle
-                className="h-6 w-6 text-yellow-400"
-                strokeWidth={1.5}
-              />
-            </div>
+
+        <BentoCard className="p-8 border-zinc-100 bg-white shadow-none rounded-4xl">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-zinc-500 uppercase tracking-[0.3em] text-[9px] mb-2">
-                Важно съобщение
+              <p className="text-3xl font-light tracking-tighter text-amber-600 mb-2">
+                {pendingCount}
               </p>
-              <p className="text-xl font-light text-zinc-100 tracking-tight">
-                Изтичащи абонаменти
-              </p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Проверете картите, които изтичат през следващите 7 дни.
+              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                Чакащи плащане
               </p>
             </div>
+            <RefreshCcw className="h-5 w-5 text-amber-500" strokeWidth={1.5} />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="p-8 border-zinc-100 bg-zinc-900 text-white shadow-none rounded-4xl">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-3xl font-light tracking-tighter text-amber-400 mb-2">
+                {
+                  subscriptions.filter((s) => {
+                    const end = new Date(s.endDate);
+                    return (
+                      end.getTime() - new Date().getTime() <
+                        7 * 24 * 60 * 60 * 1000 && s.status === "active"
+                    );
+                  }).length
+                }
+              </p>
+              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                Изтичащи скоро
+              </p>
+            </div>
+            <AlertCircle className="h-5 w-5 text-amber-400" strokeWidth={1.5} />
           </div>
         </BentoCard>
       </div>
 
-      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
-        <div className="p-8">
+      <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-4xl">
+        <div className="p-10">
           <DataTable
             columns={columns(openForm, handleDelete)}
             data={subscriptions}
             isLoading={isLoading}
             filterColumnId="memberLastName"
-            filterPlaceholder="Търсене по фамилия..."
-            emptyStateMessage="Няма намерени абонаменти."
+            filterPlaceholder="Търсене по фамилия на член..."
+            emptyStateMessage="Няма намерени записи за членство."
           />
         </div>
       </BentoCard>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-4xl border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[550px] max-h-[95vh] rounded-4xl border-none shadow-2xl p-0 flex flex-col overflow-hidden">
           <div className="p-8 bg-zinc-50 border-b border-zinc-100">
             <DialogHeader>
               <DialogTitle className="text-lg font-medium uppercase tracking-[0.2em] text-zinc-900">
-                {selectedSubscription
-                  ? "Редакция на абонамент"
-                  : "Нов абонамент"}
+                {selectedSubscription ? "Редакция на плащане" : "Ново плащане"}
               </DialogTitle>
               <DialogDescription className="text-[11px] uppercase tracking-widest text-zinc-400 mt-2">
                 Попълнете детайлите за клубната карта.
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="p-8">
+          <div className="p-8 overflow-y-auto">
             <SubscriptionForm
               members={members}
               services={services}

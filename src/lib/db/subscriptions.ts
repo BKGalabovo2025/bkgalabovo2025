@@ -48,8 +48,12 @@ export async function createSubscriptionInternal(
     const saleRef = adminDb.collection("sales").doc();
     transaction.set(saleRef, saleData);
 
-    // 3. Update member's last payment date if price > 0
-    if (subscriptionData.price > 0) {
+    // 3. Update member's last payment date ONLY if it's actually paid
+    if (
+      subscriptionData.price > 0 &&
+      subscriptionData.status !== "pending_payment" &&
+      subscriptionData.pricePaid > 0
+    ) {
       const memberRef = adminDb
         .collection("members")
         .doc(subscriptionData.memberId);

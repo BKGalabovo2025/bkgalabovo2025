@@ -279,36 +279,124 @@ export const MemberForm = ({
               <FormField
                 control={form.control}
                 name="dateOfBirth"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
-                      Дата на раждане
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={
-                          field.value && !isNaN(new Date(field.value).getTime())
-                            ? new Date(field.value).toISOString().split("T")[0]
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val) {
-                            // Ensure we save as ISO string at start of day UTC
-                            const date = new Date(val);
-                            field.onChange(date.toISOString());
-                          } else {
-                            field.onChange(null);
+                render={({ field }) => {
+                  const years = Array.from({ length: 90 }, (_, i) =>
+                    (new Date().getFullYear() - i).toString()
+                  );
+                  const months = [
+                    { value: "01", label: "Януари" },
+                    { value: "02", label: "Февруари" },
+                    { value: "03", label: "Март" },
+                    { value: "04", label: "Април" },
+                    { value: "05", label: "Май" },
+                    { value: "06", label: "Юни" },
+                    { value: "07", label: "Юли" },
+                    { value: "08", label: "Август" },
+                    { value: "09", label: "Септември" },
+                    { value: "10", label: "Октомври" },
+                    { value: "11", label: "Ноември" },
+                    { value: "12", label: "Декември" },
+                  ];
+                  const days = Array.from({ length: 31 }, (_, i) =>
+                    (i + 1).toString().padStart(2, "0")
+                  );
+
+                  // Parse current value
+                  let curYear = "";
+                  let curMonth = "";
+                  let curDay = "";
+
+                  if (field.value) {
+                    const parts = field.value.split("-");
+                    curYear = parts[0] || "";
+                    curMonth = parts[1] || "";
+                    curDay = parts[2] || "";
+                  }
+
+                  const updateDate = (y: string, m: string, d: string) => {
+                    if (!y) {
+                      field.onChange(null);
+                      return;
+                    }
+                    let val = y;
+                    if (m) {
+                      val += `-${m}`;
+                      if (d) val += `-${d}`;
+                    }
+                    field.onChange(val);
+                  };
+
+                  return (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
+                        Дата на раждане (Година*)
+                      </FormLabel>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Select
+                          onValueChange={(v) => updateDate(v, curMonth, curDay)}
+                          value={curYear || undefined}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                              <SelectValue placeholder="Година" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            {years.map((y) => (
+                              <SelectItem key={y} value={y}>
+                                {y}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          onValueChange={(v) =>
+                            updateDate(curYear, v === "none" ? "" : v, curDay)
                           }
-                        }}
-                        className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                          value={curMonth || "none"}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                              <SelectValue placeholder="Месец" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Месец (опц.)</SelectItem>
+                            {months.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>
+                                {m.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          onValueChange={(v) =>
+                            updateDate(curYear, curMonth, v === "none" ? "" : v)
+                          }
+                          value={curDay || "none"}
+                          disabled={!curMonth}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                              <SelectValue placeholder="Ден" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Ден (опц.)</SelectItem>
+                            {days.map((d) => (
+                              <SelectItem key={d} value={d}>
+                                {d}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               <FormField
                 control={form.control}
