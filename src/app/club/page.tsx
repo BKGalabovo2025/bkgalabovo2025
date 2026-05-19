@@ -204,7 +204,7 @@ export default function ClubPage() {
       {/* Members CTA */}
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-zinc-900 border border-blue-600/20 rounded-[3rem] p-12 md:p-16 text-center relative overflow-hidden">
+          <div className="bg-zinc-900 border border-blue-600/20 rounded-6xl p-12 md:p-16 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -mr-32 -mt-32" />
             <div className="relative z-10">
               <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-6">
