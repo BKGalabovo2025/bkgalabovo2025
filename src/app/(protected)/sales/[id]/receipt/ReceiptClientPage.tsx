@@ -466,10 +466,10 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         </div>
 
         {/* PRINTABLE AREA */}
-        <div className="flex justify-center bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-3xl overflow-x-auto">
+        <div className="bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-3xl overflow-x-auto">
           <div
             ref={receiptRef}
-            className="bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-8 flex flex-col justify-between gap-6 printable-area"
+            className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-8 flex flex-col justify-between gap-6 printable-area"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             <ReceiptCopy

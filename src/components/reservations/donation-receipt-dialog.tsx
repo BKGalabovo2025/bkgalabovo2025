@@ -237,10 +237,10 @@ export function DonationReceiptDialog({
           </div>
         </DialogHeader>
 
-        <div className="p-8 flex justify-center bg-zinc-50 dark:bg-zinc-950/50">
+        <div className="p-4 sm:p-8 overflow-x-auto bg-zinc-50 dark:bg-zinc-950/50">
           <div
             ref={receiptRef}
-            className="bg-white text-zinc-950 shadow-2xl w-full max-w-[210mm] min-h-[297mm] p-[10mm] flex flex-col gap-6 printable-area"
+            className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-[10mm] flex flex-col gap-6 printable-area"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             <DocumentCopy
