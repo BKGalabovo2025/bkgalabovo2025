@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
@@ -25,6 +26,7 @@ import { Member, Subscription, ClubService } from "@/types";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { MembershipSuggestions } from "./MembershipSuggestions";
+import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -92,6 +94,10 @@ export function SubscriptionForm({
       ? initialData.startDate.substring(0, 10)
       : new Date().toISOString().substring(0, 10)
   );
+  const [customServiceName, setCustomServiceName] = useState<
+    string | undefined
+  >(undefined);
+  const [customPrice, setCustomPrice] = useState<number | undefined>(undefined);
 
   const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(subscriptionSchema),
@@ -132,6 +138,28 @@ export function SubscriptionForm({
   const selectedMemberObj = members.find((m) => m.id === selectedMemberId);
   const selectedServiceObj = services.find((s) => s.id === selectedServiceId);
   const billingPeriod = selectedServiceObj?.billingPeriod || null;
+
+  const [memberSubscriptions, setMemberSubscriptions] = useState<
+    Subscription[]
+  >([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (selectedMemberId) {
+      getSubscriptionsByMemberId(selectedMemberId)
+        .then((subs) => {
+          if (isMounted) setMemberSubscriptions(subs);
+        })
+        .catch(() => {
+          if (isMounted) setMemberSubscriptions([]);
+        });
+    } else {
+      setMemberSubscriptions([]);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedMemberId]);
 
   useEffect(() => {
     if (!billingPeriod) {
@@ -189,8 +217,8 @@ export function SubscriptionForm({
 
     const subscriptionData: Omit<Subscription, "id" | "siteId"> = {
       ...data,
-      price: selectedService.price,
-      serviceName: selectedService.name,
+      price: customPrice ?? selectedService.price,
+      serviceName: customServiceName ?? selectedService.name,
       totalPaymentsCount: totalPaymentsCount,
       currency: selectedService.currency,
     };
@@ -287,10 +315,17 @@ export function SubscriptionForm({
                 <MembershipSuggestions
                   member={selectedMemberObj}
                   services={services}
-                  month={periodMonth}
-                  onSelectService={(serviceId, price) => {
+                  memberSubscriptions={memberSubscriptions}
+                  onSelectService={(serviceId, price, suggestedName, month) => {
                     form.setValue("serviceId", serviceId);
                     form.setValue("pricePaid", price);
+                    setCustomPrice(price);
+                    if (suggestedName) {
+                      setCustomServiceName(suggestedName);
+                    }
+                    if (month) {
+                      setPeriodMonth(month);
+                    }
                     setStep(2);
                     toast.success("Интелигентно предложение приложено!");
                   }}

@@ -37,7 +37,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { User } from "firebase/auth";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
-import { getDocs, query, where } from "firebase/firestore";
+import { getDocs } from "firebase/firestore";
 import { getEventsCollection } from "@/lib/firebase-collections";
 import { ScheduleEvent } from "@/types";
 import { getMembershipSuggestions } from "@/lib/membership-utils";
@@ -113,123 +113,153 @@ export default function SubscriptionsClient() {
   const handleAutoSync = async () => {
     if (!user) return;
     setIsSaving(true);
-    const toastId = toast.loading("Синхронизиране на посещения и плащания...");
+    const toastId = toast.loading(
+      "Сканиране на историята и генериране на членства..."
+    );
 
     try {
       const idToken = await user.getIdToken();
-      const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
 
-      // 1. Fetch events for the month
-      const eventsSnap = await getDocs(
-        query(
-          getEventsCollection(),
-          where("startDate", ">=", `${currentMonth}-01`),
-          where("startDate", "<=", `${currentMonth}-31`)
-        )
-      );
-      const events = eventsSnap.docs.map((d) => d.data() as ScheduleEvent);
+      // 1. Fetch all events across months to check historical attendance
+      const eventsSnap = await getDocs(getEventsCollection());
+      const allEvents = eventsSnap.docs.map((d) => d.data() as ScheduleEvent);
 
-      // 2. Identify members with attendance
-      const attendedMemberIds = new Set<string>();
-      events.forEach((e) => {
-        e.attendeeMemberIds?.forEach((id) => attendedMemberIds.add(id));
-      });
-
-      if (attendedMemberIds.size === 0) {
+      if (allEvents.length === 0) {
         toast.dismiss(toastId);
-        toast.info("Няма засечени посещения за текущия месец.");
+        toast.info("Няма регистрирани събития или тренировки в системата.");
         setIsSaving(false);
         return;
       }
 
-      // 3. Filter members who already have a subscription for this month
       const createdCount = { count: 0 };
       const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const nowYear = now.getFullYear();
+      const nowMonth = now.getMonth();
 
-      for (const memberId of attendedMemberIds) {
-        const member = members.find((m) => m.id === memberId);
-        if (!member) continue;
+      // 2. Iterate through each active member
+      for (const member of members) {
+        if (!member || member.status === "inactive") continue;
 
-        // Check 1: Already has a subscription for this month
-        const hasSub = subscriptions.some((s) => {
-          if (s.memberId !== memberId) return false;
-          if (s.status === "cancelled") return false;
-
-          const start = new Date(s.startDate);
-          const end = new Date(s.endDate);
-          return start <= lastDayOfMonth && end >= firstDayOfMonth;
-        });
-
-        if (hasSub) continue;
-
-        // Check 2: Check registration date - don't generate sub for months before registration
-        const regDate = new Date(member.registrationDate);
-        if (regDate > lastDayOfMonth) continue;
-
-        const attendanceInMonth = events.filter((e) =>
-          e.attendeeMemberIds?.includes(memberId)
-        ).length;
-        const suggestions = getMembershipSuggestions(
-          member,
-          services,
-          attendanceInMonth
+        // Determine earliest activity by checking historical event attendance
+        const memberEvents = allEvents.filter((e) =>
+          e.attendeeMemberIds?.includes(member.id)
         );
 
-        if (suggestions.length > 0) {
-          const best = suggestions[0].service;
+        let earliestDate = new Date(member.registrationDate);
+        if (isNaN(earliestDate.getTime())) {
+          earliestDate = new Date(nowYear, 0, 1); // fallback to start of year
+        }
 
-          // Calculate valid start date (max of first of month or registration date)
+        if (memberEvents.length > 0) {
+          const eventDates = memberEvents
+            .map((e) => new Date(e.startDate || ""))
+            .filter((d) => !isNaN(d.getTime()));
+          if (eventDates.length > 0) {
+            const minEventDate = new Date(
+              Math.min(...eventDates.map((d) => d.getTime()))
+            );
+            if (minEventDate < earliestDate) {
+              earliestDate = minEventDate;
+            }
+          }
+        }
+
+        let y = earliestDate.getFullYear();
+        let m = earliestDate.getMonth();
+
+        // Loop from earliest activity month to current month
+        while (y < nowYear || (y === nowYear && m <= nowMonth)) {
+          const monthStr = `${y}-${String(m + 1).padStart(2, "0")}`; // "YYYY-MM"
+          const firstDayOfMonth = new Date(y, m, 1);
+          const lastDayOfMonth = new Date(y, m + 1, 0);
+          lastDayOfMonth.setHours(23, 59, 59, 999);
+
           const validStartDate =
-            regDate > firstDayOfMonth ? regDate : firstDayOfMonth;
+            y === earliestDate.getFullYear() &&
+            m === earliestDate.getMonth() &&
+            earliestDate > firstDayOfMonth
+              ? earliestDate
+              : firstDayOfMonth;
 
-          // Get actual last day of month
-          const actualLastDay = new Date(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            0
-          );
-          actualLastDay.setHours(23, 59, 59, 999);
+          // Check member attendance for this specific month
+          const monthEvents = allEvents.filter((e) => {
+            if (!e.startDate?.startsWith(monthStr)) return false;
+            return e.attendeeMemberIds?.includes(member.id);
+          });
+          const attendanceInMonth = monthEvents.length;
 
-          const newSub: Omit<Subscription, "id" | "siteId"> = {
-            memberId: member.id,
-            serviceId: best.id,
-            serviceName: best.name,
-            startDate: validStartDate.toISOString(),
-            endDate: actualLastDay.toISOString(),
-            status: "pending_payment",
-            price: best.price,
-            pricePaid: 0,
-            currency: best.currency,
-            paymentsMadeCount: 0,
-            totalPaymentsCount: 1,
-            licenseGranted: false,
-            apparelGranted: false,
-            linkedSubscriptionId: null,
-            paymentHistory: [],
-          };
+          if (attendanceInMonth > 0) {
+            // Check if member already has an active or pending subscription for this month
+            const hasSub = subscriptions.some((s) => {
+              if (s.memberId !== member.id) return false;
+              if (s.status === "cancelled") return false;
 
-          await createSubscriptionAction(idToken, newSub);
-          createdCount.count++;
+              const start = new Date(s.startDate);
+              const end = new Date(s.endDate);
+              return start <= lastDayOfMonth && end >= firstDayOfMonth;
+            });
+
+            if (!hasSub) {
+              const suggestions = getMembershipSuggestions(
+                member,
+                services,
+                attendanceInMonth
+              );
+
+              if (suggestions.length > 0) {
+                const bestItem = suggestions[0];
+                const bestService = bestItem.service;
+                const subPrice = bestItem.suggestedPrice ?? bestService.price;
+                const subServiceName =
+                  bestItem.suggestedServiceName ?? bestService.name;
+
+                const newSub: Omit<Subscription, "id" | "siteId"> = {
+                  memberId: member.id,
+                  serviceId: bestService.id,
+                  serviceName: subServiceName,
+                  startDate: validStartDate.toISOString(),
+                  endDate: lastDayOfMonth.toISOString(),
+                  status: "pending_payment",
+                  price: subPrice,
+                  pricePaid: 0,
+                  currency: bestService.currency,
+                  paymentsMadeCount: 0,
+                  totalPaymentsCount: 1,
+                  licenseGranted: false,
+                  apparelGranted: false,
+                  linkedSubscriptionId: null,
+                  paymentHistory: [],
+                };
+
+                await createSubscriptionAction(idToken, newSub);
+                createdCount.count++;
+              }
+            }
+          }
+
+          m++;
+          if (m > 11) {
+            m = 0;
+            y++;
+          }
         }
       }
 
       toast.dismiss(toastId);
       if (createdCount.count > 0) {
         toast.success(
-          `Успешно генерирани ${createdCount.count} нови неплатени членства.`
+          `Успешно генерирани ${createdCount.count} нови неплатени членства по месеци.`
         );
         mutate();
       } else {
         toast.info(
-          "Всички присъстващи членове вече имат регистрирано членство."
+          "Всички членове с посещения вече имат регистрирано членство за съответните месеци."
         );
       }
     } catch (err) {
       console.error("Error during auto-sync:", err);
       toast.dismiss(toastId);
-      toast.error("Грешка при автоматичното синхронизиране.");
+      toast.error("Грешка при интелигентното генериране.");
     } finally {
       setIsSaving(false);
     }

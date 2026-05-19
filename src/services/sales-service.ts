@@ -54,6 +54,8 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
     currency: data.currency || "EUR",
     totalAmount: Number(data.totalAmount) || 0,
     isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
+    paymentMethod: data.paymentMethod || "В брой",
+    note: data.note || "",
     subscriptionId: data.subscriptionId || null,
     createdAt: createdAt.toISOString(),
   };
@@ -278,6 +280,8 @@ export const findOrCreateSaleForSubscription = async (
         currency: "EUR",
         isPaid: true,
         status: "completed",
+        paymentMethod: firstPayment.paymentMethod || "В брой",
+        note: firstPayment.note || "",
         createdAt: Timestamp.now(),
       };
 

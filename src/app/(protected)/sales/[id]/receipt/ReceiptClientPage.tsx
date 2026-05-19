@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Printer, AlertCircle, FileDown, Edit } from "lucide-react";
-import Image from "next/image";
+import {
+  Printer,
+  AlertCircle,
+  FileDown,
+  BadgeCheck,
+  Scissors,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clubInfo } from "@/config/club";
 import { getReceiptDetails, ReceiptDetails } from "@/services/sales-service";
@@ -13,10 +18,205 @@ import { formatFullName } from "@/lib/utils";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { Member, ClubService, Sale, Subscription } from "@/types";
 
 interface ReceiptClientPageProps {
   saleId: string;
 }
+
+interface ReceiptCopyProps {
+  label: string;
+  sale: Sale | null;
+  member: Member | null;
+  relatedMember: Member | null;
+  service: ClubService | null;
+  subscription: Subscription | null;
+}
+
+const ReceiptCopy = ({
+  label,
+  sale,
+  member,
+  relatedMember,
+  service,
+}: ReceiptCopyProps) => {
+  const formattedDate = sale?.saleDate
+    ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : new Date().toLocaleDateString("bg-BG");
+
+  return (
+    <div
+      className="flex flex-col h-[470px] border border-black p-6 bg-white relative"
+      style={{ fontFamily: "Arial, Helvetica, sans-serif", wordSpacing: "2px" }}
+    >
+      <div className="flex flex-col h-full text-black">
+        {/* Header */}
+        <div className="flex justify-between items-start border-b border-black pb-4 mb-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold uppercase tracking-tight">
+              РАЗПИСКА ЗА ПЛАЩАНЕ
+            </h2>
+            <p className="text-[10px] font-bold uppercase text-[#475569]">
+              № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
+              {formattedDate}
+            </p>
+            <p className="text-[10px] font-bold uppercase mt-1 text-[#64748b]">
+              {label}
+            </p>
+          </div>
+          <div className="text-right text-[10px] space-y-0.5">
+            <p className="font-bold uppercase">{clubInfo.name}</p>
+            <p className="uppercase">{clubInfo.address}</p>
+            <p className="uppercase">{clubInfo.contact}</p>
+          </div>
+        </div>
+
+        {/* Info Block (Получател, Статус, Начин на плащане) */}
+        <div className="mb-4 text-[10px] flex justify-between items-start bg-[#f8fafc] p-3 border border-[#e2e8f0]">
+          <div>
+            <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-widest mb-1">
+              Получател
+            </p>
+            <p className="font-bold uppercase text-xs text-[#0f172a]">
+              {member ? formatFullName(member) : "(Липсват данни за член)"}
+            </p>
+            {relatedMember && (
+              <p className="text-[#475569] font-medium">
+                Свързано лице: {formatFullName(relatedMember)}
+              </p>
+            )}
+            <p className="text-[#64748b] mt-0.5 text-[9px]">
+              {member?.address || "Адрес: (не е посочен)"}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-widest mb-1">
+              Детайли за плащане
+            </p>
+            <p className="font-bold text-[#0f172a]">
+              Начин: {sale?.paymentMethod || "В брой"}
+            </p>
+            <p className="mt-0.5 font-bold">
+              Статус:{" "}
+              <span
+                className={
+                  sale?.isPaid
+                    ? "text-[#059669] font-black"
+                    : "text-[#e11d48] font-black"
+                }
+              >
+                {sale?.isPaid ? "ПЛАТЕНО" : "ОЧАКВА ПЛАЩАНЕ"}
+              </span>
+            </p>
+            {sale?.note && (
+              <p className="text-[9px] text-[#475569] italic mt-0.5">
+                Бележка: {sale.note}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Content Table */}
+        <div className="flex-1">
+          <table className="w-full border-collapse border border-black text-[10px]">
+            <thead>
+              <tr className="bg-[#f1f5f9] border-b border-black text-[9px] font-bold uppercase">
+                <th className="p-2 text-left border-r border-black">
+                  Описание на услугата / продукта
+                </th>
+                <th className="p-2 text-center border-r border-black">К-во</th>
+                <th className="p-2 text-right border-r border-black">
+                  Ед. цена
+                </th>
+                <th className="p-2 text-right">Общо</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sale?.items && sale.items.length > 0 ? (
+                sale.items.map((item, index) => (
+                  <tr key={index} className="border-b border-black font-medium">
+                    <td className="p-2 border-r border-black font-bold">
+                      {item.name || "(Липсва име)"}
+                      {service?.name && (
+                        <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
+                          {service.name}
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-2 text-center border-r border-black">
+                      {item.quantity}
+                    </td>
+                    <td className="p-2 text-right border-r border-black">
+                      {formatPrice(item.price)}
+                    </td>
+                    <td className="p-2 text-right font-bold">
+                      {formatPrice(item.quantity * item.price)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="p-4 text-center text-[#94a3b8] italic"
+                  >
+                    Няма добавени артикули
+                  </td>
+                </tr>
+              )}
+              <tr>
+                <td
+                  colSpan={3}
+                  className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                >
+                  Обща стойност:
+                </td>
+                <td className="p-2 text-right font-bold text-xs">
+                  {formatPrice(sale?.totalAmount || 0)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Unified Legal / Accounting Statement */}
+        <div className="mt-4 mb-2 text-center">
+          <p className="text-[8px] text-[#64748b] italic">
+            Документът е издаден от автоматизирана система в съответствие с чл.
+            7, ал. 1 от Закона за счетоводството.
+          </p>
+        </div>
+
+        {/* Signatures */}
+        <div className="mt-4 flex justify-between gap-16">
+          <div className="flex-1">
+            <div className="h-px bg-black w-full" />
+            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+              Доставчик: {clubInfo.name}
+            </p>
+          </div>
+          <div className="flex-1">
+            <div className="h-px bg-black w-full" />
+            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+              Получател: {member ? formatFullName(member) : ""}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-[7px] text-[#94a3b8] font-bold uppercase tracking-widest">
+            ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
   const [details, setDetails] = useState<ReceiptDetails | null>(null);
@@ -59,6 +259,34 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     try {
       setIsGeneratingPDF(true);
 
+      // 1. Събираме всички активни CSS правила от браузъра и премахваме lab/oklch
+      let allCSS = "";
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        const sheet = document.styleSheets[i];
+        try {
+          const rules = sheet.cssRules || sheet.rules;
+          for (let j = 0; j < rules.length; j++) {
+            allCSS += rules[j].cssText + "\n";
+          }
+        } catch (e) {
+          // Игнорираме защитени с CORS външни стилове
+        }
+      }
+      const cleanCSS = allCSS
+        .replace(
+          /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "color: rgb(15, 23, 42)"
+        )
+        .replace(
+          /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "background-color: transparent"
+        )
+        .replace(
+          /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "border-color: rgb(203, 213, 225)"
+        )
+        .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+
       const element = receiptRef.current;
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -66,53 +294,68 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         logging: false,
         backgroundColor: "#ffffff",
         onclone: (clonedDoc: Document) => {
-          // 1. SANITIZE STYLESHEETS: html2canvas crashes on lab(), oklch(), etc.
-          // We must strip these from the cloned document's head styles.
-          const styleTags = clonedDoc.getElementsByTagName("style");
-          for (let i = 0; i < styleTags.length; i++) {
-            const style = styleTags[i];
+          // Премахваме оригиналните link stylesheets, за да не ги тегли html2canvas
+          const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
+          linkTags.forEach((link) => link.remove());
+
+          // Инжектираме пълния изчистен CSS (Tailwind класове)
+          const styleEl = clonedDoc.createElement("style");
+          styleEl.textContent =
+            cleanCSS +
+            "\n" +
+            `
+            * {
+              font-family: Arial, Helvetica, sans-serif !important;
+              word-spacing: 2px !important;
+            }
+          `;
+          clonedDoc.head.appendChild(styleEl);
+
+          // 2. Почистваме съществуващите style тагове
+          const styleTags = clonedDoc.querySelectorAll("style");
+          styleTags.forEach((style) => {
             if (style.innerHTML) {
-              // Replace any lab(), oklch(), lch(), oklab() with a safe color
-              style.innerHTML = style.innerHTML.replace(
-                /(lab|oklch|lch|oklab)\([^)]+\)/g,
-                "inherit"
+              style.innerHTML = style.innerHTML
+                .replace(
+                  /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "color: rgb(15, 23, 42)"
+                )
+                .replace(
+                  /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "background-color: transparent"
+                )
+                .replace(
+                  /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "border-color: rgb(203, 213, 225)"
+                )
+                .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+            }
+          });
+
+          // 3. Почистваме inline стиловете на всички DOM елементи
+          const allElements = clonedDoc.querySelectorAll("*");
+          allElements.forEach((el) => {
+            const styleAttr = el.getAttribute("style");
+            if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
+              el.setAttribute(
+                "style",
+                styleAttr
+                  .replace(
+                    /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "color: rgb(15, 23, 42)"
+                  )
+                  .replace(
+                    /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "background-color: transparent"
+                  )
+                  .replace(
+                    /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "border-color: rgb(203, 213, 225)"
+                  )
+                  .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
               );
             }
-          }
-
-          // 2. ISOLATE CONTENT: Clear body and only re-add the printable area
-          const printable = clonedDoc.querySelector(
-            ".printable-area"
-          ) as HTMLElement;
-          if (printable) {
-            const body = clonedDoc.body;
-            body.innerHTML = "";
-            body.appendChild(printable);
-
-            // 3. REFINE PRINTABLE STYLES: Ensure clean background and spacing
-            printable.style.boxShadow = "none";
-            printable.style.border = "none";
-            printable.style.margin = "0";
-            printable.style.padding = "40px";
-            printable.style.width = "auto";
-            printable.style.background = "white";
-
-            // 4. FORCE LEGACY COLORS: Override primary brand colors
-            const all = printable.querySelectorAll("*");
-            all.forEach((el) => {
-              if (el instanceof HTMLElement) {
-                if (
-                  el.classList.contains("text-primary") ||
-                  el.classList.contains("bg-primary")
-                ) {
-                  if (el.classList.contains("text-primary"))
-                    el.style.color = "#0ea5e9";
-                  if (el.classList.contains("bg-primary"))
-                    el.style.backgroundColor = "#0ea5e9";
-                }
-              }
-            });
-          }
+          });
         },
       });
 
@@ -125,9 +368,18 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
 
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageHeight = 297; // A4 height in mm
+      let imgWidth = pdfWidth;
+      let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      if (imgHeight > pageHeight) {
+        const ratio = pageHeight / imgHeight;
+        imgHeight = pageHeight;
+        imgWidth = imgWidth * ratio;
+      }
+
+      const x = (pdfWidth - imgWidth) / 2;
+      pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
       pdf.save(`receipt-${saleId.substring(0, 8)}.pdf`);
 
       toast.success("PDF документът е генериран успешно!");
@@ -143,7 +395,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
   if (error) return <ErrorDisplay message={error} />;
   if (!details) return <ErrorDisplay message="Няма намерени данни." />;
 
-  const { sale, member, relatedMember, service } = details;
+  const { sale, member, relatedMember, service, subscription } = details;
 
   return (
     <>
@@ -169,51 +421,43 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
           .no-print {
             display: none !important;
           }
-        }
-        .receipt-table th {
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #a1a1aa;
-          border-bottom: 2px solid #f4f4f5;
-          padding-bottom: 0.75rem;
-        }
-        .receipt-table td {
-          padding: 1rem 0;
-          border-bottom: 1px solid #f3f4f6;
-        }
-        .receipt-header-line {
-          height: 4px;
-          background: #09090b;
-          width: 60px;
-          margin-bottom: 2rem;
+          .no-print-visible {
+            display: none !important;
+          }
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto p-4 sm:p-12 receipt-container">
+      <div className="max-w-4xl mx-auto p-4 sm:p-8 receipt-container">
         {/* ACTION BAR */}
-        <div className="flex flex-wrap justify-between items-center mb-12 no-print gap-4 bg-zinc-50/50 p-6 rounded-3xl border border-zinc-100">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-8 bg-zinc-950 rounded-full" />
-            <h1 className="text-lg font-medium text-zinc-900 uppercase tracking-widest">
-              Преглед на разписка
-            </h1>
+        <div className="flex flex-wrap justify-between items-center mb-8 no-print gap-4 bg-zinc-50 p-6 rounded-3xl border border-zinc-100 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <BadgeCheck className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-tight uppercase text-zinc-950">
+                Разписка за Плащане
+              </h1>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
+                А4 формат (2 екземпляра)
+              </p>
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button
               onClick={handlePrint}
               variant="outline"
-              size="sm"
-              className="bg-white rounded-xl border-zinc-200"
+              size="lg"
+              className="rounded-2xl border-zinc-200 hover:bg-zinc-50 h-12 px-6 font-bold uppercase tracking-widest text-[10px]"
             >
               <Printer className="mr-2 h-4 w-4" />
-              Принтиране
+              Принтирай
             </Button>
             <Button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}
-              size="sm"
-              className="bg-zinc-950 text-white hover:bg-zinc-800 rounded-xl px-6"
+              size="lg"
+              className="bg-emerald-500 text-white hover:bg-emerald-600 rounded-2xl h-12 px-8 font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-500/20"
             >
               <FileDown className="mr-2 h-4 w-4" />
               {isGeneratingPDF ? "Генериране..." : "Изтегли PDF"}
@@ -222,295 +466,42 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
         </div>
 
         {/* PRINTABLE AREA */}
-        <div
-          ref={receiptRef}
-          className="bg-white border border-zinc-100 p-[15mm] printable-area overflow-hidden relative"
-        >
-          {/* Subtle Decorative Element */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-50 rounded-bl-full -mr-16 -mt-16 opacity-50" />
+        <div className="flex justify-center bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-3xl overflow-x-auto">
+          <div
+            ref={receiptRef}
+            className="bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-8 flex flex-col justify-between gap-6 printable-area"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            <ReceiptCopy
+              label="Екземпляр за клиента"
+              sale={sale}
+              member={member}
+              relatedMember={relatedMember}
+              service={service}
+              subscription={subscription}
+            />
 
-          <header className="flex justify-between items-start mb-16 relative z-10">
-            <div>
-              <div className="relative w-24 h-24 mb-6">
-                <Image
-                  src="/logo.png"
-                  alt="Club Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                  sizes="96px"
-                />
-              </div>
-              <div className="receipt-header-line" />
-              <h2 className="text-xl font-bold text-zinc-950 mb-2 uppercase tracking-tighter">
-                {clubInfo.name}
-              </h2>
-              <div className="text-[9pt] text-gray-500 space-y-1 font-medium max-w-xs leading-relaxed">
-                <p>{clubInfo.address}</p>
-                <p>
-                  {clubInfo.email} • {clubInfo.contact}
-                </p>
-                <p className="text-zinc-400">Област: Стара Загора</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <h1 className="text-4xl font-black text-zinc-950 mb-2 tracking-tighter uppercase italic">
-                БЛАГОДАРИМ ВИ!
-              </h1>
-              <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-8">
-                РАЗПИСКА ЗА ПЛАЩАНЕ № {sale?.id.substring(0, 8).toUpperCase()}
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                    НОМЕР НА РАЗПИСКА
-                  </p>
-                  <p className="text-2xl font-mono font-medium text-zinc-900 tracking-tighter">
-                    #{sale?.id.substring(0, 8).toUpperCase() || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                    ДАТА НА ИЗДАВАНЕ
-                  </p>
-                  <p className="text-sm font-bold text-zinc-800">
-                    {sale?.saleDate
-                      ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <main>
-            {/* Parties Section */}
-            <div className="grid grid-cols-2 gap-16 mb-16">
-              <div>
-                <h3 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-4 border-b pb-2">
-                  ДОСТАВЧИК
-                </h3>
-                <p className="font-bold text-zinc-900 text-md mb-1">
-                  {clubInfo.name}
-                </p>
-                <p className="text-[9pt] text-gray-500 leading-relaxed font-medium">
-                  {clubInfo.address}
-                  <br />
-                  България (Област Стара Загора)
-                </p>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-4 border-b pb-2">
-                  ПОЛУЧАТЕЛ
-                </h3>
-                {member ? (
-                  <p className="font-bold text-zinc-900 text-md mb-1">
-                    {formatFullName(member)}
-                  </p>
-                ) : (
-                  <p className="font-bold text-rose-600">
-                    (Липсват данни за член)
-                  </p>
-                )}
-                <div className="text-[9pt] text-gray-500 leading-relaxed font-medium">
-                  {relatedMember && (
-                    <p className="text-zinc-900">
-                      {formatFullName(relatedMember)} (Член)
-                    </p>
-                  )}
-                  <p>{member?.address || "Адрес: (не е посочен)"}</p>
-                </div>
+            <div className="relative py-2 no-print-visible flex items-center justify-center">
+              <div className="absolute left-0 right-0 border-t-2 border-dashed border-zinc-300" />
+              <div className="relative bg-white px-4 text-zinc-300">
+                <Scissors className="w-5 h-5" />
               </div>
             </div>
 
-            {/* Items Table */}
-            <table className="w-full text-left mb-16 receipt-table">
-              <thead>
-                <tr>
-                  <th className="w-1/2">ОПИСАНИЕ НА УСЛУГАТА / ПРОДУКТА</th>
-                  <th className="text-center">К-ВО</th>
-                  <th className="text-right">ЕД. ЦЕНА</th>
-                  <th className="text-right">ОБЩО</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sale?.items && sale.items.length > 0 ? (
-                  sale.items.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <p className="font-bold text-zinc-900">
-                          {item.name || "(Липсва име)"}
-                        </p>
-                        {service?.name && (
-                          <p className="text-[8pt] text-gray-400 font-medium uppercase tracking-wider mt-0.5">
-                            {service.name}
-                          </p>
-                        )}
-                      </td>
-                      <td className="text-center font-medium text-zinc-600">
-                        {item.quantity}
-                      </td>
-                      <td className="text-right font-medium text-gray-600">
-                        {formatPrice(item.price)}
-                      </td>
-                      <td className="text-right font-black text-zinc-950">
-                        {formatPrice(item.quantity * item.price)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="py-12 text-center text-gray-300 font-medium italic"
-                    >
-                      Няма добавени артикули.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Totals & Footer Info */}
-            <div className="flex justify-between items-start gap-12">
-              <div className="max-w-sm">
-                <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100 mb-6">
-                  <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">
-                    НАЧИН НА ПЛАЩАНЕ
-                  </h4>
-                  <p className="text-sm font-bold text-zinc-700">
-                    В брой / Банков превод
-                  </p>
-                  <p className="text-[8pt] text-zinc-400 mt-2 font-medium leading-relaxed italic">
-                    Документът е издаден от автоматизирана система в
-                    съответствие с чл. 7, ал. 1 от Закона за счетоводството.
-                  </p>
-                </div>
-
-                <div className="flex gap-4 items-center px-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${sale?.isPaid ? "bg-emerald-500" : "bg-rose-500"}`}
-                  />
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                    СТАТУС: {sale?.isPaid ? "ПЛАТЕНО" : "ОЧАКВА ПЛАЩАНЕ"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="w-64 space-y-3">
-                <div className="flex justify-between items-center text-gray-400 px-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
-                    МЕЖДИННА СУМА
-                  </span>
-                  <span className="font-bold text-sm">
-                    {formatPrice(sale?.totalAmount || 0)}
-                  </span>
-                </div>
-                <div className="border-t-2 border-zinc-950 pt-4 flex justify-between items-center px-2">
-                  <span className="text-sm font-black uppercase tracking-tighter text-zinc-950">
-                    ОБЩО ЗА ПЛАЩАНЕ
-                  </span>
-                  <span className="text-3xl font-black text-zinc-950 tracking-tighter">
-                    {formatPrice(sale?.totalAmount || 0)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Signatures & Custom Message */}
-            <footer className="mt-32">
-              <div className="grid grid-cols-2 gap-16 mb-16 px-4">
-                <div className="border-t border-zinc-200 pt-4">
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-8 text-center">
-                    ПОДПИС ДОСТАВЧИК
-                  </p>
-                  <div className="h-px bg-zinc-100 w-3/4 mx-auto" />
-                </div>
-                <div className="border-t border-zinc-200 pt-4">
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-8 text-center">
-                    ПОДПИС ПОЛУЧАТЕЛ
-                  </p>
-                  <div className="h-px bg-zinc-100 w-3/4 mx-auto" />
-                </div>
-              </div>
-
-              <div className="text-center pt-8 border-t border-zinc-50">
-                <EditableReceiptMessage />
-                <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-[0.3em] mt-6">
-                  {clubInfo.name} &copy; {new Date().getFullYear()} • BK
-                  Galabovo & Recovery Zone
-                </p>
-              </div>
-            </footer>
-          </main>
+            <ReceiptCopy
+              label="Екземпляр за клуба"
+              sale={sale}
+              member={member}
+              relatedMember={relatedMember}
+              service={service}
+              subscription={subscription}
+            />
+          </div>
         </div>
       </div>
     </>
   );
 }
-
-const EditableReceiptMessage = () => {
-  const [message, setMessage] = useState(() => {
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("receipt-custom-message") ||
-        "Благодарим Ви, че избрахте нас!"
-      );
-    }
-    return "Благодарим Ви, че избрахте нас!";
-  });
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleSave = () => {
-    localStorage.setItem("receipt-custom-message", message);
-    setIsEditing(false);
-    toast.success("Съобщението е запазено!");
-  };
-
-  if (isEditing) {
-    return (
-      <div className="flex flex-col items-center gap-3 no-print">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="w-full min-w-[300px] p-4 text-sm font-bold text-center border-2 border-primary rounded-xl focus:outline-none"
-          rows={2}
-        />
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsEditing(false)}
-          >
-            Отказ
-          </Button>
-          <Button size="sm" onClick={handleSave}>
-            Запази
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="relative group cursor-pointer inline-block"
-      onClick={() => setIsEditing(true)}
-    >
-      <p className="text-sm font-bold text-zinc-900 uppercase tracking-widest italic">
-        &quot;{message}&quot;
-      </p>
-      <div className="absolute -right-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity no-print">
-        <Edit className="h-4 w-4 text-blue-500" />
-      </div>
-    </div>
-  );
-};
 
 const ReceiptSkeleton = () => (
   <div className="max-w-4xl mx-auto p-8 space-y-8">
@@ -534,9 +525,6 @@ const ReceiptSkeleton = () => (
         <Skeleton className="h-32 w-full" />
       </div>
       <Skeleton className="h-64 w-full" />
-      <div className="flex justify-end">
-        <Skeleton className="h-48 w-80" />
-      </div>
     </div>
   </div>
 );

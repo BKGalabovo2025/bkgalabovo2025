@@ -1174,7 +1174,7 @@ export const MemberDetailsCard = ({
           value="subscriptions"
           className="focus-visible:outline-none"
         >
-          <MemberSubscriptionsTab memberId={member.id} />
+          <MemberSubscriptionsTab memberId={member.id} member={member} />
         </TabsContent>
 
         <TabsContent value="attendance" className="focus-visible:outline-none">

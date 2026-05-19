@@ -2,7 +2,6 @@ import { Member, ClubService } from "@/types";
 import {
   LucideIcon,
   Sparkles,
-  Users,
   TrendingUp,
   Wallet,
   AlertTriangle,
@@ -14,10 +13,12 @@ export type SuggestionPriority = {
   icon: LucideIcon;
   priority: number;
   bestValue?: boolean;
+  suggestedPrice?: number;
+  suggestedServiceName?: string;
 };
 
 /**
- * Core logic to determine the best membership suggestion for a member
+ * Core logic to determine the best membership suggestion for a member based on attendance
  */
 export const getMembershipSuggestions = (
   member: Member,
@@ -38,19 +39,16 @@ export const getMembershipSuggestions = (
   const isPro = member.ageGroup?.toLowerCase().includes("състезател");
 
   // 2. Pre-filter services to only those that match the member's age group
-  // This is CRITICAL to prevent suggesting "Amateur" services to children
   const compatibleServices = services.filter((s) => {
     const serviceNameLower = s.name.toLowerCase();
     const serviceTargetLower = s.targetGroups.map((tg) => tg.toLowerCase());
 
     if (isChild) {
-      // If member is a child, exclude services explicitly for adults/amateurs
       if (
         serviceNameLower.includes("любители") ||
         serviceTargetLower.includes("любители")
       )
         return false;
-      // Also exclude pro services unless member is pro
       if (
         !isPro &&
         (serviceNameLower.includes("състезател") ||
@@ -61,7 +59,9 @@ export const getMembershipSuggestions = (
       return (
         s.targetGroups.includes("Деца") ||
         serviceNameLower.includes("деца") ||
-        serviceNameLower.includes("детски")
+        serviceNameLower.includes("детски") ||
+        s.billingPeriod === null ||
+        s.type === "Еднократно плащане"
       );
     }
 
@@ -72,41 +72,9 @@ export const getMembershipSuggestions = (
       );
     }
 
-    return true; // Default to all if no specific group detected
+    return true;
   });
 
-  // 3. Mandatory Monthly Subscription for Children
-  // We keep this as high priority, but don't strictly exclude other options
-  const childMonthly = compatibleServices.find(
-    (s) => s.billingPeriod === "Месечен"
-  );
-  if (isChild && attendanceCount > 0 && childMonthly) {
-    list.push({
-      service: childMonthly,
-      reason: `Препоръчителен месечен абонамент за деца${member.ageGroup ? ` (${member.ageGroup})` : ""}`,
-      icon: Sparkles,
-      priority: 15, // Highest priority
-    });
-  }
-
-  // 4. Family logic
-  if (member.familyId) {
-    const familyService = services.find(
-      (s) =>
-        s.name.toLowerCase().includes("семеен") ||
-        s.name.toLowerCase().includes("семейство")
-    );
-    if (familyService) {
-      list.push({
-        service: familyService,
-        reason: "Открита семейна връзка — възможност за семеен план",
-        icon: Users,
-        priority: 10,
-      });
-    }
-  }
-
-  // 5. Attendance-based logic for compatible services
   const monthlyServices = compatibleServices.filter(
     (s) => s.billingPeriod === "Месечен"
   );
@@ -114,52 +82,97 @@ export const getMembershipSuggestions = (
     (s) => s.billingPeriod === null || s.type === "Еднократно плащане"
   );
 
-  if (attendanceCount > 0) {
-    // Determine the best value single service
-    const singleService = singleServices.sort((a, b) => a.price - b.price)[0];
-    const targetMonthly = monthlyServices[0];
+  const singleService = singleServices.sort((a, b) => a.price - b.price)[0];
+  let effectiveMonthly = monthlyServices[0];
 
-    if (singleService) {
-      const projectedCost = attendanceCount * singleService.price;
-
-      // If it's a child and they have few attendances, offer single visit too
-      if (isChild && attendanceCount <= 3) {
-        list.push({
-          service: singleService,
-          reason: `Единично посещение (${attendanceCount} присъствия) — алтернатива на месечния абонамент.`,
-          icon: Wallet,
-          priority: 12, // High priority for children with low attendance
-        });
-      }
-
-      if (targetMonthly && targetMonthly.price < projectedCost) {
-        list.push({
-          service: targetMonthly,
-          reason: `По-изгоден абонамент при ${attendanceCount} посещения (спестявате ${projectedCost - targetMonthly.price} ${targetMonthly.currency}).`,
-          icon: TrendingUp,
-          priority: 14,
-          bestValue: true,
-        });
-      } else if (!isChild && attendanceCount <= 3) {
-        list.push({
-          service: singleService,
-          reason: `Ниска активност (${attendanceCount} посещения) — препоръчва се единично плащане.`,
-          icon: Wallet,
-          priority: 8,
-        });
-      }
+  // Family override for monthly service
+  if (member.familyId) {
+    const familyService = services.find(
+      (s) =>
+        s.name.toLowerCase().includes("семеен") ||
+        s.name.toLowerCase().includes("семейство")
+    );
+    if (familyService) {
+      effectiveMonthly = familyService;
     }
   }
 
-  // 6. Final safety fallback - if we have nothing but there was attendance
-  if (list.length === 0 && attendanceCount > 0) {
+  const visits = attendanceCount > 0 ? attendanceCount : 1;
+  const projectedCost = visits * (singleService?.price || 0);
+
+  if (singleService && effectiveMonthly) {
+    if (projectedCost <= effectiveMonthly.price && attendanceCount > 0) {
+      list.push({
+        service: singleService,
+        reason: `${visits} посетени тренировки през месеца × ${singleService.price} ${singleService.currency} (по-изгодно от месечен абонамент)`,
+        icon: Wallet,
+        priority: 25,
+        bestValue: true,
+        suggestedPrice: projectedCost,
+        suggestedServiceName: `${singleService.name} (${visits} посещени${visits === 1 ? "е" : "я"})`,
+      });
+
+      list.push({
+        service: effectiveMonthly,
+        reason: `${member.familyId ? "Семеен месечен абонамент" : "Месечен абонамент"} (стандартна цена ${effectiveMonthly.price} ${effectiveMonthly.currency})`,
+        icon: Sparkles,
+        priority: 15,
+        suggestedPrice: effectiveMonthly.price,
+        suggestedServiceName: effectiveMonthly.name,
+      });
+    } else {
+      list.push({
+        service: effectiveMonthly,
+        reason: `${member.familyId ? "Семеен месечен абонамент" : "Месечен абонамент"} ${attendanceCount > 0 ? `при ${visits} посещения (спестявате ${projectedCost - effectiveMonthly.price} ${effectiveMonthly.currency} спрямо единични)` : `(стандартна цена ${effectiveMonthly.price} ${effectiveMonthly.currency})`}`,
+        icon: TrendingUp,
+        priority: 25,
+        bestValue: true,
+        suggestedPrice: effectiveMonthly.price,
+        suggestedServiceName: effectiveMonthly.name,
+      });
+
+      list.push({
+        service: singleService,
+        reason: `${visits} посетен${visits === 1 ? "а" : "и"} тренировк${visits === 1 ? "а" : "и"} × ${singleService.price} ${singleService.currency}${attendanceCount > 0 ? " (по-скъпо от месечен абонамент)" : ""}`,
+        icon: Wallet,
+        priority: 15,
+        suggestedPrice: projectedCost,
+        suggestedServiceName: `${singleService.name} (${visits} посещени${visits === 1 ? "е" : "я"})`,
+      });
+    }
+  } else if (effectiveMonthly) {
+    list.push({
+      service: effectiveMonthly,
+      reason: `${member.familyId ? "Семеен месечен абонамент" : "Месечен абонамент"} (${effectiveMonthly.price} ${effectiveMonthly.currency})`,
+      icon: Sparkles,
+      priority: 25,
+      bestValue: true,
+      suggestedPrice: effectiveMonthly.price,
+      suggestedServiceName: effectiveMonthly.name,
+    });
+  } else if (singleService) {
+    list.push({
+      service: singleService,
+      reason: `${visits} посетен${visits === 1 ? "а" : "и"} тренировк${visits === 1 ? "а" : "и"} × ${singleService.price} ${singleService.currency}`,
+      icon: Wallet,
+      priority: 25,
+      bestValue: true,
+      suggestedPrice: projectedCost,
+      suggestedServiceName: `${singleService.name} (${visits} посещени${visits === 1 ? "е" : "я"})`,
+    });
+  }
+
+  // Final safety fallback
+  if (list.length === 0 && services.length > 0) {
     const fallback = compatibleServices[0] || services[0];
     if (fallback) {
       list.push({
         service: fallback,
-        reason: "Автоматично предложена услуга на база посещения",
+        reason: "Стандартна клубна услуга",
         icon: AlertTriangle,
         priority: 1,
+        suggestedPrice: fallback.price,
+        suggestedServiceName: fallback.name,
       });
     }
   }

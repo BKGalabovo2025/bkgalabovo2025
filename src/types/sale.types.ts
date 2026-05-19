@@ -23,6 +23,8 @@ export const SaleSchema = z.object({
   isPaid: z.boolean(),
   totalAmount: z.number().nonnegative("Total amount cannot be negative."),
   currency: z.literal("EUR"),
+  paymentMethod: z.string().optional(),
+  note: z.string().optional(),
   subscriptionId: z.string().nullable().optional(),
   createdAt: z
     .string()

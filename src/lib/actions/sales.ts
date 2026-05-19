@@ -201,26 +201,42 @@ export async function findOrCreateSaleForSubscriptionAction(
       throw new Error("Subscription ID is required");
     }
 
-    // 1. Check if sale already exists
     const existingSalesSnapshot = await adminDb
       .collection("sales")
       .where("subscriptionId", "==", subscription.id)
       .limit(1)
       .get();
 
+    const paymentHistory = subscription.paymentHistory as
+      | Array<{
+          date: string;
+          amount: number;
+          paymentMethod?: string;
+          note?: string;
+        }>
+      | undefined;
+    const latestPayment =
+      paymentHistory && paymentHistory.length > 0
+        ? paymentHistory[paymentHistory.length - 1]
+        : undefined;
+
     if (!existingSalesSnapshot.empty) {
+      const existingDoc = existingSalesSnapshot.docs[0];
+      await existingDoc.ref.update({
+        isPaid: true,
+        status: "completed",
+        paymentMethod: latestPayment?.paymentMethod || "В брой",
+        note: latestPayment?.note || "",
+        updatedAt: FieldValue.serverTimestamp(),
+      });
       return {
         success: true,
-        data: { id: existingSalesSnapshot.docs[0].id },
+        data: { id: existingDoc.id },
       };
     }
 
-    // 2. No sale found, create one based on first payment
-    const paymentHistory = subscription.paymentHistory as
-      | Array<{ date: string; amount: number }>
-      | undefined;
-    const firstPayment = paymentHistory?.[0];
-    if (!firstPayment || !subscription.memberId) {
+    // 2. No sale found, create one based on latest payment
+    if (!latestPayment || !subscription.memberId) {
       return {
         success: false,
         message: "Няма информация за плащане в абонамента.",
@@ -237,19 +253,21 @@ export async function findOrCreateSaleForSubscriptionAction(
         siteId: "default",
         memberId: subscription.memberId,
         subscriptionId: subscription.id,
-        saleDate: Timestamp.fromDate(new Date(firstPayment.date)),
+        saleDate: Timestamp.fromDate(new Date(latestPayment.date)),
         items: [
           {
             productId: subscription.serviceId,
             name: subscription.serviceName,
             quantity: 1,
-            price: firstPayment.amount,
+            price: latestPayment.amount,
           },
         ],
-        totalAmount: firstPayment.amount,
+        totalAmount: latestPayment.amount,
         currency: "EUR",
         isPaid: true,
         status: "completed",
+        paymentMethod: latestPayment.paymentMethod || "В брой",
+        note: latestPayment.note || "",
         createdAt: FieldValue.serverTimestamp(),
         createdBy: { uid: user.uid, email: user.email },
       };
@@ -258,7 +276,9 @@ export async function findOrCreateSaleForSubscriptionAction(
 
       // Update payment history with saleId
       const updatedPaymentHistory = (paymentHistory || []).map((p, i) =>
-        i === 0 ? { ...p, saleId: newSaleRef.id } : p
+        i === (paymentHistory?.length || 1) - 1
+          ? { ...p, saleId: newSaleRef.id }
+          : p
       );
       transaction.update(subscriptionRef, {
         paymentHistory: updatedPaymentHistory,

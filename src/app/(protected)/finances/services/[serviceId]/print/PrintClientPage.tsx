@@ -65,6 +65,7 @@ declare global {
         useCORS?: boolean;
         logging?: boolean;
         backgroundColor?: string | null;
+        onclone?: (doc: Document) => void;
       }
     ) => Promise<HTMLCanvasElement>;
   }
@@ -135,6 +136,34 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
     try {
       setIsGeneratingPDF(true);
+
+      let allCSS = "";
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        const sheet = document.styleSheets[i];
+        try {
+          const rules = sheet.cssRules || sheet.rules;
+          for (let j = 0; j < rules.length; j++) {
+            allCSS += rules[j].cssText + "\n";
+          }
+        } catch (e) {
+          // Игнорираме защитени с CORS външни стилове
+        }
+      }
+      const cleanCSS = allCSS
+        .replace(
+          /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "color: rgb(15, 23, 42)"
+        )
+        .replace(
+          /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "background-color: transparent"
+        )
+        .replace(
+          /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+          "border-color: rgb(203, 213, 225)"
+        )
+        .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+
       const element = printableRef.current;
 
       const canvas = await window.html2canvas(element, {
@@ -142,6 +171,66 @@ export default function PrintClientPage({ service }: { service: Service }) {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        onclone: (clonedDoc: Document) => {
+          const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
+          linkTags.forEach((link) => link.remove());
+
+          const styleEl = clonedDoc.createElement("style");
+          styleEl.textContent =
+            cleanCSS +
+            "\n" +
+            `
+            * {
+              font-family: Arial, Helvetica, sans-serif !important;
+              word-spacing: 2px !important;
+            }
+          `;
+          clonedDoc.head.appendChild(styleEl);
+
+          const styleTags = clonedDoc.querySelectorAll("style");
+          styleTags.forEach((style) => {
+            if (style.innerHTML) {
+              style.innerHTML = style.innerHTML
+                .replace(
+                  /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "color: rgb(15, 23, 42)"
+                )
+                .replace(
+                  /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "background-color: transparent"
+                )
+                .replace(
+                  /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                  "border-color: rgb(203, 213, 225)"
+                )
+                .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+            }
+          });
+
+          const allElements = clonedDoc.querySelectorAll("*");
+          allElements.forEach((el) => {
+            const styleAttr = el.getAttribute("style");
+            if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
+              el.setAttribute(
+                "style",
+                styleAttr
+                  .replace(
+                    /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "color: rgb(15, 23, 42)"
+                  )
+                  .replace(
+                    /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "background-color: transparent"
+                  )
+                  .replace(
+                    /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                    "border-color: rgb(203, 213, 225)"
+                  )
+                  .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
+              );
+            }
+          });
+        },
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -153,9 +242,18 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageHeight = 297; // A4 height in mm
+      let imgWidth = pdfWidth;
+      let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      if (imgHeight > pageHeight) {
+        const ratio = pageHeight / imgHeight;
+        imgHeight = pageHeight;
+        imgWidth = imgWidth * ratio;
+      }
+
+      const x = (pdfWidth - imgWidth) / 2;
+      pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
       pdf.save(`Service-${service.name.replace(/\s+/g, "_")}.pdf`);
 
       toast.success("PDF файлът беше генериран успешно!");
@@ -225,6 +323,10 @@ export default function PrintClientPage({ service }: { service: Service }) {
         <div
           ref={printableRef}
           className="bg-white p-8 sm:p-16 printable-area border border-gray-100 shadow-sm"
+          style={{
+            fontFamily: "Arial, Helvetica, sans-serif",
+            wordSpacing: "2px",
+          }}
         >
           {/* --- HEADER --- */}
           <header className="flex justify-between items-start mb-12 border-b-4 border-gray-900 pb-8">

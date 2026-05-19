@@ -165,6 +165,8 @@ export type PaymentHistoryItem = {
   amount: number;
   paymentId: string;
   saleId?: string;
+  paymentMethod?: string;
+  note?: string;
 };
 
 /**
