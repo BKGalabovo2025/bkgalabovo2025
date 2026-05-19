@@ -123,6 +123,7 @@ const ProductList = () => {
                         src={product.imageUrl}
                         alt={product.name}
                         fill
+                        sizes="100vw"
                         className="object-cover group-hover:scale-110 transition-transform duration-1000"
                       />
                     ) : (

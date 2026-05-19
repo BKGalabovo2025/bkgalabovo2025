@@ -91,6 +91,7 @@ export default function ClubPage() {
             src="/bk-hero.png"
             alt="БК Гълъбово"
             fill
+            sizes="100vw"
             className="object-cover opacity-20"
             priority
           />

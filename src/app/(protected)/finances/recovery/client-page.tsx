@@ -28,7 +28,9 @@ export default function RecoveryClientPage({ data }: RecoveryClientPageProps) {
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-bold">{row.original.name}</span>
-          <span className="text-[10px] text-zinc-400 uppercase tracking-wider">{row.original.category}</span>
+          <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+            {row.original.category}
+          </span>
         </div>
       ),
     },
@@ -48,7 +50,10 @@ export default function RecoveryClientPage({ data }: RecoveryClientPageProps) {
       cell: ({ row }) => (
         <div className="flex gap-1 flex-wrap">
           {row.original.zones?.map((zone) => (
-            <span key={zone} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[10px] font-medium">
+            <span
+              key={zone}
+              className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[10px] font-medium"
+            >
               {zone}
             </span>
           ))}
@@ -58,8 +63,8 @@ export default function RecoveryClientPage({ data }: RecoveryClientPageProps) {
     {
       id: "actions",
       cell: ({ row }) => (
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={() => router.push(`/finances/recovery/${row.original.id}`)}
         >
@@ -83,7 +88,7 @@ export default function RecoveryClientPage({ data }: RecoveryClientPageProps) {
         <div className="flex items-center gap-4">
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as any)}
+            onValueChange={(v) => setView(v as "grid" | "table")}
             className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
           >
             <TabsList className="bg-transparent h-9 border-none">

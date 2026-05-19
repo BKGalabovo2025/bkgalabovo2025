@@ -63,6 +63,7 @@ function GlobalHeader() {
                       src={site.logo}
                       alt={site.title}
                       fill
+                      sizes="100vw"
                       className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
                     />
                   </div>
@@ -127,7 +128,7 @@ export default function ProtectedLayout({
           <GlobalHeader key={`header-${activeBranch}`} />
 
           <main className="flex-1 overflow-y-auto">
-            <div 
+            <div
               key={`content-${activeBranch}`}
               className="max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"
             >

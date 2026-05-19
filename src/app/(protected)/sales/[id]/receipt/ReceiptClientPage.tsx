@@ -268,7 +268,7 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
           for (let j = 0; j < rules.length; j++) {
             allCSS += rules[j].cssText + "\n";
           }
-        } catch (e) {
+        } catch {
           // Игнорираме защитени с CORS външни стилове
         }
       }

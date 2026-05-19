@@ -25,9 +25,11 @@ async function getRecoveryServices(): Promise<ClubService[]> {
         currency: "EUR",
         durationMinutes: data.duration || 0,
         category: data.category || "Други",
-        zones: Array.isArray(data.zones) 
-          ? data.zones 
-          : (typeof data.zones === "string" ? data.zones.split(",").filter(Boolean) : []),
+        zones: Array.isArray(data.zones)
+          ? data.zones
+          : typeof data.zones === "string"
+            ? data.zones.split(",").filter(Boolean)
+            : [],
         athleteCount: data.athleteCount || 1,
         numberOfDays: data.numberOfDays || 1,
         proceduresPerDay: data.proceduresPerDay || 1,
@@ -49,10 +51,10 @@ async function getRecoveryServices(): Promise<ClubService[]> {
 export default async function RecoveryCatalogPage() {
   let data: ClubService[] = [];
   let error: string | null = null;
-  
+
   try {
     data = await getRecoveryServices();
-  } catch (e) {
+  } catch {
     error = "Неуспешно зареждане на каталога за възстановяване.";
   }
 

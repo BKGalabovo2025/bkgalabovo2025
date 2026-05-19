@@ -24,6 +24,7 @@ const AthleteCard = ({ member }: { member: Member }) => {
                 src={member.avatarUrl}
                 alt={`${member.firstName} ${member.lastName}`}
                 fill
+                sizes="100vw"
                 className="object-cover"
                 unoptimized
               />

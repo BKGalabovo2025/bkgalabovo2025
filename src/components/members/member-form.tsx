@@ -41,7 +41,7 @@ type MemberFormValues = z.infer<typeof MemberFormSchema>;
 interface MemberFormProps {
   onSave: (data: MemberFormValues) => Promise<void>;
   onClose: () => void;
-  initialData?: Member;
+  initialData?: Partial<Member>;
 }
 
 export const MemberForm = ({

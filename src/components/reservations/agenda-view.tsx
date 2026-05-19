@@ -106,7 +106,7 @@ export function AgendaView({
       const result = await deleteReservationAction(token, id);
       if (result.success) toast.success(result.message);
       else toast.error(result.message);
-    } catch (error) {
+    } catch {
       toast.error("Грешка при изтриване.");
     }
   };
@@ -118,7 +118,7 @@ export function AgendaView({
       const result = await deleteBlockedSlotAction(token, id);
       if (result.success) toast.success(result.message);
       else toast.error(result.message);
-    } catch (error) {
+    } catch {
       toast.error("Грешка при изтриване.");
     }
   };
@@ -133,7 +133,7 @@ export function AgendaView({
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Грешка при актуализиране на плащане.");
     }
   };
@@ -223,8 +223,8 @@ export function AgendaView({
                         ? (data as Reservation).courtId
                         : (data as Reservation).serviceName
                       : (data as BlockedSlot).courtIds.length > 0
-                      ? (data as BlockedSlot).courtIds.join(", ")
-                      : "Всички"}
+                        ? (data as BlockedSlot).courtIds.join(", ")
+                        : "Всички"}
                   </span>
                 </div>
 

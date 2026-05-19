@@ -145,7 +145,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
           for (let j = 0; j < rules.length; j++) {
             allCSS += rules[j].cssText + "\n";
           }
-        } catch (e) {
+        } catch {
           // Игнорираме защитени с CORS външни стилове
         }
       }
@@ -336,6 +336,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
                   src="/logo.png"
                   alt="Logo"
                   fill
+                  sizes="100vw"
                   className="object-contain"
                 />
               </div>

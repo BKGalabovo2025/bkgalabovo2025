@@ -22,8 +22,6 @@ export const metadata: Metadata = {
     "Възстановете се по-бързо с най-съвременната технология Hyperice Normatec 3. Професионално решение за спортисти и активни хора.",
 };
 
-
-
 function formatSchedule(day?: DaySchedule) {
   if (!day || !day.isOpen) return "Затворено";
   return `${day.open} – ${day.close}`;
@@ -59,6 +57,7 @@ export default async function RecoveryZonePage() {
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
+                sizes="100vw"
                 priority
                 className="object-contain"
               />
@@ -181,7 +180,9 @@ export default async function RecoveryZonePage() {
             </p>
             <h2 className="text-5xl md:text-7xl font-light tracking-tight mb-8">
               Твоето тяло <br />{" "}
-              <span className="text-zinc-500 italic">заслужава най-доброто</span>
+              <span className="text-zinc-500 italic">
+                заслужава най-доброто
+              </span>
             </h2>
           </div>
 
@@ -197,15 +198,20 @@ export default async function RecoveryZonePage() {
                 <div className="prose prose-invert max-w-none">
                   {site.teamIntro ? (
                     <div className="space-y-8">
-                      {site.teamIntro.split('\n\n').map((paragraph, pIdx) => (
-                        <p key={pIdx} className="text-zinc-400 text-lg font-light leading-relaxed">
+                      {site.teamIntro.split("\n\n").map((paragraph, pIdx) => (
+                        <p
+                          key={pIdx}
+                          className="text-zinc-400 text-lg font-light leading-relaxed"
+                        >
                           {paragraph}
                         </p>
                       ))}
                     </div>
                   ) : (
                     <p className="text-zinc-400 text-lg font-light leading-relaxed">
-                      От личен опит към споделена мисия. Ние вярваме, че качественото възстановяване е ключът към дълготрайното здраве и високите постижения.
+                      От личен опит към споделена мисия. Ние вярваме, че
+                      качественото възстановяване е ключът към дълготрайното
+                      здраве и високите постижения.
                     </p>
                   )}
                 </div>
@@ -219,23 +225,32 @@ export default async function RecoveryZonePage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-12">
                   {attachments.map((item, idx) => (
-                    <div key={idx} className="group relative flex flex-col md:flex-row gap-10 p-8 rounded-5xl bg-zinc-900/30 border border-white/5 hover:border-emerald-500/20 transition-all duration-500">
+                    <div
+                      key={idx}
+                      className="group relative flex flex-col md:flex-row gap-10 p-8 rounded-5xl bg-zinc-900/30 border border-white/5 hover:border-emerald-500/20 transition-all duration-500"
+                    >
                       <div className="w-full md:w-64 h-64 relative rounded-4xl overflow-hidden shrink-0 border border-white/5">
                         <Image
                           src={item.image}
                           alt={item.name}
                           fill
+                          sizes="100vw"
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
                       <div className="flex-1 py-4">
-                        <h4 className="text-xl font-medium text-white mb-4">{item.name}</h4>
+                        <h4 className="text-xl font-medium text-white mb-4">
+                          {item.name}
+                        </h4>
                         <p className="text-zinc-500 text-sm mb-8 font-light leading-relaxed group-hover:text-zinc-400 transition-colors">
                           {item.desc}
                         </p>
                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {item.points.map((point, pIdx) => (
-                            <li key={pIdx} className="flex items-center gap-3 text-xs text-zinc-400 font-light">
+                            <li
+                              key={pIdx}
+                              className="flex items-center gap-3 text-xs text-zinc-400 font-light"
+                            >
                               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/40" />
                               {point}
                             </li>
@@ -257,24 +272,29 @@ export default async function RecoveryZonePage() {
                   <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Info size={24} />
                   </div>
-                  <h3 className="text-2xl font-light">Често задавани въпроси</h3>
+                  <h3 className="text-2xl font-light">
+                    Често задавани въпроси
+                  </h3>
                 </div>
 
                 <div className="space-y-8">
-                  {(site.faqs && site.faqs.length > 0 ? site.faqs : [
-                    {
-                      q: "Колко често мога да ползвам Normatec?",
-                      a: "Можете да използвате системата ежедневно. За оптимални резултати препоръчваме сесии от 15 до 45 минути след тренировка."
-                    },
-                    {
-                      q: "Боли ли процедурата?",
-                      a: "В никакъв случай. Динамичната компресия наподобява приятен, дълбок масаж. Можете да регулирате интензивността сами."
-                    },
-                    {
-                      q: "Кога е най-добре да се прави?",
-                      a: "Най-голям ефект има веднага след физическо натоварване, но е отлично и вечер за релакс и подобряване на съня."
-                    }
-                  ]).map((faq, idx) => (
+                  {(site.faqs && site.faqs.length > 0
+                    ? site.faqs
+                    : [
+                        {
+                          q: "Колко често мога да ползвам Normatec?",
+                          a: "Можете да използвате системата ежедневно. За оптимални резултати препоръчваме сесии от 15 до 45 минути след тренировка.",
+                        },
+                        {
+                          q: "Боли ли процедурата?",
+                          a: "В никакъв случай. Динамичната компресия наподобява приятен, дълбок масаж. Можете да регулирате интензивността сами.",
+                        },
+                        {
+                          q: "Кога е най-добре да се прави?",
+                          a: "Най-голям ефект има веднага след физическо натоварване, но е отлично и вечер за релакс и подобряване на съня.",
+                        },
+                      ]
+                  ).map((faq, idx) => (
                     <div key={idx} className="group cursor-default">
                       <p className="text-sm font-medium text-white mb-3 group-hover:text-emerald-400 transition-colors">
                         {faq.q}
@@ -295,16 +315,25 @@ export default async function RecoveryZonePage() {
                     <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-light">Важна информация и Безопасност</h3>
-                    <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mt-1">Противопоказания</p>
+                    <h3 className="text-2xl font-light">
+                      Важна информация и Безопасност
+                    </h3>
+                    <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mt-1">
+                      Противопоказания
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   {contraindications.map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all">
+                    <div
+                      key={idx}
+                      className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all"
+                    >
                       <div className="h-5 w-5 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-amber-500 transition-all">
-                        <span className="text-[10px] text-amber-500 group-hover:text-white font-bold">{idx + 1}</span>
+                        <span className="text-[10px] text-amber-500 group-hover:text-white font-bold">
+                          {idx + 1}
+                        </span>
                       </div>
                       <p className="text-[11px] text-zinc-500 leading-relaxed font-light hover:text-zinc-300 transition-colors">
                         {item}
@@ -317,12 +346,17 @@ export default async function RecoveryZonePage() {
               {/* Special Offer Card */}
               <div className="p-12 rounded-6xl bg-linear-to-br from-purple-500/10 to-emerald-500/10 border border-emerald-500/20 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                <h4 className="text-xl font-light mb-6 text-white">Член на БК Гълъбово?</h4>
+                <h4 className="text-xl font-light mb-6 text-white">
+                  Член на БК Гълъбово?
+                </h4>
                 <p className="text-zinc-500 text-sm mb-8 font-light leading-relaxed">
-                  Използвайте Вашия специален промо код за 50% отстъпка при първото посещение.
+                  Използвайте Вашия специален промо код за 50% отстъпка при
+                  първото посещение.
                 </p>
                 <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5">
-                  <code className="text-emerald-400 font-black tracking-widest">BKGALABOVO</code>
+                  <code className="text-emerald-400 font-black tracking-widest">
+                    BKGALABOVO
+                  </code>
                   <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-white/40 text-[10px] font-bold">
                     50%
                   </div>
@@ -343,7 +377,10 @@ export default async function RecoveryZonePage() {
       />
 
       {/* Contact Section */}
-      <section id="contact" className="py-32 px-6 relative bg-zinc-950 scroll-mt-32">
+      <section
+        id="contact"
+        className="py-32 px-6 relative bg-zinc-950 scroll-mt-32"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
             <div>
@@ -499,6 +536,7 @@ export default async function RecoveryZonePage() {
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
+                sizes="100vw"
                 className="object-contain"
               />
             </div>

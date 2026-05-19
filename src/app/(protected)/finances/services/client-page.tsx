@@ -34,7 +34,7 @@ export default function ServicesClientPage({ data }: ServicesClientPageProps) {
         <div className="flex items-center gap-4">
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as any)}
+            onValueChange={(v) => setView(v as "grid" | "table")}
             className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
           >
             <TabsList className="bg-transparent h-9 border-none">

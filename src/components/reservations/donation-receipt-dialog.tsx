@@ -175,7 +175,7 @@ export function DonationReceiptDialog({
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Възникна грешка при изпращането.");
     } finally {
       setIsSendingEmail(false);

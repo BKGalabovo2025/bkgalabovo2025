@@ -57,7 +57,7 @@ const NewMemberPage = () => {
       <MemberForm
         onSave={handleSave}
         onClose={handleClose}
-        initialData={familyId ? ({ familyId } as any) : undefined}
+        initialData={familyId ? ({ familyId } as Partial<Member>) : undefined}
       />
     </div>
   );

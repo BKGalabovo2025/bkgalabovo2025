@@ -74,10 +74,10 @@ export async function createGeneralService(
       success: true,
       message: `Услугата '${data.name}' беше създадена успешно.`,
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      message: `Грешка при сървъра: ${error.message}`,
+      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
     };
   }
 }
@@ -131,10 +131,10 @@ export async function updateGeneralService(
       success: true,
       message: `Услугата '${data.name}' беше обновена успешно.`,
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      message: `Грешка при сървъра: ${error.message}`,
+      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
     };
   }
 }
@@ -147,10 +147,10 @@ export async function deleteGeneralService(idToken: string, id: string) {
 
     revalidatePath("/finances/general-services");
     return { success: true, message: "Услугата беше изтрита успешно." };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      message: `Грешка при изтриване: ${error.message}`,
+      message: `Грешка при изтриване: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
     };
   }
 }

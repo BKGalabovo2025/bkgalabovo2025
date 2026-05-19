@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-
+import Image from "next/image";
 import { ClubService } from "@/types";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -34,12 +34,15 @@ export function RecoveryMenu({ services }: RecoveryMenuProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const grouped = services.reduce((acc, s) => {
-    const cat = s.category || "Други";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(s);
-    return acc;
-  }, {} as Record<string, ClubService[]>);
+  const grouped = services.reduce(
+    (acc, s) => {
+      const cat = s.category || "Други";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(s);
+      return acc;
+    },
+    {} as Record<string, ClubService[]>
+  );
 
   const handleDelete = async (id: string, name: string) => {
     if (!idToken) return;
@@ -70,9 +73,7 @@ export function RecoveryMenu({ services }: RecoveryMenuProps) {
               <RecoveryCard
                 key={service.id}
                 service={service}
-                onEdit={() =>
-                  router.push(`/finances/recovery/${service.id}`)
-                }
+                onEdit={() => router.push(`/finances/recovery/${service.id}`)}
                 onDelete={() => handleDelete(service.id, service.name)}
               />
             ))}
@@ -82,7 +83,9 @@ export function RecoveryMenu({ services }: RecoveryMenuProps) {
 
       {services.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-zinc-400 border-2 border-dashed border-zinc-100 rounded-5xl">
-          <p className="font-light">Все още няма добавени процедури в каталога.</p>
+          <p className="font-light">
+            Все още няма добавени процедури в каталога.
+          </p>
         </div>
       )}
     </div>
@@ -121,14 +124,14 @@ const RecoveryCard = ({
       <div className="absolute top-5 left-0 right-0 flex justify-center px-8 pointer-events-none">
         {(() => {
           const res = service.requiredResources;
-          const zones = (service.zones || []).map(z => z.toUpperCase());
-          
+          const zones = (service.zones || []).map((z) => z.toUpperCase());
+
           const hasCompressor = (res?.compressors || 0) > 0;
-          const hasMatchingAttachment = res && (
-            (zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
-            (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
-            (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0)
-          );
+          const hasMatchingAttachment =
+            res &&
+            ((zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
+              (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
+              (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0));
 
           const isUpdated = hasCompressor && hasMatchingAttachment;
 
@@ -156,11 +159,13 @@ const RecoveryCard = ({
             <div className="flex items-center gap-2">
               {icons.map((src, idx) => (
                 <React.Fragment key={src}>
-                  <div className="w-11 h-11 rounded-xl bg-white border border-zinc-100 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img 
-                      src={src} 
-                      alt="" 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  <div className="relative w-11 h-11 rounded-xl bg-white border border-zinc-100 flex items-center justify-center overflow-hidden shadow-sm">
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="44px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={() => setImgError(true)}
                     />
                   </div>
@@ -233,7 +238,9 @@ const RecoveryCard = ({
 
       {/* Zones */}
       <div className="flex flex-wrap gap-2 my-6">
-        {Array.from(new Set(Array.isArray(service.zones) ? service.zones : [])).map((zone) => (
+        {Array.from(
+          new Set(Array.isArray(service.zones) ? service.zones : [])
+        ).map((zone) => (
           <span
             key={zone}
             className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium"
@@ -248,8 +255,11 @@ const RecoveryCard = ({
         <div className="flex items-center gap-3 text-xs text-zinc-500">
           <Clock className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
           <span>
-            {service.durationMinutes === 45 && service.category === "VIP СЕСИИ" ? (
-              <span className="font-medium text-cyan-600">15 минути + 30 минути</span>
+            {service.durationMinutes === 45 &&
+            service.category === "VIP СЕСИИ" ? (
+              <span className="font-medium text-cyan-600">
+                15 минути + 30 минути
+              </span>
             ) : (
               `${service.durationMinutes} минути`
             )}
@@ -262,12 +272,17 @@ const RecoveryCard = ({
         {(service.numberOfDays || 0) > 1 && (
           <div className="flex items-center gap-3 text-xs text-zinc-500">
             <Calendar className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
-            <span>{service.numberOfDays} дни / {service.proceduresPerDay} процедури на ден</span>
+            <span>
+              {service.numberOfDays} дни / {service.proceduresPerDay} процедури
+              на ден
+            </span>
           </div>
         )}
         {service.requiredResources && (
           <div className="pt-4 mt-4 border-t border-zinc-50 space-y-2">
-            <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">Ресурси</p>
+            <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">
+              Ресурси
+            </p>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {(service.requiredResources.compressors ?? 0) > 0 && (
                 <div className="flex items-center gap-1.5 text-xs text-zinc-600">
@@ -309,4 +324,4 @@ const RecoveryCard = ({
       </div>
     </BentoCard>
   );
-}
+};

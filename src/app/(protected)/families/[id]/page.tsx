@@ -69,7 +69,7 @@ const FamilyDetailsPage = () => {
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Възникна грешка.");
     } finally {
       setIsSavingName(false);
@@ -103,7 +103,7 @@ const FamilyDetailsPage = () => {
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Възникна грешка.");
     } finally {
       setRemovingId(null);
