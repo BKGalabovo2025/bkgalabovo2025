@@ -5,6 +5,25 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  workboxOptions: {
+    navigateFallbackDenylist: [
+      /^\/dashboard/,
+      /^\/login/,
+      /^\/members/,
+      /^\/families/,
+      /^\/finances/,
+      /^\/sales/,
+      /^\/schedule/,
+      /^\/reservations/,
+      /^\/subscriptions/,
+      /^\/inventory/,
+      /^\/tournaments/,
+      /^\/rankings/,
+      /^\/reports/,
+      /^\/settings/,
+      /^\/api/,
+    ],
+  },
 });
 
 /** @type {import('next').NextConfig} */
