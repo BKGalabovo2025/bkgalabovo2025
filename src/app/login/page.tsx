@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginAction } from "@/lib/actions/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,11 +25,18 @@ const LoginPage = () => {
     setError(null);
 
     try {
+      // 1. Server action: verifies credentials & writes the session cookie
       const res = await loginAction(email, password);
 
       if (!res.success) {
         throw new Error(res.error || "Неуспешен вход");
       }
+
+      // 2. Client-side sign-in: keeps Firebase Auth state in sync so
+      //    AuthContext (onIdTokenChanged) sees the user and doesn't show
+      //    a blank screen due to user === null.
+      const auth = getFirebaseAuth();
+      await signInWithEmailAndPassword(auth, email, password);
 
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към таблото за управление...",
