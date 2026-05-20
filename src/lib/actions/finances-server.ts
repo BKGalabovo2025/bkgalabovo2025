@@ -1,11 +1,12 @@
-"use server";
+﻿"use server";
 
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { Sale } from "@/types";
+import { calculateFinancesOverview } from "./finances-utils";
 
-// Помощна функция за преобразуване на Firestore документи
+// РџРѕРјРѕС‰РЅР° С„СѓРЅРєС†РёСЏ Р·Р° РїСЂРµРѕР±СЂР°Р·СѓРІР°РЅРµ РЅР° Firestore РґРѕРєСѓРјРµРЅС‚Рё
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
 ): T | null {
@@ -64,7 +65,7 @@ export type FinancesOverviewData = {
 };
 
 /**
- * Извлича финансови данни за графиките на страница Финанси (последите 30 дни).
+ * РР·РІР»РёС‡Р° С„РёРЅР°РЅСЃРѕРІРё РґР°РЅРЅРё Р·Р° РіСЂР°С„РёРєРёС‚Рµ РЅР° СЃС‚СЂР°РЅРёС†Р° Р¤РёРЅР°РЅСЃРё (РїРѕСЃР»РµРґРёС‚Рµ 30 РґРЅРё).
  */
 export async function getFinancesOverviewDataAction(
   activeBranch: string
@@ -72,13 +73,13 @@ export async function getFinancesOverviewDataAction(
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) {
-      throw new Error("Неоторизиран достъп.");
+      throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
     }
 
     const adminDb = getAdminDb();
     let salesQuery: admin.firestore.Query = adminDb.collection("sales");
 
-    // Филтриране по клон (мултитенант)
+    // Р¤РёР»С‚СЂРёСЂР°РЅРµ РїРѕ РєР»РѕРЅ (РјСѓР»С‚РёС‚РµРЅР°РЅС‚)
     if (activeBranch && activeBranch !== "bkgalabovo") {
       salesQuery = salesQuery.where("siteId", "==", activeBranch);
     }
@@ -95,134 +96,23 @@ export async function getFinancesOverviewDataAction(
     thirtyDaysAgo.setDate(now.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    // Филтрираме само за последните 30 дни в паметта
     const recentSales = allSales.filter((sale) => {
       const saleDate = new Date(sale.saleDate);
       return saleDate >= thirtyDaysAgo;
     });
 
-    // 1. Изчисляване на общ оборот и транзакции
-    const totalRevenue = recentSales.reduce(
-      (sum, s) => sum + (s.totalAmount || 0),
-      0
-    );
-    const transactionCount = recentSales.length;
-    const averageTransactionValue =
-      transactionCount > 0 ? totalRevenue / transactionCount : 0;
-
-    // 2. Генериране на дневен тренд (30 дни назад до днес)
-    const dailyTrendMap = new Map<string, number>();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(now.getDate() - i);
-      const dateStr = d.toLocaleDateString("bg-BG", {
-        day: "2-digit",
-        month: "2-digit",
-      });
-      dailyTrendMap.set(dateStr, 0);
-    }
-
-    recentSales.forEach((sale) => {
-      const saleDate = new Date(sale.saleDate);
-      const dateStr = saleDate.toLocaleDateString("bg-BG", {
-        day: "2-digit",
-        month: "2-digit",
-      });
-      if (dailyTrendMap.has(dateStr)) {
-        dailyTrendMap.set(
-          dateStr,
-          (dailyTrendMap.get(dateStr) || 0) + (sale.totalAmount || 0)
-        );
-      }
-    });
-
-    const dailyTrend: DailyRevenueTrend[] = [];
-    dailyTrendMap.forEach((amount, date) => {
-      dailyTrend.push({ date, amount: Math.round(amount * 100) / 100 });
-    });
-
-    // 3. Разделение по категории
-    let subscriptionRevenue = 0;
-    let recoveryRevenue = 0;
-    let shopRevenue = 0;
-    let otherRevenue = 0;
-
-    recentSales.forEach((sale) => {
-      const amount = sale.totalAmount || 0;
-      if (sale.subscriptionId) {
-        subscriptionRevenue += amount;
-      } else {
-        const hasRecoveryItem = sale.items?.some((item) =>
-          /recovery|възстанов|сауна|масаж|ледена|физио/i.test(item.name || "")
-        );
-        if (hasRecoveryItem) {
-          recoveryRevenue += amount;
-        } else {
-          const hasShopItem = sale.items?.some((item) =>
-            /перо|пера|ракета|грип|наплитане|сок|вода|енергийна|екстра|малка/i.test(
-              item.name || ""
-            )
-          );
-          if (hasShopItem) {
-            shopRevenue += amount;
-          } else {
-            otherRevenue += amount;
-          }
-        }
-      }
-    });
-
-    // Цветове спрямо темата на клона
-    const isRecoveryZone = activeBranch === "recoveryzone";
-    const subColor = isRecoveryZone ? "#10b981" : "#2563eb"; // Emerald vs Blue
-    const recColor = isRecoveryZone ? "#34d399" : "#06b6d4"; // Light emerald vs Cyan
-    const shopColor = "#8b5cf6"; // Violet
-    const otherColor = "#f59e0b"; // Amber
-
-    const categories: CategoryRevenue[] = [
-      {
-        name: "Абонаменти",
-        value: Math.round(subscriptionRevenue * 100) / 100,
-        color: subColor,
-      },
-      {
-        name: "Възстановяване",
-        value: Math.round(recoveryRevenue * 100) / 100,
-        color: recColor,
-      },
-      {
-        name: "Магазин & Бар",
-        value: Math.round(shopRevenue * 100) / 100,
-        color: shopColor,
-      },
-      {
-        name: "Други услуги",
-        value: Math.round(otherRevenue * 100) / 100,
-        color: otherColor,
-      },
-    ].filter((c) => c.value > 0);
-
-    // Ако няма данни, добавяме празни стойности за добър визуален изглед
-    if (categories.length === 0) {
-      categories.push({ name: "Няма продажби", value: 0.01, color: "#e4e4e7" });
-    }
+    const overview = calculateFinancesOverview(recentSales, activeBranch);
 
     return {
       success: true,
-      data: {
-        dailyTrend,
-        categories,
-        totalRevenue: Math.round(totalRevenue * 100) / 100,
-        transactionCount,
-        averageTransactionValue:
-          Math.round(averageTransactionValue * 100) / 100,
-      },
+      data: overview,
     };
   } catch (error: any) {
     console.error("Error getFinancesOverviewDataAction:", error);
     return {
       success: false,
-      error: error.message || "Грешка при извличане на финансовата статистика.",
+      error: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° С„РёРЅР°РЅСЃРѕРІР°С‚Р° СЃС‚Р°С‚РёСЃС‚РёРєР°.",
     };
   }
 }
+

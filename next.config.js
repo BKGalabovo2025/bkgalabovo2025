@@ -1,4 +1,8 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import withPWAInit from "@ducanh2912/next-pwa";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -30,7 +34,9 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["firebase-admin"],
-  turbopack: {},
+  turbopack: {
+    root: path.join(__dirname, ".."),
+  },
   images: {
     remotePatterns: [
       {
