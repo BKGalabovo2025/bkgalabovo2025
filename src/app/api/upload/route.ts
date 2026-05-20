@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminStorage } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    const token = authHeader.substring(7);
+    try {
+      await getAuthUser(token);
+    } catch (authError) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const path = formData.get("path") as string;
@@ -57,6 +75,23 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    const token = authHeader.substring(7);
+    try {
+      await getAuthUser(token);
+    } catch (authError) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const path = searchParams.get("path");
 

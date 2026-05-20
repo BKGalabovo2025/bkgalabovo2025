@@ -37,7 +37,7 @@ const subscriptionSchema = z
     status: z.enum(["active", "inactive", "cancelled", "pending_payment"]),
     pricePaid: z
       .number()
-      .min(1, { message: "Сумата трябва да е положително число." }),
+      .min(0, { message: "Сумата не може да бъде отрицателна." }),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Моля, въведете валидна начална дата.",
     }),

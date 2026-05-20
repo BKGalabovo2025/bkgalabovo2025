@@ -169,7 +169,7 @@
   strong,
   .font-bold,
   .font-semibold {
-    font-weight: 500 !important;
+    font-weight: 500;
   }
 }
 

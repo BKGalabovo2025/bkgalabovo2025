@@ -148,7 +148,7 @@ export const MemberDetailsCard = ({
     try {
       const ext = file.name.split(".").pop() || "";
       const path = getDocUploadPath(member.id, baseField, ext);
-      const downloadUrl = await uploadFile(path, file);
+      const downloadUrl = await uploadFile(path, file, idToken);
       const urlField = `${baseField}Url`;
 
       const result = await updateMemberAction(member.id, idToken, {
@@ -200,7 +200,7 @@ export const MemberDetailsCard = ({
         docUrl.split("/o/")[1]?.split("?")[0]
       );
       if (decodedPath) {
-        await deleteFile(decodedPath);
+        await deleteFile(decodedPath, idToken);
       }
     } catch (err) {
       console.warn("Storage deletion warning:", err);
@@ -458,7 +458,7 @@ export const MemberDetailsCard = ({
     setIsUploading(true);
     try {
       const path = getAvatarUploadPath(member.id);
-      const downloadUrl = await uploadFile(path, file);
+      const downloadUrl = await uploadFile(path, file, idToken);
 
       const result = await updateMemberAction(member.id, idToken, {
         avatarUrl: downloadUrl,

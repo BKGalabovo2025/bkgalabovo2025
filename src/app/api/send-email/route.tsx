@@ -95,6 +95,15 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
 }
 
 export async function POST(request: Request) {
+  // Authorize (for production)
+  if (process.env.NODE_ENV === "production") {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      console.warn("[send-email] Unauthorized attempt blocked.");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   try {
     const body = await request.json();
     const result = EmailSchema.safeParse(body);

@@ -5,6 +5,7 @@ import {
   getAllClubServices,
 } from "@/services/subscription-service";
 import { Subscription, Member } from "@/types";
+import { ensureAdmin } from "@/lib/auth-utils";
 
 // Тип за данните, необходими за създаване на нов член
 type NewMemberData = Pick<
@@ -15,6 +16,29 @@ type NewMemberData = Pick<
 // POST /api/members - Create a new member and a default subscription
 export async function POST(request: Request) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new NextResponse(
+        JSON.stringify({ error: "Unauthorized", details: "Missing token" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.substring(7);
+    try {
+      await ensureAdmin(token);
+    } catch (authError) {
+      return new NextResponse(
+        JSON.stringify({
+          error: "Unauthorized",
+          details:
+            authError instanceof Error
+              ? authError.message
+              : "Invalid authorization",
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await request.json();
     const { firstName, lastName, email, siteId } = body;
 

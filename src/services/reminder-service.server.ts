@@ -16,32 +16,30 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
   const membersCollectionRef = adminDb.collection(getMembersCollection().path);
   const salesCollectionRef = adminDb.collection(getSalesCollection().path);
 
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const startOfMonth = new Date(currentYear, currentMonth, 1);
+
   const [membersSnapshot, salesSnapshot] = await Promise.all([
-    membersCollectionRef.get(),
-    salesCollectionRef.get(),
+    membersCollectionRef.where("status", "==", "active").get(),
+    salesCollectionRef.where("saleDate", ">=", startOfMonth).get(),
   ]);
 
-  const allMembers = membersSnapshot.docs.map((doc) => ({
+  const activeMembers = membersSnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   })) as Member[];
-  const allSales = salesSnapshot.docs.map((doc) => ({
+
+  const salesThisMonth = salesSnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   })) as Sale[];
 
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  const membersWithOverduePayments = allMembers.filter((member) => {
-    // Check if the member has an active subscription for the current month.
-    const hasCurrentSubscription = allSales.some(
-      (sale) =>
-        sale.memberId === member.id &&
-        sale.subscriptionId && // Check if it's a subscription sale
-        new Date(sale.saleDate).getMonth() === currentMonth &&
-        new Date(sale.saleDate).getFullYear() === currentYear
+  const membersWithOverduePayments = activeMembers.filter((member) => {
+    // Check if the member has a subscription payment for the current month.
+    const hasCurrentSubscription = salesThisMonth.some(
+      (sale) => sale.memberId === member.id && sale.subscriptionId // Check if it's a subscription sale
     );
 
     // If there is no sale for a subscription this month, their payment is overdue.

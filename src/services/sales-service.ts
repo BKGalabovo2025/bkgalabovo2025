@@ -176,9 +176,12 @@ export const getReceiptDetails = async (
 };
 
 export const getSales = async (): Promise<Sale[]> => {
-  const q = query(getSalesQuery(), limit(100));
+  const q = query(getSalesQuery());
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  return sales.sort(
+    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+  );
 };
 
 export const getSalesByMemberIds = async (
@@ -190,13 +193,19 @@ export const getSalesByMemberIds = async (
     where("memberId", "in", memberIds.slice(0, 30))
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  return sales.sort(
+    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+  );
 };
 
 export const getInventorySales = async (): Promise<Sale[]> => {
   const q = query(getSalesQuery(), where("subscriptionId", "==", null));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  return sales.sort(
+    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+  );
 };
 
 export const addSale = async (
@@ -253,7 +262,10 @@ export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
   if (!memberId) return [];
   const q = query(getSalesQuery(), where("memberId", "==", memberId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+  return sales.sort(
+    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+  );
 };
 
 export const hasMemberPaidForMonth = async (

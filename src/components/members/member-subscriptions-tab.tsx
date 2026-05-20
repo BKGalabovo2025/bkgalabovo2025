@@ -586,7 +586,7 @@ const SubscriptionCard = ({
             sub.memberId !== currentMemberId &&
             familyMembers && (
               <span className="text-xs text-amber-600 font-medium block mt-1">
-                За:{" "}
+                За член на семейството:{" "}
                 {familyMembers.find((m) => m.id === sub.memberId)?.firstName ||
                   "Член на семейството"}{" "}
                 {familyMembers.find((m) => m.id === sub.memberId)?.lastName ||

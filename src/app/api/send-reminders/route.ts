@@ -6,6 +6,16 @@ import { getOverdueMembers } from "@/services/reminder-service.server";
 
 export async function POST(request: Request) {
   console.log("--- API /api/send-reminders HIT! ---");
+
+  // Authorize (for production)
+  if (process.env.NODE_ENV === "production") {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      console.warn("[send-reminders] Unauthorized attempt blocked.");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   try {
     console.log("STEP 1: Fetching overdue members...");
     const overdueMembers = await getOverdueMembers();
@@ -68,6 +78,7 @@ export async function POST(request: Request) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.CRON_SECRET}`,
           },
           body: JSON.stringify({
             to: member.email,
