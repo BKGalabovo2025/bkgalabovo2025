@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
-import { useInventorySales } from "@/hooks/useInventorySales";
-import { useMembers } from "@/hooks/useMembers";
 import { deleteSaleAction } from "@/lib/actions/sales";
 import { formatPrice } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
@@ -49,32 +47,35 @@ import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { cn } from "@/lib/utils";
 
-export default function SalesClient() {
+interface SalesClientProps {
+  initialSales: any[];
+  initialMembers: any[];
+}
+
+export default function SalesClient({
+  initialSales,
+  initialMembers,
+}: SalesClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
-  const {
-    sales,
-    loading: salesLoading,
-    error: salesError,
-    refetch,
-  } = useInventorySales();
-  const {
-    members,
-    loading: membersLoading,
-    error: membersError,
-  } = useMembers();
+
+  const [sales, setSales] = useState<any[]>(initialSales);
   const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  useEffect(() => {
+    setSales(initialSales);
+  }, [initialSales]);
+
   const memberMap = useMemo(() => {
-    if (!members) return new Map();
+    if (!initialMembers) return new Map();
     return new Map(
-      members.map((member) => [
+      initialMembers.map((member) => [
         member.id,
         `${member.firstName} ${member.lastName}`,
       ])
     );
-  }, [members]);
+  }, [initialMembers]);
 
   const salesWithMemberNames = useMemo(() => {
     return sales.map((sale) => ({
@@ -100,15 +101,23 @@ export default function SalesClient() {
   const handleDelete = async () => {
     if (!saleToDelete || !idToken) return;
     setIsDeleting(true);
+
+    const originalSales = [...sales];
+    // Оптимистично изтриване от UI
+    const updatedSales = sales.filter((s) => s.id !== saleToDelete);
+    setSales(updatedSales);
+
     try {
       const result = await deleteSaleAction(saleToDelete, idToken);
       if (result.success) {
         toast.success(result.message || "Продажбата беше изтрита успешно");
-        refetch();
+        router.refresh();
       } else {
+        setSales(originalSales);
         toast.error(result.message || "Грешка при изтриване");
       }
     } catch (error) {
+      setSales(originalSales);
       console.error("Error deleting sale:", error);
       toast.error("Грешка при изтриване");
     } finally {
@@ -117,8 +126,8 @@ export default function SalesClient() {
     }
   };
 
-  const loading = salesLoading || membersLoading;
-  const error = salesError || membersError;
+  const loading = false;
+  const error = null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

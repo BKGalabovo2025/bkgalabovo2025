@@ -10,8 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clubInfo } from "@/config/club";
-import { getReceiptDetails, ReceiptDetails } from "@/services/sales-service";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatPrice } from "@/lib/currency";
 import { formatFullName } from "@/lib/utils";
@@ -22,6 +20,15 @@ import { Member, ClubService, Sale, Subscription, Family } from "@/types";
 
 interface ReceiptClientPageProps {
   saleId: string;
+  initialDetails: {
+    sale: Sale | null;
+    member: Member | null;
+    relatedMember: Member | null;
+    service: ClubService | null;
+    subscription: Subscription | null;
+    family?: Family | null;
+    familyMembers?: Member[];
+  };
 }
 
 interface ReceiptCopyProps {
@@ -288,36 +295,17 @@ const ReceiptCopy = ({
   );
 };
 
-export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
-  const [details, setDetails] = useState<ReceiptDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ReceiptClientPage({
+  saleId,
+  initialDetails,
+}: ReceiptClientPageProps) {
+  const [details, setDetails] = useState<any | null>(initialDetails);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        const fetchedDetails = await getReceiptDetails(saleId);
-        if (!fetchedDetails) {
-          setError(
-            `Не можахме да открием детайли за разписка с номер ${saleId}.`
-          );
-        } else {
-          setDetails(fetchedDetails);
-        }
-      } catch (err) {
-        const error = err as Error;
-        console.error("Error fetching receipt details:", error);
-        setError(error.message || "Възникна грешка при зареждане на данните.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDetails();
-  }, [saleId]);
+    setDetails(initialDetails);
+  }, [initialDetails]);
 
   const handlePrint = () => {
     window.print();
@@ -461,8 +449,6 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     }
   };
 
-  if (loading) return <ReceiptSkeleton />;
-  if (error) return <ErrorDisplay message={error} />;
   if (!details) return <ErrorDisplay message="Няма намерени данни." />;
 
   const {
@@ -584,32 +570,6 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
     </>
   );
 }
-
-const ReceiptSkeleton = () => (
-  <div className="max-w-4xl mx-auto p-8 space-y-8">
-    <div className="flex justify-between items-center bg-gray-50 p-6 rounded-lg animate-pulse">
-      <Skeleton className="h-8 w-48" />
-      <div className="flex gap-2">
-        <Skeleton className="h-10 w-28" />
-        <Skeleton className="h-10 w-32" />
-      </div>
-    </div>
-    <div className="border p-12 space-y-12 bg-white shadow-sm border-gray-100">
-      <div className="flex justify-between items-start">
-        <div className="flex gap-4">
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-20 w-64" />
-        </div>
-        <Skeleton className="h-24 w-64" />
-      </div>
-      <div className="grid grid-cols-2 gap-12">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-      <Skeleton className="h-64 w-full" />
-    </div>
-  </div>
-);
 
 const ErrorDisplay = ({ message }: { message: string }) => (
   <div className="max-w-4xl mx-auto p-8">
