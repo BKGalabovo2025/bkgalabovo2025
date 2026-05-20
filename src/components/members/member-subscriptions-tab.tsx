@@ -431,16 +431,73 @@ const ReceiptButton = ({
 
 const SubscriptionCard = ({
   sub,
+  service,
   onSubscriptionUpdate,
   idToken,
+  familyMembers,
+  currentMemberId,
 }: {
   sub: Subscription;
   service?: ClubService;
   onSubscriptionUpdate: () => void;
   user: User | null;
   idToken: string | null;
+  familyMembers?: Member[];
+  currentMemberId?: string;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenewing, setIsRenewing] = useState(false);
+
+  const handleRenew = async () => {
+    if (!idToken) {
+      toast.error("Не сте оторизиран.");
+      return;
+    }
+
+    setIsRenewing(true);
+    try {
+      const now = new Date();
+      const currentEndDate = new Date(sub.endDate);
+
+      // Start date is the day after the current subscription ends, or today if that ended in the past
+      let nextStartDate = new Date(
+        currentEndDate.getTime() + 24 * 60 * 60 * 1000
+      );
+      if (nextStartDate < now) {
+        nextStartDate = now;
+      }
+      nextStartDate.setHours(0, 0, 0, 0);
+
+      // End date: calculate based on billingPeriod of related service, or default to Месечен
+      const serviceBillingPeriod = service?.billingPeriod || "Месечен";
+      const nextEndDate = calculateEndDate(nextStartDate, serviceBillingPeriod);
+
+      const result = await createSubscriptionAction(idToken, {
+        memberId: sub.memberId,
+        serviceId: sub.serviceId,
+        serviceName: sub.serviceName,
+        startDate: nextStartDate.toISOString(),
+        endDate: nextEndDate.toISOString(),
+        price: sub.price,
+        pricePaid: 0,
+        status: "pending_payment",
+        paymentHistory: [],
+        paymentsMadeCount: 0,
+      });
+
+      if (result.success) {
+        toast.success("Абонаментът е подновен успешно като Чакащо плащане!");
+        onSubscriptionUpdate();
+      } else {
+        toast.error("Грешка при подновяване", { description: result.message });
+      }
+    } catch (error) {
+      console.error("Error renewing subscription:", error);
+      toast.error("Възникна грешка при подновяването.");
+    } finally {
+      setIsRenewing(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!confirm("Сигурни ли сте, че искате да изтриете този абонамент?"))
@@ -521,9 +578,22 @@ const SubscriptionCard = ({
       className={`border border-zinc-100 rounded-3xl sm:rounded-4xl p-5 sm:p-8 mb-4 sm:mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <h4 className="font-light text-xl sm:text-2xl tracking-tight text-zinc-950">
-          {sub.serviceName}
-        </h4>
+        <div>
+          <h4 className="font-light text-xl sm:text-2xl tracking-tight text-zinc-950">
+            {sub.serviceName}
+          </h4>
+          {currentMemberId &&
+            sub.memberId !== currentMemberId &&
+            familyMembers && (
+              <span className="text-xs text-amber-600 font-medium block mt-1">
+                За:{" "}
+                {familyMembers.find((m) => m.id === sub.memberId)?.firstName ||
+                  "Член на семейството"}{" "}
+                {familyMembers.find((m) => m.id === sub.memberId)?.lastName ||
+                  ""}
+              </span>
+            )}
+        </div>
         <div className="flex items-center space-x-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-zinc-100 bg-white shrink-0">
           {statusInfo.icon}
           <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-950">
@@ -565,6 +635,23 @@ const SubscriptionCard = ({
           </div>
         </div>
         <div className="flex flex-wrap sm:flex-nowrap justify-start lg:justify-end items-center gap-2 sm:gap-3 col-span-2 lg:col-span-1 pt-4 sm:pt-0 border-t border-zinc-100/30 sm:border-t-0">
+          {statusInfo.text === "Изтекъл" && (
+            <Button
+              size="sm"
+              onClick={handleRenew}
+              disabled={isRenewing}
+              className="h-10 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] uppercase tracking-widest2 shadow-none flex items-center gap-2"
+            >
+              {isRenewing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <>
+                  <PlusCircle className="h-3.5 w-3.5" />
+                  Поднови
+                </>
+              )}
+            </Button>
+          )}
           {isPaid && (
             <ReceiptButton subscription={sub} onUpdate={onSubscriptionUpdate} />
           )}
@@ -1054,9 +1141,13 @@ const RegisterPaymentDialog = ({
 export const MemberSubscriptionsTab = ({
   memberId,
   member,
+  memberIds,
+  familyMembers,
 }: {
   memberId: string;
   member?: Member;
+  memberIds?: string[];
+  familyMembers?: Member[];
 }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [allServices, setAllServices] = useState<ClubService[]>([]);
@@ -1074,15 +1165,19 @@ export const MemberSubscriptionsTab = ({
 
   const refreshData = () => setRefreshCount((count) => count + 1);
 
+  const memberIdsKey = memberIds ? memberIds.join(",") : "";
+
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [srvs, subs] = await Promise.all([
+        const targetIds = memberIdsKey ? memberIdsKey.split(",") : [memberId];
+        const [srvs, ...subsResults] = await Promise.all([
           getAllClubServices(),
-          getSubscriptionsByMemberId(memberId),
+          ...targetIds.map((id) => getSubscriptionsByMemberId(id)),
         ]);
+        const subs = subsResults.flat();
         if (isMounted) {
           subs.sort(
             (a, b) =>
@@ -1109,7 +1204,7 @@ export const MemberSubscriptionsTab = ({
     return () => {
       isMounted = false;
     };
-  }, [memberId, refreshCount]);
+  }, [memberId, refreshCount, memberIdsKey]);
 
   const handleSelectSmartService = (
     serviceId: string,
@@ -1184,6 +1279,8 @@ export const MemberSubscriptionsTab = ({
                 onSubscriptionUpdate={refreshData}
                 user={user}
                 idToken={idToken}
+                familyMembers={familyMembers}
+                currentMemberId={memberId}
               />
             ))}
           </div>

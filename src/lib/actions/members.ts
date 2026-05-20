@@ -193,7 +193,35 @@ export async function deleteMemberAction(
     await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
-    await adminDb.collection("members").doc(id).delete();
+    const memberRef = adminDb.collection("members").doc(id);
+    const memberSnap = await memberRef.get();
+
+    if (memberSnap.exists) {
+      const data = memberSnap.data();
+      const familyId = data?.familyId;
+
+      if (familyId) {
+        const familyRef = adminDb.collection("families").doc(familyId);
+        await familyRef.update({
+          memberIds: FieldValue.arrayRemove(id),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+        const familySnap = await familyRef.get();
+        const familyData = familySnap.data();
+        if (
+          familyData &&
+          (!familyData.memberIds || familyData.memberIds.length === 0)
+        ) {
+          await familyRef.delete();
+          revalidatePath("/families");
+        } else {
+          revalidatePath(`/families/${familyId}`);
+        }
+      }
+    }
+
+    await memberRef.delete();
 
     revalidatePath("/members");
 

@@ -11,6 +11,7 @@ import {
   updateDoc,
   deleteDoc,
   WithFieldValue,
+  collection,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import {
@@ -19,6 +20,7 @@ import {
   InventoryEvent,
   Member,
   ClubService,
+  Family,
 } from "@/types";
 import { docToMember } from "./member-service";
 import {
@@ -67,6 +69,8 @@ export interface ReceiptDetails {
   relatedMember: Member | null;
   service: ClubService | null;
   subscription: Subscription | null;
+  family: Family | null;
+  familyMembers: Member[];
 }
 
 export const getReceiptDetails = async (
@@ -128,11 +132,63 @@ export const getReceiptDetails = async (
       ? docToMember(relatedMemberSnap)
       : null;
 
-  return { sale, member, relatedMember, service, subscription };
+  let family: Family | null = null;
+  const familyMembers: Member[] = [];
+
+  const familiesRef = collection(getDb(), "families");
+  const familyQ = query(
+    familiesRef,
+    where("memberIds", "array-contains", sale.memberId)
+  );
+  const familySnapshot = await getDocs(familyQ);
+
+  if (!familySnapshot.empty) {
+    const familyDoc = familySnapshot.docs[0];
+    const familyData = { ...familyDoc.data(), id: familyDoc.id } as Family;
+    family = familyData;
+
+    // Fetch other members of the same family
+    const otherMemberIds = familyData.memberIds.filter(
+      (id) => id !== sale.memberId
+    );
+    if (otherMemberIds.length > 0) {
+      const membersRef = getMembersCollection();
+      const mq = query(
+        membersRef,
+        where("__name__", "in", otherMemberIds.slice(0, 30))
+      );
+      const mSnapshot = await getDocs(mq);
+      familyMembers.push(
+        ...(mSnapshot.docs.map(docToMember).filter(Boolean) as Member[])
+      );
+    }
+  }
+
+  return {
+    sale,
+    member,
+    relatedMember,
+    service,
+    subscription,
+    family,
+    familyMembers,
+  };
 };
 
 export const getSales = async (): Promise<Sale[]> => {
   const q = query(getSalesQuery(), limit(100));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
+};
+
+export const getSalesByMemberIds = async (
+  memberIds: string[]
+): Promise<Sale[]> => {
+  if (!memberIds || memberIds.length === 0) return [];
+  const q = query(
+    getSalesQuery(),
+    where("memberId", "in", memberIds.slice(0, 30))
+  );
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
 };

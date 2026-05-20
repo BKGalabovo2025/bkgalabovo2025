@@ -4,6 +4,13 @@ export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
 export { type Reservation, type BlockedSlot } from "./reservation";
 
+export type Family = {
+  id: string;
+  name?: string;
+  memberIds: string[];
+  siteId?: string;
+};
+
 // =================================================================
 //                            CORE TYPES
 // =================================================================

@@ -18,7 +18,7 @@ import { formatFullName } from "@/lib/utils";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Member, ClubService, Sale, Subscription } from "@/types";
+import { Member, ClubService, Sale, Subscription, Family } from "@/types";
 
 interface ReceiptClientPageProps {
   saleId: string;
@@ -31,6 +31,8 @@ interface ReceiptCopyProps {
   relatedMember: Member | null;
   service: ClubService | null;
   subscription: Subscription | null;
+  family?: Family | null;
+  familyMembers?: Member[];
 }
 
 const ReceiptCopy = ({
@@ -39,14 +41,55 @@ const ReceiptCopy = ({
   member,
   relatedMember,
   service,
+  subscription,
+  family,
+  familyMembers,
 }: ReceiptCopyProps) => {
-  const formattedDate = sale?.saleDate
+  const paymentDate = sale?.saleDate
     ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       })
     : new Date().toLocaleDateString("bg-BG");
+
+  const issueDate = sale?.createdAt
+    ? new Date(sale.createdAt).toLocaleDateString("bg-BG", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : sale?.saleDate
+      ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+      : new Date().toLocaleDateString("bg-BG");
+
+  const periodStart = subscription?.startDate
+    ? new Date(subscription.startDate).toLocaleDateString("bg-BG", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : null;
+
+  const periodEnd = subscription?.endDate
+    ? new Date(subscription.endDate).toLocaleDateString("bg-BG", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : null;
+
+  const billingMonth =
+    sale?.subscriptionId && sale?.saleDate
+      ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
+          month: "long",
+          year: "numeric",
+        })
+      : null;
 
   return (
     <div
@@ -62,7 +105,7 @@ const ReceiptCopy = ({
             </h2>
             <p className="text-[10px] font-bold uppercase text-[#475569]">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
-              {formattedDate}
+              {issueDate} г.
             </p>
             <p className="text-[10px] font-bold uppercase mt-1 text-[#64748b]">
               {label}
@@ -89,7 +132,17 @@ const ReceiptCopy = ({
                 Свързано лице: {formatFullName(relatedMember)}
               </p>
             )}
-            <p className="text-[#64748b] mt-0.5 text-[9px]">
+            {family && (
+              <p className="text-[#475569] font-bold mt-0.5">
+                Семейство: {family.name || "Без име"}
+              </p>
+            )}
+            {familyMembers && familyMembers.length > 0 && (
+              <p className="text-[#64748b] text-[9px] mt-0.5 italic">
+                Свързани лица: {familyMembers.map(formatFullName).join(", ")}
+              </p>
+            )}
+            <p className="text-[#64748b] mt-1 text-[9px]">
               {member?.address || "Адрес: (не е посочен)"}
             </p>
           </div>
@@ -99,6 +152,14 @@ const ReceiptCopy = ({
               Детайли за плащане
             </p>
             <p className="font-bold text-[#0f172a]">
+              Дата на плащане: {paymentDate} г.
+            </p>
+            {periodStart && periodEnd && (
+              <p className="font-bold text-[#0f172a] mt-0.5">
+                Период: {periodStart} - {periodEnd}
+              </p>
+            )}
+            <p className="font-bold text-[#0f172a] mt-0.5">
               Начин: {sale?.paymentMethod || "В брой"}
             </p>
             <p className="mt-0.5 font-bold">
@@ -142,6 +203,15 @@ const ReceiptCopy = ({
                   <tr key={index} className="border-b border-black font-medium">
                     <td className="p-2 border-r border-black font-bold">
                       {item.name || "(Липсва име)"}
+                      {periodStart && periodEnd ? (
+                        <span className="block text-[9px] text-[#0f172a] font-bold mt-0.5 italic">
+                          (Период: {periodStart} - {periodEnd} г.)
+                        </span>
+                      ) : billingMonth ? (
+                        <span className="block text-[9px] text-[#0f172a] font-bold mt-0.5 italic capitalize">
+                          (За месец: {billingMonth})
+                        </span>
+                      ) : null}
                       {service?.name && (
                         <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
                           {service.name}
@@ -395,7 +465,15 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
   if (error) return <ErrorDisplay message={error} />;
   if (!details) return <ErrorDisplay message="Няма намерени данни." />;
 
-  const { sale, member, relatedMember, service, subscription } = details;
+  const {
+    sale,
+    member,
+    relatedMember,
+    service,
+    subscription,
+    family,
+    familyMembers,
+  } = details;
 
   return (
     <>
@@ -479,6 +557,8 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
               relatedMember={relatedMember}
               service={service}
               subscription={subscription}
+              family={family}
+              familyMembers={familyMembers}
             />
 
             <div className="relative py-2 no-print-visible flex items-center justify-center">
@@ -495,6 +575,8 @@ export default function ReceiptClientPage({ saleId }: ReceiptClientPageProps) {
               relatedMember={relatedMember}
               service={service}
               subscription={subscription}
+              family={family}
+              familyMembers={familyMembers}
             />
           </div>
         </div>

@@ -11,11 +11,16 @@ import {
   ReservationConfirmationEmail,
   ReservationConfirmationEmailProps,
 } from "@/components/emails/reservation-confirmation-email";
+import {
+  DeactivatedEmail,
+  DeactivatedEmailProps,
+} from "@/components/emails/deactivated-email";
 
 // Define the data types for each email template
 type EmailTemplateData = {
   reminder: ReminderEmailProps;
   reservationConfirmation: ReservationConfirmationEmailProps;
+  deactivated: DeactivatedEmailProps;
   // Add other templates here...
 };
 
@@ -45,12 +50,21 @@ const templates = {
       return `Здравейте, ${clientName}. Вашата резервация в бадминтон клуб "Гълъбово" е потвърдена. Детайли: Корт ${courtId}, от ${formattedStartTime} до ${formattedEndTime} ч.`;
     },
   },
+  deactivated: {
+    component: DeactivatedEmail,
+    getText: (data: DeactivatedEmailProps) => {
+      if (data.memberName) {
+        return `Здравейте, ${data.memberName}. Поради липса на активен абонамент за последните 30 дни, статусът на Вашия профил в Бадминтон Клуб Гълъбово беше променен на неактивен.`;
+      }
+      return "Вашето членство в Бадминтон Клуб Гълъбово беше променено на неактивно поради липса на плащане.";
+    },
+  },
 };
 
 const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
-  template: z.enum(["reminder", "reservationConfirmation"]),
+  template: z.enum(["reminder", "reservationConfirmation", "deactivated"]),
   data: z.record(z.string(), z.any()), // Keep z.any() here for validation flexibility, but we will use the typed data below
 });
 
@@ -69,6 +83,10 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
     const props = data as ReservationConfirmationEmailProps;
     html = await render(<ReservationConfirmationEmail {...props} />);
     text = templates.reservationConfirmation.getText(props);
+  } else if (template === "deactivated") {
+    const props = data as DeactivatedEmailProps;
+    html = await render(<DeactivatedEmail {...props} />);
+    text = templates.deactivated.getText(props);
   } else {
     throw new Error(`Unknown email template: ${template}`);
   }

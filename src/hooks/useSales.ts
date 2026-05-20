@@ -5,6 +5,7 @@ import { Sale } from "@/types";
 import {
   getSales,
   getSalesByMemberId,
+  getSalesByMemberIds,
   updateSale,
 } from "@/services/sales-service";
 
@@ -16,18 +17,31 @@ const updateSaleStatus = async (
   await updateSale(saleId, { status });
 };
 
-export const useSales = (memberId?: string) => {
+export const useSales = (memberIdOrIds?: string | string[]) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const memberIdOrIdsKey = Array.isArray(memberIdOrIds)
+    ? memberIdOrIds.join(",")
+    : memberIdOrIds || "";
+  const isArray = Array.isArray(memberIdOrIds);
 
   const refetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const salesData = memberId
-        ? await getSalesByMemberId(memberId)
-        : await getSales();
+      let salesData: Sale[] = [];
+      if (memberIdOrIdsKey) {
+        const ids = memberIdOrIdsKey.split(",");
+        if (isArray) {
+          salesData = await getSalesByMemberIds(ids);
+        } else {
+          salesData = await getSalesByMemberId(ids[0]);
+        }
+      } else {
+        salesData = await getSales();
+      }
       setSales(salesData);
     } catch (err: unknown) {
       console.error("Error fetching sales:", err);
@@ -39,15 +53,23 @@ export const useSales = (memberId?: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [memberId]);
+  }, [memberIdOrIdsKey, isArray]);
 
   useEffect(() => {
     let isMounted = true;
     const fetchSales = async () => {
       try {
-        const salesData = memberId
-          ? await getSalesByMemberId(memberId)
-          : await getSales();
+        let salesData: Sale[] = [];
+        if (memberIdOrIdsKey) {
+          const ids = memberIdOrIdsKey.split(",");
+          if (isArray) {
+            salesData = await getSalesByMemberIds(ids);
+          } else {
+            salesData = await getSalesByMemberId(ids[0]);
+          }
+        } else {
+          salesData = await getSales();
+        }
         if (isMounted) {
           setSales(salesData);
         }
@@ -72,7 +94,7 @@ export const useSales = (memberId?: string) => {
     return () => {
       isMounted = false;
     };
-  }, [memberId]);
+  }, [memberIdOrIdsKey, isArray]);
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {

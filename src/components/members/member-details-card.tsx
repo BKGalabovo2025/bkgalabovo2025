@@ -30,6 +30,8 @@ import {
   Trash2,
   Camera,
   Loader2,
+  Eye,
+  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -76,7 +78,7 @@ import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
 import { updateMemberAction, deleteMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
-import { uploadFile } from "@/services/storage-service";
+import { uploadFile, deleteFile } from "@/services/storage-service";
 import { useRef, useState } from "react";
 
 interface MemberDetailsCardProps {
@@ -91,6 +93,14 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
   return phoneType === "personal" ? "Личен" : "На родител";
 };
 
+const getDocUploadPath = (memberId: string, baseField: string, ext: string) => {
+  return `documents/${memberId}/${baseField}_${Date.now()}.${ext}`;
+};
+
+const getAvatarUploadPath = (memberId: string) => {
+  return `avatars/${memberId}_${Date.now()}`;
+};
+
 export const MemberDetailsCard = ({
   member,
   familyMembers,
@@ -101,6 +111,196 @@ export const MemberDetailsCard = ({
   const { idToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+
+  const handleDocUpload = async (
+    baseField:
+      | "signedDeclaration"
+      | "medicalCertificate"
+      | "isLicensed"
+      | "travelDeclaration"
+      | "safetyInstruction"
+      | "internalRules"
+      | "membershipApplication"
+      | "terminationRequest",
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !idToken) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Невалиден формат. Моля, качете JPG, PNG, WEBP или PDF");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Файлът е твърде голям (макс. 5MB)");
+      return;
+    }
+
+    setUploadingDoc(baseField);
+    try {
+      const ext = file.name.split(".").pop() || "";
+      const path = getDocUploadPath(member.id, baseField, ext);
+      const downloadUrl = await uploadFile(path, file);
+      const urlField = `${baseField}Url`;
+
+      const result = await updateMemberAction(member.id, idToken, {
+        [urlField]: downloadUrl,
+      });
+
+      if (result.success) {
+        toast.success("Документът е прикачен успешно!");
+        if (onRefresh) onRefresh();
+        router.refresh();
+      } else {
+        toast.error("Грешка при запис на линка към документа");
+      }
+    } catch (error) {
+      console.error("Document upload error:", error);
+      toast.error("Грешка при качване на документа");
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const handleDocDelete = async (
+    baseField:
+      | "signedDeclaration"
+      | "medicalCertificate"
+      | "isLicensed"
+      | "travelDeclaration"
+      | "safetyInstruction"
+      | "internalRules"
+      | "membershipApplication"
+      | "terminationRequest"
+  ) => {
+    if (!idToken) return;
+
+    const urlField = `${baseField}Url`;
+    const docUrl = member[urlField as keyof Member] as string;
+    if (!docUrl) return;
+
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да изтриете сканирания файл за този документ?"
+      )
+    )
+      return;
+
+    setUploadingDoc(baseField);
+    try {
+      const decodedPath = decodeURIComponent(
+        docUrl.split("/o/")[1]?.split("?")[0]
+      );
+      if (decodedPath) {
+        await deleteFile(decodedPath);
+      }
+    } catch (err) {
+      console.warn("Storage deletion warning:", err);
+    }
+
+    try {
+      const result = await updateMemberAction(member.id, idToken, {
+        [urlField]: null,
+      });
+
+      if (result.success) {
+        toast.success("Документът е премахнат успешно!");
+        if (onRefresh) onRefresh();
+        router.refresh();
+      } else {
+        toast.error("Грешка при премахване на документа от профила");
+      }
+    } catch (error) {
+      console.error("Document delete error:", error);
+      toast.error("Грешка при премахване");
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const renderDocAttachmentSection = (
+    baseField:
+      | "signedDeclaration"
+      | "medicalCertificate"
+      | "isLicensed"
+      | "travelDeclaration"
+      | "safetyInstruction"
+      | "internalRules"
+      | "membershipApplication"
+      | "terminationRequest",
+    hasDoc?: boolean,
+    docUrl?: string | null
+  ) => {
+    if (!hasDoc) return null;
+
+    if (docUrl) {
+      return (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 sm:h-11 px-3.5 rounded-lg sm:rounded-xl border-zinc-200 bg-white font-medium text-zinc-600 hover:bg-zinc-50 transition-all shadow-sm"
+            onClick={() => window.open(docUrl, "_blank")}
+            title="Преглед на качения файл"
+          >
+            <Eye className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+            <span className="ml-2 hidden sm:inline text-xs font-normal">
+              Преглед
+            </span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 sm:h-11 px-3 rounded-lg sm:rounded-xl border-rose-100 bg-rose-50/10 font-medium text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all"
+            onClick={() => handleDocDelete(baseField)}
+            disabled={uploadingDoc === baseField}
+            title="Премахване на файл"
+          >
+            {uploadingDoc === baseField ? (
+              <Loader2 className="h-4 w-4 animate-spin text-rose-500" />
+            ) : (
+              <Trash2 className="h-4 w-4 text-rose-500" strokeWidth={1.5} />
+            )}
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative shrink-0">
+        <input
+          type="file"
+          id={`file-${baseField}`}
+          className="hidden"
+          accept="image/*,application/pdf"
+          onChange={(e) => handleDocUpload(baseField, e)}
+          disabled={uploadingDoc === baseField}
+        />
+        <label
+          htmlFor={`file-${baseField}`}
+          className={cn(
+            "flex items-center justify-center h-10 sm:h-11 px-4 rounded-lg sm:rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer font-medium text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600 transition-all shadow-sm hover:shadow-md",
+            uploadingDoc === baseField && "opacity-50 pointer-events-none"
+          )}
+        >
+          {uploadingDoc === baseField ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2 text-zinc-500" />
+          ) : (
+            <Upload className="h-4 w-4 mr-2 text-zinc-500" strokeWidth={1.5} />
+          )}
+          Прикачи файл
+        </label>
+      </div>
+    );
+  };
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -257,7 +457,7 @@ export const MemberDetailsCard = ({
 
     setIsUploading(true);
     try {
-      const path = `avatars/${member.id}_${Date.now()}`;
+      const path = getAvatarUploadPath(member.id);
       const downloadUrl = await uploadFile(path, file);
 
       const result = await updateMemberAction(member.id, idToken, {
@@ -432,12 +632,7 @@ export const MemberDetailsCard = ({
             >
               Документи
             </TabsTrigger>
-            <TabsTrigger
-              value="sales"
-              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
-            >
-              Финанси
-            </TabsTrigger>
+
             <TabsTrigger
               value="subscriptions"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
@@ -636,6 +831,11 @@ export const MemberDetailsCard = ({
                     ? "Отмени"
                     : "Отбележи предадена"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "membershipApplication",
+                  member.hasMembershipApplication,
+                  member.membershipApplicationUrl
+                )}
               </div>
             </div>
 
@@ -712,6 +912,11 @@ export const MemberDetailsCard = ({
                     ? "Отмени"
                     : "Отбележи предадена"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "terminationRequest",
+                  member.hasTerminationRequest,
+                  member.terminationRequestUrl
+                )}
               </div>
             </div>
 
@@ -785,6 +990,11 @@ export const MemberDetailsCard = ({
                 >
                   {member.hasInternalRules ? "Отмени" : "Отбележи приет"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "internalRules",
+                  member.hasInternalRules,
+                  member.internalRulesUrl
+                )}
               </div>
             </div>
 
@@ -865,6 +1075,11 @@ export const MemberDetailsCard = ({
                     ? "Отмени"
                     : "Отбележи предадена"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "signedDeclaration",
+                  member.hasSignedDeclaration,
+                  member.signedDeclarationUrl
+                )}
               </div>
             </div>
 
@@ -941,6 +1156,11 @@ export const MemberDetailsCard = ({
                     ? "Отмени"
                     : "Отбележи предадено"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "travelDeclaration",
+                  member.hasTravelDeclaration,
+                  member.travelDeclarationUrl
+                )}
               </div>
             </div>
 
@@ -1015,6 +1235,11 @@ export const MemberDetailsCard = ({
                 >
                   {member.hasSafetyInstruction ? "Отмени" : "Отбележи предаден"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "safetyInstruction",
+                  member.hasSafetyInstruction,
+                  member.safetyInstructionUrl
+                )}
               </div>
             </div>
 
@@ -1085,6 +1310,11 @@ export const MemberDetailsCard = ({
                 >
                   {member.isLicensed ? "Отмени" : "Активирай"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "isLicensed",
+                  member.isLicensed,
+                  member.isLicensedUrl
+                )}
               </div>
             </div>
 
@@ -1161,20 +1391,31 @@ export const MemberDetailsCard = ({
                     ? "Отмени"
                     : "Отбележи предадено"}
                 </Button>
+                {renderDocAttachmentSection(
+                  "medicalCertificate",
+                  member.hasMedicalCertificate,
+                  member.medicalCertificateUrl
+                )}
               </div>
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="sales" className="focus-visible:outline-none">
-          <MemberSalesHistory memberId={member.id} />
-        </TabsContent>
-
         <TabsContent
           value="subscriptions"
-          className="focus-visible:outline-none"
+          className="focus-visible:outline-none space-y-6"
         >
-          <MemberSubscriptionsTab memberId={member.id} member={member} />
+          <MemberSubscriptionsTab
+            memberId={member.id}
+            member={member}
+            memberIds={family?.memberIds || [member.id]}
+            familyMembers={familyMembers || []}
+          />
+          <MemberSalesHistory
+            memberId={member.id}
+            memberIds={family?.memberIds || [member.id]}
+            familyMembers={familyMembers || []}
+          />
         </TabsContent>
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
