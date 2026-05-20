@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useIsMounted } from "@/hooks/useIsMounted";
 import { Member } from "@/types";
 import { generateLiabilityReport } from "@/services/report-service";
 import {
@@ -33,6 +32,12 @@ import { exportToCSV } from "@/lib/export-utils";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
+interface LiabilitiesReportProps {
+  initialUnpaidMembers: Member[];
+  initialYear: number;
+  initialMonth: number;
+}
+
 // Генерираме последните 5 години за падащото меню
 const years = Array.from({ length: 5 }, (_, i) =>
   (new Date().getFullYear() - i).toString()
@@ -52,16 +57,19 @@ const months = [
   { value: "12", label: "Декември" },
 ];
 
-const LiabilitiesReport = () => {
-  const isMounted = useIsMounted();
-  const [unpaidMembers, setUnpaidMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-
-  const [year, setYear] = useState(() => new Date().getFullYear().toString());
-  const [month, setMonth] = useState(() =>
-    (new Date().getMonth() + 1).toString()
+const LiabilitiesReport = ({
+  initialUnpaidMembers,
+  initialYear,
+  initialMonth,
+}: LiabilitiesReportProps) => {
+  const [unpaidMembers, setUnpaidMembers] = useState<Member[]>(
+    initialUnpaidMembers
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(true);
+
+  const [year, setYear] = useState(initialYear.toString());
+  const [month, setMonth] = useState(initialMonth.toString());
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
@@ -190,25 +198,14 @@ const LiabilitiesReport = () => {
           )}
         </div>
 
-        {!isMounted || isLoading ? (
+        {isLoading ? (
           <div className="p-32 text-center">
             <Loader2
               className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
               strokeWidth={1}
             />
             <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-              {isLoading
-                ? "Проверка на плащания..."
-                : "Зареждане на компонента..."}
-            </p>
-          </div>
-        ) : !hasSearched ? (
-          <div className="p-32 text-center">
-            <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Filter className="h-8 w-8 text-zinc-200" strokeWidth={1} />
-            </div>
-            <p className="text-sm font-light text-zinc-400 tracking-wide leading-relaxed max-w-xs mx-auto">
-              Изберете период, за да видите кой не е платил абонамента си.
+              Проверка на плащания...
             </p>
           </div>
         ) : unpaidMembers.length === 0 ? (

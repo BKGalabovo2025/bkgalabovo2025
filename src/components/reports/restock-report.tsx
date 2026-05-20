@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Product } from "@/types";
-import { getProducts } from "@/services/inventory-service";
 import {
   Card,
   CardContent,
@@ -18,44 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/export-utils";
 
-const RestockReport = () => {
-  const [productsToRestock, setProductsToRestock] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface RestockReportProps {
+  initialProducts: Product[];
+}
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const allProducts = await getProducts();
-        const filteredProducts = allProducts.filter(
-          (p) =>
-            typeof p.restockThreshold === "number" &&
-            p.stock <= p.restockThreshold
-        );
-        setProductsToRestock(filteredProducts);
-      } catch (error) {
-        console.error("Failed to fetch products for restock report:", error);
-        // Display error to user
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Зареждане на протокола...
-      </div>
-    );
-  }
+const RestockReport = ({ initialProducts }: RestockReportProps) => {
+  const [productsToRestock] = useState<Product[]>(initialProducts);
 
   return (
     <Card>

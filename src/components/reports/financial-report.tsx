@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useIsMounted } from "@/hooks/useIsMounted";
+import { useState, useMemo } from "react";
 import { Sale, Member } from "@/types";
-import { getSales } from "@/services/sales-service";
-import { getAllMembers } from "@/services/member-service";
 import {
   Card,
   CardContent,
@@ -32,7 +29,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays } from "date-fns";
 import {
-  Loader2,
   Download,
   TrendingUp,
   PieChart as PieChartIcon,
@@ -54,11 +50,17 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
-const FinancialReport = () => {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const isMounted = useIsMounted();
+interface FinancialReportProps {
+  initialSales: Sale[];
+  initialMembers: Member[];
+}
+
+const FinancialReport = ({
+  initialSales,
+  initialMembers,
+}: FinancialReportProps) => {
+  const [sales] = useState<Sale[]>(initialSales);
+  const [members] = useState<Member[]>(initialMembers);
 
   // Filters
   const [dateFrom, setDateFrom] = useState<Date | undefined>(() =>
@@ -66,25 +68,6 @@ const FinancialReport = () => {
   );
   const [dateTo, setDateTo] = useState<Date | undefined>(() => new Date());
   const [paymentType, setPaymentType] = useState<string>("all");
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [allSales, allMembers] = await Promise.all([
-          getSales(),
-          getAllMembers(),
-        ]);
-        setSales(allSales);
-        setMembers(allMembers);
-      } catch (error) {
-        console.error("Failed to fetch financial data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const memberMap = useMemo(
     () => new Map(members.map((m) => [m.id, m])),
@@ -144,20 +127,6 @@ const FinancialReport = () => {
         setter(undefined);
       }
     };
-
-  if (!isMounted || isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-zinc-400 gap-4">
-        <Loader2
-          className="h-8 w-8 animate-spin text-zinc-300"
-          strokeWidth={1.5}
-        />
-        <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
-          {!isMounted ? "Инициализиране..." : "Зареждане на отчета..."}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">

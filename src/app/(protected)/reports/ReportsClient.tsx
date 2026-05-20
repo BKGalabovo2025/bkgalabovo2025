@@ -8,8 +8,34 @@ import AttendanceReport from "@/components/reports/attendance-report";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { BarChart3, Users, Wallet, RefreshCw } from "lucide-react";
+import { Sale, Member, Product } from "@/types";
+import type { AttendanceReportItem } from "@/services/report-service";
 
-export default function ReportsClient() {
+interface ReportsClientProps {
+  initialSales: Sale[];
+  initialMembers: Member[];
+  initialLiabilities: Member[];
+  initialLiabilitiesPeriod: {
+    year: number;
+    month: number;
+  };
+  initialAttendanceData: AttendanceReportItem[];
+  initialAttendancePeriod: {
+    startDate: string;
+    endDate: string;
+  };
+  initialRestockProducts: Product[];
+}
+
+export default function ReportsClient({
+  initialSales,
+  initialMembers,
+  initialLiabilities,
+  initialLiabilitiesPeriod,
+  initialAttendanceData,
+  initialAttendancePeriod,
+  initialRestockProducts,
+}: ReportsClientProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
@@ -54,25 +80,36 @@ export default function ReportsClient() {
             value="financial"
             className="mt-0 focus-visible:outline-none outline-none ring-0 p-6"
           >
-            <FinancialReport />
+            <FinancialReport
+              initialSales={initialSales}
+              initialMembers={initialMembers}
+            />
           </TabsContent>
           <TabsContent
             value="liabilities"
             className="mt-0 focus-visible:outline-none outline-none ring-0 p-6"
           >
-            <LiabilitiesReport />
+            <LiabilitiesReport
+              initialUnpaidMembers={initialLiabilities}
+              initialYear={initialLiabilitiesPeriod.year}
+              initialMonth={initialLiabilitiesPeriod.month}
+            />
           </TabsContent>
           <TabsContent
             value="attendance"
             className="mt-0 focus-visible:outline-none outline-none ring-0 p-6"
           >
-            <AttendanceReport />
+            <AttendanceReport
+              initialReportData={initialAttendanceData}
+              initialStartDate={initialAttendancePeriod.startDate}
+              initialEndDate={initialAttendancePeriod.endDate}
+            />
           </TabsContent>
           <TabsContent
             value="restock"
             className="mt-0 focus-visible:outline-none outline-none ring-0 p-6"
           >
-            <RestockReport />
+            <RestockReport initialProducts={initialRestockProducts} />
           </TabsContent>
         </BentoCard>
       </Tabs>

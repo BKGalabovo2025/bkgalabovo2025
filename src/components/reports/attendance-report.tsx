@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { useIsMounted } from "@/hooks/useIsMounted";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,13 +31,26 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const AttendanceReport = () => {
-  const isMounted = useIsMounted();
+interface AttendanceReportProps {
+  initialReportData: AttendanceReportItem[];
+  initialStartDate: string;
+  initialEndDate: string;
+}
+
+const AttendanceReport = ({
+  initialReportData,
+  initialStartDate,
+  initialEndDate,
+}: AttendanceReportProps) => {
   const [startDate, setStartDate] = useState<Date | undefined>(
-    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    () => new Date(initialStartDate)
   );
-  const [endDate, setEndDate] = useState<Date | undefined>(() => new Date());
-  const [reportData, setReportData] = useState<AttendanceReportItem[]>([]);
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    () => new Date(initialEndDate)
+  );
+  const [reportData, setReportData] = useState<AttendanceReportItem[]>(
+    initialReportData
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -222,14 +234,14 @@ const AttendanceReport = () => {
           </Badge>
         </div>
 
-        {!isMounted || isLoading ? (
+        {isLoading ? (
           <div className="p-32 text-center">
             <Loader2
               className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
               strokeWidth={1}
             />
             <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
-              {!isMounted ? "Инициализиране..." : "Обработка на данни..."}
+              Обработка на данни...
             </p>
           </div>
         ) : reportData.length > 0 ? (
