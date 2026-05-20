@@ -81,6 +81,7 @@ const LoginPage = () => {
               <Input
                 id="email"
                 type="email"
+                autoComplete="username"
                 placeholder="admin@bkgalabovo.com"
                 required
                 className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
