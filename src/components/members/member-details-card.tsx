@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { Member } from "@/types";
+import { Family } from "@/hooks/useMemberProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,11 +28,6 @@ import {
   ClipboardCheck,
   Stethoscope,
   Contact,
-  Trash2,
-  Camera,
-  Loader2,
-  Eye,
-  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -41,7 +37,7 @@ const MemberSalesHistory = dynamic(
   {
     loading: () => (
       <div className="p-8 text-center animate-pulse text-slate-400">
-        Р—Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ...
+        Зареждане на история...
       </div>
     ),
   }
@@ -54,7 +50,7 @@ const MemberAttendanceHistory = dynamic(
   {
     loading: () => (
       <div className="p-8 text-center animate-pulse text-slate-400">
-        Р—Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРёСЃСЉСЃС‚РІРёСЏ...
+        Зареждане на присъствия...
       </div>
     ),
   }
@@ -67,7 +63,7 @@ const MemberSubscriptionsTab = dynamic(
   {
     loading: () => (
       <div className="p-8 text-center animate-pulse text-slate-400">
-        Р—Р°СЂРµР¶РґР°РЅРµ РЅР° С‡Р»РµРЅСЃС‚РІРѕ...
+        Зареждане на абонаменти...
       </div>
     ),
   }
@@ -75,248 +71,35 @@ const MemberSubscriptionsTab = dynamic(
 
 import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
 
-import { updateMemberAction, deleteMemberAction } from "@/lib/actions/members";
+import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
-import { uploadFile, deleteFile } from "@/services/storage-service";
-import { useRef, useState, useEffect } from "react";
+import { uploadFile } from "@/services/storage-service";
+import { Camera, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface MemberDetailsCardProps {
   member: Member;
   familyMembers: Member[];
-  family?: import("@/hooks/useMemberProfile").Family | null;
+  family?: Family | null;
   onRefresh?: () => void;
 }
 
 const formatPhoneType = (phoneType: string | null | undefined) => {
   if (!phoneType) return null;
-  return phoneType === "personal" ? "Р›РёС‡РµРЅ" : "РќР° СЂРѕРґРёС‚РµР»";
-};
-
-const getDocUploadPath = (memberId: string, baseField: string, ext: string) => {
-  return `documents/${memberId}/${baseField}_${Date.now()}.${ext}`;
-};
-
-const getAvatarUploadPath = (memberId: string) => {
-  return `avatars/${memberId}_${Date.now()}`;
+  return phoneType === "personal" ? "Личен" : "На родител";
 };
 
 export const MemberDetailsCard = ({
   member,
   familyMembers,
-  family,
+  family: _family,
   onRefresh,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
   const { idToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
-  const [localMember, setLocalMember] = useState<Member>(member);
-
-  // Синхронизираме localMember при промяна на props (след refetch)
-  useEffect(() => {
-    setLocalMember(member);
-  }, [member]);
-
-  const handleDocUpload = async (
-    baseField:
-      | "signedDeclaration"
-      | "medicalCertificate"
-      | "isLicensed"
-      | "travelDeclaration"
-      | "safetyInstruction"
-      | "internalRules"
-      | "membershipApplication"
-      | "terminationRequest",
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file || !idToken) return;
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        "РќРµРІР°Р»РёРґРµРЅ С„РѕСЂРјР°С‚. РњРѕР»СЏ, РєР°С‡РµС‚Рµ JPG, PNG, WEBP РёР»Рё PDF"
-      );
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Р¤Р°Р№Р»СЉС‚ Рµ С‚РІСЉСЂРґРµ РіРѕР»СЏРј (РјР°РєСЃ. 5MB)");
-      return;
-    }
-
-    setUploadingDoc(baseField);
-    try {
-      const ext = file.name.split(".").pop() || "";
-      const path = getDocUploadPath(member.id, baseField, ext);
-      const downloadUrl = await uploadFile(path, file, idToken);
-      const urlField = `${baseField}Url`;
-
-      const result = await updateMemberAction(member.id, idToken, {
-        [urlField]: downloadUrl,
-      });
-
-      if (result.success) {
-        toast.success(
-          "Р”РѕРєСѓРјРµРЅС‚СЉС‚ Рµ РїСЂРёРєР°С‡РµРЅ СѓСЃРїРµС€РЅРѕ!"
-        );
-        if (onRefresh) onRefresh();
-        router.refresh();
-      } else {
-        toast.error(
-          "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїРёСЃ РЅР° Р»РёРЅРєР° РєСЉРј РґРѕРєСѓРјРµРЅС‚Р°"
-        );
-      }
-    } catch (error) {
-      console.error("Document upload error:", error);
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РєР°С‡РІР°РЅРµ РЅР° РґРѕРєСѓРјРµРЅС‚Р°");
-    } finally {
-      setUploadingDoc(null);
-    }
-  };
-
-  const handleDocDelete = async (
-    baseField:
-      | "signedDeclaration"
-      | "medicalCertificate"
-      | "isLicensed"
-      | "travelDeclaration"
-      | "safetyInstruction"
-      | "internalRules"
-      | "membershipApplication"
-      | "terminationRequest"
-  ) => {
-    if (!idToken) return;
-
-    const urlField = `${baseField}Url`;
-    const docUrl = member[urlField as keyof Member] as string;
-    if (!docUrl) return;
-
-    if (
-      !confirm(
-        "РЎРёРіСѓСЂРЅРё Р»Рё СЃС‚Рµ, С‡Рµ РёСЃРєР°С‚Рµ РґР° РёР·С‚СЂРёРµС‚Рµ СЃРєР°РЅРёСЂР°РЅРёСЏ С„Р°Р№Р» Р·Р° С‚РѕР·Рё РґРѕРєСѓРјРµРЅС‚?"
-      )
-    )
-      return;
-
-    setUploadingDoc(baseField);
-    try {
-      const decodedPath = decodeURIComponent(
-        docUrl.split("/o/")[1]?.split("?")[0]
-      );
-      if (decodedPath) {
-        await deleteFile(decodedPath, idToken);
-      }
-    } catch (err) {
-      console.warn("Storage deletion warning:", err);
-    }
-
-    try {
-      const result = await updateMemberAction(member.id, idToken, {
-        [urlField]: null,
-      });
-
-      if (result.success) {
-        toast.success(
-          "Р”РѕРєСѓРјРµРЅС‚СЉС‚ Рµ РїСЂРµРјР°С…РЅР°С‚ СѓСЃРїРµС€РЅРѕ!"
-        );
-        if (onRefresh) onRefresh();
-        router.refresh();
-      } else {
-        toast.error(
-          "Р“СЂРµС€РєР° РїСЂРё РїСЂРµРјР°С…РІР°РЅРµ РЅР° РґРѕРєСѓРјРµРЅС‚Р° РѕС‚ РїСЂРѕС„РёР»Р°"
-        );
-      }
-    } catch (error) {
-      console.error("Document delete error:", error);
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РїСЂРµРјР°С…РІР°РЅРµ");
-    } finally {
-      setUploadingDoc(null);
-    }
-  };
-
-  const renderDocAttachmentSection = (
-    baseField:
-      | "signedDeclaration"
-      | "medicalCertificate"
-      | "isLicensed"
-      | "travelDeclaration"
-      | "safetyInstruction"
-      | "internalRules"
-      | "membershipApplication"
-      | "terminationRequest",
-    hasDoc?: boolean,
-    docUrl?: string | null
-  ) => {
-    if (!hasDoc) return null;
-
-    if (docUrl) {
-      return (
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 sm:h-11 px-3.5 rounded-lg sm:rounded-xl border-zinc-200 bg-white font-medium text-zinc-600 hover:bg-zinc-50 transition-all shadow-sm"
-            onClick={() => window.open(docUrl, "_blank")}
-            title="РџСЂРµРіР»РµРґ РЅР° РєР°С‡РµРЅРёСЏ С„Р°Р№Р»"
-          >
-            <Eye className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
-            <span className="ml-2 hidden sm:inline text-xs font-normal">
-              РџСЂРµРіР»РµРґ
-            </span>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 sm:h-11 px-3 rounded-lg sm:rounded-xl border-rose-100 bg-rose-50/10 font-medium text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all"
-            onClick={() => handleDocDelete(baseField)}
-            disabled={uploadingDoc === baseField}
-            title="РџСЂРµРјР°С…РІР°РЅРµ РЅР° С„Р°Р№Р»"
-          >
-            {uploadingDoc === baseField ? (
-              <Loader2 className="h-4 w-4 animate-spin text-rose-500" />
-            ) : (
-              <Trash2 className="h-4 w-4 text-rose-500" strokeWidth={1.5} />
-            )}
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="relative shrink-0">
-        <input
-          type="file"
-          id={`file-${baseField}`}
-          className="hidden"
-          accept="image/*,application/pdf"
-          onChange={(e) => handleDocUpload(baseField, e)}
-          disabled={uploadingDoc === baseField}
-        />
-        <label
-          htmlFor={`file-${baseField}`}
-          className={cn(
-            "flex items-center justify-center h-10 sm:h-11 px-4 rounded-lg sm:rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer font-medium text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-600 transition-all shadow-sm hover:shadow-md",
-            uploadingDoc === baseField && "opacity-50 pointer-events-none"
-          )}
-        >
-          {uploadingDoc === baseField ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2 text-zinc-500" />
-          ) : (
-            <Upload className="h-4 w-4 mr-2 text-zinc-500" strokeWidth={1.5} />
-          )}
-          РџСЂРёРєР°С‡Рё С„Р°Р№Р»
-        </label>
-      </div>
-    );
-  };
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -327,9 +110,9 @@ export const MemberDetailsCard = ({
     ? new Date(member.registrationDate).toLocaleDateString("bg-BG")
     : null;
 
-  // 1. РР·С‡РёСЃР»СЏРІР°РјРµ СЃС‚Р°С‚СѓСЃР° (С‡СЂРµР· localMember Р·Р° Optimistic UI)
-  const lastPayment = localMember.lastPaymentDate
-    ? new Date(localMember.lastPaymentDate)
+  // 1. Изчисляваме статуса
+  const lastPayment = member.lastPaymentDate
+    ? new Date(member.lastPaymentDate)
     : null;
   const isOverdue =
     !lastPayment ||
@@ -337,70 +120,30 @@ export const MemberDetailsCard = ({
       (new Date().getTime() - lastPayment.getTime()) / (1000 * 3600 * 24)
     ) > 30;
 
-  // 2. Р¤СѓРЅРєС†РёСЏС‚Р° Р·Р° РїР»Р°С‰Р°РЅРµ (СЃ Optimistic UI)
+  // 2. Функцията за плащане
   const handlePayment = async () => {
     if (!idToken) {
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РѕС‚РѕСЂРёР·Р°С†РёСЏ");
+      toast.error("Грешка при оторизация");
       return;
     }
 
-    if (
-      !confirm(
-        "РњР°СЂРєРёСЂР°РЅРµ РЅР° РјРµСЃРµС‡РЅР°С‚Р° С‚Р°РєСЃР° РєР°С‚Рѕ РїР»Р°С‚РµРЅР°?"
-      )
-    )
-      return;
-
-    const now = new Date().toISOString();
-    const prev = localMember;
-    // РњРёРіРЅРѕРІРµРЅР° РїСЂРѕРјСЏРЅР° РЅР° РµРєСЂР°РЅР°
-    setLocalMember((m) => ({ ...m, lastPaymentDate: now }));
+    if (!confirm("Маркиране на месечната такса като платена?")) return;
 
     try {
       const result = await updateMemberAction(member.id, idToken, {
-        lastPaymentDate: now,
+        lastPaymentDate: new Date().toISOString(),
       });
 
       if (result.success) {
-        toast.success("РЈСЃРїРµС€РЅРѕ РїР»Р°С‚РµРЅРѕ!");
+        toast.success("Успешно платено!");
         if (onRefresh) onRefresh();
         router.refresh();
       } else {
-        setLocalMember(prev); // rollback
-        toast.error("Р“СЂРµС€РєР°", { description: result.message });
+        toast.error("Грешка", { description: result.message });
       }
     } catch (error) {
-      setLocalMember(prev); // rollback
       console.error("Payment error:", error);
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РїР»Р°С‰Р°РЅРµ");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!idToken) {
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РѕС‚РѕСЂРёР·Р°С†РёСЏ");
-      return;
-    }
-
-    if (
-      !confirm(
-        `РЎРёРіСѓСЂРЅРё Р»Рё СЃС‚Рµ, С‡Рµ РёСЃРєР°С‚Рµ РґР° РёР·С‚СЂРёРµС‚Рµ ${fullName}? Р’СЃРёС‡РєРё РЅРµРіРѕРІРё РґР°РЅРЅРё, РІРєР»СЋС‡РёС‚РµР»РЅРѕ РёСЃС‚РѕСЂРёСЏ РЅР° РїР»Р°С‰Р°РЅРёСЏ Рё РїСЂРёСЃСЉСЃС‚РІРёСЏ, С‰Рµ Р±СЉРґР°С‚ РёР·С‚СЂРёС‚Рё Р·Р°РІРёРЅР°РіРё.`
-      )
-    )
-      return;
-
-    try {
-      const result = await deleteMemberAction(member.id, idToken);
-      if (result.success) {
-        toast.success("Р§Р»РµРЅСЉС‚ Рµ РёР·С‚СЂРёС‚ СѓСЃРїРµС€РЅРѕ");
-        router.push("/members");
-        setTimeout(() => router.refresh(), 100);
-      } else {
-        toast.error("Р“СЂРµС€РєР°", { description: result.message });
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Р’СЉР·РЅРёРєРЅР° СЃСЉСЂРІСЉСЂРЅР° РіСЂРµС€РєР°");
+      toast.error("Грешка при плащане");
     }
   };
 
@@ -445,31 +188,25 @@ export const MemberDetailsCard = ({
       updates[handedField] = now;
     } else if (action === "cancel") {
       updates[boolField] = false;
+      // We don't necessarily clear the handed date, or we do?
+      // User said "cancel" (Отмени) should probably clear it.
       updates[handedField] = null;
     }
-
-    // Optimistic UI вЂ” РјРёРіРЅРѕРІРµРЅР° РїСЂРѕРјСЏРЅР° РїСЂРµРґРё СЃСЉСЂРІСЉСЂР°
-    const prev = localMember;
-    setLocalMember((m) => ({ ...m, ...updates }));
 
     try {
       const result = await updateMemberAction(member.id, idToken, updates);
       if (result.success) {
         if (action !== "print") {
-          toast.success("РЎС‚Р°С‚СѓСЃСЉС‚ Рµ РѕР±РЅРѕРІРµРЅ СѓСЃРїРµС€РЅРѕ!");
+          toast.success("Статусът е обновен успешно!");
         }
         if (onRefresh) onRefresh();
         router.refresh();
       } else {
-        setLocalMember(prev); // rollback
-        toast.error("Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР°", {
-          description: result.message,
-        });
+        toast.error("Възникна грешка", { description: result.message });
       }
     } catch (error) {
-      setLocalMember(prev); // rollback
       console.error("Error updating document status:", error);
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РѕР±РЅРѕРІСЏРІР°РЅРµ");
+      toast.error("Грешка при обновяване");
     }
   };
 
@@ -479,41 +216,35 @@ export const MemberDetailsCard = ({
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      toast.error(
-        "РњРѕР»СЏ, РёР·Р±РµСЂРµС‚Рµ РІР°Р»РёРґРЅРѕ РёР·РѕР±СЂР°Р¶РµРЅРёРµ"
-      );
+      toast.error("Моля, изберете валидно изображение");
       return;
     }
 
     // Validate size (e.g., 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error(
-        "РР·РѕР±СЂР°Р¶РµРЅРёРµС‚Рѕ Рµ С‚РІСЉСЂРґРµ РіРѕР»СЏРјРѕ (РјР°РєСЃ. 2MB)"
-      );
+      toast.error("Изображението е твърде голямо (макс. 2MB)");
       return;
     }
 
     setIsUploading(true);
     try {
-      const path = getAvatarUploadPath(member.id);
-      const downloadUrl = await uploadFile(path, file, idToken);
+      const path = `avatars/${member.id}_${Date.now()}`;
+      const downloadUrl = await uploadFile(path, file);
 
       const result = await updateMemberAction(member.id, idToken, {
         avatarUrl: downloadUrl,
       });
 
       if (result.success) {
-        toast.success("РЎРЅРёРјРєР°С‚Р° Рµ РѕР±РЅРѕРІРµРЅР° СѓСЃРїРµС€РЅРѕ");
+        toast.success("Снимката е обновена успешно");
         if (onRefresh) onRefresh();
         router.refresh();
       } else {
-        toast.error(
-          "Р“СЂРµС€РєР° РїСЂРё РѕР±РЅРѕРІСЏРІР°РЅРµ РЅР° РїСЂРѕС„РёР»Р°"
-        );
+        toast.error("Грешка при обновяване на профила");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Р“СЂРµС€РєР° РїСЂРё РєР°С‡РІР°РЅРµ РЅР° СЃРЅРёРјРєР°С‚Р°");
+      toast.error("Грешка при качване на снимката");
     } finally {
       setIsUploading(false);
     }
@@ -527,24 +258,14 @@ export const MemberDetailsCard = ({
           onClick={() => router.push("/members")}
           className="h-10 sm:h-12 w-full sm:w-auto px-6 rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest transition-all"
         >
-          <ArrowLeft className="mr-3 h-4 w-4" strokeWidth={1.5} /> Р’СЃРёС‡РєРё
+          <ArrowLeft className="mr-3 h-4 w-4" strokeWidth={1.5} /> Всички
         </Button>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => router.push(`/members/${member.id}/edit`)}
-            className="h-10 sm:h-12 flex-1 sm:flex-none px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest shadow-none transition-all"
-          >
-            <Pencil className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
-            Р РµРґР°РєС‚РёСЂР°Р№
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDelete}
-            className="h-10 sm:h-12 px-4 rounded-xl border-rose-100 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all shadow-none"
-          >
-            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-          </Button>
-        </div>
+        <Button
+          onClick={() => router.push(`/members/${member.id}/edit`)}
+          className="h-10 sm:h-12 w-full sm:w-auto px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] sm:text-[11px] uppercase tracking-widest shadow-none transition-all"
+        >
+          <Pencil className="mr-3 h-4 w-4" strokeWidth={1.5} /> Редактирай
+        </Button>
       </div>
 
       <div className="overflow-hidden bg-white border border-zinc-100 rounded-5xl shadow-none">
@@ -598,9 +319,7 @@ export const MemberDetailsCard = ({
                       : "bg-rose-50 text-rose-700 border-rose-100"
                   )}
                 >
-                  {member.status === "active"
-                    ? "РђРєС‚РёРІРµРЅ"
-                    : "РќРµР°РєС‚РёРІРµРЅ"}
+                  {member.status === "active" ? "Активен" : "Неактивен"}
                 </Badge>
                 {ageGroup && (
                   <Badge
@@ -610,15 +329,6 @@ export const MemberDetailsCard = ({
                     {ageGroup}
                   </Badge>
                 )}
-                {family && (
-                  <Badge
-                    variant="outline"
-                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 bg-zinc-950 text-white border-zinc-950 cursor-pointer hover:bg-zinc-800 transition-colors"
-                    onClick={() => router.push(`/families/${family.id}`)}
-                  >
-                    РЎРµРјРµР№СЃС‚РІРѕ: {family.name}
-                  </Badge>
-                )}
               </div>
             </div>
 
@@ -626,7 +336,7 @@ export const MemberDetailsCard = ({
               <div className="bg-zinc-50 border border-zinc-100/50 p-4 sm:p-6 rounded-3xl sm:rounded-4xl flex items-center justify-between md:justify-start gap-4 md:gap-6">
                 <div>
                   <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 mb-1">
-                    Р¤РёРЅР°РЅСЃРѕРІ СЃС‚Р°С‚СѓСЃ
+                    Финансов статус
                   </p>
                   <div className="flex items-center gap-3">
                     <span
@@ -635,13 +345,13 @@ export const MemberDetailsCard = ({
                         isOverdue ? "text-rose-500" : "text-emerald-500"
                       )}
                     >
-                      {isOverdue ? "Р”СЉР»Р¶Рё С‚Р°РєСЃР°" : "РџР»Р°С‚РµРЅРѕ"}
+                      {isOverdue ? "Дължи такса" : "Платено"}
                     </span>
                     <span className="h-1 w-1 rounded-full bg-zinc-200" />
                     <span className="text-[11px] font-light text-zinc-400 uppercase tracking-widest">
                       {lastPayment
                         ? lastPayment.toLocaleDateString("bg-BG")
-                        : "РЅСЏРјР° РґР°РЅРЅРё"}
+                        : "няма данни"}
                     </span>
                   </div>
                 </div>
@@ -651,7 +361,7 @@ export const MemberDetailsCard = ({
                     onClick={handlePayment}
                     className="h-10 px-6 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 text-[10px] font-medium uppercase tracking-widest shadow-none"
                   >
-                    РџР»Р°С‚Рё
+                    Плати
                   </Button>
                 )}
               </div>
@@ -667,26 +377,31 @@ export const MemberDetailsCard = ({
               value="personal"
               className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              Р”Р°РЅРЅРё
+              Данни
             </TabsTrigger>
             <TabsTrigger
               value="documents"
               className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              Р”РѕРєСѓРјРµРЅС‚Рё
+              Документи
             </TabsTrigger>
-
+            <TabsTrigger
+              value="sales"
+              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Финанси
+            </TabsTrigger>
             <TabsTrigger
               value="subscriptions"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              Р§Р»РµРЅСЃС‚РІРѕ
+              Абонаменти
             </TabsTrigger>
             <TabsTrigger
               value="attendance"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              РџСЂРёСЃСЉСЃС‚РІРёСЏ
+              Присъствия
             </TabsTrigger>
           </TabsList>
         </div>
@@ -694,44 +409,30 @@ export const MemberDetailsCard = ({
         <TabsContent value="personal" className="focus-visible:outline-none">
           <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
-              <InfoRow icon={Mail} label="РРјРµР№Р»" value={member.email} />
-              <InfoRow
-                icon={Phone}
-                label="РўРµР»РµС„РѕРЅ"
-                value={member.phone}
-              />
-              <InfoRow
-                icon={Users}
-                label="РЎРµРјРµР№СЃС‚РІРѕ"
-                value={family?.name}
-                onClick={
-                  family
-                    ? () => router.push(`/families/${family.id}`)
-                    : undefined
-                }
-              />
+              <InfoRow icon={Mail} label="Имейл" value={member.email} />
+              <InfoRow icon={Phone} label="Телефон" value={member.phone} />
               <InfoRow
                 icon={PhoneCall}
-                label="РўРёРї РЅР° С‚РµР»РµС„РѕРЅР°"
+                label="Тип на телефона"
                 value={formatPhoneType(member.phoneType)}
               />
               <InfoRow
                 icon={Phone}
-                label="РЎРїРµС€РµРЅ РєРѕРЅС‚Р°РєС‚"
+                label="Спешен контакт"
                 value={
                   member.emergencyContactName
-                    ? `${member.emergencyContactName} (${member.emergencyContactPhone || "вЂ”"})`
+                    ? `${member.emergencyContactName} (${member.emergencyContactPhone || "—"})`
                     : null
                 }
               />
               <InfoRow
                 icon={Calendar}
-                label="Р”Р°С‚Р° РЅР° СЂР°Р¶РґР°РЅРµ"
+                label="Дата на раждане"
                 value={formattedBirthDate}
               />
               <InfoRow
                 icon={BarChart2}
-                label="Р’СЉР·СЂР°СЃС‚РѕРІР° РіСЂСѓРїР°"
+                label="Възрастова група"
                 value={member.ageGroup || ageGroup}
               />
               <div className="md:col-span-2">
@@ -739,24 +440,24 @@ export const MemberDetailsCard = ({
               </div>
               <InfoRow
                 icon={Calendar}
-                label="Р РµРіРёСЃС‚СЂР°С†РёСЏ"
+                label="Регистрация"
                 value={formattedRegistrationDate}
               />
               <InfoRow
                 icon={Building}
-                label="РЈС‡РёР»РёС‰Рµ"
+                label="Училище"
                 value={member.educationInstitution}
               />
               <InfoRow
                 icon={Users}
-                label="Р•РєРёРїРёСЂРѕРІРєР°"
+                label="Екипировка"
                 value={member.apparelSize}
               />
-              <InfoRow icon={Home} label="РђРґСЂРµСЃ" value={member.address} />
+              <InfoRow icon={Home} label="Адрес" value={member.address} />
               <div className="md:col-span-2">
                 <InfoRow
                   icon={FileText}
-                  label="Р‘РµР»РµР¶РєРё"
+                  label="Бележки"
                   value={member.notes}
                   isBlock={true}
                 />
@@ -767,7 +468,7 @@ export const MemberDetailsCard = ({
               <div className="mt-16">
                 <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-8 flex items-center gap-3">
                   <Users className="h-4 w-4" strokeWidth={1.5} />
-                  Р§Р»РµРЅРѕРІРµ РЅР° СЃРµРјРµР№СЃС‚РІРѕС‚Рѕ
+                  Членове на семейството
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {familyMembers.map((familyMember) => (
@@ -791,8 +492,8 @@ export const MemberDetailsCard = ({
                         </p>
                         <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest truncate mt-1">
                           {familyMember.status === "active"
-                            ? "РђРєС‚РёРІРµРЅ"
-                            : "РќРµР°РєС‚РёРІРµРЅ"}
+                            ? "Активен"
+                            : "Неактивен"}
                         </p>
                       </div>
                     </div>
@@ -811,7 +512,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasMembershipApplication
+                    member.hasMembershipApplication
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -823,25 +524,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РњРѕР»Р±Р° Р·Р° С‡Р»РµРЅСЃС‚РІРѕ
+                    Молба за членство
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasMembershipApplication ? (
+                    {member.hasMembershipApplication ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅР° РЅР°{" "}
-                        {formatDocDate(
-                          localMember.membershipApplicationHandedAt
-                        )}
+                        Предадена на{" "}
+                        {formatDocDate(member.membershipApplicationHandedAt)}
                       </span>
-                    ) : localMember.membershipApplicationPrintedAt ? (
+                    ) : member.membershipApplicationPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅР° РЅР°{" "}
-                        {formatDocDate(
-                          localMember.membershipApplicationPrintedAt
-                        )}
+                        Разпечатана на{" "}
+                        {formatDocDate(member.membershipApplicationPrintedAt)}
                       </span>
                     ) : (
-                      "РћСЃРЅРѕРІРµРЅ РґРѕРєСѓРјРµРЅС‚ Р·Р° РїСЂРёРµРјР°РЅРµ РІ РєР»СѓР±Р°."
+                      "Основен документ за приемане в клуба."
                     )}
                   </p>
                 </div>
@@ -862,31 +559,26 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasMembershipApplication &&
+                    !member.hasMembershipApplication &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "membershipApplication",
-                      localMember.hasMembershipApplication ? "cancel" : "submit"
+                      member.hasMembershipApplication ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasMembershipApplication
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅР°"}
+                  {member.hasMembershipApplication
+                    ? "Отмени"
+                    : "Отбележи предадена"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "membershipApplication",
-                  localMember.hasMembershipApplication,
-                  localMember.membershipApplicationUrl
-                )}
               </div>
             </div>
 
@@ -896,7 +588,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasTerminationRequest
+                    member.hasTerminationRequest
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -908,21 +600,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РњРѕР»Р±Р° Р·Р° РїСЂРµРєСЂР°С‚СЏРІР°РЅРµ
+                    Молба за прекратяване
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasTerminationRequest ? (
+                    {member.hasTerminationRequest ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅР° РЅР°{" "}
-                        {formatDocDate(localMember.terminationRequestHandedAt)}
+                        Предадена на{" "}
+                        {formatDocDate(member.terminationRequestHandedAt)}
                       </span>
-                    ) : localMember.terminationRequestPrintedAt ? (
+                    ) : member.terminationRequestPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅР° РЅР°{" "}
-                        {formatDocDate(localMember.terminationRequestPrintedAt)}
+                        Разпечатана на{" "}
+                        {formatDocDate(member.terminationRequestPrintedAt)}
                       </span>
                     ) : (
-                      "Р”РѕРєСѓРјРµРЅС‚ Р·Р° РїСЂРµРєСЂР°С‚СЏРІР°РЅРµ РЅР° С‡Р»РµРЅСЃС‚РІРѕ."
+                      "Документ за прекратяване на членство."
                     )}
                   </p>
                 </div>
@@ -943,31 +635,26 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasTerminationRequest &&
+                    !member.hasTerminationRequest &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "terminationRequest",
-                      localMember.hasTerminationRequest ? "cancel" : "submit"
+                      member.hasTerminationRequest ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasTerminationRequest
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅР°"}
+                  {member.hasTerminationRequest
+                    ? "Отмени"
+                    : "Отбележи предадена"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "terminationRequest",
-                  localMember.hasTerminationRequest,
-                  localMember.terminationRequestUrl
-                )}
               </div>
             </div>
 
@@ -977,7 +664,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasInternalRules
+                    member.hasInternalRules
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -989,21 +676,20 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Р’СЉС‚СЂРµС€РµРЅ РїСЂР°РІРёР»РЅРёРє
+                    Вътрешен правилник
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasInternalRules ? (
+                    {member.hasInternalRules ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРёРµС‚ РЅР°{" "}
-                        {formatDocDate(localMember.internalRulesHandedAt)}
+                        Приет на {formatDocDate(member.internalRulesHandedAt)}
                       </span>
-                    ) : localMember.internalRulesPrintedAt ? (
+                    ) : member.internalRulesPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅ РЅР°{" "}
-                        {formatDocDate(localMember.internalRulesPrintedAt)}
+                        Разпечатан на{" "}
+                        {formatDocDate(member.internalRulesPrintedAt)}
                       </span>
                     ) : (
-                      "РџСЂР°РІРёР»Р° Р·Р° СЂР°Р±РѕС‚Р° Рё РµС‚РёРєР° РІ РєР»СѓР±Р°."
+                      "Правила за работа и етика в клуба."
                     )}
                   </p>
                 </div>
@@ -1024,31 +710,24 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasInternalRules &&
+                    !member.hasInternalRules &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "internalRules",
-                      localMember.hasInternalRules ? "cancel" : "submit"
+                      member.hasInternalRules ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasInternalRules
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРёРµС‚"}
+                  {member.hasInternalRules ? "Отмени" : "Отбележи приет"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "internalRules",
-                  localMember.hasInternalRules,
-                  localMember.internalRulesUrl
-                )}
               </div>
             </div>
 
@@ -1058,12 +737,12 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasSignedDeclaration
+                    member.hasSignedDeclaration
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
                 >
-                  {localMember.hasSignedDeclaration ? (
+                  {member.hasSignedDeclaration ? (
                     <CheckCircle
                       className="h-5 w-5 sm:h-6 sm:w-6"
                       strokeWidth={1.5}
@@ -1077,22 +756,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Р”РµРєР»Р°СЂР°С†РёСЏ Р·Р° РёРЅС„РѕСЂРјРёСЂР°РЅРѕ
-                    СЃСЉРіР»Р°СЃРёРµ
+                    Декларация за информирано съгласие
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasSignedDeclaration ? (
+                    {member.hasSignedDeclaration ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅР° РЅР°{" "}
-                        {formatDocDate(localMember.signedDeclarationHandedAt)}
+                        Предадена на{" "}
+                        {formatDocDate(member.signedDeclarationHandedAt)}
                       </span>
-                    ) : localMember.signedDeclarationPrintedAt ? (
+                    ) : member.signedDeclarationPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅР° РЅР°{" "}
-                        {formatDocDate(localMember.signedDeclarationPrintedAt)}
+                        Разпечатана на{" "}
+                        {formatDocDate(member.signedDeclarationPrintedAt)}
                       </span>
                     ) : (
-                      "Р›РёРїСЃРІР° РґРµРєР»Р°СЂР°С†РёСЏ!"
+                      "Липсва декларация!"
                     )}
                   </p>
                 </div>
@@ -1110,31 +788,26 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasSignedDeclaration &&
+                    !member.hasSignedDeclaration &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "signedDeclaration",
-                      localMember.hasSignedDeclaration ? "cancel" : "submit"
+                      member.hasSignedDeclaration ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasSignedDeclaration
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅР°"}
+                  {member.hasSignedDeclaration
+                    ? "Отмени"
+                    : "Отбележи предадена"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "signedDeclaration",
-                  localMember.hasSignedDeclaration,
-                  localMember.signedDeclarationUrl
-                )}
               </div>
             </div>
 
@@ -1144,7 +817,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasTravelDeclaration
+                    member.hasTravelDeclaration
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -1156,21 +829,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РЎСЉРіР»Р°СЃРёРµ Р·Р° СѓС‡Р°СЃС‚РёРµ Рё РїСЉС‚СѓРІР°РЅРµ
+                    Съгласие за участие и пътуване
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasTravelDeclaration ? (
+                    {member.hasTravelDeclaration ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅРѕ РЅР°{" "}
-                        {formatDocDate(localMember.travelDeclarationHandedAt)}
+                        Предадено на{" "}
+                        {formatDocDate(member.travelDeclarationHandedAt)}
                       </span>
-                    ) : localMember.travelDeclarationPrintedAt ? (
+                    ) : member.travelDeclarationPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅРѕ РЅР°{" "}
-                        {formatDocDate(localMember.travelDeclarationPrintedAt)}
+                        Разпечатано на{" "}
+                        {formatDocDate(member.travelDeclarationPrintedAt)}
                       </span>
                     ) : (
-                      "РЎСЉРіР»Р°СЃРёРµ Р·Р° С‚СЂР°РЅСЃРїРѕСЂС‚ Рё СЃРїРѕСЂС‚РЅРё СЃСЉР±РёС‚РёСЏ."
+                      "Съгласие за транспорт и спортни събития."
                     )}
                   </p>
                 </div>
@@ -1191,31 +864,26 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasTravelDeclaration &&
+                    !member.hasTravelDeclaration &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "travelDeclaration",
-                      localMember.hasTravelDeclaration ? "cancel" : "submit"
+                      member.hasTravelDeclaration ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasTravelDeclaration
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅРѕ"}
+                  {member.hasTravelDeclaration
+                    ? "Отмени"
+                    : "Отбележи предадено"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "travelDeclaration",
-                  localMember.hasTravelDeclaration,
-                  localMember.travelDeclarationUrl
-                )}
               </div>
             </div>
 
@@ -1225,7 +893,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasSafetyInstruction
+                    member.hasSafetyInstruction
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -1237,21 +905,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РРЅСЃС‚СЂСѓРєС‚Р°Р¶ Р·Р° Р±РµР·РѕРїР°СЃРЅРѕСЃС‚
+                    Инструктаж за безопасност
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasSafetyInstruction ? (
+                    {member.hasSafetyInstruction ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅ РЅР°{" "}
-                        {formatDocDate(localMember.safetyInstructionHandedAt)}
+                        Предаден на{" "}
+                        {formatDocDate(member.safetyInstructionHandedAt)}
                       </span>
-                    ) : localMember.safetyInstructionPrintedAt ? (
+                    ) : member.safetyInstructionPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅ РЅР°{" "}
-                        {formatDocDate(localMember.safetyInstructionPrintedAt)}
+                        Разпечатан на{" "}
+                        {formatDocDate(member.safetyInstructionPrintedAt)}
                       </span>
                     ) : (
-                      "РџСЂР°РІРёР»Р° Р·Р° РїСЉС‚СѓРІР°РЅРµ Рё СЃСЉСЃС‚РµР·Р°РЅРёСЏ."
+                      "Правила за пътуване и състезания."
                     )}
                   </p>
                 </div>
@@ -1272,31 +940,24 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasSafetyInstruction &&
+                    !member.hasSafetyInstruction &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "safetyInstruction",
-                      localMember.hasSafetyInstruction ? "cancel" : "submit"
+                      member.hasSafetyInstruction ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasSafetyInstruction
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅ"}
+                  {member.hasSafetyInstruction ? "Отмени" : "Отбележи предаден"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "safetyInstruction",
-                  localMember.hasSafetyInstruction,
-                  localMember.safetyInstructionUrl
-                )}
               </div>
             </div>
 
@@ -1306,7 +967,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.isLicensed
+                    member.isLicensed
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -1318,21 +979,20 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РљР°СЂС‚РѕС‚РµРєР° РєСЉРј Р‘Р¤Р‘
+                    Картотека към БФБ
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.isLicensed ? (
+                    {member.isLicensed ? (
                       <span className="text-emerald-600 font-medium">
-                        РђРєС‚РёРІРЅР° РѕС‚{" "}
-                        {formatDocDate(localMember.isLicensedHandedAt)}
+                        Активна от {formatDocDate(member.isLicensedHandedAt)}
                       </span>
-                    ) : localMember.isLicensedPrintedAt ? (
+                    ) : member.isLicensedPrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅР° РЅР°{" "}
-                        {formatDocDate(localMember.isLicensedPrintedAt)}
+                        Разпечатана на{" "}
+                        {formatDocDate(member.isLicensedPrintedAt)}
                       </span>
                     ) : (
-                      "РќСЏРјР° Р°РєС‚РёРІРЅР° РєР°СЂС‚РѕС‚РµРєР°."
+                      "Няма активна картотека."
                     )}
                   </p>
                 </div>
@@ -1350,31 +1010,24 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.isLicensed &&
+                    !member.isLicensed &&
                       "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "isLicensed",
-                      localMember.isLicensed ? "cancel" : "submit"
+                      member.isLicensed ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.isLicensed
-                    ? "РћС‚РјРµРЅРё"
-                    : "РђРєС‚РёРІРёСЂР°Р№"}
+                  {member.isLicensed ? "Отмени" : "Активирай"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "isLicensed",
-                  localMember.isLicensed,
-                  localMember.isLicensedUrl
-                )}
               </div>
             </div>
 
@@ -1384,7 +1037,7 @@ export const MemberDetailsCard = ({
                 <div
                   className={cn(
                     "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    localMember.hasMedicalCertificate
+                    member.hasMedicalCertificate
                       ? "bg-zinc-950 text-white"
                       : "bg-white border border-zinc-100 text-zinc-300"
                   )}
@@ -1396,21 +1049,21 @@ export const MemberDetailsCard = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    РњРµРґРёС†РёРЅСЃРєРѕ СЃРІРёРґРµС‚РµР»СЃС‚РІРѕ
+                    Медицинско свидетелство
                   </h4>
                   <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {localMember.hasMedicalCertificate ? (
+                    {member.hasMedicalCertificate ? (
                       <span className="text-emerald-600 font-medium">
-                        РџСЂРµРґР°РґРµРЅРѕ РЅР°{" "}
-                        {formatDocDate(localMember.medicalCertificateHandedAt)}
+                        Предадено на{" "}
+                        {formatDocDate(member.medicalCertificateHandedAt)}
                       </span>
-                    ) : localMember.medicalCertificatePrintedAt ? (
+                    ) : member.medicalCertificatePrintedAt ? (
                       <span>
-                        Р Р°Р·РїРµС‡Р°С‚Р°РЅРѕ РЅР°{" "}
-                        {formatDocDate(localMember.medicalCertificatePrintedAt)}
+                        Разпечатано на{" "}
+                        {formatDocDate(member.medicalCertificatePrintedAt)}
                       </span>
                     ) : (
-                      "Р›РёРїСЃРІР° РјРµРґРёС†РёРЅСЃРєРѕ СЃРІРёРґРµС‚РµР»СЃС‚РІРѕ!"
+                      "Липсва медицинско свидетелство!"
                     )}
                   </p>
                 </div>
@@ -1431,51 +1084,40 @@ export const MemberDetailsCard = ({
                     className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
                     strokeWidth={1.5}
                   />
-                  РџРµС‡Р°С‚
+                  Печат
                 </Button>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !localMember.hasMedicalCertificate &&
+                    !member.hasMedicalCertificate &&
                       "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
                   )}
                   onClick={() =>
                     updateDocumentStatus(
                       "medicalCertificate",
-                      localMember.hasMedicalCertificate ? "cancel" : "submit"
+                      member.hasMedicalCertificate ? "cancel" : "submit"
                     )
                   }
                 >
-                  {localMember.hasMedicalCertificate
-                    ? "РћС‚РјРµРЅРё"
-                    : "РћС‚Р±РµР»РµР¶Рё РїСЂРµРґР°РґРµРЅРѕ"}
+                  {member.hasMedicalCertificate
+                    ? "Отмени"
+                    : "Отбележи предадено"}
                 </Button>
-                {renderDocAttachmentSection(
-                  "medicalCertificate",
-                  localMember.hasMedicalCertificate,
-                  localMember.medicalCertificateUrl
-                )}
               </div>
             </div>
           </div>
         </TabsContent>
 
+        <TabsContent value="sales" className="focus-visible:outline-none">
+          <MemberSalesHistory memberId={member.id} />
+        </TabsContent>
+
         <TabsContent
           value="subscriptions"
-          className="focus-visible:outline-none space-y-6"
+          className="focus-visible:outline-none"
         >
-          <MemberSubscriptionsTab
-            memberId={member.id}
-            member={member}
-            memberIds={family?.memberIds || [member.id]}
-            familyMembers={familyMembers || []}
-          />
-          <MemberSalesHistory
-            memberId={member.id}
-            memberIds={family?.memberIds || [member.id]}
-            familyMembers={familyMembers || []}
-          />
+          <MemberSubscriptionsTab memberId={member.id} />
         </TabsContent>
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
@@ -1491,40 +1133,33 @@ const InfoRow = ({
   label,
   value,
   isBlock = false,
-  onClick,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | null | undefined;
   isBlock?: boolean;
-  onClick?: () => void;
 }) => {
   if (value === null || value === undefined || value === "") return null;
 
   return (
     <div
-      onClick={onClick}
       className={cn(
         "flex py-4 sm:py-6 border-b border-zinc-50 last:border-0",
-        onClick && "cursor-pointer group/row",
         isBlock
           ? "flex-col items-start gap-3 sm:gap-4"
           : "flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0 group-hover/row:bg-zinc-100 transition-colors">
-          <Icon
-            className="h-3.5 w-3.5 text-zinc-400 group-hover/row:text-zinc-950 transition-colors"
-            strokeWidth={1.5}
-          />
+        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
         </div>
-        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 group-hover/row:text-zinc-950 transition-colors">
+        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
           {label}
         </span>
       </div>
       {!isBlock ? (
-        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0 group-hover/row:font-medium transition-all">
+        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0">
           {value}
         </span>
       ) : (
