@@ -26,7 +26,27 @@ const LoginPage = () => {
     try {
       const auth = getFirebaseAuth();
       // Trim email to avoid common login mistakes
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      const idToken = await userCredential.user.getIdToken();
+
+      // Call the server API to create an HttpOnly session cookie
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Неуспешно създаване на сесия");
+      }
+
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към таблото за управление...",
       });

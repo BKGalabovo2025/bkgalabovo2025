@@ -48,14 +48,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = await user.getIdToken();
         setUser(user);
         setIdToken(token);
-        // Set a simple cookie for middleware
-        document.cookie = `session=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
       } else {
         setUser(null);
         setIdToken(null);
-        // Remove cookie
-        document.cookie =
-          "session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       }
       setLoading(false);
     });
@@ -85,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(async () => {
     try {
       const auth = getFirebaseAuth();
+      await fetch("/api/auth/logout", { method: "POST" });
       await firebaseSignOut(auth);
       router.push("/login");
     } catch (error) {

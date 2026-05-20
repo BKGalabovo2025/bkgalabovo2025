@@ -29,20 +29,20 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     throw new Error("No member ID provided.");
   }
 
-  const memberData = await getMemberById(memberId);
+  const familiesRef = collection(db, "families");
+  const q = query(familiesRef, where("memberIds", "array-contains", memberId));
+
+  const [memberData, subscriptionsData, attendancesData, familySnapshot] =
+    await Promise.all([
+      getMemberById(memberId),
+      getSubscriptionsByMemberId(memberId),
+      getAttendancesByMemberId(memberId),
+      getDocs(q),
+    ]);
+
   if (!memberData) {
     throw new Error("Member not found.");
   }
-
-  const [subscriptionsData, attendancesData] = await Promise.all([
-    getSubscriptionsByMemberId(memberId),
-    getAttendancesByMemberId(memberId),
-  ]);
-
-  // Fetch family info
-  const familiesRef = collection(db, "families");
-  const q = query(familiesRef, where("memberIds", "array-contains", memberId));
-  const familySnapshot = await getDocs(q);
 
   let familyData: Family | null = null;
   const familyMembers: Member[] = [];

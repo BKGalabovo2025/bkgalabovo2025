@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,7 @@ interface MembersClientProps {
 
 export default function MembersClient({ initialMembers }: MembersClientProps) {
   const router = useRouter();
+  const [members, setMembers] = useState<Member[]>(initialMembers);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<
@@ -72,8 +73,52 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const { families } = useFamilies();
   const [activeTab, setActiveTab] = useState("members");
 
+  // Умни филтри
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const [ageFilter, setAgeFilter] = useState<"all" | "under18" | "18plus">(
+    "all"
+  );
+  const [medicalFilter, setMedicalFilter] = useState<
+    "all" | "valid" | "missing"
+  >("all");
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "due">(
+    "all"
+  );
+  const [documentFilter, setDocumentFilter] = useState<
+    "all" | "missing-declaration" | "missing-safety" | "all-valid"
+  >("all");
+
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, [initialMembers]);
+
+  // Нулиране на страницата при промяна на филтри
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchTerm,
+    statusFilter,
+    ageFilter,
+    medicalFilter,
+    paymentFilter,
+    documentFilter,
+  ]);
+
+  const calculateAge = (dateOfBirthString?: string | null) => {
+    if (!dateOfBirthString) return null;
+    const dob = new Date(dateOfBirthString);
+    if (isNaN(dob.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const filteredMembers = useMemo(() => {
-    return initialMembers
+    return members
       .filter((member) => {
         const matchesSearch =
           `${member.firstName} ${member.lastName}`
@@ -85,14 +130,117 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         const matchesStatus =
           statusFilter === "all" || member.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        // Възрастов филтър
+        const age = calculateAge(member.dateOfBirth);
+        const matchesAge =
+          ageFilter === "all" ||
+          (ageFilter === "under18" && age !== null && age < 18) ||
+          (ageFilter === "18plus" && age !== null && age >= 18);
+
+        // Филтър за медицинско
+        const matchesMedical =
+          medicalFilter === "all" ||
+          (medicalFilter === "valid" &&
+            member.hasMedicalCertificate === true) ||
+          (medicalFilter === "missing" &&
+            member.hasMedicalCertificate !== true);
+
+        // Филтър за плащания (дължимо след 30 дни от последното плащане)
+        const lastPayment = member.lastPaymentDate
+          ? new Date(member.lastPaymentDate)
+          : null;
+        const isPaymentDue =
+          !lastPayment ||
+          (new Date().getTime() - lastPayment.getTime()) / (1000 * 3600 * 24) >
+            30;
+        const matchesPayment =
+          paymentFilter === "all" ||
+          (paymentFilter === "paid" && !isPaymentDue) ||
+          (paymentFilter === "due" && isPaymentDue);
+
+        // Филтър за документи
+        const matchesDocument =
+          documentFilter === "all" ||
+          (documentFilter === "missing-declaration" &&
+            member.hasSignedDeclaration !== true) ||
+          (documentFilter === "missing-safety" &&
+            member.hasSafetyInstruction !== true) ||
+          (documentFilter === "all-valid" &&
+            member.hasSignedDeclaration === true &&
+            member.hasMedicalCertificate === true &&
+            member.hasSafetyInstruction === true);
+
+        return (
+          matchesSearch &&
+          matchesStatus &&
+          matchesAge &&
+          matchesMedical &&
+          matchesPayment &&
+          matchesDocument
+        );
       })
       .sort((a, b) => {
         const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
         const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
         return nameA.localeCompare(nameB, "bg");
       });
-  }, [initialMembers, searchTerm, statusFilter]);
+  }, [
+    members,
+    searchTerm,
+    statusFilter,
+    ageFilter,
+    medicalFilter,
+    paymentFilter,
+    documentFilter,
+  ]);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (ageFilter !== "all") count++;
+    if (medicalFilter !== "all") count++;
+    if (paymentFilter !== "all") count++;
+    if (documentFilter !== "all") count++;
+    return count;
+  }, [ageFilter, medicalFilter, paymentFilter, documentFilter]);
+
+  const applyPreset = (
+    preset:
+      | "under18-no-medical"
+      | "unpaid-fees"
+      | "missing-declarations"
+      | "all-clear"
+  ) => {
+    if (preset === "under18-no-medical") {
+      setAgeFilter("under18");
+      setMedicalFilter("missing");
+      setPaymentFilter("all");
+      setDocumentFilter("all");
+    } else if (preset === "unpaid-fees") {
+      setAgeFilter("all");
+      setMedicalFilter("all");
+      setPaymentFilter("due");
+      setDocumentFilter("all");
+    } else if (preset === "missing-declarations") {
+      setAgeFilter("all");
+      setMedicalFilter("all");
+      setPaymentFilter("all");
+      setDocumentFilter("missing-declaration");
+    } else if (preset === "all-clear") {
+      setStatusFilter("active");
+      setAgeFilter("all");
+      setMedicalFilter("valid");
+      setPaymentFilter("paid");
+      setDocumentFilter("all-valid");
+    }
+  };
+
+  const clearAllFilters = () => {
+    setStatusFilter("all");
+    setAgeFilter("all");
+    setMedicalFilter("all");
+    setPaymentFilter("all");
+    setDocumentFilter("all");
+  };
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
   const paginatedMembers = useMemo(() => {
@@ -102,11 +250,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
   const stats = useMemo(() => {
     return {
-      total: initialMembers.length,
-      active: initialMembers.filter((m) => m.status === "active").length,
-      inactive: initialMembers.filter((m) => m.status === "inactive").length,
+      total: members.length,
+      active: members.filter((m) => m.status === "active").length,
+      inactive: members.filter((m) => m.status === "inactive").length,
     };
-  }, [initialMembers]);
+  }, [members]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === paginatedMembers.length) {
@@ -124,6 +272,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
   const handleBulkStatusUpdate = async (status: "active" | "inactive") => {
     if (selectedIds.length === 0 || !idToken) return;
+
+    // Optimistic Update
+    const previousMembers = members;
+    setMembers((prev) =>
+      prev.map((m) => (selectedIds.includes(m.id) ? { ...m, status } : m))
+    );
+    setSelectedIds([]);
+
     try {
       const result = await bulkUpdateMemberStatusAction(
         selectedIds,
@@ -134,12 +290,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         toast.success(
           result.message || `Успешно обновени ${selectedIds.length} членове`
         );
-        setSelectedIds([]);
         router.refresh();
       } else {
+        setMembers(previousMembers);
         toast.error(result.message || "Възникна грешка при обновяването");
       }
     } catch {
+      setMembers(previousMembers);
       toast.error("Възникна сървърна грешка");
     }
   };
@@ -174,16 +331,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     )
       return;
 
+    // Optimistic Update
+    const previousMembers = members;
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+
     try {
       const result = await deleteMemberAction(id, idToken);
       if (result.success) {
         toast.success("Членът е изтрит");
         router.refresh();
       } else {
+        setMembers(previousMembers);
         toast.error("Грешка", { description: result.message });
       }
     } catch (error) {
       console.error("Delete error:", error);
+      setMembers(previousMembers);
       toast.error("Възникна сървърна грешка");
     }
   };
@@ -341,17 +504,43 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto custom-scrollbar no-scrollbar pb-2 sm:pb-0">
-                  <Filter
-                    className="h-3.5 w-3.5 text-zinc-400 shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                    className={cn(
+                      "rounded-xl border-zinc-200 h-10 text-[10px] font-semibold uppercase tracking-widest px-4 shrink-0 transition-all",
+                      isFiltersExpanded || activeFiltersCount > 0
+                        ? "bg-zinc-950 text-white hover:bg-zinc-850 hover:text-white dark:bg-white dark:text-zinc-950 border-transparent shadow-sm"
+                        : "hover:bg-zinc-50"
+                    )}
+                  >
+                    <Filter
+                      className="mr-1.5 h-3.5 w-3.5 shrink-0"
+                      strokeWidth={1.5}
+                    />
+                    Умни филтри
+                    {activeFiltersCount > 0 && (
+                      <span
+                        className={cn(
+                          "ml-1.5 px-1.5 py-0.5 text-[8px] rounded-full font-bold",
+                          isFiltersExpanded || activeFiltersCount > 0
+                            ? "bg-white text-zinc-950 dark:bg-zinc-950 dark:text-white"
+                            : "bg-zinc-100 text-zinc-900"
+                        )}
+                      >
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                  </Button>
+
+                  <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 shrink-0 h-10 items-center">
                     {(["all", "active", "inactive"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setStatusFilter(f)}
                         className={cn(
-                          "px-3 sm:px-5 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-medium uppercase tracking-widest rounded-lg transition-all whitespace-nowrap",
+                          "px-3 sm:px-4 py-1.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all whitespace-nowrap",
                           statusFilter === f
                             ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
                             : "text-zinc-500 hover:text-zinc-700"
@@ -367,6 +556,169 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   </div>
                 </div>
               </div>
+
+              {/* Умни филтри панел */}
+              {isFiltersExpanded && (
+                <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-300">
+                  {/* Age Filter */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                      Възрастова група
+                    </label>
+                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                      {(["all", "under18", "18plus"] as const).map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          onClick={() => setAgeFilter(a)}
+                          className={cn(
+                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            ageFilter === a
+                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              : "text-zinc-550 hover:text-zinc-700"
+                          )}
+                        >
+                          {a === "all"
+                            ? "Всички"
+                            : a === "under18"
+                              ? "под 18"
+                              : "18+"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Medical Filter */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                      Медицинско
+                    </label>
+                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                      {(["all", "valid", "missing"] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setMedicalFilter(m)}
+                          className={cn(
+                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            medicalFilter === m
+                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              : "text-zinc-550 hover:text-zinc-700"
+                          )}
+                        >
+                          {m === "all"
+                            ? "Всички"
+                            : m === "valid"
+                              ? "Има"
+                              : "Няма"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Payment Filter */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                      Такси / Плащане
+                    </label>
+                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                      {(["all", "paid", "due"] as const).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPaymentFilter(p)}
+                          className={cn(
+                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            paymentFilter === p
+                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              : "text-zinc-550 hover:text-zinc-700"
+                          )}
+                        >
+                          {p === "all"
+                            ? "Всички"
+                            : p === "paid"
+                              ? "Платена"
+                              : "Неплатена"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Documents Filter */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                      Документи
+                    </label>
+                    <select
+                      value={documentFilter}
+                      onChange={(e) =>
+                        setDocumentFilter(
+                          e.target.value as
+                            | "all"
+                            | "missing-declaration"
+                            | "missing-safety"
+                            | "all-valid"
+                        )
+                      }
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-transparent rounded-xl h-9.5 px-3 text-[10px] font-medium uppercase tracking-widest outline-none focus:bg-white dark:focus:bg-zinc-800 focus:border-zinc-200"
+                    >
+                      <option value="all">Всички документи</option>
+                      <option value="missing-declaration">
+                        Без Декларация
+                      </option>
+                      <option value="missing-safety">Без Инструктаж</option>
+                      <option value="all-valid">Всичко изрядно</option>
+                    </select>
+                  </div>
+
+                  {/* Presets and Clear All row */}
+                  <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-55 dark:border-zinc-900">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-medium text-zinc-450 uppercase tracking-widest mr-1">
+                        Бързи филтри:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => applyPreset("under18-no-medical")}
+                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                      >
+                        Деца без медицинско
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyPreset("unpaid-fees")}
+                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                      >
+                        С неплатени такси
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyPreset("missing-declarations")}
+                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                      >
+                        Липсващи декларации
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyPreset("all-clear")}
+                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 hover:bg-emerald-100/70 transition-colors"
+                      >
+                        Всичко изрядно ✨
+                      </button>
+                    </div>
+
+                    {(activeFiltersCount > 0 || statusFilter !== "all") && (
+                      <button
+                        type="button"
+                        onClick={clearAllFilters}
+                        className="text-[9px] font-semibold text-rose-600 dark:text-rose-450 hover:underline uppercase tracking-widest"
+                      >
+                        Изчисти филтрите
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Desktop View: Table */}

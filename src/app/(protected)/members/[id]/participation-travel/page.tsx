@@ -3,19 +3,67 @@
 import { useParams, useRouter } from "next/navigation";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, PenLine, Loader2 } from "lucide-react";
 import { formatFullName } from "@/lib/utils";
+import { useState } from "react";
+import { SignatureDialog } from "@/components/members/signature-dialog";
+import { uploadFile } from "@/services/storage-service";
+import { updateMemberAction } from "@/lib/actions/members";
+import { useAuth } from "@/context/auth-context";
+import { toast } from "sonner";
 
 const ParticipationTravelPage = () => {
   const params = useParams();
   const router = useRouter();
   const memberId = params.id as string;
-  const { member, loading } = useMemberProfile(memberId);
+  const { member, loading, refetch } = useMemberProfile(memberId);
+  const { idToken } = useAuth();
+  const [signatureOpen, setSignatureOpen] = useState(false);
+  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (loading) return <div className="p-8">Зареждане...</div>;
   if (!member) return <div className="p-8">Членът не е намерен.</div>;
 
   const fullName = formatFullName(member);
+  const existingSignatureUrl =
+    signatureUrl ||
+    ((member as Record<string, unknown>).travelDeclarationSignatureUrl as
+      | string
+      | null) ||
+    null;
+
+  const handleSignatureSave = async (file: File) => {
+    if (!idToken) {
+      toast.error("Грешка при оторизация");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const path = `signatures/${memberId}/travelDeclaration.png`;
+      const url = await uploadFile(path, file, idToken);
+
+      const result = await updateMemberAction(memberId, idToken, {
+        travelDeclarationSignatureUrl: url,
+        hasTravelDeclaration: true,
+        travelDeclarationHandedAt: new Date().toISOString(),
+      });
+
+      if (result.success) {
+        setSignatureUrl(url);
+        toast.success("Подписът е запазен успешно!");
+        if (refetch) refetch();
+        router.refresh();
+      } else {
+        toast.error("Грешка при запазване на подписа");
+      }
+    } catch (err) {
+      console.error("Signature save error:", err);
+      toast.error("Грешка при качване на подписа");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white min-h-screen font-serif">
@@ -28,12 +76,30 @@ const ParticipationTravelPage = () => {
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Назад
         </Button>
-        <Button
-          onClick={() => window.print()}
-          className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
-        >
-          <Printer className="mr-2 h-4 w-4" /> Принтирай
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setSignatureOpen(true)}
+            disabled={isSaving}
+            className="rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-950 transition-all font-medium text-[10px] uppercase tracking-widest"
+          >
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <PenLine className="mr-2 h-4 w-4" strokeWidth={1.5} />
+            )}
+            {existingSignatureUrl
+              ? "Смени подписа"
+              : "Добави електронен подпис"}
+          </Button>
+          <Button
+            onClick={() => window.print()}
+            className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+          >
+            <Printer className="mr-2 h-4 w-4" /> Принтирай
+          </Button>
+        </div>
       </div>
 
       <div className="print-area text-slate-900">
@@ -114,8 +180,8 @@ const ParticipationTravelPage = () => {
           <p className="pt-6 font-bold uppercase">СМЕ СЪГЛАСНИ:</p>
           <p className="text-justify">
             той/тя да тренира бадминтон, да пътува и участва на всички спортни
-            мероприятия и състезания на „Бадминтон клуб Гълъбово“ град Гълъбово,
-            с превоз, предоставен от клуба.
+            мероприятия и състезания на „Бадминтон клуб Гълъбово&quot; град
+            Гълъбово, с превоз, предоставен от клуба.
           </p>
           <p className="text-justify">
             Известно ни е, че за декларирани от нас неверни данни носим
@@ -131,7 +197,19 @@ const ParticipationTravelPage = () => {
             <p className="font-bold mb-6">ДЕКЛАРАТОРИ:</p>
             <div className="grid grid-cols-2 gap-16">
               <div className="space-y-2">
-                <p>1. ....................................................</p>
+                {existingSignatureUrl ? (
+                  <div className="border-b border-dotted border-slate-400 min-h-12 flex items-end justify-center pb-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={existingSignatureUrl}
+                      alt="Подпис на родител 1"
+                      className="h-14 w-auto object-contain"
+                      style={{ mixBlendMode: "multiply" }}
+                    />
+                  </div>
+                ) : (
+                  <p>1. ....................................................</p>
+                )}
                 <p className="text-[9pt] italic">/подпис на бащата/</p>
               </div>
               <div className="space-y-2">
@@ -163,6 +241,14 @@ const ParticipationTravelPage = () => {
         }
       `,
         }}
+      />
+
+      <SignatureDialog
+        open={signatureOpen}
+        onClose={() => setSignatureOpen(false)}
+        onSave={handleSignatureSave}
+        title="Подпис на Декларация за пътуване"
+        description={`Подпис за Декларация — Съгласие за участие и пътуване за ${fullName}`}
       />
     </div>
   );
