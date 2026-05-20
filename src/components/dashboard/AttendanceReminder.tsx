@@ -7,11 +7,24 @@ import { CalendarCheck2, ArrowRight, Loader2 } from "lucide-react";
 import { useEvents } from "@/hooks/useEvents";
 import { useRouter } from "next/navigation";
 
-export const AttendanceReminder = () => {
-  const { events, isLoading } = useEvents();
+interface AttendanceReminderProps {
+  initialEvents?: any[];
+}
+
+export const AttendanceReminder = ({
+  initialEvents,
+}: AttendanceReminderProps) => {
+  const { events, isLoading: clientLoading } = useEvents();
   const router = useRouter();
 
   const todayTrainings = useMemo(() => {
+    if (initialEvents) {
+      return [...initialEvents].sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
+    }
+
     if (!events) return [];
 
     const today = new Date();
@@ -33,9 +46,11 @@ export const AttendanceReminder = () => {
         (a, b) =>
           new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       );
-  }, [events]);
+  }, [events, initialEvents]);
 
-  if (isLoading) {
+  const showLoading = !initialEvents && clientLoading;
+
+  if (showLoading) {
     return (
       <BentoCard className="p-8 flex items-center justify-center border border-zinc-100 bg-white shadow-none rounded-4xl h-full">
         <Loader2 className="h-6 w-6 animate-spin text-zinc-200" />

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
-import { useDashboardData } from "@/hooks/useDashboardData";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { QuickTasks } from "@/components/dashboard/quick-tasks";
@@ -16,12 +15,14 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   LucideIcon,
+  RefreshCw,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/currency";
+import { getDashboardDataServerAction } from "@/lib/actions/dashboard";
 
 import { useAppStore } from "@/store/use-app-store";
 
@@ -105,19 +106,56 @@ const StatCard = ({
   );
 };
 
-export default function DashboardClient() {
+interface DashboardClientProps {
+  initialData: any;
+}
+
+export default function DashboardClient({ initialData }: DashboardClientProps) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { stats, loading } = useDashboardData();
   const { activeBranch } = useAppStore();
   const router = useRouter();
 
+  const [stats, setStats] = useState<any>(initialData?.stats || null);
+  const [todayTrainings, setTodayTrainings] = useState<any[]>(
+    initialData?.todayTrainings || []
+  );
+  const loading = false;
+  const [refreshing, setRefreshing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
+    setMounted(true);
   }, []);
+
+  const handleRefresh = useCallback(
+    async (quiet = false) => {
+      if (!quiet) setRefreshing(true);
+      try {
+        const result = await getDashboardDataServerAction(activeBranch);
+        if (result.success && result.data) {
+          setStats(result.data.stats);
+          setTodayTrainings(result.data.todayTrainings);
+        }
+      } catch (err) {
+        console.error("Error refreshing dashboard data:", err);
+      } finally {
+        if (!quiet) setRefreshing(false);
+      }
+    },
+    [activeBranch]
+  );
+
+  useEffect(() => {
+    // Quiet refresh when branch changes or on timer
+    handleRefresh(true);
+
+    const interval = setInterval(() => {
+      handleRefresh(true);
+    }, 300000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [handleRefresh]);
 
   // Branch-specific display logic
   const isRecoveryZone = activeBranch === "recoveryzone";
@@ -159,7 +197,22 @@ export default function DashboardClient() {
         description={displayGreeting}
         breadcrumbs={[{ label: "Начало" }]}
       >
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all h-12 w-12 flex items-center justify-center shrink-0"
+            onClick={() => handleRefresh(false)}
+            disabled={refreshing}
+            title={language === "bg" ? "Обнови" : "Refresh"}
+          >
+            <RefreshCw
+              className={cn(
+                "h-4 w-4 text-zinc-600 transition-transform duration-500",
+                refreshing && "animate-spin"
+              )}
+            />
+          </Button>
           <Button
             variant="outline"
             className="rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-medium text-[11px] uppercase tracking-widest h-12 px-6"
@@ -221,7 +274,7 @@ export default function DashboardClient() {
           <QuickTasks />
         </div>
         <div className="lg:col-span-3 space-y-8">
-          <AttendanceReminder />
+          <AttendanceReminder initialEvents={todayTrainings} />
         </div>
       </div>
     </div>

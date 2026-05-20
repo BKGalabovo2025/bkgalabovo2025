@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, AuthError } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { loginAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,47 +23,19 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const auth = getFirebaseAuth();
-      // Trim email to avoid common login mistakes
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
+      const res = await loginAction(email, password);
 
-      const idToken = await userCredential.user.getIdToken();
-
-      // Call the server API to create an HttpOnly session cookie
-      const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Неуспешно създаване на сесия");
+      if (!res.success) {
+        throw new Error(res.error || "Неуспешен вход");
       }
 
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към таблото за управление...",
       });
       router.push("/dashboard");
-    } catch (err) {
-      let errorMessage = "Възникна грешка при входа. Моля, опитайте отново.";
-      const firebaseError = err as AuthError;
-
-      console.error("Firebase Login Error Code:", firebaseError.code);
-      console.error("Full Firebase Error:", firebaseError);
-
-      if (
-        firebaseError.code === "auth/user-not-found" ||
-        firebaseError.code === "auth/wrong-password" ||
-        firebaseError.code === "auth/invalid-credential"
-      ) {
-        errorMessage = "Грешен имейл или парола.";
-      }
+    } catch (err: any) {
+      const errorMessage =
+        err.message || "Възникна грешка при входа. Моля, опитайте отново.";
       setError(errorMessage);
       toast.error("Грешка при вход", { description: errorMessage });
     } finally {

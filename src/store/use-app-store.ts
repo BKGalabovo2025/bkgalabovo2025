@@ -31,7 +31,12 @@ export const useAppStore = create<AppState>()(
 
       // Global UI
       activeBranch: "bkgalabovo", // Default
-      setActiveBranch: (branch) => set({ activeBranch: branch }),
+      setActiveBranch: (branch) => {
+        if (typeof window !== "undefined") {
+          document.cookie = `activeBranch=${branch}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+        set({ activeBranch: branch });
+      },
 
       // Search/Filter
       memberSearchQuery: "",
