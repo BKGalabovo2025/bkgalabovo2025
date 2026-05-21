@@ -34,8 +34,9 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["firebase-admin"],
+  outputFileTracingRoot: __dirname,
   turbopack: {
-    root: path.join(__dirname, ".."),
+    root: __dirname,
   },
   images: {
     remotePatterns: [
