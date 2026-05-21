@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
 
@@ -24,7 +24,7 @@ export async function createMemberAction(
   memberData: Record<string, unknown>
 ): Promise<MemberActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     // Validation
@@ -97,7 +97,7 @@ export async function updateMemberAction(
   memberData: Record<string, unknown>
 ): Promise<MemberActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     // Validation (allow partial updates)
@@ -190,7 +190,7 @@ export async function deleteMemberAction(
   idToken: string
 ): Promise<MemberActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const memberRef = adminDb.collection("members").doc(id);
@@ -247,7 +247,7 @@ export async function bulkUpdateMemberStatusAction(
   idToken: string
 ): Promise<MemberActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 

@@ -4,7 +4,7 @@ export default {
   "*.css": ["stylelint --fix", "prettier --write"],
   "*.json": ["prettier --write"],
 
-  // 2. След това, изпълняваме всички проверки за целия проект.
-  // Това се прави като функция, за да се гарантира, че ще се изпълни само веднъж.
-  "**/*": () => "npm run check-all",
+  // 2. След това изпълняваме по-лека глобална проверка (typecheck).
+  // Пълното `check-all` (tests + lint + typecheck) е по-добре да се пуска в CI.
+  "**/*": () => "npm run typecheck",
 };
