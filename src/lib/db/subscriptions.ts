@@ -12,7 +12,12 @@ export async function createSubscriptionInternal(
 ): Promise<string> {
   const adminDb = getAdminDb();
   const subRef = adminDb.collection("memberSubscriptions").doc();
-  const saleStatus = subscriptionData.price > 0 ? "completed" : "informational";
+  const isPaid = subscriptionData.pricePaid >= subscriptionData.price;
+  const saleStatus = isPaid
+    ? subscriptionData.price > 0
+      ? "completed"
+      : "informational"
+    : "pending";
 
   const saleData = {
     siteId: "default",
@@ -109,9 +114,23 @@ export async function updateSubscriptionInternal(
   });
 }
 /**
- * Deletes a subscription using Admin SDK.
+ * Deletes a subscription and its associated sales using Admin SDK in a transaction.
  */
 export async function deleteSubscriptionInternal(id: string): Promise<void> {
   const adminDb = getAdminDb();
-  await adminDb.collection("memberSubscriptions").doc(id).delete();
+  await adminDb.runTransaction(async (transaction) => {
+    // 1. Delete subscription
+    const subRef = adminDb.collection("memberSubscriptions").doc(id);
+    transaction.delete(subRef);
+
+    // 2. Find and delete associated sales
+    const salesSnapshot = await adminDb
+      .collection("sales")
+      .where("subscriptionId", "==", id)
+      .get();
+
+    salesSnapshot.docs.forEach((doc) => {
+      transaction.delete(doc.ref);
+    });
+  });
 }

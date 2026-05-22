@@ -2,11 +2,10 @@
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
-import { Member, Sale, Product, ScheduleEvent, Reminder } from "@/types";
-import {
-  getDashboardStats,
-  getRevenueTrendData,
-} from "@/services/dashboard-service";
+import { Member, Sale, ScheduleEvent, Reminder, Subscription } from "@/types";
+import { checkIsMemberOverdue } from "@/lib/membership-utils";
+import { getRevenueTrendData } from "@/services/dashboard-service";
+import { serverCache } from "@/lib/server-cache";
 import * as admin from "firebase-admin";
 
 function snapToData<T>(doc: admin.firestore.QueryDocumentSnapshot): T {
@@ -34,56 +33,51 @@ function snapToData<T>(doc: admin.firestore.QueryDocumentSnapshot): T {
   } as T;
 }
 
-// Replicate reminder generation on the server without needing client-side hooks
 function getOverdueReminders(
   allMembers: Member[],
-  allSales: Sale[]
+  allSubscriptions: Subscription[]
 ): Reminder[] {
   const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  const membersWithOverduePayments = allMembers.filter((member) => {
-    if (member.status !== "active") {
-      return false;
-    }
-    const hasCurrentSubscription = allSales.some(
-      (sale) =>
-        sale.memberId === member.id &&
-        sale.subscriptionId &&
-        new Date(sale.saleDate).getMonth() === currentMonth &&
-        new Date(sale.saleDate).getFullYear() === currentYear
-    );
-    return !hasCurrentSubscription;
-  });
-
   const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-  return membersWithOverduePayments.map((member, index) => ({
-    id: `overdue-${member.id}-${index}`,
-    title: "Просрочено плащане",
-    description: `Таксата за абонамента на ${member.firstName} ${member.lastName} за текущия месец не е платена.`,
-    dueDate: dueDate.toISOString(),
-    isCompleted: false,
-    type: "payment",
-    memberId: member.id,
-    memberName: `${member.firstName} ${member.lastName}`,
-    relatedId: member.id,
-  }));
+  const overdueMembers = allMembers.filter((member) => {
+    if (member.status !== "active") return false;
+    const memberSubs = allSubscriptions.filter(
+      (sub) => sub.memberId === member.id
+    );
+    return checkIsMemberOverdue(member, memberSubs).isOverdue;
+  });
+
+  return overdueMembers.map((member, index) => {
+    const memberSubs = allSubscriptions.filter(
+      (sub) => sub.memberId === member.id
+    );
+    const overdueCheck = checkIsMemberOverdue(member, memberSubs);
+    return {
+      id: `overdue-${member.id}-${index}`,
+      title: "Просрочено плащане",
+      description: overdueCheck.reason
+        ? `${member.firstName} ${member.lastName}: ${overdueCheck.reason}`
+        : `Таксата за абонамента на ${member.firstName} ${member.lastName} не е платена.`,
+      dueDate: dueDate.toISOString(),
+      isCompleted: false,
+      type: "payment",
+      memberId: member.id,
+      memberName: `${member.firstName} ${member.lastName}`,
+      relatedId: member.id,
+    };
+  });
 }
 
 export async function getDashboardDataServerAction(activeBranch: string) {
   try {
-    // Authenticate the user on the server
     const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
+    if (!user) throw new Error("Unauthorized");
 
     const adminDb = getAdminDb();
-
-    // Setup dates for today's events
     const now = new Date();
+
+    // Date ranges
     const startOfDay = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -97,76 +91,214 @@ export async function getDashboardDataServerAction(activeBranch: string) {
       59,
       59
     );
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
+    const sixtyDaysAgo = new Date(now);
+    sixtyDaysAgo.setDate(now.getDate() - 60);
+    const sixMonthsAgo = new Date(now);
+    sixMonthsAgo.setMonth(now.getMonth() - 6);
 
     const startStr = startOfDay.toISOString();
     const endStr = endOfDay.toISOString();
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString();
+    const sixtyDaysAgoStr = sixtyDaysAgo.toISOString();
+    const sixMonthsAgoStr = sixMonthsAgo.toISOString();
 
-    // Formulate Admin queries for all collections
-    let membersQuery: admin.firestore.Query = adminDb.collection("members");
-    let salesQuery: admin.firestore.Query = adminDb.collection("sales");
-    let productsQuery: admin.firestore.Query = adminDb.collection("products");
-    let eventsQuery: admin.firestore.Query = adminDb.collection("events");
+    // Cache key: per branch + per day (stats are stable within a day)
+    const todayKey = startOfDay.toISOString().slice(0, 10);
+    const cacheKey = `dashboard:${activeBranch}:${todayKey}`;
+    const TTL_MS = 90_000; // 90 seconds — reduces repeat reads on navigation
 
-    // Apply site filtering (matching getSiteQuery logic in firebase-collections)
-    if (activeBranch && activeBranch !== "bkgalabovo") {
-      membersQuery = membersQuery.where("siteId", "==", activeBranch);
-      salesQuery = salesQuery.where("siteId", "==", activeBranch);
-      productsQuery = productsQuery.where("siteId", "==", activeBranch);
-      eventsQuery = eventsQuery.where("siteId", "==", activeBranch);
-    }
+    return await serverCache.get(
+      cacheKey,
+      async () => {
+        // Base collection references
+        const siteFilter = activeBranch && activeBranch !== "bkgalabovo";
 
-    // Run Firestore fetches in parallel for blazing performance!
-    const [membersSnap, salesSnap, productsSnap, eventsSnap] =
-      await Promise.all([
-        membersQuery.get(),
-        salesQuery.get(),
-        productsQuery.get(),
-        eventsQuery
-          .where("startDate", ">=", startStr)
-          .where("startDate", "<=", endStr)
-          .get(),
-      ]);
+        const col = (name: string): admin.firestore.Query => {
+          const ref = adminDb.collection(name);
+          return siteFilter ? ref.where("siteId", "==", activeBranch) : ref;
+        };
 
-    const members = membersSnap.docs.map((doc) => snapToData<Member>(doc));
-    const sales = salesSnap.docs.map((doc) => snapToData<Sale>(doc));
-    const allProducts = productsSnap.docs.map((doc) =>
-      snapToData<Product>(doc)
-    );
-    const events = eventsSnap.docs.map((doc) => snapToData<ScheduleEvent>(doc));
+        // ── AGGREGATION QUERIES (count only — each costs 1 read) ──────────────
+        const [
+          totalMembersCount,
+          activeMembersCount,
+          newMembersThisMonthCount,
+          newMembersPrevMonthCount,
+          unpaidSalesCount,
+          trainingsCount,
+        ] = await Promise.all([
+          col("members").count().get(),
+          col("members").where("status", "==", "active").count().get(),
+          col("members")
+            .where("registrationDate", ">=", thirtyDaysAgoStr)
+            .count()
+            .get(),
+          col("members")
+            .where("registrationDate", ">=", sixtyDaysAgoStr)
+            .where("registrationDate", "<", thirtyDaysAgoStr)
+            .count()
+            .get(),
+          // Count sales that are NOT completed (pending/overdue)
+          col("sales").where("status", "==", "pending").count().get(),
+          col("events")
+            .where("startDate", ">=", startStr)
+            .where("startDate", "<=", endStr)
+            .where("type", "==", "training")
+            .count()
+            .get(),
+        ]);
 
-    // Filter low stock products (where stock <= restockThreshold)
-    const lowStockProducts = allProducts.filter(
-      (p) =>
-        typeof p.restockThreshold === "number" && p.stock <= p.restockThreshold
-    );
+        // ── DOCUMENT QUERIES (only what must be displayed) ─────────────────────
+        const [
+          recentSalesSnap,
+          salesFor6MonthsSnap,
+          activeMembersSnap,
+          activeSubsSnap,
+          eventsSnap,
+          productsSnap,
+        ] = await Promise.all([
+          // Last 5 sales for the "Recent Sales" widget
+          col("sales").orderBy("saleDate", "desc").limit(5).get(),
 
-    // Calculate stats
-    const stats = getDashboardStats(members, sales, lowStockProducts, events);
+          // Up to 6 months of completed+paid sales for revenue stats & chart
+          col("sales")
+            .where("saleDate", ">=", sixMonthsAgoStr)
+            .where("status", "==", "completed")
+            .limit(300)
+            .get(),
 
-    // Generate chart data
-    const revenueChartData = getRevenueTrendData(sales);
+          // Active members (needed for overdue reminder generation)
+          col("members").where("status", "==", "active").limit(300).get(),
 
-    // Generate reminders
-    const reminders = getOverdueReminders(members, sales);
+          // Active subscriptions (needed for overdue check)
+          col("memberSubscriptions")
+            .where("status", "==", "active")
+            .limit(300)
+            .get(),
 
-    // Sort sales for recent sales widget
-    const recentSales = [...sales]
-      .sort(
-        (a, b) =>
-          new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
-      )
-      .slice(0, 5);
+          // Today's events for display
+          col("events")
+            .where("startDate", ">=", startStr)
+            .where("startDate", "<=", endStr)
+            .limit(30)
+            .get(),
 
-    return {
-      success: true,
-      data: {
-        stats,
-        revenueChartData,
-        reminders,
-        recentSales,
-        todayTrainings: events.filter((e) => e.type === "training"),
+          // Products (small collection, needed for low-stock list)
+          col("products").limit(200).get(),
+        ]);
+
+        // Map documents
+        const recentSales = recentSalesSnap.docs.map((d) =>
+          snapToData<Sale>(d)
+        );
+        const salesFor6Months = salesFor6MonthsSnap.docs.map((d) =>
+          snapToData<Sale>(d)
+        );
+        const activeMembers = activeMembersSnap.docs.map((d) =>
+          snapToData<Member>(d)
+        );
+        const activeSubs = activeSubsSnap.docs.map((d) =>
+          snapToData<Subscription>(d)
+        );
+        const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
+        const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
+
+        // Low-stock products (client-side filter — products collection is small)
+        const lowStockProducts = allProducts.filter(
+          (p) =>
+            typeof p.restockThreshold === "number" &&
+            p.stock <= p.restockThreshold
+        );
+
+        // Revenue calculations from the scoped sales set
+        const calcRevenue = (list: Sale[]) =>
+          list
+            .filter((s) => s.isPaid === true)
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+        const salesLast30Days = salesFor6Months.filter(
+          (s) => new Date(s.saleDate) >= thirtyDaysAgo
+        );
+        const salesPrev30Days = salesFor6Months.filter(
+          (s) =>
+            new Date(s.saleDate) >= sixtyDaysAgo &&
+            new Date(s.saleDate) < thirtyDaysAgo
+        );
+
+        const revenueLast30Days = calcRevenue(salesLast30Days);
+        const revenuePrev30Days = calcRevenue(salesPrev30Days);
+        const revenueChange =
+          revenuePrev30Days > 0
+            ? ((revenueLast30Days - revenuePrev30Days) / revenuePrev30Days) *
+              100
+            : revenueLast30Days > 0
+              ? 100
+              : 0;
+
+        const totalRevenue = salesFor6Months
+          .filter((s) => s.isPaid === true)
+          .reduce(
+            (acc, s) => {
+              const cur = s.currency || "EUR";
+              acc[cur] = (acc[cur] || 0) + (s.totalAmount || 0);
+              return acc;
+            },
+            {} as Record<string, number>
+          );
+
+        const salesCountLast30 = salesLast30Days.length;
+        const salesCountPrev30 = salesPrev30Days.length;
+        const salesChange =
+          salesCountPrev30 > 0
+            ? ((salesCountLast30 - salesCountPrev30) / salesCountPrev30) * 100
+            : salesCountLast30 > 0
+              ? 100
+              : 0;
+
+        const tMem = totalMembersCount.data().count;
+        const aMem = activeMembersCount.data().count;
+        const newMemThis = newMembersThisMonthCount.data().count;
+        const newMemPrev = newMembersPrevMonthCount.data().count;
+        const newMembersChange =
+          newMemPrev > 0
+            ? ((newMemThis - newMemPrev) / newMemPrev) * 100
+            : newMemThis > 0
+              ? 100
+              : 0;
+
+        const stats = {
+          totalMembers: tMem,
+          activeMembersCount: aMem,
+          totalRevenue,
+          unpaidSales: unpaidSalesCount.data().count,
+          revenueLast30Days,
+          revenueChange,
+          newMembersLast30Days: newMemThis,
+          newMembersChange,
+          salesLast30Days: salesCountLast30,
+          salesChange,
+          lowStockCount: lowStockProducts.length,
+          trainingsToday: trainingsCount.data().count,
+        };
+
+        const revenueChartData = getRevenueTrendData(salesFor6Months);
+        const reminders = getOverdueReminders(activeMembers, activeSubs);
+
+        return {
+          success: true,
+          data: {
+            stats,
+            revenueChartData,
+            reminders,
+            recentSales,
+            todayTrainings: events.filter((e) => e.type === "training"),
+          },
+        };
       },
-    };
+      TTL_MS
+    );
   } catch (error: any) {
     console.error("Error fetching dashboard data on server:", error);
     return {

@@ -4,6 +4,7 @@ import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { Sale, Member, ClubService, Subscription, Family } from "@/types";
+import { getCachedSalesForBranch } from "@/lib/db/sales";
 
 // Помощна функция за преобразуване на Firestore документи с конвертиране на Timestamps в ISO низове
 function snapToData<T>(
@@ -41,7 +42,7 @@ function snapToData<T>(
 }
 
 /**
- * Извлича продажбите от инвентар на сървъра (subscriptionId == null).
+ * Извлича всички продажби на сървъра.
  */
 export async function getInventorySalesServerAction(activeBranch: string) {
   try {
@@ -50,27 +51,7 @@ export async function getInventorySalesServerAction(activeBranch: string) {
       throw new Error("Неоторизиран достъп.");
     }
 
-    const adminDb = getAdminDb();
-    let salesQuery: admin.firestore.Query = adminDb.collection("sales");
-
-    // Филтриране по клон (мултитенант)
-    if (activeBranch && activeBranch !== "bkgalabovo") {
-      salesQuery = salesQuery.where("siteId", "==", activeBranch);
-    }
-
-    // Взимаме само инвентарни продажби (subscriptionId == null)
-    // Firestore не поддържа директно "==" null в комбинация с други филтри лесно без индекси,
-    // но можем да извлечем продажбите и да ги филтрираме или да използваме query.
-    // За да сме сигурни в съвместимостта и бързината, извличаме и филтрираме в паметта.
-    const snapshot = await salesQuery.get();
-
-    const sales = snapshot.docs
-      .map((doc) => snapToData<Sale>(doc))
-      .filter((sale): sale is Sale => sale !== null && !sale.subscriptionId)
-      .sort(
-        (a, b) =>
-          new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
-      );
+    const sales = await getCachedSalesForBranch(activeBranch);
 
     return {
       success: true,
@@ -104,23 +85,26 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     }
 
     const sale = snapToData<Sale>(saleSnap);
-    if (!sale || !sale.memberId) {
+    if (!sale) {
       console.error("Sale data is incomplete:", sale);
       return { success: false, error: "Непълни данни за продажбата." };
     }
 
+    const isGuest = sale.memberId === "GUEST_EXTERNAL";
+    const isWalkIn = !sale.memberId || sale.memberId === "Walk-in Customer";
+    const shouldFetchMember = !isGuest && !isWalkIn && sale.memberId;
+
     // Паралелно извличане на основните свързани документи
-    const memberDocPromise = adminDb
-      .collection("members")
-      .doc(sale.memberId)
-      .get();
+    const memberDocPromise = shouldFetchMember
+      ? adminDb.collection("members").doc(sale.memberId).get()
+      : Promise.resolve(null);
 
     let subscriptionPromise = Promise.resolve(
       null as admin.firestore.DocumentSnapshot | null
     );
     if (sale.subscriptionId) {
       subscriptionPromise = adminDb
-        .collection("member_subscriptions")
+        .collection("memberSubscriptions")
         .doc(sale.subscriptionId)
         .get();
     }
@@ -130,9 +114,35 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       subscriptionPromise,
     ]);
 
-    const member = snapToData<Member>(memberSnap);
+    let member =
+      memberSnap && memberSnap.exists ? snapToData<Member>(memberSnap) : null;
+
     if (!member) {
-      return { success: false, error: "Членът не е намерен." };
+      if (sale.memberId === "GUEST_EXTERNAL") {
+        member = {
+          id: "GUEST_EXTERNAL",
+          firstName: "Външен",
+          lastName: "гост",
+          email: "",
+          phone: "",
+          status: "active",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          siteId: sale.siteId || "bkgalabovo",
+        } as unknown as Member;
+      } else {
+        member = {
+          id: sale.memberId || "Walk-in Customer",
+          firstName: "Външен",
+          lastName: "клиент",
+          email: "",
+          phone: "",
+          status: "active",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          siteId: sale.siteId || "bkgalabovo",
+        } as unknown as Member;
+      }
     }
 
     const subscription = subscriptionSnap
@@ -143,7 +153,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     let service: ClubService | null = null;
     if (subscription?.serviceId) {
       const serviceSnap = await adminDb
-        .collection("club_services")
+        .collection("clubServices")
         .doc(subscription.serviceId)
         .get();
       service = snapToData<ClubService>(serviceSnap);

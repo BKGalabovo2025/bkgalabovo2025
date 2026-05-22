@@ -1,45 +1,9 @@
 "use server";
 
-import * as admin from "firebase-admin";
-import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { Sale } from "@/types";
 import { calculateFinancesOverview } from "./finances-utils";
-
-// Помощна функция за преобразуване на Firestore документи
-function snapToData<T>(
-  doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
-): T | null {
-  if (!doc.exists) return null;
-  const data = doc.data();
-  if (!data) return null;
-
-  const convertTimestamps = (val: any): any => {
-    if (!val) return val;
-    if (typeof val.toDate === "function") {
-      return val.toDate().toISOString();
-    }
-    if (val instanceof admin.firestore.Timestamp) {
-      return val.toDate().toISOString();
-    }
-    if (Array.isArray(val)) {
-      return val.map(convertTimestamps);
-    }
-    if (typeof val === "object") {
-      const copy: any = {};
-      for (const key of Object.keys(val)) {
-        copy[key] = convertTimestamps(val[key]);
-      }
-      return copy;
-    }
-    return val;
-  };
-
-  return {
-    id: doc.id,
-    ...convertTimestamps(data),
-  } as T;
-}
+import { getCachedSalesForBranch } from "@/lib/db/sales";
 
 export type CategoryRevenue = {
   name: string;
@@ -76,20 +40,11 @@ export async function getFinancesOverviewDataAction(
       throw new Error("Неоторизиран достъп.");
     }
 
-    const adminDb = getAdminDb();
-    let salesQuery: admin.firestore.Query = adminDb.collection("sales");
+    const sales = await getCachedSalesForBranch(activeBranch);
 
-    // Филтриране по клон (мултитенант)
-    if (activeBranch && activeBranch !== "bkgalabovo") {
-      salesQuery = salesQuery.where("siteId", "==", activeBranch);
-    }
-
-    const snapshot = await salesQuery.get();
-    const allSales = snapshot.docs
-      .map((doc) => snapToData<Sale>(doc))
-      .filter(
-        (s): s is Sale => s !== null && s.isPaid && s.status !== "cancelled"
-      );
+    const allSales = sales.filter(
+      (s): s is Sale => s.isPaid && s.status !== "cancelled"
+    );
 
     const now = new Date();
     const thirtyDaysAgo = new Date();

@@ -159,9 +159,11 @@ const ParticipationTravelPage = () => {
 
             <div className="flex gap-8 pt-2">
               <p className="flex-1">
-                с ЕГН:{" "}
+                с дата на раждане:{" "}
                 <strong>
-                  {member.egn || "...................................."}
+                  {member.dateOfBirth
+                    ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
+                    : "...................................."}
                 </strong>
               </p>
               <p className="flex-1">

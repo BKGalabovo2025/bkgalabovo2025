@@ -12,8 +12,15 @@ const MemberProfilePage = () => {
   const params = useParams();
   const memberId = params.id as string;
 
-  const { member, family, familyMembers, loading, error, refetch } =
-    useMemberProfile(memberId);
+  const {
+    member,
+    family,
+    familyMembers,
+    subscriptions,
+    loading,
+    error,
+    refetch,
+  } = useMemberProfile(memberId);
 
   if (loading)
     return (
@@ -81,6 +88,7 @@ const MemberProfilePage = () => {
           member={member}
           familyMembers={familyMembers}
           family={family}
+          subscriptions={subscriptions}
           onRefresh={refetch}
         />
       </div>

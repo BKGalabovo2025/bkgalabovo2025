@@ -5,6 +5,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SaleSchema } from "@/types/sale.types";
+import { serverCache } from "@/lib/server-cache";
 
 export type SaleActionState = {
   errors?: { [key: string]: string[] | undefined };
@@ -88,6 +89,7 @@ export async function createSaleAction(
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
+    serverCache.invalidatePattern("sales:");
 
     return {
       success: true,
@@ -143,6 +145,7 @@ export async function updateSaleAction(
 
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
+    serverCache.invalidatePattern("sales:");
 
     return {
       success: true,
@@ -171,6 +174,7 @@ export async function deleteSaleAction(
     await adminDb.collection("sales").doc(id).delete();
 
     revalidatePath("/sales");
+    serverCache.invalidatePattern("sales:");
 
     return {
       success: true,
@@ -246,7 +250,7 @@ export async function findOrCreateSaleForSubscriptionAction(
     const saleId = await adminDb.runTransaction(async (transaction) => {
       const newSaleRef = adminDb.collection("sales").doc();
       const subscriptionRef = adminDb
-        .collection("member_subscriptions")
+        .collection("memberSubscriptions")
         .doc(subscription.id as string);
 
       const saleData = {
@@ -289,6 +293,7 @@ export async function findOrCreateSaleForSubscriptionAction(
 
     revalidatePath("/sales");
     revalidatePath("/dashboard");
+    serverCache.invalidatePattern("sales:");
 
     return {
       success: true,

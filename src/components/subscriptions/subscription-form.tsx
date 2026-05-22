@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
@@ -185,8 +184,10 @@ export function SubscriptionForm({
 
   const [step, setStep] = useState(1);
 
+  const isEditMode = !!initialData;
+
   const onSubmit = (data: SubscriptionFormValues) => {
-    if (step < 3) {
+    if (!isEditMode && step < 3) {
       setStep(step + 1);
       return;
     }
@@ -217,8 +218,9 @@ export function SubscriptionForm({
 
     const subscriptionData: Omit<Subscription, "id" | "siteId"> = {
       ...data,
-      price: customPrice ?? selectedService.price,
-      serviceName: customServiceName ?? selectedService.name,
+      price: initialData?.price ?? customPrice ?? selectedService.price,
+      serviceName:
+        initialData?.serviceName ?? customServiceName ?? selectedService.name,
       totalPaymentsCount: totalPaymentsCount,
       currency: selectedService.currency,
     };
@@ -272,257 +274,93 @@ export function SubscriptionForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {renderStepIndicator()}
-
-        {step === 1 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <FormField
-              control={form.control}
-              name="memberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
-                    Изберете член на клуба
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="rounded-xl h-12 border-zinc-100 bg-zinc-50/50">
-                        <SelectValue placeholder="Търсене на член..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-xl border-zinc-100">
-                      {members.map((member) => (
-                        <SelectItem
-                          key={member.id}
-                          value={member.id}
-                          className="rounded-lg"
-                        >
-                          {member.firstName} {member.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {selectedMemberObj ? (
-              <div className="animate-in fade-in zoom-in-95 duration-500">
-                <MembershipSuggestions
-                  member={selectedMemberObj}
-                  services={services}
-                  memberSubscriptions={memberSubscriptions}
-                  onSelectService={(serviceId, price, suggestedName, month) => {
-                    form.setValue("serviceId", serviceId);
-                    form.setValue("pricePaid", price);
-                    setCustomPrice(price);
-                    if (suggestedName) {
-                      setCustomServiceName(suggestedName);
-                    }
-                    if (month) {
-                      setPeriodMonth(month);
-                    }
-                    setStep(2);
-                    toast.success("Интелигентно предложение приложено!");
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="p-8 border border-dashed border-zinc-200 rounded-3xl text-center bg-zinc-50/30">
-                <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-medium">
-                  Изберете член, за да видите умни предложения
+        {isEditMode ? (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Read-only Member and Service */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
+                  Член
+                </p>
+                <p className="text-sm font-medium text-zinc-800">
+                  {selectedMemberObj
+                    ? `${selectedMemberObj.firstName} ${selectedMemberObj.lastName}`
+                    : "Неизвестен"}
                 </p>
               </div>
-            )}
-          </div>
-        )}
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
+                  Услуга
+                </p>
+                <p className="text-sm font-medium text-zinc-800">
+                  {initialData?.serviceName ||
+                    selectedServiceObj?.name ||
+                    "Неизвестна"}
+                </p>
+              </div>
+            </div>
 
-        {step === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <FormField
-              control={form.control}
-              name="serviceId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
-                    Изберете услуга от каталога
-                  </FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      const service = services.find((s) => s.id === value);
-                      if (service) {
-                        form.setValue("pricePaid", service.price);
-                      }
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="rounded-xl h-12 border-zinc-100 bg-zinc-50/50">
-                        <SelectValue placeholder="Изберете услуга" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-xl border-zinc-100">
-                      {services.map((service) => (
-                        <SelectItem
-                          key={service.id}
-                          value={service.id}
-                          className="rounded-lg"
-                        >
-                          {service.name} — {service.price} {service.currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {selectedServiceId && (
-              <div className="space-y-6 p-6 rounded-3xl bg-zinc-50/50 border border-zinc-100 animate-in fade-in zoom-in-95">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
-                    Период на валидност
-                  </h3>
-                  <Badge
-                    variant="outline"
-                    className="bg-white rounded-full text-[9px] uppercase font-bold text-primary border-primary/20"
-                  >
-                    {billingPeriod || "Еднократно"}
-                  </Badge>
-                </div>
-
-                {billingPeriod === "Месечен" && (
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[11px] font-medium text-zinc-600">
-                      Месец на валидност
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="month"
-                        className="rounded-xl border-zinc-100 bg-white"
-                        value={periodMonth}
-                        onChange={(e) => setPeriodMonth(e.target.value)}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-
-                {billingPeriod === "Годишен" && (
-                  <FormItem>
-                    <FormLabel className="text-[11px] font-medium text-zinc-600">
-                      Година на валидност
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        className="rounded-xl border-zinc-100 bg-white"
-                        min="2020"
-                        max="2100"
-                        value={periodYear}
-                        onChange={(e) => setPeriodYear(e.target.value)}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-
-                {!billingPeriod && (
-                  <FormItem>
-                    <FormLabel className="text-[11px] font-medium text-zinc-600">
-                      Дата на посещение
+                    <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                      Начална дата
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        className="rounded-xl border-zinc-100 bg-white"
-                        value={periodDate}
-                        onChange={(e) => setPeriodDate(e.target.value)}
+                        className="rounded-xl h-11 border-zinc-100 bg-white"
+                        {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
+              />
 
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="p-3 bg-white rounded-2xl border border-zinc-100">
-                    <p className="text-[8px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
-                      От дата
-                    </p>
-                    <p className="text-xs font-semibold">
-                      {new Date(startDate).toLocaleDateString("bg-BG")}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-white rounded-2xl border border-zinc-100">
-                    <p className="text-[8px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
-                      До дата
-                    </p>
-                    <p className="text-xs font-semibold">
-                      {new Date(endDate).toLocaleDateString("bg-BG")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="p-6 rounded-3xl bg-zinc-950 text-white shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-10">
-                <CheckCircle className="h-24 w-24" />
-              </div>
-              <p className="text-[10px] uppercase tracking-widest font-black text-zinc-500 mb-4">
-                Резюме на плащането
-              </p>
-              <div className="space-y-4 relative z-10">
-                <div>
-                  <h4 className="text-xl font-light">
-                    {selectedMemberObj?.firstName} {selectedMemberObj?.lastName}
-                  </h4>
-                  <p className="text-zinc-400 text-xs mt-1">
-                    {selectedServiceObj?.name}
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-white/10 flex items-end justify-between">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
-                      Обща сума
-                    </p>
-                    <p className="text-3xl font-black tracking-tighter">
-                      {form.getValues("pricePaid")}{" "}
-                      {selectedServiceObj?.currency || "EUR"}
-                    </p>
-                  </div>
-                  <Badge className="bg-emerald-500 text-white border-none rounded-full px-3 py-1 text-[10px] font-black uppercase mb-1">
-                    {form.getValues("status") === "active"
-                      ? "Платено"
-                      : "Чакащо"}
-                  </Badge>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                      Крайна дата
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        className="rounded-xl h-11 border-zinc-100 bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Price and Status */}
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="pricePaid"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
-                      Потвърдете сума
+                      Платена сума ({selectedServiceObj?.currency || "EUR"})
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        className="rounded-xl h-11 border-zinc-100 bg-zinc-50/50"
+                        step="0.01"
+                        className="rounded-xl h-11 border-zinc-100 bg-white"
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value, 10) || 0)
+                          field.onChange(parseFloat(e.target.value) || 0)
                         }
                       />
                     </FormControl>
@@ -537,14 +375,14 @@ export function SubscriptionForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
-                      Статус на плащане
+                      Статус
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="rounded-xl h-11 border-zinc-100 bg-zinc-50/50">
+                        <SelectTrigger className="rounded-xl h-11 border-zinc-100 bg-white">
                           <SelectValue placeholder="Изберете статус" />
                         </SelectTrigger>
                       </FormControl>
@@ -553,12 +391,20 @@ export function SubscriptionForm({
                           value="active"
                           className="text-emerald-600 font-bold"
                         >
-                          Платено / Активно
+                          Активен / Платен
                         </SelectItem>
-                        <SelectItem value="pending_payment">
+                        <SelectItem
+                          value="pending_payment"
+                          className="text-amber-600 font-bold"
+                        >
                           Чакащо плащане
                         </SelectItem>
-                        <SelectItem value="inactive">Изтекло</SelectItem>
+                        <SelectItem value="inactive" className="text-zinc-600">
+                          Изтекъл
+                        </SelectItem>
+                        <SelectItem value="cancelled" className="text-red-600">
+                          Отказан
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -566,51 +412,377 @@ export function SubscriptionForm({
                 )}
               />
             </div>
+
+            {/* Save/Cancel Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 mt-8">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                className="rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-6"
+              >
+                Отказ
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-10 bg-zinc-950 text-white hover:bg-zinc-800"
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Запази промените
+              </Button>
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            {renderStepIndicator()}
 
-        <input type="hidden" {...form.register("startDate")} />
-        <input type="hidden" {...form.register("endDate")} />
+            {step === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <FormField
+                  control={form.control}
+                  name="memberId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                        Изберете член на клуба
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-xl h-12 border-zinc-100 bg-zinc-50/50">
+                            <SelectValue placeholder="Търсене на член..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-xl border-zinc-100">
+                          {members.map((member) => (
+                            <SelectItem
+                              key={member.id}
+                              value={member.id}
+                              className="rounded-lg"
+                            >
+                              {member.firstName} {member.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-        <div className="flex justify-between items-center pt-6 border-t border-zinc-100 mt-8">
-          {step > 1 ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setStep(step - 1)}
-              className="rounded-xl border-zinc-200 text-xs font-bold uppercase tracking-widest h-11 px-6 hover:bg-zinc-50"
-            >
-              Назад
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              className="rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-6"
-            >
-              Отказ
-            </Button>
-          )}
-
-          <Button
-            type="submit"
-            disabled={
-              isSaving ||
-              (step === 1 && !selectedMemberId) ||
-              (step === 2 && !selectedServiceId)
-            }
-            className={cn(
-              "rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-10 transition-all",
-              step === 3
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
-                : "bg-zinc-950 text-white hover:bg-zinc-800"
+                {selectedMemberObj ? (
+                  <div className="animate-in fade-in zoom-in-95 duration-500">
+                    <MembershipSuggestions
+                      member={selectedMemberObj}
+                      services={services}
+                      memberSubscriptions={memberSubscriptions}
+                      onSelectService={(
+                        serviceId,
+                        price,
+                        suggestedName,
+                        month
+                      ) => {
+                        form.setValue("serviceId", serviceId);
+                        form.setValue("pricePaid", price);
+                        setCustomPrice(price);
+                        if (suggestedName) {
+                          setCustomServiceName(suggestedName);
+                        }
+                        if (month) {
+                          setPeriodMonth(month);
+                        }
+                        setStep(2);
+                        toast.success("Интелигентно предложение приложено!");
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-8 border border-dashed border-zinc-200 rounded-3xl text-center bg-zinc-50/30">
+                    <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-medium">
+                      Изберете член, за да видите умни предложения
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
-          >
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {step === 3 ? "Финализиране" : "Продължи"}
-          </Button>
-        </div>
+
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <FormField
+                  control={form.control}
+                  name="serviceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                        Изберете услуга от каталога
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const service = services.find((s) => s.id === value);
+                          if (service) {
+                            form.setValue("pricePaid", service.price);
+                          }
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="rounded-xl h-12 border-zinc-100 bg-zinc-50/50">
+                            <SelectValue placeholder="Изберете услуга" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-xl border-zinc-100">
+                          {services.map((service) => (
+                            <SelectItem
+                              key={service.id}
+                              value={service.id}
+                              className="rounded-lg"
+                            >
+                              {service.name} — {service.price}{" "}
+                              {service.currency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {selectedServiceId && (
+                  <div className="space-y-6 p-6 rounded-3xl bg-zinc-50/50 border border-zinc-100 animate-in fade-in zoom-in-95">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                        Период на валидност
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className="bg-white rounded-full text-[9px] uppercase font-bold text-primary border-primary/20"
+                      >
+                        {billingPeriod || "Еднократно"}
+                      </Badge>
+                    </div>
+
+                    {billingPeriod === "Месечен" && (
+                      <FormItem>
+                        <FormLabel className="text-[11px] font-medium text-zinc-600">
+                          Месец на валидност
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="month"
+                            className="rounded-xl border-zinc-100 bg-white"
+                            value={periodMonth}
+                            onChange={(e) => setPeriodMonth(e.target.value)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+
+                    {billingPeriod === "Годишен" && (
+                      <FormItem>
+                        <FormLabel className="text-[11px] font-medium text-zinc-600">
+                          Година на валидност
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            className="rounded-xl border-zinc-100 bg-white"
+                            min="2020"
+                            max="2100"
+                            value={periodYear}
+                            onChange={(e) => setPeriodYear(e.target.value)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+
+                    {!billingPeriod && (
+                      <FormItem>
+                        <FormLabel className="text-[11px] font-medium text-zinc-600">
+                          Дата на посещение
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            className="rounded-xl border-zinc-100 bg-white"
+                            value={periodDate}
+                            onChange={(e) => setPeriodDate(e.target.value)}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="p-3 bg-white rounded-2xl border border-zinc-100">
+                        <p className="text-[8px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
+                          От дата
+                        </p>
+                        <p className="text-xs font-semibold">
+                          {new Date(startDate).toLocaleDateString("bg-BG")}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-2xl border border-zinc-100">
+                        <p className="text-[8px] uppercase tracking-widest text-zinc-400 font-bold mb-1">
+                          До дата
+                        </p>
+                        <p className="text-xs font-semibold">
+                          {new Date(endDate).toLocaleDateString("bg-BG")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="p-6 rounded-3xl bg-zinc-950 text-white shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-6 opacity-10">
+                    <CheckCircle className="h-24 w-24" />
+                  </div>
+                  <p className="text-[10px] uppercase tracking-widest font-black text-zinc-500 mb-4">
+                    Резюме на плащането
+                  </p>
+                  <div className="space-y-4 relative z-10">
+                    <div>
+                      <h4 className="text-xl font-light">
+                        {selectedMemberObj?.firstName}{" "}
+                        {selectedMemberObj?.lastName}
+                      </h4>
+                      <p className="text-zinc-400 text-xs mt-1">
+                        {selectedServiceObj?.name}
+                      </p>
+                    </div>
+                    <div className="pt-4 border-t border-white/10 flex items-end justify-between">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">
+                          Обща сума
+                        </p>
+                        <p className="text-3xl font-black tracking-tighter">
+                          {form.getValues("pricePaid")}{" "}
+                          {selectedServiceObj?.currency || "EUR"}
+                        </p>
+                      </div>
+                      <Badge className="bg-emerald-500 text-white border-none rounded-full px-3 py-1 text-[10px] font-black uppercase mb-1">
+                        {form.getValues("status") === "active"
+                          ? "Платено"
+                          : "Чакащо"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="pricePaid"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                          Потвърдете сума
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            className="rounded-xl h-11 border-zinc-100 bg-zinc-50/50"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value, 10) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                          Статус на плащане
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="rounded-xl h-11 border-zinc-100 bg-zinc-50/50">
+                              <SelectValue placeholder="Изберете статус" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem
+                              value="active"
+                              className="text-emerald-600 font-bold"
+                            >
+                              Платено / Активно
+                            </SelectItem>
+                            <SelectItem value="pending_payment">
+                              Чакащо плащане
+                            </SelectItem>
+                            <SelectItem value="inactive">Изтекло</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
+            <input type="hidden" {...form.register("startDate")} />
+            <input type="hidden" {...form.register("endDate")} />
+
+            <div className="flex justify-between items-center pt-6 border-t border-zinc-100 mt-8">
+              {step > 1 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  className="rounded-xl border-zinc-200 text-xs font-bold uppercase tracking-widest h-11 px-6 hover:bg-zinc-50"
+                >
+                  Назад
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onClose}
+                  className="rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-6"
+                >
+                  Отказ
+                </Button>
+              )}
+
+              <Button
+                type="submit"
+                disabled={
+                  isSaving ||
+                  (step === 1 && !selectedMemberId) ||
+                  (step === 2 && !selectedServiceId)
+                }
+                className={cn(
+                  "rounded-xl text-xs font-bold uppercase tracking-widest h-11 px-10 transition-all",
+                  step === 3
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
+                    : "bg-zinc-950 text-white hover:bg-zinc-800"
+                )}
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {step === 3 ? "Финализиране" : "Продължи"}
+              </Button>
+            </div>
+          </>
+        )}
       </form>
     </Form>
   );

@@ -73,7 +73,6 @@ export const MemberForm = ({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
-      egn: "",
       ...initialData,
     },
   });
@@ -420,25 +419,6 @@ export const MemberForm = ({
                         <SelectItem value="female">Жена</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="egn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-                      ЕГН
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -9,6 +9,7 @@ import {
   getRevenueTrendData,
 } from "@/services/dashboard-service";
 import { getReminders } from "@/services/reminder-service";
+import { getAllMemberSubscriptions } from "@/services/subscription-service";
 import { getEventsForPeriod } from "@/services/schedule-service";
 import { useAuth } from "@/context/auth-context";
 
@@ -66,25 +67,34 @@ export const useDashboardData = () => {
           59
         );
 
-        const [membersData, salesData, lowStockData, eventsData] =
-          await Promise.all([
-            getAllMembers().catch((err) => {
-              console.error("Error fetching members:", err);
-              throw err;
-            }),
-            getSales().catch((err) => {
-              console.error("Error fetching sales:", err);
-              throw err;
-            }),
-            getLowStockProducts().catch((err) => {
-              console.error("Error fetching low stock products:", err);
-              throw err;
-            }),
-            getEventsForPeriod(startOfDay, endOfDay).catch((err) => {
-              console.error("Error fetching today's events:", err);
-              return []; // Non-critical, fallback to empty
-            }),
-          ]);
+        const [
+          membersData,
+          salesData,
+          lowStockData,
+          eventsData,
+          subscriptionsData,
+        ] = await Promise.all([
+          getAllMembers().catch((err) => {
+            console.error("Error fetching members:", err);
+            throw err;
+          }),
+          getSales().catch((err) => {
+            console.error("Error fetching sales:", err);
+            throw err;
+          }),
+          getLowStockProducts().catch((err) => {
+            console.error("Error fetching low stock products:", err);
+            throw err;
+          }),
+          getEventsForPeriod(startOfDay, endOfDay).catch((err) => {
+            console.error("Error fetching today's events:", err);
+            return []; // Non-critical, fallback to empty
+          }),
+          getAllMemberSubscriptions().catch((err) => {
+            console.error("Error fetching subscriptions:", err);
+            return []; // Non-critical, fallback to empty
+          }),
+        ]);
 
         const members = Array.isArray(membersData) ? membersData : [];
         const sales = Array.isArray(salesData) ? salesData : [];
@@ -111,7 +121,10 @@ export const useDashboardData = () => {
         setRevenueChartData(chartData);
 
         // Generate reminders from the fetched data
-        const reminderList = getReminders(members, sales);
+        const subscriptions = Array.isArray(subscriptionsData)
+          ? subscriptionsData
+          : [];
+        const reminderList = getReminders(members, subscriptions);
         setReminders(reminderList);
 
         setAllMembers(members);

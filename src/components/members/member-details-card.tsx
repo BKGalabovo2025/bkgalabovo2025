@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
-import { Member } from "@/types";
+import { Member, Subscription } from "@/types";
 import { Family } from "@/hooks/useMemberProfile";
+import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,7 @@ interface MemberDetailsCardProps {
   member: Member;
   familyMembers: Member[];
   family?: Family | null;
+  subscriptions?: Subscription[];
   onRefresh?: () => void;
 }
 
@@ -94,6 +96,7 @@ export const MemberDetailsCard = ({
   member,
   familyMembers,
   family: _family,
+  subscriptions = [],
   onRefresh,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
@@ -110,15 +113,14 @@ export const MemberDetailsCard = ({
     ? new Date(member.registrationDate).toLocaleDateString("bg-BG")
     : null;
 
-  // 1. Изчисляваме статуса
+  // 1. Изчисляваме статуса динамично и унифицирано с абонаментите
+  const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(
+    member,
+    subscriptions
+  );
   const lastPayment = member.lastPaymentDate
     ? new Date(member.lastPaymentDate)
     : null;
-  const isOverdue =
-    !lastPayment ||
-    Math.floor(
-      (new Date().getTime() - lastPayment.getTime()) / (1000 * 3600 * 24)
-    ) > 30;
 
   // 2. Функцията за плащане
   const handlePayment = async () => {
@@ -354,6 +356,11 @@ export const MemberDetailsCard = ({
                         : "няма данни"}
                     </span>
                   </div>
+                  {overdueReason && (
+                    <p className="text-[10px] text-zinc-400 mt-1.5 font-light italic">
+                      {overdueReason}
+                    </p>
+                  )}
                 </div>
                 {isOverdue && (
                   <Button

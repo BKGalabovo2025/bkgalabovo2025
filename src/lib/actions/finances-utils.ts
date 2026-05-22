@@ -145,18 +145,16 @@ export function calculateRevenueCategories(
   return categories;
 }
 
-export function calculateFinancesOverview(
-  sales: Sale[],
-  activeBranch: string
-) {
+export function calculateFinancesOverview(sales: Sale[], activeBranch: string) {
   const filteredSales = sales.filter(
-    (sale) => sale.isPaid && sale.status !== "cancelled"
+    (sale) => sale.isPaid && sale.status === "completed"
   );
 
   const forOverview = filteredSales;
-  const totalRevenue = Math.round(
-    forOverview.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0) * 100
-  ) / 100;
+  const totalRevenue =
+    Math.round(
+      forOverview.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0) * 100
+    ) / 100;
   const transactionCount = forOverview.length;
   const averageTransactionValue =
     transactionCount > 0

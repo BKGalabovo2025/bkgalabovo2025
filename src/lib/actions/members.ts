@@ -5,6 +5,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
+import { serverCache } from "@/lib/server-cache";
 
 // --- Type for Server Action State ---
 export type MemberActionState = {
@@ -73,6 +74,7 @@ export async function createMemberAction(
 
     revalidatePath("/members");
     revalidatePath("/dashboard");
+    serverCache.invalidatePattern("members:");
 
     return {
       success: true,
@@ -168,6 +170,7 @@ export async function updateMemberAction(
 
     revalidatePath("/members");
     revalidatePath(`/members/${id}`);
+    serverCache.invalidatePattern("members:");
 
     return {
       success: true,
@@ -224,6 +227,7 @@ export async function deleteMemberAction(
     await memberRef.delete();
 
     revalidatePath("/members");
+    serverCache.invalidatePattern("members:");
 
     return {
       success: true,
@@ -262,6 +266,7 @@ export async function bulkUpdateMemberStatusAction(
     await batch.commit();
 
     revalidatePath("/members");
+    serverCache.invalidatePattern("members:");
 
     return {
       success: true,

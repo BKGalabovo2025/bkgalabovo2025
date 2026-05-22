@@ -65,7 +65,9 @@ export const getDashboardStats = (
   // --- Revenue Analysis (from completed sales only) ---
   const calculateRevenue = (saleList: Sale[]) =>
     saleList
-      .filter((sale) => sale && sale.status === "completed")
+      .filter(
+        (sale) => sale && sale.status === "completed" && sale.isPaid === true
+      )
       .reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
 
   const revenueLast30Days = calculateRevenue(salesLast30Days);
@@ -79,7 +81,9 @@ export const getDashboardStats = (
         : 0;
 
   const totalRevenue: TotalRevenue = safeSales
-    .filter((sale) => sale && sale.status === "completed")
+    .filter(
+      (sale) => sale && sale.status === "completed" && sale.isPaid === true
+    )
     .reduce((acc, sale) => {
       const totalAmount = sale.totalAmount || 0;
       const currency = sale.currency || "EUR";
@@ -145,7 +149,8 @@ export const getRevenueTrendData = (sales: Sale[]) => {
         return (
           sDate.getMonth() === month &&
           sDate.getFullYear() === year &&
-          s.status === "completed"
+          s.status === "completed" &&
+          s.isPaid === true
         );
       })
       .reduce((sum, s) => sum + (s.totalAmount || 0), 0);

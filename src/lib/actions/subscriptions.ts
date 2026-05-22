@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/auth-utils";
+import { getAdminDb } from "@/lib/firebase-admin";
 import {
   createSubscriptionInternal,
   updateSubscriptionInternal,
@@ -113,6 +114,67 @@ export async function deleteSubscriptionAction(
     return {
       success: false,
       message: "Грешка при изтриване на абонамента.",
+    };
+  }
+}
+
+/**
+ * Mass deletes all subscriptions with status "pending_payment" and pricePaid === 0,
+ * along with their corresponding sales in Firestore.
+ */
+export async function clearUnpaidSubscriptionsAction(
+  idToken: string
+): Promise<SubscriptionActionState> {
+  try {
+    await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+
+    const snapshot = await adminDb
+      .collection("memberSubscriptions")
+      .where("status", "==", "pending_payment")
+      .where("pricePaid", "==", 0)
+      .get();
+
+    if (snapshot.empty) {
+      return {
+        success: true,
+        message: "Няма намерени неплатени чакащи абонаменти за изчистване.",
+      };
+    }
+
+    const subIds = snapshot.docs.map((doc) => doc.id);
+    const batch = adminDb.batch();
+
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    for (const subId of subIds) {
+      const salesSnap = await adminDb
+        .collection("sales")
+        .where("subscriptionId", "==", subId)
+        .get();
+
+      salesSnap.docs.forEach((saleDoc) => {
+        batch.delete(saleDoc.ref);
+      });
+    }
+
+    await batch.commit();
+
+    revalidatePath("/members");
+    revalidatePath("/sales");
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      message: `Успешно изтрити ${snapshot.size} неплатени чакащи абонамента и свързаните с тях транзакции.`,
+    };
+  } catch (error: unknown) {
+    console.error("clearUnpaidSubscriptionsAction Error:", error);
+    return {
+      success: false,
+      message: "Грешка при масово изтриване на неплатените абонаменти.",
     };
   }
 }

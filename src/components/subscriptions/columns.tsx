@@ -37,8 +37,26 @@ export interface SubscriptionData extends Subscription {
 
 // Helper function to determine badge color based on status
 const getStatusBadge = (
-  status: "active" | "inactive" | "cancelled" | "pending_payment"
+  status: "active" | "inactive" | "cancelled" | "pending_payment",
+  endDateStr?: string
 ) => {
+  if (endDateStr && status !== "cancelled") {
+    const now = new Date();
+    const endDate = new Date(endDateStr);
+    endDate.setHours(23, 59, 59, 999);
+    if (now > endDate) {
+      return (
+        <Badge
+          variant="outline"
+          className="bg-zinc-50 text-zinc-700 border-zinc-200 px-3 py-1 rounded-full flex items-center gap-1.5 font-medium"
+        >
+          <XCircle className="h-3.5 w-3.5" />
+          Изтекъл
+        </Badge>
+      );
+    }
+  }
+
   switch (status) {
     case "active":
       return (
@@ -88,7 +106,8 @@ const getStatusBadge = (
 // Define the columns for the DataTable
 export const columns = (
   openForm: (subscription: SubscriptionData) => void,
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void,
+  onRegisterPayment: (subscription: SubscriptionData) => void
 ): ColumnDef<SubscriptionData>[] => [
   {
     accessorKey: "memberLastName",
@@ -149,7 +168,8 @@ export const columns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Статус" />
     ),
-    cell: ({ row }) => getStatusBadge(row.original.status),
+    cell: ({ row }) =>
+      getStatusBadge(row.original.status, row.original.endDate),
   },
   {
     accessorKey: "startDate",
@@ -235,17 +255,17 @@ export const columns = (
                 <span className="text-sm">Профил на члена</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              asChild
-              className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer"
-            >
-              <Link href={`/sales/new?memberId=${subscription.memberId}`}>
-                <CreditCard className="h-4 w-4 text-zinc-400" />
-                <span className="text-sm font-medium text-primary">
+            {subscription.status === "pending_payment" && (
+              <DropdownMenuItem
+                className="rounded-xl px-3 py-2.5 gap-3 cursor-pointer text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                onClick={() => onRegisterPayment(subscription)}
+              >
+                <CreditCard className="h-4 w-4" />
+                <span className="text-sm font-medium">
                   Маркирай като платено
                 </span>
-              </Link>
-            </DropdownMenuItem>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator className="bg-zinc-100 my-1" />
             <DropdownMenuItem
               className="text-red-600 focus:text-red-600 focus:bg-red-50 rounded-xl px-3 py-2.5 gap-3 cursor-pointer"

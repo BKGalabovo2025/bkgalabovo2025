@@ -281,7 +281,9 @@ export default function SaleDetailsClient() {
             ) : (
               <div className="p-4 bg-slate-50/50 rounded-2xl border border-dashed text-center">
                 <p className="text-zinc-400 font-medium text-sm">
-                  Клиент от улицата
+                  {sale.memberId === "GUEST_EXTERNAL"
+                    ? "Външен гост"
+                    : "Външен клиент"}
                 </p>
               </div>
             )}

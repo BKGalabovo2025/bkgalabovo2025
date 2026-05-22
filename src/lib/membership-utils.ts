@@ -1,4 +1,4 @@
-import { Member, ClubService } from "@/types";
+import { Member, ClubService, Subscription } from "@/types";
 import {
   LucideIcon,
   Sparkles,
@@ -178,4 +178,104 @@ export const getMembershipSuggestions = (
   }
 
   return list.sort((a, b) => b.priority - a.priority);
+};
+
+/**
+ * Unified logic to check if a member's payment is overdue based on active subscriptions or payment history.
+ */
+export const checkIsMemberOverdue = (
+  member: Member,
+  subscriptions: Subscription[] = []
+): { isOverdue: boolean; reason: string } => {
+  if (member.status !== "active") {
+    return { isOverdue: false, reason: "Неактивен член" };
+  }
+
+  // 1. Check subscriptions
+  if (subscriptions && subscriptions.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Look for any subscription that is paid (active/expired but paid) covering today,
+    // or active subscription that has not expired
+    const activeOrPaidSub = subscriptions.find((sub) => {
+      if (sub.status === "cancelled") return false;
+
+      const sStart = new Date(sub.startDate);
+      sStart.setHours(0, 0, 0, 0);
+      const sEnd = new Date(sub.endDate);
+      sEnd.setHours(23, 59, 59, 999);
+
+      // Check if today falls within start and end date
+      const isCurrentlyRunning = today >= sStart && today <= sEnd;
+      // Or if it is explicitly active and not expired yet
+      const isActiveAndNotExpired = sub.status === "active" && today <= sEnd;
+
+      return isActiveAndNotExpired || (isCurrentlyRunning && sub.pricePaid > 0);
+    });
+
+    if (activeOrPaidSub) {
+      const endStr = new Date(activeOrPaidSub.endDate).toLocaleDateString(
+        "bg-BG"
+      );
+      return {
+        isOverdue: false,
+        reason: `Има активен/платен абонамент: ${activeOrPaidSub.serviceName} (до ${endStr})`,
+      };
+    }
+
+    // Check if there are any pending payment subscriptions
+    const pendingSub = subscriptions.find(
+      (sub) => sub.status === "pending_payment"
+    );
+    if (pendingSub) {
+      return {
+        isOverdue: true,
+        reason: `Очаква плащане за абонамент: ${pendingSub.serviceName}`,
+      };
+    }
+  }
+
+  // 2. Fallback to registrationDate and lastPaymentDate if no subscriptions are found
+  const registrationDate = member.registrationDate
+    ? new Date(member.registrationDate)
+    : new Date();
+  const lastPayment = member.lastPaymentDate
+    ? new Date(member.lastPaymentDate)
+    : null;
+  const today = new Date();
+
+  // If newly registered (within last 30 days) and no payment yet, they are in grace period
+  const daysSinceRegistration = Math.floor(
+    (today.getTime() - registrationDate.getTime()) / (1000 * 3600 * 24)
+  );
+
+  if (!lastPayment) {
+    if (daysSinceRegistration <= 30) {
+      return {
+        isOverdue: false,
+        reason: "Новорегистриран член (гратисен период)",
+      };
+    }
+    return {
+      isOverdue: true,
+      reason: "Няма регистрирани плащания и абонаменти",
+    };
+  }
+
+  const daysSinceLastPayment = Math.floor(
+    (today.getTime() - lastPayment.getTime()) / (1000 * 3600 * 24)
+  );
+  if (daysSinceLastPayment > 30) {
+    return {
+      isOverdue: true,
+      reason: `Изтекъл 30-дневен период от последно плащане (${daysSinceLastPayment} дни)`,
+    };
+  }
+
+  const lastPayStr = lastPayment.toLocaleDateString("bg-BG");
+  return {
+    isOverdue: false,
+    reason: `Платена такса на ${lastPayStr} (в рамките на 30 дни)`,
+  };
 };

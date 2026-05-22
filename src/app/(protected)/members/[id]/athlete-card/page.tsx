@@ -85,9 +85,11 @@ const AthleteCard = ({ member }: { member: Member }) => {
               <span className="flex-3 border-b border-dotted border-slate-600 font-bold">
                 {member.lastName}
               </span>
-              <span className="text-[9pt] whitespace-nowrap">ЕГН:</span>
+              <span className="text-[9pt] whitespace-nowrap">роден на:</span>
               <span className="flex-1 border-b border-dotted border-slate-600 font-bold">
-                {member.egn || ""}
+                {member.dateOfBirth
+                  ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
+                  : ""}
               </span>
             </div>
             <div className="flex items-start gap-2 pt-1">

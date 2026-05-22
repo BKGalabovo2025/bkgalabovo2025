@@ -46,7 +46,6 @@ export const MemberSchema = z.object({
   avatarUrl: z.string().url("Invalid avatar URL").nullable().optional(),
   educationInstitution: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
-  egn: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 
   // --- ADDED: Emergency Contact ---

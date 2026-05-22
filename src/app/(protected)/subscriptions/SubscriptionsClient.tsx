@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { DataTable } from "@/components/shared/data-table";
 import { columns, SubscriptionData } from "@/components/subscriptions/columns";
@@ -13,6 +13,7 @@ import {
   createSubscriptionAction,
   updateSubscriptionAction,
   deleteSubscriptionAction,
+  clearUnpaidSubscriptionsAction,
 } from "@/lib/actions/subscriptions";
 import { getAllMembers } from "@/services/member-service";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
   AlertCircle,
   RefreshCcw,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,8 +35,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { SubscriptionForm } from "@/components/subscriptions/subscription-form";
-import { getFirebaseAuth } from "@/lib/firebase";
-import { User } from "firebase/auth";
+import { useAuth } from "@/context/auth-context";
+import { RegisterPaymentDialog } from "@/components/subscriptions/register-payment-dialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { getDocs } from "firebase/firestore";
@@ -42,21 +44,19 @@ import { getEventsCollection } from "@/lib/firebase-collections";
 import { ScheduleEvent } from "@/types";
 import { getMembershipSuggestions } from "@/lib/membership-utils";
 
-export default function SubscriptionsClient() {
+export default function SubscriptionsClient({
+  showPageHeader = true,
+}: {
+  showPageHeader?: boolean;
+} = {}) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState<
     Subscription | undefined
   >(undefined);
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { idToken } = useAuth();
+  const [paymentSub, setPaymentSub] = useState<SubscriptionData | null>(null);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   const { data, isLoading, mutate } = useSWR(
     "subscriptions-page-data",
@@ -111,15 +111,13 @@ export default function SubscriptionsClient() {
   }, [data]);
 
   const handleAutoSync = async () => {
-    if (!user) return;
+    if (!idToken) return;
     setIsSaving(true);
     const toastId = toast.loading(
       "Сканиране на историята и генериране на членства..."
     );
 
     try {
-      const idToken = await user.getIdToken();
-
       // 1. Fetch all events across months to check historical attendance
       const eventsSnap = await getDocs(getEventsCollection());
       const allEvents = eventsSnap.docs.map((d) => d.data() as ScheduleEvent);
@@ -266,7 +264,7 @@ export default function SubscriptionsClient() {
   };
 
   const handleSave = async (formData: Omit<Subscription, "id" | "siteId">) => {
-    if (!user) {
+    if (!idToken) {
       toast.error("Грешка", {
         description: "Трябва да сте влезли в системата.",
       });
@@ -274,7 +272,6 @@ export default function SubscriptionsClient() {
     }
     setIsSaving(true);
     try {
-      const idToken = await user.getIdToken();
       let result;
 
       if (selectedSubscription) {
@@ -304,7 +301,7 @@ export default function SubscriptionsClient() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!user) {
+    if (!idToken) {
       toast.error("Грешка", {
         description: "Трябва да сте влезли в системата.",
       });
@@ -312,7 +309,6 @@ export default function SubscriptionsClient() {
     }
 
     try {
-      const idToken = await user.getIdToken();
       const result = await deleteSubscriptionAction(idToken, id);
 
       if (result.success) {
@@ -327,12 +323,44 @@ export default function SubscriptionsClient() {
     }
   };
 
+  const handleClearUnpaid = async () => {
+    if (!idToken) return;
+    const confirmDelete = window.confirm(
+      "Сигурни ли сте, че искате да изтриете всички неплатени чакащи абонаменти? Това действие е необратимо."
+    );
+    if (!confirmDelete) return;
+
+    setIsSaving(true);
+    const toastId = toast.loading("Изчистване на неплатените абонаменти...");
+    try {
+      const result = await clearUnpaidSubscriptionsAction(idToken);
+      toast.dismiss(toastId);
+      if (result.success) {
+        toast.success(result.message);
+        mutate();
+      } else {
+        toast.error("Грешка", { description: result.message });
+      }
+    } catch (err) {
+      console.error("Error clearing unpaid subscriptions:", err);
+      toast.dismiss(toastId);
+      toast.error("Грешка при изчистване на неплатените абонаменти.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const openForm = (subscription?: SubscriptionData) => {
     const fullSubscription = subscription
       ? subscriptions.find((s) => s.id === subscription.id)
       : undefined;
     setSelectedSubscription(fullSubscription);
     setIsFormOpen(true);
+  };
+
+  const handleRegisterPayment = (subscription: SubscriptionData) => {
+    setPaymentSub(subscription);
+    setIsPaymentOpen(true);
   };
 
   const activeCount = subscriptions.filter((s) => {
@@ -346,15 +374,65 @@ export default function SubscriptionsClient() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <PageHeader
-        title="Членство"
-        description="Управление на клубни карти, предплатени услуги и валидност на членството."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Членство" },
-        ]}
-      >
-        <div className="flex gap-3">
+      {showPageHeader ? (
+        <PageHeader
+          title="Членство"
+          description="Управление на клубни карти, предплатени услуги и валидност на членството."
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Членство" },
+          ]}
+        >
+          <div className="flex gap-3 flex-wrap">
+            {pendingCount > 0 && (
+              <Button
+                onClick={handleClearUnpaid}
+                disabled={isSaving}
+                variant="outline"
+                className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 h-12 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+              >
+                <Trash2 className="mr-3 h-4 w-4" />
+                Изчисти неплатените
+              </Button>
+            )}
+
+            <Button
+              onClick={handleAutoSync}
+              disabled={isSaving}
+              variant="outline"
+              className="rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50 h-12 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+            >
+              {isSaving ? (
+                <RefreshCcw className="mr-3 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-3 h-4 w-4 text-amber-500" />
+              )}
+              Умно генериране
+            </Button>
+
+            <Button
+              onClick={() => openForm()}
+              className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+            >
+              <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+              плащане
+            </Button>
+          </div>
+        </PageHeader>
+      ) : (
+        <div className="flex justify-end gap-3 flex-wrap mb-6">
+          {pendingCount > 0 && (
+            <Button
+              onClick={handleClearUnpaid}
+              disabled={isSaving}
+              variant="outline"
+              className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 h-12 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+            >
+              <Trash2 className="mr-3 h-4 w-4" />
+              Изчисти неплатените
+            </Button>
+          )}
+
           <Button
             onClick={handleAutoSync}
             disabled={isSaving}
@@ -377,7 +455,7 @@ export default function SubscriptionsClient() {
             плащане
           </Button>
         </div>
-      </PageHeader>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
@@ -448,7 +526,7 @@ export default function SubscriptionsClient() {
       <BentoCard className="p-0 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-4xl">
         <div className="p-10">
           <DataTable
-            columns={columns(openForm, handleDelete)}
+            columns={columns(openForm, handleDelete, handleRegisterPayment)}
             data={subscriptions}
             isLoading={isLoading}
             filterColumnId="memberLastName"
@@ -482,6 +560,16 @@ export default function SubscriptionsClient() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {paymentSub && (
+        <RegisterPaymentDialog
+          sub={paymentSub}
+          onPaymentSuccess={mutate}
+          idToken={idToken}
+          open={isPaymentOpen}
+          onOpenChange={setIsPaymentOpen}
+        />
+      )}
     </div>
   );
 }

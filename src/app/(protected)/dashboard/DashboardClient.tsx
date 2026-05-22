@@ -123,6 +123,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const loading = false;
   const [refreshing, setRefreshing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [quotaExhausted, setQuotaExhausted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -130,32 +131,52 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
   const handleRefresh = useCallback(
     async (quiet = false) => {
+      // Don't retry if quota is known to be exhausted
+      if (quiet && quotaExhausted) return;
       if (!quiet) setRefreshing(true);
       try {
         const result = await getDashboardDataServerAction(activeBranch);
-        if (result.success && result.data) {
-          setStats(result.data.stats);
-          setTodayTrainings(result.data.todayTrainings);
+        if (result.success) {
+          const data = (result as any).data;
+          if (data) {
+            setStats(data.stats);
+            setTodayTrainings(data.todayTrainings);
+            setQuotaExhausted(false);
+          }
+        } else {
+          const errMsg = (result as any).error || "";
+          if (
+            errMsg.includes("RESOURCE_EXHAUSTED") ||
+            errMsg.includes("Quota")
+          ) {
+            setQuotaExhausted(true);
+          }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error refreshing dashboard data:", err);
+        if (
+          err?.message?.includes("RESOURCE_EXHAUSTED") ||
+          err?.message?.includes("Quota")
+        ) {
+          setQuotaExhausted(true);
+        }
       } finally {
         if (!quiet) setRefreshing(false);
       }
     },
-    [activeBranch]
+    [activeBranch, quotaExhausted]
   );
 
   useEffect(() => {
-    // Quiet refresh when branch changes or on timer
-    handleRefresh(true);
+    // Quiet refresh when branch changes or on timer (skip if quota exhausted)
+    if (!quotaExhausted) handleRefresh(true);
 
     const interval = setInterval(() => {
       handleRefresh(true);
     }, 300000); // 5 minutes
 
     return () => clearInterval(interval);
-  }, [handleRefresh]);
+  }, [handleRefresh, quotaExhausted]);
 
   // Branch-specific display logic
   const isRecoveryZone = activeBranch === "recoveryzone";

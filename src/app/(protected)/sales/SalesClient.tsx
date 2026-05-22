@@ -50,11 +50,13 @@ import { cn } from "@/lib/utils";
 interface SalesClientProps {
   initialSales: any[];
   initialMembers: any[];
+  showPageHeader?: boolean;
 }
 
 export default function SalesClient({
   initialSales,
   initialMembers,
+  showPageHeader = true,
 }: SalesClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
@@ -78,12 +80,18 @@ export default function SalesClient({
   }, [initialMembers]);
 
   const salesWithMemberNames = useMemo(() => {
-    return sales.map((sale) => ({
-      ...sale,
-      memberName: sale.memberId
-        ? memberMap.get(sale.memberId) || "Unknown Member"
-        : "Walk-in Customer",
-    }));
+    return sales.map((sale) => {
+      let memberName = "Външен клиент";
+      if (sale.memberId === "GUEST_EXTERNAL") {
+        memberName = "Външен гост";
+      } else if (sale.memberId && sale.memberId !== "Walk-in Customer") {
+        memberName = memberMap.get(sale.memberId) || "Неизвестен член";
+      }
+      return {
+        ...sale,
+        memberName,
+      };
+    });
   }, [sales, memberMap]);
 
   const sortedSales = useMemo(() => {
@@ -131,69 +139,94 @@ export default function SalesClient({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <PageHeader
-        title="Продажби"
-        description="Проследяване на продажби на инвентар, напитки и услуги в реално време."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Продажби" },
-        ]}
-      >
-        <Button
-          onClick={() => router.push("/sales/new")}
-          className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
-        >
-          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нова
-          продажба
-        </Button>
-      </PageHeader>
+      {showPageHeader ? (
+        <>
+          <PageHeader
+            title="Продажби"
+            description="Проследяване на продажби на инвентар, напитки и услуги в реално време."
+            breadcrumbs={[
+              { label: "Начало", href: "/dashboard" },
+              { label: "Продажби" },
+            ]}
+          >
+            <Button
+              onClick={() => router.push("/sales/new")}
+              className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+            >
+              <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нова
+              продажба
+            </Button>
+          </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-3xl font-light tracking-tighter mb-2">
-                {sortedSales.length}
-              </p>
-              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
-                Общо транзакции
-              </p>
-            </div>
-            <ShoppingCart className="h-5 w-5 text-zinc-300" strokeWidth={1.5} />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-3xl font-light tracking-tighter mb-2">
+                    {sortedSales.length}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                    Общо транзакции
+                  </p>
+                </div>
+                <ShoppingCart
+                  className="h-5 w-5 text-zinc-300"
+                  strokeWidth={1.5}
+                />
+              </div>
+            </BentoCard>
+            <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-3xl font-light tracking-tighter text-amber-600 mb-2">
+                    {sortedSales.filter((s) => !s.isPaid).length}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                    Висящи плащания
+                  </p>
+                </div>
+                <AlertTriangle
+                  className="h-5 w-5 text-amber-400"
+                  strokeWidth={1.5}
+                />
+              </div>
+            </BentoCard>
+            <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
+              <div className="flex items-center gap-6">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <Receipt className="h-6 w-6 text-primary" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="text-zinc-500 uppercase tracking-[0.3em] text-[9px] mb-2">
+                    Дневен оборот
+                  </p>
+                  <p className="text-xl font-light text-zinc-100 tracking-tight">
+                    Преглед на приходите за деня
+                  </p>
+                </div>
+              </div>
+            </BentoCard>
           </div>
-        </BentoCard>
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-3xl font-light tracking-tighter text-amber-600 mb-2">
-                {sortedSales.filter((s) => !s.isPaid).length}
-              </p>
-              <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
-                Висящи плащания
-              </p>
-            </div>
-            <AlertTriangle
-              className="h-5 w-5 text-amber-400"
-              strokeWidth={1.5}
-            />
+        </>
+      ) : (
+        <div className="flex justify-between items-center px-2 flex-wrap gap-4">
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+              Хроника на плащанията
+            </h3>
+            <p className="text-[11px] text-zinc-400">
+              Преглед и управление на всички регистрирани плащания.
+            </p>
           </div>
-        </BentoCard>
-        <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
-          <div className="flex items-center gap-6">
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-              <Receipt className="h-6 w-6 text-primary" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-zinc-500 uppercase tracking-[0.3em] text-[9px] mb-2">
-                Дневен оборот
-              </p>
-              <p className="text-xl font-light text-zinc-100 tracking-tight">
-                Преглед на приходите за деня
-              </p>
-            </div>
-          </div>
-        </BentoCard>
-      </div>
+          <Button
+            onClick={() => router.push("/sales/new")}
+            className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+          >
+            <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} /> Нова
+            продажба
+          </Button>
+        </div>
+      )}
 
       <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
         {loading ? (

@@ -9,7 +9,13 @@ import { GeneralServiceDialog } from "@/components/finances/GeneralServiceDialog
 import { useGeneralServices } from "@/hooks/useGeneralServices";
 import { GeneralService } from "@/types";
 
-export default function GeneralServicesClientPage() {
+interface GeneralServicesClientPageProps {
+  showPageHeader?: boolean;
+}
+
+export default function GeneralServicesClientPage({
+  showPageHeader = true,
+}: GeneralServicesClientPageProps) {
   const { services, isLoading } = useGeneralServices();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<GeneralService | null>(
@@ -28,23 +34,44 @@ export default function GeneralServicesClientPage() {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-24">
-      <PageHeader
-        title="Каталог Услуги"
-        description="Каталог на допълнителните клубни услуги - наплитане на ракети, наем на корт и други."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/finances" },
-          { label: "Каталог Услуги" },
-        ]}
-      >
-        <Button
-          onClick={handleAdd}
-          className="rounded-2xl shadow-xl shadow-zinc-200 bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+      {!showPageHeader ? (
+        <div className="flex justify-between items-center px-2 flex-wrap gap-4">
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+              Клубни Услуги
+            </h3>
+            <p className="text-[11px] text-zinc-400">
+              Каталог на допълнителните клубни услуги - наплитане на ракети,
+              наем на корт и други.
+            </p>
+          </div>
+          <Button
+            onClick={handleAdd}
+            className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+          >
+            <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} /> Добави
+            услуга
+          </Button>
+        </div>
+      ) : (
+        <PageHeader
+          title="Каталог Услуги"
+          description="Каталог на допълнителните клубни услуги - наплитане на ракети, наем на корт и други."
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Каталози", href: "/finances" },
+            { label: "Каталог Услуги" },
+          ]}
         >
-          <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
-          услуга
-        </Button>
-      </PageHeader>
+          <Button
+            onClick={handleAdd}
+            className="rounded-2xl shadow-xl shadow-zinc-200 bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+          >
+            <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+            услуга
+          </Button>
+        </PageHeader>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

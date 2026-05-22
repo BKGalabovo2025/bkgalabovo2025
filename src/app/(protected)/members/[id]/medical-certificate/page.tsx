@@ -77,9 +77,11 @@ const MedicalCertificatePage = () => {
 
           <div className="flex justify-center gap-6 py-2">
             <p className="text-lg">
-              с ЕГН:{" "}
+              с дата на раждане:{" "}
               <strong>
-                {member.egn || "...................................."}
+                {member.dateOfBirth
+                  ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
+                  : "...................................."}
               </strong>
             </p>
           </div>
