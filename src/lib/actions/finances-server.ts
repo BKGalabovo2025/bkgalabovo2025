@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -6,7 +6,7 @@ import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { Sale } from "@/types";
 import { calculateFinancesOverview } from "./finances-utils";
 
-// РџРѕРјРѕС‰РЅР° С„СѓРЅРєС†РёСЏ Р·Р° РїСЂРµРѕР±СЂР°Р·СѓРІР°РЅРµ РЅР° Firestore РґРѕРєСѓРјРµРЅС‚Рё
+// Помощна функция за преобразуване на Firestore документи
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
 ): T | null {
@@ -65,7 +65,7 @@ export type FinancesOverviewData = {
 };
 
 /**
- * РР·РІР»РёС‡Р° С„РёРЅР°РЅСЃРѕРІРё РґР°РЅРЅРё Р·Р° РіСЂР°С„РёРєРёС‚Рµ РЅР° СЃС‚СЂР°РЅРёС†Р° Р¤РёРЅР°РЅСЃРё (РїРѕСЃР»РµРґРёС‚Рµ 30 РґРЅРё).
+ * Извлича финансови данни за графиките на страница Финанси (последите 30 дни).
  */
 export async function getFinancesOverviewDataAction(
   activeBranch: string
@@ -73,13 +73,13 @@ export async function getFinancesOverviewDataAction(
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) {
-      throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+      throw new Error("Неоторизиран достъп.");
     }
 
     const adminDb = getAdminDb();
     let salesQuery: admin.firestore.Query = adminDb.collection("sales");
 
-    // Р¤РёР»С‚СЂРёСЂР°РЅРµ РїРѕ РєР»РѕРЅ (РјСѓР»С‚РёС‚РµРЅР°РЅС‚)
+    // Филтриране по клон (мултитенант)
     if (activeBranch && activeBranch !== "bkgalabovo") {
       salesQuery = salesQuery.where("siteId", "==", activeBranch);
     }
@@ -111,8 +111,7 @@ export async function getFinancesOverviewDataAction(
     console.error("Error getFinancesOverviewDataAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° С„РёРЅР°РЅСЃРѕРІР°С‚Р° СЃС‚Р°С‚РёСЃС‚РёРєР°.",
+      error: error.message || "Грешка при извличане на финансовата статистика.",
     };
   }
 }
-

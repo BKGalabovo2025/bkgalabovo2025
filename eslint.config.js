@@ -18,6 +18,7 @@ export default tseslint.config(
       "scratch/**",
       "e2e/**",
       "playwright.config.ts",
+      "bkgalabovo2025/**",
     ],
   },
   ...nextConfig,
