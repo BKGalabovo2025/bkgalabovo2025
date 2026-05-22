@@ -77,9 +77,35 @@ export async function updateSubscriptionInternal(
   const adminDb = getAdminDb();
   const subRef = adminDb.collection("memberSubscriptions").doc(id);
 
-  await subRef.update({
-    ...subscriptionUpdate,
-    updatedAt: FieldValue.serverTimestamp(),
+  await adminDb.runTransaction(async (transaction) => {
+    const subDoc = await transaction.get(subRef);
+    if (!subDoc.exists) {
+      throw new Error("Subscription not found");
+    }
+
+    const subData = subDoc.data()!;
+    const memberId = subData.memberId;
+
+    // Perform the update
+    transaction.update(subRef, {
+      ...subscriptionUpdate,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    // Check if the payment status is updated to active OR if pricePaid is increased
+    const wasPending = subData.status === "pending_payment";
+    const becameActive = subscriptionUpdate.status === "active";
+    const pricePaidIncreased =
+      subscriptionUpdate.pricePaid !== undefined &&
+      subscriptionUpdate.pricePaid > (subData.pricePaid || 0);
+
+    if (memberId && ((wasPending && becameActive) || pricePaidIncreased)) {
+      const memberRef = adminDb.collection("members").doc(memberId);
+      transaction.update(memberRef, {
+        lastPaymentDate: new Date().toISOString(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
   });
 }
 /**

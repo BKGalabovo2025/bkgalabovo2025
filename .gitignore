@@ -61,3 +61,7 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/worker-*.js
 public/worker-*.js.map
+
+# nested duplicate folder
+/bkgalabovo2025/
+

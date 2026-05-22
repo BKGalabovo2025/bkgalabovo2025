@@ -29,6 +29,18 @@ interface MemberSalesHistoryProps {
   familyMembers?: import("@/types").Member[];
 }
 
+// Helper to determine if an item is a true subscription based on its name
+const isSubscriptionItem = (name: string): boolean => {
+  const lower = name.toLowerCase();
+  return (
+    lower.includes("месечна") ||
+    lower.includes("такса") ||
+    lower.includes("членски") ||
+    lower.includes("абонамент") ||
+    lower.includes("годишна")
+  );
+};
+
 // Helper to determine badge variant and text based on status and amount
 const getStatusDetails = (
   status: "completed" | "pending" | "informational" | string,
@@ -237,7 +249,9 @@ export const MemberSalesHistory = ({
                                   </div>
                                   {sale.subscriptionId && (
                                     <div className="text-[9px] text-zinc-400 uppercase tracking-widest mt-0.5">
-                                      Абонамент
+                                      {isSubscriptionItem(itemsList)
+                                        ? "Абонамент"
+                                        : "Услуга"}
                                     </div>
                                   )}
                                   {sale.memberId !== memberId &&
@@ -375,7 +389,9 @@ export const MemberSalesHistory = ({
                                 </div>
                                 <span className="text-[8px] text-zinc-400 uppercase tracking-widest font-medium">
                                   {sale.subscriptionId
-                                    ? "Абонамент"
+                                    ? isSubscriptionItem(itemsList)
+                                      ? "Абонамент"
+                                      : "Услуга"
                                     : "Продажба"}
                                 </span>
                               </div>
