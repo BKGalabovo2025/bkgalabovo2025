@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SaleSchema } from "@/types/sale.types";
 
@@ -22,7 +22,7 @@ export async function createSaleAction(
   saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     // Validation
@@ -112,7 +112,7 @@ export async function updateSaleAction(
   saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const validatedFields = SaleSchema.omit({
@@ -165,7 +165,7 @@ export async function deleteSaleAction(
   idToken: string
 ): Promise<SaleActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     await adminDb.collection("sales").doc(id).delete();
@@ -194,7 +194,7 @@ export async function findOrCreateSaleForSubscriptionAction(
   subscription: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     if (!subscription.id) {

@@ -1,7 +1,7 @@
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { getAuthUser, ensureAdmin } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Timestamp } from "firebase-admin/firestore";
@@ -118,7 +118,7 @@ export async function updateReservationAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -172,7 +172,7 @@ export async function deleteReservationAction(
   reservationId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     await db.collection("reservations").doc(reservationId).delete();
     revalidatePath("/reservations");
@@ -193,7 +193,7 @@ export async function createBlockedSlotAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const validated = blockedSlotSchema.parse(data);
     const db = getAdminDb();
 
@@ -227,7 +227,7 @@ export async function updateBlockedSlotAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const validated = blockedSlotSchema.parse(data);
     const db = getAdminDb();
 
@@ -263,7 +263,7 @@ export async function updateBlockedSlotAction(
 
 export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     await db.collection("blockedSlots").doc(slotId).delete();
     revalidatePath("/reservations");
@@ -285,7 +285,7 @@ export async function markReservationAsPaidAction(
   reservationId: string
 ) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const db = getAdminDb();
     await db
       .collection("reservations")
@@ -316,7 +316,7 @@ export async function sendDonationReceiptEmailAction(
   reservationId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
     const reservationDoc = await db

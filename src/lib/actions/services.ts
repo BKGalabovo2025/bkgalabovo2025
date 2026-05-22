@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schema for Service Validation ---
@@ -119,7 +119,7 @@ export async function createClubService(
 ): Promise<ServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const rawData = _parseFormData(formData);
 
@@ -186,7 +186,7 @@ export async function updateClubService(
 ): Promise<ServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const rawData = _parseFormData(formData);
 
@@ -245,7 +245,7 @@ export async function updateClubService(
 
 export async function deleteClubService(idToken: string, id: string) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const serviceRef = adminDb.collection("clubServices").doc(id);
@@ -305,7 +305,7 @@ export async function createRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -369,7 +369,7 @@ export async function updateRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -423,7 +423,7 @@ export async function updateRecoverySession(
 
 export async function deleteRecoverySession(idToken: string, id: string) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     await adminDb.collection("sessions").doc(id).delete();
     revalidatePath("/finances/recovery");

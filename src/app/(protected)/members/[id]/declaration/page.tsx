@@ -7,7 +7,7 @@ import { Printer, ArrowLeft, PenLine, Loader2 } from "lucide-react";
 import { formatFullName } from "@/lib/utils";
 import { useState } from "react";
 import { SignatureDialog } from "@/components/members/signature-dialog";
-import { uploadFile } from "@/services/storage-service";
+import { uploadFile } from "@/lib/client-storage";
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";

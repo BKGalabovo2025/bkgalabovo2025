@@ -1,7 +1,7 @@
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { Member, Sale, Product, ScheduleEvent, Reminder } from "@/types";
 import {
   getDashboardStats,
@@ -74,11 +74,8 @@ function getOverdueReminders(
 
 export async function getDashboardDataServerAction(activeBranch: string) {
   try {
-    // Authenticate the user on the server
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
+    // Authenticate and ensure admin session on the server
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
 

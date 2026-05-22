@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import {
   createSubscriptionInternal,
   updateSubscriptionInternal,
@@ -27,7 +27,7 @@ export async function createSubscriptionAction(
   subscriptionData: Record<string, unknown>
 ): Promise<SubscriptionActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
 
     // Validate data
     const validatedData = subscriptionSchema.parse(subscriptionData);
@@ -66,7 +66,7 @@ export async function updateSubscriptionAction(
   subscriptionUpdate: Record<string, unknown>
 ): Promise<SubscriptionActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
 
     // Validate data
     const validatedData = subscriptionUpdateSchema.parse(subscriptionUpdate);
@@ -97,7 +97,7 @@ export async function deleteSubscriptionAction(
   id: string
 ): Promise<SubscriptionActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
 
     await deleteSubscriptionInternal(id);
 

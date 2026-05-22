@@ -1,58 +1,35 @@
-/**
- * Uploads a file using the server-side API to bypass CORS issues.
- * @param path - The path where the file should be stored
- * @param file - The file object to upload
- */
-export const uploadFile = async (
-  path: string,
-  file: File,
-  idToken?: string | null
-): Promise<string> => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("path", path);
+import { getAdminStorage } from "@/lib/firebase-admin";
 
-  const headers: Record<string, string> = {};
-  if (idToken) {
-    headers["Authorization"] = `Bearer ${idToken}`;
-  }
-
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    headers,
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to upload file");
-  }
-
-  const data = await response.json();
-  return data.downloadUrl;
-};
-
-/**
- * Deletes a file from Firebase Storage via server-side API.
- * @param path - The path of the file to delete
- * @param idToken - Optional authorization token
- */
-export const deleteFile = async (
-  path: string,
-  idToken?: string | null
-): Promise<void> => {
-  const headers: Record<string, string> = {};
-  if (idToken) {
-    headers["Authorization"] = `Bearer ${idToken}`;
-  }
-
-  const response = await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
-    method: "DELETE",
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to delete file");
+// Helper for interacting with Firebase Storage (Admin SDK)
+export const deleteFile = async (path: string) => {
+  try {
+    const storage = getAdminStorage();
+    const bucket = storage.bucket();
+    const file = bucket.file(path);
+    await file.delete({ ignoreNotFound: true });
+    return true;
+  } catch (err) {
+    console.error("storage-service.deleteFile error:", err);
+    throw err;
   }
 };
+
+export const getPublicUrl = (path: string) => {
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET || "";
+  if (!bucketName) return "";
+  return `https://storage.googleapis.com/${bucketName}/${encodeURI(path)}`;
+};
+
+export const uploadFileFromBuffer = async (
+  path: string,
+  buffer: Buffer,
+  contentType = "application/octet-stream"
+) => {
+  const storage = getAdminStorage();
+  const bucket = storage.bucket();
+  const file = bucket.file(path);
+  await file.save(buffer, { contentType, resumable: false });
+  return getPublicUrl(path);
+};
+
+export default { deleteFile, getPublicUrl, uploadFileFromBuffer };

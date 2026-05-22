@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function addMemberToFamilyAction(
@@ -11,7 +11,7 @@ export async function addMemberToFamilyAction(
   idToken: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const familyRef = adminDb.collection("families").doc(familyId);
@@ -49,7 +49,7 @@ export async function removeMemberFromFamilyAction(
   idToken: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const familyRef = adminDb.collection("families").doc(familyId);
@@ -103,7 +103,7 @@ export async function removeMemberFromFamilyAction(
 
 export async function createFamilyAction(name: string, idToken: string) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const familyRef = await adminDb.collection("families").add({
@@ -136,7 +136,7 @@ export async function updateFamilyNameAction(
   idToken: string
 ) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     await adminDb

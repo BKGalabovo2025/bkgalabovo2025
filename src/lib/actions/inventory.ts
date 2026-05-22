@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 // --- Zod Schemas ---
@@ -34,7 +34,7 @@ export async function createProductAction(
   productData: Record<string, unknown>
 ): Promise<InventoryActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const validatedFields = ProductSchema.safeParse(productData);
@@ -92,7 +92,7 @@ export async function updateProductPriceAction(
   newPrice: number
 ): Promise<InventoryActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -147,7 +147,7 @@ export async function restockProductAction(
   notes?: string
 ): Promise<InventoryActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -201,7 +201,7 @@ export async function adjustProductStockAction(
   notes?: string
 ): Promise<InventoryActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const productRef = adminDb.collection("products").doc(id);
@@ -253,7 +253,7 @@ export async function deleteProductAction(
   idToken: string
 ): Promise<InventoryActionState> {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     await adminDb.collection("products").doc(id).delete();

@@ -2,7 +2,7 @@
 
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { Sale } from "@/types";
 import { calculateFinancesOverview } from "./finances-utils";
 
@@ -71,10 +71,7 @@ export async function getFinancesOverviewDataAction(
   activeBranch: string
 ): Promise<FinancesOverviewData> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     let salesQuery: admin.firestore.Query = adminDb.collection("sales");

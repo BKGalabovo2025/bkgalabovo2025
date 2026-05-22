@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { addMember } from "@/services/member-service";
-import {
-  createSubscription,
-  getAllClubServices,
-} from "@/services/subscription-service";
-import { Subscription, Member } from "@/types";
+import { createMemberWithSubscription } from "@/services/member-service";
+import { getAllClubServices } from "@/services/subscription-service";
+import { Member } from "@/types";
 import { ensureAdmin } from "@/lib/auth-utils";
 
 // Тип за данните, необходими за създаване на нов член
@@ -27,14 +24,14 @@ export async function POST(request: Request) {
     try {
       await ensureAdmin(token);
     } catch (authError) {
+      // log unauthorized attempt and return
+      const msg = authError instanceof Error ? authError.message : "Invalid authorization";
+      // lightweight logging to assist audits
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const logger = require("@/lib/logger").default;
+      logger.warn("Unauthorized access attempt to POST /api/members:", msg);
       return new NextResponse(
-        JSON.stringify({
-          error: "Unauthorized",
-          details:
-            authError instanceof Error
-              ? authError.message
-              : "Invalid authorization",
-        }),
+        JSON.stringify({ error: "Unauthorized", details: msg }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -52,17 +49,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Create the new member
-    const memberData: NewMemberData = {
-      siteId,
-      firstName,
-      lastName,
-      email,
-      status: "active",
-    };
-    const newMemberId = await addMember(memberData);
-
-    // 3. Find a default subscription service
+    // 2. Find a default subscription service
     const allServices = await getAllClubServices();
     const defaultSubscriptionService = allServices.find(
       (s) => s.type === "Абонамент"
@@ -72,35 +59,33 @@ export async function POST(request: Request) {
       console.error(
         "CRITICAL: No default subscription service of type 'Абонамент' found."
       );
-      // Return the member created, but flag that subscription failed.
-      return NextResponse.json(
-        { id: newMemberId, ...memberData, subscriptionStatus: "failed" },
-        { status: 201 }
+      return new NextResponse(
+        JSON.stringify({ error: "No default subscription service found" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Create the subscription
-    const subscriptionData: Omit<Subscription, "id" | "siteId"> = {
-      memberId: newMemberId,
-      serviceId: defaultSubscriptionService.id,
-      serviceName: defaultSubscriptionService.name,
-      startDate: new Date().toISOString(),
-      endDate: new Date(
-        new Date().setMonth(new Date().getMonth() + 1)
-      ).toISOString(), // Default to 1 month
+    // 3. Create the new member + default subscription in a single transaction
+    const memberData: NewMemberData = {
+      siteId,
+      firstName,
+      lastName,
+      email,
       status: "active",
-      price: defaultSubscriptionService.price,
-      currency: defaultSubscriptionService.currency,
-      pricePaid: 0,
-      paymentHistory: [],
-      paymentsMadeCount: 0,
-      totalPaymentsCount: 12, // Assuming yearly
-      licenseGranted: false,
-      apparelGranted: false,
-      linkedSubscriptionId: null,
     };
 
-    await createSubscription(subscriptionData, "system", "System");
+    const result = await createMemberWithSubscription(
+      memberData,
+      {
+        id: defaultSubscriptionService.id,
+        name: defaultSubscriptionService.name,
+        price: defaultSubscriptionService.price,
+        currency: defaultSubscriptionService.currency,
+      },
+      { uid: "system", email: "system" }
+    );
+
+    const newMemberId = result.memberId;
 
     // 5. Construct and return the final response object
     const responsePayload = {

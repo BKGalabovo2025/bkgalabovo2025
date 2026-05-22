@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 
 const GeneralServiceSchema = z.object({
@@ -29,7 +29,7 @@ export async function createGeneralService(
 ): Promise<GeneralServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -90,7 +90,7 @@ export async function updateGeneralService(
 ): Promise<GeneralServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -142,6 +142,7 @@ export async function updateGeneralService(
 export async function deleteGeneralService(idToken: string, id: string) {
   try {
     if (!idToken) throw new Error("Missing ID Token");
+    await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     await adminDb.collection("clubGeneralServices").doc(id).delete();
 

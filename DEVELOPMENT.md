@@ -13,6 +13,16 @@ Secrets
 - Move service account JSON and passwords to GitHub Secrets / Vercel / Secret Manager.
 - Rotate any keys/secrets if they were ever committed.
 
+Secrets migration
+
+Use the included helper to generate CLI commands for GitHub and Vercel:
+
+```bash
+node scripts/migrate-secrets.cjs
+```
+
+This prints `gh secret set` and `vercel env add` commands you can review and run locally.
+
 Quick commands
 
 ```bash

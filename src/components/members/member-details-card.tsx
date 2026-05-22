@@ -74,7 +74,7 @@ import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
-import { uploadFile } from "@/services/storage-service";
+import { uploadFile } from "@/lib/client-storage";
 import { Camera, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 

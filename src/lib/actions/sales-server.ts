@@ -2,7 +2,7 @@
 
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { Sale, Member, ClubService, Subscription, Family } from "@/types";
 
 // Помощна функция за преобразуване на Firestore документи с конвертиране на Timestamps в ISO низове
@@ -45,10 +45,7 @@ function snapToData<T>(
  */
 export async function getInventorySalesServerAction(activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      throw new Error("Неоторизиран достъп.");
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     let salesQuery: admin.firestore.Query = adminDb.collection("sales");
@@ -90,10 +87,7 @@ export async function getInventorySalesServerAction(activeBranch: string) {
  */
 export async function getReceiptDetailsServerAction(saleId: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      throw new Error("Неоторизиран достъп.");
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const saleSnap = await adminDb.collection("sales").doc(saleId).get();

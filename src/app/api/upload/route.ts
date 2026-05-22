@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminStorage } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
     const token = authHeader.substring(7);
     try {
-      await getAuthUser(token);
+      await ensureAdmin(token);
     } catch (authError) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest) {
     }
     const token = authHeader.substring(7);
     try {
-      await getAuthUser(token);
+      await ensureAdmin(token);
     } catch (authError) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
