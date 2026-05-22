@@ -9,5 +9,8 @@
   "editor.quickSuggestions": {
     "strings": "on"
   },
-  "workbench.startupEditor": "readme"
+  "workbench.startupEditor": "readme",
+  "yaml.schemas": {
+    "https://www.schemastore.org/projektor.json": "file:///c%3A/Users/Dell/.continue/config.yaml"
+  }
 }

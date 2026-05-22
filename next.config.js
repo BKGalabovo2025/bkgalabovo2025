@@ -1,69 +1,23 @@
-import path from "path";
-import { fileURLToPath } from "url";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-  workboxOptions: {
-    navigateFallbackDenylist: [
-      /^\/dashboard/,
-      /^\/login/,
-      /^\/members/,
-      /^\/families/,
-      /^\/finances/,
-      /^\/sales/,
-      /^\/schedule/,
-      /^\/reservations/,
-      /^\/subscriptions/,
-      /^\/inventory/,
-      /^\/tournaments/,
-      /^\/rankings/,
-      /^\/reports/,
-      /^\/settings/,
-      /^\/api/,
-    ],
-  },
-});
-
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  serverExternalPackages: ["firebase-admin"],
-  outputFileTracingRoot: __dirname,
-  turbopack: {
-    root: __dirname,
+  // Enable Turbopack for better performance
+  // For more info: https://nextjs.org/docs/app/api-reference/next-config-js/turbopack
+  // Explicitly disable Turbopack if using webpack configuration
+  // For more info: https://nextjs.org/docs/app/api-reference/next-config-js/turbopack
+  experimental: {
+    forceSwcTransforms: true, // Ensures SWC is used for all transformations
+    // turbopack: false, // Disables Turbopack entirely
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "i.pravatar.cc",
-      },
-    ],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
   },
-  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
-    ? process.env.ALLOWED_DEV_ORIGINS.split(",")
-    : [
-        "*.cloudworkstations.dev",
-        "3000-firebase-bkgalabovo2025-1772179617694.cluster-zti5ytzhlffjiqj6bp4giuli3u.cloudworkstations.dev",
-      ],
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
