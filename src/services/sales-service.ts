@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { Sale } from "@/types";
 import { getSalesQuery, getSalesCollection } from "@/lib/firebase-collections";
+import { getDb } from "@/lib/firebase";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
@@ -108,6 +109,37 @@ export const updateSale = async (
   }
 
   await updateDoc(saleRef, dataToUpdate);
+
+  // FIX: Синхронизиране на абонамента, ако продажбата е маркирана като платена
+  if (data.status === "completed" && data.isPaid === true) {
+    const docSnap = await getDoc(saleRef);
+    if (docSnap.exists()) {
+      const saleDataObj = docSnap.data();
+      if (saleDataObj.subscriptionId) {
+        const subRef = doc(
+          getDb(),
+          "memberSubscriptions",
+          saleDataObj.subscriptionId
+        );
+        const subSnap = await getDoc(subRef);
+        if (subSnap.exists()) {
+          await updateDoc(subRef, {
+            status: "active",
+            pricePaid: saleDataObj.totalAmount || 0,
+            updatedAt: new Date().toISOString(),
+          });
+
+          // Обновяваме lastPaymentDate на члена
+          if (saleDataObj.memberId && (saleDataObj.totalAmount || 0) > 0) {
+            const memberRef = doc(getDb(), "members", saleDataObj.memberId);
+            await updateDoc(memberRef, {
+              lastPaymentDate: new Date().toISOString(),
+            });
+          }
+        }
+      }
+    }
+  }
 };
 
 export const deleteSale = async (id: string): Promise<void> => {

@@ -114,7 +114,9 @@ export const sessionToClubService = (
     proceduresPerDay:
       typeof data.proceduresPerDay === "number" ? data.proceduresPerDay : 1,
     sessionType:
-      typeof data.sessionType === "string" ? data.sessionType : "Възстановяване",
+      typeof data.sessionType === "string"
+        ? data.sessionType
+        : "Възстановяване",
     minMembers: 0,
     maxMembers: 0,
     specialRights: [],
@@ -237,8 +239,14 @@ export const createSubscription = async (
   const db = getDb();
   const subRef = doc(getMemberSubscriptionsCollection());
 
-  // FIX: Определяме статуса на базата на цената
-  const saleStatus = subscription.price > 0 ? "completed" : "informational";
+  // FIX: Определяме статуса на базата на цената и платеното
+  const isPaid = subscription.pricePaid >= subscription.price;
+  const saleStatus =
+    subscription.price > 0
+      ? isPaid
+        ? "completed"
+        : "pending"
+      : "informational";
 
   const saleRef = doc(getSalesCollection());
   const saleData = {
@@ -256,8 +264,8 @@ export const createSubscription = async (
     ],
     totalAmount: subscription.price,
     currency: subscription.currency,
-    isPaid: subscription.pricePaid >= subscription.price,
-    status: saleStatus, // <-- FIX: Използваме динамично определения статус
+    isPaid: isPaid,
+    status: saleStatus,
     siteId: getSiteConfig().id,
   };
 
@@ -272,8 +280,8 @@ export const createSubscription = async (
     // 2. Записваме продажбата автоматично
     transaction.set(saleRef, saleData as Record<string, unknown>);
 
-    // 3. Обновяваме последната дата на плащане в профила на члена, само ако е имало реално плащане
-    if (subscription.price > 0) {
+    // 3. Обновяваме последната дата на плащане в профила на члена, само ако е РЕАЛНО платено
+    if (isPaid && subscription.price > 0) {
       const memberRef = doc(getMembersCollection(), subscription.memberId);
       transaction.update(memberRef, {
         lastPaymentDate: new Date().toISOString(),
