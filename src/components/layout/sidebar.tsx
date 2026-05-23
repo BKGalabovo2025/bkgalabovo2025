@@ -18,11 +18,10 @@ import {
   Home,
   Users,
   LogOut,
-  Landmark,
-  ShoppingCart,
+  Briefcase,
+  ListTree,
   Calendar,
   CalendarCheck,
-  Repeat,
   BarChart,
   Trophy,
   Medal,
@@ -42,7 +41,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   // Handle Hydration
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -201,7 +199,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
 
             <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Каталози
+              Бизнес Център
             </div>
 
             <SidebarMenuItem>
@@ -215,8 +213,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   className="flex items-center gap-3 w-full"
                   onClick={() => isMobile && setOpen(false)}
                 >
-                  <Landmark size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Каталози</span>
+                  <Briefcase size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Управление</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -224,16 +222,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith("/sales")}
+                isActive={pathname.startsWith("/catalogs")}
                 className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
                 <Link
-                  href="/sales"
+                  href="/catalogs"
                   className="flex items-center gap-3 w-full"
                   onClick={() => isMobile && setOpen(false)}
                 >
-                  <ShoppingCart size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Продажби</span>
+                  <ListTree size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Каталози</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -241,23 +239,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
               Администрация
             </div>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/subscriptions")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-              >
-                <Link
-                  href="/subscriptions"
-                  className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <Repeat size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Членство</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
 
             {!isRecoveryZone && (
               <SidebarMenuItem>

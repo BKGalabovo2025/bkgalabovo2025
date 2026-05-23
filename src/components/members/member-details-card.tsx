@@ -29,6 +29,7 @@ import {
   ClipboardCheck,
   Stethoscope,
   Contact,
+  Trophy,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -441,6 +442,32 @@ export const MemberDetailsCard = ({
                 icon={BarChart2}
                 label="Възрастова група"
                 value={member.ageGroup || ageGroup}
+              />
+              <InfoRow
+                icon={Users}
+                label="Пол"
+                value={
+                  member.gender === "male"
+                    ? "Мъж"
+                    : member.gender === "female"
+                      ? "Жена"
+                      : null
+                }
+              />
+              <InfoRow
+                icon={Trophy}
+                label="Ниво на умения"
+                value={
+                  member.skillLevel === "beginner"
+                    ? "Начинаещ"
+                    : member.skillLevel === "intermediate"
+                      ? "Средно напреднал"
+                      : member.skillLevel === "advanced"
+                        ? "Напреднал"
+                        : member.skillLevel === "professional"
+                          ? "Професионалист"
+                          : null
+                }
               />
               <div className="md:col-span-2">
                 <div className="h-px bg-zinc-50 my-6" />

@@ -4,9 +4,6 @@ import { getFinancesOverviewDataAction } from "@/lib/actions/finances-server";
 import { getInventorySalesServerAction } from "@/lib/actions/sales-server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import * as admin from "firebase-admin";
-import { serializeFirestoreData } from "@/lib/serialize-utils";
-import { ServiceSchema } from "./services/service.types";
-import { ClubService } from "@/types";
 import FinancesClient from "./FinancesClient";
 import { serverCache } from "@/lib/server-cache";
 
@@ -41,13 +38,7 @@ export default async function FinancesPage() {
   const adminDb = getAdminDb();
 
   // Parallel fetch of all essential finance data using in-memory cache helpers
-  const [
-    financesResult,
-    salesResult,
-    initialMembers,
-    services,
-    recoveryServices,
-  ] = await Promise.all([
+  const [financesResult, salesResult, initialMembers] = await Promise.all([
     getFinancesOverviewDataAction(activeBranch),
     getInventorySalesServerAction(activeBranch),
     serverCache.get(
@@ -71,54 +62,6 @@ export default async function FinancesPage() {
       },
       60000 // 60 seconds members cache TTL
     ),
-    serverCache.get(
-      "clubServices",
-      async () => {
-        const servicesSnapshot = await adminDb.collection("clubServices").get();
-        return servicesSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          const serializedData = serializeFirestoreData({
-            id: doc.id,
-            ...data,
-          });
-          return ServiceSchema.parse(serializedData);
-        });
-      },
-      300000 // 5 minutes catalog cache TTL
-    ),
-    serverCache.get(
-      "recoveryServices",
-      async () => {
-        const sessionsSnapshot = await adminDb.collection("sessions").get();
-        return sessionsSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            siteId: "recoveryzone",
-            name: data.name || "Неименувана услуга",
-            description: data.description || "",
-            price: data.price || 0,
-            currency: "EUR",
-            durationMinutes: data.duration || 0,
-            category: data.category || "Други",
-            zones: Array.isArray(data.zones)
-              ? data.zones
-              : typeof data.zones === "string"
-                ? data.zones.split(",").filter(Boolean)
-                : [],
-            athleteCount: data.athleteCount || 1,
-            numberOfDays: data.numberOfDays || 1,
-            proceduresPerDay: data.proceduresPerDay || 1,
-            sessionType: data.sessionType || "Възстановяване",
-            requiresBooking: true,
-            createdAt: data.createdAt || new Date().toISOString(),
-            updatedAt: data.updatedAt || new Date().toISOString(),
-            requiredResources: data.requiredResources || null,
-          } as ClubService;
-        });
-      },
-      300000 // 5 minutes catalog cache TTL
-    ),
   ]);
 
   // 1. Finances Dashboard Stats
@@ -141,19 +84,17 @@ export default async function FinancesPage() {
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-24">
       <PageHeader
-        title="Централна Финансова Каса & Услуги"
-        description="Единно работно пространство за бързи разплащания, членства, закриване на такси, инвентар и управление на клубни услуги."
+        title="Център за Управление"
+        description="Единно работно пространство за управление на абонаменти, плащания, хроника на транзакциите и наличности на склад."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каса & Услуги" },
+          { label: "Управление" },
         ]}
       />
 
       <FinancesClient
         initialSales={initialSales}
         initialMembers={initialMembers}
-        services={services}
-        recoveryServices={recoveryServices}
         financesData={financesData}
       />
     </div>
