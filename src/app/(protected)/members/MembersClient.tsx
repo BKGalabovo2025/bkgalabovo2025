@@ -33,7 +33,7 @@ import {
   XCircle,
   Trash2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getAgeGroup } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
 import {
   bulkUpdateMemberStatusAction,
@@ -305,7 +305,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     const dataToExport = filteredMembers.map((m) => ({
       Име: `${m.firstName} ${m.lastName}`,
       Имейл: m.email || "—",
-      Група: m.ageGroup || "—",
+      Група: m.ageGroup || (m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "—"),
       Статус: m.status === "active" ? "Активен" : "Неактивен",
       Регистрация: new Date(m.registrationDate).toLocaleDateString("bg-BG"),
     }));
@@ -806,12 +806,16 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           className="px-4"
                           onClick={() => router.push(`/members/${member.id}`)}
                         >
-                          {member.ageGroup ? (
+                          {member.ageGroup ||
+                          (member.dateOfBirth
+                            ? getAgeGroup(member.dateOfBirth)
+                            : null) ? (
                             <Badge
                               variant="outline"
                               className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
                             >
-                              {member.ageGroup}
+                              {member.ageGroup ||
+                                getAgeGroup(member.dateOfBirth!)}
                             </Badge>
                           ) : (
                             <span className="text-zinc-300 text-[11px]">—</span>
@@ -959,12 +963,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           )}
                         </span>
                       </div>
-                      {member.ageGroup && (
+                      {(member.ageGroup || member.dateOfBirth) && (
                         <Badge
                           variant="outline"
                           className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
                         >
-                          {member.ageGroup}
+                          {member.ageGroup || getAgeGroup(member.dateOfBirth!)}
                         </Badge>
                       )}
                     </div>
