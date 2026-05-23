@@ -10,7 +10,6 @@ import {
   orderBy,
   deleteDoc,
   CollectionReference,
-  startAfter,
   addDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -127,34 +126,6 @@ export const getAllMembers = async (
   return members;
 };
 
-// Fetches a paginated slice of members.
-export const getMembersPage = async (
-  pageSize: number = 20,
-  startAfterDocId?: string
-): Promise<{ members: Member[]; lastDocId: string | null }> => {
-  let q = query(getMembersQuery(), orderBy("lastName", "asc"), limit(pageSize));
-
-  if (startAfterDocId) {
-    const startAfterDoc = await getDoc(
-      doc(getMembersCollection(), startAfterDocId)
-    );
-    if (startAfterDoc.exists()) {
-      q = query(q, startAfter(startAfterDoc));
-    }
-  }
-
-  const querySnapshot = await getDocs(q);
-  const members = querySnapshot.docs
-    .map(docToMember)
-    .filter(Boolean) as Member[];
-  const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-  return {
-    members,
-    lastDocId: lastDoc ? lastDoc.id : null,
-  };
-};
-
 // Изчисляване на възрастовата група на базата на годината на раждане
 export const calculateAgeGroup = (
   dateOfBirth?: string | Date | null
@@ -262,26 +233,4 @@ export const updateMember = async (
 export const deleteMember = async (id: string): Promise<void> => {
   const memberRef = doc(getMembersCollection(), id);
   await deleteDoc(memberRef);
-};
-
-// --- Bulk Operations ---
-
-export const bulkUpdateMemberStatus = async (
-  memberIds: string[],
-  status: "active" | "inactive" | "suspended"
-): Promise<void> => {
-  const { writeBatch, doc } = await import("firebase/firestore");
-  const { getDb } = await import("@/lib/firebase");
-  const db = getDb();
-  const batch = writeBatch(db);
-
-  memberIds.forEach((id) => {
-    const memberRef = doc(db, "members", id);
-    batch.update(memberRef, {
-      status,
-      updatedAt: serverTimestamp(),
-    });
-  });
-
-  await batch.commit();
 };

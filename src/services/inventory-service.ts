@@ -1,19 +1,8 @@
+import { getDocs, DocumentSnapshot, Timestamp } from "firebase/firestore";
 import {
-  doc,
-  getDoc,
-  getDocs,
-  DocumentSnapshot,
-  Timestamp,
-  runTransaction,
-} from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
-import {
-  getProductsCollection,
-  getInventoryEventsCollection,
   getProductsQuery,
   getInventoryEventsQuery,
 } from "@/lib/firebase-collections";
-import { getSiteConfig } from "@/config/sites";
 import { Product, InventoryEvent } from "@/types";
 
 export const docToProduct = (doc: DocumentSnapshot): Product | null => {
@@ -96,106 +85,10 @@ export const getInventoryEvents = async (): Promise<InventoryEvent[]> => {
     .filter(Boolean) as InventoryEvent[];
 };
 
-export const getProducts = async (): Promise<Product[]> => {
+const getProducts = async (): Promise<Product[]> => {
   const q = getProductsQuery();
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(docToProduct).filter(Boolean) as Product[];
-};
-
-export const updateProductPrice = async (
-  id: string,
-  newPrice: number,
-  userId: string,
-  userName: string
-): Promise<void> => {
-  const db = getDb();
-  const productRef = doc(getProductsCollection(), id);
-  const productSnap = await getDoc(productRef);
-  if (!productSnap.exists()) throw new Error("Product not found");
-  const oldPrice = productSnap.data().price || 0;
-
-  await runTransaction(db, async (transaction) => {
-    transaction.update(productRef, { price: newPrice });
-
-    const eventRef = doc(getInventoryEventsCollection());
-    const eventData: Omit<InventoryEvent, "id"> = {
-      productId: id,
-      productName: productSnap.data().name,
-      type: "price_update",
-      quantityChange: 0,
-      oldPrice,
-      newPrice,
-      createdAt: new Date().toISOString(),
-      userId,
-      userName,
-      siteId: getSiteConfig().id,
-    };
-    transaction.set(eventRef, eventData);
-  });
-};
-
-export const restockProduct = async (
-  id: string,
-  quantity: number,
-  userId: string,
-  userName: string,
-  notes?: string
-): Promise<void> => {
-  const db = getDb();
-  const productRef = doc(getProductsCollection(), id);
-  const productSnap = await getDoc(productRef);
-  if (!productSnap.exists()) throw new Error("Product not found");
-
-  await runTransaction(db, async (transaction) => {
-    const currentStock = productSnap.data().stock || 0;
-    transaction.update(productRef, { stock: currentStock + quantity });
-
-    const eventRef = doc(getInventoryEventsCollection());
-    const eventData: Omit<InventoryEvent, "id"> = {
-      productId: id,
-      productName: productSnap.data().name,
-      type: "restock",
-      quantityChange: quantity,
-      createdAt: new Date().toISOString(),
-      userId,
-      userName,
-      notes,
-      siteId: getSiteConfig().id,
-    };
-    transaction.set(eventRef, eventData);
-  });
-};
-
-export const adjustProductStock = async (
-  id: string,
-  newStock: number,
-  userId: string,
-  userName: string,
-  notes?: string
-): Promise<void> => {
-  const db = getDb();
-  const productRef = doc(getProductsCollection(), id);
-  const productSnap = await getDoc(productRef);
-  if (!productSnap.exists()) throw new Error("Product not found");
-
-  await runTransaction(db, async (transaction) => {
-    const oldStock = productSnap.data().stock || 0;
-    transaction.update(productRef, { stock: newStock });
-
-    const eventRef = doc(getInventoryEventsCollection());
-    const eventData: Omit<InventoryEvent, "id"> = {
-      productId: id,
-      productName: productSnap.data().name,
-      type: "correction",
-      quantityChange: newStock - oldStock,
-      createdAt: new Date().toISOString(),
-      userId,
-      userName,
-      notes,
-      siteId: getSiteConfig().id,
-    };
-    transaction.set(eventRef, eventData);
-  });
 };
 
 /**

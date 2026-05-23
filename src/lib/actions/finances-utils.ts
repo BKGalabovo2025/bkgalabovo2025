@@ -1,12 +1,12 @@
 import { Sale } from "@/types";
 
-export type CategoryRevenue = {
+type CategoryRevenue = {
   name: string;
   value: number;
   color: string;
 };
 
-export type DailyRevenueTrend = {
+type DailyRevenueTrend = {
   date: string;
   amount: number;
 };
@@ -39,10 +39,7 @@ const formatTrendDate = (date: Date): string => {
   });
 };
 
-export function buildDailyRevenueTrend(
-  sales: Sale[],
-  days = 30
-): DailyRevenueTrend[] {
+function buildDailyRevenueTrend(sales: Sale[], days = 30): DailyRevenueTrend[] {
   const now = new Date();
   const dailyTrendMap = new Map<string, number>();
 
@@ -71,7 +68,7 @@ export function buildDailyRevenueTrend(
   }));
 }
 
-export function calculateRevenueCategories(
+function calculateRevenueCategories(
   sales: Sale[],
   activeBranch: string
 ): CategoryRevenue[] {

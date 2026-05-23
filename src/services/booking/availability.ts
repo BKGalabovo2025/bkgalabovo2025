@@ -2,7 +2,7 @@ import { AttachmentType, ResourceRequirements } from "@/types/booking.types";
 import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
 
-export const DEFAULT_INVENTORY: ResourceRequirements = {
+const DEFAULT_INVENTORY: ResourceRequirements = {
   attachments: {
     arms: 2,
     hips: 2,
@@ -71,59 +71,9 @@ export function calculateAvailability(
 }
 
 /**
- * Checks if a specific booking request can be accommodated given existing reservations and site capacity.
- */
-export function checkAvailability(
-  req: { duration: number; service: ClubService; startTime: Date },
-  reservations: Reservation[],
-  siteInventory: ResourceRequirements = DEFAULT_INVENTORY
-): boolean {
-  const reqStart = req.startTime.getTime();
-  const reqEnd = reqStart + req.duration * 60000;
-  const isExclusive = req.service.isExclusive === true;
-
-  const usage = { attachments: { arms: 0, hips: 0, legs: 0 }, compressors: 0 };
-
-  for (const res of reservations) {
-    if (res.status === "cancelled") continue;
-
-    const resStart = toTimestamp(res.startTime);
-    const resEnd = toTimestamp(res.endTime);
-
-    if (reqStart < resEnd && reqEnd > resStart) {
-      if (res.isExclusive === true || isExclusive) return false;
-
-      const ur = res.usedResources;
-      if (!ur) continue;
-      usage.compressors += ur.compressors || 0;
-
-      const atts = (ur.attachments || {}) as Record<string, number | undefined>;
-      usage.attachments.legs += atts.legs || 0;
-      usage.attachments.arms += atts.arms || 0;
-      usage.attachments.hips += atts.hips || 0;
-    }
-  }
-
-  const reqRes = req.service.requiredResources;
-  if (!reqRes) return true;
-
-  const totalComp = usage.compressors + (reqRes.compressors || 0);
-  const totalLegs = usage.attachments.legs + (reqRes.attachments?.legs || 0);
-  const totalArms = usage.attachments.arms + (reqRes.attachments?.arms || 0);
-  const totalHips = usage.attachments.hips + (reqRes.attachments?.hips || 0);
-
-  return (
-    totalComp <= (siteInventory.compressors || 0) &&
-    totalLegs <= (siteInventory.attachments?.legs || 0) &&
-    totalArms <= (siteInventory.attachments?.arms || 0) &&
-    totalHips <= (siteInventory.attachments?.hips || 0)
-  );
-}
-
-/**
  * Helper to get Sofia components from a Date
  */
-export function getSofiaParts(date: Date) {
+function getSofiaParts(date: Date) {
   const format = new Intl.DateTimeFormat("en-US", {
     day: "numeric",
     hour: "numeric",

@@ -16,6 +16,8 @@ import {
 import { getSiteById } from "@/services/site-service";
 import { DaySchedule } from "@/types/site.types";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Recovery Zone by ZM | Професионално Възстановяване",
   description:

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SpecialRightSchema = z.object({
+const SpecialRightSchema = z.object({
   right: z.string(),
   description: z.string(),
   trigger: z
@@ -11,7 +11,7 @@ export const SpecialRightSchema = z.object({
     .optional(),
 });
 
-export const CancellationPolicySchema = z.object({
+const CancellationPolicySchema = z.object({
   isAllowed: z.boolean().default(true),
   noticePeriodDays: z.number().default(5),
   feeType: z.string().default("none"),
@@ -20,7 +20,7 @@ export const CancellationPolicySchema = z.object({
   longTermSicknessDiscount: z.number().default(0.5),
 });
 
-export const PaymentRulesSchema = z.object({
+const PaymentRulesSchema = z.object({
   window: z
     .object({
       startDay: z.number().default(1),
@@ -57,6 +57,3 @@ export const ServiceSchema = z.object({
 });
 
 export type Service = z.infer<typeof ServiceSchema>;
-export type SpecialRight = z.infer<typeof SpecialRightSchema>;
-export type CancellationPolicy = z.infer<typeof CancellationPolicySchema>;
-export type PaymentRules = z.infer<typeof PaymentRulesSchema>;
