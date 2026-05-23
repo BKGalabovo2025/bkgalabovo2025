@@ -50,6 +50,26 @@ export const MemberForm = ({
   initialData,
 }: MemberFormProps) => {
   const { activeBranch } = useAppStore();
+  // Safely convert dateOfBirth to string for Zod validation
+  const safeInitialData = { ...initialData } as any;
+  if (
+    safeInitialData.dateOfBirth &&
+    typeof safeInitialData.dateOfBirth !== "string"
+  ) {
+    if (typeof safeInitialData.dateOfBirth?.toDate === "function") {
+      safeInitialData.dateOfBirth = safeInitialData.dateOfBirth
+        .toDate()
+        .toISOString()
+        .split("T")[0];
+    } else if (safeInitialData.dateOfBirth instanceof Date) {
+      safeInitialData.dateOfBirth = safeInitialData.dateOfBirth
+        .toISOString()
+        .split("T")[0];
+    } else {
+      safeInitialData.dateOfBirth = String(safeInitialData.dateOfBirth);
+    }
+  }
+
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(MemberFormSchema),
     defaultValues: {
@@ -73,7 +93,7 @@ export const MemberForm = ({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
-      ...initialData,
+      ...safeInitialData,
     },
   });
 
