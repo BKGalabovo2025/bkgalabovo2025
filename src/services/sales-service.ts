@@ -12,6 +12,7 @@ import {
 import { Sale } from "@/types";
 import { getSalesQuery, getSalesCollection } from "@/lib/firebase-collections";
 import { getDb } from "@/lib/firebase";
+import { getSiteConfig } from "@/config/sites";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {
@@ -108,12 +109,19 @@ export const updateSale = async (
     dataToUpdate.saleDate = Timestamp.fromDate(new Date(data.saleDate));
   }
 
+  // Добавяме siteId към ъпдейта, за да минем през Firestore Security Rules,
+  // в случай че старият документ няма такъв.
+  const activeSiteId = getSiteConfig().id;
+  dataToUpdate.siteId = activeSiteId;
+
   await updateDoc(saleRef, dataToUpdate);
 
   // FIX: Синхронизиране на абонамента, ако продажбата е маркирана като платена или неплатена
   const docSnap = await getDoc(saleRef);
   if (docSnap.exists()) {
     const saleDataObj = docSnap.data();
+    const targetSiteId = saleDataObj.siteId || activeSiteId;
+
     if (saleDataObj.subscriptionId) {
       const subRef = doc(
         getDb(),
@@ -127,6 +135,7 @@ export const updateSale = async (
             status: "active",
             pricePaid: saleDataObj.totalAmount || 0,
             updatedAt: new Date().toISOString(),
+            siteId: targetSiteId,
           });
 
           // Обновяваме lastPaymentDate на члена
@@ -134,6 +143,7 @@ export const updateSale = async (
             const memberRef = doc(getDb(), "members", saleDataObj.memberId);
             await updateDoc(memberRef, {
               lastPaymentDate: new Date().toISOString(),
+              siteId: targetSiteId,
             });
           }
         } else if (data.status === "pending" && data.isPaid === false) {
@@ -142,6 +152,7 @@ export const updateSale = async (
             status: "pending_payment",
             pricePaid: 0,
             updatedAt: new Date().toISOString(),
+            siteId: targetSiteId,
           });
         }
       }
