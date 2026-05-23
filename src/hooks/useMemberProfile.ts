@@ -6,7 +6,13 @@ import { getMemberById } from "@/services/member-service";
 import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { getAttendancesByMemberId } from "@/services/attendance-service";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  documentId,
+} from "firebase/firestore";
 import { docToMember } from "@/services/member-service";
 
 export interface Family {
@@ -58,7 +64,7 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
       // Limit to 30 as per Firestore 'in' limitation
       const mq = query(
         membersRef,
-        where("__name__", "in", otherMemberIds.slice(0, 30))
+        where(documentId(), "in", otherMemberIds.slice(0, 30))
       );
       const mSnapshot = await getDocs(mq);
       familyMembers.push(
