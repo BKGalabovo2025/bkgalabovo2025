@@ -189,12 +189,31 @@ export default function SubscriptionsClient({
           if (attendanceInMonth > 0) {
             // Check if member already has an active or pending subscription for this month
             const hasSub = subscriptions.some((s) => {
-              if (s.memberId !== member.id) return false;
               if (s.status === "cancelled") return false;
 
-              const start = new Date(s.startDate);
-              const end = new Date(s.endDate);
-              return start <= lastDayOfMonth && end >= firstDayOfMonth;
+              // Check if it belongs to this member
+              if (s.memberId === member.id) {
+                const start = new Date(s.startDate);
+                const end = new Date(s.endDate);
+                return start <= lastDayOfMonth && end >= firstDayOfMonth;
+              }
+
+              // If they belong to a family, check if another family member has an active/pending FAMILY subscription
+              if (member.familyId) {
+                const isFamilySub =
+                  s.serviceName.toLowerCase().includes("семеен") ||
+                  s.serviceName.toLowerCase().includes("семейство");
+                if (isFamilySub) {
+                  const subMember = members.find((m) => m.id === s.memberId);
+                  if (subMember && subMember.familyId === member.familyId) {
+                    const start = new Date(s.startDate);
+                    const end = new Date(s.endDate);
+                    return start <= lastDayOfMonth && end >= firstDayOfMonth;
+                  }
+                }
+              }
+
+              return false;
             });
 
             if (!hasSub) {

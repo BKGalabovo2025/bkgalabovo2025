@@ -97,11 +97,16 @@ export const getMembershipSuggestions = (
     }
   }
 
+  const isFamily = !!member.familyId;
   const visits = attendanceCount > 0 ? attendanceCount : 1;
   const projectedCost = visits * (singleService?.price || 0);
 
   if (singleService && effectiveMonthly) {
-    if (projectedCost <= effectiveMonthly.price && attendanceCount > 0) {
+    if (
+      projectedCost <= effectiveMonthly.price &&
+      attendanceCount > 0 &&
+      !isFamily
+    ) {
       list.push({
         service: singleService,
         reason: `${visits} посетени тренировки през месеца × ${singleService.price} ${singleService.currency} (по-изгодно от месечен абонамент)`,
@@ -121,9 +126,17 @@ export const getMembershipSuggestions = (
         suggestedServiceName: effectiveMonthly.name,
       });
     } else {
+      const savings = projectedCost - effectiveMonthly.price;
+      const savingsText =
+        savings > 0
+          ? ` (спестявате ${savings} ${effectiveMonthly.currency} спрямо единични)`
+          : "";
+      const priceCompareText =
+        savings > 0 ? " (по-скъпо от месечен абонамент)" : "";
+
       list.push({
         service: effectiveMonthly,
-        reason: `${member.familyId ? "Семеен месечен абонамент" : "Месечен абонамент"} ${attendanceCount > 0 ? `при ${visits} посещения (спестявате ${projectedCost - effectiveMonthly.price} ${effectiveMonthly.currency} спрямо единични)` : `(стандартна цена ${effectiveMonthly.price} ${effectiveMonthly.currency})`}`,
+        reason: `${member.familyId ? "Семеен месечен абонамент" : "Месечен абонамент"}${attendanceCount > 0 ? savingsText : ` (стандартна цена ${effectiveMonthly.price} ${effectiveMonthly.currency})`}`,
         icon: TrendingUp,
         priority: 25,
         bestValue: true,
@@ -133,7 +146,7 @@ export const getMembershipSuggestions = (
 
       list.push({
         service: singleService,
-        reason: `${visits} посетен${visits === 1 ? "а" : "и"} тренировк${visits === 1 ? "а" : "и"} × ${singleService.price} ${singleService.currency}${attendanceCount > 0 ? " (по-скъпо от месечен абонамент)" : ""}`,
+        reason: `${visits} посетен${visits === 1 ? "а" : "и"} тренировк${visits === 1 ? "а" : "и"} × ${singleService.price} ${singleService.currency}${attendanceCount > 0 ? priceCompareText : ""}`,
         icon: Wallet,
         priority: 15,
         suggestedPrice: projectedCost,
