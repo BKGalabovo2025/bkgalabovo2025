@@ -306,7 +306,16 @@ export const MemberForm = ({
                   let curDay = "";
 
                   if (field.value) {
-                    const parts = field.value.split("-");
+                    const val: any = field.value;
+                    const valStr =
+                      typeof val === "string"
+                        ? val.split("T")[0]
+                        : typeof val?.toDate === "function"
+                          ? val.toDate().toISOString().split("T")[0]
+                          : val instanceof Date
+                            ? val.toISOString().split("T")[0]
+                            : String(val);
+                    const parts = valStr.split("-");
                     curYear = parts[0] || "";
                     curMonth = parts[1] || "";
                     curDay = parts[2] || "";
