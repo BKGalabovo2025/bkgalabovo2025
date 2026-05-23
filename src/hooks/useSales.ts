@@ -9,14 +9,6 @@ import {
   updateSale,
 } from "@/services/sales-service";
 
-// Add a new function to update the sale status
-const updateSaleStatus = async (
-  saleId: string,
-  status: "pending" | "completed" | "cancelled"
-) => {
-  await updateSale(saleId, { status });
-};
-
 export const useSales = (memberIdOrIds?: string | string[]) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setIsLoading] = useState(true);
@@ -98,7 +90,7 @@ export const useSales = (memberIdOrIds?: string | string[]) => {
 
   const markAsPaid = useCallback(async (saleId: string) => {
     try {
-      await updateSaleStatus(saleId, "completed");
+      await updateSale(saleId, { status: "completed", isPaid: true });
       setSales((prevSales) =>
         prevSales.map((s) =>
           s.id === saleId ? { ...s, status: "completed", isPaid: true } : s
@@ -111,5 +103,20 @@ export const useSales = (memberIdOrIds?: string | string[]) => {
     }
   }, []);
 
-  return { sales, loading, error, markAsPaid, refetch };
+  const markAsUnpaid = useCallback(async (saleId: string) => {
+    try {
+      await updateSale(saleId, { status: "pending", isPaid: false });
+      setSales((prevSales) =>
+        prevSales.map((s) =>
+          s.id === saleId ? { ...s, status: "pending", isPaid: false } : s
+        )
+      );
+      toast.success("Плащането е отменено");
+    } catch (err) {
+      console.error("Error marking sale as unpaid:", err);
+      toast.error("Грешка при отмяна на плащането");
+    }
+  }, []);
+
+  return { sales, loading, error, markAsPaid, markAsUnpaid, refetch };
 };

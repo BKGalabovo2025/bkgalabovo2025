@@ -70,7 +70,9 @@ export const MemberSalesHistory = ({
   familyMembers,
 }: MemberSalesHistoryProps) => {
   const router = useRouter();
-  const { sales, loading, error } = useSales(memberIds || memberId);
+  const { sales, loading, error, markAsUnpaid } = useSales(
+    memberIds || memberId
+  );
 
   const [collapsedYears, setCollapsedYears] = useState<Record<number, boolean>>(
     {}
@@ -313,6 +315,16 @@ export const MemberSalesHistory = ({
                                         >
                                           Преглед на квитанция
                                         </DropdownMenuItem>
+                                        {sale.isPaid && (
+                                          <DropdownMenuItem
+                                            onSelect={() =>
+                                              markAsUnpaid(sale.id)
+                                            }
+                                            className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                                          >
+                                            Отмени плащането
+                                          </DropdownMenuItem>
+                                        )}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </div>

@@ -110,19 +110,19 @@ export const updateSale = async (
 
   await updateDoc(saleRef, dataToUpdate);
 
-  // FIX: Синхронизиране на абонамента, ако продажбата е маркирана като платена
-  if (data.status === "completed" && data.isPaid === true) {
-    const docSnap = await getDoc(saleRef);
-    if (docSnap.exists()) {
-      const saleDataObj = docSnap.data();
-      if (saleDataObj.subscriptionId) {
-        const subRef = doc(
-          getDb(),
-          "memberSubscriptions",
-          saleDataObj.subscriptionId
-        );
-        const subSnap = await getDoc(subRef);
-        if (subSnap.exists()) {
+  // FIX: Синхронизиране на абонамента, ако продажбата е маркирана като платена или неплатена
+  const docSnap = await getDoc(saleRef);
+  if (docSnap.exists()) {
+    const saleDataObj = docSnap.data();
+    if (saleDataObj.subscriptionId) {
+      const subRef = doc(
+        getDb(),
+        "memberSubscriptions",
+        saleDataObj.subscriptionId
+      );
+      const subSnap = await getDoc(subRef);
+      if (subSnap.exists()) {
+        if (data.status === "completed" && data.isPaid === true) {
           await updateDoc(subRef, {
             status: "active",
             pricePaid: saleDataObj.totalAmount || 0,
@@ -136,6 +136,13 @@ export const updateSale = async (
               lastPaymentDate: new Date().toISOString(),
             });
           }
+        } else if (data.status === "pending" && data.isPaid === false) {
+          // Отменено плащане -> връщаме в чакащи
+          await updateDoc(subRef, {
+            status: "pending_payment",
+            pricePaid: 0,
+            updatedAt: new Date().toISOString(),
+          });
         }
       }
     }

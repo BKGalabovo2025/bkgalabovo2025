@@ -143,34 +143,39 @@ export async function updateSaleAction(
 
     await saleRef.update(dataToUpdate);
 
-    // FIX: Ако продажбата е обвързана с абонамент и променяме статуса ѝ на "completed",
-    // трябва да обновим и самия абонамент!
+    // FIX: Ако продажбата е обвързана с абонамент, трябва да обновим абонамента според статуса!
     const saleSnapshot = await saleRef.get();
     if (saleSnapshot.exists) {
       const saleDocData = saleSnapshot.data();
-      if (
-        saleDocData?.subscriptionId &&
-        data.status === "completed" &&
-        data.isPaid === true
-      ) {
+      if (saleDocData?.subscriptionId) {
         const subRef = adminDb
           .collection("memberSubscriptions")
           .doc(saleDocData.subscriptionId);
         const subSnapshot = await subRef.get();
         if (subSnapshot.exists) {
-          await subRef.update({
-            status: "active",
-            pricePaid: saleDocData.totalAmount || 0,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
+          if (data.status === "completed" && data.isPaid === true) {
+            // Платено
+            await subRef.update({
+              status: "active",
+              pricePaid: saleDocData.totalAmount || 0,
+              updatedAt: FieldValue.serverTimestamp(),
+            });
 
-          // Също така обновяваме lastPaymentDate на члена
-          if (saleDocData.memberId && (saleDocData.totalAmount || 0) > 0) {
-            const memberRef = adminDb
-              .collection("members")
-              .doc(saleDocData.memberId);
-            await memberRef.update({
-              lastPaymentDate: new Date().toISOString(),
+            // Също така обновяваме lastPaymentDate на члена
+            if (saleDocData.memberId && (saleDocData.totalAmount || 0) > 0) {
+              const memberRef = adminDb
+                .collection("members")
+                .doc(saleDocData.memberId);
+              await memberRef.update({
+                lastPaymentDate: new Date().toISOString(),
+              });
+            }
+          } else if (data.status === "pending" && data.isPaid === false) {
+            // Отменено плащане -> връщаме в чакащи
+            await subRef.update({
+              status: "pending_payment",
+              pricePaid: 0,
+              updatedAt: FieldValue.serverTimestamp(),
             });
           }
         }

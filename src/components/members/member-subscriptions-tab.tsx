@@ -800,26 +800,29 @@ export const MemberSubscriptionsTab = ({
       )}
 
       <div>
-        {subscriptions.length === 0 ? (
+        {subscriptions.filter((sub) => sub.status === "pending_payment")
+          .length === 0 ? (
           <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
             <p className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-300">
-              Няма намерени абонаменти.
+              Няма чакащи задължения.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {subscriptions.map((sub) => (
-              <SubscriptionCard
-                key={sub.id}
-                sub={sub}
-                service={allServices.find((s) => s.id === sub.serviceId)}
-                onSubscriptionUpdate={refreshData}
-                user={user}
-                idToken={idToken}
-                familyMembers={familyMembers}
-                currentMemberId={memberId}
-              />
-            ))}
+            {subscriptions
+              .filter((sub) => sub.status === "pending_payment")
+              .map((sub) => (
+                <SubscriptionCard
+                  key={sub.id}
+                  sub={sub}
+                  service={allServices.find((s) => s.id === sub.serviceId)}
+                  onSubscriptionUpdate={refreshData}
+                  user={user}
+                  idToken={idToken}
+                  familyMembers={familyMembers}
+                  currentMemberId={memberId}
+                />
+              ))}
           </div>
         )}
       </div>
