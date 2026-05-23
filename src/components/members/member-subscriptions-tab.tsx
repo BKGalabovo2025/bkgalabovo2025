@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "firebase/auth";
 import { Button } from "@/components/ui/button";
+import { useSales } from "@/hooks/useSales";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -691,6 +692,11 @@ export const MemberSubscriptionsTab = ({
   const [loading, setLoading] = useState(true);
   const [refreshCount, setRefreshCount] = useState(0);
   const { user, idToken } = useAuth();
+  const { sales, markAsPaid } = useSales(memberIds || memberId);
+
+  const pendingSales = sales.filter(
+    (sale) => sale.status === "pending" || sale.isPaid === false
+  );
 
   const [selectedSmartSuggestion, setSelectedSmartSuggestion] = useState<{
     serviceId: string;
@@ -801,7 +807,7 @@ export const MemberSubscriptionsTab = ({
 
       <div>
         {subscriptions.filter((sub) => sub.status === "pending_payment")
-          .length === 0 ? (
+          .length === 0 && pendingSales.length === 0 ? (
           <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
             <p className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-300">
               Няма чакащи задължения.
@@ -809,11 +815,71 @@ export const MemberSubscriptionsTab = ({
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Рендериране на чакащи продажби */}
+            {pendingSales.map((sale) => (
+              <div
+                key={`sale-${sale.id}`}
+                className="bg-white border border-rose-100 rounded-3xl p-6 shadow-sm shadow-rose-900/5 relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500 rounded-l-3xl"></div>
+                <div className="flex flex-col sm:flex-row gap-6 sm:items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-zinc-900">
+                      {sale.items
+                        .map(
+                          (i: any) =>
+                            `${i.name}${i.quantity > 1 ? ` (x${i.quantity})` : ""}`
+                        )
+                        .join(", ")}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-2 text-xs font-medium text-zinc-400">
+                      <span className="text-rose-500 uppercase tracking-widest2 text-[10px]">
+                        Чакащо плащане
+                      </span>
+                      <span>•</span>
+                      <span>
+                        {new Date(sale.saleDate).toLocaleDateString("bg-BG")}
+                      </span>
+                      {sale.memberId !== memberId && familyMembers && (
+                        <>
+                          <span>•</span>
+                          <span className="text-amber-600">
+                            За:{" "}
+                            {familyMembers.find((m) => m.id === sale.memberId)
+                              ?.firstName || "Семейство"}{" "}
+                            {familyMembers.find((m) => m.id === sale.memberId)
+                              ?.lastName || ""}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase font-medium tracking-widest2 text-zinc-400">
+                        Сума
+                      </p>
+                      <p className="text-xl font-medium text-zinc-900">
+                        {formatPrice(sale.totalAmount)}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => markAsPaid(sale.id)}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-500/20"
+                    >
+                      Плати сега
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Рендериране на чакащи абонаменти (стара логика, ако има такива) */}
             {subscriptions
               .filter((sub) => sub.status === "pending_payment")
               .map((sub) => (
                 <SubscriptionCard
-                  key={sub.id}
+                  key={`sub-${sub.id}`}
                   sub={sub}
                   service={allServices.find((s) => s.id === sub.serviceId)}
                   onSubscriptionUpdate={refreshData}
