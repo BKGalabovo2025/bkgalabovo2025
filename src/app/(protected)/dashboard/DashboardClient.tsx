@@ -20,7 +20,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/currency";
 import { getDashboardDataServerAction } from "@/lib/actions/dashboard";
 
@@ -114,7 +113,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { activeBranch } = useAppStore();
-  const router = useRouter();
 
   const [stats, setStats] = useState<any>(initialData?.stats || null);
   const [todayTrainings, setTodayTrainings] = useState<any[]>(
@@ -233,19 +231,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 refreshing && "animate-spin"
               )}
             />
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-medium text-[11px] uppercase tracking-widest h-12 px-6"
-            onClick={() => router.push("/schedule")}
-          >
-            {language === "bg" ? "График" : "Schedule"}
-          </Button>
-          <Button
-            className="rounded-xl shadow-none transition-all font-medium text-[11px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8"
-            onClick={() => router.push("/reservations")}
-          >
-            {language === "bg" ? "Нова резервация" : "New Reservation"}
           </Button>
         </div>
       </PageHeader>
