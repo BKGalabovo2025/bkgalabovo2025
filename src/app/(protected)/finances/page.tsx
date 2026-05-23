@@ -1,3 +1,4 @@
+import React from "react";
 import { cookies } from "next/headers";
 import { PageHeader } from "@/components/layout/page-header";
 import { getFinancesOverviewDataAction } from "@/lib/actions/finances-server";
@@ -82,21 +83,23 @@ export default async function FinancesPage() {
   const initialSales = salesResult.success ? salesResult.data || [] : [];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700 pb-24">
+    <div className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6 sm:space-y-10">
       <PageHeader
-        title="Център за Управление"
-        description="Единно работно пространство за управление на абонаменти, плащания, хроника на транзакциите и наличности на склад."
+        title="Финанси & Отчети"
+        description="Следене на касата, наличности, абонаменти и финансови операции в реално време."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Управление" },
+          { label: "Каталози" },
         ]}
       />
 
-      <FinancesClient
-        initialSales={initialSales}
-        initialMembers={initialMembers}
-        financesData={financesData}
-      />
+      <React.Suspense fallback={<div>Зареждане на данни...</div>}>
+        <FinancesClient
+          initialSales={initialSales}
+          initialMembers={initialMembers}
+          financesData={financesData}
+        />
+      </React.Suspense>
     </div>
   );
 }

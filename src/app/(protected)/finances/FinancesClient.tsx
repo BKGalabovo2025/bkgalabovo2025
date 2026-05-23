@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, History, Boxes, Briefcase } from "lucide-react";
 import SubscriptionsClient from "@/app/(protected)/subscriptions/SubscriptionsClient";
 import SalesClient from "@/app/(protected)/sales/SalesClient";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 import FinancesDashboardCharts from "./FinancesDashboardCharts";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FinancesClientProps {
   initialSales: any[];
@@ -19,8 +20,24 @@ export default function FinancesClient({
   initialMembers,
   financesData,
 }: FinancesClientProps) {
-  const [operationsSubTab, setOperationsSubTab] =
-    useState<string>("subscriptions");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [operationsSubTab, setOperationsSubTab] = useState<string>(
+    searchParams.get("tab") || "subscriptions"
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && tab !== operationsSubTab) {
+      setOperationsSubTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (val: string) => {
+    setOperationsSubTab(val);
+    router.replace(`${pathname}?tab=${val}`, { scroll: false });
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-24">
@@ -49,7 +66,7 @@ export default function FinancesClient({
         <Tabs
           defaultValue="subscriptions"
           value={operationsSubTab}
-          onValueChange={setOperationsSubTab}
+          onValueChange={handleTabChange}
           className="space-y-6"
         >
           <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full sm:w-fit border border-zinc-200/40 dark:border-zinc-800/40 mb-2 overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">

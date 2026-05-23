@@ -403,7 +403,7 @@ export const MemberDetailsCard = ({
               value="subscriptions"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              Абонаменти
+              Услуги & Членство
             </TabsTrigger>
             <TabsTrigger
               value="attendance"
