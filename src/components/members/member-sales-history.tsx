@@ -103,8 +103,12 @@ export const MemberSalesHistory = ({
     });
   };
 
-  const handleRowClick = (saleId: string) => {
-    router.push(`/sales/${saleId}/receipt`);
+  const handleRowClick = (saleId: string, isPaid: boolean) => {
+    if (isPaid) {
+      router.push(`/sales/${saleId}/receipt`);
+    } else {
+      router.push(`/sales/${saleId}`);
+    }
   };
 
   return (
@@ -234,7 +238,9 @@ export const MemberSalesHistory = ({
                             return (
                               <TableRow
                                 key={sale.id}
-                                onClick={() => handleRowClick(sale.id)}
+                                onClick={() =>
+                                  handleRowClick(sale.id, sale.isPaid)
+                                }
                                 className="cursor-pointer border-zinc-50 hover:bg-zinc-50/50 transition-all group"
                               >
                                 <TableCell className="py-4 font-light text-xs text-zinc-600 pl-5">
@@ -287,7 +293,10 @@ export const MemberSalesHistory = ({
                                 <TableCell className="text-right py-4 font-medium text-xs text-zinc-950">
                                   {formatPrice(sale.totalAmount)}
                                 </TableCell>
-                                <TableCell className="text-right pr-5">
+                                <TableCell
+                                  className="text-right pr-5"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
@@ -306,10 +315,11 @@ export const MemberSalesHistory = ({
                                       <DropdownMenuContent
                                         align="end"
                                         className="rounded-xl border-zinc-100 shadow-none"
+                                        onClick={(e) => e.stopPropagation()}
                                       >
                                         <DropdownMenuItem
                                           onSelect={() =>
-                                            handleRowClick(sale.id)
+                                            handleRowClick(sale.id, sale.isPaid)
                                           }
                                           className="text-[10px] font-medium uppercase tracking-widest py-1.5"
                                         >
@@ -361,7 +371,7 @@ export const MemberSalesHistory = ({
                         return (
                           <div
                             key={sale.id}
-                            onClick={() => handleRowClick(sale.id)}
+                            onClick={() => handleRowClick(sale.id, sale.isPaid)}
                             className="bg-zinc-50/40 border border-zinc-100 rounded-xl p-4 active:scale-[0.98] transition-all"
                           >
                             <div className="flex justify-between items-start mb-3">

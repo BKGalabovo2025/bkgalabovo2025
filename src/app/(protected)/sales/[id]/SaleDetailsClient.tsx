@@ -136,14 +136,16 @@ export default function SaleDetailsClient() {
         ]}
       >
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/sales/${saleId}/receipt`)}
-            className="rounded-xl"
-          >
-            <Receipt className="mr-2 h-4 w-4" /> Касова бележка
-          </Button>
+          {isPaid && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/sales/${saleId}/receipt`)}
+              className="rounded-xl"
+            >
+              <Receipt className="mr-2 h-4 w-4" /> Касова бележка
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

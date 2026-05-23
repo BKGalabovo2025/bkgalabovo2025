@@ -1,7 +1,7 @@
 import { getReceiptDetailsServerAction } from "@/lib/actions/sales-server";
 import ReceiptClientPage from "./ReceiptClientPage";
 import { PageHeader } from "@/components/layout/page-header";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,10 @@ export default async function ReceiptPage({ params }: PageProps) {
   const result = await getReceiptDetailsServerAction(saleId);
   if (!result.success || !result.data) {
     notFound();
+  }
+
+  if (!result.data.sale.isPaid) {
+    redirect(`/sales/${saleId}`);
   }
 
   return (
