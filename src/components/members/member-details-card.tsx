@@ -117,7 +117,8 @@ export const MemberDetailsCard = ({
   // 1. Изчисляваме статуса динамично и унифицирано с абонаментите
   const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(
     member,
-    subscriptions
+    subscriptions,
+    familyMembers
   );
   const lastPayment = member.lastPaymentDate
     ? new Date(member.lastPaymentDate)

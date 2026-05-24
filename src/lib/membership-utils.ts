@@ -198,7 +198,8 @@ export const getMembershipSuggestions = (
  */
 export const checkIsMemberOverdue = (
   member: Member,
-  subscriptions: Subscription[] = []
+  subscriptions: Subscription[] = [],
+  familyMembers: Member[] = []
 ): { isOverdue: boolean; reason: string } => {
   if (member.status !== "active") {
     return { isOverdue: false, reason: "Неактивен член" };
@@ -213,6 +214,13 @@ export const checkIsMemberOverdue = (
     // or active subscription that has not expired
     const activeOrPaidSub = subscriptions.find((sub) => {
       if (sub.status === "cancelled") return false;
+
+      // Only check paid status for the main member (or a shared family sub)
+      // Wait, family subs cover all children. So if sub is family-wide and paid, it counts for this child.
+      const isSharedFamilySub =
+        sub.serviceName.toLowerCase().includes("семеен") ||
+        sub.serviceName.toLowerCase().includes("семейство");
+      if (sub.memberId !== member.id && !isSharedFamilySub) return false;
 
       const sStart = new Date(sub.startDate);
       sStart.setHours(0, 0, 0, 0);
@@ -237,14 +245,38 @@ export const checkIsMemberOverdue = (
       };
     }
 
-    // Check if there are any pending payment subscriptions
-    const pendingSub = subscriptions.find(
+    // Check if there are any pending payment subscriptions (filter all to list them)
+    const pendingSubs = subscriptions.filter(
       (sub) => sub.status === "pending_payment"
     );
-    if (pendingSub) {
+    if (pendingSubs.length > 0) {
+      // Sort them chronologically (oldest first) so they are in a logical sequence
+      const sortedPending = [...pendingSubs].sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
+
+      const details = sortedPending
+        .map((sub) => {
+          const dateStr = new Date(sub.startDate).toLocaleDateString("bg-BG");
+          let namePrefix = "";
+
+          if (sub.memberId !== member.id) {
+            const sibling = familyMembers.find((m) => m.id === sub.memberId);
+            if (sibling) {
+              namePrefix = `${sibling.firstName}: `;
+            } else {
+              namePrefix = "Семейство: ";
+            }
+          }
+
+          return `${namePrefix}${sub.serviceName} (${dateStr})`;
+        })
+        .join(", ");
+
       return {
         isOverdue: true,
-        reason: `Очаква плащане за абонамент: ${pendingSub.serviceName}`,
+        reason: `Очаква плащане за: ${details}`,
       };
     }
   }

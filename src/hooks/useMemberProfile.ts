@@ -38,13 +38,11 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
   const familiesRef = collection(db, "families");
   const q = query(familiesRef, where("memberIds", "array-contains", memberId));
 
-  const [memberData, subscriptionsData, attendancesData, familySnapshot] =
-    await Promise.all([
-      getMemberById(memberId),
-      getSubscriptionsByMemberId(memberId),
-      getAttendancesByMemberId(memberId),
-      getDocs(q),
-    ]);
+  const [memberData, attendancesData, familySnapshot] = await Promise.all([
+    getMemberById(memberId),
+    getAttendancesByMemberId(memberId),
+    getDocs(q),
+  ]);
 
   if (!memberData) {
     throw new Error("Member not found.");
@@ -52,6 +50,7 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
 
   let familyData: Family | null = null;
   const familyMembers: Member[] = [];
+  const targetMemberIds = [memberId];
 
   if (!familySnapshot.empty) {
     const familyDoc = familySnapshot.docs[0];
@@ -60,6 +59,7 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     // Fetch other members of the same family
     const otherMemberIds = familyData.memberIds.filter((id) => id !== memberId);
     if (otherMemberIds.length > 0) {
+      targetMemberIds.push(...otherMemberIds);
       const membersRef = collection(db, "members");
       // Limit to 30 as per Firestore 'in' limitation
       const mq = query(
@@ -72,6 +72,12 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
       );
     }
   }
+
+  // Fetch subscriptions for all members in family (or just this member if no family)
+  const subsResults = await Promise.all(
+    targetMemberIds.map((id) => getSubscriptionsByMemberId(id))
+  );
+  const subscriptionsData = subsResults.flat();
 
   return {
     member: memberData,
