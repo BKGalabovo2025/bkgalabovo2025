@@ -692,7 +692,7 @@ export const MemberSubscriptionsTab = ({
   const [loading, setLoading] = useState(true);
   const [refreshCount, setRefreshCount] = useState(0);
   const { user, idToken } = useAuth();
-  const { sales, markAsPaid } = useSales(memberIds || memberId);
+  const { sales, markAsPaid, deleteSale } = useSales(memberIds || memberId);
 
   const pendingSales = sales.filter(
     (sale) => sale.status === "pending" || sale.isPaid === false
@@ -863,12 +863,21 @@ export const MemberSubscriptionsTab = ({
                         {formatPrice(sale.totalAmount)}
                       </p>
                     </div>
-                    <Button
-                      onClick={() => markAsPaid(sale.id)}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-500/20"
-                    >
-                      Плати сега
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => deleteSale(sale.id, sale.subscriptionId)}
+                        variant="outline"
+                        className="border-rose-100 text-rose-500 hover:bg-rose-50 hover:text-rose-600 rounded-xl"
+                      >
+                        Изтрий
+                      </Button>
+                      <Button
+                        onClick={() => markAsPaid(sale.id)}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-500/20"
+                      >
+                        Плати сега
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

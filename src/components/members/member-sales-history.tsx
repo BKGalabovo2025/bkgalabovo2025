@@ -19,6 +19,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
@@ -70,9 +71,8 @@ export const MemberSalesHistory = ({
   familyMembers,
 }: MemberSalesHistoryProps) => {
   const router = useRouter();
-  const { sales, loading, error, markAsPaid, markAsUnpaid } = useSales(
-    memberIds || memberId
-  );
+  const { sales, loading, error, markAsPaid, markAsUnpaid, deleteSale } =
+    useSales(memberIds || memberId);
 
   const [collapsedYears, setCollapsedYears] = useState<Record<number, boolean>>(
     {}
@@ -342,6 +342,18 @@ export const MemberSalesHistory = ({
                                             Маркирай като платено
                                           </DropdownMenuItem>
                                         )}
+                                        <DropdownMenuSeparator className="bg-zinc-100" />
+                                        <DropdownMenuItem
+                                          onSelect={() =>
+                                            deleteSale(
+                                              sale.id,
+                                              sale.subscriptionId
+                                            )
+                                          }
+                                          className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                        >
+                                          Изтрий запис
+                                        </DropdownMenuItem>
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </div>
@@ -397,19 +409,72 @@ export const MemberSalesHistory = ({
                                     </div>
                                   )}
                               </div>
-                              <Badge
-                                variant={statusDetails.variant}
-                                className={cn(
-                                  "rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest border-transparent shrink-0",
-                                  statusDetails.variant === "default"
-                                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10"
-                                    : statusDetails.variant === "secondary"
-                                      ? "bg-amber-500 text-white shadow-lg shadow-amber-500/10"
-                                      : "bg-zinc-100 text-zinc-400 border-zinc-100"
-                                )}
+                              <div
+                                className="flex items-center gap-2"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                {statusDetails.text}
-                              </Badge>
+                                <Badge
+                                  variant={statusDetails.variant}
+                                  className={cn(
+                                    "rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest border-transparent shrink-0",
+                                    statusDetails.variant === "default"
+                                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10"
+                                      : statusDetails.variant === "secondary"
+                                        ? "bg-amber-500 text-white shadow-lg shadow-amber-500/10"
+                                        : "bg-zinc-100 text-zinc-400 border-zinc-100"
+                                  )}
+                                >
+                                  {statusDetails.text}
+                                </Badge>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-6 w-6 rounded-lg text-zinc-400 hover:text-zinc-950"
+                                    >
+                                      <MoreHorizontal className="h-3 w-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    className="rounded-xl border-zinc-100 shadow-none"
+                                  >
+                                    <DropdownMenuItem
+                                      onSelect={() =>
+                                        handleRowClick(sale.id, sale.isPaid)
+                                      }
+                                      className="text-[10px] font-medium uppercase tracking-widest py-1.5"
+                                    >
+                                      Преглед на квитанция
+                                    </DropdownMenuItem>
+                                    {sale.isPaid ? (
+                                      <DropdownMenuItem
+                                        onSelect={() => markAsUnpaid(sale.id)}
+                                        className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                                      >
+                                        Отмени плащането
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem
+                                        onSelect={() => markAsPaid(sale.id)}
+                                        className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
+                                      >
+                                        Маркирай като платено
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator className="bg-zinc-100" />
+                                    <DropdownMenuItem
+                                      onSelect={() =>
+                                        deleteSale(sale.id, sale.subscriptionId)
+                                      }
+                                      className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    >
+                                      Изтрий запис
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                             <div className="flex justify-between items-center pt-3 border-t border-zinc-100/50">
                               <div className="flex items-center gap-1.5">

@@ -8,11 +8,15 @@ import {
   getSalesByMemberIds,
   updateSale,
 } from "@/services/sales-service";
+import { useAuth } from "@/context/auth-context";
+import { deleteSubscriptionAction } from "@/lib/actions/subscriptions";
+import { deleteSaleAction } from "@/lib/actions/sales";
 
 export const useSales = (memberIdOrIds?: string | string[]) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { idToken } = useAuth();
 
   const memberIdOrIdsKey = Array.isArray(memberIdOrIds)
     ? memberIdOrIds.join(",")
@@ -118,5 +122,47 @@ export const useSales = (memberIdOrIds?: string | string[]) => {
     }
   }, []);
 
-  return { sales, loading, error, markAsPaid, markAsUnpaid, refetch };
+  const deleteSale = useCallback(
+    async (saleId: string, subscriptionId?: string | null) => {
+      if (!idToken) {
+        toast.error("Грешка при оторизация");
+        return;
+      }
+
+      const confirmDelete = window.confirm(
+        "Сигурни ли сте, че искате да изтриете този запис? Това действие е необратимо."
+      );
+      if (!confirmDelete) return;
+
+      try {
+        let result;
+        if (subscriptionId) {
+          result = await deleteSubscriptionAction(idToken, subscriptionId);
+        } else {
+          result = await deleteSaleAction(saleId, idToken);
+        }
+
+        if (result.success) {
+          setSales((prevSales) => prevSales.filter((s) => s.id !== saleId));
+          toast.success(result.message || "Записът бе изтрит успешно.");
+        } else {
+          toast.error(result.message || "Грешка при изтриването.");
+        }
+      } catch (err) {
+        console.error("Error deleting sale:", err);
+        toast.error("Грешка при изтриването.");
+      }
+    },
+    [idToken]
+  );
+
+  return {
+    sales,
+    loading,
+    error,
+    markAsPaid,
+    markAsUnpaid,
+    deleteSale,
+    refetch,
+  };
 };
