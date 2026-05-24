@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import { EditProductDialog } from "@/components/inventory/EditProductDialog";
+import { ProductSaleWizardDialog } from "@/components/inventory/ProductSaleWizardDialog";
 import InventoryHistory from "@/components/inventory/InventoryHistory";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
@@ -45,6 +46,8 @@ const ProductList = () => {
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [saleProduct, setSaleProduct] = useState<Product | null>(null);
+  const [isSaleOpen, setIsSaleOpen] = useState(false);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,6 +56,11 @@ const ProductList = () => {
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
     setIsEditOpen(true);
+  };
+
+  const handleSale = (product: Product) => {
+    setSaleProduct(product);
+    setIsSaleOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -214,14 +222,24 @@ const ProductList = () => {
                           {formatPrice(product.price)}
                         </span>
                       </div>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleEdit(product)}
-                        className="h-10 px-6 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
-                      >
-                        Детайли
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSale(product)}
+                          className="h-10 px-4 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
+                        >
+                          Продажба
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          className="h-10 px-4 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
+                        >
+                          Детайли
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </BentoCard>
@@ -283,6 +301,22 @@ const ProductList = () => {
           }}
           product={selectedProduct}
           onProductUpdate={handleProductUpdate}
+        />
+      )}
+
+      {isSaleOpen && saleProduct && (
+        <ProductSaleWizardDialog
+          isOpen={isSaleOpen}
+          onClose={() => {
+            setIsSaleOpen(false);
+            setSaleProduct(null);
+          }}
+          product={saleProduct}
+          onSaleSuccess={() => {
+            setIsSaleOpen(false);
+            setSaleProduct(null);
+            handleProductUpdate();
+          }}
         />
       )}
     </AlertDialog>
