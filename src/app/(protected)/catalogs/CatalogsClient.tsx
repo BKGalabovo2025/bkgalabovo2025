@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListTree, Wrench, Activity, Layers } from "lucide-react";
+import { ListTree, Wrench, Activity, Layers, Package } from "lucide-react";
 import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
 import GeneralServicesClientPage from "@/app/(protected)/finances/general-services/client-page";
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
+import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 
 interface CatalogsClientProps {
   services: any[];
@@ -64,6 +65,13 @@ export default function CatalogsClient({
               <Activity className="h-3.5 w-3.5 mr-2" />
               Възстановяване
             </TabsTrigger>
+            <TabsTrigger
+              value="inventory"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+            >
+              <Package className="h-3.5 w-3.5 mr-2" />
+              Магазин / Стоки
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="services" className="outline-none mt-0">
@@ -84,6 +92,12 @@ export default function CatalogsClient({
                 showPageHeader={false}
                 data={recoveryServices}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="inventory" className="outline-none mt-0">
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+              <InventoryClient showPageHeader={false} />
             </div>
           </TabsContent>
         </Tabs>
