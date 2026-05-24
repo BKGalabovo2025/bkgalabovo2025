@@ -59,7 +59,7 @@ export default function GeneralServicesClientPage({
           description="Каталог на допълнителните клубни услуги - наплитане на ракети, наем на корт и други."
           breadcrumbs={[
             { label: "Начало", href: "/dashboard" },
-            { label: "Каталози", href: "/finances" },
+            { label: "Каталози", href: "/catalogs" },
             { label: "Каталог Услуги" },
           ]}
         >

@@ -314,7 +314,7 @@ export default function InventoryClient({
           description="Проследяване на спортна екипировка, пера и консумативи. Управление на инвентара и автоматични известия за ниски наличности."
           breadcrumbs={[
             { label: "Начало", href: "/dashboard" },
-            { label: "Каталози", href: "/finances" },
+            { label: "Каталози", href: "/catalogs" },
             { label: "Каталог Магазин" },
           ]}
         >

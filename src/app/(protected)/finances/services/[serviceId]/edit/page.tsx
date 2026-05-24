@@ -68,7 +68,7 @@ export default function EditServicePage() {
     if (state?.message) {
       if (state.success) {
         toast.success("Готово!", { description: state.message });
-        router.push("/finances/services");
+        router.push("/catalogs?tab=services");
       } else {
         toast.error("Грешка", { description: state.message });
       }
@@ -100,8 +100,8 @@ export default function EditServicePage() {
         description={`Промяна на детайлите за "${service.name}"`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/finances" },
-          { label: "Услуги", href: "/finances/services" },
+          { label: "Каталози", href: "/catalogs" },
+          { label: "Услуги", href: "/catalogs?tab=services" },
           { label: "Редакция" },
         ]}
       />

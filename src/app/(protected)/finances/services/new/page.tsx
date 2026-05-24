@@ -41,7 +41,7 @@ export default function NewServicePage() {
     if (state?.message) {
       if (state.success) {
         toast.success("Готово!", { description: state.message });
-        router.push("/finances/services");
+        router.push("/catalogs?tab=services");
       } else {
         toast.error("Грешка", { description: state.message });
       }
@@ -55,8 +55,8 @@ export default function NewServicePage() {
         description="Добавяне на нов абонаментен план или индивидуална тренировка към каталога."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/finances" },
-          { label: "Услуги", href: "/finances/services" },
+          { label: "Каталози", href: "/catalogs" },
+          { label: "Услуги", href: "/catalogs?tab=services" },
           { label: "Нова услуга" },
         ]}
       />

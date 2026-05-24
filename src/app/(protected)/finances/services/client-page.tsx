@@ -74,7 +74,7 @@ export default function ServicesClientPage({
           description="Каталог на предлаганите абонаменти, еднократни и индивидуални тренировки."
           breadcrumbs={[
             { label: "Начало", href: "/dashboard" },
-            { label: "Каталози", href: "/finances" },
+            { label: "Каталози", href: "/catalogs" },
             { label: "Услуги" },
           ]}
         >

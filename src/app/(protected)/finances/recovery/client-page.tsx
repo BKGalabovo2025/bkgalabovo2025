@@ -127,7 +127,7 @@ export default function RecoveryClientPage({
           description="Управление на процедури, пакети и сесии в Recovery Zone."
           breadcrumbs={[
             { label: "Начало", href: "/dashboard" },
-            { label: "Каталози", href: "/finances" },
+            { label: "Каталози", href: "/catalogs" },
             { label: "Възстановяване" },
           ]}
         >

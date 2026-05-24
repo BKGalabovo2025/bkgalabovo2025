@@ -20,7 +20,9 @@ interface NewRecoverySessionClientProps {
   };
 }
 
-export default function NewRecoverySessionClient({ siteInventory }: NewRecoverySessionClientProps) {
+export default function NewRecoverySessionClient({
+  siteInventory,
+}: NewRecoverySessionClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
@@ -43,16 +45,13 @@ export default function NewRecoverySessionClient({ siteInventory }: NewRecoveryS
     return createRecoverySession(idToken, prevState, formData);
   };
 
-  const [state, formAction] = useActionState(
-    createWithToken,
-    initialState
-  );
+  const [state, formAction] = useActionState(createWithToken, initialState);
 
   useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success("Готово!", { description: state.message });
-        router.push("/finances/recovery");
+        router.push("/catalogs?tab=recovery");
       } else {
         toast.error("Грешка", { description: state.message });
       }
@@ -66,8 +65,8 @@ export default function NewRecoverySessionClient({ siteInventory }: NewRecoveryS
         description="Добавяне на нова процедура за възстановяване към каталога."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/finances" },
-          { label: "Възстановяване", href: "/finances/recovery" },
+          { label: "Каталози", href: "/catalogs" },
+          { label: "Възстановяване", href: "/catalogs?tab=recovery" },
           { label: "Нова процедура" },
         ]}
       />

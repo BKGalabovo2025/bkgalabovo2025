@@ -46,16 +46,13 @@ export default function EditRecoverySessionClient({
     return updateRecoverySession(initialData.id, idToken, prevState, formData);
   };
 
-  const [state, formAction] = useActionState(
-    updateWithToken,
-    initialState
-  );
+  const [state, formAction] = useActionState(updateWithToken, initialState);
 
   useEffect(() => {
     if (state?.message) {
       if (state.success) {
         toast.success("Готово!", { description: state.message });
-        router.push("/finances/recovery");
+        router.push("/catalogs?tab=recovery");
       } else {
         toast.error("Грешка", { description: state.message });
       }
@@ -69,8 +66,8 @@ export default function EditRecoverySessionClient({
         description={`Редактиране на ${initialData.name}`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/finances" },
-          { label: "Възстановяване", href: "/finances/recovery" },
+          { label: "Каталози", href: "/catalogs" },
+          { label: "Възстановяване", href: "/catalogs?tab=recovery" },
           { label: "Редактиране" },
         ]}
       />
