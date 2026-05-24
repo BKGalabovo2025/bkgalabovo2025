@@ -187,10 +187,8 @@ export default function SubscriptionsClient({
           const attendanceInMonth = monthEvents.length;
 
           if (attendanceInMonth > 0) {
-            // Check if member already has an active or pending subscription for this month
+            // Check if member already has any subscription for this month
             const hasSub = subscriptions.some((s) => {
-              if (s.status === "cancelled") return false;
-
               // Check if it belongs to this member
               if (s.memberId === member.id) {
                 const start = new Date(s.startDate);
@@ -198,7 +196,7 @@ export default function SubscriptionsClient({
                 return start <= lastDayOfMonth && end >= firstDayOfMonth;
               }
 
-              // If they belong to a family, check if another family member has an active/pending FAMILY subscription
+              // If they belong to a family, check if another family member has an active/pending/cancelled FAMILY subscription
               if (member.familyId) {
                 const isFamilySub =
                   s.serviceName.toLowerCase().includes("семеен") ||
