@@ -237,6 +237,41 @@ export const ProductSaleWizardDialog = ({
               />
             </div>
 
+            {/* ВЪНШЕН КЛИЕНТ БУТОН */}
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedMember({
+                  id: "GUEST_EXTERNAL",
+                  firstName: "Външен",
+                  lastName: "клиент",
+                  email: "guest@external",
+                } as any)
+              }
+              className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light rounded-2xl border ${
+                selectedMember?.id === "GUEST_EXTERNAL"
+                  ? "bg-amber-500/10 text-amber-900 border-amber-500/20 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900/35"
+                  : "hover:bg-zinc-50/60 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200 border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/10"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/15 text-amber-500 rounded-xl">
+                  <User className="h-4 w-4" strokeWidth={1.5} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                    Продажба на Външен клиент
+                  </span>
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-400 font-light mt-0.5">
+                    Бърза продажба без асоцииране с член на клуба
+                  </span>
+                </div>
+              </div>
+              {selectedMember?.id === "GUEST_EXTERNAL" && (
+                <Check className="h-4 w-4 text-amber-500" />
+              )}
+            </button>
+
             {membersLoading ? (
               <div className="py-20 flex flex-col items-center justify-center space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-30" />

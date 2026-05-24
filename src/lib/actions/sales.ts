@@ -44,15 +44,8 @@ export async function createSaleAction(
     const newSaleRef = adminDb.collection("sales").doc();
 
     await adminDb.runTransaction(async (transaction) => {
-      // 1. Create the Sale record
-      transaction.set(newSaleRef, {
-        ...data,
-        saleDate: Timestamp.fromDate(new Date(data.saleDate)),
-        createdAt: FieldValue.serverTimestamp(),
-        createdBy: { uid: user.uid, email: user.email },
-      });
-
-      // 2. Update inventory and log events for each item
+      // 1. Perform all reads first
+      const productUpdates = [];
       for (const item of data.items) {
         const productRef = adminDb.collection("products").doc(item.productId);
         const productDoc = await transaction.get(productRef);
@@ -69,15 +62,33 @@ export async function createSaleAction(
           throw new Error(`Недостатъчна наличност за ${item.name}.`);
         }
 
-        transaction.update(productRef, { stock: newStock });
+        productUpdates.push({
+          ref: productRef,
+          stock: newStock,
+          item,
+        });
+      }
+
+      // 2. Perform all writes next
+      // a. Create the Sale record
+      transaction.set(newSaleRef, {
+        ...data,
+        saleDate: Timestamp.fromDate(new Date(data.saleDate)),
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: { uid: user.uid, email: user.email },
+      });
+
+      // b. Update products stock and create inventory events
+      for (const update of productUpdates) {
+        transaction.update(update.ref, { stock: update.stock });
 
         const eventRef = adminDb.collection("inventory_events").doc();
         transaction.set(eventRef, {
           id: eventRef.id,
-          productId: item.productId,
-          productName: item.name,
+          productId: update.item.productId,
+          productName: update.item.name,
           type: "sale",
-          quantityChange: -item.quantity,
+          quantityChange: -update.item.quantity,
           createdAt: new Date().toISOString(),
           userId: user.uid,
           userName: user.displayName || user.email,

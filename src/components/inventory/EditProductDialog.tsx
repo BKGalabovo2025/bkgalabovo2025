@@ -648,7 +648,9 @@ export const EditProductDialog = ({
                         (i) => i.productId === product.id
                       );
                       const memberName =
-                        membersMap[sale.memberId] || "Зареден Член";
+                        sale.memberId === "GUEST_EXTERNAL"
+                          ? "Външен клиент"
+                          : membersMap[sale.memberId] || "Зареден Член";
                       return (
                         <div
                           key={sale.id}
