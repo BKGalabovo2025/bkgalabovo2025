@@ -1,6 +1,13 @@
 import React from "react";
 import { cookies } from "next/headers";
-import { PageHeader } from "@/components/layout/page-header";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { getInventorySalesServerAction } from "@/lib/actions/sales-server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import * as admin from "firebase-admin";
@@ -67,15 +74,27 @@ export default async function FinancesPage() {
   const initialSales = salesResult.success ? salesResult.data || [] : [];
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6 sm:space-y-10">
-      <PageHeader
-        title="Финанси & Отчети"
-        description="Следене на касата, наличности, абонаменти и финансови операции в реално време."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Финанси" },
-        ]}
-      />
+    <div className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+      <div className="mb-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href="/dashboard"
+                className="text-zinc-400 hover:text-primary transition-colors text-xs uppercase tracking-widest font-medium"
+              >
+                Начало
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-zinc-300" />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-zinc-900 dark:text-white text-xs uppercase tracking-widest font-medium">
+                Финанси
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       <React.Suspense fallback={<div>Зареждане на данни...</div>}>
         <FinancesClient
