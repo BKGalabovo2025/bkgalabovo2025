@@ -56,6 +56,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "i.pravatar.cc",
       },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.media-amazon.com",
+      },
     ],
   },
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
