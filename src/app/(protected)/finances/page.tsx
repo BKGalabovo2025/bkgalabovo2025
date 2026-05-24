@@ -89,7 +89,7 @@ export default async function FinancesPage() {
         description="Следене на касата, наличности, абонаменти и финансови операции в реално време."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Каталози" },
+          { label: "Финанси" },
         ]}
       />
 
