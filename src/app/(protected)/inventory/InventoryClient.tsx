@@ -213,21 +213,21 @@ const ProductList = () => {
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-zinc-50 dark:border-zinc-900">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-none mb-2">
+                    <div className="pt-6 border-t border-zinc-50 dark:border-zinc-900 space-y-5">
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-none">
                           Цена
                         </span>
-                        <span className="text-2xl font-light text-zinc-900 dark:text-white tracking-tight">
+                        <span className="text-2xl font-light text-zinc-900 dark:text-white tracking-tight leading-none">
                           {formatPrice(product.price)}
                         </span>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-3 w-full">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleSale(product)}
-                          className="h-10 px-4 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
+                          className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
                         >
                           Продажба
                         </Button>
@@ -235,7 +235,7 @@ const ProductList = () => {
                           variant="default"
                           size="sm"
                           onClick={() => handleEdit(product)}
-                          className="h-10 px-4 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
+                          className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
                         >
                           Детайли
                         </Button>
