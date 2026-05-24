@@ -6,20 +6,17 @@ import { CreditCard, History, Boxes, Briefcase, Banknote } from "lucide-react";
 import SubscriptionsClient from "@/app/(protected)/subscriptions/SubscriptionsClient";
 import SalesClient from "@/app/(protected)/sales/SalesClient";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
-import FinancesDashboardCharts from "./FinancesDashboardCharts";
 import { QuickPOSPanel } from "@/components/finances/quick-pos-panel";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FinancesClientProps {
   initialSales: any[];
   initialMembers: any[];
-  financesData: any;
 }
 
 export default function FinancesClient({
   initialSales,
   initialMembers,
-  financesData,
 }: FinancesClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -42,11 +39,8 @@ export default function FinancesClient({
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-24">
-      {/* Financial Analytics Dashboard at the top */}
-      <FinancesDashboardCharts data={financesData} />
-
       {/* Main Unified Navigation tabs */}
-      <div className="border-t border-zinc-100 dark:border-zinc-800/80 pt-10">
+      <div>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
             <h2 className="text-2xl font-light text-zinc-950 dark:text-zinc-50 uppercase tracking-widest flex items-center gap-3">

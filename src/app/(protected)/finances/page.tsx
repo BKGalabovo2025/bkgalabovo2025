@@ -1,7 +1,6 @@
 import React from "react";
 import { cookies } from "next/headers";
 import { PageHeader } from "@/components/layout/page-header";
-import { getFinancesOverviewDataAction } from "@/lib/actions/finances-server";
 import { getInventorySalesServerAction } from "@/lib/actions/sales-server";
 import { getAdminDb } from "@/lib/firebase-admin";
 import * as admin from "firebase-admin";
@@ -39,8 +38,7 @@ export default async function FinancesPage() {
   const adminDb = getAdminDb();
 
   // Parallel fetch of all essential finance data using in-memory cache helpers
-  const [financesResult, salesResult, initialMembers] = await Promise.all([
-    getFinancesOverviewDataAction(activeBranch),
+  const [salesResult, initialMembers] = await Promise.all([
     getInventorySalesServerAction(activeBranch),
     serverCache.get(
       `members:${activeBranch || "all"}`,
@@ -65,21 +63,7 @@ export default async function FinancesPage() {
     ),
   ]);
 
-  // 1. Finances Dashboard Stats
-  const financesData =
-    financesResult.success && financesResult.data
-      ? financesResult.data
-      : {
-          dailyTrend: [],
-          categories: [
-            { name: "Няма продажби", value: 0.01, color: "#e4e4e7" },
-          ],
-          totalRevenue: 0,
-          transactionCount: 0,
-          averageTransactionValue: 0,
-        };
-
-  // 2. Initial Sales list
+  // Initial Sales list
   const initialSales = salesResult.success ? salesResult.data || [] : [];
 
   return (
@@ -97,7 +81,6 @@ export default async function FinancesPage() {
         <FinancesClient
           initialSales={initialSales}
           initialMembers={initialMembers}
-          financesData={financesData}
         />
       </React.Suspense>
     </div>
