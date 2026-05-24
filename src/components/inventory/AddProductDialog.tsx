@@ -31,6 +31,8 @@ export const AddProductDialog = ({
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [restockThreshold, setRestockThreshold] = useState("");
   const [description, setDescription] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const { idToken } = useAuth();
@@ -56,6 +58,10 @@ export const AddProductDialog = ({
         price: parseFloat(price),
         stock: parseInt(stock, 10),
         description,
+        imageUrl,
+        restockThreshold: restockThreshold
+          ? parseInt(restockThreshold, 10)
+          : null,
       };
 
       const result = await createProductAction(idToken, productData);
@@ -69,6 +75,8 @@ export const AddProductDialog = ({
         setCategory("");
         setPrice("");
         setStock("");
+        setImageUrl("");
+        setRestockThreshold("");
         setDescription("");
       } else {
         toast.error("Грешка", { description: result.message });
@@ -84,43 +92,57 @@ export const AddProductDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] rounded-3xl">
+      <DialogContent className="sm:max-w-[480px] rounded-4xl p-8 bg-white dark:bg-zinc-950 border-none shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black font-bento">
+          <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
             Добавяне на продукт
           </DialogTitle>
-          <DialogDescription className="font-medium text-slate-500">
+          <DialogDescription className="font-light text-zinc-400 mt-1">
             Въведете детайлите за новия продукт в каталога.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name" className="font-bold">
-              Име *
+
+        <div className="grid gap-4 py-4 mt-2">
+          <div className="grid gap-1.5">
+            <Label
+              htmlFor="name"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
+              Име на артикула *
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="напр. Тениска BKG"
-              className="rounded-xl"
+              className="rounded-xl h-11"
+              disabled={isProcessing}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category" className="font-bold">
+
+          <div className="grid gap-1.5">
+            <Label
+              htmlFor="category"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
               Категория *
             </Label>
             <Input
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="напр. Екипировка"
-              className="rounded-xl"
+              placeholder="напр. Екипировка, Пера"
+              className="rounded-xl h-11"
+              disabled={isProcessing}
             />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="price" className="font-bold">
+            <div className="grid gap-1.5">
+              <Label
+                htmlFor="price"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
                 Цена (EUR) *
               </Label>
               <Input
@@ -130,11 +152,15 @@ export const AddProductDialog = ({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0.00"
-                className="rounded-xl"
+                className="rounded-xl h-11"
+                disabled={isProcessing}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="stock" className="font-bold">
+            <div className="grid gap-1.5">
+              <Label
+                htmlFor="stock"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
                 Наличност *
               </Label>
               <Input
@@ -143,36 +169,79 @@ export const AddProductDialog = ({
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
                 placeholder="0"
-                className="rounded-xl"
+                className="rounded-xl h-11"
+                disabled={isProcessing}
               />
             </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description" className="font-bold">
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-1.5">
+              <Label
+                htmlFor="imageUrl"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
+                Изображение URL
+              </Label>
+              <Input
+                id="imageUrl"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Линк към снимка..."
+                className="rounded-xl h-11"
+                disabled={isProcessing}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label
+                htmlFor="threshold"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
+                Минимален праг (бр.)
+              </Label>
+              <Input
+                id="threshold"
+                type="number"
+                value={restockThreshold}
+                onChange={(e) => setRestockThreshold(e.target.value)}
+                placeholder="напр. 5"
+                className="rounded-xl h-11"
+                disabled={isProcessing}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label
+              htmlFor="description"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
               Описание
             </Label>
             <Input
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="..."
-              className="rounded-xl"
+              placeholder="Допълнителни детайли..."
+              className="rounded-xl h-11"
+              disabled={isProcessing}
             />
           </div>
         </div>
-        <DialogFooter>
+
+        <DialogFooter className="mt-6 flex justify-end gap-3">
           <Button
             variant="outline"
             onClick={onClose}
             disabled={isProcessing}
-            className="rounded-xl font-bold"
+            className="rounded-xl px-6 h-11"
           >
             Отказ
           </Button>
           <Button
             onClick={handleAdd}
             disabled={isProcessing}
-            className="rounded-xl font-bold"
+            className="rounded-xl px-6 h-11 bg-zinc-950 text-white hover:bg-zinc-800"
           >
             Добави продукт
           </Button>

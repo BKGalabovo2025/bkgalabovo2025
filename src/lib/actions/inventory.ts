@@ -271,3 +271,87 @@ export async function deleteProductAction(
     };
   }
 }
+
+/**
+ * Updates a product's details (name, category, description, imageUrl, price, restockThreshold).
+ */
+export async function updateProductAction(
+  productId: string,
+  idToken: string,
+  productData: Record<string, unknown>
+): Promise<InventoryActionState> {
+  try {
+    const user = await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+
+    const UpdateProductSchema = z.object({
+      name: z.string().min(2, "Името на продукта е задължително."),
+      description: z.string().optional(),
+      price: z.coerce.number().min(0, "Цената не може да бъде неотрицателна."),
+      category: z.string().min(1, "Категорията е задължителна."),
+      imageUrl: z.string().optional(),
+      restockThreshold: z.coerce.number().nullable().optional(),
+    });
+
+    const validatedFields = UpdateProductSchema.safeParse(productData);
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: "Валидацията не бе успешна.",
+      };
+    }
+
+    const productRef = adminDb.collection("products").doc(productId);
+
+    await adminDb.runTransaction(async (transaction) => {
+      const productSnap = await transaction.get(productRef);
+      if (!productSnap.exists) throw new Error("Продуктът не бе намерен.");
+
+      const oldData = productSnap.data() || {};
+      const oldPrice = oldData.price || 0;
+      const newPrice = validatedFields.data.price;
+
+      transaction.update(productRef, {
+        name: validatedFields.data.name,
+        description: validatedFields.data.description || "",
+        category: validatedFields.data.category,
+        price: newPrice,
+        imageUrl: validatedFields.data.imageUrl || "",
+        restockThreshold: validatedFields.data.restockThreshold || null,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Log a price update event if price changed
+      if (oldPrice !== newPrice) {
+        const eventRef = adminDb.collection("inventoryEvents").doc();
+        transaction.set(eventRef, {
+          productId: productId,
+          productName: validatedFields.data.name,
+          type: "price_update",
+          quantityChange: 0,
+          oldPrice,
+          newPrice,
+          createdAt: FieldValue.serverTimestamp(),
+          userId: user.uid,
+          userName: user.displayName || user.email,
+        });
+      }
+    });
+
+    revalidatePath("/inventory");
+    return {
+      success: true,
+      message: `Продуктът бе актуализиран успешно.`,
+    };
+  } catch (error: unknown) {
+    console.error("updateProductAction Error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Неизвестна грешка при актуализиране на продукт.",
+    };
+  }
+}
