@@ -1,6 +1,6 @@
 "use client";
 
-import { Member, Subscription } from "@/types";
+import { Member, Subscription, Sale } from "@/types";
 import { Family } from "@/hooks/useMemberProfile";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -85,6 +85,7 @@ interface MemberDetailsCardProps {
   familyMembers: Member[];
   family?: Family | null;
   subscriptions?: Subscription[];
+  sales?: Sale[];
   onRefresh?: () => void;
 }
 
@@ -98,6 +99,7 @@ export const MemberDetailsCard = ({
   familyMembers,
   family: _family,
   subscriptions = [],
+  sales = [],
   onRefresh,
 }: MemberDetailsCardProps) => {
   const router = useRouter();
@@ -118,7 +120,8 @@ export const MemberDetailsCard = ({
   const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(
     member,
     subscriptions,
-    familyMembers
+    familyMembers,
+    sales
   );
   const lastPayment = member.lastPaymentDate
     ? new Date(member.lastPaymentDate)
@@ -1152,7 +1155,12 @@ export const MemberDetailsCard = ({
           value="subscriptions"
           className="focus-visible:outline-none"
         >
-          <MemberSubscriptionsTab memberId={member.id} />
+          <MemberSubscriptionsTab
+            memberId={member.id}
+            member={member}
+            memberIds={[member.id, ...familyMembers.map((m) => m.id)]}
+            familyMembers={familyMembers}
+          />
         </TabsContent>
 
         <TabsContent value="attendance" className="focus-visible:outline-none">

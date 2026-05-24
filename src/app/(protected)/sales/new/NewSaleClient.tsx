@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
 
@@ -46,6 +46,9 @@ type SaleItem = Sale["items"][0];
 
 export default function NewSaleClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryMemberId = searchParams.get("memberId");
+
   const { user, idToken } = useAuth();
 
   const { products: allProducts, isLoading: productsLoading } = useProducts();
@@ -53,9 +56,17 @@ export default function NewSaleClient() {
   const [membersLoading, setMembersLoading] = useState(true);
 
   const [cart, setCart] = useState<SaleItem[]>([]);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
+    queryMemberId || "none"
+  );
   const [paymentStatus, setPaymentStatus] =
     useState<Sale["status"]>("completed");
+
+  useEffect(() => {
+    if (queryMemberId) {
+      setSelectedMemberId(queryMemberId);
+    }
+  }, [queryMemberId]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -296,7 +307,7 @@ export default function NewSaleClient() {
                 <div className="flex items-center gap-2">
                   <Select
                     onValueChange={setSelectedMemberId}
-                    defaultValue={"none"}
+                    value={selectedMemberId || "none"}
                   >
                     <SelectTrigger className="rounded-xl bg-slate-50/50 border-none shadow-none h-11 focus:ring-1 focus:ring-primary/20">
                       <div className="flex items-center gap-2 overflow-hidden">

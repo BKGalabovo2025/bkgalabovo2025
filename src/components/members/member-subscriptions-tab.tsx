@@ -16,13 +16,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -48,6 +41,12 @@ import {
   AlertCircle,
   Receipt,
   Trash2,
+  Sparkles,
+  Wallet,
+  Package,
+  ArrowRight,
+  Check,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -58,7 +57,6 @@ import { MembershipSuggestions } from "@/components/subscriptions/MembershipSugg
 import { RegisterPaymentDialog } from "@/components/subscriptions/register-payment-dialog";
 
 // Helper functions for date calculations
-
 const calculateEndDate = (
   startDate: Date,
   billingPeriod: ClubService["billingPeriod"]
@@ -74,8 +72,8 @@ const calculateEndDate = (
   return endDate;
 };
 
-// --- DIALOG FOR ADDING A NEW SUBSCRIPTION ---
-const AddSubscriptionDialog = ({
+// --- DIALOG FOR ADDING A NEW SUBSCRIPTION (REFACTORED AS GUIDED WIZARD) ---
+export const AddSubscriptionDialog = ({
   memberId,
   services,
   onSubscriptionAdded,
@@ -105,19 +103,32 @@ const AddSubscriptionDialog = ({
   const isOpen = externalOpen ?? internalOpen;
   const setIsOpen = onExternalOpenChange ?? setInternalOpen;
 
+  // Wizard states
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [billingType, setBillingType] = useState<
+    "subscription" | "single" | "other"
+  >("subscription");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
     null
   );
+
+  // Details states
   const [customPrice, setCustomPrice] = useState<number | null>(null);
   const [customServiceName, setCustomServiceName] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"completed" | "pending">(
     "completed"
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (initialSelection) {
+      const s = services.find((srv) => srv.id === initialSelection.serviceId);
+      if (s) {
+        if (s.type === "Абонамент") setBillingType("subscription");
+        else setBillingType("single");
+      }
       setSelectedServiceId(initialSelection.serviceId);
       setCustomPrice(initialSelection.price);
       setCustomServiceName(initialSelection.suggestedName || "");
@@ -125,12 +136,12 @@ const AddSubscriptionDialog = ({
         const [y, m] = initialSelection.month.split("-").map(Number);
         setStartDate(new Date(y, m - 1, 1));
       }
-      // If it's a smart suggestion, default to pending payment since it's an auto-generated obligation
       setPaymentStatus("pending");
+      setStep(3); // Jump straight to details for smart suggestions
       if (onExternalOpenChange) onExternalOpenChange(true);
       else setInternalOpen(true);
     }
-  }, [initialSelection, onExternalOpenChange]);
+  }, [initialSelection, services, onExternalOpenChange]);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -138,6 +149,8 @@ const AddSubscriptionDialog = ({
       onClearSelection();
     }
     if (!open) {
+      setStep(1);
+      setBillingType("subscription");
       setSelectedServiceId(null);
       setCustomPrice(null);
       setCustomServiceName("");
@@ -146,13 +159,43 @@ const AddSubscriptionDialog = ({
     }
   };
 
-  const handleServiceChange = (id: string) => {
+  const handleChooseType = (type: "subscription" | "single" | "other") => {
+    setBillingType(type);
+    setSelectedServiceId(null);
+    setStep(2);
+  };
+
+  const handleSelectService = (id: string) => {
     setSelectedServiceId(id);
     const s = services.find((srv) => srv.id === id);
     if (s) {
       setCustomPrice(s.price);
       setCustomServiceName(s.name);
     }
+    setStep(3);
+  };
+
+  const handleSelectCustomManual = () => {
+    setSelectedServiceId("custom_manual");
+    setCustomPrice(10);
+    setCustomServiceName(
+      billingType === "other"
+        ? "Наплитане на ракета"
+        : "Индивидуална тренировка"
+    );
+    setStep(3);
+  };
+
+  const handleNextToStatus = () => {
+    if (!customServiceName.trim()) {
+      toast.error("Грешка", { description: "Моля, въведете име на услугата." });
+      return;
+    }
+    if (customPrice === null || customPrice < 0) {
+      toast.error("Грешка", { description: "Моля, въведете валидна цена." });
+      return;
+    }
+    setStep(4);
   };
 
   const handleAddSubscription = async () => {
@@ -170,12 +213,6 @@ const AddSubscriptionDialog = ({
       return;
     }
 
-    const service = services.find((s) => s.id === selectedServiceId);
-    if (!service) {
-      toast.error("Грешка", { description: "Избраната услуга не е валидна." });
-      return;
-    }
-
     setIsLoading(true);
     try {
       if (!idToken) {
@@ -183,7 +220,21 @@ const AddSubscriptionDialog = ({
         return;
       }
 
-      let endDate = calculateEndDate(startDate, service.billingPeriod);
+      let endDate = startDate;
+      let serviceId = selectedServiceId;
+
+      if (selectedServiceId === "custom_manual") {
+        serviceId = "custom_pos_service";
+        if (billingType === "subscription") {
+          endDate = calculateEndDate(startDate, "Месечен");
+        }
+      } else {
+        const service = services.find((s) => s.id === selectedServiceId);
+        if (service) {
+          endDate = calculateEndDate(startDate, service.billingPeriod);
+        }
+      }
+
       if (initialSelection?.month) {
         const [y, m] = initialSelection.month.split("-").map(Number);
         const lastDay = new Date(y, m, 0);
@@ -191,8 +242,8 @@ const AddSubscriptionDialog = ({
         endDate = lastDay;
       }
 
-      const finalPrice = customPrice ?? service.price;
-      const finalServiceName = customServiceName || service.name;
+      const finalPrice = customPrice ?? 0;
+      const finalServiceName = customServiceName || "Клубна услуга";
 
       const isPaid = paymentStatus === "completed";
       const subPrice = finalPrice;
@@ -201,7 +252,7 @@ const AddSubscriptionDialog = ({
 
       const result = await createSubscriptionAction(idToken, {
         memberId: memberId,
-        serviceId: service.id,
+        serviceId: serviceId,
         serviceName: finalServiceName,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
@@ -216,7 +267,7 @@ const AddSubscriptionDialog = ({
                 amount: subPrice,
                 paymentId: `pay_${Date.now()}`,
                 paymentMethod: "cash",
-                note: "Ръчно добавена продажба",
+                note: "Ръчно добавена продажба чрез POS Wizard",
               },
             ]
           : [],
@@ -245,9 +296,24 @@ const AddSubscriptionDialog = ({
     }
   };
 
-  const selectedService = services.find((s) => s.id === selectedServiceId);
-  const isSubscriptionType =
-    !selectedService || selectedService.type === "Абонамент";
+  const isSubscriptionType = billingType === "subscription";
+
+  // Filter services matching the current wizard type
+  const filteredCatalog = services.filter((s) => {
+    if (billingType === "subscription") {
+      return s.type === "Абонамент" && s.billingPeriod !== null;
+    } else if (billingType === "single") {
+      const name = s.name.toLowerCase();
+      return (
+        (s.type === "Еднократно плащане" || s.billingPeriod === null) &&
+        !name.includes("наплитане") &&
+        !name.includes("кордаж")
+      );
+    } else {
+      const name = s.name.toLowerCase();
+      return name.includes("наплитане") || name.includes("кордаж");
+    }
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -257,65 +323,210 @@ const AddSubscriptionDialog = ({
           Каталог Тренировки / Услуги
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-4xl border-zinc-100 shadow-none max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-light tracking-tight">
-            Каталог Услуги
+      <DialogContent className="sm:max-w-[480px] rounded-4xl border-zinc-100 shadow-none max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-light tracking-tight text-zinc-950">
+            Добавяне на такса / услуга
           </DialogTitle>
-          <DialogDescription className="text-sm font-light text-zinc-400">
-            Каталог на предлаганите абонаменти, еднократни и индивидуални
-            тренировки.
+          <DialogDescription className="text-xs font-light text-zinc-400">
+            Guided Step-by-Step POS Помощник
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-6">
-          <div className="space-y-2">
-            <label
-              htmlFor="service"
-              className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400"
-            >
-              Услуга
-            </label>
-            <Select
-              onValueChange={handleServiceChange}
-              value={selectedServiceId || undefined}
-            >
-              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50">
-                <SelectValue placeholder="Изберете услуга от каталога..." />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-zinc-100 shadow-none">
-                {services.map((service) => (
-                  <SelectItem key={service.id} value={service.id}>
-                    {service.name} ({formatPrice(service.price)}){" "}
-                    {service.type ? `[${service.type}]` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
-          {selectedServiceId && (
-            <>
+        {/* Steps Indicator */}
+        <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 rounded-2xl border border-zinc-100/80 mb-6 overflow-x-auto no-scrollbar">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <div key={`step-dot-${s}`} className="flex items-center">
+              <span
+                className={cn(
+                  "flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold transition-all",
+                  step === s
+                    ? "bg-zinc-950 text-white"
+                    : step > s
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-zinc-100 text-zinc-400"
+                )}
+              >
+                {step > s ? <Check className="h-3 w-3" /> : s}
+              </span>
+              {s < 5 && (
+                <div
+                  className={cn(
+                    "w-6 sm:w-10 h-0.5 mx-1",
+                    step > s ? "bg-emerald-100" : "bg-zinc-100"
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* STEP 1: CHOOSE BILLING TYPE */}
+        {step === 1 && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 mb-2">
+              Стъпка 1: Изберете тип такса
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                type="button"
+                onClick={() => handleChooseType("subscription")}
+                className="flex items-center gap-4 p-5 rounded-3xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-200 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-amber-500 shadow-sm border border-zinc-100/50 group-hover:scale-105 transition-transform">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-zinc-950">
+                    Абонамент (Членство)
+                  </h4>
+                  <p className="text-xs font-light text-zinc-400 mt-1">
+                    Месечни или годишни клубни карти за редовни тренировки.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleChooseType("single")}
+                className="flex items-center gap-4 p-5 rounded-3xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-200 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm border border-zinc-100/50 group-hover:scale-105 transition-transform">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-zinc-950">
+                    Индивидуална / Еднократна тренировка
+                  </h4>
+                  <p className="text-xs font-light text-zinc-400 mt-1">
+                    Еднократно посещение или заплащане на брой тренировки.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleChooseType("other")}
+                className="flex items-center gap-4 p-5 rounded-3xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-200 transition-all text-left group"
+              >
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm border border-zinc-100/50 group-hover:scale-105 transition-transform">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-zinc-950">
+                    Наплитане на ракета / Друго
+                  </h4>
+                  <p className="text-xs font-light text-zinc-400 mt-1">
+                    Кордажи, наплитане на ракети или други допълнителни клубни
+                    услуги.
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: SELECT FROM CATALOG */}
+        {step === 2 && (
+          <div className="space-y-4 animate-in fade-in duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                Стъпка 2: Изберете пакет
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep(1)}
+                className="h-8 text-zinc-500 text-[10px] uppercase font-bold"
+              >
+                Назад
+              </Button>
+            </div>
+
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
+              {filteredCatalog.length === 0 ? (
+                <div className="py-10 text-center bg-zinc-50/50 border border-dashed rounded-3xl border-zinc-100">
+                  <p className="text-xs font-light text-zinc-400">
+                    Няма намерени услуги в тази категория.
+                  </p>
+                </div>
+              ) : (
+                filteredCatalog.map((service) => (
+                  <button
+                    key={service.id}
+                    type="button"
+                    onClick={() => handleSelectService(service.id)}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-300 transition-all text-left"
+                  >
+                    <div>
+                      <h5 className="font-medium text-sm text-zinc-950">
+                        {service.name}
+                      </h5>
+                      <span className="text-[9px] uppercase tracking-widest bg-zinc-100/50 text-zinc-600 px-2 py-0.5 rounded-full mt-1.5 inline-block">
+                        {service.billingPeriod || service.type || "Еднократно"}
+                      </span>
+                    </div>
+                    <span className="font-semibold text-sm text-zinc-900 pr-1">
+                      {formatPrice(service.price)}
+                    </span>
+                  </button>
+                ))
+              )}
+
+              {/* Custom manual charge fallback */}
+              <button
+                type="button"
+                onClick={handleSelectCustomManual}
+                className="w-full flex items-center justify-between p-4 rounded-2xl border border-dashed border-zinc-200 bg-white hover:bg-zinc-50 transition-all text-left text-zinc-600"
+              >
+                <div>
+                  <h5 className="font-medium text-sm">
+                    Свободно ръчно въвеждане...
+                  </h5>
+                  <p className="text-[10px] font-light text-zinc-400 mt-0.5">
+                    Въведете собствено заглавие и цена
+                  </p>
+                </div>
+                <PlusCircle className="h-5 w-5 text-zinc-300 pr-1" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: SETUP DETAILS */}
+        {step === 3 && (
+          <div className="space-y-5 animate-in fade-in duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                Стъпка 3: Настройка на детайли
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep(initialSelection ? 3 : 2)}
+                disabled={!!initialSelection}
+                className="h-8 text-zinc-500 text-[10px] uppercase font-bold"
+              >
+                Назад
+              </Button>
+            </div>
+
+            <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-                  {isSubscriptionType
-                    ? "Име на абонамент"
-                    : "Име на услуга / еднократно плащане"}
+                  Име на услугата / таксата
                 </label>
                 <Input
                   value={customServiceName}
                   onChange={(e) => setCustomServiceName(e.target.value)}
-                  placeholder={
-                    isSubscriptionType
-                      ? "Име на абонамента..."
-                      : "Име на услугата..."
-                  }
-                  className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light"
+                  placeholder="Въведете име..."
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light text-zinc-950"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-                  Цена ({selectedService?.currency || "EUR"})
+                  Цена (EUR)
                 </label>
                 <Input
                   type="number"
@@ -325,111 +536,226 @@ const AddSubscriptionDialog = ({
                     setCustomPrice(parseFloat(e.target.value) || 0)
                   }
                   placeholder="0.00"
-                  className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light"
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light text-zinc-950"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-                  Статус на плащане
+                  {isSubscriptionType ? "Начална дата" : "Дата на транзакцията"}
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentStatus("completed")}
-                    className={cn(
-                      "flex items-center justify-center p-3 rounded-xl border transition-all text-xs font-medium",
-                      paymentStatus === "completed"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold"
-                        : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:border-zinc-200"
-                    )}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 justify-start text-left font-light rounded-2xl border-zinc-100 bg-zinc-50/50 text-zinc-950"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4 text-zinc-400" />
+                      {startDate ? (
+                        format(startDate, "PPP", { locale: bg })
+                      ) : (
+                        <span>Изберете дата</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0 rounded-2xl border-zinc-100 shadow-none"
+                    align="start"
                   >
-                    Платено сега
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentStatus("pending")}
-                    className={cn(
-                      "flex items-center justify-center p-3 rounded-xl border transition-all text-xs font-medium",
-                      paymentStatus === "pending"
-                        ? "border-rose-500 bg-rose-50 text-rose-700 font-semibold"
-                        : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:border-zinc-200"
-                    )}
-                  >
-                    Чакащо плащане
-                  </button>
-                </div>
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      autoFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-            </>
-          )}
+            </div>
 
-          <div className="space-y-2">
-            <label
-              htmlFor="start-date"
-              className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400"
-            >
-              {isSubscriptionType
-                ? "Начална дата"
-                : "Дата на извършване / посещение"}
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
+            <DialogFooter className="pt-4 border-t border-zinc-50">
+              <Button
+                onClick={handleNextToStatus}
+                className="h-12 w-full rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-semibold uppercase tracking-widest2 flex items-center justify-center gap-2"
+              >
+                Продължи
+                <ArrowRight className="h-4 w-4 text-emerald-400" />
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
+
+        {/* STEP 4: PAYMENT STATUS */}
+        {step === 4 && (
+          <div className="space-y-5 animate-in fade-in duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                Стъпка 4: Статус на плащане
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep(3)}
+                className="h-8 text-zinc-500 text-[10px] uppercase font-bold"
+              >
+                Назад
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentStatus("completed");
+                  setStep(5);
+                }}
+                className={cn(
+                  "flex items-center gap-4 p-5 rounded-3xl border transition-all text-left",
+                  paymentStatus === "completed"
+                    ? "border-emerald-500 bg-emerald-50/40 text-emerald-950 font-semibold"
+                    : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:bg-zinc-100"
+                )}
+              >
+                <div
                   className={cn(
-                    "w-full h-12 justify-start text-left font-light rounded-xl border-zinc-100 bg-zinc-50/50",
-                    !startDate && "text-muted-foreground"
+                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
+                    paymentStatus === "completed"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-white text-zinc-400"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-zinc-400" />
-                  {startDate ? (
-                    format(startDate, "PPP", { locale: bg })
-                  ) : (
-                    <span>Изберете дата</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 rounded-2xl border-zinc-100 shadow-none"
-                align="start"
+                  <Check className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Платено сега в брой</h4>
+                  <p className="text-[11px] font-light text-zinc-400 mt-0.5">
+                    Маркирай като платено в брой веднага.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentStatus("pending");
+                  setStep(5);
+                }}
+                className={cn(
+                  "flex items-center gap-4 p-5 rounded-3xl border transition-all text-left",
+                  paymentStatus === "pending"
+                    ? "border-rose-500 bg-rose-50/40 text-rose-950 font-semibold"
+                    : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:bg-zinc-100"
+                )}
               >
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
+                    paymentStatus === "pending"
+                      ? "bg-rose-500 text-white"
+                      : "bg-white text-zinc-400"
+                  )}
+                >
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">
+                    Запиши като дълг (Плати по-късно)
+                  </h4>
+                  <p className="text-[11px] font-light text-zinc-400 mt-0.5">
+                    Служителят ще регистрира плащането по-късно.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-            className="h-11 rounded-xl border-zinc-100 font-medium text-[11px] uppercase tracking-widest2"
-          >
-            Отказ
-          </Button>
-          <Button
-            onClick={handleAddSubscription}
-            disabled={isLoading}
-            className="h-11 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest2 shadow-none"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              "Запази"
-            )}
-          </Button>
-        </DialogFooter>
+        )}
+
+        {/* STEP 5: PREVIEW & CONFIRMATION */}
+        {step === 5 && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                Стъпка 5: Преглед и потвърждение
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep(4)}
+                className="h-8 text-zinc-500 text-[10px] uppercase font-bold"
+              >
+                Назад
+              </Button>
+            </div>
+
+            <div className="bg-zinc-50 rounded-3xl p-6 border border-zinc-100 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-200/50">
+                <span className="text-xs text-zinc-400 uppercase tracking-widest">
+                  Услуга / Такса
+                </span>
+                <span className="text-sm font-medium text-zinc-950">
+                  {customServiceName}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-1">
+                <span className="text-xs text-zinc-400 uppercase tracking-widest">
+                  Цена
+                </span>
+                <span className="text-base font-semibold text-zinc-900">
+                  {formatPrice(customPrice || 0)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-1">
+                <span className="text-xs text-zinc-400 uppercase tracking-widest">
+                  Дата
+                </span>
+                <span className="text-xs font-light text-zinc-650">
+                  {startDate ? format(startDate, "dd.MM.yyyy") : "—"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-200/50">
+                <span className="text-xs text-zinc-400 uppercase tracking-widest">
+                  Статус
+                </span>
+                <span
+                  className={cn(
+                    "text-[10px] uppercase font-semibold tracking-widest bg-white border px-3 py-1 rounded-full",
+                    paymentStatus === "completed"
+                      ? "border-emerald-200 text-emerald-700 bg-emerald-50/20"
+                      : "border-rose-200 text-rose-700 bg-rose-50/20"
+                  )}
+                >
+                  {paymentStatus === "completed" ? "Платено" : "Чака плащане"}
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 border-t border-zinc-50">
+              <Button
+                onClick={handleAddSubscription}
+                disabled={isLoading}
+                className="h-12 w-full rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-semibold uppercase tracking-widest2 flex items-center justify-center gap-2 shadow-md"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 text-emerald-400" />
+                    Потвърди и Запиши
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
 };
 
-// --- EXISTING COMPONENTS (with minor adjustments if needed) ---
-
+// --- SUBSCRIPTION CARD ---
 const ReceiptButton = ({
   subscription,
   onUpdate,
@@ -519,7 +845,6 @@ const SubscriptionCard = ({
       const now = new Date();
       const currentEndDate = new Date(sub.endDate);
 
-      // Start date is the day after the current subscription ends, or today if that ended in the past
       let nextStartDate = new Date(
         currentEndDate.getTime() + 24 * 60 * 60 * 1000
       );
@@ -528,7 +853,6 @@ const SubscriptionCard = ({
       }
       nextStartDate.setHours(0, 0, 0, 0);
 
-      // End date: calculate based on billingPeriod of related service, or default to Месечен
       const serviceBillingPeriod = service?.billingPeriod || "Месечен";
       const nextEndDate = calculateEndDate(nextStartDate, serviceBillingPeriod);
 
@@ -595,7 +919,7 @@ const SubscriptionCard = ({
         icon: <XCircle className="h-4 w-4 text-rose-500" />,
         text: "Изтекъл",
         color: "border-rose-500",
-        bgColor: "bg-rose-50/30",
+        bgColor: "bg-rose-50/10",
       };
     }
     switch (sub.status) {
@@ -604,28 +928,28 @@ const SubscriptionCard = ({
           icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
           text: "Активен",
           color: "border-emerald-500",
-          bgColor: "bg-emerald-50/30",
+          bgColor: "bg-emerald-50/10",
         };
       case "pending_payment":
         return {
           icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
           text: "Чакащо плащане",
           color: "border-amber-500",
-          bgColor: "bg-amber-50/30",
+          bgColor: "bg-amber-50/20",
         };
       case "cancelled":
         return {
           icon: <XCircle className="h-4 w-4 text-zinc-400" />,
           text: "Отменен",
           color: "border-zinc-200",
-          bgColor: "bg-zinc-50/30",
+          bgColor: "bg-zinc-50/10",
         };
       default:
         return {
           icon: <XCircle className="h-4 w-4 text-zinc-400" />,
           text: "Неактивен",
           color: "border-zinc-200",
-          bgColor: "bg-zinc-50/30",
+          bgColor: "bg-zinc-50/10",
         };
     }
   };
@@ -635,72 +959,78 @@ const SubscriptionCard = ({
 
   return (
     <div
-      className={`border border-zinc-100 rounded-3xl sm:rounded-4xl p-5 sm:p-8 mb-4 sm:mb-6 ${statusInfo.bgColor} transition-all hover:bg-zinc-50/50`}
+      className={cn(
+        "border border-zinc-100 rounded-3xl p-5 sm:p-6 mb-4 bg-white hover:bg-zinc-50/50 transition-all shadow-sm relative overflow-hidden",
+        sub.status === "pending_payment" && "border-rose-100 bg-rose-50/5"
+      )}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h4 className="font-light text-xl sm:text-2xl tracking-tight text-zinc-950">
+          <h4 className="font-medium text-lg sm:text-xl tracking-tight text-zinc-950">
             {sub.serviceName}
           </h4>
           {currentMemberId &&
             sub.memberId !== currentMemberId &&
             familyMembers && (
-              <span className="text-xs text-amber-600 font-medium block mt-1">
+              <span className="text-[10px] text-amber-600 font-semibold uppercase tracking-wider block mt-1">
                 За член на семейството:{" "}
                 {familyMembers.find((m) => m.id === sub.memberId)?.firstName ||
-                  "Член на семейството"}{" "}
-                {familyMembers.find((m) => m.id === sub.memberId)?.lastName ||
-                  ""}
+                  "Член"}
               </span>
             )}
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-zinc-100 bg-white shrink-0">
+        <div
+          className={cn(
+            "flex items-center space-x-2 px-3 py-1 rounded-full border text-[9px] uppercase font-bold tracking-wider bg-white shadow-none shrink-0",
+            sub.status === "pending_payment"
+              ? "text-rose-600 border-rose-100"
+              : "text-zinc-600 border-zinc-100"
+          )}
+        >
           {statusInfo.icon}
-          <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-950">
-            {statusInfo.text}
-          </span>
+          <span>{statusInfo.text}</span>
         </div>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8 mt-6 sm:mt-8 items-end">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 items-end">
         <div className="space-y-1">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+          <p className="text-[9px] font-medium uppercase tracking-widest text-zinc-400">
             Начало
           </p>
-          <div className="flex items-center gap-1.5 text-[11px] sm:text-sm font-light text-zinc-900">
+          <div className="flex items-center gap-1.5 text-xs font-light text-zinc-900">
             <CalendarIcon
-              className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-zinc-300"
+              className="h-3.5 w-3.5 text-zinc-300"
               strokeWidth={1.5}
             />{" "}
             {new Date(sub.startDate).toLocaleDateString("bg-BG")}
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+          <p className="text-[9px] font-medium uppercase tracking-widest text-zinc-400">
             Край
           </p>
-          <div className="flex items-center gap-1.5 text-[11px] sm:text-sm font-light text-zinc-900">
+          <div className="flex items-center gap-1.5 text-xs font-light text-zinc-900">
             <CalendarIcon
-              className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-zinc-300"
+              className="h-3.5 w-3.5 text-zinc-300"
               strokeWidth={1.5}
             />
             {new Date(sub.endDate).toLocaleDateString("bg-BG")}
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+          <p className="text-[9px] font-medium uppercase tracking-widest text-zinc-400">
             Платено
           </p>
-          <div className="text-[11px] sm:text-sm font-medium text-zinc-950">
+          <div className="text-sm font-semibold text-zinc-950">
             {formatPrice(sub.pricePaid)}
           </div>
         </div>
-        <div className="flex flex-wrap sm:flex-nowrap justify-start lg:justify-end items-center gap-2 sm:gap-3 col-span-2 lg:col-span-1 pt-4 sm:pt-0 border-t border-zinc-100/30 sm:border-t-0">
+        <div className="flex flex-wrap justify-start lg:justify-end items-center gap-2 col-span-2 lg:col-span-1 pt-4 sm:pt-0 border-t border-zinc-100 sm:border-t-0">
           {statusInfo.text === "Изтекъл" && (
             <Button
               size="sm"
               onClick={handleRenew}
               disabled={isRenewing}
-              className="h-10 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] uppercase tracking-widest2 shadow-none flex items-center gap-2"
+              className="h-9 px-4 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[10px] uppercase tracking-widest2 shadow-none flex items-center gap-2"
             >
               {isRenewing ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -741,6 +1071,7 @@ const SubscriptionCard = ({
   );
 };
 
+// --- MAIN TAB COMPONENT ---
 export const MemberSubscriptionsTab = ({
   memberId,
   member,
@@ -824,6 +1155,13 @@ export const MemberSubscriptionsTab = ({
     setIsAddDialogOpen(true);
   };
 
+  const pendingSubs = subscriptions.filter(
+    (sub) => sub.status === "pending_payment"
+  );
+  const historySubs = subscriptions.filter(
+    (sub) => sub.status !== "pending_payment"
+  );
+
   if (loading)
     return (
       <div className="flex justify-center py-20">
@@ -835,7 +1173,7 @@ export const MemberSubscriptionsTab = ({
     );
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
+    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl p-4 sm:p-8 lg:p-10 shadow-sm animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
         <div>
           <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
@@ -870,26 +1208,31 @@ export const MemberSubscriptionsTab = ({
         </div>
       )}
 
+      {/* SECTION 1: PENDING DUES (Секция: Чакащи плащания) */}
       <div>
-        {subscriptions.filter((sub) => sub.status === "pending_payment")
-          .length === 0 && pendingSales.length === 0 ? (
-          <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
-            <p className="text-[11px] font-medium uppercase tracking-widest2 text-zinc-300">
+        <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-6 flex items-center gap-3">
+          <AlertCircle className="h-4 w-4 text-amber-500" strokeWidth={1.5} />
+          Чакащи задължения (Дългове)
+        </h3>
+
+        {pendingSubs.length === 0 && pendingSales.length === 0 ? (
+          <div className="text-center py-16 bg-zinc-50/30 border border-zinc-100 border-dashed rounded-3xl">
+            <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-300">
               Няма чакащи задължения.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Рендериране на чакащи продажби */}
+            {/* Unpaid sales rendering */}
             {pendingSales.map((sale) => (
               <div
                 key={`sale-${sale.id}`}
                 className="bg-white border border-rose-100 rounded-3xl p-6 shadow-sm shadow-rose-900/5 relative overflow-hidden"
               >
-                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500 rounded-l-3xl"></div>
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-500 rounded-l-3xl"></div>
                 <div className="flex flex-col sm:flex-row gap-6 sm:items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-zinc-900">
+                    <h3 className="text-base font-semibold text-zinc-900">
                       {sale.items
                         .map(
                           (i: any) =>
@@ -897,8 +1240,8 @@ export const MemberSubscriptionsTab = ({
                         )
                         .join(", ")}
                     </h3>
-                    <div className="flex items-center gap-3 mt-2 text-xs font-medium text-zinc-400">
-                      <span className="text-rose-500 uppercase tracking-widest2 text-[10px]">
+                    <div className="flex items-center gap-3 mt-2 text-[10px] font-medium text-zinc-400">
+                      <span className="text-rose-500 uppercase tracking-widest2">
                         Чакащо плащане
                       </span>
                       <span>•</span>
@@ -921,10 +1264,10 @@ export const MemberSubscriptionsTab = ({
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-[10px] uppercase font-medium tracking-widest2 text-zinc-400">
+                      <p className="text-[9px] uppercase font-medium tracking-widest text-zinc-400">
                         Сума
                       </p>
-                      <p className="text-xl font-medium text-zinc-900">
+                      <p className="text-lg font-bold text-zinc-900">
                         {formatPrice(sale.totalAmount)}
                       </p>
                     </div>
@@ -948,21 +1291,50 @@ export const MemberSubscriptionsTab = ({
               </div>
             ))}
 
-            {/* Рендериране на чакащи абонаменти (стара логика, ако има такива) */}
-            {subscriptions
-              .filter((sub) => sub.status === "pending_payment")
-              .map((sub) => (
-                <SubscriptionCard
-                  key={`sub-${sub.id}`}
-                  sub={sub}
-                  service={allServices.find((s) => s.id === sub.serviceId)}
-                  onSubscriptionUpdate={refreshData}
-                  user={user}
-                  idToken={idToken}
-                  familyMembers={familyMembers}
-                  currentMemberId={memberId}
-                />
-              ))}
+            {/* Unpaid subscriptions rendering */}
+            {pendingSubs.map((sub) => (
+              <SubscriptionCard
+                key={`sub-pending-${sub.id}`}
+                sub={sub}
+                service={allServices.find((s) => s.id === sub.serviceId)}
+                onSubscriptionUpdate={refreshData}
+                user={user}
+                idToken={idToken}
+                familyMembers={familyMembers}
+                currentMemberId={memberId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 2: ACTIVE & HISTORICAL MEMBER SUBSCRIPTIONS */}
+      <div className="mt-12 pt-10 border-t border-zinc-100">
+        <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-6 flex items-center gap-3">
+          <History className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
+          Активни и минали абонаменти
+        </h3>
+
+        {historySubs.length === 0 ? (
+          <div className="text-center py-16 bg-zinc-50/10 border border-zinc-100 border-dashed rounded-3xl">
+            <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-300">
+              Няма активни или изтекли абонаменти.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {historySubs.map((sub) => (
+              <SubscriptionCard
+                key={`sub-history-${sub.id}`}
+                sub={sub}
+                service={allServices.find((s) => s.id === sub.serviceId)}
+                onSubscriptionUpdate={refreshData}
+                user={user}
+                idToken={idToken}
+                familyMembers={familyMembers}
+                currentMemberId={memberId}
+              />
+            ))}
           </div>
         )}
       </div>

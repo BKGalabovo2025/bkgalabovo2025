@@ -1,4 +1,4 @@
-import { Member, ClubService, Subscription } from "@/types";
+import { Member, ClubService, Subscription, Sale } from "@/types";
 import {
   LucideIcon,
   Sparkles,
@@ -87,11 +87,14 @@ export const getMembershipSuggestions = (
 
   // Family override for monthly service
   if (member.familyId) {
-    const familyService = services.find(
-      (s) =>
-        s.name.toLowerCase().includes("семеен") ||
-        s.name.toLowerCase().includes("семейство")
-    );
+    const familyService = services.find((s) => {
+      const name = s.name.toLowerCase();
+      return (
+        name.includes("семеен") ||
+        name.includes("семейн") ||
+        name.includes("семейств")
+      );
+    });
     if (familyService) {
       effectiveMonthly = familyService;
     }
@@ -195,100 +198,156 @@ export const getMembershipSuggestions = (
 
 /**
  * Unified logic to check if a member's payment is overdue based on active subscriptions or payment history.
+ * Supports chronological obligation list including unpaid sales.
  */
 export const checkIsMemberOverdue = (
   member: Member,
   subscriptions: Subscription[] = [],
-  familyMembers: Member[] = []
+  familyMembers: Member[] = [],
+  sales: Sale[] = []
 ): { isOverdue: boolean; reason: string } => {
   if (member.status !== "active") {
     return { isOverdue: false, reason: "Неактивен член" };
   }
 
-  // 1. Check subscriptions
-  if (subscriptions && subscriptions.length > 0) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    // Look for any subscription that is paid (active/expired but paid) covering today,
-    // or active subscription that has not expired
-    const activeOrPaidSub = subscriptions.find((sub) => {
-      if (sub.status === "cancelled") return false;
+  // Chronological obligations list
+  type Obligation = {
+    date: Date;
+    description: string;
+    amount: number;
+    type: "subscription" | "sale";
+  };
 
-      // Only check paid status for the main member (or a shared family sub)
-      // Wait, family subs cover all children. So if sub is family-wide and paid, it counts for this child.
-      const isSharedFamilySub =
-        sub.serviceName.toLowerCase().includes("семеен") ||
-        sub.serviceName.toLowerCase().includes("семейство");
-      if (sub.memberId !== member.id && !isSharedFamilySub) return false;
+  const obligations: Obligation[] = [];
 
-      const sStart = new Date(sub.startDate);
-      sStart.setHours(0, 0, 0, 0);
-      const sEnd = new Date(sub.endDate);
-      sEnd.setHours(23, 59, 59, 999);
+  // 1. Check pending subscriptions
+  const pendingSubs = subscriptions.filter(
+    (sub) => sub.status === "pending_payment"
+  );
 
-      // Check if today falls within start and end date
-      const isCurrentlyRunning = today >= sStart && today <= sEnd;
-      // Or if it is explicitly active and not expired yet
-      const isActiveAndNotExpired = sub.status === "active" && today <= sEnd;
-
-      return isActiveAndNotExpired || (isCurrentlyRunning && sub.pricePaid > 0);
+  pendingSubs.forEach((sub) => {
+    let namePrefix = "";
+    if (sub.memberId !== member.id && familyMembers.length > 0) {
+      const sibling = familyMembers.find((m) => m.id === sub.memberId);
+      if (sibling) {
+        namePrefix = `${sibling.firstName}: `;
+      } else {
+        namePrefix = "Семейство: ";
+      }
+    }
+    obligations.push({
+      date: new Date(sub.startDate),
+      description: `${namePrefix}${sub.serviceName}`,
+      amount: sub.price - sub.pricePaid,
+      type: "subscription",
     });
+  });
 
-    if (activeOrPaidSub) {
-      const endStr = new Date(activeOrPaidSub.endDate).toLocaleDateString(
-        "bg-BG"
-      );
-      return {
-        isOverdue: false,
-        reason: `Има активен/платен абонамент: ${activeOrPaidSub.serviceName} (до ${endStr})`,
-      };
+  // 2. Check pending/unpaid sales for member and family
+  const targetMemberIds = [member.id, ...familyMembers.map((m) => m.id)];
+  const pendingSales = sales.filter(
+    (sale) =>
+      targetMemberIds.includes(sale.memberId || "") &&
+      (sale.status === "pending" || sale.isPaid === false)
+  );
+
+  pendingSales.forEach((sale) => {
+    // Ignore if it's already linked to a pending subscription in our list
+    if (
+      sale.subscriptionId &&
+      pendingSubs.some((s) => s.id === sale.subscriptionId)
+    ) {
+      return;
     }
 
-    // Check if there are any pending payment subscriptions (filter all to list them)
-    const pendingSubs = subscriptions.filter(
-      (sub) => sub.status === "pending_payment"
-    );
-    if (pendingSubs.length > 0) {
-      // Sort them chronologically (oldest first) so they are in a logical sequence
-      const sortedPending = [...pendingSubs].sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      );
-
-      const details = sortedPending
-        .map((sub) => {
-          const dateStr = new Date(sub.startDate).toLocaleDateString("bg-BG");
-          let namePrefix = "";
-
-          if (sub.memberId !== member.id) {
-            const sibling = familyMembers.find((m) => m.id === sub.memberId);
-            if (sibling) {
-              namePrefix = `${sibling.firstName}: `;
-            } else {
-              namePrefix = "Семейство: ";
-            }
-          }
-
-          return `${namePrefix}${sub.serviceName} (${dateStr})`;
-        })
-        .join(", ");
-
-      return {
-        isOverdue: true,
-        reason: `Очаква плащане за: ${details}`,
-      };
+    let namePrefix = "";
+    if (sale.memberId !== member.id && familyMembers.length > 0) {
+      const sibling = familyMembers.find((m) => m.id === sale.memberId);
+      if (sibling) {
+        namePrefix = `${sibling.firstName}: `;
+      } else {
+        namePrefix = "Семейство: ";
+      }
     }
+
+    const itemsStr =
+      sale.items.map((i) => i.name).join(", ") || "Услуга/Продукт";
+
+    obligations.push({
+      date: new Date(sale.saleDate),
+      description: `${namePrefix}${itemsStr}`,
+      amount: sale.totalAmount,
+      type: "sale",
+    });
+  });
+
+  // If there are any pending obligations, return them sorted chronologically (oldest first)
+  if (obligations.length > 0) {
+    obligations.sort((a, b) => a.date.getTime() - b.date.getTime());
+    const totalDue = obligations.reduce((sum, o) => sum + o.amount, 0);
+
+    const details = obligations
+      .map((o) => {
+        const dateStr = o.date.toLocaleDateString("bg-BG", {
+          month: "2-digit",
+          year: "numeric",
+        });
+        return `${o.description} (${dateStr} - ${o.amount} €)`;
+      })
+      .join(", ");
+
+    return {
+      isOverdue: true,
+      reason: `Дължи общо ${totalDue} € за: ${details}`,
+    };
   }
 
-  // 2. Fallback to registrationDate and lastPaymentDate if no subscriptions are found
+  // 3. Look for any subscription that is paid (active/expired but paid) covering today,
+  // or active subscription that has not expired
+  const activeOrPaidSub = subscriptions.find((sub) => {
+    if (sub.status === "cancelled") return false;
+
+    const serviceNameLower = sub.serviceName.toLowerCase();
+    const isSharedFamilySub =
+      serviceNameLower.includes("семеен") ||
+      serviceNameLower.includes("семейн") ||
+      serviceNameLower.includes("семейств");
+
+    if (sub.memberId !== member.id && !isSharedFamilySub) return false;
+
+    const sStart = new Date(sub.startDate);
+    sStart.setHours(0, 0, 0, 0);
+    const sEnd = new Date(sub.endDate);
+    sEnd.setHours(23, 59, 59, 999);
+
+    // Check if today falls within start and end date
+    const isCurrentlyRunning = today >= sStart && today <= sEnd;
+    // Or if it is explicitly active and not expired yet
+    const isActiveAndNotExpired = sub.status === "active" && today <= sEnd;
+
+    return isActiveAndNotExpired || (isCurrentlyRunning && sub.pricePaid > 0);
+  });
+
+  if (activeOrPaidSub) {
+    const endStr = new Date(activeOrPaidSub.endDate).toLocaleDateString(
+      "bg-BG"
+    );
+    return {
+      isOverdue: false,
+      reason: `Има активен/платен абонамент: ${activeOrPaidSub.serviceName} (до ${endStr})`,
+    };
+  }
+
+  // 4. Fallback to registrationDate and lastPaymentDate if no subscriptions are found
   const registrationDate = member.registrationDate
     ? new Date(member.registrationDate)
     : new Date();
   const lastPayment = member.lastPaymentDate
     ? new Date(member.lastPaymentDate)
     : null;
-  const today = new Date();
 
   // If newly registered (within last 30 days) and no payment yet, they are in grace period
   const daysSinceRegistration = Math.floor(

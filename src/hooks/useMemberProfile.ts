@@ -1,10 +1,11 @@
 "use client";
 
 import useSWR from "swr";
-import { Member, Subscription, ScheduleEvent } from "@/types";
+import { Member, Subscription, ScheduleEvent, Sale } from "@/types";
 import { getMemberById } from "@/services/member-service";
 import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { getAttendancesByMemberId } from "@/services/attendance-service";
+import { getSalesByMemberId } from "@/services/sales-service";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -28,6 +29,7 @@ interface MemberProfileData {
   family: Family | null;
   familyMembers: Member[];
   attendances: ScheduleEvent[];
+  sales: Sale[];
 }
 
 const fetcher = async (memberId: string): Promise<MemberProfileData> => {
@@ -73,11 +75,13 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     }
   }
 
-  // Fetch subscriptions for all members in family (or just this member if no family)
-  const subsResults = await Promise.all(
-    targetMemberIds.map((id) => getSubscriptionsByMemberId(id))
-  );
+  // Fetch subscriptions and sales for all members in family (or just this member if no family)
+  const [subsResults, salesResults] = await Promise.all([
+    Promise.all(targetMemberIds.map((id) => getSubscriptionsByMemberId(id))),
+    Promise.all(targetMemberIds.map((id) => getSalesByMemberId(id))),
+  ]);
   const subscriptionsData = subsResults.flat();
+  const salesData = salesResults.flat();
 
   return {
     member: memberData,
@@ -85,6 +89,7 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     family: familyData,
     familyMembers,
     attendances: attendancesData,
+    sales: salesData,
   };
 };
 
@@ -100,6 +105,7 @@ export const useMemberProfile = (memberId: string) => {
     family: data?.family || null,
     familyMembers: data?.familyMembers || [],
     attendances: data?.attendances || [],
+    sales: data?.sales || [],
     loading: isLoading,
     error: error?.message || null,
     refetch: mutate,

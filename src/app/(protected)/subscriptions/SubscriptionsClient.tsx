@@ -198,9 +198,11 @@ export default function SubscriptionsClient({
 
               // If they belong to a family, check if another family member has an active/pending/cancelled FAMILY subscription
               if (member.familyId) {
+                const serviceNameLower = s.serviceName.toLowerCase();
                 const isFamilySub =
-                  s.serviceName.toLowerCase().includes("семеен") ||
-                  s.serviceName.toLowerCase().includes("семейство");
+                  serviceNameLower.includes("семеен") ||
+                  serviceNameLower.includes("семейн") ||
+                  serviceNameLower.includes("семейств");
                 if (isFamilySub) {
                   const subMember = members.find((m) => m.id === s.memberId);
                   if (subMember && subMember.familyId === member.familyId) {

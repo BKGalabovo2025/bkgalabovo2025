@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, History, Boxes, Briefcase } from "lucide-react";
+import { CreditCard, History, Boxes, Briefcase, Banknote } from "lucide-react";
 import SubscriptionsClient from "@/app/(protected)/subscriptions/SubscriptionsClient";
 import SalesClient from "@/app/(protected)/sales/SalesClient";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 import FinancesDashboardCharts from "./FinancesDashboardCharts";
+import { QuickPOSPanel } from "@/components/finances/quick-pos-panel";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FinancesClientProps {
@@ -24,7 +25,7 @@ export default function FinancesClient({
   const router = useRouter();
   const pathname = usePathname();
   const [operationsSubTab, setOperationsSubTab] = useState<string>(
-    searchParams.get("tab") || "subscriptions"
+    searchParams.get("tab") || "pos"
   );
 
   useEffect(() => {
@@ -50,26 +51,33 @@ export default function FinancesClient({
           <div>
             <h2 className="text-2xl font-light text-zinc-950 dark:text-zinc-50 uppercase tracking-widest flex items-center gap-3">
               <Briefcase
-                className="h-6 w-6 text-zinc-600 dark:text-zinc-400"
+                className="h-6 w-6 text-zinc-655 dark:text-zinc-400"
                 strokeWidth={1.5}
               />
               <span>Каса & Операции</span>
             </h2>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 font-light mt-1.5">
-              Управление на активните клубни членства, плащания, хроника на
-              транзакциите и наличности на склад.
+              Управление на активните плащания, семейни дългове, членства,
+              хроника на транзакциите и наличности на склад.
             </p>
           </div>
         </div>
 
         {/* Tab Content Section */}
         <Tabs
-          defaultValue="subscriptions"
+          defaultValue="pos"
           value={operationsSubTab}
           onValueChange={handleTabChange}
           className="space-y-6"
         >
           <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full sm:w-fit border border-zinc-200/40 dark:border-zinc-800/40 mb-2 overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
+            <TabsTrigger
+              value="pos"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+            >
+              <Banknote className="h-3.5 w-3.5 mr-2 text-emerald-500" />
+              Бързо плащане (POS)
+            </TabsTrigger>
             <TabsTrigger
               value="subscriptions"
               className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
@@ -92,6 +100,12 @@ export default function FinancesClient({
               Магазин & Наличности
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pos" className="outline-none mt-0">
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+              <QuickPOSPanel />
+            </div>
+          </TabsContent>
 
           <TabsContent value="subscriptions" className="outline-none mt-0">
             <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
