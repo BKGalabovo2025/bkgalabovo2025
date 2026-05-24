@@ -135,7 +135,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
 
             <div className="px-4 py-2 mt-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Управление
+              Управление и Бизнес Център
             </div>
 
             <SidebarMenuItem>
@@ -198,10 +198,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Бизнес Център
-            </div>
-
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -236,48 +232,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Администрация
-            </div>
-
-            {!isRecoveryZone && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname.startsWith("/tournaments")}
-                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-                >
-                  <Link
-                    href="/tournaments"
-                    className="flex items-center gap-3 w-full"
-                    onClick={() => isMobile && setOpen(false)}
-                  >
-                    <Trophy size={18} strokeWidth={1.5} />
-                    <span className="text-[14px]">Турнири</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-
-            {!isRecoveryZone && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname.startsWith("/rankings")}
-                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-                >
-                  <Link
-                    href="/rankings"
-                    className="flex items-center gap-3 w-full"
-                    onClick={() => isMobile && setOpen(false)}
-                  >
-                    <Medal size={18} strokeWidth={1.5} />
-                    <span className="text-[14px]">Ранглиста</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -311,6 +265,48 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {!isRecoveryZone && (
+              <>
+                <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                  Тренировъчен процес
+                </div>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/tournaments")}
+                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  >
+                    <Link
+                      href="/tournaments"
+                      className="flex items-center gap-3 w-full"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Trophy size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Турнири</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/rankings")}
+                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  >
+                    <Link
+                      href="/rankings"
+                      className="flex items-center gap-3 w-full"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Medal size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Ранглиста</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
