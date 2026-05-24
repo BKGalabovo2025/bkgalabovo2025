@@ -155,44 +155,36 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {!isRecoveryZone && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname.startsWith("/schedule")}
-                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
-                >
-                  <Link
-                    href="/schedule"
-                    className="flex items-center gap-3 w-full"
-                    onClick={() => {
-                      setActiveBranch("bkgalabovo");
-                      if (isMobile) setOpen(false);
-                    }}
-                  >
-                    <Calendar size={18} strokeWidth={1.5} />
-                    <span className="text-[14px]">График</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith("/reservations")}
+                isActive={
+                  pathname.startsWith("/schedule") ||
+                  pathname.startsWith("/reservations")
+                }
                 className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
               >
                 <Link
-                  href="/reservations"
+                  href={
+                    !isRecoveryZone ? "/schedule" : "/schedule?tab=reservations"
+                  }
                   className="flex items-center gap-3 w-full"
-                  onClick={() => isMobile && setOpen(false)}
+                  onClick={() => {
+                    if (isRecoveryZone) {
+                      setActiveBranch("recoveryzone");
+                    } else {
+                      setActiveBranch("bkgalabovo");
+                    }
+                    if (isMobile) setOpen(false);
+                  }}
                 >
-                  <CalendarCheck size={18} strokeWidth={1.5} />
+                  {isRecoveryZone ? (
+                    <CalendarCheck size={18} strokeWidth={1.5} />
+                  ) : (
+                    <Calendar size={18} strokeWidth={1.5} />
+                  )}
                   <span className="text-[14px]">
-                    {!isRecoveryZone
-                      ? "Резервации (Кортове)"
-                      : "Резервации & Релакс"}
+                    {!isRecoveryZone ? "График" : "Резервации & Релакс"}
                   </span>
                 </Link>
               </SidebarMenuButton>
