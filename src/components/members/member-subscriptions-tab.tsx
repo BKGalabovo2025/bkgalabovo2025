@@ -112,6 +112,9 @@ const AddSubscriptionDialog = ({
   const [customServiceName, setCustomServiceName] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"completed" | "pending">(
+    "completed"
+  );
 
   useEffect(() => {
     if (initialSelection) {
@@ -122,6 +125,8 @@ const AddSubscriptionDialog = ({
         const [y, m] = initialSelection.month.split("-").map(Number);
         setStartDate(new Date(y, m - 1, 1));
       }
+      // If it's a smart suggestion, default to pending payment since it's an auto-generated obligation
+      setPaymentStatus("pending");
       if (onExternalOpenChange) onExternalOpenChange(true);
       else setInternalOpen(true);
     }
@@ -137,6 +142,7 @@ const AddSubscriptionDialog = ({
       setCustomPrice(null);
       setCustomServiceName("");
       setStartDate(new Date());
+      setPaymentStatus("completed");
     }
   };
 
@@ -188,24 +194,41 @@ const AddSubscriptionDialog = ({
       const finalPrice = customPrice ?? service.price;
       const finalServiceName = customServiceName || service.name;
 
+      const isPaid = paymentStatus === "completed";
+      const subPrice = finalPrice;
+      const subPricePaid = isPaid ? subPrice : 0;
+      const subStatus = isPaid ? "active" : "pending_payment";
+
       const result = await createSubscriptionAction(idToken, {
         memberId: memberId,
         serviceId: service.id,
         serviceName: finalServiceName,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        status: "pending_payment", // New subscriptions require payment
-        pricePaid: 0,
-        price: finalPrice,
-        currency: "EUR", // ALWAYS set new subscriptions to EUR
-        paymentHistory: [],
-        paymentsMadeCount: 0,
-        totalPaymentsCount: 1, // Or based on service type
+        status: subStatus,
+        pricePaid: subPricePaid,
+        price: subPrice,
+        currency: "EUR",
+        paymentHistory: isPaid
+          ? [
+              {
+                date: new Date().toISOString(),
+                amount: subPrice,
+                paymentId: `pay_${Date.now()}`,
+                paymentMethod: "cash",
+                note: "Ръчно добавена продажба",
+              },
+            ]
+          : [],
+        paymentsMadeCount: isPaid ? 1 : 0,
+        totalPaymentsCount: 1,
       });
 
       if (result.success) {
         toast.success("Успех!", {
-          description: "Абонаментът е добавен и очаква плащане.",
+          description: isPaid
+            ? "Услугата/абонаментът е добавен и маркиран като платен."
+            : "Абонаментът е добавен и очаква плащане.",
         });
         onSubscriptionAdded();
         handleOpenChange(false);
@@ -215,7 +238,7 @@ const AddSubscriptionDialog = ({
     } catch (error) {
       console.error("Error creating subscription:", error);
       toast.error("Грешка", {
-        description: "Възникна проблем при създаването на абонамента.",
+        description: "Възникна проблем при създаването.",
       });
     } finally {
       setIsLoading(false);
@@ -223,6 +246,8 @@ const AddSubscriptionDialog = ({
   };
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
+  const isSubscriptionType =
+    !selectedService || selectedService.type === "Абонамент";
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -272,12 +297,18 @@ const AddSubscriptionDialog = ({
             <>
               <div className="space-y-2">
                 <label className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-                  Име на абонамент
+                  {isSubscriptionType
+                    ? "Име на абонамент"
+                    : "Име на услуга / еднократно плащане"}
                 </label>
                 <Input
                   value={customServiceName}
                   onChange={(e) => setCustomServiceName(e.target.value)}
-                  placeholder="Име на абонамента..."
+                  placeholder={
+                    isSubscriptionType
+                      ? "Име на абонамента..."
+                      : "Име на услугата..."
+                  }
                   className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light"
                 />
               </div>
@@ -297,6 +328,38 @@ const AddSubscriptionDialog = ({
                   className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light"
                 />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                  Статус на плащане
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentStatus("completed")}
+                    className={cn(
+                      "flex items-center justify-center p-3 rounded-xl border transition-all text-xs font-medium",
+                      paymentStatus === "completed"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold"
+                        : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:border-zinc-200"
+                    )}
+                  >
+                    Платено сега
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentStatus("pending")}
+                    className={cn(
+                      "flex items-center justify-center p-3 rounded-xl border transition-all text-xs font-medium",
+                      paymentStatus === "pending"
+                        ? "border-rose-500 bg-rose-50 text-rose-700 font-semibold"
+                        : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:border-zinc-200"
+                    )}
+                  >
+                    Чакащо плащане
+                  </button>
+                </div>
+              </div>
             </>
           )}
 
@@ -305,7 +368,9 @@ const AddSubscriptionDialog = ({
               htmlFor="start-date"
               className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400"
             >
-              Начална дата
+              {isSubscriptionType
+                ? "Начална дата"
+                : "Дата на извършване / посещение"}
             </label>
             <Popover>
               <PopoverTrigger asChild>
