@@ -27,6 +27,7 @@ import {
   Medal,
   Settings,
   PanelLeft,
+  ShoppingBag,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -203,6 +204,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Briefcase size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Финанси</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/sales")}
+                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+              >
+                <Link
+                  href="/sales"
+                  className="flex items-center gap-3 w-full"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <ShoppingBag size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Продажби</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
