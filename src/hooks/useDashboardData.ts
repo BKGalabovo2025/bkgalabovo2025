@@ -9,7 +9,6 @@ import {
   getRevenueTrendData,
 } from "@/services/dashboard-service";
 import { getReminders } from "@/services/reminder-service";
-import { getAllMemberSubscriptions } from "@/services/subscription-service";
 import { getEventsForPeriod } from "@/services/schedule-service";
 import { useAuth } from "@/context/auth-context";
 
@@ -72,26 +71,21 @@ export const useDashboardData = () => {
           salesData,
           lowStockData,
           eventsData,
-          subscriptionsData,
         ] = await Promise.all([
-          getAllMembers().catch((err) => {
+          getAllMembers().catch((err: any) => {
             console.error("Error fetching members:", err);
             throw err;
           }),
-          getSales().catch((err) => {
+          getSales().catch((err: any) => {
             console.error("Error fetching sales:", err);
             throw err;
           }),
-          getLowStockProducts().catch((err) => {
+          getLowStockProducts().catch((err: any) => {
             console.error("Error fetching low stock products:", err);
             throw err;
           }),
-          getEventsForPeriod(startOfDay, endOfDay).catch((err) => {
+          getEventsForPeriod(startOfDay, endOfDay).catch((err: any) => {
             console.error("Error fetching today's events:", err);
-            return []; // Non-critical, fallback to empty
-          }),
-          getAllMemberSubscriptions().catch((err) => {
-            console.error("Error fetching subscriptions:", err);
             return []; // Non-critical, fallback to empty
           }),
         ]);
@@ -120,11 +114,8 @@ export const useDashboardData = () => {
         const chartData = getRevenueTrendData(sales);
         setRevenueChartData(chartData);
 
-        // Generate reminders from the fetched data
-        const subscriptions = Array.isArray(subscriptionsData)
-          ? subscriptionsData
-          : [];
-        const reminderList = getReminders(members, subscriptions);
+        // Generate reminders from the fetched data (based on unpaid sales)
+        const reminderList = getReminders(members, sales);
         setReminders(reminderList);
 
         setAllMembers(members);

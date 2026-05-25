@@ -26,7 +26,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { toast } from "sonner";
 import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
-import { getAllClubServices } from "@/services/subscription-service";
+import { getAllClubServices } from "@/services/club-service";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -98,8 +98,8 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   React.useEffect(() => {
     if (isRecoveryZone) {
-      getAllClubServices().then((data) => {
-        setServices(data.filter((s) => s.requiresBooking));
+      getAllClubServices().then((data: ClubService[]) => {
+        setServices(data.filter((s: ClubService) => s.requiresBooking));
       });
     }
   }, [isRecoveryZone]);

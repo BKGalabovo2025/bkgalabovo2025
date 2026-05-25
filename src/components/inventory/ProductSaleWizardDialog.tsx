@@ -148,6 +148,9 @@ export const ProductSaleWizardDialog = ({
         currency: "EUR",
         paymentMethod: paymentMethod,
         note: note || "",
+        clientName: selectedMember.id === "GUEST_EXTERNAL" 
+          ? "Външен клиент" 
+          : `${selectedMember.firstName} ${selectedMember.lastName}`,
       };
 
       const result = await createSaleAction(idToken, saleData);
@@ -637,8 +640,7 @@ export const ProductSaleWizardDialog = ({
                 {/* Unified Legal / Accounting Statement */}
                 <div className="text-center mb-2">
                   <p className="text-[7px] text-zinc-400 italic">
-                    Документът е издаден от автоматизирана система в
-                    съответствие с чл. 7, ал. 1 от Закона за счетоводството.
+                    Документът е издаден от автоматизираната административна система на Бадминтон клуб Гълъбово
                   </p>
                 </div>
 

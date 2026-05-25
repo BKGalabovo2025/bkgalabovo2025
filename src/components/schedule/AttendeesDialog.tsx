@@ -50,6 +50,10 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
       ? new Date(member.registrationDate)
       : null;
     const eventDate = event?.startDate ? new Date(event.startDate) : null;
+    
+    if (regDate) regDate.setHours(0, 0, 0, 0);
+    if (eventDate) eventDate.setHours(0, 0, 0, 0);
+
     const isBeforeRegistration = regDate && eventDate && eventDate < regDate;
 
     if (isBeforeRegistration) return; // Блокираме маркирането, ако събитието е преди регистрацията
@@ -158,6 +162,10 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                 const eventDate = event?.startDate
                   ? new Date(event.startDate)
                   : null;
+                
+                if (regDate) regDate.setHours(0, 0, 0, 0);
+                if (eventDate) eventDate.setHours(0, 0, 0, 0);
+
                 const isBeforeRegistration =
                   regDate && eventDate && eventDate < regDate;
 

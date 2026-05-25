@@ -1,33 +1,34 @@
-"use client";
-
-import { Member, Subscription, Reminder } from "@/types";
+import { Member, Sale, Reminder } from "@/types";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 
 /**
- * Creates reminder data for members with overdue payments.
+ * Creates reminder data for members with overdue payments (unpaid sales).
  * @param overdueMembers An array of members with overdue payments.
- * @param subscriptions An array of all subscriptions to determine the exact overdue reasons.
+ * @param allMembers An array of all members.
+ * @param sales An array of all sales to check for unpaid items.
  * @returns An array of reminder objects.
  */
 const createRemindersForOverdueMembers = (
   overdueMembers: Member[],
-  subscriptions: Subscription[]
+  allMembers: Member[],
+  sales: Sale[]
 ): Reminder[] => {
   const today = new Date();
   const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
 
   return overdueMembers.map((member, index) => {
-    const memberSubs = subscriptions.filter(
-      (sub) => sub.memberId === member.id
-    );
-    const overdueCheck = checkIsMemberOverdue(member, memberSubs);
+    const familyMembers = member.familyId
+      ? allMembers.filter((m) => m.familyId === member.familyId && m.id !== member.id && m.status === "active")
+      : [];
+    
+    const overdueCheck = checkIsMemberOverdue(member, familyMembers, sales);
 
     return {
       id: `overdue-${member.id}-${index}`,
       title: "Просрочено плащане",
       description: overdueCheck.reason
         ? `${member.firstName} ${member.lastName}: ${overdueCheck.reason}`
-        : `Таксата за абонамента на ${member.firstName} ${member.lastName} не е платена.`,
+        : `Има неплатени задължения за ${member.firstName} ${member.lastName}.`,
       dueDate: dueDate.toISOString(),
       isCompleted: false,
       type: "payment",
@@ -42,26 +43,27 @@ const createRemindersForOverdueMembers = (
  * Generates reminders for members with overdue payments from existing data.
  * This function can be used on the client-side.
  * @param allMembers An array of all members.
- * @param allSubscriptions An array of all subscriptions.
+ * @param allSales An array of all sales.
  * @returns An array of reminder objects.
  */
 export const getReminders = (
   allMembers: Member[],
-  allSubscriptions: Subscription[]
+  allSales: Sale[]
 ): Reminder[] => {
   const membersWithOverduePayments = allMembers.filter((member) => {
     if (member.status !== "active") {
       return false; // Ignore inactive members
     }
-    const memberSubs = allSubscriptions.filter(
-      (sub) => sub.memberId === member.id
-    );
-    const overdueCheck = checkIsMemberOverdue(member, memberSubs);
+    const familyMembers = member.familyId
+      ? allMembers.filter((m) => m.familyId === member.familyId && m.id !== member.id && m.status === "active")
+      : [];
+    const overdueCheck = checkIsMemberOverdue(member, familyMembers, allSales);
     return overdueCheck.isOverdue;
   });
 
   return createRemindersForOverdueMembers(
     membersWithOverduePayments,
-    allSubscriptions
+    allMembers,
+    allSales
   );
 };

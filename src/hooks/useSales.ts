@@ -9,7 +9,6 @@ import {
   updateSale,
 } from "@/services/sales-service";
 import { useAuth } from "@/context/auth-context";
-import { deleteSubscriptionAction } from "@/lib/actions/subscriptions";
 import { deleteSaleAction } from "@/lib/actions/sales";
 
 export const useSales = (memberIdOrIds?: string | string[]) => {
@@ -122,29 +121,24 @@ export const useSales = (memberIdOrIds?: string | string[]) => {
     }
   }, []);
 
-  const deleteSale = useCallback(
-    async (saleId: string, subscriptionId?: string | null) => {
-      if (!idToken) {
-        toast.error("Грешка при оторизация");
-        return;
-      }
-
-      const confirmDelete = window.confirm(
-        "Сигурни ли сте, че искате да изтриете този запис? Това действие е необратимо."
-      );
-      if (!confirmDelete) return;
-
-      try {
-        let result;
-        if (subscriptionId) {
-          result = await deleteSubscriptionAction(idToken, subscriptionId);
-        } else {
-          result = await deleteSaleAction(saleId, idToken);
+    const deleteSale = useCallback(
+      async (saleId: string) => {
+        if (!idToken) {
+          toast.error("Грешка при оторизация");
+          return;
         }
 
-        if (result.success) {
-          setSales((prevSales) => prevSales.filter((s) => s.id !== saleId));
-          toast.success(result.message || "Записът бе изтрит успешно.");
+        const confirmDelete = window.confirm(
+          "Сигурни ли сте, че искате да изтриете този запис? Това действие е необратимо."
+        );
+        if (!confirmDelete) return;
+
+        try {
+          const result = await deleteSaleAction(saleId, idToken);
+
+          if (result.success) {
+            setSales((prevSales) => prevSales.filter((s) => s.id !== saleId));
+            toast.success(result.message || "Записът бе изтрит успешно.");
         } else {
           toast.error(result.message || "Грешка при изтриването.");
         }

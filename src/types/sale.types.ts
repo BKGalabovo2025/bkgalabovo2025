@@ -25,12 +25,14 @@ export const SaleSchema = z.object({
   currency: z.literal("EUR"),
   paymentMethod: z.string().optional(),
   note: z.string().optional(),
-  subscriptionId: z.string().nullable().optional(),
+  clientName: z.string().optional(),
   createdAt: z
     .string()
     .datetime({ message: "Invalid creation date format" })
     .optional(),
+  type: z.enum(["inventory", "general_service"]).optional().default("inventory"),
 });
 
 export type SaleItem = z.infer<typeof SaleItemSchema>;
 export type Sale = z.infer<typeof SaleSchema>;
+

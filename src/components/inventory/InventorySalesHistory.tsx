@@ -14,12 +14,28 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
+import { useRouter } from "next/navigation";
+import { MoreVertical, Edit2, Trash2, Loader2, Receipt, Eye } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { deleteSaleAction } from "@/lib/actions/sales";
+import { EditSaleDialog } from "@/components/finances/EditSaleDialog";
+import { getAuth } from "firebase/auth";
 
 const InventorySalesHistory = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [membersMap, setMembersMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [saleToEdit, setSaleToEdit] = useState<Sale | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +53,9 @@ const InventorySalesHistory = () => {
           dict[m.id] = `${m.firstName} ${m.lastName}`;
         });
         setMembersMap(dict);
-        setSales(fetchedSales);
+        
+        const inventorySales = fetchedSales.filter(s => !s.type || s.type === "inventory");
+        setSales(inventorySales);
       } catch (err) {
         setError("Грешка при зареждане на историята на продажбите.");
         console.error(err);
@@ -56,8 +74,54 @@ const InventorySalesHistory = () => {
     return membersMap[memberId] || "Неизвестен член";
   };
 
+  const refetch = async () => {
+    try {
+      setLoading(true);
+      const fetchedSales = await getSales();
+      const inventorySales = fetchedSales.filter(s => !s.type || s.type === "inventory");
+      setSales(inventorySales);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?")) return;
+    
+    setIsDeleting(saleId);
+    try {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("Моля влезте в профила си");
+      const idToken = await currentUser.getIdToken();
+      
+      const res = await deleteSaleAction(saleId, idToken);
+      if (!res.success) throw new Error(res.message || "Грешка при изтриване");
+      
+      toast.success("Успех", { description: "Продажбата беше изтрита успешно." });
+      refetch();
+    } catch (error: any) {
+      toast.error("Грешка", { description: error.message });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-none overflow-hidden">
+      {saleToEdit && (
+        <EditSaleDialog
+          sale={saleToEdit}
+          isOpen={!!saleToEdit}
+          onClose={() => setSaleToEdit(null)}
+          onSuccess={() => {
+            setSaleToEdit(null);
+            refetch();
+          }}
+        />
+      )}
       <div className="p-6 border-b border-zinc-100 dark:border-zinc-900">
         <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
           История на продажбите
@@ -96,6 +160,7 @@ const InventorySalesHistory = () => {
                 <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
                   Сума
                 </TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -142,6 +207,54 @@ const InventorySalesHistory = () => {
                   </TableCell>
                   <TableCell className="px-6 py-4 text-right font-semibold text-sm text-zinc-900 dark:text-white">
                     {formatPrice(sale.totalAmount)}
+                  </TableCell>
+                  <TableCell className="py-4 text-right pr-6">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          disabled={isDeleting === sale.id}
+                        >
+                          {isDeleting === sale.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MoreVertical className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[160px] rounded-xl">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/inventory/sales/${sale.id}/receipt`)}
+                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Receipt className="h-3.5 w-3.5 text-zinc-500" />
+                          Касова бележка
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/inventory/sales/${sale.id}`)}
+                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                          Детайли
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setSaleToEdit(sale)}
+                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Edit2 className="h-3.5 w-3.5 text-zinc-500" />
+                          Редактирай
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteSale(sale.id)}
+                          className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Изтрий
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

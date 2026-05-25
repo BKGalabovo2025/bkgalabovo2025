@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import { Sale } from "@/types";
 import { getSalesQuery, getSalesCollection } from "@/lib/firebase-collections";
-import { getDb } from "@/lib/firebase";
 import { getSiteConfig } from "@/config/sites";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
@@ -34,7 +33,8 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
     isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
     paymentMethod: data.paymentMethod || "В брой",
     note: data.note || "",
-    subscriptionId: data.subscriptionId || null,
+    type: data.type || "inventory",
+
     createdAt: createdAt.toISOString(),
   };
 };
@@ -80,9 +80,6 @@ export const hasMemberPaidForMonth = async (
 ): Promise<boolean> => {
   const sales = await getSalesByMemberId(memberId);
   return sales.some((sale) => {
-    if (!sale.subscriptionId) {
-      return false; // Игнорираме продажби, които не са за абонамент
-    }
     const saleDate = new Date(sale.saleDate);
     return (
       saleDate.getFullYear() === year && saleDate.getMonth() === month - 1 // Месеците в JS са 0-индексирани
@@ -115,49 +112,6 @@ export const updateSale = async (
   dataToUpdate.siteId = activeSiteId;
 
   await updateDoc(saleRef, dataToUpdate);
-
-  // FIX: Синхронизиране на абонамента, ако продажбата е маркирана като платена или неплатена
-  const docSnap = await getDoc(saleRef);
-  if (docSnap.exists()) {
-    const saleDataObj = docSnap.data();
-    const targetSiteId = saleDataObj.siteId || activeSiteId;
-
-    if (saleDataObj.subscriptionId) {
-      const subRef = doc(
-        getDb(),
-        "memberSubscriptions",
-        saleDataObj.subscriptionId
-      );
-      const subSnap = await getDoc(subRef);
-      if (subSnap.exists()) {
-        if (data.status === "completed" && data.isPaid === true) {
-          await updateDoc(subRef, {
-            status: "active",
-            pricePaid: saleDataObj.totalAmount || 0,
-            updatedAt: new Date().toISOString(),
-            siteId: targetSiteId,
-          });
-
-          // Обновяваме lastPaymentDate на члена
-          if (saleDataObj.memberId && (saleDataObj.totalAmount || 0) > 0) {
-            const memberRef = doc(getDb(), "members", saleDataObj.memberId);
-            await updateDoc(memberRef, {
-              lastPaymentDate: new Date().toISOString(),
-              siteId: targetSiteId,
-            });
-          }
-        } else if (data.status === "pending" && data.isPaid === false) {
-          // Отменено плащане -> връщаме в чакащи
-          await updateDoc(subRef, {
-            status: "pending_payment",
-            pricePaid: 0,
-            updatedAt: new Date().toISOString(),
-            siteId: targetSiteId,
-          });
-        }
-      }
-    }
-  }
 };
 
 export const deleteSale = async (id: string): Promise<void> => {

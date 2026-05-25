@@ -1,45 +1,50 @@
-import { Member, Subscription } from "@/types";
+import { Member, Sale } from "@/types";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import {
   getMembersCollection,
-  getMemberSubscriptionsCollection,
+  getSalesCollection,
 } from "@/lib/firebase-collections";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 /**
- * Finds members with overdue monthly subscription payments by fetching fresh data from the database.
+ * Finds members with overdue payments (unpaid sales) by fetching fresh data from the database.
  * THIS FUNCTION IS FOR SERVER-SIDE USE ONLY.
  * @returns A promise that resolves to an array of members with overdue payments.
  */
 export const getOverdueMembers = async (): Promise<Member[]> => {
-  const adminDb = getAdminDb();
-  const membersCollectionRef = adminDb.collection(getMembersCollection().path);
-  const subscriptionsCollectionRef = adminDb.collection(
-    getMemberSubscriptionsCollection().path
-  );
+  try {
+    const adminDb = getAdminDb();
+    const membersCollectionRef = adminDb.collection(getMembersCollection().path);
+    const salesCollectionRef = adminDb.collection(getSalesCollection().path);
 
-  const [membersSnapshot, subscriptionsSnapshot] = await Promise.all([
-    membersCollectionRef.where("status", "==", "active").get(),
-    subscriptionsCollectionRef.get(),
-  ]);
+    const [membersSnapshot, salesSnapshot] = await Promise.all([
+      membersCollectionRef.where("status", "==", "active").get(),
+      salesCollectionRef.get(),
+    ]);
 
-  const activeMembers = membersSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Member[];
+    const activeMembers = membersSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Member[];
 
-  const allSubscriptions = subscriptionsSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Subscription[];
+    const allSales = salesSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Sale[];
 
-  const membersWithOverduePayments = activeMembers.filter((member) => {
-    const memberSubs = allSubscriptions.filter(
-      (sub) => sub.memberId === member.id
-    );
-    const overdueCheck = checkIsMemberOverdue(member, memberSubs);
-    return overdueCheck.isOverdue;
-  });
+    const membersWithOverduePayments = activeMembers.filter((member) => {
+      // Find other active members in the same family to check family dues
+      const familyMembers = member.familyId 
+        ? activeMembers.filter((m) => m.familyId === member.familyId && m.id !== member.id)
+        : [];
+      
+      const overdueCheck = checkIsMemberOverdue(member, familyMembers, allSales);
+      return overdueCheck.isOverdue;
+    });
 
-  return membersWithOverduePayments;
+    return membersWithOverduePayments;
+  } catch (error) {
+    console.error("Error in getOverdueMembers:", error);
+    return [];
+  }
 };

@@ -72,17 +72,14 @@ function calculateRevenueCategories(
   sales: Sale[],
   activeBranch: string
 ): CategoryRevenue[] {
-  let subscriptionRevenue = 0;
+
   let recoveryRevenue = 0;
   let shopRevenue = 0;
   let otherRevenue = 0;
 
   sales.forEach((sale) => {
     const amount = sale.totalAmount || 0;
-    if (sale.subscriptionId) {
-      subscriptionRevenue += amount;
-      return;
-    }
+
 
     const hasRecoveryItem = sale.items?.some((item) =>
       isRecoveryItem(item.name)
@@ -103,13 +100,7 @@ function calculateRevenueCategories(
 
   const isRecoveryZone = activeBranch === "recoveryzone";
   const categories: CategoryRevenue[] = [
-    {
-      name: "Абонаменти",
-      value: Math.round(subscriptionRevenue * 100) / 100,
-      color: isRecoveryZone
-        ? DEFAULT_CATEGORY_COLORS.recoveryZoneSubscription
-        : DEFAULT_CATEGORY_COLORS.subscription,
-    },
+
     {
       name: "Възстановяване",
       value: Math.round(recoveryRevenue * 100) / 100,

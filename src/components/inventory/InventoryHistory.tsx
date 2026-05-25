@@ -144,6 +144,9 @@ const InventoryHistory = () => {
                 <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
                   Тип
                 </TableHead>
+                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  Клиент (за продажба)
+                </TableHead>
                 <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
                   Промяна
                 </TableHead>
@@ -169,6 +172,9 @@ const InventoryHistory = () => {
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     {getEventTypeLabel(event.type)}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                    {event.type === "sale" ? (event.clientName || "-") : "-"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-right font-medium text-sm">
                     {renderEventDetails(event)}

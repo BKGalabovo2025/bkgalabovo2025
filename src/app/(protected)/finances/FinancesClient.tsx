@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, History, Boxes, Briefcase, Banknote } from "lucide-react";
-import SubscriptionsClient from "@/app/(protected)/subscriptions/SubscriptionsClient";
+import { History, Boxes, Briefcase, Banknote } from "lucide-react";
 import SalesClient from "@/app/(protected)/sales/SalesClient";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 import { QuickPOSPanel } from "@/components/finances/quick-pos-panel";
@@ -51,8 +50,7 @@ export default function FinancesClient({
               <span>Каса & Операции</span>
             </h2>
             <p className="text-xs text-zinc-400 dark:text-zinc-500 font-light mt-1.5">
-              Управление на активните плащания, семейни дългове, членства,
-              хроника на транзакциите и наличности на склад.
+              Управление на активните плащания, семейни дългове, хроника на транзакциите и наличности на склад.
             </p>
           </div>
         </div>
@@ -73,13 +71,6 @@ export default function FinancesClient({
               Бързо плащане (POS)
             </TabsTrigger>
             <TabsTrigger
-              value="subscriptions"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
-            >
-              <CreditCard className="h-3.5 w-3.5 mr-2" />
-              Членства & Такси
-            </TabsTrigger>
-            <TabsTrigger
               value="sales"
               className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
             >
@@ -98,12 +89,6 @@ export default function FinancesClient({
           <TabsContent value="pos" className="outline-none mt-0">
             <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
               <QuickPOSPanel />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="subscriptions" className="outline-none mt-0">
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
-              <SubscriptionsClient showPageHeader={false} />
             </div>
           </TabsContent>
 

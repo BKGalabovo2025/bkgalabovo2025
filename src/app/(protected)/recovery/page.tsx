@@ -18,7 +18,7 @@ import { useMembers } from "@/hooks/useMembers";
 import { useReservations } from "@/hooks/useReservations";
 import { useAvailability } from "@/hooks/useAvailability";
 import { usePackages } from "@/hooks/usePackages";
-import { getAllClubServices } from "@/services/subscription-service";
+import { getAllClubServices } from "@/services/club-service";
 import { ClubService } from "@/types";
 
 import {
@@ -80,8 +80,8 @@ export default function RecoveryPage() {
 
   // Load services on mount
   React.useEffect(() => {
-    getAllClubServices().then((data) => {
-      const bookingServices = data.filter((s) => s.requiresBooking);
+    getAllClubServices().then((data: ClubService[]) => {
+      const bookingServices = data.filter((s: ClubService) => s.requiresBooking);
       setServices(bookingServices);
       if (bookingServices.length > 0 && !selectedServiceId) {
         setSelectedServiceId(bookingServices[0].id);

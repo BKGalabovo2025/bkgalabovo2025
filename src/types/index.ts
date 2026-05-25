@@ -161,6 +161,7 @@ export type GeneralService = {
   performerName: string;
   performerType: "internal" | "external";
   pricingUnit: "fixed" | "per_hour" | "per_session";
+  imageUrl?: string | null;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
   createdBy: { userId: string; userName: string };
@@ -176,29 +177,7 @@ export type PaymentHistoryItem = {
   note?: string;
 };
 
-/**
- * Represents a member's subscription to a specific club service.
- * UPDATED: Added 'price' field.
- */
-export type Subscription = {
-  id: string;
-  siteId: string; // Added for multi-tenancy
-  memberId: string;
-  serviceId: string;
-  serviceName: string;
-  startDate: string; // ISO 8601
-  endDate: string; // ISO 8601
-  status: "active" | "inactive" | "cancelled" | "pending_payment";
-  price: number; // The price of the subscription per billing period
-  pricePaid: number;
-  currency: "EUR";
-  paymentHistory: PaymentHistoryItem[];
-  paymentsMadeCount: number;
-  totalPaymentsCount: number;
-  licenseGranted?: boolean;
-  apparelGranted?: boolean;
-  linkedSubscriptionId?: string | null; // ID of the corresponding family subscription
-};
+
 
 // =================================================================
 //                      SCHEDULING & EVENTS
@@ -257,6 +236,26 @@ export type InventoryEvent = {
   userName: string;
   oldPrice?: number;
   newPrice?: number;
+  clientName?: string;
+};
+
+/**
+ * Describes an event in the general services log.
+ */
+export type GeneralServiceEvent = {
+  id: string;
+  siteId: string;
+  serviceId: string;
+  serviceName: string;
+  createdAt: string; // ISO 8601
+  type: "create" | "update" | "delete" | "sale";
+  notes?: string;
+  relatedSaleId?: string;
+  userId: string;
+  userName: string;
+  oldPrice?: number;
+  newPrice?: number;
+  clientName?: string;
 };
 
 // =================================================================

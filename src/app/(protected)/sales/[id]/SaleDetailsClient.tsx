@@ -369,6 +369,21 @@ export default function SaleDetailsClient() {
                   </p>
                 </div>
               </div>
+              {sale.note && (
+                <div className="flex items-start gap-3 mt-4 pt-4 border-t border-zinc-100">
+                  <div className="p-2 bg-amber-50 text-amber-500 rounded-lg mt-1">
+                    <FilePenLine className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-medium text-zinc-400 tracking-[0.2em] leading-none mb-2">
+                      Бележка
+                    </p>
+                    <p className="font-medium text-sm text-zinc-700 italic">
+                      &quot;{sale.note}&quot;
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </BentoCard>
         </div>

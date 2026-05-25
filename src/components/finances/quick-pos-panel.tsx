@@ -4,32 +4,23 @@ import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { Member, Subscription, Sale, ClubService, Family } from "@/types";
+import { Member, Sale, Family } from "@/types";
 import { getAllMembers } from "@/services/member-service";
-import {
-  getAllClubServices,
-  getAllMemberSubscriptions,
-} from "@/services/subscription-service";
-import { getSales } from "@/services/sales-service";
+import { getSales, updateSale } from "@/services/sales-service";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
-import { RegisterPaymentDialog } from "@/components/subscriptions/register-payment-dialog";
-import { AddSubscriptionDialog } from "@/components/members/member-subscriptions-tab";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/context/auth-context";
 import { Search, Users, Loader2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export const QuickPOSPanel = () => {
-  const { user, idToken } = useAuth();
+  const { idToken } = useAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshCount, setRefreshCount] = useState(0);
-
-  // States for dynamic dialogs
-  const [activePaymentSub, setActivePaymentSub] = useState<any | null>(null);
-  const [activeAddMemberId, setActiveAddMemberId] = useState<string | null>(
-    null
-  );
 
   const refreshData = () => setRefreshCount((c) => c + 1);
 
@@ -39,15 +30,11 @@ export const QuickPOSPanel = () => {
     async () => {
       const familiesRef = collection(db, "families");
       const [
-        fetchedServices,
         fetchedMembers,
-        allSubscriptions,
         allSales,
         familySnapshot,
       ] = await Promise.all([
-        getAllClubServices(),
         getAllMembers(),
-        getAllMemberSubscriptions(),
         getSales(),
         getDocs(familiesRef),
       ]);
@@ -56,9 +43,7 @@ export const QuickPOSPanel = () => {
         ...d.data(),
       })) as Family[];
       return {
-        fetchedServices,
         fetchedMembers,
-        allSubscriptions,
         allSales,
         families,
       };
@@ -67,9 +52,7 @@ export const QuickPOSPanel = () => {
   );
 
   const {
-    services = [],
     members = [],
-    subscriptions = [],
     sales = [],
     families = [],
   } = (data || {}) as any;
@@ -102,9 +85,6 @@ export const QuickPOSPanel = () => {
     (members as Member[]).forEach((member: Member) => {
       if (member.status !== "active") return;
 
-      const memberSubs = (subscriptions as Subscription[]).filter(
-        (s: Subscription) => s.memberId === member.id
-      );
       const memberSales = (sales as Sale[]).filter(
         (s: Sale) => s.memberId === member.id
       );
@@ -117,33 +97,16 @@ export const QuickPOSPanel = () => {
 
       const check = checkIsMemberOverdue(
         member,
-        memberSubs,
         siblingMembers,
         memberSales
       );
 
       if (check.isOverdue) {
-        const pendingSubs = memberSubs.filter(
-          (sub: Subscription) => sub.status === "pending_payment"
-        );
         const pendingSales = memberSales.filter(
-          (sale: Sale) =>
-            (sale.status === "pending" || sale.isPaid === false) &&
-            (!sale.subscriptionId ||
-              !pendingSubs.some(
-                (s: Subscription) => s.id === sale.subscriptionId
-              ))
+          (sale: Sale) => sale.status === "pending" || sale.isPaid === false
         );
 
         const obs = [
-          ...pendingSubs.map((sub: Subscription) => ({
-            id: sub.id,
-            date: new Date(sub.startDate),
-            description: sub.serviceName,
-            amount: sub.price - sub.pricePaid,
-            type: "subscription" as const,
-            data: sub,
-          })),
           ...pendingSales.map((sale: Sale) => ({
             id: sale.id,
             date: new Date(sale.saleDate),
@@ -232,7 +195,7 @@ export const QuickPOSPanel = () => {
       ),
       allActiveMembers: activeMembersList,
     };
-  }, [data, members, subscriptions, sales, families]);
+  }, [data, members, sales, families]);
 
   // Filtering search queries
   const searchedMembers = useMemo(() => {
@@ -243,26 +206,20 @@ export const QuickPOSPanel = () => {
     );
   }, [searchQuery, posBillingData.allActiveMembers]);
 
-  const handleOpenPayment = (obligation: any) => {
-    if (obligation.type === "subscription") {
-      setActivePaymentSub(obligation.data);
-    } else {
-      // For one-off sale payments, map to sub-compatible structure
-      setActivePaymentSub({
-        id: obligation.id,
-        memberId: obligation.data.memberId,
-        serviceId: "one_off_sale",
-        serviceName: obligation.description,
-        startDate: obligation.data.saleDate,
-        endDate: obligation.data.saleDate,
-        status: "pending_payment",
-        price: obligation.amount,
-        pricePaid: 0,
-        currency: "EUR",
-        paymentHistory: [],
-        paymentsMadeCount: 0,
-        totalPaymentsCount: 1,
-      });
+  const handleOpenPayment = async (obligation: any) => {
+    if (!idToken) {
+      toast.error("Не сте оторизирани.");
+      return;
+    }
+    if (confirm(`Маркиране на "${obligation.description}" като платена?`)) {
+        try {
+          await updateSale(obligation.id, { status: "completed", isPaid: true });
+          toast.success("Успешно плащане!");
+          refreshData();
+        } catch (error) {
+          console.error("Грешка при плащане:", error);
+          toast.error("Грешка при плащане.");
+        }
     }
   };
 
@@ -289,36 +246,6 @@ export const QuickPOSPanel = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
-      {/* Dynamic Payment Dialog */}
-      {activePaymentSub && (
-        <RegisterPaymentDialog
-          sub={activePaymentSub}
-          onPaymentSuccess={() => {
-            refreshData();
-            setActivePaymentSub(null);
-          }}
-          idToken={idToken}
-          open={!!activePaymentSub}
-          onOpenChange={(open) => !open && setActivePaymentSub(null)}
-        />
-      )}
-
-      {/* Dynamic Add dialog */}
-      {activeAddMemberId && (
-        <AddSubscriptionDialog
-          memberId={activeAddMemberId}
-          services={services as ClubService[]}
-          onSubscriptionAdded={() => {
-            refreshData();
-            setActiveAddMemberId(null);
-          }}
-          user={user}
-          idToken={idToken}
-          externalOpen={!!activeAddMemberId}
-          onExternalOpenChange={(open) => !open && setActiveAddMemberId(null)}
-        />
-      )}
-
       {/* POS Quick Search & Action Header */}
       <div className="bg-zinc-50 border border-zinc-100 rounded-5xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-zinc-100/50 to-transparent pointer-events-none" />
@@ -329,8 +256,7 @@ export const QuickPOSPanel = () => {
               Бързо търсене & POS Каса
             </h3>
             <p className="text-xs font-light text-zinc-400 mt-1">
-              Въведете име на член за плащане на дълг, генериране на абонамент
-              или продажба.
+              Въведете име на член за плащане на дълг или нова продажба.
             </p>
           </div>
 
@@ -353,7 +279,7 @@ export const QuickPOSPanel = () => {
             <div className="bg-white border border-zinc-100 rounded-3xl p-4 shadow-xl space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar animate-in slide-in-from-top-1 duration-200">
               {searchedMembers.length === 0 ? (
                 <div className="py-6 text-center text-xs font-light text-zinc-400">
-                  Няма намерени членове за &quot;{searchQuery}&quot;
+                  Няма намерени членове за "{searchQuery}"
                 </div>
               ) : (
                 searchedMembers.map((m: Member) => {
@@ -365,9 +291,6 @@ export const QuickPOSPanel = () => {
                     : [];
                   const isOverdue = checkIsMemberOverdue(
                     m,
-                    (subscriptions as Subscription[]).filter(
-                      (s: Subscription) => s.memberId === m.id
-                    ),
                     siblingMembers,
                     (sales as Sale[]).filter((s: Sale) => s.memberId === m.id)
                   ).isOverdue;
@@ -390,36 +313,14 @@ export const QuickPOSPanel = () => {
                           <Button
                             onClick={() => {
                               // Find their obligations
-                              const mSubs = (
-                                subscriptions as Subscription[]
-                              ).filter(
-                                (s: Subscription) => s.memberId === m.id
-                              );
                               const mSales = (sales as Sale[]).filter(
                                 (s: Sale) => s.memberId === m.id
                               );
-                              const pendingSubs = mSubs.filter(
-                                (sub: Subscription) =>
-                                  sub.status === "pending_payment"
-                              );
                               const pendingSales = mSales.filter(
                                 (sale: Sale) =>
-                                  (sale.status === "pending" ||
-                                    sale.isPaid === false) &&
-                                  (!sale.subscriptionId ||
-                                    !pendingSubs.some(
-                                      (s: Subscription) =>
-                                        s.id === sale.subscriptionId
-                                    ))
+                                  sale.status === "pending" || sale.isPaid === false
                               );
                               const firstObligation = [
-                                ...pendingSubs.map((s: Subscription) => ({
-                                  id: s.id,
-                                  type: "subscription" as const,
-                                  description: s.serviceName,
-                                  amount: s.price - s.pricePaid,
-                                  data: s,
-                                })),
                                 ...pendingSales.map((s: Sale) => ({
                                   id: s.id,
                                   type: "sale" as const,
@@ -439,11 +340,11 @@ export const QuickPOSPanel = () => {
                           </Button>
                         )}
                         <Button
-                          onClick={() => setActiveAddMemberId(m.id)}
+                          onClick={() => router.push(`/sales/new?memberId=${m.id}`)}
                           variant="outline"
                           className="border-zinc-200 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-wider h-9 px-3"
                         >
-                          Нова такса
+                          Нова продажба
                         </Button>
                       </div>
                     </div>

@@ -93,6 +93,7 @@ export async function createSaleAction(
           userId: user.uid,
           userName: user.displayName || user.email,
           relatedSaleId: newSaleRef.id,
+          clientName: data.clientName || "Неизвестен клиент",
         });
       }
     });
@@ -154,44 +155,7 @@ export async function updateSaleAction(
 
     await saleRef.update(dataToUpdate);
 
-    // FIX: Ако продажбата е обвързана с абонамент, трябва да обновим абонамента според статуса!
-    const saleSnapshot = await saleRef.get();
-    if (saleSnapshot.exists) {
-      const saleDocData = saleSnapshot.data();
-      if (saleDocData?.subscriptionId) {
-        const subRef = adminDb
-          .collection("memberSubscriptions")
-          .doc(saleDocData.subscriptionId);
-        const subSnapshot = await subRef.get();
-        if (subSnapshot.exists) {
-          if (data.status === "completed" && data.isPaid === true) {
-            // Платено
-            await subRef.update({
-              status: "active",
-              pricePaid: saleDocData.totalAmount || 0,
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-
-            // Също така обновяваме lastPaymentDate на члена
-            if (saleDocData.memberId && (saleDocData.totalAmount || 0) > 0) {
-              const memberRef = adminDb
-                .collection("members")
-                .doc(saleDocData.memberId);
-              await memberRef.update({
-                lastPaymentDate: new Date().toISOString(),
-              });
-            }
-          } else if (data.status === "pending" && data.isPaid === false) {
-            // Отменено плащане -> връщаме в чакащи
-            await subRef.update({
-              status: "pending_payment",
-              pricePaid: 0,
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-          }
-        }
-      }
-    }
+    // The sale has been updated. If you need any cross-collection syncing, add it here.
 
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
@@ -293,122 +257,4 @@ export async function deleteSaleAction(
   }
 }
 
-/**
- * Self-healing action to ensure a sale exists for a subscription payment.
- * This is used primarily for receipt generation.
- */
-export async function findOrCreateSaleForSubscriptionAction(
-  idToken: string,
-  subscription: Record<string, unknown>
-): Promise<SaleActionState> {
-  try {
-    const user = await getAuthUser(idToken);
-    const adminDb = getAdminDb();
 
-    if (!subscription.id) {
-      throw new Error("Subscription ID is required");
-    }
-
-    const existingSalesSnapshot = await adminDb
-      .collection("sales")
-      .where("subscriptionId", "==", subscription.id)
-      .limit(1)
-      .get();
-
-    const paymentHistory = subscription.paymentHistory as
-      | Array<{
-          date: string;
-          amount: number;
-          paymentMethod?: string;
-          note?: string;
-        }>
-      | undefined;
-    const latestPayment =
-      paymentHistory && paymentHistory.length > 0
-        ? paymentHistory[paymentHistory.length - 1]
-        : undefined;
-
-    if (!existingSalesSnapshot.empty) {
-      const existingDoc = existingSalesSnapshot.docs[0];
-      await existingDoc.ref.update({
-        isPaid: true,
-        status: "completed",
-        paymentMethod: latestPayment?.paymentMethod || "В брой",
-        note: latestPayment?.note || "",
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      return {
-        success: true,
-        data: { id: existingDoc.id },
-      };
-    }
-
-    // 2. No sale found, create one based on latest payment
-    if (!latestPayment || !subscription.memberId) {
-      return {
-        success: false,
-        message: "Няма информация за плащане в абонамента.",
-      };
-    }
-
-    const saleId = await adminDb.runTransaction(async (transaction) => {
-      const newSaleRef = adminDb.collection("sales").doc();
-      const subscriptionRef = adminDb
-        .collection("memberSubscriptions")
-        .doc(subscription.id as string);
-
-      const saleData = {
-        siteId: "default",
-        memberId: subscription.memberId,
-        subscriptionId: subscription.id,
-        saleDate: Timestamp.fromDate(new Date(latestPayment.date)),
-        items: [
-          {
-            productId: subscription.serviceId,
-            name: subscription.serviceName,
-            quantity: 1,
-            price: latestPayment.amount,
-          },
-        ],
-        totalAmount: latestPayment.amount,
-        currency: "EUR",
-        isPaid: true,
-        status: "completed",
-        paymentMethod: latestPayment.paymentMethod || "В брой",
-        note: latestPayment.note || "",
-        createdAt: FieldValue.serverTimestamp(),
-        createdBy: { uid: user.uid, email: user.email },
-      };
-
-      transaction.set(newSaleRef, saleData);
-
-      // Update payment history with saleId
-      const updatedPaymentHistory = (paymentHistory || []).map((p, i) =>
-        i === (paymentHistory?.length || 1) - 1
-          ? { ...p, saleId: newSaleRef.id }
-          : p
-      );
-      transaction.update(subscriptionRef, {
-        paymentHistory: updatedPaymentHistory,
-      });
-
-      return newSaleRef.id;
-    });
-
-    revalidatePath("/sales");
-    revalidatePath("/dashboard");
-    serverCache.invalidatePattern("sales:");
-
-    return {
-      success: true,
-      message: "Квитанцията бе генерирана успешно.",
-      data: { id: saleId },
-    };
-  } catch (error: unknown) {
-    console.error("findOrCreateSaleForSubscriptionAction Error:", error);
-    return {
-      success: false,
-      message: `Грешка при генериране на квитанция: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
-    };
-  }
-}

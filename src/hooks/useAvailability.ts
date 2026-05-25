@@ -2,7 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import { getDb } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { ClubService } from "@/types";
-import { docToClubService } from "@/services/subscription-service";
+
+const docToClubService = (doc: any): ClubService => ({
+  id: doc.id,
+  ...doc.data(),
+}) as ClubService;
 import { useReservations } from "./useReservations";
 import { getSiteById } from "@/services/site-service";
 import { Site } from "@/types/site.types";

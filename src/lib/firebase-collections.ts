@@ -12,7 +12,6 @@ import {
   Member,
   Product,
   Sale,
-  Subscription,
   Price,
   PriceHistory,
   ScheduleEvent,
@@ -68,20 +67,6 @@ const clubServiceConverter: FirestoreDataConverter<ClubService> = {
   },
 };
 
-const subscriptionConverter: FirestoreDataConverter<Subscription> = {
-  toFirestore: (subscription) => {
-    const { ...data } = subscription;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Subscription;
-  },
-};
 
 const productConverter: FirestoreDataConverter<Product> = {
   toFirestore: (product) => {
@@ -328,10 +313,6 @@ export const getSalesCollection = () =>
 export const getClubServicesCollection = () =>
   collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
-export const getMemberSubscriptionsCollection = () =>
-  collection(getDb(), "memberSubscriptions").withConverter(
-    subscriptionConverter
-  );
 
 export const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
@@ -391,15 +372,6 @@ export const getClubServicesQuery = () => {
   );
 };
 
-export const getMemberSubscriptionsQuery = () => {
-  const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo")
-    return query(getMemberSubscriptionsCollection());
-  return query(
-    getMemberSubscriptionsCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
 
 export const getProductsQuery = () => {
   const siteConfig = getSiteConfig();

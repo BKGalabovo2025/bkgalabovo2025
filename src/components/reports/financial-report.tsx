@@ -90,28 +90,19 @@ const FinancialReport = ({
 
       const isTypeMatch =
         paymentType === "all" ||
-        (paymentType === "subscriptions" && s.subscriptionId) ||
-        (paymentType === "inventory" && !s.subscriptionId);
+        (paymentType === "inventory");
 
       return isInDateRange && isTypeMatch;
     });
   }, [sales, dateFrom, dateTo, paymentType]);
 
   const stats = useMemo(() => {
-    const subRevenue = filteredSales
-      .filter((s) => s.subscriptionId)
-      .reduce((acc, s) => acc + s.totalAmount, 0);
-    const invRevenue = filteredSales
-      .filter((s) => !s.subscriptionId)
-      .reduce((acc, s) => acc + s.totalAmount, 0);
+    const totalRevenue = filteredSales.reduce((acc, s) => acc + s.totalAmount, 0);
 
     return {
-      total: subRevenue + invRevenue,
-      subscriptions: subRevenue,
-      inventory: invRevenue,
+      total: totalRevenue,
       chartData: [
-        { name: "Абонаменти", value: subRevenue, color: "#2563eb" },
-        { name: "Инвентар", value: invRevenue, color: "#10b981" },
+        { name: "Приходи от продажби", value: totalRevenue, color: "#2563eb" },
       ].filter((d) => d.value > 0),
     };
   }, [filteredSales]);
@@ -180,8 +171,6 @@ const FinancialReport = ({
               </SelectTrigger>
               <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
                 <SelectItem value="all">Всички</SelectItem>
-                <SelectItem value="subscriptions">Абонаменти</SelectItem>
-                <SelectItem value="inventory">Инвентар</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -196,7 +185,7 @@ const FinancialReport = ({
                 return {
                   Дата: formatDateShort(s.saleDate),
                   Член: member ? `${member.firstName} ${member.lastName}` : "—",
-                  Тип: s.subscriptionId ? "Абонамент" : "Инвентар",
+                  Тип: "Продажба",
                   Сума: s.totalAmount,
                 };
               });
@@ -298,47 +287,11 @@ const FinancialReport = ({
                 {formatPrice(stats.total)}
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-medium text-zinc-500 tracking-widest">
-                    Дял на абонаментите
-                  </span>
-                  <span className="text-[10px] font-medium tracking-widest">
-                    {Math.round(
-                      (stats.subscriptions / (stats.total || 1)) * 100
-                    )}
-                    %
-                  </span>
-                </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white transition-all duration-1000"
-                    style={{
-                      width: `${(stats.subscriptions / (stats.total || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-6">
-            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-3xl">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Абонаменти
-              </p>
-              <p className="text-xl font-light text-zinc-900 mt-2">
-                {formatPrice(stats.subscriptions)}
-              </p>
-            </Card>
-            <Card className="border border-zinc-100 shadow-none bg-white p-6 rounded-3xl">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                Инвентар
-              </p>
-              <p className="text-xl font-light text-zinc-900 mt-2">
-                {formatPrice(stats.inventory)}
-              </p>
-            </Card>
-          </div>
+
         </div>
       </div>
 
@@ -374,8 +327,6 @@ const FinancialReport = ({
                   const memberName = member
                     ? `${member.firstName} ${member.lastName}`
                     : "—";
-                  const isSub = !!s.subscriptionId;
-
                   return (
                     <TableRow
                       key={s.id}
@@ -392,12 +343,10 @@ const FinancialReport = ({
                           variant="outline"
                           className={cn(
                             "rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-3 py-1",
-                            isSub
-                              ? "bg-zinc-100 text-zinc-600"
-                              : "bg-emerald-50 text-emerald-600"
+                            "bg-emerald-50 text-emerald-600"
                           )}
                         >
-                          {isSub ? "Абонамент" : "Инвентар"}
+                          Продажба
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-8 font-medium text-sm text-zinc-900">

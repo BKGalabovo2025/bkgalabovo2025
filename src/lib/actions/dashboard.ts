@@ -2,7 +2,7 @@
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
-import { Member, Sale, ScheduleEvent, Reminder, Subscription } from "@/types";
+import { Member, Sale, ScheduleEvent, Reminder } from "@/types";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import { getRevenueTrendData } from "@/services/dashboard-service";
 import { serverCache } from "@/lib/server-cache";
@@ -35,24 +35,30 @@ function snapToData<T>(doc: admin.firestore.QueryDocumentSnapshot): T {
 
 function getOverdueReminders(
   allMembers: Member[],
-  allSubscriptions: Subscription[]
+  allSales: Sale[]
 ): Reminder[] {
   const today = new Date();
   const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   const overdueMembers = allMembers.filter((member) => {
     if (member.status !== "active") return false;
-    const memberSubs = allSubscriptions.filter(
-      (sub) => sub.memberId === member.id
-    );
-    return checkIsMemberOverdue(member, memberSubs).isOverdue;
+    const familyMembers = member.familyId
+      ? allMembers.filter(
+          (m) => m.familyId === member.familyId && m.id !== member.id
+        )
+      : [];
+    const memberSales = allSales.filter((s) => s.memberId === member.id);
+    return checkIsMemberOverdue(member, familyMembers, memberSales).isOverdue;
   });
 
   return overdueMembers.map((member, index) => {
-    const memberSubs = allSubscriptions.filter(
-      (sub) => sub.memberId === member.id
-    );
-    const overdueCheck = checkIsMemberOverdue(member, memberSubs);
+    const familyMembers = member.familyId
+      ? allMembers.filter(
+          (m) => m.familyId === member.familyId && m.id !== member.id
+        )
+      : [];
+    const memberSales = allSales.filter((s) => s.memberId === member.id);
+    const overdueCheck = checkIsMemberOverdue(member, familyMembers, memberSales);
     return {
       id: `overdue-${member.id}-${index}`,
       title: "Просрочено плащане",
@@ -172,9 +178,9 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           // Active members (needed for overdue reminder generation)
           col("members").where("status", "==", "active").limit(300).get(),
 
-          // Active subscriptions (needed for overdue check)
-          col("memberSubscriptions")
-            .where("status", "==", "active")
+          // Unpaid sales (needed for overdue check)
+          col("sales")
+            .where("isPaid", "==", false)
             .limit(300)
             .get(),
 
@@ -199,8 +205,8 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         const activeMembers = activeMembersSnap.docs.map((d) =>
           snapToData<Member>(d)
         );
-        const activeSubs = activeSubsSnap.docs.map((d) =>
-          snapToData<Subscription>(d)
+        const unpaidSales = activeSubsSnap.docs.map((d) =>
+          snapToData<Sale>(d)
         );
         const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
         const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
@@ -284,7 +290,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         };
 
         const revenueChartData = getRevenueTrendData(salesFor6Months);
-        const reminders = getOverdueReminders(activeMembers, activeSubs);
+        const reminders = getOverdueReminders(activeMembers, unpaidSales);
 
         return {
           success: true,

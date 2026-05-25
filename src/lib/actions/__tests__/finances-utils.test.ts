@@ -15,7 +15,6 @@ describe("finances-utils", () => {
         isPaid: true,
         totalAmount: 100,
         items: [{ productId: "p1", name: "Абонамент", quantity: 1, price: 100 }],
-        subscriptionId: "sub-1",
       },
       {
         id: "sale-2",
@@ -50,7 +49,7 @@ describe("finances-utils", () => {
     expect(overview.averageTransactionValue).toBe(75);
     expect(overview.categories).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: "Абонаменти", value: 100 }),
+        expect.objectContaining({ name: "Други услуги", value: 100 }),
         expect.objectContaining({ name: "Възстановяване", value: 50 }),
       ])
     );
@@ -67,8 +66,7 @@ describe("finances-utils", () => {
         status: "completed",
         isPaid: true,
         totalAmount: 100,
-        items: [{ productId: "p1", name: "Абонамент", quantity: 1, price: 100 }],
-        subscriptionId: "sub-1",
+        items: [{ productId: "p1", name: "Нещо друго", quantity: 1, price: 100 }],
       },
     ] as Sale[];
 
@@ -76,9 +74,9 @@ describe("finances-utils", () => {
 
     expect(overview.categories).toEqual([
       expect.objectContaining({
-        name: "Абонаменти",
+        name: "Други услуги",
         value: 100,
-        color: "#10b981",
+        color: "#f59e0b",
       }),
     ]);
   });

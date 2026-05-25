@@ -1,7 +1,7 @@
-import GeneralServicesClientPage from "./client-page";
+import GeneralServicesClient from "./GeneralServicesClient";
 
 export const dynamic = "force-dynamic";
 
 export default function GeneralServicesPage() {
-  return <GeneralServicesClientPage />;
+  return <GeneralServicesClient />;
 }

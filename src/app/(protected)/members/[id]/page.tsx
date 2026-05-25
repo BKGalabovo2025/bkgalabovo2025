@@ -16,7 +16,6 @@ const MemberProfilePage = () => {
     member,
     family,
     familyMembers,
-    subscriptions,
     sales,
     loading,
     error,
@@ -89,7 +88,6 @@ const MemberProfilePage = () => {
           member={member}
           familyMembers={familyMembers}
           family={family}
-          subscriptions={subscriptions}
           sales={sales}
           onRefresh={refetch}
         />

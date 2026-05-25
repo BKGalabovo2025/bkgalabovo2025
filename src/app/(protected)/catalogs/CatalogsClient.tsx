@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListTree, Wrench, Activity, Layers, Package } from "lucide-react";
+import { ListTree, Wrench, Activity, Package } from "lucide-react";
 import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
-import GeneralServicesClientPage from "@/app/(protected)/finances/general-services/client-page";
+import GeneralServicesClient from "@/app/(protected)/finances/general-services/GeneralServicesClient";
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 
@@ -21,21 +21,7 @@ export default function CatalogsClient({
 
   return (
     <div className="space-y-10">
-      <div className="border-t border-zinc-100 dark:border-zinc-800/80 pt-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-          <div>
-            <h2 className="text-2xl font-light text-zinc-950 dark:text-zinc-50 uppercase tracking-widest flex items-center gap-3">
-              <Layers
-                className="h-6 w-6 text-zinc-600 dark:text-zinc-400"
-                strokeWidth={1.5}
-              />
-              <span>Клубни Каталози</span>
-            </h2>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 font-light mt-1.5">
-              Управление на ценоразписи, тренировъчни програми и възстановяване.
-            </p>
-          </div>
-        </div>
+      <div className="pt-2">
 
         <Tabs
           defaultValue="services"
@@ -82,7 +68,7 @@ export default function CatalogsClient({
 
           <TabsContent value="general" className="outline-none mt-0">
             <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
-              <GeneralServicesClientPage showPageHeader={false} />
+              <GeneralServicesClient showPageHeader={false} />
             </div>
           </TabsContent>
 

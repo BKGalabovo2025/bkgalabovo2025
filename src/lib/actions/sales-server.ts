@@ -3,7 +3,7 @@
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
-import { Sale, Member, ClubService, Subscription, Family } from "@/types";
+import { Sale, Member, ClubService, Family } from "@/types";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 
 // Помощна функция за преобразуване на Firestore документи с конвертиране на Timestamps в ISO низове
@@ -95,24 +95,9 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     const shouldFetchMember = !isGuest && !isWalkIn && sale.memberId;
 
     // Паралелно извличане на основните свързани документи
-    const memberDocPromise = shouldFetchMember
-      ? adminDb.collection("members").doc(sale.memberId).get()
-      : Promise.resolve(null);
-
-    let subscriptionPromise = Promise.resolve(
-      null as admin.firestore.DocumentSnapshot | null
-    );
-    if (sale.subscriptionId) {
-      subscriptionPromise = adminDb
-        .collection("memberSubscriptions")
-        .doc(sale.subscriptionId)
-        .get();
-    }
-
-    const [memberSnap, subscriptionSnap] = await Promise.all([
-      memberDocPromise,
-      subscriptionPromise,
-    ]);
+    const memberSnap = shouldFetchMember
+      ? await adminDb.collection("members").doc(sale.memberId).get()
+      : null;
 
     let member =
       memberSnap && memberSnap.exists ? snapToData<Member>(memberSnap) : null;
@@ -145,19 +130,8 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       }
     }
 
-    const subscription = subscriptionSnap
-      ? snapToData<Subscription>(subscriptionSnap)
-      : null;
-
-    // Извличане на свързана услуга, ако има абонамент
+    // Извличане на свързана услуга (ако е необходимо)
     let service: ClubService | null = null;
-    if (subscription?.serviceId) {
-      const serviceSnap = await adminDb
-        .collection("clubServices")
-        .doc(subscription.serviceId)
-        .get();
-      service = snapToData<ClubService>(serviceSnap);
-    }
 
     // Извличане на свързано лице (родител/дете)
     let relatedMember: Member | null = null;
@@ -208,7 +182,6 @@ export async function getReceiptDetailsServerAction(saleId: string) {
         member,
         relatedMember,
         service,
-        subscription,
         family,
         familyMembers,
       },

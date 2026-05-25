@@ -86,10 +86,9 @@ export const MemberSalesHistory = ({
   };
 
   const handleDeleteSale = async (
-    saleId: string,
-    subscriptionId?: string | null
+    saleId: string
   ) => {
-    await deleteSale(saleId, subscriptionId);
+    await deleteSale(saleId);
     mutate(memberId);
   };
 
@@ -275,11 +274,9 @@ export const MemberSalesHistory = ({
                                   >
                                     {itemsList}
                                   </div>
-                                  {sale.subscriptionId && (
+                                  {isSubscriptionItem(itemsList) && (
                                     <div className="text-[9px] text-zinc-400 uppercase tracking-widest mt-0.5">
-                                      {isSubscriptionItem(itemsList)
-                                        ? "Абонамент"
-                                        : "Услуга"}
+                                      Услуга
                                     </div>
                                   )}
                                   {sale.memberId !== memberId &&
@@ -368,8 +365,7 @@ export const MemberSalesHistory = ({
                                         <DropdownMenuItem
                                           onSelect={() =>
                                             handleDeleteSale(
-                                              sale.id,
-                                              sale.subscriptionId
+                                              sale.id
                                             )
                                           }
                                           className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -494,8 +490,7 @@ export const MemberSalesHistory = ({
                                     <DropdownMenuItem
                                       onSelect={() =>
                                         handleDeleteSale(
-                                          sale.id,
-                                          sale.subscriptionId
+                                          sale.id
                                         )
                                       }
                                       className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -512,11 +507,11 @@ export const MemberSalesHistory = ({
                                   <Receipt className="h-2.5 w-2.5 text-zinc-400" />
                                 </div>
                                 <span className="text-[8px] text-zinc-400 uppercase tracking-widest font-medium">
-                                  {sale.subscriptionId
-                                    ? isSubscriptionItem(itemsList)
-                                      ? "Абонамент"
-                                      : "Услуга"
-                                    : "Продажба"}
+                                  {sale.type === "general_service"
+                                    ? "Клубна Услуга"
+                                    : isSubscriptionItem(itemsList)
+                                      ? "Услуга"
+                                      : "Продажба"}
                                 </span>
                               </div>
                               <span className="text-sm font-medium tracking-tight text-zinc-950">

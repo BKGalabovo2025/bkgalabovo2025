@@ -1,9 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { Member, Subscription, ScheduleEvent, Sale } from "@/types";
+import { Member, ScheduleEvent, Sale } from "@/types";
 import { getMemberById } from "@/services/member-service";
-import { getSubscriptionsByMemberId } from "@/services/subscription-service";
 import { getAttendancesByMemberId } from "@/services/attendance-service";
 import { getSalesByMemberId } from "@/services/sales-service";
 import { db } from "@/lib/firebase";
@@ -25,7 +24,6 @@ export interface Family {
 
 interface MemberProfileData {
   member: Member | null;
-  subscriptions: Subscription[];
   family: Family | null;
   familyMembers: Member[];
   attendances: ScheduleEvent[];
@@ -75,17 +73,14 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
     }
   }
 
-  // Fetch subscriptions and sales for all members in family (or just this member if no family)
-  const [subsResults, salesResults] = await Promise.all([
-    Promise.all(targetMemberIds.map((id) => getSubscriptionsByMemberId(id))),
+  // Fetch sales for all members in family (or just this member if no family)
+  const [salesResults] = await Promise.all([
     Promise.all(targetMemberIds.map((id) => getSalesByMemberId(id))),
   ]);
-  const subscriptionsData = subsResults.flat();
   const salesData = salesResults.flat();
 
   return {
     member: memberData,
-    subscriptions: subscriptionsData,
     family: familyData,
     familyMembers,
     attendances: attendancesData,
@@ -101,7 +96,6 @@ export const useMemberProfile = (memberId: string) => {
 
   return {
     member: data?.member || null,
-    subscriptions: data?.subscriptions || [],
     family: data?.family || null,
     familyMembers: data?.familyMembers || [],
     attendances: data?.attendances || [],

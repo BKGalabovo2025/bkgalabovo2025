@@ -1,60 +1,70 @@
-import { useState, useEffect, useCallback } from "react";
-import { onSnapshot } from "firebase/firestore";
-import { GeneralService } from "@/types";
-import { toast } from "sonner";
-import { deleteGeneralService } from "@/lib/actions/general-services";
-import { getGeneralServicesQuery } from "@/lib/firebase-collections";
-import { useAppStore } from "@/store/use-app-store";
+"use client";
 
-export const useGeneralServices = () => {
+import { useState, useEffect, useCallback } from "react";
+import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
+import { toast } from "sonner";
+import { useAppStore } from "@/store/use-app-store";
+import {
+  getGeneralServicesServerAction,
+  getGeneralServiceHistoryAction,
+  getGeneralServiceSalesAction,
+} from "@/lib/actions/general-services-server";
+
+export function useGeneralServices() {
   const [services, setServices] = useState<GeneralService[]>([]);
+  const [events, setEvents] = useState<GeneralServiceEvent[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { activeBranch } = useAppStore();
 
-  useEffect(() => {
-    const q = getGeneralServicesQuery();
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [servicesRes, eventsRes, salesRes] = await Promise.all([
+        getGeneralServicesServerAction(activeBranch),
+        getGeneralServiceHistoryAction(activeBranch),
+        getGeneralServiceSalesAction(activeBranch),
+      ]);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const servicesData = snapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        })) as GeneralService[];
-        setServices(servicesData);
-        setIsLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching general services:", err);
-        setError(err);
-        setIsLoading(false);
-        toast.error("Грешка при зареждане на услугите");
+      if (servicesRes.success && servicesRes.data) {
+        setServices(servicesRes.data);
+      } else {
+        throw new Error(servicesRes.error || "Failed to fetch services");
       }
-    );
 
-    return () => unsubscribe();
+      if (eventsRes.success && eventsRes.data) {
+        setEvents(eventsRes.data.filter((e): e is import("@/types").GeneralServiceEvent => e !== null));
+      } else {
+        throw new Error(eventsRes.error || "Failed to fetch events");
+      }
+
+      if (salesRes.success && salesRes.data) {
+        setSales(salesRes.data);
+      } else {
+        throw new Error(salesRes.error || "Failed to fetch sales");
+      }
+    } catch (err: any) {
+      console.error("Error fetching general services data:", err);
+      setError(err.message || "Грешка при зареждане на данни");
+      toast.error("Грешка при зареждане на данни");
+    } finally {
+      setIsLoading(false);
+    }
   }, [activeBranch]);
 
-  const deleteService = useCallback(async (id: string, idToken: string) => {
-    try {
-      const result = await deleteGeneralService(idToken, id);
-      if (result.success) {
-        toast.success("Услугата е изтрита");
-      } else {
-        toast.error(result.message || "Грешка при изтриване");
-      }
-    } catch (err) {
-      console.error("Error deleting service:", err);
-      toast.error("Грешка при изтриване");
-      throw err;
-    }
-  }, []);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return {
     services,
+    events,
+    sales,
     isLoading,
     error,
-    deleteService,
+    refetch: fetchData,
   };
-};
+}
