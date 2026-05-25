@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { useAuth } from "@/context/auth-context";
 
 import { getAllMembers } from "@/services/member-service";
@@ -174,6 +175,13 @@ export default function NewSaleClient() {
       });
 
       if (result.success) {
+        if (
+          selectedMemberId &&
+          selectedMemberId !== "none" &&
+          selectedMemberId !== "GUEST_EXTERNAL"
+        ) {
+          mutate(selectedMemberId);
+        }
         toast.success(result.message || "Продажбата беше създадена успешно.");
         router.push("/sales");
       } else {
