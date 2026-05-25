@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSales } from "@/hooks/useSales";
+import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Loader2, MoreHorizontal, PlusCircle, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,28 +43,28 @@ const isSubscriptionItem = (name: string): boolean => {
   );
 };
 
-// Helper to determine badge variant and text based on status and amount
+// Helper to determine badge variant and text based on status, payment status, and amount
 const getStatusDetails = (
-  status: "completed" | "pending" | "informational" | string,
+  status: string,
+  isPaid: boolean,
   totalAmount: number
 ) => {
   if (totalAmount === 0 && status === "informational") {
     return { text: "Системна", variant: "outline" as const };
   }
 
-  switch (status) {
-    case "completed":
-      return { text: "Платено", variant: "default" as const };
-    case "pending":
-      return { text: "Чакащо", variant: "secondary" as const };
-    // Fallback for old data that might have status: 'completed' but amount: 0
-    case "completed":
-      if (totalAmount === 0)
-        return { text: "Нулева", variant: "outline" as const };
-      return { text: "Платено", variant: "default" as const };
-    default:
-      return { text: status, variant: "secondary" as const };
+  if (isPaid === false || status === "pending") {
+    return { text: "Неплатено", variant: "secondary" as const };
   }
+
+  if (status === "completed") {
+    if (totalAmount === 0) {
+      return { text: "Нулева", variant: "outline" as const };
+    }
+    return { text: "Платено", variant: "default" as const };
+  }
+
+  return { text: status, variant: "secondary" as const };
 };
 export const MemberSalesHistory = ({
   memberId,
@@ -73,6 +74,24 @@ export const MemberSalesHistory = ({
   const router = useRouter();
   const { sales, loading, error, markAsPaid, markAsUnpaid, deleteSale } =
     useSales(memberIds || memberId);
+
+  const handleMarkAsPaid = async (saleId: string) => {
+    await markAsPaid(saleId);
+    mutate(memberId);
+  };
+
+  const handleMarkAsUnpaid = async (saleId: string) => {
+    await markAsUnpaid(saleId);
+    mutate(memberId);
+  };
+
+  const handleDeleteSale = async (
+    saleId: string,
+    subscriptionId?: string | null
+  ) => {
+    await deleteSale(saleId, subscriptionId);
+    mutate(memberId);
+  };
 
   const [collapsedYears, setCollapsedYears] = useState<Record<number, boolean>>(
     {}
@@ -225,6 +244,7 @@ export const MemberSalesHistory = ({
                           {yearSales.map((sale) => {
                             const statusDetails = getStatusDetails(
                               sale.status,
+                              sale.isPaid,
                               sale.totalAmount
                             );
 
@@ -328,7 +348,7 @@ export const MemberSalesHistory = ({
                                         {sale.isPaid ? (
                                           <DropdownMenuItem
                                             onSelect={() =>
-                                              markAsUnpaid(sale.id)
+                                              handleMarkAsUnpaid(sale.id)
                                             }
                                             className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
                                           >
@@ -336,7 +356,9 @@ export const MemberSalesHistory = ({
                                           </DropdownMenuItem>
                                         ) : (
                                           <DropdownMenuItem
-                                            onSelect={() => markAsPaid(sale.id)}
+                                            onSelect={() =>
+                                              handleMarkAsPaid(sale.id)
+                                            }
                                             className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
                                           >
                                             Маркирай като платено
@@ -345,7 +367,7 @@ export const MemberSalesHistory = ({
                                         <DropdownMenuSeparator className="bg-zinc-100" />
                                         <DropdownMenuItem
                                           onSelect={() =>
-                                            deleteSale(
+                                            handleDeleteSale(
                                               sale.id,
                                               sale.subscriptionId
                                             )
@@ -370,6 +392,7 @@ export const MemberSalesHistory = ({
                       {yearSales.map((sale) => {
                         const statusDetails = getStatusDetails(
                           sale.status,
+                          sale.isPaid,
                           sale.totalAmount
                         );
 
@@ -450,14 +473,18 @@ export const MemberSalesHistory = ({
                                     </DropdownMenuItem>
                                     {sale.isPaid ? (
                                       <DropdownMenuItem
-                                        onSelect={() => markAsUnpaid(sale.id)}
+                                        onSelect={() =>
+                                          handleMarkAsUnpaid(sale.id)
+                                        }
                                         className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
                                       >
                                         Отмени плащането
                                       </DropdownMenuItem>
                                     ) : (
                                       <DropdownMenuItem
-                                        onSelect={() => markAsPaid(sale.id)}
+                                        onSelect={() =>
+                                          handleMarkAsPaid(sale.id)
+                                        }
                                         className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
                                       >
                                         Маркирай като платено
@@ -466,7 +493,10 @@ export const MemberSalesHistory = ({
                                     <DropdownMenuSeparator className="bg-zinc-100" />
                                     <DropdownMenuItem
                                       onSelect={() =>
-                                        deleteSale(sale.id, sale.subscriptionId)
+                                        handleDeleteSale(
+                                          sale.id,
+                                          sale.subscriptionId
+                                        )
                                       }
                                       className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
                                     >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { mutate } from "swr";
 import {
   Dialog,
   DialogContent,
@@ -155,6 +156,9 @@ export const ProductSaleWizardDialog = ({
         const saleId = (result.data as { id: string }).id;
         setCompletedSaleId(saleId);
         setStep(5);
+        if (selectedMember.id !== "GUEST_EXTERNAL") {
+          mutate(selectedMember.id);
+        }
         toast.success("Готово!", {
           description: "Продажбата бе регистрирана успешно.",
         });
