@@ -173,7 +173,7 @@ export async function restockProductAction(
         createdAt: FieldValue.serverTimestamp(),
         userId: user.uid,
         userName: user.displayName || user.email,
-        notes,
+        notes: notes || "",
       });
     });
 
@@ -227,7 +227,7 @@ export async function adjustProductStockAction(
         createdAt: FieldValue.serverTimestamp(),
         userId: user.uid,
         userName: user.displayName || user.email,
-        notes,
+        notes: notes || "",
       });
     });
 
