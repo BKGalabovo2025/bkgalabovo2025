@@ -7,6 +7,7 @@ import { getMemberById } from "@/services/member-service";
 import { Sale, Member } from "@/types";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
+import { mutate } from "swr";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -75,6 +76,9 @@ export default function SaleDetailsClient() {
     setIsDeleting(true);
     try {
       await deleteSale(saleId);
+      if (sale?.memberId && sale.memberId !== "GUEST_EXTERNAL") {
+        mutate(sale.memberId);
+      }
       toast.success("Продажбата беше изтрита успешно.");
       router.push("/sales");
     } catch (error) {
@@ -92,6 +96,9 @@ export default function SaleDetailsClient() {
       setSale((prevSale) =>
         prevSale ? { ...prevSale, status: "completed", isPaid: true } : null
       );
+      if (sale?.memberId && sale.memberId !== "GUEST_EXTERNAL") {
+        mutate(sale.memberId);
+      }
       toast.success("Плащането беше регистрирано успешно.");
     } catch (error) {
       console.error("Error updating status:", error);

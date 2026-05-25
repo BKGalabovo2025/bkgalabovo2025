@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 import { getSaleById } from "@/services/sales-service";
 import { updateSaleAction } from "@/lib/actions/sales";
@@ -184,6 +185,20 @@ export default function EditSaleClient() {
       });
 
       if (result.success) {
+        if (
+          initialSale?.memberId &&
+          initialSale.memberId !== "GUEST_EXTERNAL"
+        ) {
+          mutate(initialSale.memberId);
+        }
+        if (
+          selectedMemberId &&
+          selectedMemberId !== "none" &&
+          selectedMemberId !== "GUEST_EXTERNAL" &&
+          selectedMemberId !== initialSale?.memberId
+        ) {
+          mutate(selectedMemberId);
+        }
         toast.success(result.message || "Продажбата е актуализирана успешно.");
         router.push(`/sales/${saleId}`);
       } else {
