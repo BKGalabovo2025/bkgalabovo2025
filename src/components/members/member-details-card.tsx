@@ -282,13 +282,13 @@ export const MemberDetailsCard = ({
         <div className="px-6 sm:px-10 pb-8 sm:pb-10 -mt-12 sm:-mt-16 relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 text-center md:text-left">
             <div className="relative group">
-              <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 border-white shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50">
+              <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 border-white shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
                 <AvatarImage
                   src={member.avatarUrl ?? undefined}
                   alt={fullName}
-                  className="object-cover"
+                  className="object-cover animate-in fade-in duration-500"
                 />
-                <AvatarFallback className="text-4xl font-light text-zinc-200">
+                <AvatarFallback className="text-4xl font-semibold text-zinc-400 dark:text-zinc-500 bg-zinc-100/50 dark:bg-zinc-900 flex items-center justify-center">
                   {getInitials(fullName)}
                 </AvatarFallback>
               </Avatar>
@@ -340,29 +340,31 @@ export const MemberDetailsCard = ({
             </div>
 
             <div className="mb-2 sm:mb-4 w-full md:w-auto">
-              <div className="bg-zinc-50 border border-zinc-100/50 p-4 sm:p-6 rounded-3xl sm:rounded-4xl flex items-center justify-between md:justify-start gap-4 md:gap-6">
+              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-5 sm:p-6 rounded-3xl sm:rounded-4xl flex items-center justify-between md:justify-start gap-4 md:gap-6 shadow-xs shadow-zinc-100/10 dark:shadow-none">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest2 text-zinc-400 dark:text-zinc-500 mb-1">
                     Финансов статус
                   </p>
                   <div className="flex items-center gap-3">
                     <span
                       className={cn(
-                        "text-sm font-medium",
-                        isOverdue ? "text-rose-500" : "text-emerald-500"
+                        "text-sm font-semibold tracking-wide",
+                        isOverdue
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-emerald-600 dark:text-emerald-400"
                       )}
                     >
                       {isOverdue ? "Дължи такса" : "Платено"}
                     </span>
-                    <span className="h-1 w-1 rounded-full bg-zinc-200" />
-                    <span className="text-[11px] font-light text-zinc-400 uppercase tracking-widest">
+                    <span className="h-1.5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                    <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                       {lastPayment
                         ? lastPayment.toLocaleDateString("bg-BG")
                         : "няма данни"}
                     </span>
                   </div>
                   {overdueReason && (
-                    <p className="text-[10px] text-zinc-400 mt-1.5 font-light italic">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">
                       {overdueReason}
                     </p>
                   )}
@@ -371,7 +373,7 @@ export const MemberDetailsCard = ({
                   <Button
                     size="sm"
                     onClick={handlePayment}
-                    className="h-10 px-6 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 text-[10px] font-medium uppercase tracking-widest shadow-none"
+                    className="h-10 px-6 rounded-xl bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-[10px] font-medium uppercase tracking-widest shadow-none transition-colors"
                   >
                     Плати
                   </Button>
