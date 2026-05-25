@@ -33,8 +33,8 @@ export async function getAuthUserFromSessionCookie() {
     if (!session) return null;
 
     const adminAuth = getAdminAuth();
-    // Verify session cookie; checkRevoked = true ensures the cookie is still active
-    const decodedToken = await adminAuth.verifySessionCookie(session, true);
+    // Verify session cookie locally without remote revocation checks to prevent network latency/crashes
+    const decodedToken = await adminAuth.verifySessionCookie(session, false);
     return decodedToken;
   } catch (error) {
     console.error("Error verifying session cookie:", error);
