@@ -15,11 +15,13 @@ import {
   Search,
   Plus,
   LayoutGrid,
+  ShoppingBag,
 } from "lucide-react";
 import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import { EditProductDialog } from "@/components/inventory/EditProductDialog";
 import { ProductSaleWizardDialog } from "@/components/inventory/ProductSaleWizardDialog";
 import InventoryHistory from "@/components/inventory/InventoryHistory";
+import InventorySalesHistory from "@/components/inventory/InventorySalesHistory";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -375,7 +377,14 @@ export default function InventoryClient({
               value="history"
               className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
             >
-              <History className="mr-3 h-4 w-4" strokeWidth={1.5} /> История
+              <History className="mr-3 h-4 w-4" strokeWidth={1.5} /> Движения
+            </TabsTrigger>
+            <TabsTrigger
+              value="sales"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
+            >
+              <ShoppingBag className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              Продажби
             </TabsTrigger>
           </TabsList>
 
@@ -403,6 +412,15 @@ export default function InventoryClient({
         >
           <BentoCard className="p-0 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
             <InventoryHistory />
+          </BentoCard>
+        </TabsContent>
+
+        <TabsContent
+          value="sales"
+          className="mt-0 focus-visible:outline-none outline-none ring-0"
+        >
+          <BentoCard className="p-0 overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
+            <InventorySalesHistory />
           </BentoCard>
         </TabsContent>
       </Tabs>

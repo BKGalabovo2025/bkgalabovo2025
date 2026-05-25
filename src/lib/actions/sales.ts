@@ -218,23 +218,77 @@ export async function deleteSaleAction(
   idToken: string
 ): Promise<SaleActionState> {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
+    const saleRef = adminDb.collection("sales").doc(id);
 
-    await adminDb.collection("sales").doc(id).delete();
+    await adminDb.runTransaction(async (transaction) => {
+      // 1. Fetch the sale first (Read phase)
+      const saleDoc = await transaction.get(saleRef);
+      if (!saleDoc.exists) {
+        throw new Error("Продажбата не бе намерена.");
+      }
+      const saleData = saleDoc.data()!;
+      const items = saleData.items || [];
+
+      // 2. Fetch all products to restore their stock (Read phase)
+      const productUpdates = [];
+      for (const item of items) {
+        if (!item.productId) continue;
+        const productRef = adminDb.collection("products").doc(item.productId);
+        const productDoc = await transaction.get(productRef);
+
+        if (productDoc.exists) {
+          const productData = productDoc.data()!;
+          const currentStock = productData.stock || 0;
+          const newStock = currentStock + (item.quantity || 0);
+
+          productUpdates.push({
+            ref: productRef,
+            stock: newStock,
+            item,
+          });
+        }
+      }
+
+      // 3. Perform writes (Write phase)
+      // a. Delete the sale document
+      transaction.delete(saleRef);
+
+      // b. Update stock and write inventory correction events
+      for (const update of productUpdates) {
+        transaction.update(update.ref, { stock: update.stock });
+
+        const eventRef = adminDb.collection("inventory_events").doc();
+        transaction.set(eventRef, {
+          id: eventRef.id,
+          productId: update.item.productId,
+          productName: update.item.name,
+          type: "correction",
+          quantityChange: update.item.quantity || 0,
+          createdAt: new Date().toISOString(),
+          userId: user.uid,
+          userName: user.displayName || user.email,
+          notes: `Анулирана продажба № ${id}`,
+        });
+      }
+    });
 
     revalidatePath("/sales");
+    revalidatePath("/inventory");
+    revalidatePath("/dashboard");
     serverCache.invalidatePattern("sales:");
 
     return {
       success: true,
-      message: "Продажбата бе изтрита успешно.",
+      message:
+        "Продажбата бе изтрита успешно, а наличностите в магазина бяха възстановени.",
     };
   } catch (error: unknown) {
     console.error("deleteSaleAction Error:", error);
     return {
       success: false,
-      message: "Грешка при изтриване на продажбата.",
+      message: `Грешка при изтриване на продажбата: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
     };
   }
 }
