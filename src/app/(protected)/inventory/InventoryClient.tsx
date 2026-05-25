@@ -125,7 +125,7 @@ const ProductList = () => {
               return (
                 <BentoCard
                   key={product.id}
-                  className="group overflow-hidden transition-all duration-500 flex flex-col border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-2xl"
+                  className="group overflow-hidden transition-all duration-500 flex flex-col border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl hover:shadow-xl hover:shadow-zinc-100/20 dark:hover:shadow-none"
                 >
                   <div className="relative h-64 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-50 dark:border-zinc-800">
                     {product.imageUrl ? (
@@ -206,7 +206,7 @@ const ProductList = () => {
                   <div className="p-8 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-4 mb-2">
-                        <h3 className="text-xl font-light leading-tight group-hover:text-primary transition-colors line-clamp-1">
+                        <h3 className="text-lg font-medium leading-snug text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem] flex items-center">
                           {product.name}
                         </h3>
                       </div>
@@ -215,7 +215,7 @@ const ProductList = () => {
                       </p>
                     </div>
 
-                    <div className="pt-6 border-t border-zinc-50 dark:border-zinc-900 space-y-5">
+                    <div className="pt-6 border-t border-zinc-100 dark:border-zinc-900 space-y-5">
                       <div className="flex justify-between items-baseline">
                         <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-none">
                           Цена

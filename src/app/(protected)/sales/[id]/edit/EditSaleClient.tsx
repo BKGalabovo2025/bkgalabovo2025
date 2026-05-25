@@ -258,9 +258,9 @@ export default function EditSaleClient() {
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <BentoCard className="p-6">
+          <BentoCard className="p-8 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-none">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <Package className="h-5 w-5" />
@@ -273,14 +273,14 @@ export default function EditSaleClient() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-50 hover:bg-transparent">
-                    <TableHead className="font-bold text-slate-400">
+                  <TableRow className="border-zinc-100 dark:border-zinc-900 hover:bg-transparent">
+                    <TableHead className="font-bold text-zinc-400">
                       Продукт
                     </TableHead>
-                    <TableHead className="text-right font-bold text-slate-400">
+                    <TableHead className="text-right font-bold text-zinc-400">
                       Цена
                     </TableHead>
-                    <TableHead className="text-right font-bold text-slate-400">
+                    <TableHead className="text-right font-bold text-zinc-400">
                       Наличност
                     </TableHead>
                     <TableHead></TableHead>
@@ -290,18 +290,16 @@ export default function EditSaleClient() {
                   {availableProducts.map((product) => (
                     <TableRow
                       key={product.id}
-                      className="border-slate-50 hover:bg-slate-50/50 transition-colors"
+                      className="border-zinc-100 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors"
                     >
-                      <TableCell className="font-bold py-4">
+                      <TableCell className="font-semibold text-zinc-900 dark:text-zinc-100 py-4">
                         {product.name}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium text-zinc-950 dark:text-zinc-50">
                         {formatPrice(product.price)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-bold bg-slate-50 text-slate-600`}
-                        >
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-medium tracking-wide bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-transparent">
                           {product.stock} бр.
                         </span>
                       </TableCell>
@@ -309,7 +307,7 @@ export default function EditSaleClient() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all"
+                          className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all text-zinc-400 dark:text-zinc-600 hover:scale-105 active:scale-95"
                           onClick={() => addToCart(product)}
                         >
                           <PlusCircle className="h-5 w-5" />
@@ -324,7 +322,7 @@ export default function EditSaleClient() {
         </div>
 
         <div className="space-y-6">
-          <BentoCard className="p-6 sticky top-24 shadow-xl border-primary/10">
+          <BentoCard className="p-8 sticky top-24 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-2xl shadow-zinc-100/40 dark:shadow-none">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5 text-primary" />
@@ -344,14 +342,14 @@ export default function EditSaleClient() {
                   value={selectedMemberId}
                   onValueChange={setSelectedMemberId}
                 >
-                  <SelectTrigger className="rounded-xl bg-slate-50/50 border-none shadow-none h-11 focus:ring-1 focus:ring-primary/20">
+                  <SelectTrigger className="rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-100 dark:border-zinc-800 shadow-none h-11 focus:ring-1 focus:ring-primary/20">
                     <div className="flex items-center gap-2 overflow-hidden">
                       <UserPlus className="h-4 w-4 text-slate-400 shrink-0" />
                       <SelectValue placeholder="Изберете член" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-100 shadow-2xl">
-                    <SelectItem value="none">Клиент от улицата</SelectItem>
+                  <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
+                    <SelectItem value="none">Външен клиент</SelectItem>
                     {members.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         {member.firstName} {member.lastName}
@@ -361,12 +359,12 @@ export default function EditSaleClient() {
                 </Select>
               </div>
 
-              <div className="divider h-px bg-slate-50 my-4" />
+              <div className="divider h-px bg-zinc-100 dark:bg-zinc-900 my-4" />
 
               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {cart.length === 0 ? (
-                  <div className="py-8 text-center bg-slate-50/50 rounded-2xl">
-                    <p className="text-slate-400 text-sm font-medium">
+                  <div className="py-8 text-center bg-zinc-50/50 dark:bg-zinc-900/30 rounded-2xl">
+                    <p className="text-zinc-400 dark:text-zinc-500 text-sm font-medium">
                       Количката е празна
                     </p>
                   </div>
