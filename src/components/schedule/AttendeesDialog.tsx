@@ -40,12 +40,20 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
       const presentIds = new Set(
         (event.attendees || []).filter((a) => a.attended).map((a) => a.memberId)
       );
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setAttendeeIds(presentIds);
     }
   }, [event, isOpen]);
 
   const handleToggleMember = (member: Member) => {
+    const regDate = member.registrationDate
+      ? new Date(member.registrationDate)
+      : null;
+    const eventDate = event?.startDate ? new Date(event.startDate) : null;
+    const isBeforeRegistration = regDate && eventDate && eventDate < regDate;
+
+    if (isBeforeRegistration) return; // Блокираме маркирането, ако събитието е преди регистрацията
+
     setAttendeeIds((prev) => {
       const next = new Set(prev);
       if (next.has(member.id)) {
@@ -143,35 +151,59 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
               sortedMembers.map((member) => {
                 const isPresent = attendeeIds.has(member.id);
 
+                // Проверяваме дали събитието е преди датата на регистрация на члена
+                const regDate = member.registrationDate
+                  ? new Date(member.registrationDate)
+                  : null;
+                const eventDate = event?.startDate
+                  ? new Date(event.startDate)
+                  : null;
+                const isBeforeRegistration =
+                  regDate && eventDate && eventDate < regDate;
+
                 return (
                   <div
                     key={member.id}
-                    onClick={() => handleToggleMember(member)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all cursor-pointer group ${
-                      isPresent
-                        ? "bg-primary/10 text-primary"
-                        : "hover:bg-zinc-50 text-zinc-700"
+                    onClick={() => {
+                      if (!isBeforeRegistration) {
+                        handleToggleMember(member);
+                      }
+                    }}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all group ${
+                      isBeforeRegistration
+                        ? "opacity-40 cursor-not-allowed bg-zinc-50/50 dark:bg-zinc-900/10 text-zinc-400 dark:text-zinc-600"
+                        : isPresent
+                          ? "bg-primary/10 text-primary cursor-pointer"
+                          : "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-700 dark:text-zinc-300 cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div
                         className={`h-5 w-5 rounded border flex items-center justify-center transition-all shrink-0 ${
-                          isPresent
-                            ? "bg-primary border-primary text-white"
-                            : "border-zinc-300 bg-white"
+                          isBeforeRegistration
+                            ? "border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
+                            : isPresent
+                              ? "bg-primary border-primary text-white"
+                              : "border-zinc-300 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                         }`}
                       >
-                        {isPresent && <Check className="h-3 w-3 stroke-3" />}
+                        {isPresent && !isBeforeRegistration && (
+                          <Check className="h-3 w-3 stroke-3" />
+                        )}
                       </div>
                       <span className="text-sm font-medium truncate">
                         {formatFullName(member)}
                       </span>
                     </div>
-                    {isPresent && (
+                    {isBeforeRegistration ? (
+                      <span className="text-[9px] font-medium uppercase tracking-wide bg-rose-500/10 dark:bg-rose-950/20 px-2 py-0.5 rounded-full text-rose-600 dark:text-rose-400 border border-rose-500/10 shrink-0">
+                        преди рег. ({regDate.toLocaleDateString("bg-BG")})
+                      </span>
+                    ) : isPresent ? (
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/20 px-1.5 py-0.5 rounded text-primary">
                         Тук
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 );
               })
