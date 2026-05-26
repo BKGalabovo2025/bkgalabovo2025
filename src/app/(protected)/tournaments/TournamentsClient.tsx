@@ -194,10 +194,12 @@ export default function TournamentsClient({
               Нов турнир
             </DialogTitle>
           </DialogHeader>
-          <TournamentForm
-            onSave={handleSave}
-            onClose={() => setIsDialogOpen(false)}
-          />
+          {isDialogOpen && (
+            <TournamentForm
+              onSave={handleSave}
+              onClose={() => setIsDialogOpen(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -211,11 +213,13 @@ export default function TournamentsClient({
               Редактиране
             </DialogTitle>
           </DialogHeader>
-          <TournamentForm
-            onSave={handleUpdate}
-            onClose={() => setEditingTournament(null)}
-            initialData={editingTournament ?? undefined}
-          />
+          {editingTournament && (
+            <TournamentForm
+              onSave={handleUpdate}
+              onClose={() => setEditingTournament(null)}
+              initialData={editingTournament}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
