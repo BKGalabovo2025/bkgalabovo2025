@@ -52,7 +52,65 @@ const ageGroups = [
   { label: "Ветерани", sublabel: "35+ г.", icon: Trophy },
 ];
 
-export default function ClubPage() {
+import { getAdminDb } from "@/lib/firebase-admin";
+import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+
+function serializeDoc(data: any) {
+  if (!data) return data;
+  const copy = { ...data };
+  for (const key of Object.keys(copy)) {
+    const val = copy[key];
+    if (val && typeof val.toDate === "function") {
+      copy[key] = val.toDate().toISOString();
+    } else if (val && typeof val === "object" && "_seconds" in val) {
+      copy[key] = new Date(val._seconds * 1000).toISOString();
+    } else if (Array.isArray(val)) {
+      copy[key] = val.map(serializeDoc);
+    } else if (typeof val === "object") {
+      copy[key] = serializeDoc(val);
+    }
+  }
+  return copy;
+}
+
+export default async function ClubPage() {
+  const adminDb = getAdminDb();
+
+  // 1. Fetch trainings (clubServices) for bkgalabovo
+  const servicesSnapshot = await adminDb
+    .collection("clubServices")
+    .where("siteId", "==", "bkgalabovo")
+    .get();
+  const services = servicesSnapshot.docs.map((doc) =>
+    serializeDoc({
+      id: doc.id,
+      ...doc.data(),
+    })
+  );
+
+  // 2. Fetch general services (clubGeneralServices) for bkgalabovo
+  const generalSnapshot = await adminDb
+    .collection("clubGeneralServices")
+    .where("siteId", "==", "bkgalabovo")
+    .get();
+  const generalServices = generalSnapshot.docs.map((doc) =>
+    serializeDoc({
+      id: doc.id,
+      ...doc.data(),
+    })
+  );
+
+  // 3. Fetch products (products) for bkgalabovo
+  const productsSnapshot = await adminDb
+    .collection("products")
+    .where("siteId", "==", "bkgalabovo")
+    .get();
+  const products = productsSnapshot.docs.map((doc) =>
+    serializeDoc({
+      id: doc.id,
+      ...doc.data(),
+    })
+  );
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
@@ -198,6 +256,31 @@ export default function ClubPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Catalogs Section */}
+      <section id="catalogs" className="py-32 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-16 text-center md:text-left">
+            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-4">
+              Клубни Каталози
+            </p>
+            <h2 className="text-4xl font-light tracking-tight">
+              Разгледайте нашите
+              <span className="text-zinc-500"> услуги и продукти</span>
+            </h2>
+            <p className="text-zinc-400 text-sm max-w-xl mt-4 leading-relaxed">
+              Вижте графиците на тренировките, наличните абонаментни планове,
+              клубни услуги и професионална спортна екипировка за продажба.
+            </p>
+          </div>
+
+          <PublicCatalogTabs
+            trainings={services}
+            generalServices={generalServices}
+            products={products}
+          />
         </div>
       </section>
 
