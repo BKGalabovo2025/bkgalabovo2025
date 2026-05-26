@@ -161,24 +161,125 @@ export async function updateSaleAction(
     }
     dataToUpdate.updatedAt = FieldValue.serverTimestamp();
 
+    const existingSaleSnap = await saleRef.get();
+    const existingSale = existingSaleSnap.data();
+
     await saleRef.update(dataToUpdate);
 
-    // The sale has been updated. If you need any cross-collection syncing, add it here.
-    if (
-      dataToUpdate.isPaid &&
-      dataToUpdate.memberId &&
-      dataToUpdate.memberId !== "GUEST_EXTERNAL"
-    ) {
-      const memberRef = adminDb
-        .collection("members")
-        .doc(dataToUpdate.memberId as string);
-      const memberSnap = await memberRef.get();
-      if (memberSnap.exists) {
-        await memberRef.update({
-          lastPaymentDate: new Date(
-            (dataToUpdate.saleDate as Timestamp)?.toDate() || new Date()
-          ).toISOString(),
-        });
+    // If payment status changed to PAID, update attendances
+    if (dataToUpdate.isPaid && existingSale && !existingSale.isPaid) {
+      const paidEventIds: string[] = existingSale.paidEventIds || [];
+      const targetMemberIds: string[] =
+        existingSale.memberIdsForAttendance ||
+        (existingSale.memberIdForAttendance
+          ? [existingSale.memberIdForAttendance]
+          : existingSale.memberId
+            ? [existingSale.memberId]
+            : []);
+
+      const paymentType: "subscription" | "individual" =
+        existingSale.paymentMode === "subscription"
+          ? "subscription"
+          : "individual";
+
+      if (paidEventIds.length > 0 && targetMemberIds.length > 0) {
+        const chunkSize = 100;
+        for (let i = 0; i < paidEventIds.length; i += chunkSize) {
+          const chunk = paidEventIds.slice(i, i + chunkSize);
+          const attendanceBatch = adminDb.batch();
+
+          for (const eventId of chunk) {
+            const eventRef = adminDb.collection("events").doc(eventId);
+            const eventSnap = await eventRef.get();
+
+            if (!eventSnap.exists) continue;
+
+            const eventData = eventSnap.data();
+            const attendees: any[] = eventData?.attendees || [];
+            const nowIso = new Date().toISOString();
+
+            const updatedAttendees = attendees.map((attendee: any) => {
+              if (targetMemberIds.includes(attendee.memberId)) {
+                return {
+                  ...attendee,
+                  paymentStatus: "paid",
+                  paymentType: paymentType,
+                  paymentDate: nowIso,
+                  saleId: saleRef.id,
+                };
+              }
+              return attendee;
+            });
+
+            attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+          }
+
+          await attendanceBatch.commit();
+        }
+      }
+
+      // Update lastPaymentDate
+      for (const tId of targetMemberIds) {
+        if (tId !== "GUEST_EXTERNAL") {
+          const mRef = adminDb.collection("members").doc(tId);
+          const mSnap = await mRef.get();
+          if (mSnap.exists) {
+            await mRef.update({
+              lastPaymentDate: new Date(
+                (dataToUpdate.saleDate as any)?.toDate() || new Date()
+              ).toISOString(),
+            });
+          }
+        }
+      }
+    } else if (!dataToUpdate.isPaid && existingSale && existingSale.isPaid) {
+      // If payment status changed to UNPAID, revert attendances
+      const paidEventIds: string[] = existingSale.paidEventIds || [];
+      const targetMemberIds: string[] =
+        existingSale.memberIdsForAttendance ||
+        (existingSale.memberIdForAttendance
+          ? [existingSale.memberIdForAttendance]
+          : existingSale.memberId
+            ? [existingSale.memberId]
+            : []);
+
+      if (paidEventIds.length > 0 && targetMemberIds.length > 0) {
+        const chunkSize = 100;
+        for (let i = 0; i < paidEventIds.length; i += chunkSize) {
+          const chunk = paidEventIds.slice(i, i + chunkSize);
+          const attendanceBatch = adminDb.batch();
+
+          for (const eventId of chunk) {
+            const eventRef = adminDb.collection("events").doc(eventId);
+            const eventSnap = await eventRef.get();
+
+            if (!eventSnap.exists) continue;
+
+            const eventData = eventSnap.data();
+            const attendees: any[] = eventData?.attendees || [];
+
+            const updatedAttendees = attendees.map((attendee: any) => {
+              if (
+                targetMemberIds.includes(attendee.memberId) &&
+                attendee.saleId === saleRef.id
+              ) {
+                const {
+                  paymentStatus,
+                  paymentType,
+                  paymentDate,
+                  saleId,
+                  ...rest
+                } = attendee;
+                return rest;
+              }
+              return attendee;
+            });
+
+            attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+          }
+
+          await attendanceBatch.commit();
+        }
       }
     }
 
@@ -269,10 +370,15 @@ export async function deleteSaleAction(
     // 4. Revert attendance payment status if any events were linked to this sale
     // We do this outside the main transaction to avoid transaction limits if there are many events
     const paidEventIds: string[] = deletedSaleData.paidEventIds || [];
-    const memberId =
-      deletedSaleData.memberIdForAttendance || deletedSaleData.memberId;
+    const targetMemberIds: string[] =
+      deletedSaleData.memberIdsForAttendance ||
+      (deletedSaleData.memberIdForAttendance
+        ? [deletedSaleData.memberIdForAttendance]
+        : deletedSaleData.memberId
+          ? [deletedSaleData.memberId]
+          : []);
 
-    if (paidEventIds.length > 0 && memberId) {
+    if (paidEventIds.length > 0 && targetMemberIds.length > 0) {
       const chunkSize = 100;
       for (let i = 0; i < paidEventIds.length; i += chunkSize) {
         const chunk = paidEventIds.slice(i, i + chunkSize);
@@ -288,7 +394,7 @@ export async function deleteSaleAction(
           const attendees: any[] = eventData?.attendees || [];
 
           const updatedAttendees = attendees.map((att: any) => {
-            if (att.memberId === memberId && att.saleId === id) {
+            if (targetMemberIds.includes(att.memberId) && att.saleId === id) {
               return {
                 ...att,
                 paymentStatus: "unpaid",

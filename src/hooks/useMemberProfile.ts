@@ -77,7 +77,11 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
   const [salesResults] = await Promise.all([
     Promise.all(targetMemberIds.map((id) => getSalesByMemberId(id))),
   ]);
-  const salesData = salesResults.flat();
+  const salesMap = new Map();
+  salesResults.flat().forEach((sale) => salesMap.set(sale.id, sale));
+  const salesData = Array.from(salesMap.values()).sort(
+    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+  );
 
   return {
     member: memberData,

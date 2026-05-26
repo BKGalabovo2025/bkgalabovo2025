@@ -43,9 +43,21 @@ export function ServiceMenu({
 }: ServiceMenuProps) {
   const { idToken } = useAuth();
 
-  const monthlySubs = services.filter((s) => s.type === "Абонамент");
-  const annualSubs = services.filter((s) => s.type === "Годишен абонамент");
-  const membershipFees = services.filter((s) => s.type === "Членски внос");
+  const amateurSubs = services.filter(
+    (s) =>
+      (s.type === "Абонамент" || s.type === "Годишен абонамент") &&
+      s.targetGroups?.includes("Любители")
+  );
+  const monthlySubs = services.filter(
+    (s) => s.type === "Абонамент" && !s.targetGroups?.includes("Любители")
+  );
+  const annualSubs = services.filter(
+    (s) =>
+      s.type === "Годишен абонамент" && !s.targetGroups?.includes("Любители")
+  );
+  const membershipFees = services.filter(
+    (s) => s.type === "Членски внос" && !s.targetGroups?.includes("Любители")
+  );
   const oneTime = services.filter((s) => s.type === "Еднократно плащане");
 
   const handleDelete = async (id: string, name: string) => {
@@ -69,7 +81,7 @@ export function ServiceMenu({
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-zinc-100" />
             <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
-              Месечни Абонаменти
+              Месечни Абонаменти за Деца
             </h3>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>
@@ -113,6 +125,31 @@ export function ServiceMenu({
         </section>
       )}
 
+      {/* Amateur Subscriptions Section */}
+      {amateurSubs.length > 0 && (
+        <section className="space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-zinc-100" />
+            <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
+              Абонаменти за Любители
+            </h3>
+            <div className="h-px flex-1 bg-zinc-100" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {amateurSubs.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onEdit={() => onEdit(service)}
+                onSale={() => onSale(service)}
+                onDelete={() => handleDelete(service.id, service.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Membership Fees Section */}
       {membershipFees.length > 0 && (
         <section className="space-y-8">
@@ -144,7 +181,7 @@ export function ServiceMenu({
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-zinc-100" />
             <h3 className="text-xs uppercase tracking-[0.3em] font-medium text-zinc-400">
-              Еднократни Посещения
+              Еднократни Посещения и Персонални Тренировки
             </h3>
             <div className="h-px flex-1 bg-zinc-100" />
           </div>

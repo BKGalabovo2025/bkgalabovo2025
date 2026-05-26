@@ -225,6 +225,20 @@ export default function SaleDetailsClient() {
                   >
                     <div className="space-y-1">
                       <p className="font-medium text-zinc-900">{item.name}</p>
+                      {sale.targetMonthLabels &&
+                        sale.targetMonthLabels.length > 0 && (
+                          <p className="text-xs text-zinc-500 font-medium">
+                            За месеци: {sale.targetMonthLabels.join(", ")}
+                          </p>
+                        )}
+                      {sale.paymentMode === "individual" &&
+                        sale.targetEventDates &&
+                        sale.targetEventDates.length > 0 && (
+                          <p className="text-xs text-zinc-500 font-medium">
+                            За {sale.paidEventIds?.length || 1} тренировки на{" "}
+                            {sale.targetEventDates.join(", ")}
+                          </p>
+                        )}
                       <p className="text-sm font-light text-zinc-400">
                         {item.quantity} бр. x {formatPrice(item.price)}
                       </p>
@@ -236,7 +250,7 @@ export default function SaleDetailsClient() {
                 ))}
               </ul>
             </div>
-            <div className="p-8 bg-zinc-950 text-white flex justify-between items-center rounded-b-[2.5rem]">
+            <div className="p-8 bg-zinc-950 text-white flex justify-between items-center rounded-b-5xl">
               <div>
                 <p className="text-[10px] uppercase font-medium text-white/40 tracking-[0.2em]">
                   Обща сума

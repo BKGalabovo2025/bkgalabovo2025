@@ -323,93 +323,96 @@ export function MemberAttendanceHistory({
                             </div>
 
                             {/* Payment Status Badge */}
-                            <div
-                              className={cn(
-                                "mb-3",
-                                payStatus === "paid" &&
-                                  saleId &&
-                                  "cursor-pointer hover:opacity-80 transition-opacity"
-                              )}
-                              title={
-                                payStatus === "paid" && saleId
-                                  ? "Към разписката"
-                                  : undefined
-                              }
-                              onClick={(e) => {
-                                if (payStatus === "paid" && saleId) {
-                                  e.stopPropagation();
-                                  router.push(`/sales/${saleId}/receipt`);
+                            {event.type !== "competition" && (
+                              <div
+                                className={cn(
+                                  "mb-3",
+                                  payStatus === "paid" &&
+                                    saleId &&
+                                    "cursor-pointer hover:opacity-80 transition-opacity"
+                                )}
+                                title={
+                                  payStatus === "paid" && saleId
+                                    ? "Към разписката"
+                                    : undefined
                                 }
-                              }}
-                            >
-                              {payStatus === "paid" &&
-                                payType === "subscription" && (
+                                onClick={(e) => {
+                                  if (payStatus === "paid" && saleId) {
+                                    e.stopPropagation();
+                                    router.push(`/sales/${saleId}/receipt`);
+                                  }
+                                }}
+                              >
+                                {payStatus === "paid" &&
+                                  payType === "subscription" && (
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+                                      <CheckCircle2
+                                        className="h-3 w-3 text-emerald-500"
+                                        strokeWidth={2}
+                                      />
+                                      <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
+                                        Платено – Абонамент
+                                      </span>
+                                    </div>
+                                  )}
+                                {payStatus === "paid" &&
+                                  payType === "individual" && (
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit">
+                                      <CreditCard
+                                        className="h-3 w-3 text-blue-500"
+                                        strokeWidth={2}
+                                      />
+                                      <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-700">
+                                        Платено – Еднократно
+                                      </span>
+                                    </div>
+                                  )}
+                                {payStatus === "paid" && !payType && (
                                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
                                     <CheckCircle2
                                       className="h-3 w-3 text-emerald-500"
                                       strokeWidth={2}
                                     />
                                     <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
-                                      Платено – Абонамент
+                                      Платено
                                     </span>
                                   </div>
                                 )}
-                              {payStatus === "paid" &&
-                                payType === "individual" && (
-                                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit">
-                                    <CreditCard
-                                      className="h-3 w-3 text-blue-500"
+                                {(payStatus === "unpaid" || !payStatus) && (
+                                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
+                                    <XCircle
+                                      className="h-3 w-3 text-rose-500"
                                       strokeWidth={2}
                                     />
-                                    <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-700">
-                                      Платено – Еднократно
+                                    <span className="text-[9px] font-semibold uppercase tracking-widest text-rose-700">
+                                      {payStatus === "unpaid"
+                                        ? "Неплатено (Дълг)"
+                                        : "Неплатено"}
                                     </span>
                                   </div>
                                 )}
-                              {payStatus === "paid" && !payType && (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
-                                  <CheckCircle2
-                                    className="h-3 w-3 text-emerald-500"
-                                    strokeWidth={2}
-                                  />
-                                  <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
-                                    Платено
-                                  </span>
-                                </div>
-                              )}
-                              {(payStatus === "unpaid" || !payStatus) && (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
-                                  <XCircle
-                                    className="h-3 w-3 text-rose-500"
-                                    strokeWidth={2}
-                                  />
-                                  <span className="text-[9px] font-semibold uppercase tracking-widest text-rose-700">
-                                    {payStatus === "unpaid"
-                                      ? "Неплатено (Дълг)"
-                                      : "Неплатено"}
-                                  </span>
-                                </div>
-                              )}
-                              {payDate && payStatus === "paid" && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Receipt
-                                    className="h-2.5 w-2.5 text-zinc-300"
-                                    strokeWidth={1.5}
-                                  />
-                                  <span className="text-[8px] text-zinc-400 font-light">
-                                    Платено на:{" "}
-                                    {new Date(payDate).toLocaleDateString(
-                                      "bg-BG"
-                                    )}
-                                    {saleId && (
-                                      <span className="ml-1 text-zinc-300">
-                                        #{saleId.substring(0, 6).toUpperCase()}
-                                      </span>
-                                    )}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                                {payDate && payStatus === "paid" && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <Receipt
+                                      className="h-2.5 w-2.5 text-zinc-300"
+                                      strokeWidth={1.5}
+                                    />
+                                    <span className="text-[8px] text-zinc-400 font-light">
+                                      Платено на:{" "}
+                                      {new Date(payDate).toLocaleDateString(
+                                        "bg-BG"
+                                      )}
+                                      {saleId && (
+                                        <span className="ml-1 text-zinc-300">
+                                          #
+                                          {saleId.substring(0, 6).toUpperCase()}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             <div className="flex items-center gap-4 mt-auto pt-4 border-t border-zinc-50">
                               <div className="flex items-center gap-1.5">

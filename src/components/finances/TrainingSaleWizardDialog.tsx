@@ -58,6 +58,13 @@ interface TrainingSaleWizardDialogProps {
 
 type PaymentMode = "subscription" | "individual";
 
+interface MemberAttendanceStats {
+  memberId: string;
+  firstName: string;
+  paidCount: number;
+  unpaidCount: number;
+}
+
 interface MonthAttendance {
   monthKey: string; // yyyy-MM
   monthLabel: string; // e.g. "Януари 2026"
@@ -65,6 +72,7 @@ interface MonthAttendance {
   events: ScheduleEvent[];
   unpaidCount: number;
   paidCount: number;
+  memberStats: Record<string, MemberAttendanceStats>;
 }
 
 export const TrainingSaleWizardDialog = ({
@@ -139,21 +147,58 @@ export const TrainingSaleWizardDialog = ({
     }
   }, [isOpen, service, isSubscriptionService]);
 
+  const isFamilySubscription = useMemo(() => {
+    return (
+      isSubscriptionService && service.name.toLowerCase().includes("семеен")
+    );
+  }, [isSubscriptionService, service.name]);
+
+  const familyMembers = useMemo(() => {
+    if (!selectedMember || !isFamilySubscription) return [selectedMember];
+    if (selectedMember.familyId) {
+      return members.filter((m) => m.familyId === selectedMember.familyId);
+    }
+    return [selectedMember];
+  }, [selectedMember, isFamilySubscription, members]);
+
+  const targetMemberIds = useMemo(() => {
+    return familyMembers.map((m) => m?.id).filter(Boolean) as string[];
+  }, [familyMembers]);
+
+  const clientDisplayName = useMemo(() => {
+    if (isGuestSale) return "Външен клиент";
+    if (isFamilySubscription && familyMembers.length > 0) {
+      return familyMembers
+        .map((m) => `${m?.firstName} ${m?.lastName}`)
+        .join(", ");
+    }
+    return `${selectedMember?.firstName} ${selectedMember?.lastName}`;
+  }, [isGuestSale, isFamilySubscription, familyMembers, selectedMember]);
+
   // Load attendance when member is selected and we move to step 2
   useEffect(() => {
     if (selectedMember && !isGuestSale && step === 2) {
       const fetchAttendance = async () => {
         setAttendanceLoading(true);
         try {
-          const events = await getEventsByMemberId(selectedMember.id);
+          const fetchPromises = targetMemberIds.map((id) =>
+            getEventsByMemberId(id)
+          );
+          const results = await Promise.all(fetchPromises);
+          const events = results.flat();
+
           // Filter to attended-only events for this training type
           const attended = events.filter((e) => {
-            const rec = e.attendees?.find(
-              (a: Attendee) => a.memberId === selectedMember.id
+            const rec = e.attendees?.find((a: Attendee) =>
+              targetMemberIds.includes(a.memberId)
             );
             return rec?.attended === true;
           });
-          setMemberEvents(attended);
+
+          // Deduplicate events by id
+          const uniqueEventsMap = new Map();
+          attended.forEach((e) => uniqueEventsMap.set(e.id, e));
+          setMemberEvents(Array.from(uniqueEventsMap.values()));
         } catch (err) {
           console.error("Error loading member attendance:", err);
           toast.error("Грешка", {
@@ -165,7 +210,7 @@ export const TrainingSaleWizardDialog = ({
       };
       fetchAttendance();
     }
-  }, [selectedMember, isGuestSale, step]);
+  }, [selectedMember, isGuestSale, step, targetMemberIds]);
 
   // Group events by calendar month
   const monthlyAttendance = useMemo((): MonthAttendance[] => {
@@ -180,10 +225,11 @@ export const TrainingSaleWizardDialog = ({
         " " +
         getYear(d);
 
-      const attendeeRec = event.attendees?.find(
-        (a: Attendee) => a.memberId === selectedMember?.id
-      );
-      const isPaidEvent = attendeeRec?.paymentStatus === "paid";
+      // Find all target members in this event
+      const targetAttendees =
+        event.attendees?.filter((a: Attendee) =>
+          targetMemberIds.includes(a.memberId)
+        ) || [];
 
       if (!groupedMap.has(monthKey)) {
         groupedMap.set(monthKey, {
@@ -193,37 +239,58 @@ export const TrainingSaleWizardDialog = ({
           events: [],
           unpaidCount: 0,
           paidCount: 0,
+          memberStats: {},
         });
       }
 
       const entry = groupedMap.get(monthKey)!;
       entry.events.push(event);
-      if (isPaidEvent) {
-        entry.paidCount++;
-      } else {
-        entry.unpaidCount++;
+
+      // Count each attendee record separately so 2 siblings = 2 unpaid/paid items
+      for (const att of targetAttendees) {
+        if (!entry.memberStats[att.memberId]) {
+          const familyMember = familyMembers.find(
+            (m) => m?.id === att.memberId
+          );
+          entry.memberStats[att.memberId] = {
+            memberId: att.memberId,
+            firstName: familyMember?.firstName || "Неизвестен",
+            paidCount: 0,
+            unpaidCount: 0,
+          };
+        }
+
+        if (att.paymentStatus === "paid") {
+          entry.paidCount++;
+          entry.memberStats[att.memberId].paidCount++;
+        } else {
+          entry.unpaidCount++;
+          entry.memberStats[att.memberId].unpaidCount++;
+        }
       }
     }
 
     return Array.from(groupedMap.values()).sort((a, b) =>
       b.monthKey.localeCompare(a.monthKey)
     );
-  }, [memberEvents, selectedMember]);
+  }, [memberEvents, targetMemberIds, familyMembers]);
 
   // Unpaid events for individual selection
   const unpaidEvents = useMemo(() => {
     return memberEvents
       .filter((e) => {
-        const rec = e.attendees?.find(
-          (a: Attendee) => a.memberId === selectedMember?.id
+        const hasUnpaidTarget = e.attendees?.some(
+          (a: Attendee) =>
+            targetMemberIds.includes(a.memberId) &&
+            (!a.paymentStatus || a.paymentStatus === "unpaid")
         );
-        return !rec?.paymentStatus || rec.paymentStatus === "unpaid";
+        return hasUnpaidTarget;
       })
       .sort(
         (a, b) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
       );
-  }, [memberEvents, selectedMember]);
+  }, [memberEvents, targetMemberIds]);
 
   const filteredMembers = members.filter((m) => {
     const fullName = `${m.firstName} ${m.lastName}`.toLowerCase();
@@ -328,10 +395,12 @@ export const TrainingSaleWizardDialog = ({
             .flatMap((m) =>
               m.events
                 .filter((e) => {
-                  const rec = e.attendees?.find(
-                    (a: Attendee) => a.memberId === selectedMember?.id
+                  const hasUnpaidTarget = e.attendees?.some(
+                    (a: Attendee) =>
+                      targetMemberIds.includes(a.memberId) &&
+                      (!a.paymentStatus || a.paymentStatus === "unpaid")
                   );
-                  return !rec?.paymentStatus || rec.paymentStatus === "unpaid";
+                  return hasUnpaidTarget;
                 })
                 .map((e) => e.id)
             )
@@ -346,7 +415,7 @@ export const TrainingSaleWizardDialog = ({
     try {
       const clientName = isGuestSale
         ? "Външен клиент"
-        : `${selectedMember!.firstName} ${selectedMember!.lastName}`;
+        : familyMembers.map((m) => `${m!.firstName} ${m!.lastName}`).join(", ");
 
       // Build month labels for the receipt/notes
       const selectedMonthLabels = monthlyAttendance
@@ -354,9 +423,24 @@ export const TrainingSaleWizardDialog = ({
         .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
         .map((m) => m.monthLabel);
 
+      // Build target dates for individual visits
+      const targetEventDates = isGuestSale
+        ? null
+        : paymentMode === "individual"
+          ? selectedEventIds
+              .map((id) => {
+                const ev = memberEvents.find((e) => e.id === id);
+                return ev
+                  ? new Date(ev.startDate).toLocaleDateString("bg-BG")
+                  : null;
+              })
+              .filter(Boolean)
+          : null;
+
       const saleData = {
         siteId: activeBranch || "bkgalabovo",
         memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
+        clientName: clientName, // Ensure clientName is saved in the sale document
         saleDate: new Date().toISOString(),
         items: [
           {
@@ -377,12 +461,14 @@ export const TrainingSaleWizardDialog = ({
         paymentMode: isGuestSale ? null : paymentMode,
         targetMonths: isGuestSale ? null : selectedMonthKeys,
         targetMonthLabels: isGuestSale ? null : selectedMonthLabels,
+        targetEventDates: targetEventDates,
         paidEventIds: isGuestSale
           ? []
           : paymentMode === "individual"
             ? selectedEventIds
             : paidEventIdsForSubscription,
         memberIdForAttendance: isGuestSale ? null : selectedMember?.id,
+        memberIdsForAttendance: isGuestSale ? null : targetMemberIds,
       };
 
       const result = await executeTrainingSaleAction(
@@ -791,9 +877,48 @@ export const TrainingSaleWizardDialog = ({
                               >
                                 {monthData.monthLabel}
                               </p>
-                              <p className="text-[10px] text-zinc-400 font-light mt-0.5">
-                                {monthData.events.length} посещения общо
-                              </p>
+                              <div className="text-[10px] text-zinc-400 font-light mt-1 flex flex-col gap-0.5">
+                                {Object.values(monthData.memberStats).length >
+                                1 ? (
+                                  Object.values(monthData.memberStats).map(
+                                    (stat) => {
+                                      const total =
+                                        stat.paidCount + stat.unpaidCount;
+                                      if (total === 0) return null;
+                                      return (
+                                        <span
+                                          key={stat.memberId}
+                                          className={
+                                            isSelected
+                                              ? "text-emerald-700/70 dark:text-emerald-300/70"
+                                              : ""
+                                          }
+                                        >
+                                          • {stat.firstName}: {total} присъстви
+                                          {total === 1 ? "е" : "я"}
+                                          {stat.unpaidCount > 0 && (
+                                            <span className="text-rose-500 font-medium ml-1">
+                                              ({stat.unpaidCount} неплатени)
+                                            </span>
+                                          )}
+                                        </span>
+                                      );
+                                    }
+                                  )
+                                ) : (
+                                  <span
+                                    className={
+                                      isSelected
+                                        ? "text-emerald-700/70 dark:text-emerald-300/70"
+                                        : ""
+                                    }
+                                  >
+                                    {monthData.paidCount +
+                                      monthData.unpaidCount}{" "}
+                                    присъствия общо
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Badges */}
@@ -1083,9 +1208,7 @@ export const TrainingSaleWizardDialog = ({
               <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
                 <span className="text-zinc-500">Клиент</span>
                 <span className="font-bold text-zinc-900 dark:text-white">
-                  {isGuestSale
-                    ? "Външен клиент"
-                    : `${selectedMember?.firstName} ${selectedMember?.lastName}`}
+                  {clientDisplayName}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
@@ -1225,9 +1348,7 @@ export const TrainingSaleWizardDialog = ({
                       Получател
                     </p>
                     <p className="font-bold uppercase text-zinc-800 dark:text-zinc-200">
-                      {isGuestSale
-                        ? "Външен клиент"
-                        : `${selectedMember?.firstName} ${selectedMember?.lastName}`}
+                      {clientDisplayName}
                     </p>
                   </div>
                   <div className="text-right text-zinc-600 dark:text-zinc-400">
@@ -1279,7 +1400,25 @@ export const TrainingSaleWizardDialog = ({
                             paymentMode === "individual" &&
                             selectedEventIds.length > 0 && (
                               <span className="ml-1 font-normal text-zinc-500">
-                                ({selectedEventIds.length} тренировки)
+                                ({selectedEventIds.length} тренировки
+                                {(() => {
+                                  const dates = selectedEventIds
+                                    .map((id) => {
+                                      const ev = memberEvents.find(
+                                        (e) => e.id === id
+                                      );
+                                      return ev
+                                        ? new Date(
+                                            ev.startDate
+                                          ).toLocaleDateString("bg-BG")
+                                        : "";
+                                    })
+                                    .filter(Boolean);
+                                  return dates.length > 0
+                                    ? ` на ${dates.join(", ")}`
+                                    : "";
+                                })()}
+                                )
                               </span>
                             )}
                         </td>

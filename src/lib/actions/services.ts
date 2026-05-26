@@ -506,12 +506,20 @@ export async function executeTrainingSaleAction(
     // 3. Атомарно обновяване на присъствията в събитията (платен статус)
     // Прави се след commit на основния batch за да не достигаме Firestore лимита от 500 writes
     const paidEventIds: string[] = saleData.paidEventIds || [];
-    const memberIdForAttendance: string | null =
-      saleData.memberIdForAttendance || null;
+
+    // Support either a single member or an array of members (for family subscriptions)
+    const targetMemberIds: string[] =
+      saleData.memberIdsForAttendance ||
+      (saleData.memberIdForAttendance ? [saleData.memberIdForAttendance] : []);
+
     const paymentType: "subscription" | "individual" =
       saleData.paymentMode === "subscription" ? "subscription" : "individual";
 
-    if (paidEventIds.length > 0 && memberIdForAttendance && saleData.isPaid) {
+    if (
+      paidEventIds.length > 0 &&
+      targetMemberIds.length > 0 &&
+      saleData.isPaid
+    ) {
       // Process in batches of 100 events max
       const chunkSize = 100;
       for (let i = 0; i < paidEventIds.length; i += chunkSize) {
@@ -529,9 +537,9 @@ export async function executeTrainingSaleAction(
 
           const nowIso = new Date().toISOString();
 
-          // Find and update the specific member's attendee record
+          // Find and update the specific members' attendee records
           const updatedAttendees = attendees.map((attendee) => {
-            if (attendee.memberId === memberIdForAttendance) {
+            if (targetMemberIds.includes(attendee.memberId)) {
               return {
                 ...attendee,
                 paymentStatus: "paid",
@@ -556,6 +564,7 @@ export async function executeTrainingSaleAction(
       saleData.memberId &&
       saleData.memberId !== "GUEST_EXTERNAL"
     ) {
+      // Update the main member who made the purchase
       const memberRef = adminDb.collection("members").doc(saleData.memberId);
       const memberSnap = await memberRef.get();
       if (memberSnap.exists) {
@@ -563,13 +572,26 @@ export async function executeTrainingSaleAction(
           lastPaymentDate: new Date(saleData.saleDate).toISOString(),
         });
       }
+
+      // Also update lastPaymentDate for any additional family members
+      for (const tId of targetMemberIds) {
+        if (tId !== saleData.memberId && tId !== "GUEST_EXTERNAL") {
+          const mRef = adminDb.collection("members").doc(tId);
+          const mSnap = await mRef.get();
+          if (mSnap.exists) {
+            await mRef.update({
+              lastPaymentDate: new Date(saleData.saleDate).toISOString(),
+            });
+          }
+        }
+      }
     }
 
     serverCache.invalidatePattern("sales:");
     revalidatePath("/catalogs");
     revalidatePath("/reports");
-    if (memberIdForAttendance) {
-      revalidatePath(`/members/${memberIdForAttendance}`);
+    for (const tId of targetMemberIds) {
+      revalidatePath(`/members/${tId}`);
     }
 
     return { success: true, saleId: saleRef.id };

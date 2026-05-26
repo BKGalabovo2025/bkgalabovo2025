@@ -39,8 +39,10 @@ export const SaleSchema = z.object({
   paymentMode: z.enum(["subscription", "individual"]).nullable().optional(),
   targetMonths: z.array(z.string()).nullable().optional(),
   targetMonthLabels: z.array(z.string()).nullable().optional(),
+  targetEventDates: z.array(z.string()).nullable().optional(),
   paidEventIds: z.array(z.string()).optional(),
   memberIdForAttendance: z.string().nullable().optional(),
+  memberIdsForAttendance: z.array(z.string()).nullable().optional(),
 });
 
 export type SaleItem = z.infer<typeof SaleItemSchema>;

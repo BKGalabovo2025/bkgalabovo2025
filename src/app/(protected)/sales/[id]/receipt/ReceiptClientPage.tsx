@@ -197,7 +197,12 @@ const ReceiptCopy = ({
                         sale?.paidEventIds &&
                         sale.paidEventIds.length > 0 && (
                           <span className="block text-[8px] text-[#475569] font-normal mt-0.5">
-                            ({sale.paidEventIds.length} тренировки)
+                            ({sale.paidEventIds.length} тренировки
+                            {sale.targetEventDates &&
+                            sale.targetEventDates.length > 0
+                              ? ` на ${sale.targetEventDates.join(", ")}`
+                              : ""}
+                            )
                           </span>
                         )}
 
