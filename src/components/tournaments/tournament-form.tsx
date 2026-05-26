@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   Form,
   FormControl,
@@ -268,15 +268,17 @@ export function TournamentForm({
                   Турнирът изисква ли такса?
                 </p>
               </div>
-              <Checkbox
+              <input
+                type="checkbox"
                 id="hasFee"
                 checked={form.watch("entryFee") > 0}
-                onCheckedChange={(checked: boolean) => {
+                onChange={(e) => {
+                  const checked = e.target.checked;
                   if (!checked) form.setValue("entryFee", 0);
                   else if (form.getValues("entryFee") === 0)
                     form.setValue("entryFee", 10);
                 }}
-                className="h-6 w-6 rounded-md border-zinc-200"
+                className="h-6 w-6 rounded border-zinc-300 cursor-pointer accent-zinc-950"
               />
             </div>
 
@@ -386,10 +388,11 @@ export function TournamentForm({
                     Резултатите носят точки за класирането
                   </p>
                 </div>
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="h-7 w-7 rounded-lg border-zinc-200"
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  className="h-6 w-6 rounded border-zinc-300 cursor-pointer accent-zinc-950"
                 />
               </FormItem>
             )}
@@ -463,16 +466,18 @@ export function TournamentForm({
                           field.onChange(next);
                         }}
                       >
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           checked={isChecked}
-                          onCheckedChange={(checked: boolean) => {
+                          onChange={(e) => {
                             const current = field.value || [];
-                            const next = checked
+                            const next = e.target.checked
                               ? [...current, item.id]
                               : current.filter((v) => v !== item.id);
                             field.onChange(next);
                           }}
-                          className="h-5 w-5 rounded-md"
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-5 w-5 rounded border-zinc-300 cursor-pointer accent-zinc-950"
                         />
                         <FormLabel className="text-xs font-medium uppercase tracking-widest cursor-pointer">
                           {item.label}
