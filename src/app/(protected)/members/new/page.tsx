@@ -16,6 +16,7 @@ const NewMemberPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const familyId = searchParams.get("familyId");
+  const type = searchParams.get("type");
   const { idToken } = useAuth();
 
   const handleSave = async (data: MemberFormValues) => {
@@ -51,13 +52,26 @@ const NewMemberPage = () => {
     router.back();
   };
 
+  const initialData: Partial<Member> = {};
+  if (familyId) {
+    initialData.familyId = familyId;
+  }
+  if (type === "guest") {
+    initialData.isGuest = true;
+    initialData.memberType = "guest";
+  }
+
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-4">Добавяне на нов член</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {type === "guest"
+          ? "Добавяне на външен клиент (гост)"
+          : "Добавяне на нов член"}
+      </h1>
       <MemberForm
         onSave={handleSave}
         onClose={handleClose}
-        initialData={familyId ? ({ familyId } as Partial<Member>) : undefined}
+        initialData={initialData}
       />
     </div>
   );
