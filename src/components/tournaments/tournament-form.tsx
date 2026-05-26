@@ -214,11 +214,9 @@ export function TournamentForm({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <FormControl>
-                    <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
-                      <SelectValue placeholder="Избери формат" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
+                    <SelectValue placeholder="Избери формат" />
+                  </SelectTrigger>
                   <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
                     <SelectItem value="berger">Групи (Бергер)</SelectItem>
                     <SelectItem value="knockout">Елиминация</SelectItem>
@@ -246,11 +244,9 @@ export function TournamentForm({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <FormControl>
-                    <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
-                      <SelectValue placeholder="Избери статус" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
+                    <SelectValue placeholder="Избери статус" />
+                  </SelectTrigger>
                   <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
                     <SelectItem value="upcoming">Предстоящ</SelectItem>
                     <SelectItem value="registration_open">Записване</SelectItem>
@@ -353,11 +349,9 @@ export function TournamentForm({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <FormControl>
-                    <SelectTrigger className="h-14 rounded-xl border-primary/10 bg-white dark:bg-zinc-950 text-sm font-light shadow-none">
-                      <SelectValue placeholder="Избери формат" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <SelectTrigger className="h-14 rounded-xl border-primary/10 bg-white dark:bg-zinc-950 text-sm font-light shadow-none">
+                    <SelectValue placeholder="Избери формат" />
+                  </SelectTrigger>
                   <SelectContent className="rounded-2xl border-zinc-100 shadow-xl max-h-[300px]">
                     {MATCH_FORMAT_PRESETS.map((preset) => (
                       <SelectItem key={preset.id} value={preset.id}>
