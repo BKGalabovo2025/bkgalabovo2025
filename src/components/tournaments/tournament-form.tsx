@@ -15,13 +15,7 @@ import {
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -32,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Star } from "lucide-react";
+import { Star, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -210,19 +204,20 @@ export function TournamentForm({
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Формат на игра
                 </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
-                    <SelectValue placeholder="Избери формат" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
-                    <SelectItem value="berger">Групи (Бергер)</SelectItem>
-                    <SelectItem value="knockout">Елиминация</SelectItem>
-                    <SelectItem value="mixed">Смесен</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <select
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-14 w-full rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 text-sm font-light shadow-none outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer text-zinc-900 dark:text-white"
+                  >
+                    <option value="berger">Групи (Бергер)</option>
+                    <option value="knockout">Елиминация</option>
+                    <option value="mixed">Смесен</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-zinc-400">
+                    <ChevronDown className="h-4 w-4" strokeWidth={1.5} />
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -240,20 +235,21 @@ export function TournamentForm({
                 <FormLabel className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
                   Статус на събитието
                 </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none">
-                    <SelectValue placeholder="Избери статус" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl">
-                    <SelectItem value="upcoming">Предстоящ</SelectItem>
-                    <SelectItem value="registration_open">Записване</SelectItem>
-                    <SelectItem value="ongoing">В ход</SelectItem>
-                    <SelectItem value="completed">Приключил</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <select
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-14 w-full rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 text-sm font-light shadow-none outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer text-zinc-900 dark:text-white"
+                  >
+                    <option value="upcoming">Предстоящ</option>
+                    <option value="registration_open">Записване</option>
+                    <option value="ongoing">В ход</option>
+                    <option value="completed">Приключил</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-zinc-400">
+                    <ChevronDown className="h-4 w-4" strokeWidth={1.5} />
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -345,21 +341,22 @@ export function TournamentForm({
                     Резултатите ще се валидират спрямо избрания формат.
                   </p>
                 </div>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger className="h-14 rounded-xl border-primary/10 bg-white dark:bg-zinc-950 text-sm font-light shadow-none">
-                    <SelectValue placeholder="Избери формат" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-zinc-100 shadow-xl max-h-[300px]">
+                <div className="relative">
+                  <select
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-14 w-full rounded-xl border border-primary/10 bg-white dark:bg-zinc-950 px-4 text-sm font-light shadow-none outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer text-zinc-900 dark:text-white"
+                  >
                     {MATCH_FORMAT_PRESETS.map((preset) => (
-                      <SelectItem key={preset.id} value={preset.id}>
+                      <option key={preset.id} value={preset.id}>
                         {preset.label}
-                      </SelectItem>
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-zinc-400">
+                    <ChevronDown className="h-4 w-4" strokeWidth={1.5} />
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
