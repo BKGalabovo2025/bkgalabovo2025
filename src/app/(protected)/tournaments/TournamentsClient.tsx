@@ -31,8 +31,6 @@ import { Input } from "@/components/ui/input";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 
-import { useAppStore } from "@/store/use-app-store";
-
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
 }
@@ -40,7 +38,6 @@ interface TournamentsClientProps {
 export default function TournamentsClient({
   initialTournaments,
 }: TournamentsClientProps) {
-  const { activeBranch } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [tournaments, setTournaments] =
     useState<Tournament[]>(initialTournaments);
@@ -51,8 +48,7 @@ export default function TournamentsClient({
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
+    setMounted(true);
   }, []);
 
   const refreshTournaments = useCallback(async () => {
@@ -66,12 +62,9 @@ export default function TournamentsClient({
 
   useEffect(() => {
     if (mounted) {
-      const timer = setTimeout(() => {
-        refreshTournaments();
-      }, 0);
-      return () => clearTimeout(timer);
+      refreshTournaments();
     }
-  }, [activeBranch, mounted, refreshTournaments]);
+  }, [mounted, refreshTournaments]);
 
   const handleSave = async (data: Tournament) => {
     try {
