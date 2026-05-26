@@ -80,7 +80,6 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     const saleSnap = await adminDb.collection("sales").doc(saleId).get();
 
     if (!saleSnap.exists) {
-      console.error("No sale found with ID:", saleId);
       return { success: false, error: "Продажбата не е намерена." };
     }
 
@@ -131,7 +130,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     }
 
     // Извличане на свързана услуга (ако е необходимо)
-    let service: ClubService | null = null;
+    const service: ClubService | null = null;
 
     // Извличане на свързано лице (родител/дете)
     let relatedMember: Member | null = null;

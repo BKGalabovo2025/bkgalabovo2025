@@ -86,7 +86,9 @@ export const generateAttendanceReport = async (
             registrationDate: new Date().toISOString(), // Добавено
             notes: "",
             role: "member",
-          } as Member, // Указваме типа изрично
+            isGuest: false,
+            memberType: "regular",
+          } as unknown as Member, // Указваме типа изрично
           attendanceCount: attendanceByMember[memberId],
         };
       }

@@ -11,6 +11,9 @@ import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/shared/data-table";
 import { ServiceMenu } from "@/components/finances/ServiceMenu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddTrainingDialog } from "@/components/finances/AddTrainingDialog";
+import { EditTrainingDialog } from "@/components/finances/EditTrainingDialog";
+import { TrainingSaleWizardDialog } from "@/components/finances/TrainingSaleWizardDialog";
 
 interface ServicesClientPageProps {
   data: Service[];
@@ -23,6 +26,13 @@ export default function ServicesClientPage({
 }: ServicesClientPageProps) {
   const router = useRouter();
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [saleService, setSaleService] = useState<Service | null>(null);
+
+  const handleSuccess = () => {
+    router.refresh();
+  };
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-24">
@@ -60,7 +70,7 @@ export default function ServicesClientPage({
             </Tabs>
 
             <Button
-              onClick={() => router.push("/finances/services/new")}
+              onClick={() => setIsAddOpen(true)}
               className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
             >
               <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} />{" "}
@@ -101,7 +111,7 @@ export default function ServicesClientPage({
             </Tabs>
 
             <Button
-              onClick={() => router.push("/finances/services/new")}
+              onClick={() => setIsAddOpen(true)}
               className="rounded-2xl shadow-xl shadow-zinc-200 bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
             >
               <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
@@ -112,7 +122,12 @@ export default function ServicesClientPage({
       )}
 
       {view === "grid" ? (
-        <ServiceMenu services={data} />
+        <ServiceMenu
+          services={data}
+          onEdit={(service) => setEditingService(service)}
+          onSale={(service) => setSaleService(service)}
+          onDeleteSuccess={handleSuccess}
+        />
       ) : (
         <BentoCard className="p-8 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
           <DataTable
@@ -124,6 +139,31 @@ export default function ServicesClientPage({
             emptyStateMessage="Няма намерени услуги."
           />
         </BentoCard>
+      )}
+
+      <AddTrainingDialog
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSuccess={handleSuccess}
+      />
+
+      <EditTrainingDialog
+        service={editingService}
+        isOpen={!!editingService}
+        onClose={() => setEditingService(null)}
+        onSuccess={handleSuccess}
+      />
+
+      {saleService && (
+        <TrainingSaleWizardDialog
+          service={saleService}
+          isOpen={!!saleService}
+          onClose={() => setSaleService(null)}
+          onSaleSuccess={() => {
+            setSaleService(null);
+            handleSuccess();
+          }}
+        />
       )}
     </div>
   );

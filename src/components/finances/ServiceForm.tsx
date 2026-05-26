@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Service } from "@/app/(protected)/finances/services/service.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,43 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BentoCard } from "@/components/ui/bento-card";
-import { Loader2, Save, X, Info, Users, Settings } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  X,
+  Info,
+  Users,
+  Settings,
+  Camera,
+  Trash,
+} from "lucide-react";
+import Image from "next/image";
+import { useAuth } from "@/context/auth-context";
+import { uploadFile } from "@/services/storage-service";
+import { toast } from "sonner";
+
+const localImages = [
+  {
+    name: "Абонамент - Дете",
+    path: "/планове/абонамент - дете .png",
+  },
+  {
+    name: "Абонамент - Дете (2)",
+    path: "/планове/абонамент - дете  втора снимка.png",
+  },
+  {
+    name: "Абонамент - Любител",
+    path: "/планове/абонамент - любител .png",
+  },
+  {
+    name: "Персонална - Дете",
+    path: "/планове/персонална тренировка - дете .png",
+  },
+  {
+    name: "Персонална - Любител",
+    path: "/планове/персонална тренировка - любител .png",
+  },
+];
 
 interface ServiceFormProps {
   initialData?: Partial<Service>;
@@ -50,6 +86,11 @@ export function ServiceForm({
   const [billingPeriod, setBillingPeriod] = useState<string>(
     initialData?.billingPeriod || "Месечен"
   );
+
+  const { idToken } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
+  const [isUploading, setIsUploading] = useState(false);
 
   return (
     <form
@@ -154,6 +195,218 @@ export function ServiceForm({
                   />
                 </div>
               </div>
+            </div>
+          </BentoCard>
+
+          <BentoCard className="p-8 bg-white border-zinc-100 shadow-none rounded-5xl">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
+                <Camera className="h-5 w-5" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-light tracking-tight">
+                Изображения на услугата
+              </h3>
+            </div>
+
+            <div className="space-y-6">
+              <input type="hidden" name="imageUrl" value={imageUrl} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !idToken) return;
+
+                  if (!file.type.startsWith("image/")) {
+                    toast.error("Грешка", {
+                      description: "Моля, изберете валиден графичен файл.",
+                    });
+                    return;
+                  }
+
+                  if (file.size > 2 * 1024 * 1024) {
+                    toast.error("Грешка", {
+                      description: "Изображението трябва да е под 2MB.",
+                    });
+                    return;
+                  }
+
+                  setIsUploading(true);
+                  try {
+                    const path = `services/${Date.now()}_${file.name}`;
+                    const downloadUrl = await uploadFile(path, file, idToken);
+                    setImageUrl((prev) => {
+                      const list = prev ? prev.split(",").filter(Boolean) : [];
+                      return [...list, downloadUrl].join(",");
+                    });
+                    toast.success("Успех!", {
+                      description:
+                        "Снимката е качена успешно и е добавена към списъка.",
+                    });
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Грешка при качване", {
+                      description: (err as Error).message,
+                    });
+                  } finally {
+                    setIsUploading(false);
+                  }
+                }}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div className="space-y-4">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    Добавяне на снимка от компютъра
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full aspect-video rounded-3xl border-2 border-dashed border-zinc-200 hover:border-zinc-300 transition-colors flex flex-col items-center justify-center p-6 text-zinc-400 group bg-zinc-50/50"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-10 w-10 animate-spin text-amber-500 mb-3" />
+                        <span className="text-xs font-light text-zinc-500">
+                          Качване на снимката...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera
+                          className="h-10 w-10 text-zinc-300 group-hover:text-zinc-500 mb-3 transition-colors"
+                          strokeWidth={1}
+                        />
+                        <span className="text-xs font-semibold text-zinc-600 group-hover:text-zinc-900 transition-colors">
+                          Качете нов файл
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-light mt-1">
+                          (Изисква активиран Firebase Storage)
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    Избор от качените в /public/планове (Мултиселекция)
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                    {localImages.map((img) => {
+                      const selectedList = imageUrl
+                        ? imageUrl.split(",").filter(Boolean)
+                        : [];
+                      const isSelected = selectedList.includes(img.path);
+                      const selectOrderIndex = selectedList.indexOf(img.path);
+
+                      return (
+                        <button
+                          key={img.path}
+                          type="button"
+                          onClick={() => {
+                            let nextList = imageUrl
+                              ? imageUrl.split(",").filter(Boolean)
+                              : [];
+                            if (nextList.includes(img.path)) {
+                              nextList = nextList.filter((p) => p !== img.path);
+                            } else {
+                              nextList.push(img.path);
+                            }
+                            setImageUrl(nextList.join(","));
+                          }}
+                          className={`group relative aspect-video rounded-2xl overflow-hidden border transition-all ${
+                            isSelected
+                              ? "border-zinc-950 ring-2 ring-zinc-950 shadow-md scale-102"
+                              : "border-zinc-100 hover:border-zinc-300 hover:scale-102"
+                          }`}
+                        >
+                          <Image
+                            src={img.path}
+                            alt={img.name}
+                            fill
+                            sizes="120px"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-end p-2">
+                            <span className="text-[10px] font-semibold text-white truncate w-full text-left drop-shadow-sm">
+                              {img.name}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 bg-zinc-950 text-white rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold shadow-md">
+                              {selectOrderIndex + 1}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {imageUrl ? (
+                <div className="pt-6 border-t border-zinc-100 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Избрани снимки (
+                      {imageUrl.split(",").filter(Boolean).length})
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setImageUrl("")}
+                      className="text-xs font-medium text-red-650 hover:bg-red-50 hover:text-red-700 h-8 px-3 rounded-lg"
+                    >
+                      Премахни всички
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {imageUrl
+                      .split(",")
+                      .filter(Boolean)
+                      .map((path, index, arr) => {
+                        return (
+                          <div
+                            key={path}
+                            className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-50 group shadow-sm"
+                          >
+                            <Image
+                              src={path}
+                              alt={`Preview ${index + 1}`}
+                              fill
+                              sizes="150px"
+                              className="object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-zinc-950/80 backdrop-blur-sm text-white rounded-md px-1.5 py-0.5 text-[9px] font-bold flex items-center justify-center">
+                              #{index + 1}
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => {
+                                  const nextList = arr.filter(
+                                    (p) => p !== path
+                                  );
+                                  setImageUrl(nextList.join(","));
+                                }}
+                                className="h-8 w-8 rounded-full"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </BentoCard>
 

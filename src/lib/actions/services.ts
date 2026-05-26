@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
+import { serverCache } from "@/lib/server-cache";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
@@ -31,6 +32,7 @@ const ServiceSchema = z.object({
   requiresBooking: z.boolean().default(false),
   maxMembers: z.coerce.number().optional().nullable(),
   minMembers: z.coerce.number().optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
 });
 
 // --- Type for Server Action State ---
@@ -79,6 +81,7 @@ function _parseFormData(formData: FormData) {
     requiresBooking: getBool("requiresBooking"),
     maxMembers: getNum("maxMembers"),
     minMembers: getNum("minMembers"),
+    imageUrl: getStr("imageUrl"),
   };
 }
 
@@ -164,6 +167,8 @@ export async function createClubService(
       `Създадена услуга: ${data.name}`
     );
 
+    serverCache.invalidate("clubServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/services");
     return {
       success: true,
@@ -228,6 +233,8 @@ export async function updateClubService(
       `Обновена услуга: ${data.name}`
     );
 
+    serverCache.invalidate("clubServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/services");
     revalidatePath(`/finances/services/${id}`);
     return {
@@ -267,6 +274,8 @@ export async function deleteClubService(idToken: string, id: string) {
       `Изтрита услуга: ${serviceData?.name}`
     );
 
+    serverCache.invalidate("clubServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/services");
     return { success: true, message: "Услугата беше изтрита успешно." };
   } catch (error) {
@@ -341,15 +350,20 @@ export async function createRecoverySession(
     const data = validatedFields.data;
     const sessionId = `rec_${Date.now()}`;
 
-    await adminDb.collection("sessions").doc(sessionId).set({
-      ...data,
-      id: sessionId,
-      siteId: "recoveryzone",
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    await adminDb
+      .collection("sessions")
+      .doc(sessionId)
+      .set({
+        ...data,
+        id: sessionId,
+        siteId: "recoveryzone",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
+    serverCache.invalidate("recoveryServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
     return {
       success: true,
@@ -404,11 +418,16 @@ export async function updateRecoverySession(
 
     const data = validatedFields.data;
 
-    await adminDb.collection("sessions").doc(id).update({
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
+    await adminDb
+      .collection("sessions")
+      .doc(id)
+      .update({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
 
+    serverCache.invalidate("recoveryServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
     revalidatePath(`/finances/recovery/${id}`);
     return {
@@ -426,10 +445,136 @@ export async function deleteRecoverySession(idToken: string, id: string) {
     await getAuthUser(idToken);
     const adminDb = getAdminDb();
     await adminDb.collection("sessions").doc(id).delete();
+    serverCache.invalidate("recoveryServices");
+    revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
     return { success: true, message: "Процедурата беше изтрита успешно." };
   } catch (error) {
     console.error("Error deleting recovery session:", error);
     return { success: false, message: "Грешка при изтриването." };
+  }
+}
+
+export async function executeTrainingSaleAction(
+  idToken: string,
+  saleData: Record<string, any>,
+  serviceName: string,
+  clientName?: string
+) {
+  try {
+    const user = await getAuthUser(idToken);
+    const adminDb = getAdminDb();
+    const now = new Date().toISOString();
+
+    const batch = adminDb.batch();
+
+    // 1. Създаване на записа за продажба
+    const saleRef = adminDb.collection("sales").doc();
+    const formattedSaleDate = saleData.saleDate
+      ? new Date(saleData.saleDate).toISOString()
+      : now;
+
+    const newSale = {
+      ...saleData,
+      id: saleRef.id,
+      saleDate: formattedSaleDate,
+      createdAt: now,
+      createdBy: { uid: user.uid, email: user.email },
+    };
+    batch.set(saleRef, newSale);
+
+    // 2. Записване на събитие в историята на тренировъчната услуга
+    const serviceId = saleData.items[0]?.productId;
+    if (serviceId) {
+      const qty = saleData.items[0]?.quantity || 1;
+      const totalAmt = saleData.totalAmount || 0;
+      const eventRef = adminDb.collection("serviceHistory").doc();
+      const historyEvent = {
+        serviceId: serviceId,
+        userId: user.uid,
+        userName: user.displayName || user.email || "Unknown User",
+        action: "sale",
+        changes: `Продажба на '${serviceName}' към ${clientName || "Неизвестен клиент"}: ${qty} бр. на стойност ${totalAmt} EUR`,
+        timestamp: FieldValue.serverTimestamp(),
+        relatedSaleId: saleRef.id,
+      };
+      batch.set(eventRef, historyEvent);
+    }
+
+    await batch.commit();
+
+    // 3. Атомарно обновяване на присъствията в събитията (платен статус)
+    // Прави се след commit на основния batch за да не достигаме Firestore лимита от 500 writes
+    const paidEventIds: string[] = saleData.paidEventIds || [];
+    const memberIdForAttendance: string | null =
+      saleData.memberIdForAttendance || null;
+    const paymentType: "subscription" | "individual" =
+      saleData.paymentMode === "subscription" ? "subscription" : "individual";
+
+    if (paidEventIds.length > 0 && memberIdForAttendance && saleData.isPaid) {
+      // Process in batches of 100 events max
+      const chunkSize = 100;
+      for (let i = 0; i < paidEventIds.length; i += chunkSize) {
+        const chunk = paidEventIds.slice(i, i + chunkSize);
+        const attendanceBatch = adminDb.batch();
+
+        for (const eventId of chunk) {
+          const eventRef = adminDb.collection("events").doc(eventId);
+          const eventSnap = await eventRef.get();
+
+          if (!eventSnap.exists) continue;
+
+          const eventData = eventSnap.data();
+          const attendees: any[] = eventData?.attendees || [];
+
+          const nowIso = new Date().toISOString();
+
+          // Find and update the specific member's attendee record
+          const updatedAttendees = attendees.map((attendee) => {
+            if (attendee.memberId === memberIdForAttendance) {
+              return {
+                ...attendee,
+                paymentStatus: "paid",
+                paymentType: paymentType,
+                paymentDate: nowIso,
+                saleId: saleRef.id,
+              };
+            }
+            return attendee;
+          });
+
+          attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+        }
+
+        await attendanceBatch.commit();
+      }
+    }
+
+    // Update the member's lastPaymentDate if this sale is paid
+    if (
+      saleData.isPaid &&
+      saleData.memberId &&
+      saleData.memberId !== "GUEST_EXTERNAL"
+    ) {
+      const memberRef = adminDb.collection("members").doc(saleData.memberId);
+      const memberSnap = await memberRef.get();
+      if (memberSnap.exists) {
+        await memberRef.update({
+          lastPaymentDate: new Date(saleData.saleDate).toISOString(),
+        });
+      }
+    }
+
+    serverCache.invalidatePattern("sales:");
+    revalidatePath("/catalogs");
+    revalidatePath("/reports");
+    if (memberIdForAttendance) {
+      revalidatePath(`/members/${memberIdForAttendance}`);
+    }
+
+    return { success: true, saleId: saleRef.id };
+  } catch (error: any) {
+    console.error("Error executeTrainingSaleAction:", error);
+    return { success: false, error: error.message || "Грешка при продажба." };
   }
 }

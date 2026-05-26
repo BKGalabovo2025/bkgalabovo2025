@@ -32,6 +32,8 @@ import {
   CheckCircle,
   XCircle,
   Trash2,
+  UserCog,
+  UserPlus,
 } from "lucide-react";
 import { cn, getAgeGroup } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
@@ -379,12 +381,18 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-12 w-full sm:w-[400px]">
+        <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-12 w-full sm:w-[560px]">
           <TabsTrigger
             value="members"
             className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
           >
             <Users className="h-4 w-4 mr-2" /> Членове
+          </TabsTrigger>
+          <TabsTrigger
+            value="guests"
+            className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+          >
+            <UserCog className="h-4 w-4 mr-2" /> Външни
           </TabsTrigger>
           <TabsTrigger
             value="families"
@@ -1032,6 +1040,137 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+            )}
+          </BentoCard>
+        </TabsContent>
+
+        <TabsContent value="guests" className="mt-8 space-y-8">
+          {/* Guest Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
+              <div className="p-3.5 sm:p-4 bg-amber-500/10 text-amber-600 rounded-2xl shrink-0">
+                <UserCog className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-0.5 sm:space-y-1">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                  Външни клиенти
+                </p>
+                <p className="text-2xl sm:text-3xl font-light text-amber-600">
+                  {members.filter((m) => m.isGuest).length}
+                </p>
+              </div>
+            </BentoCard>
+            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2">
+              <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
+                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                  Относно Външни клиенти
+                </p>
+                <p className="text-xs font-light text-zinc-500 leading-relaxed">
+                  Външните клиенти са лица, участвали в тренировки, но не са
+                  редовни членове на клуба. Те имат собствени досиета и история
+                  на посещенията.
+                </p>
+              </div>
+            </BentoCard>
+          </div>
+
+          {/* Guest Cards */}
+          <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl sm:rounded-5xl">
+            <div className="p-4 sm:p-6 border-b border-zinc-50 dark:border-zinc-900 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <UserCog className="h-4 w-4 text-amber-500" strokeWidth={1.5} />
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  Регистрирани Външни клиенти
+                </h3>
+              </div>
+              <Button
+                onClick={() => router.push("/members/new?type=guest")}
+                className="rounded-xl font-medium text-[10px] uppercase tracking-widest bg-amber-500 text-white hover:bg-amber-600 h-9 px-4 shadow-none"
+              >
+                <UserPlus className="mr-2 h-3.5 w-3.5" /> Нов Гост
+              </Button>
+            </div>
+            {members.filter((m) => m.isGuest).length === 0 ? (
+              <div className="p-16 text-center">
+                <div className="h-16 w-16 bg-amber-50 dark:bg-amber-950/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <UserCog className="h-8 w-8 text-amber-300" strokeWidth={1} />
+                </div>
+                <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest mb-3">
+                  Няма регистрирани външни клиенти
+                </p>
+                <p className="max-w-sm mx-auto text-sm font-light text-zinc-400 leading-relaxed">
+                  Когато добавите външен клиент, той ще се появи тук с пълно
+                  досие и история на посещенията.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6">
+                {members
+                  .filter((m) => m.isGuest)
+                  .sort((a, b) =>
+                    `${a.firstName} ${a.lastName}`.localeCompare(
+                      `${b.firstName} ${b.lastName}`,
+                      "bg"
+                    )
+                  )
+                  .map((guest) => (
+                    <div
+                      key={guest.id}
+                      onClick={() => router.push(`/members/${guest.id}`)}
+                      className="group cursor-pointer bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-3xl p-5 hover:border-amber-200 dark:hover:border-amber-800 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center text-amber-600 dark:text-amber-400 font-medium text-sm shrink-0 group-hover:bg-amber-100 transition-colors">
+                            {guest.firstName[0]}
+                            {guest.lastName[0]}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm text-zinc-900 dark:text-white">
+                              {guest.firstName} {guest.lastName}
+                            </p>
+                            <p className="text-[10px] font-light text-zinc-400 mt-0.5">
+                              {guest.email || "Няма имейл"}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className="rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 shrink-0">
+                          Гост
+                        </Badge>
+                      </div>
+                      <div className="pt-3 border-t border-zinc-50 dark:border-zinc-900 flex items-center gap-2 text-zinc-400">
+                        <Calendar
+                          className="h-3 w-3 text-zinc-300"
+                          strokeWidth={1.5}
+                        />
+                        <span className="text-[9px] font-medium uppercase tracking-widest">
+                          {new Date(guest.registrationDate).toLocaleDateString(
+                            "bg-BG"
+                          )}
+                        </span>
+                        <div className="ml-auto flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) =>
+                              handleDeleteMember(
+                                e,
+                                guest.id,
+                                `${guest.firstName} ${guest.lastName}`
+                              )
+                            }
+                            className="h-7 w-7 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </BentoCard>

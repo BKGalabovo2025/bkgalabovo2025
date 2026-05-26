@@ -22,6 +22,10 @@ export const docToScheduleEvent = (
         memberId: typeof item.memberId === "string" ? item.memberId : "",
         name: typeof item.name === "string" ? item.name : "Anonymous",
         attended: typeof item.attended === "boolean" ? item.attended : false,
+        paymentStatus: item.paymentStatus,
+        paymentType: item.paymentType,
+        paymentDate: item.paymentDate,
+        saleId: item.saleId,
       };
     })
     .filter(Boolean) as Attendee[];

@@ -38,10 +38,18 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 // Initialize Firebase
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const isTestEnv =
+  typeof process !== "undefined" &&
+  (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
 
-const db = getFirestore(app);
-const auth = getAuth(app);
+const app = isTestEnv
+  ? ({} as any)
+  : getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig);
+
+const db = isTestEnv ? ({} as any) : getFirestore(app);
+const auth = isTestEnv ? ({} as any) : getAuth(app);
 
 // Connect to emulators in development if requested
 if (

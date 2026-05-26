@@ -30,9 +30,18 @@ export const SaleSchema = z.object({
     .string()
     .datetime({ message: "Invalid creation date format" })
     .optional(),
-  type: z.enum(["inventory", "general_service"]).optional().default("inventory"),
+  type: z
+    .enum(["inventory", "general_service", "training_service"])
+    .optional()
+    .default("inventory"),
+
+  // Attendance linking metadata for training sales
+  paymentMode: z.enum(["subscription", "individual"]).nullable().optional(),
+  targetMonths: z.array(z.string()).nullable().optional(),
+  targetMonthLabels: z.array(z.string()).nullable().optional(),
+  paidEventIds: z.array(z.string()).optional(),
+  memberIdForAttendance: z.string().nullable().optional(),
 });
 
 export type SaleItem = z.infer<typeof SaleItemSchema>;
 export type Sale = z.infer<typeof SaleSchema>;
-

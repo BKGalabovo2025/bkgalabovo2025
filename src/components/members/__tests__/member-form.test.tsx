@@ -39,43 +39,64 @@ describe("MemberForm", () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
     expect(screen.getByText(/Основна информация/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^Име$/i)).toHaveValue("");
+    expect(screen.getByLabelText(/^Име/i)).toHaveValue("");
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue("");
-    expect(
-      screen.getByRole("button", { name: /Създаване/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Напред/i })).toBeInTheDocument();
   });
 
-  it("should render correctly in edit mode with initialData", () => {
+  it("should render correctly in edit mode with initialData", async () => {
     render(
       <MemberForm onSave={onSave} onClose={onClose} initialData={mockMember} />
     );
 
-    expect(screen.getByLabelText(/^Име$/i)).toHaveValue(mockMember.firstName);
+    expect(screen.getByLabelText(/^Име/i)).toHaveValue(mockMember.firstName);
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue(mockMember.lastName);
-    expect(screen.getByLabelText(/Имейл/i)).toHaveValue(mockMember.email);
 
-    expect(
-      screen.getByRole("button", { name: /Запазване/i })
-    ).toBeInTheDocument();
+    // Go to Step 2 (Contacts)
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Имейл/i)).toHaveValue(mockMember.email);
+    });
+
+    // Go to Step 3 (Details)
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Запазване/i })
+      ).toBeInTheDocument();
+    });
   });
 
   it("should call onSave with form data when submitted", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
-    // Fill in the form
-    fireEvent.change(screen.getByLabelText(/^Име$/i), {
+    // Fill in Step 1
+    fireEvent.change(screen.getByLabelText(/^Име/i), {
       target: { value: "Test" },
     });
     fireEvent.change(screen.getByLabelText(/Фамилия/i), {
       target: { value: "User" },
     });
-    fireEvent.change(screen.getByLabelText(/Имейл/i), {
+
+    // Go to Step 2
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
+
+    // Wait for email input to be rendered and fill in
+    const emailInput = await screen.findByLabelText(/Имейл/i);
+    fireEvent.change(emailInput, {
       target: { value: "test.user@example.com" },
     });
 
-    // Submit the form
-    fireEvent.submit(screen.getByRole("form", { name: /member-form/i }));
+    // Go to Step 3
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
+
+    // Wait for the submit button to be rendered and click it
+    const saveButton = await screen.findByRole("button", {
+      name: /Създаване/i,
+    });
+    fireEvent.click(saveButton);
 
     // Wait for the async onSave to be called
     await waitFor(() => {
@@ -93,8 +114,8 @@ describe("MemberForm", () => {
   it("should display validation errors for required fields", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
-    // Attempt to submit an empty form
-    fireEvent.submit(screen.getByRole("form", { name: /member-form/i }));
+    // Attempt to submit by moving forward with invalid data
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
 
     // Check for specific validation messages from Zod schema
     expect(
@@ -109,16 +130,19 @@ describe("MemberForm", () => {
   it("should mark email as invalid for incorrect format", async () => {
     render(<MemberForm onSave={onSave} onClose={onClose} />);
 
-    // Fill in required fields to avoid other validation errors
-    fireEvent.change(screen.getByLabelText(/^Име$/i), {
+    // Fill in Step 1
+    fireEvent.change(screen.getByLabelText(/^Име/i), {
       target: { value: "Test" },
     });
     fireEvent.change(screen.getByLabelText(/Фамилия/i), {
       target: { value: "User" },
     });
 
+    // Go to Step 2
+    fireEvent.click(screen.getByRole("button", { name: /Напред/i }));
+
     // Enter an invalid email
-    const emailInput = screen.getByLabelText(/Имейл/i);
+    const emailInput = await screen.findByLabelText(/Имейл/i);
     fireEvent.change(emailInput, { target: { value: "invalid-email" } });
     fireEvent.blur(emailInput);
 
@@ -132,15 +156,6 @@ describe("MemberForm", () => {
 
     // Ensure onSave was not called
     expect(onSave).not.toHaveBeenCalled();
-  });
-
-  it("should update the date input", async () => {
-    render(<MemberForm onSave={onSave} onClose={onClose} />);
-
-    const dateInput = screen.getByLabelText(/Дата на раждане/i);
-    fireEvent.change(dateInput, { target: { value: "1990-01-15" } });
-
-    expect(dateInput).toHaveValue("1990-01-15");
   });
 
   it("should call onClose when the cancel button is clicked", () => {

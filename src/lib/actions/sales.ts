@@ -96,6 +96,14 @@ export async function createSaleAction(
           clientName: data.clientName || "Неизвестен клиент",
         });
       }
+
+      // c. Update member's lastPaymentDate if sale is paid and not a guest sale
+      if (data.isPaid && data.memberId && data.memberId !== "GUEST_EXTERNAL") {
+        const memberRef = adminDb.collection("members").doc(data.memberId);
+        transaction.update(memberRef, {
+          lastPaymentDate: new Date(data.saleDate).toISOString(),
+        });
+      }
     });
 
     revalidatePath("/sales");
@@ -156,6 +164,23 @@ export async function updateSaleAction(
     await saleRef.update(dataToUpdate);
 
     // The sale has been updated. If you need any cross-collection syncing, add it here.
+    if (
+      dataToUpdate.isPaid &&
+      dataToUpdate.memberId &&
+      dataToUpdate.memberId !== "GUEST_EXTERNAL"
+    ) {
+      const memberRef = adminDb
+        .collection("members")
+        .doc(dataToUpdate.memberId as string);
+      const memberSnap = await memberRef.get();
+      if (memberSnap.exists) {
+        await memberRef.update({
+          lastPaymentDate: new Date(
+            (dataToUpdate.saleDate as Timestamp)?.toDate() || new Date()
+          ).toISOString(),
+        });
+      }
+    }
 
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
@@ -186,6 +211,8 @@ export async function deleteSaleAction(
     const adminDb = getAdminDb();
     const saleRef = adminDb.collection("sales").doc(id);
 
+    let deletedSaleData: Record<string, any> = {};
+
     await adminDb.runTransaction(async (transaction) => {
       // 1. Fetch the sale first (Read phase)
       const saleDoc = await transaction.get(saleRef);
@@ -193,6 +220,7 @@ export async function deleteSaleAction(
         throw new Error("Продажбата не бе намерена.");
       }
       const saleData = saleDoc.data()!;
+      deletedSaleData = saleData;
       const items = saleData.items || [];
 
       // 2. Fetch all products to restore their stock (Read phase)
@@ -238,6 +266,47 @@ export async function deleteSaleAction(
       }
     });
 
+    // 4. Revert attendance payment status if any events were linked to this sale
+    // We do this outside the main transaction to avoid transaction limits if there are many events
+    const paidEventIds: string[] = deletedSaleData.paidEventIds || [];
+    const memberId =
+      deletedSaleData.memberIdForAttendance || deletedSaleData.memberId;
+
+    if (paidEventIds.length > 0 && memberId) {
+      const chunkSize = 100;
+      for (let i = 0; i < paidEventIds.length; i += chunkSize) {
+        const chunk = paidEventIds.slice(i, i + chunkSize);
+        const attendanceBatch = adminDb.batch();
+
+        for (const eventId of chunk) {
+          const eventRef = adminDb.collection("events").doc(eventId);
+          const eventSnap = await eventRef.get();
+
+          if (!eventSnap.exists) continue;
+
+          const eventData = eventSnap.data();
+          const attendees: any[] = eventData?.attendees || [];
+
+          const updatedAttendees = attendees.map((att: any) => {
+            if (att.memberId === memberId && att.saleId === id) {
+              return {
+                ...att,
+                paymentStatus: "unpaid",
+                paymentType: null,
+                paymentDate: null,
+                saleId: null,
+              };
+            }
+            return att;
+          });
+
+          attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+        }
+
+        await attendanceBatch.commit();
+      }
+    }
+
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
@@ -256,5 +325,3 @@ export async function deleteSaleAction(
     };
   }
 }
-
-

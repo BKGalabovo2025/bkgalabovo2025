@@ -38,6 +38,7 @@ export const ServiceSchema = z.object({
   type: z.string(),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().nullable().optional(),
+  imageUrl: z.string().optional().nullable(),
   durationMinutes: z.number().optional(),
   isCoachLed: z.boolean().default(true),
   requiresBooking: z.boolean().default(false),

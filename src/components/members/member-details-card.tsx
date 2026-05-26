@@ -108,36 +108,19 @@ export const MemberDetailsCard = ({
     familyMembers,
     sales
   );
-  const lastPayment = member.lastPaymentDate
-    ? new Date(member.lastPaymentDate)
-    : null;
 
-  // 2. Функцията за плащане
-  const handlePayment = async () => {
-    if (!idToken) {
-      toast.error("Грешка при оторизация");
-      return;
-    }
+  const latestSaleDate = (() => {
+    const completedSales = sales.filter(
+      (s) => s.memberId === member.id && s.isPaid && s.status === "completed"
+    );
+    if (completedSales.length === 0) return null;
+    completedSales.sort(
+      (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+    );
+    return new Date(completedSales[0].saleDate);
+  })();
 
-    if (!confirm("Маркиране на месечната такса като платена?")) return;
-
-    try {
-      const result = await updateMemberAction(member.id, idToken, {
-        lastPaymentDate: new Date().toISOString(),
-      });
-
-      if (result.success) {
-        toast.success("Успешно платено!");
-        if (onRefresh) onRefresh();
-        router.refresh();
-      } else {
-        toast.error("Грешка", { description: result.message });
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Грешка при плащане");
-    }
-  };
+  const lastPayment = latestSaleDate;
 
   const formatDocDate = (isoString: string | null | undefined) => {
     if (!isoString) return null;
@@ -267,7 +250,7 @@ export const MemberDetailsCard = ({
         <div className="px-6 sm:px-10 pb-8 sm:pb-10 -mt-12 sm:-mt-16 relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 text-center md:text-left">
             <div className="relative group">
-              <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 border-white shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
+              <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
                 <AvatarImage
                   src={member.avatarUrl ?? undefined}
                   alt={fullName}
@@ -336,17 +319,25 @@ export const MemberDetailsCard = ({
                         "text-sm font-semibold tracking-wide",
                         isOverdue
                           ? "text-rose-600 dark:text-rose-400"
-                          : "text-emerald-600 dark:text-emerald-400"
+                          : !lastPayment
+                            ? "text-zinc-500"
+                            : "text-emerald-600 dark:text-emerald-400"
                       )}
                     >
-                      {isOverdue ? "Дължи такса" : "Платено"}
+                      {isOverdue
+                        ? "Дължи такса"
+                        : !lastPayment
+                          ? "Няма продажби"
+                          : "Платено"}
                     </span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800" />
-                    <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                      {lastPayment
-                        ? lastPayment.toLocaleDateString("bg-BG")
-                        : "няма данни"}
-                    </span>
+                    {lastPayment && (
+                      <>
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          {lastPayment.toLocaleDateString("bg-BG")}
+                        </span>
+                      </>
+                    )}
                   </div>
                   {overdueReason && (
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">
@@ -354,15 +345,6 @@ export const MemberDetailsCard = ({
                     </p>
                   )}
                 </div>
-                {isOverdue && (
-                  <Button
-                    size="sm"
-                    onClick={handlePayment}
-                    className="h-10 px-6 rounded-xl bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-[10px] font-medium uppercase tracking-widest shadow-none transition-colors"
-                  >
-                    Плати
-                  </Button>
-                )}
               </div>
             </div>
           </div>
@@ -1133,7 +1115,7 @@ export const MemberDetailsCard = ({
           <MemberSalesHistory memberId={member.id} />
         </TabsContent>
 
-          {/* Removed subscriptions TabContent */}
+        {/* Removed subscriptions TabContent */}
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
           <MemberAttendanceHistory memberId={member.id} />

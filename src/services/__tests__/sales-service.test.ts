@@ -104,20 +104,20 @@ describe("sales-service", () => {
       expect(result).toBe(false);
     });
 
-    it("should return false if a member's sale is not for a subscription", async () => {
+    it("should return true even if subscriptionId is null (as subscriptions are deprecated)", async () => {
       const mockSalesDocs = {
         docs: [
           mockDoc("sale1", {
             memberId: "member1",
             saleDate: { toDate: () => new Date("2024-01-15T10:00:00Z") },
-            subscriptionId: null, // Not a subscription sale
+            subscriptionId: null,
           }),
         ],
       };
       mockedGetDocs.mockResolvedValue(mockSalesDocs);
 
       const result = await hasMemberPaidForMonth("member1", 2024, 1);
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it("should return false when there are no sales for the member", async () => {

@@ -27,7 +27,9 @@ function initializeFirebaseAdmin() {
         }
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
-          storageBucket: "bkgalabovo2025.firebasestorage.app",
+          storageBucket:
+            process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+            "bkgalabovo2025.firebasestorage.app",
         });
         console.log(
           "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
@@ -52,7 +54,9 @@ function initializeFirebaseAdmin() {
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
         }),
-        storageBucket: "bkgalabovo2025.firebasestorage.app",
+        storageBucket:
+          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+          "bkgalabovo2025.firebasestorage.app",
       });
       console.log(
         "Firebase Admin SDK initialized using individual environment variables."

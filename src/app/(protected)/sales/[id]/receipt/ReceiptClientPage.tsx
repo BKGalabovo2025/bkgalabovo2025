@@ -71,8 +71,6 @@ const ReceiptCopy = ({
         })
       : new Date().toLocaleDateString("bg-BG");
 
-
-
   return (
     <div
       className="flex flex-col h-[470px] border border-black p-6 bg-white relative"
@@ -158,8 +156,12 @@ const ReceiptCopy = ({
         {/* Note Block */}
         {sale?.note && (
           <div className="mb-4 p-2 bg-[#fffbeb] border border-[#fde68a] text-[10px]">
-            <span className="font-bold uppercase text-[#d97706] tracking-widest mr-2">Бележка:</span>
-            <span className="text-[#92400e] italic font-medium">{sale.note}</span>
+            <span className="font-bold uppercase text-[#d97706] tracking-widest mr-2">
+              Бележка:
+            </span>
+            <span className="text-[#92400e] italic font-medium">
+              {sale.note}
+            </span>
           </div>
         )}
 
@@ -184,6 +186,20 @@ const ReceiptCopy = ({
                   <tr key={index} className="border-b border-black font-medium">
                     <td className="p-2 border-r border-black font-bold">
                       {item.name || "(Липсва име)"}
+
+                      {sale?.targetMonthLabels &&
+                        sale.targetMonthLabels.length > 0 && (
+                          <span className="block text-[8px] text-[#475569] font-normal mt-0.5">
+                            ({sale.targetMonthLabels.join(", ")})
+                          </span>
+                        )}
+                      {sale?.paymentMode === "individual" &&
+                        sale?.paidEventIds &&
+                        sale.paidEventIds.length > 0 && (
+                          <span className="block text-[8px] text-[#475569] font-normal mt-0.5">
+                            ({sale.paidEventIds.length} тренировки)
+                          </span>
+                        )}
 
                       {service?.name && (
                         <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
@@ -230,7 +246,8 @@ const ReceiptCopy = ({
         {/* Unified Legal / Accounting Statement */}
         <div className="mt-4 mb-2 text-center">
           <p className="text-[8px] text-[#64748b] italic">
-            Документът е издаден от автоматизираната административна система на Бадминтон клуб Гълъбово
+            Документът е издаден от автоматизираната административна система на
+            Бадминтон клуб Гълъбово
           </p>
         </div>
 
@@ -416,14 +433,8 @@ export default function ReceiptClientPage({
 
   if (!details) return <ErrorDisplay message="Няма намерени данни." />;
 
-  const {
-    sale,
-    member,
-    relatedMember,
-    service,
-    family,
-    familyMembers,
-  } = details;
+  const { sale, member, relatedMember, service, family, familyMembers } =
+    details;
 
   return (
     <>
@@ -506,7 +517,6 @@ export default function ReceiptClientPage({
               member={member}
               relatedMember={relatedMember}
               service={service}
-
               family={family}
               familyMembers={familyMembers}
             />

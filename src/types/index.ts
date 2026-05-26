@@ -177,8 +177,6 @@ export type PaymentHistoryItem = {
   note?: string;
 };
 
-
-
 // =================================================================
 //                      SCHEDULING & EVENTS
 // =================================================================
@@ -197,6 +195,10 @@ export type Attendee = {
   memberId: string;
   name: string;
   attended: boolean;
+  paymentStatus?: "paid" | "unpaid";
+  paymentType?: "subscription" | "individual";
+  paymentDate?: string;
+  saleId?: string;
 };
 
 /**

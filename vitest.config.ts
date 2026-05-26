@@ -7,7 +7,15 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    exclude: ["node_modules", "e2e", ".gemini", ".antigravity"],
+    exclude: [
+      "node_modules",
+      "e2e",
+      ".gemini",
+      ".antigravity",
+      "bkgalabovo2025",
+      "tmp",
+      "scratch",
+    ],
   },
   resolve: {
     tsconfigPaths: true,
