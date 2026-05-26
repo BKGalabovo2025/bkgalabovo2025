@@ -77,40 +77,37 @@ export default async function ClubPage() {
   const adminDb = getAdminDb();
 
   // 1. Fetch trainings (clubServices) for bkgalabovo
-  const servicesSnapshot = await adminDb
-    .collection("clubServices")
-    .where("siteId", "==", "bkgalabovo")
-    .get();
-  const services = servicesSnapshot.docs.map((doc) =>
-    serializeDoc({
-      id: doc.id,
-      ...doc.data(),
-    })
-  );
+  const servicesSnapshot = await adminDb.collection("clubServices").get();
+  const services = servicesSnapshot.docs
+    .map((doc) =>
+      serializeDoc({
+        id: doc.id,
+        ...doc.data(),
+      })
+    )
+    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
   // 2. Fetch general services (clubGeneralServices) for bkgalabovo
-  const generalSnapshot = await adminDb
-    .collection("clubGeneralServices")
-    .where("siteId", "==", "bkgalabovo")
-    .get();
-  const generalServices = generalSnapshot.docs.map((doc) =>
-    serializeDoc({
-      id: doc.id,
-      ...doc.data(),
-    })
-  );
+  const generalSnapshot = await adminDb.collection("clubGeneralServices").get();
+  const generalServices = generalSnapshot.docs
+    .map((doc) =>
+      serializeDoc({
+        id: doc.id,
+        ...doc.data(),
+      })
+    )
+    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
   // 3. Fetch products (products) for bkgalabovo
-  const productsSnapshot = await adminDb
-    .collection("products")
-    .where("siteId", "==", "bkgalabovo")
-    .get();
-  const products = productsSnapshot.docs.map((doc) =>
-    serializeDoc({
-      id: doc.id,
-      ...doc.data(),
-    })
-  );
+  const productsSnapshot = await adminDb.collection("products").get();
+  const products = productsSnapshot.docs
+    .map((doc) =>
+      serializeDoc({
+        id: doc.id,
+        ...doc.data(),
+      })
+    )
+    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
