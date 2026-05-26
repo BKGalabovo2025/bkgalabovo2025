@@ -386,13 +386,11 @@ export function TournamentForm({
                     Резултатите носят точки за класирането
                   </p>
                 </div>
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="h-7 w-7 rounded-lg border-zinc-200"
-                  />
-                </FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="h-7 w-7 rounded-lg border-zinc-200"
+                />
               </FormItem>
             )}
           />
@@ -465,19 +463,17 @@ export function TournamentForm({
                           field.onChange(next);
                         }}
                       >
-                        <FormControl>
-                          <Checkbox
-                            checked={isChecked}
-                            onCheckedChange={(checked: boolean) => {
-                              const current = field.value || [];
-                              const next = checked
-                                ? [...current, item.id]
-                                : current.filter((v) => v !== item.id);
-                              field.onChange(next);
-                            }}
-                            className="h-5 w-5 rounded-md"
-                          />
-                        </FormControl>
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={(checked: boolean) => {
+                            const current = field.value || [];
+                            const next = checked
+                              ? [...current, item.id]
+                              : current.filter((v) => v !== item.id);
+                            field.onChange(next);
+                          }}
+                          className="h-5 w-5 rounded-md"
+                        />
                         <FormLabel className="text-xs font-medium uppercase tracking-widest cursor-pointer">
                           {item.label}
                         </FormLabel>
