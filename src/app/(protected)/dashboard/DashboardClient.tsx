@@ -7,6 +7,7 @@ import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { QuickTasks } from "@/components/dashboard/quick-tasks";
 import { AttendanceReminder } from "@/components/dashboard/AttendanceReminder";
+import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
 import {
   Users,
   Calendar,
@@ -280,6 +281,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           <QuickTasks />
         </div>
         <div className="lg:col-span-3 space-y-8">
+          <BirthdayReminder />
           <AttendanceReminder initialEvents={todayTrainings} />
         </div>
       </div>
