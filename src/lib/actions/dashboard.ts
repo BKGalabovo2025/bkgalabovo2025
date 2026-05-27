@@ -108,7 +108,6 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     const endStr = endOfDay.toISOString();
     const thirtyDaysAgoStr = thirtyDaysAgo.toISOString();
     const sixtyDaysAgoStr = sixtyDaysAgo.toISOString();
-    const sixMonthsAgoStr = sixMonthsAgo.toISOString();
 
     // Cache key: per branch + per day (stats are stable within a day)
     const todayKey = startOfDay.toISOString().slice(0, 10);
@@ -134,6 +133,8 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           newMembersPrevMonthCount,
           unpaidSalesCount,
           trainingsCount,
+          guestsCount,
+          familiesCount,
         ] = await Promise.all([
           col("members").count().get(),
           col("members").where("status", "==", "active").count().get(),
@@ -154,6 +155,8 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             .where("type", "==", "training")
             .count()
             .get(),
+          col("members").where("isGuest", "==", true).count().get(),
+          col("families").count().get(),
         ]);
 
         // ── DOCUMENT QUERIES (only what must be displayed) ─────────────────────
@@ -170,9 +173,8 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
           // Up to 6 months of completed+paid sales for revenue stats & chart
           col("sales")
-            .where("saleDate", ">=", sixMonthsAgoStr)
             .where("status", "==", "completed")
-            .limit(300)
+            .limit(500)
             .get(),
 
           // Active members (needed for overdue reminder generation)
@@ -199,9 +201,11 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         const recentSales = recentSalesSnap.docs.map((d) =>
           snapToData<Sale>(d)
         );
-        const salesFor6Months = salesFor6MonthsSnap.docs.map((d) =>
-          snapToData<Sale>(d)
-        );
+        const salesFor6Months = salesFor6MonthsSnap.docs
+          .map((d) => snapToData<Sale>(d))
+          .filter((s): s is Sale => s !== null)
+          .filter((s) => new Date(s.saleDate) >= sixMonthsAgo)
+          .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
         const activeMembers = activeMembersSnap.docs.map((d) =>
           snapToData<Member>(d)
         );
@@ -209,6 +213,12 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           snapToData<Sale>(d)
         );
         const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
+        const todayTrainingsCount = events.filter((e) => e.type === "training").length;
+        const todayCompetitionsCount = events.filter((e) => e.type === "competition").length;
+        const todayCampsCount = events.filter((e) => e.type === "camp").length;
+        const todayOtherEventsCount = events.filter((e) => e.type !== "training" && e.type !== "competition" && e.type !== "camp").length;
+        const todayEventsCount = events.length;
+
         const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
 
         // Low-stock products (client-side filter — products collection is small)
@@ -243,6 +253,18 @@ export async function getDashboardDataServerAction(activeBranch: string) {
               ? 100
               : 0;
 
+        const revenueTrainings = salesLast30Days
+          .filter((s) => s.isPaid === true && s.type === "training_service")
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+        const revenueServices = salesLast30Days
+          .filter((s) => s.isPaid === true && s.type === "general_service")
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+        const revenueShop = salesLast30Days
+          .filter((s) => s.isPaid === true && (s.type === "inventory" || !s.type))
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
         const totalRevenue = salesFor6Months
           .filter((s) => s.isPaid === true)
           .reduce(
@@ -274,6 +296,10 @@ export async function getDashboardDataServerAction(activeBranch: string) {
               ? 100
               : 0;
 
+        const totalGuests = guestsCount.data().count;
+        const totalFamilies = familiesCount.data().count;
+        const totalClubMembers = tMem - totalGuests;
+
         const stats = {
           totalMembers: tMem,
           activeMembersCount: aMem,
@@ -286,7 +312,24 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           salesLast30Days: salesCountLast30,
           salesChange,
           lowStockCount: lowStockProducts.length,
+          lowStockProducts: lowStockProducts.map((p) => ({
+            id: p.id,
+            name: p.name || "",
+            stock: p.stock || 0,
+            restockThreshold: p.restockThreshold || 0,
+          })),
           trainingsToday: trainingsCount.data().count,
+          totalGuests,
+          totalFamilies,
+          totalClubMembers,
+          revenueTrainings,
+          revenueServices,
+          revenueShop,
+          todayTrainingsCount,
+          todayCompetitionsCount,
+          todayCampsCount,
+          todayOtherEventsCount,
+          todayEventsCount,
         };
 
         const revenueChartData = getRevenueTrendData(salesFor6Months);
@@ -313,3 +356,14 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     };
   }
 }
+
+export async function invalidateDashboardCacheAction() {
+  try {
+    serverCache.invalidatePattern("dashboard:");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error invalidating dashboard cache:", error);
+    return { success: false, error: error.message };
+  }
+}
+

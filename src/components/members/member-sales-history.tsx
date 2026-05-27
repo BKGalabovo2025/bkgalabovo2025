@@ -43,6 +43,73 @@ const isSubscriptionItem = (name: string): boolean => {
   );
 };
 
+const formatPaymentMethod = (method?: string) => {
+  if (!method) return "В брой";
+  if (method === "Cash") return "В брой";
+  return method;
+};
+
+const formatSaleDateCell = (sale: import("@/types").Sale) => {
+  const start = new Date(sale.saleDate);
+  const isCourtRental = 
+    sale.items?.[0]?.productId?.startsWith("court_rental") || 
+    sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+
+  const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
+
+  if (isCourtRental) {
+    const hours = sale.items?.[0]?.quantity || 1;
+    const end = new Date(start.getTime() + hours * 3600000);
+    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
+      " - " + 
+      end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+    return (
+      <>
+        <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+          {formattedDate}
+        </span>
+        <div className="text-[10px] text-zinc-500 font-semibold mt-0.5 whitespace-nowrap">
+          {timeRange} ({hours} ч.)
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+        {formattedDate}
+      </span>
+      <div className="text-[10px] text-zinc-400 mt-0.5">
+        {start.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </div>
+    </>
+  );
+};
+
+const formatSaleDateMobile = (sale: import("@/types").Sale) => {
+  const start = new Date(sale.saleDate);
+  const isCourtRental = 
+    sale.items?.[0]?.productId?.startsWith("court_rental") || 
+    sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+
+  const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
+
+  if (isCourtRental) {
+    const hours = sale.items?.[0]?.quantity || 1;
+    const end = new Date(start.getTime() + hours * 3600000);
+    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
+      " - " + 
+      end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+    return `${formattedDate} ${timeRange} (${hours} ч.)`;
+  }
+
+  return `${formattedDate} в ${start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}`;
+};
+
 // Helper to determine badge variant and text based on status, payment status, and amount
 const getStatusDetails = (
   status: string,
@@ -119,9 +186,15 @@ export const MemberSalesHistory = ({
     });
   };
 
-  const handleRowClick = (saleId: string, isPaid: boolean) => {
+  const handleRowClick = (saleId: string, isPaid: boolean, type?: string) => {
     if (isPaid) {
-      router.push(`/sales/${saleId}/receipt`);
+      if (type === "general_service") {
+        router.push(`/finances/general-services/sales/${saleId}/receipt`);
+      } else if (type === "inventory") {
+        router.push(`/inventory/sales/${saleId}/receipt`);
+      } else {
+        router.push(`/sales/${saleId}/receipt`);
+      }
     } else {
       router.push(`/sales/${saleId}`);
     }
@@ -219,6 +292,9 @@ export const MemberSalesHistory = ({
                               Услуга / Продукт
                             </TableHead>
                             <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                              Плащане
+                            </TableHead>
+                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                               Статус
                             </TableHead>
                             <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right">
@@ -248,14 +324,12 @@ export const MemberSalesHistory = ({
                               <TableRow
                                 key={sale.id}
                                 onClick={() =>
-                                  handleRowClick(sale.id, sale.isPaid)
+                                  handleRowClick(sale.id, sale.isPaid, sale.type)
                                 }
                                 className="cursor-pointer border-zinc-50 hover:bg-zinc-50/50 transition-all group"
                               >
-                                <TableCell className="py-4 font-light text-xs text-zinc-600 pl-5">
-                                  {new Date(sale.saleDate).toLocaleDateString(
-                                    "bg-BG"
-                                  )}
+                                <TableCell className="py-4 pl-5">
+                                  {formatSaleDateCell(sale)}
                                 </TableCell>
                                 <TableCell className="py-4 max-w-[300px]">
                                   <div
@@ -281,6 +355,11 @@ export const MemberSalesHistory = ({
                                         )?.lastName || ""}
                                       </div>
                                     )}
+                                </TableCell>
+                                <TableCell className="py-4">
+                                  <span className="text-sm font-light text-zinc-600 dark:text-zinc-400">
+                                    {formatPaymentMethod(sale.paymentMethod)}
+                                  </span>
                                 </TableCell>
                                 <TableCell>
                                   <Badge
@@ -326,7 +405,7 @@ export const MemberSalesHistory = ({
                                       >
                                         <DropdownMenuItem
                                           onSelect={() =>
-                                            handleRowClick(sale.id, sale.isPaid)
+                                            handleRowClick(sale.id, sale.isPaid, sale.type)
                                           }
                                           className="text-[10px] font-medium uppercase tracking-widest py-1.5"
                                         >
@@ -390,15 +469,13 @@ export const MemberSalesHistory = ({
                         return (
                           <div
                             key={sale.id}
-                            onClick={() => handleRowClick(sale.id, sale.isPaid)}
+                            onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
                             className="bg-zinc-50/40 border border-zinc-100 rounded-xl p-4 active:scale-[0.98] transition-all"
                           >
                             <div className="flex justify-between items-start mb-3">
                               <div className="space-y-1">
                                 <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest">
-                                  {new Date(sale.saleDate).toLocaleDateString(
-                                    "bg-BG"
-                                  )}
+                                  {formatSaleDateMobile(sale)}
                                 </p>
                                 <h3 className="text-xs font-medium text-zinc-950 line-clamp-2 leading-relaxed">
                                   {itemsList}
@@ -449,7 +526,7 @@ export const MemberSalesHistory = ({
                                   >
                                     <DropdownMenuItem
                                       onSelect={() =>
-                                        handleRowClick(sale.id, sale.isPaid)
+                                        handleRowClick(sale.id, sale.isPaid, sale.type)
                                       }
                                       className="text-[10px] font-medium uppercase tracking-widest py-1.5"
                                     >
@@ -486,7 +563,7 @@ export const MemberSalesHistory = ({
                               </div>
                             </div>
                             <div className="flex justify-between items-center pt-3 border-t border-zinc-100/50">
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex flex-wrap items-center gap-1.5">
                                 <div className="h-5 w-5 rounded-full bg-white border border-zinc-100 flex items-center justify-center">
                                   <Receipt className="h-2.5 w-2.5 text-zinc-400" />
                                 </div>
@@ -496,6 +573,9 @@ export const MemberSalesHistory = ({
                                     : isSubscriptionItem(itemsList)
                                       ? "Услуга"
                                       : "Продажба"}
+                                </span>
+                                <span className="text-[8px] text-zinc-400/80 font-normal">
+                                  • {formatPaymentMethod(sale.paymentMethod)} • {new Date(sale.saleDate).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
                               <span className="text-sm font-medium tracking-tight text-zinc-950">

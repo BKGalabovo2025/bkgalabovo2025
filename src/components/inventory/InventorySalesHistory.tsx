@@ -192,7 +192,7 @@ const InventorySalesHistory = () => {
                     </div>
                   </TableCell>
                   <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400 font-light">
-                    {sale.paymentMethod || "В брой"}
+                    {sale.paymentMethod === "Cash" ? "В брой" : (sale.paymentMethod || "В брой")}
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <Badge

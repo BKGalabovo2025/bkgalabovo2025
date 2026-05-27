@@ -170,7 +170,7 @@ export function GeneralServiceSalesHistory() {
                   </TableCell>
                   <TableCell className="py-4">
                     <span className="text-sm font-light text-zinc-600 dark:text-zinc-400">
-                      {sale.paymentMethod || "В брой"}
+                      {sale.paymentMethod === "Cash" ? "В брой" : (sale.paymentMethod || "В брой")}
                     </span>
                   </TableCell>
                   <TableCell className="py-4">

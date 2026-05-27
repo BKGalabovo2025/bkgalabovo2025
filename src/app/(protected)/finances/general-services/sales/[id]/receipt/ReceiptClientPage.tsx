@@ -70,17 +70,150 @@ const ReceiptCopy = ({
           year: "numeric",
         })
       : new Date().toLocaleDateString("bg-BG");
+  const isCourtRental = 
+    sale?.items?.[0]?.productId?.startsWith("court_rental") || 
+    sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
 
+  if (isCourtRental) {
+    const hours = sale?.items?.[0]?.quantity || 1;
+    const totalAmount = sale?.totalAmount || 0;
+    const clientName = sale?.clientName || (member ? `${member.firstName} ${member.lastName}` : "Външен клиент");
+    const clientPhone = member?.phone || sale?.note || ""; // fallback
+    
+    const start = sale?.saleDate ? new Date(sale.saleDate) : new Date();
+    const end = new Date(start.getTime() + hours * 3600000);
+    
+    const formattedDate = start.toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }) + " г.";
+    
+    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
+      " - " + 
+      end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
+    // Extract court number from product ID (e.g. court_rental_3 -> 3) or name
+    const courtMatch = sale?.items?.[0]?.productId?.match(/\d+/);
+    const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
+    const courtId = courtMatch ? courtMatch[0] : (nameMatch ? nameMatch[0] : "-");
+
+    return (
+      <div
+        className="flex flex-col flex-1 border border-black p-4 bg-white relative animate-in fade-in duration-300"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", wordSpacing: "2px" }}
+      >
+        <div className="flex flex-col h-full text-black">
+          {/* Header */}
+          <div className="flex justify-between items-start border-b border-black pb-2 mb-2">
+            <div className="space-y-1">
+              <h2 className="text-base font-bold uppercase tracking-tight">
+                ДОКУМЕНТ ЗА ДАРЕНИЕ
+              </h2>
+              <p className="text-[9px] font-bold">
+                № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
+                {issueDate} г.
+              </p>
+              <p className="text-[9px] font-bold uppercase text-zinc-500">
+                {label}
+              </p>
+            </div>
+            <div className="text-right text-[9px] space-y-0.5">
+              <p className="font-bold uppercase">{clubInfo.name}</p>
+              <p className="uppercase">{clubInfo.address}</p>
+              <p className="uppercase">{clubInfo.contact}</p>
+            </div>
+          </div>
+
+          {/* Legal statement */}
+          <div className="mb-2 text-[10px] leading-relaxed text-justify">
+            С настоящия документ се потвърждава постъпило целево дарение от{" "}
+            <span className="font-bold uppercase">{clientName}</span>{" "}
+            {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“.
+            Дарените средства ще бъдат използвани изцяло за поддържане на материално-техническата база (МТО) на клуба и неговите уставни цели, включително развитие на детско-юношеската школа по бадминтон.
+          </div>
+
+          {/* Table */}
+          <div className="flex-1">
+            <table className="w-full border-collapse border border-black text-[10px]">
+              <thead>
+                <tr className="bg-zinc-100 border-b border-black text-[9px] font-bold uppercase">
+                  <th className="p-2 text-left border-r border-black">
+                    Описание на дарението
+                  </th>
+                  <th className="p-2 text-center border-r border-black">Корт</th>
+                  <th className="p-2 text-center border-r border-black">
+                    Дата / Час
+                  </th>
+                  <th className="p-2 text-right">Сума</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-black">
+                  <td className="p-2 border-r border-black font-bold">
+                    Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за ползване на бадминтон корт
+                  </td>
+                  <td className="p-2 text-center border-r border-black font-bold">
+                    {courtId}
+                  </td>
+                  <td className="p-2 text-center border-r border-black">
+                    {formattedDate}
+                    <br />
+                    {timeRange} ({hours} ч.)
+                  </td>
+                  <td className="p-2 text-right font-bold">
+                    {formatPrice(totalAmount)}
+                  </td>
+                </tr>
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                  >
+                    Обща стойност:
+                  </td>
+                  <td className="p-2 text-right font-bold text-xs">
+                    {formatPrice(totalAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Signatures */}
+          <div className="mt-2 flex justify-between gap-16">
+            <div className="flex-1">
+              <div className="h-px bg-black w-full" />
+              <p className="text-[8px] font-bold mt-1 uppercase text-center">
+                За Клуба: {clubInfo.name}
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="h-px bg-black w-full" />
+              <p className="text-[8px] font-bold mt-1 uppercase text-center">
+                Дарител: {clientName}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-2 text-center">
+            <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
+              ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
-      className="flex flex-col h-[470px] border border-black p-6 bg-white relative"
+      className="flex flex-col flex-1 border border-black p-4 bg-white relative"
       style={{ fontFamily: "Arial, Helvetica, sans-serif", wordSpacing: "2px" }}
     >
       <div className="flex flex-col h-full text-black">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-black pb-4 mb-4">
+        <div className="flex justify-between items-start border-b border-black pb-2 mb-2">
           <div className="space-y-1">
             <h2 className="text-lg font-bold uppercase tracking-tight">
               РАЗПИСКА ЗА ПЛАЩАНЕ
@@ -101,7 +234,7 @@ const ReceiptCopy = ({
         </div>
 
         {/* Info Block (Получател, Статус, Начин на плащане) */}
-        <div className="mb-4 text-[10px] flex justify-between items-start bg-[#f8fafc] p-3 border border-[#e2e8f0]">
+        <div className="mb-2 text-[10px] flex justify-between items-start bg-[#f8fafc] p-2 border border-[#e2e8f0]">
           <div>
             <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-widest mb-1">
               Получател
@@ -157,7 +290,7 @@ const ReceiptCopy = ({
 
         {/* Note Block */}
         {sale?.note && (
-          <div className="mb-4 p-2 bg-[#fffbeb] border border-[#fde68a] text-[10px]">
+          <div className="mb-2 p-2 bg-[#fffbeb] border border-[#fde68a] text-[10px]">
             <span className="font-bold uppercase text-[#d97706] tracking-widest mr-2">Бележка:</span>
             <span className="text-[#92400e] italic font-medium">{sale.note}</span>
           </div>
@@ -228,14 +361,14 @@ const ReceiptCopy = ({
         </div>
 
         {/* Unified Legal / Accounting Statement */}
-        <div className="mt-4 mb-2 text-center">
+        <div className="mt-2 mb-1 text-center">
           <p className="text-[8px] text-[#64748b] italic">
             Документът е издаден от автоматизираната административна система на Бадминтон клуб Гълъбово
           </p>
         </div>
 
         {/* Signatures */}
-        <div className="mt-4 flex justify-between gap-16">
+        <div className="mt-2 flex justify-between gap-16">
           <div className="flex-1">
             <div className="h-px bg-black w-full" />
             <p className="text-[8px] font-bold mt-1 uppercase text-center">
@@ -250,7 +383,7 @@ const ReceiptCopy = ({
           </div>
         </div>
 
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <p className="text-[7px] text-[#94a3b8] font-bold uppercase tracking-widest">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>

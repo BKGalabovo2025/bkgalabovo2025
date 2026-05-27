@@ -5,7 +5,7 @@ let adminAuth: admin.auth.Auth;
 let adminStorage: admin.storage.Storage;
 
 function initializeFirebaseAdmin() {
-  if (admin.apps.length > 0) {
+  if (admin.apps && admin.apps.length > 0) {
     if (!adminDb) adminDb = admin.firestore();
     if (!adminAuth) adminAuth = admin.auth();
     if (!adminStorage) adminStorage = admin.storage();
@@ -14,6 +14,9 @@ function initializeFirebaseAdmin() {
 
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const googleCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  // Resolve admin object ESM default wrapper if necessary
+  const resolvedAdmin: any = (admin as any).default || admin;
 
   try {
     if (serviceAccountJson) {
@@ -25,8 +28,8 @@ function initializeFirebaseAdmin() {
             "\n"
           );
         }
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+        resolvedAdmin.initializeApp({
+          credential: resolvedAdmin.credential.cert(serviceAccount),
           storageBucket:
             process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
             "bkgalabovo2025.firebasestorage.app",
@@ -48,8 +51,8 @@ function initializeFirebaseAdmin() {
       const projectId =
         process.env.FIREBASE_PROJECT_ID ||
         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-      admin.initializeApp({
-        credential: admin.credential.cert({
+      resolvedAdmin.initializeApp({
+        credential: resolvedAdmin.credential.cert({
           projectId: projectId,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
@@ -62,8 +65,8 @@ function initializeFirebaseAdmin() {
         "Firebase Admin SDK initialized using individual environment variables."
       );
     } else if (googleCreds) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+      resolvedAdmin.initializeApp({
+        credential: resolvedAdmin.credential.applicationDefault(),
       });
       console.log(
         "Firebase Admin SDK initialized using GOOGLE_APPLICATION_CREDENTIALS."
@@ -75,9 +78,9 @@ function initializeFirebaseAdmin() {
       return;
     }
 
-    adminDb = admin.firestore();
-    adminAuth = admin.auth();
-    adminStorage = admin.storage();
+    adminDb = resolvedAdmin.firestore();
+    adminAuth = resolvedAdmin.auth();
+    adminStorage = resolvedAdmin.storage();
   } catch (error) {
     console.error("CRITICAL: Firebase Admin SDK initialization failed.", error);
   }

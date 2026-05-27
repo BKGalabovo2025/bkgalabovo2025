@@ -29,6 +29,7 @@ import { EditGeneralServiceDialog } from "./EditGeneralServiceDialog";
 import { GeneralServiceSaleWizardDialog } from "./GeneralServiceSaleWizardDialog";
 import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 import { toast } from "sonner";
+import { ReservationDialog } from "@/components/reservations/reservation-dialog";
 
 export function GeneralServiceList() {
   const { services, isLoading, refetch } = useGeneralServices();
@@ -68,7 +69,7 @@ export function GeneralServiceList() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-64 rounded-[2.5rem] bg-zinc-100 dark:bg-zinc-900/50 animate-pulse" />
+          <div key={i} className="h-64 rounded-5xl bg-zinc-100 dark:bg-zinc-900/50 animate-pulse" />
         ))}
       </div>
     );
@@ -102,7 +103,7 @@ export function GeneralServiceList() {
                     src={service.imageUrl}
                     alt={service.name}
                     fill
-                    sizes="100vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-1000"
                   />
                 ) : (
@@ -146,7 +147,7 @@ export function GeneralServiceList() {
               <div className="p-8 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start gap-4 mb-2">
-                    <h3 className="text-lg font-medium leading-snug text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem] flex items-center">
+                    <h3 className="text-lg font-medium leading-snug text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors line-clamp-2 min-h-14 flex items-center">
                       {service.name}
                     </h3>
                   </div>
@@ -165,17 +166,34 @@ export function GeneralServiceList() {
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 w-full">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedService(service);
-                        setIsSaleOpen(true);
-                      }}
-                      className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
-                    >
-                      Продажба
-                    </Button>
+                    {service.name.toLowerCase().includes("наем на корт") || service.id.startsWith("court_rental") ? (
+                      <ReservationDialog
+                        onSave={refetch}
+                        initialData={{
+                          courtId: 1,
+                        }}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
+                        >
+                          Продажба
+                        </Button>
+                      </ReservationDialog>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedService(service);
+                          setIsSaleOpen(true);
+                        }}
+                        className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
+                      >
+                        Продажба
+                      </Button>
+                    )}
                     <Button
                       variant="default"
                       size="sm"
@@ -215,7 +233,7 @@ export function GeneralServiceList() {
       </div>
 
       <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => !open && setServiceToDelete(null)}>
-        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-white dark:bg-zinc-950 p-10 max-w-md">
+        <AlertDialogContent className="rounded-5xl border-none shadow-2xl bg-white dark:bg-zinc-950 p-10 max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
               Изтриване на услуга

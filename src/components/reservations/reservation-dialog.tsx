@@ -19,6 +19,7 @@ import {
   createReservationAction,
   updateReservationAction,
 } from "@/lib/actions/reservations";
+import { getGeneralServicesServerAction } from "@/lib/actions/general-services-server";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -63,6 +64,9 @@ const reservationSchema = z
     selectedZone: z.string().optional(),
     startTime: z.date(),
     endTime: z.date(),
+    memberId: z.string().optional(),
+    paymentMethod: z.string().optional(),
+    status: z.string().optional(),
   })
   .refine((data) => data.endTime > data.startTime, {
     message: "Крайният час трябва да е след началния.",
@@ -127,7 +131,27 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   const { getFreshToken } = useAuth();
 
-  const COURT_PRICE_PER_HOUR = 10;
+  const [courtRentalPrice, setCourtRentalPrice] = useState(10);
+
+  React.useEffect(() => {
+    if (isOpen && !isRecoveryZone) {
+      getGeneralServicesServerAction(activeBranch)
+        .then((res) => {
+          if (res.success && res.data) {
+            const courtService = res.data.find(
+              (s) => s.name?.toLowerCase()?.trim()?.includes("наем на корт")
+            );
+            if (courtService && courtService.price) {
+              setCourtRentalPrice(courtService.price);
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading general services for court rental price:", err);
+        });
+    }
+  }, [isOpen, isRecoveryZone, activeBranch]);
+
   const isEditMode = !!reservation;
 
   const form = useForm<z.infer<typeof reservationSchema>>({
@@ -171,10 +195,10 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     if (startTime && endTime && endTime > startTime) {
       const durationHours =
         (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-      return durationHours * COURT_PRICE_PER_HOUR;
+      return durationHours * courtRentalPrice;
     }
     return 0;
-  }, [startTime, endTime, serviceId, isRecoveryZone, services]);
+  }, [startTime, endTime, serviceId, isRecoveryZone, services, courtRentalPrice]);
 
   const groupedServices = useMemo(() => {
     const groups: { [key: string]: ClubService[] } = {};
@@ -286,12 +310,17 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
         result = await updateReservationAction(
           token,
           reservation.id,
-          dataToSave
+          {
+            ...dataToSave,
+            status: values.status || "unpaid",
+            paymentMethod: values.paymentMethod || "Cash",
+          }
         );
       } else {
         result = await createReservationAction(token, {
           ...dataToSave,
-          status: "unpaid",
+          status: values.status || "unpaid",
+          paymentMethod: values.paymentMethod || "Cash",
         });
       }
 
@@ -395,7 +424,19 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
         <div className="p-8 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  // Only allow default enter submission on the final step
+                  if (currentStep !== "review") {
+                    e.preventDefault();
+                    handleNext();
+                  }
+                }
+              }}
+            >
               {/* Step 1: Time & Court */}
               {currentStep === "time" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -555,70 +596,107 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               {currentStep === "details" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   {/* SEARCH AND SELECT EXISTING MEMBER OR GUEST */}
-                  <div className="relative space-y-2">
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
-                      <span>Избор от съществуващи членове или гости</span>
-                      {membersLoading && (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                      )}
-                    </FormLabel>
-                    <div className="relative">
-                      <Input
-                        placeholder="Търсене на регистриран член или гост по име..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                          setSearchTerm(e.target.value);
-                          setShowMemberDropdown(true);
+                  {form.watch("memberId") ? (
+                    <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 p-5 rounded-3xl flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-black text-sm uppercase">
+                          {form.watch("clientName")?.[0]}
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">
+                            Свързан профил
+                          </p>
+                          <h4 className="font-bold text-xs text-zinc-950 dark:text-white leading-none">
+                            {form.watch("clientName")}
+                          </h4>
+                          <p className="text-[9px] text-zinc-400 mt-1 uppercase tracking-wider font-bold">
+                            {form.watch("clientPhone")} • {form.watch("clientEmail") || "Няма имейл"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          form.setValue("memberId", undefined);
+                          form.setValue("clientName", "");
+                          form.setValue("clientPhone", "");
+                          form.setValue("clientEmail", "");
+                          setSearchTerm("");
                         }}
-                        onFocus={() => setShowMemberDropdown(true)}
-                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-xs text-zinc-900"
-                      />
-                      {showMemberDropdown && searchTerm && (
-                        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
-                          {members
-                            .filter((m) =>
+                        className="h-8 px-3 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-[10px] font-black uppercase tracking-wider transition-colors"
+                      >
+                        Откачи
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative space-y-2">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
+                        <span>Избор от съществуващи членове или гости</span>
+                        {membersLoading && (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                        )}
+                      </FormLabel>
+                      <div className="relative">
+                        <Input
+                          placeholder="Търсене на регистриран член или гост по име..."
+                          value={searchTerm}
+                          onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setShowMemberDropdown(true);
+                          }}
+                          onFocus={() => setShowMemberDropdown(true)}
+                          className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-xs text-zinc-900"
+                        />
+                        {showMemberDropdown && searchTerm && (
+                          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
+                            {members
+                              .filter((m) =>
+                                `${m.firstName} ${m.lastName}`
+                                  .toLowerCase()
+                                  .includes(searchTerm.toLowerCase())
+                              )
+                              .map((m) => (
+                                <button
+                                  key={m.id}
+                                  type="button"
+                                  onClick={() => {
+                                    form.setValue(
+                                      "clientName",
+                                      `${m.firstName} ${m.lastName}`
+                                    );
+                                    form.setValue("clientPhone", m.phone || "");
+                                    form.setValue("clientEmail", m.email || "");
+                                    form.setValue("memberId", m.id);
+                                    setSearchTerm(`${m.firstName} ${m.lastName}`);
+                                    setShowMemberDropdown(false);
+                                  }}
+                                  className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
+                                >
+                                  <span className="font-bold text-zinc-800 dark:text-zinc-200">
+                                    {m.firstName} {m.lastName}
+                                  </span>
+                                  <span className="text-[10px] text-zinc-400">
+                                    {m.phone || "Няма тел."}{" "}
+                                    {m.isGuest ? "• Гост" : "• Член"}
+                                  </span>
+                                </button>
+                              ))}
+                            {members.filter((m) =>
                               `${m.firstName} ${m.lastName}`
                                 .toLowerCase()
                                 .includes(searchTerm.toLowerCase())
-                            )
-                            .map((m) => (
-                              <button
-                                key={m.id}
-                                type="button"
-                                onClick={() => {
-                                  form.setValue(
-                                    "clientName",
-                                    `${m.firstName} ${m.lastName}`
-                                  );
-                                  form.setValue("clientPhone", m.phone || "");
-                                  form.setValue("clientEmail", m.email || "");
-                                  setSearchTerm(`${m.firstName} ${m.lastName}`);
-                                  setShowMemberDropdown(false);
-                                }}
-                                className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
-                              >
-                                <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                                  {m.firstName} {m.lastName}
-                                </span>
-                                <span className="text-[10px] text-zinc-400">
-                                  {m.phone || "Няма тел."}{" "}
-                                  {m.isGuest ? "• Гост" : "• Член"}
-                                </span>
-                              </button>
-                            ))}
-                          {members.filter((m) =>
-                            `${m.firstName} ${m.lastName}`
-                              .toLowerCase()
-                              .includes(searchTerm.toLowerCase())
-                          ).length === 0 && (
-                            <div className="p-3 text-center text-zinc-400 text-xs">
-                              Няма намерени резултати
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            ).length === 0 && (
+                              <div className="p-3 text-center text-zinc-400 text-xs">
+                                Няма намерени резултати
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <FormField
                     control={form.control}
@@ -761,6 +839,68 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                         <p className="text-sm font-bold text-cyan-600 uppercase tracking-wider">
                           {selectedZone}
                         </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment Options */}
+                  <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white">
+                          {isEditMode ? "Статус на плащане" : "Плащане при създаване?"}
+                        </h4>
+                        <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-tight font-bold">
+                          {isEditMode ? "Промяна на статуса на плащане" : "Маркирайте резервацията като платена веднага"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const isPaid = form.getValues("status") === "paid";
+                          form.setValue("status", isPaid ? "unpaid" : "paid");
+                          if (!isPaid) form.setValue("paymentMethod", "Cash");
+                        }}
+                        className={cn(
+                          "w-12 h-6 rounded-full p-1 transition-all duration-300 relative focus:outline-none",
+                          form.watch("status") === "paid" ? "bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-800"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 absolute top-1",
+                            form.watch("status") === "paid" ? "left-7" : "left-1"
+                          )}
+                        />
+                      </button>
+                    </div>
+
+                    {form.watch("status") === "paid" && (
+                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 animate-in slide-in-from-top-2 duration-300">
+                        <button
+                          type="button"
+                          onClick={() => form.setValue("paymentMethod", "Cash")}
+                          className={cn(
+                            "h-12 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border-2",
+                            form.watch("paymentMethod") === "Cash" || !form.watch("paymentMethod")
+                              ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                              : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                          )}
+                        >
+                          В брой
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => form.setValue("paymentMethod", "Revolut")}
+                          className={cn(
+                            "h-12 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border-2",
+                            form.watch("paymentMethod") === "Revolut"
+                              ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                              : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                          )}
+                        >
+                          Revolut
+                        </button>
                       </div>
                     )}
                   </div>

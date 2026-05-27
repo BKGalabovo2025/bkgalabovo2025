@@ -53,6 +53,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     ...data,
     id: docSnap.id,
     name: name,
+    status: data.status || "active",
     dateOfBirth: toISODate(data.dateOfBirth),
     registrationDate:
       toISODate(data.registrationDate) || new Date().toISOString(),
@@ -64,7 +65,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     // Use Zod to validate and parse the data.
     return MemberSchema.parse(dataToParse);
   } catch (error) {
-    console.error(
+    console.warn(
       `Validation failed for ID ${docSnap.id}. Data:`,
       dataToParse,
       error

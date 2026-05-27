@@ -110,6 +110,7 @@ export async function createSaleAction(
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
     serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
 
     return {
       success: true,
@@ -286,6 +287,7 @@ export async function updateSaleAction(
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
     serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
 
     return {
       success: true,
@@ -417,6 +419,7 @@ export async function deleteSaleAction(
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
     serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
 
     return {
       success: true,

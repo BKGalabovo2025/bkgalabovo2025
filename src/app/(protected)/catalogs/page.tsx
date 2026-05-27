@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
@@ -73,7 +74,9 @@ export default async function CatalogsPage() {
         ]}
       />
 
-      <CatalogsClient services={services} recoveryServices={recoveryServices} />
+      <Suspense fallback={<div className="p-8 text-center text-zinc-500">Зареждане на каталозите...</div>}>
+        <CatalogsClient services={services} recoveryServices={recoveryServices} />
+      </Suspense>
     </div>
   );
 }

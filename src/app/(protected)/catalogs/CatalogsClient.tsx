@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTree, Wrench, Activity, Package } from "lucide-react";
 import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
@@ -17,7 +18,9 @@ export default function CatalogsClient({
   services,
   recoveryServices,
 }: CatalogsClientProps) {
-  const [catalogsSubTab, setCatalogsSubTab] = useState<string>("services");
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "services";
+  const [catalogsSubTab, setCatalogsSubTab] = useState<string>(defaultTab);
 
   return (
     <div className="space-y-10">
@@ -32,28 +35,28 @@ export default function CatalogsClient({
           <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full sm:w-fit border border-zinc-200/40 dark:border-zinc-800/40 mb-2 overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
             <TabsTrigger
               value="services"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
             >
               <ListTree className="h-3.5 w-3.5 mr-2" />
               Тренировки
             </TabsTrigger>
             <TabsTrigger
               value="general"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
             >
               <Wrench className="h-3.5 w-3.5 mr-2" />
               Клубни Услуги
             </TabsTrigger>
             <TabsTrigger
               value="recovery"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
             >
               <Activity className="h-3.5 w-3.5 mr-2" />
               Възстановяване
             </TabsTrigger>
             <TabsTrigger
               value="inventory"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
             >
               <Package className="h-3.5 w-3.5 mr-2" />
               Магазин / Стоки

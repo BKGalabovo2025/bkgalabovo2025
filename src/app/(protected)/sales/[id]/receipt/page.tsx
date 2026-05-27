@@ -21,10 +21,10 @@ export default async function ReceiptPage({ params }: PageProps) {
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <PageHeader
         title="Касова бележка"
-        description={`Преглед на детайли за продажба #${saleId.slice(-6).toUpperCase()}`}
+        description={`Преглед на детайли за продажба #${saleId.substring(0, 8).toUpperCase()}`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Тренировки", href: "/catalogs" },
+          { label: "Продажби", href: "/sales" },
           { label: "Разписка" },
         ]}
       />

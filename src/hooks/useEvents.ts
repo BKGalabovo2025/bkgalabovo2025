@@ -23,6 +23,7 @@ import { formatFullName } from "@/lib/utils";
 type NewEvent = Omit<ScheduleEvent, "id">;
 
 import { useAppStore } from "@/store/use-app-store";
+import { invalidateDashboardCacheAction } from "@/lib/actions/dashboard";
 
 export const useEvents = () => {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
@@ -88,6 +89,7 @@ export const useEvents = () => {
       toast.success("Събитието е създадено успешно", {
         description: `"${event.title}" беше добавено към графика.`,
       });
+      invalidateDashboardCacheAction().catch(err => console.error("Cache invalidation failed", err));
     } catch (err) {
       console.error("Error adding event:", err);
       toast.error("Грешка при добавяне на събитие", {
@@ -110,6 +112,7 @@ export const useEvents = () => {
       toast.success("Графикът е генериран", {
         description: `Успешно бяха създадени ${events.length} събития.`,
       });
+      invalidateDashboardCacheAction().catch(err => console.error("Cache invalidation failed", err));
     } catch (err) {
       console.error("Error adding multiple events:", err);
       toast.error("Грешка при генериране на графика", {
@@ -145,6 +148,7 @@ export const useEvents = () => {
         const eventRef = doc(getEventsCollection(), eventId);
         await setDoc(eventRef, eventData as ScheduleEvent, { merge: true });
         toast.success("Събитието е обновено");
+        invalidateDashboardCacheAction().catch(err => console.error("Cache invalidation failed", err));
       } catch (err) {
         setEvents(originalEvents);
         console.error("Error updating event:", err);
@@ -174,6 +178,7 @@ export const useEvents = () => {
       toast.success("Събитието е изтрито", {
         description: eventTitle ? `"${eventTitle}" беше премахнато.` : "",
       });
+      invalidateDashboardCacheAction().catch(err => console.error("Cache invalidation failed", err));
     } catch (err) {
       setEvents(originalEvents);
       console.error("Error deleting event:", err);
@@ -223,6 +228,7 @@ export const useEvents = () => {
         toast.success("Присъствията са обновени", {
           description: "Списъкът с присъстващи е запазен.",
         });
+        invalidateDashboardCacheAction().catch(err => console.error("Cache invalidation failed", err));
       } catch (err) {
         // Rollback on error
         setEvents(originalEvents);

@@ -87,7 +87,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   src={brandLogo}
                   alt="Logo"
                   fill
-                  sizes="100vw"
+                  sizes="40px"
                   className="object-contain"
                 />
               </Link>

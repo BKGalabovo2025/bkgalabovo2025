@@ -19,7 +19,7 @@ export const AttendanceReminder = ({
 
   const todayTrainings = useMemo(() => {
     // Prefer real-time client-side events once loaded, fallback to server-rendered initialEvents
-    const activeEvents = events !== undefined ? events : initialEvents;
+    const activeEvents = !clientLoading ? events : (initialEvents || events);
 
     if (!activeEvents) return [];
 
@@ -42,7 +42,7 @@ export const AttendanceReminder = ({
         (a, b) =>
           new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       );
-  }, [events, initialEvents]);
+  }, [events, initialEvents, clientLoading]);
 
   const showLoading = !initialEvents && clientLoading;
 

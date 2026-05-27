@@ -39,7 +39,7 @@ const DocumentCopy = ({
   timeRange,
   durationHours,
 }: DocumentCopyProps) => (
-  <div className="flex flex-col h-[135mm] border border-black p-10 bg-white relative">
+  <div className="flex flex-col flex-1 border border-black p-10 bg-white relative">
     <div className="flex flex-col h-full text-black">
       {/* Header */}
       <div className="flex justify-between items-start border-b border-black pb-4 mb-6">
