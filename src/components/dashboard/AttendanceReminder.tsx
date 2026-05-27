@@ -77,55 +77,54 @@ export const AttendanceReminder = ({
 
         <div className="space-y-6">
           {todayTrainings.map((training) => (
-            <div key={training.id} className="relative z-10">
-              <p className="text-2xl font-light text-zinc-900 leading-tight">
-                {training.title}
-              </p>
-              <p className="text-zinc-400 text-sm mt-2 font-light flex items-center gap-1.5">
-                <span className="text-zinc-900 font-medium">
-                  {new Date(training.startDate).toLocaleDateString("bg-BG", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}{" "}
-                  <span className="text-zinc-400 font-light lowercase">
-                    (
+            <div
+              key={training.id}
+              className="relative z-10 p-5 rounded-3xl border border-zinc-50 hover:bg-zinc-50/50 transition-all flex flex-col justify-between gap-4"
+            >
+              <div>
+                <p className="text-lg font-bold text-zinc-900 leading-tight">
+                  {training.title}
+                </p>
+                <p className="text-zinc-400 text-xs mt-1.5 font-light flex items-center gap-1.5 flex-wrap">
+                  <span className="text-zinc-900 font-medium">
                     {new Date(training.startDate).toLocaleDateString("bg-BG", {
-                      weekday: "short",
-                    })}
-                    )
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}{" "}
+                    <span className="text-zinc-400 font-light lowercase">
+                      (
+                      {new Date(training.startDate).toLocaleDateString(
+                        "bg-BG",
+                        {
+                          weekday: "short",
+                        }
+                      )}
+                      )
+                    </span>
                   </span>
-                </span>
-                <span className="mx-1 opacity-20">•</span>
-                {new Date(training.startDate).toLocaleTimeString("bg-BG", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                ч. • {training.location}
-              </p>
+                  <span className="opacity-20">•</span>
+                  {new Date(training.startDate).toLocaleTimeString("bg-BG", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  ч. • {training.location}
+                </p>
+              </div>
+
+              <Button
+                size="sm"
+                onClick={() => router.push(`/schedule?eventId=${training.id}`)}
+                className="w-full sm:w-auto self-start h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm flex items-center justify-between gap-2 px-4 transition-all group/btn text-[10px] font-bold uppercase tracking-wider"
+              >
+                <span>Отбележи присъствие</span>
+                <ArrowRight
+                  className="h-3 w-3 transform group-hover/btn:translate-x-0.5 transition-all"
+                  strokeWidth={2}
+                />
+              </Button>
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="mt-10 relative z-10">
-        <Button
-          onClick={() =>
-            router.push(
-              todayTrainings.length > 0
-                ? `/schedule?eventId=${todayTrainings[0].id}`
-                : "/schedule"
-            )
-          }
-          className="w-full h-14 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 flex items-center justify-between px-6 transition-all group/btn"
-        >
-          <span className="font-medium text-[11px] uppercase tracking-widest">
-            Отбележи присъствие
-          </span>
-          <ArrowRight
-            className="h-4 w-4 transform group-hover/btn:translate-x-1 transition-all"
-            strokeWidth={2}
-          />
-        </Button>
       </div>
     </BentoCard>
   );
