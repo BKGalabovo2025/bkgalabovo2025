@@ -18,14 +18,10 @@ export const AttendanceReminder = ({
   const router = useRouter();
 
   const todayTrainings = useMemo(() => {
-    if (initialEvents) {
-      return [...initialEvents].sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      );
-    }
+    // Prefer real-time client-side events once loaded, fallback to server-rendered initialEvents
+    const activeEvents = events !== undefined ? events : initialEvents;
 
-    if (!events) return [];
+    if (!activeEvents) return [];
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -33,7 +29,7 @@ export const AttendanceReminder = ({
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    return events
+    return activeEvents
       .filter((event) => {
         const eventDate = new Date(event.startDate);
         return (
