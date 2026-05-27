@@ -61,13 +61,13 @@ export const AttendanceReminder = ({
   if (todayTrainings.length === 0) return null;
 
   return (
-    <BentoCard className="p-8 border border-zinc-100 bg-white shadow-none rounded-4xl h-full flex flex-col justify-between group hover:border-emerald-100 transition-all duration-500 overflow-hidden relative">
+    <BentoCard className="p-5 sm:p-8 border border-zinc-100 bg-white shadow-none rounded-4xl h-full flex flex-col justify-between group hover:border-emerald-100 transition-all duration-500 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.06] transition-all duration-700 pointer-events-none transform translate-x-1/4 -translate-y-1/4 group-hover:scale-110">
         <CalendarCheck2 size={240} strokeWidth={1} />
       </div>
 
       <div>
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-8 flex items-center gap-3">
+        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
           <CalendarCheck2
             className="h-4 w-4 text-emerald-500"
             strokeWidth={1.5}
@@ -75,51 +75,38 @@ export const AttendanceReminder = ({
           Напомняне за присъствия
         </h3>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {todayTrainings.map((training) => (
             <div
               key={training.id}
-              className="relative z-10 p-5 rounded-3xl border border-zinc-50 hover:bg-zinc-50/50 transition-all flex flex-col justify-between gap-4"
+              className="relative z-10 p-4 rounded-2xl border border-zinc-100/80 bg-zinc-50/20 hover:bg-zinc-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
-              <div>
-                <p className="text-lg font-bold text-zinc-900 leading-tight">
+              <div className="space-y-1 min-w-0 flex-1">
+                <p className="text-sm font-bold text-zinc-900 leading-tight truncate">
                   {training.title}
                 </p>
-                <p className="text-zinc-400 text-xs mt-1.5 font-light flex items-center gap-1.5 flex-wrap">
-                  <span className="text-zinc-900 font-medium">
-                    {new Date(training.startDate).toLocaleDateString("bg-BG", {
-                      day: "2-digit",
-                      month: "2-digit",
+                <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-light flex-wrap">
+                  <span className="text-zinc-700 font-medium">
+                    {new Date(training.startDate).toLocaleTimeString("bg-BG", {
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}{" "}
-                    <span className="text-zinc-400 font-light lowercase">
-                      (
-                      {new Date(training.startDate).toLocaleDateString(
-                        "bg-BG",
-                        {
-                          weekday: "short",
-                        }
-                      )}
-                      )
-                    </span>
+                    ч.
                   </span>
-                  <span className="opacity-20">•</span>
-                  {new Date(training.startDate).toLocaleTimeString("bg-BG", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  ч. • {training.location}
-                </p>
+                  <span className="opacity-40">•</span>
+                  <span className="truncate">{training.location}</span>
+                </div>
               </div>
 
               <Button
                 size="sm"
                 onClick={() => router.push(`/schedule?eventId=${training.id}`)}
-                className="w-full sm:w-auto self-start h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm flex items-center justify-between gap-2 px-4 transition-all group/btn text-[10px] font-bold uppercase tracking-wider"
+                className="w-full sm:w-auto h-8 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-none text-[9px] font-extrabold uppercase tracking-wider shrink-0 px-3 flex items-center justify-center gap-1.5 transition-all group/btn"
               >
-                <span>Отбележи присъствие</span>
+                <span>Отбележи</span>
                 <ArrowRight
                   className="h-3 w-3 transform group-hover/btn:translate-x-0.5 transition-all"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                 />
               </Button>
             </div>
