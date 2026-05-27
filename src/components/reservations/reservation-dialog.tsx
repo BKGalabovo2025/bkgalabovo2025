@@ -28,6 +28,7 @@ import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
 import { getAllClubServices } from "@/services/club-service";
 import { cn } from "@/lib/utils";
+import { getAllMembers } from "@/services/member-service";
 import {
   Dialog,
   DialogContent,
@@ -90,9 +91,29 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const { activeBranch } = useAppStore();
   const isRecoveryZone = activeBranch === "recoveryzone";
 
+  const [members, setMembers] = useState<any[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setMembersLoading(true);
+      getAllMembers()
+        .then((data) => {
+          setMembers(data);
+        })
+        .catch((err) => {
+          console.error("Error loading members in reservation dialog:", err);
+        })
+        .finally(() => {
+          setMembersLoading(false);
+        });
+    }
+  }, [isOpen]);
+
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -195,7 +216,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
       if (!isRecoveryZone) fieldsToTrigger.push("courtId");
       else {
         fieldsToTrigger.push("serviceId");
-        const selectedService = services.find(s => s.id === serviceId);
+        const selectedService = services.find((s) => s.id === serviceId);
         if (selectedService && (selectedService.zones?.length || 0) > 1) {
           fieldsToTrigger.push("selectedZone");
         }
@@ -228,7 +249,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     setIsSaving(true);
     try {
       const selectedService = services.find((s) => s.id === values.serviceId);
-      
+
       // Dynamic resource adjustment based on selected zone
       let finalResources = selectedService?.requiredResources;
       if (values.selectedZone && finalResources) {
@@ -240,7 +261,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
             legs: zone === "Крака" ? 1 : 0,
             arms: zone === "Ръце" ? 1 : 0,
             hips: zone === "Таз" ? 1 : 0,
-          }
+          },
         };
       }
 
@@ -477,15 +498,19 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                       control={form.control}
                       name="selectedZone"
                       render={({ field }) => {
-                        const selectedService = services.find(s => s.id === serviceId);
+                        const selectedService = services.find(
+                          (s) => s.id === serviceId
+                        );
                         const availableZones = selectedService?.zones || [];
-                        
-                        if (availableZones.length <= 1) return <div className="hidden" />;
+
+                        if (availableZones.length <= 1)
+                          return <div className="hidden" />;
 
                         return (
                           <FormItem className="animate-in slide-in-from-top-2 duration-300">
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                              <Activity className="w-3 h-3" /> Коя зона ще се ползва?
+                              <Activity className="w-3 h-3" /> Коя зона ще се
+                              ползва?
                             </FormLabel>
                             <div className="grid grid-cols-3 gap-2">
                               {availableZones.map((zone) => (
@@ -529,6 +554,72 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               {/* Step 2: Client Details */}
               {currentStep === "details" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  {/* SEARCH AND SELECT EXISTING MEMBER OR GUEST */}
+                  <div className="relative space-y-2">
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
+                      <span>Избор от съществуващи членове или гости</span>
+                      {membersLoading && (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                      )}
+                    </FormLabel>
+                    <div className="relative">
+                      <Input
+                        placeholder="Търсене на регистриран член или гост по име..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setShowMemberDropdown(true);
+                        }}
+                        onFocus={() => setShowMemberDropdown(true)}
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-xs text-zinc-900"
+                      />
+                      {showMemberDropdown && searchTerm && (
+                        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
+                          {members
+                            .filter((m) =>
+                              `${m.firstName} ${m.lastName}`
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase())
+                            )
+                            .map((m) => (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => {
+                                  form.setValue(
+                                    "clientName",
+                                    `${m.firstName} ${m.lastName}`
+                                  );
+                                  form.setValue("clientPhone", m.phone || "");
+                                  form.setValue("clientEmail", m.email || "");
+                                  setSearchTerm(`${m.firstName} ${m.lastName}`);
+                                  setShowMemberDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
+                              >
+                                <span className="font-bold text-zinc-800 dark:text-zinc-200">
+                                  {m.firstName} {m.lastName}
+                                </span>
+                                <span className="text-[10px] text-zinc-400">
+                                  {m.phone || "Няма тел."}{" "}
+                                  {m.isGuest ? "• Гост" : "• Член"}
+                                </span>
+                              </button>
+                            ))}
+                          {members.filter((m) =>
+                            `${m.firstName} ${m.lastName}`
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase())
+                          ).length === 0 && (
+                            <div className="p-3 text-center text-zinc-400 text-xs">
+                              Няма намерени резултати
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="clientName"
@@ -606,15 +697,13 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                         </div>
                         <div className="max-w-[180px]">
                           <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
-                            {!isRecoveryZone
-                              ? "Избран Корт"
-                              : "Избрана Услуга"}
+                            {!isRecoveryZone ? "Избран Корт" : "Избрана Услуга"}
                           </p>
                           <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">
                             {!isRecoveryZone
                               ? `Корт № ${courtId}`
-                              : services.find((s) => s.id === serviceId)?.name ||
-                                "Услуга"}
+                              : services.find((s) => s.id === serviceId)
+                                  ?.name || "Услуга"}
                           </p>
                         </div>
                       </div>
