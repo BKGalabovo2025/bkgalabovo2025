@@ -17,7 +17,6 @@ export default async function ReceiptPage({ params }: PageProps) {
     notFound();
   }
 
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <PageHeader
@@ -25,7 +24,7 @@ export default async function ReceiptPage({ params }: PageProps) {
         description={`Преглед на детайли за продажба #${saleId.slice(-6).toUpperCase()}`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Продажби", href: "/sales" },
+          { label: "Тренировки", href: "/catalogs" },
           { label: "Разписка" },
         ]}
       />
