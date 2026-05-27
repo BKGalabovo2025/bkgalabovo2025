@@ -61,7 +61,7 @@ export const AttendanceReminder = ({
   if (todayTrainings.length === 0) return null;
 
   return (
-    <BentoCard className="p-5 sm:p-8 border border-zinc-100 bg-white shadow-none rounded-4xl h-full flex flex-col justify-between group hover:border-emerald-100 transition-all duration-500 overflow-hidden relative">
+    <BentoCard className="p-5 sm:p-8 border border-zinc-100 bg-white shadow-none rounded-4xl flex flex-col gap-6 group hover:border-emerald-100 transition-all duration-500 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.06] transition-all duration-700 pointer-events-none transform translate-x-1/4 -translate-y-1/4 group-hover:scale-110">
         <CalendarCheck2 size={240} strokeWidth={1} />
       </div>
