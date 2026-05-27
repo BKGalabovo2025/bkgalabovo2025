@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSales } from "@/hooks/useSales";
 import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
-import { Loader2, MoreHorizontal, PlusCircle, Receipt } from "lucide-react";
+import { Loader2, MoreHorizontal, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -85,9 +85,7 @@ export const MemberSalesHistory = ({
     mutate(memberId);
   };
 
-  const handleDeleteSale = async (
-    saleId: string
-  ) => {
+  const handleDeleteSale = async (saleId: string) => {
     await deleteSale(saleId);
     mutate(memberId);
   };
@@ -140,14 +138,6 @@ export const MemberSalesHistory = ({
             Списък с всички регистрирани плащания и услуги.
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => router.push(`/sales/new?memberId=${memberId}`)}
-          className="w-full sm:w-auto h-10 px-6 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 text-[10px] font-medium uppercase tracking-widest shadow-none"
-        >
-          <PlusCircle className="h-3.5 w-3.5 mr-2" strokeWidth={1.5} />
-          Нова продажба
-        </Button>
       </div>
 
       {loading ? (
@@ -364,9 +354,7 @@ export const MemberSalesHistory = ({
                                         <DropdownMenuSeparator className="bg-zinc-100" />
                                         <DropdownMenuItem
                                           onSelect={() =>
-                                            handleDeleteSale(
-                                              sale.id
-                                            )
+                                            handleDeleteSale(sale.id)
                                           }
                                           className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
                                         >
@@ -488,11 +476,7 @@ export const MemberSalesHistory = ({
                                     )}
                                     <DropdownMenuSeparator className="bg-zinc-100" />
                                     <DropdownMenuItem
-                                      onSelect={() =>
-                                        handleDeleteSale(
-                                          sale.id
-                                        )
-                                      }
+                                      onSelect={() => handleDeleteSale(sale.id)}
                                       className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
                                     >
                                       Изтрий запис
