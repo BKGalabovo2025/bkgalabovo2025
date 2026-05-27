@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { updateFamilyNameAction } from "@/lib/actions/families";
 import { Input } from "@/components/ui/input";
+import { MemberSalesHistory } from "@/components/members/member-sales-history";
 
 const FamilyDetailsPage = () => {
   const params = useParams();
@@ -314,6 +315,20 @@ const FamilyDetailsPage = () => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Family Financial History */}
+      <div className="space-y-6 pt-4">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 dark:text-white px-2">
+          Финансова история на семейството
+        </h3>
+        <BentoCard className="p-8 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-5xl shadow-none">
+          <MemberSalesHistory
+            memberId={family.memberIds?.[0] || ""}
+            memberIds={family.memberIds || []}
+            familyMembers={members}
+          />
+        </BentoCard>
       </div>
     </div>
   );
