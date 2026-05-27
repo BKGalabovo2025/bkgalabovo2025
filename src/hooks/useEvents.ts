@@ -24,6 +24,8 @@ type NewEvent = Omit<ScheduleEvent, "id">;
 
 import { useAppStore } from "@/store/use-app-store";
 import { invalidateDashboardCacheAction } from "@/lib/actions/dashboard";
+import { updateAttendeesAction } from "@/lib/actions/events";
+import { useAuth } from "@/context/auth-context";
 
 export const useEvents = () => {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
@@ -31,6 +33,7 @@ export const useEvents = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { activeBranch } = useAppStore();
+  const { getFreshToken } = useAuth();
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -213,17 +216,25 @@ export const useEvents = () => {
       });
 
       try {
-        const eventRef = doc(getEventsCollection(), eventId);
-        const payload = newAttendees.map(({ memberId, attended, name }) => ({
-          memberId,
-          attended,
-          name,
-        }));
-        await setDoc(
-          eventRef,
-          { attendees: payload, attendeeMemberIds } as ScheduleEvent,
-          { merge: true }
-        );
+        const token = await getFreshToken();
+        if (!token) throw new Error("No authentication token available");
+
+        const result = await updateAttendeesAction(token, eventId, newAttendees);
+        
+        if (!result.success) {
+          throw new Error(result.message || "Failed to update attendees");
+        }
+
+        // If the server auto-updated payment statuses, we need to update our optimistic state
+        if (result.updatedAttendees) {
+          setEvents((currentEvents) => 
+            currentEvents.map((e) => 
+              e.id === eventId 
+                ? { ...e, attendees: result.updatedAttendees, attendeeMemberIds } 
+                : e
+            )
+          );
+        }
 
         toast.success("Присъствията са обновени", {
           description: "Списъкът с присъстващи е запазен.",
@@ -237,7 +248,7 @@ export const useEvents = () => {
         throw err;
       }
     },
-    [members]
+    [members, getFreshToken]
   );
 
   return {

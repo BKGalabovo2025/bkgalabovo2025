@@ -1,0 +1,134 @@
+"use server";
+
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getAuthUser } from "@/lib/auth-utils";
+import { format, getYear } from "date-fns";
+import { bg } from "date-fns/locale";
+import { Attendee } from "@/types";
+
+/**
+ * Updates attendees for an event, automatically checking if any unpaid attendee
+ * has a valid monthly subscription covering the event's month, and marking them as paid.
+ */
+export async function updateAttendeesAction(
+  idToken: string,
+  eventId: string,
+  attendees: Attendee[]
+) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    
+    // Fetch the event to get its date
+    const eventRef = db.collection("events").doc(eventId);
+    const eventSnap = await eventRef.get();
+    
+    if (!eventSnap.exists) {
+      return { success: false, message: "Събитието не е открито." };
+    }
+    
+    const eventData = eventSnap.data();
+    if (!eventData) {
+      return { success: false, message: "Невалидни данни за събитието." };
+    }
+    
+    const eventStartDate = eventData.startDate; 
+    let d: Date;
+    if (eventStartDate && typeof eventStartDate.toDate === 'function') {
+      d = eventStartDate.toDate();
+    } else if (eventStartDate) {
+      d = new Date(eventStartDate);
+    } else {
+      d = new Date();
+    }
+    
+    // Generate the month label (e.g., "Май 2026") AND month key (e.g., "2026-05")
+    const monthLabel =
+        format(d, "LLLL", { locale: bg }).charAt(0).toUpperCase() +
+        format(d, "LLLL", { locale: bg }).slice(1) +
+        " " +
+        getYear(d);
+    
+    const monthKey = format(d, "yyyy-MM"); // e.g. "2026-05"
+    const nowIso = new Date().toISOString();
+      
+    // Process attendees and check for active subscriptions
+    const updatedAttendees = await Promise.all(attendees.map(async (attendee) => {
+      // If they are not attending or already paid, return as is
+      if (!attendee.attended || attendee.paymentStatus === "paid") {
+        return attendee;
+      }
+      
+      // Look for a completed training_service sale for this member covering monthLabel or monthKey
+      try {
+        const salesRef = db.collection("sales");
+        
+        let matchedSale = null;
+
+        // First try: query by targetMonthLabels (e.g. "Май 2026")
+        const byLabel = await salesRef
+          .where("type", "==", "training_service")
+          .where("status", "==", "completed")
+          .where("targetMonthLabels", "array-contains", monthLabel)
+          .get();
+
+        for (const docSnap of byLabel.docs) {
+          const sData = docSnap.data();
+          const targetIds = sData.memberIdsForAttendance || 
+                           (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
+          if (targetIds.includes(attendee.memberId)) {
+            matchedSale = { id: docSnap.id, ...sData };
+            break;
+          }
+        }
+
+        // Second try: fallback query by targetMonths (e.g. "2026-05")
+        if (!matchedSale) {
+          const byMonth = await salesRef
+            .where("type", "==", "training_service")
+            .where("status", "==", "completed")
+            .where("targetMonths", "array-contains", monthKey)
+            .get();
+
+          for (const docSnap of byMonth.docs) {
+            const sData = docSnap.data();
+            const targetIds = sData.memberIdsForAttendance || 
+                             (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
+            if (targetIds.includes(attendee.memberId)) {
+              matchedSale = { id: docSnap.id, ...sData };
+              break;
+            }
+          }
+        }
+        
+        if (matchedSale) {
+          // Found an active subscription covering this month!
+          return {
+            ...attendee,
+            paymentStatus: "paid" as const,
+            paymentType: ((matchedSale as Record<string, unknown>).paymentMode as string || "subscription") as "subscription" | "individual",
+            paymentDate: nowIso,
+            saleId: matchedSale.id
+          };
+        }
+      } catch (err) {
+        console.error(`Error checking sales for member ${attendee.memberId}:`, err);
+      }
+      
+      return attendee;
+    }));
+    
+    const attendeeMemberIds = updatedAttendees.map(a => a.memberId);
+    
+    await eventRef.update({ 
+      attendees: updatedAttendees,
+      attendeeMemberIds
+    });
+    
+    return { success: true, updatedAttendees };
+    
+  } catch (error) {
+    console.error("Error in updateAttendeesAction:", error);
+    return { success: false, message: "Възникна грешка при обновяване." };
+  }
+}

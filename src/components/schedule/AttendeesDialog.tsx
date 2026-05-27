@@ -75,10 +75,17 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     try {
       const attendees: Attendee[] = Array.from(attendeeIds).map((id) => {
         const member = members.find((m) => m.id === id);
+        const existingAttendee = event.attendees?.find((a) => a.memberId === id);
+        
         return {
           memberId: id,
           name: member ? formatFullName(member) : "Unknown",
           attended: true,
+          // Preserve existing payment data to avoid wiping it on UI updates
+          ...(existingAttendee?.paymentStatus && { paymentStatus: existingAttendee.paymentStatus }),
+          ...(existingAttendee?.paymentType && { paymentType: existingAttendee.paymentType }),
+          ...(existingAttendee?.paymentDate && { paymentDate: existingAttendee.paymentDate }),
+          ...(existingAttendee?.saleId && { saleId: existingAttendee.saleId }),
         };
       });
 

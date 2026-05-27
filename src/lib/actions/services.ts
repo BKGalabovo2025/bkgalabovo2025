@@ -558,6 +558,77 @@ export async function executeTrainingSaleAction(
       }
     }
 
+    // 4. AUTO-SYNC: Mark ALL attended events in the covered months as paid
+    // This covers events attended AFTER the subscription was sold (not in paidEventIds)
+    const targetMonths: string[] = saleData.targetMonths || [];
+    if (
+      targetMonths.length > 0 &&
+      targetMemberIds.length > 0 &&
+      saleData.isPaid
+    ) {
+      const nowIsoSync = new Date().toISOString();
+
+      for (const memberId of targetMemberIds) {
+        // Get all events where this member is an attendee
+        const eventsSnap = await adminDb
+          .collection("events")
+          .where("attendeeMemberIds", "array-contains", memberId)
+          .get();
+
+        const syncBatch = adminDb.batch();
+        let syncCount = 0;
+
+        for (const eventDoc of eventsSnap.docs) {
+          const event = eventDoc.data();
+
+          // Parse event date
+          let eventDate: Date;
+          if (event.startDate && typeof event.startDate.toDate === "function") {
+            eventDate = event.startDate.toDate();
+          } else if (event.startDate) {
+            eventDate = new Date(event.startDate);
+          } else {
+            continue;
+          }
+
+          const eventMonthKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
+
+          // Skip if this event is not in a covered month
+          if (!targetMonths.includes(eventMonthKey)) continue;
+
+          const attendees: any[] = event.attendees || [];
+          const idx = attendees.findIndex((a) => a.memberId === memberId);
+          if (idx === -1) continue;
+
+          const attendee = attendees[idx];
+          // Skip if not attended or already paid by THIS sale
+          if (!attendee.attended) continue;
+          if (attendee.paymentStatus === "paid" && attendee.saleId === saleRef.id) continue;
+
+          const updatedAttendees = [...attendees];
+          updatedAttendees[idx] = {
+            ...attendee,
+            paymentStatus: "paid",
+            paymentType: paymentType,
+            paymentDate: nowIsoSync,
+            saleId: saleRef.id,
+          };
+
+          syncBatch.update(eventDoc.ref, { attendees: updatedAttendees });
+          syncCount++;
+
+          // Commit and start new batch if needed
+          if (syncCount % 400 === 0) {
+            await syncBatch.commit();
+          }
+        }
+
+        if (syncCount % 400 !== 0) {
+          await syncBatch.commit();
+        }
+      }
+    }
+
     // Update the member's lastPaymentDate if this sale is paid
     if (
       saleData.isPaid &&
