@@ -71,38 +71,48 @@ const ReceiptCopy = ({
         })
       : new Date().toLocaleDateString("bg-BG");
 
-  const isCourtRental = 
-    sale?.items?.[0]?.productId?.startsWith("court_rental") || 
+  const isCourtRental =
+    sale?.items?.[0]?.productId?.startsWith("court_rental") ||
     sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
 
   if (isCourtRental) {
     const hours = sale?.items?.[0]?.quantity || 1;
     const totalAmount = sale?.totalAmount || 0;
-    const clientName = sale?.clientName || (member ? `${member.firstName} ${member.lastName}` : "Външен клиент");
+    const clientName =
+      sale?.clientName ||
+      (member ? `${member.firstName} ${member.lastName}` : "Външен клиент");
     const clientPhone = member?.phone || sale?.note || ""; // fallback
-    
+
     const start = sale?.saleDate ? new Date(sale.saleDate) : new Date();
     const end = new Date(start.getTime() + hours * 3600000);
-    
-    const formattedDate = start.toLocaleDateString("bg-BG", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }) + " г.";
-    
-    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
-      " - " + 
+
+    const formattedDate =
+      start.toLocaleDateString("bg-BG", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }) + " г.";
+
+    const timeRange =
+      start.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }) +
+      " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
     // Extract court number from product ID (e.g. court_rental_3 -> 3) or name
     const courtMatch = sale?.items?.[0]?.productId?.match(/\d+/);
     const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
-    const courtId = courtMatch ? courtMatch[0] : (nameMatch ? nameMatch[0] : "-");
+    const courtId = courtMatch ? courtMatch[0] : nameMatch ? nameMatch[0] : "-";
 
     return (
       <div
         className="flex flex-col flex-1 border border-black p-4 bg-white relative animate-in fade-in duration-300"
-        style={{ fontFamily: "Arial, Helvetica, sans-serif", wordSpacing: "2px" }}
+        style={{
+          fontFamily: "Arial, Helvetica, sans-serif",
+          wordSpacing: "2px",
+        }}
       >
         <div className="flex flex-col h-full text-black">
           {/* Header */}
@@ -130,8 +140,11 @@ const ReceiptCopy = ({
           <div className="mb-2 text-[10px] leading-relaxed text-justify">
             С настоящия документ се потвърждава постъпило целево дарение от{" "}
             <span className="font-bold uppercase">{clientName}</span>{" "}
-            {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“.
-            Дарените средства ще бъдат използвани изцяло за поддържане на материално-техническата база (МТО) на клуба и неговите уставни цели, включително развитие на детско-юношеската школа по бадминтон.
+            {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
+            КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат използвани изцяло за
+            поддържане на материално-техническата база (МТО) на клуба и неговите
+            уставни цели, включително развитие на детско-юношеската школа по
+            бадминтон.
           </div>
 
           {/* Table */}
@@ -142,7 +155,9 @@ const ReceiptCopy = ({
                   <th className="p-2 text-left border-r border-black">
                     Описание на дарението
                   </th>
-                  <th className="p-2 text-center border-r border-black">Корт</th>
+                  <th className="p-2 text-center border-r border-black">
+                    Корт
+                  </th>
                   <th className="p-2 text-center border-r border-black">
                     Дата / Час
                   </th>
@@ -152,7 +167,8 @@ const ReceiptCopy = ({
               <tbody>
                 <tr className="border-b border-black">
                   <td className="p-2 border-r border-black font-bold">
-                    Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за ползване на бадминтон корт
+                    Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за
+                    ползване на бадминтон корт
                   </td>
                   <td className="p-2 text-center border-r border-black font-bold">
                     {courtId}
@@ -422,7 +438,9 @@ export default function ReceiptClientPage({
   saleId,
   initialDetails,
 }: ReceiptClientPageProps) {
-  const [details, setDetails] = useState<any | null>(initialDetails);
+  const [details, setDetails] = useState<
+    ReceiptClientPageProps["initialDetails"] | null
+  >(initialDetails);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
@@ -581,6 +599,10 @@ export default function ReceiptClientPage({
     <>
       <style jsx global>{`
         @media print {
+          @page {
+            margin: 0;
+            size: A4 portrait;
+          }
           body * {
             visibility: hidden;
           }
