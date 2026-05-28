@@ -12,7 +12,14 @@ import {
   MapPin,
   Clock,
   Zap,
+  Phone,
+  Globe,
 } from "lucide-react";
+import {
+  InstagramIcon,
+  YoutubeIcon,
+  FacebookIcon,
+} from "@/components/icons/social-icons";
 import { getSiteById } from "@/services/site-service";
 import { DaySchedule } from "@/types/site.types";
 
@@ -503,6 +510,85 @@ export default async function RecoveryZonePage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Phone */}
+                {site.phone && (
+                  <div className="flex items-center gap-6 group">
+                    <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-emerald-500 group-hover:text-white transition-all">
+                      <Phone size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mb-1">
+                        Телефон
+                      </p>
+                      <a
+                        href={`tel:${site.phone.replace(/\s/g, "")}`}
+                        className="text-lg font-medium text-zinc-200 hover:text-emerald-400 transition-colors"
+                      >
+                        {site.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Social Media */}
+                {(site.instagram ||
+                  site.facebook ||
+                  site.youtube ||
+                  site.website) && (
+                  <div className="flex items-center gap-6 group">
+                    <div className="h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400">
+                      <Globe size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mb-3">
+                        Онлайн присъствие
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {site.instagram && (
+                          <a
+                            href={site.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-pink-400 hover:border-pink-400/30 transition-all text-xs"
+                          >
+                            <InstagramIcon size={14} /> Instagram
+                          </a>
+                        )}
+                        {site.facebook && (
+                          <a
+                            href={site.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-blue-400 hover:border-blue-400/30 transition-all text-xs"
+                          >
+                            <FacebookIcon size={14} /> Facebook
+                          </a>
+                        )}
+                        {site.youtube && (
+                          <a
+                            href={site.youtube}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-red-400 hover:border-red-400/30 transition-all text-xs"
+                          >
+                            <YoutubeIcon size={14} /> YouTube
+                          </a>
+                        )}
+                        {site.website && (
+                          <a
+                            href={site.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-emerald-400 hover:border-emerald-400/30 transition-all text-xs"
+                          >
+                            <Globe size={14} /> Уебсайт
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -548,6 +634,43 @@ export default async function RecoveryZonePage() {
             <span>{site.address || "България"}</span>
             <span className="hidden sm:inline">|</span>
             <span>© {new Date().getFullYear()}</span>
+          </div>
+
+          {/* Social icons in footer */}
+          <div className="flex items-center gap-3">
+            {site.instagram && (
+              <a
+                href={site.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Instagram"
+                className="h-8 w-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-pink-400 hover:border-pink-400/30 transition-all"
+              >
+                <InstagramIcon size={14} />
+              </a>
+            )}
+            {site.facebook && (
+              <a
+                href={site.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Facebook"
+                className="h-8 w-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-blue-400 hover:border-blue-400/30 transition-all"
+              >
+                <FacebookIcon size={14} />
+              </a>
+            )}
+            {site.youtube && (
+              <a
+                href={site.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="YouTube"
+                className="h-8 w-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:border-red-400/30 transition-all"
+              >
+                <YoutubeIcon size={14} />
+              </a>
+            )}
           </div>
 
           <Link

@@ -51,9 +51,15 @@ export interface Site {
   id: string;
   name: string;
   address?: string;
+  description?: string;
   email?: string;
   phone?: string;
   website?: string;
+  // Social media
+  instagram?: string;
+  youtube?: string;
+  facebook?: string;
+  facebookGroup?: string;
   isActive: boolean;
 
   // Branding

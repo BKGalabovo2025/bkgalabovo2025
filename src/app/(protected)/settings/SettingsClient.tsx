@@ -22,7 +22,15 @@ import {
   CheckCircle2,
   Activity,
   Loader2,
+  MapPin,
+  Phone,
+  Users,
 } from "lucide-react";
+import {
+  InstagramIcon,
+  YoutubeIcon,
+  FacebookIcon,
+} from "@/components/icons/social-icons";
 import { toast } from "react-hot-toast";
 import { getAllSites, updateSite } from "@/services/site-service";
 import { Site } from "@/types/site.types";
@@ -111,6 +119,13 @@ export default function SettingsClient() {
   const bkgData = formData["bkgalabovo"] || {};
   const rzData = formData["recoveryzone"] || {};
 
+  const inputClass =
+    "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
+  const inputClassRz =
+    "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]";
+  const labelClass =
+    "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <PageHeader
@@ -133,7 +148,6 @@ export default function SettingsClient() {
 
       <Tabs defaultValue="general" className="w-full">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Custom Tabs Sidebar for Bento Feel */}
           <div className="lg:w-72 space-y-3">
             <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-3">
               <TabsTrigger
@@ -169,8 +183,8 @@ export default function SettingsClient() {
               value="general"
               className="m-0 focus-visible:outline-none"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <BentoCard className="p-10 space-y-8 md:col-span-2 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+              <div className="grid grid-cols-1 gap-6">
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                   <div className="flex items-center gap-4 mb-2">
                     <Building2
                       className="h-5 w-5 text-primary"
@@ -182,9 +196,7 @@ export default function SettingsClient() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Име на клуба
-                      </Label>
+                      <Label className={labelClass}>Име на клуба</Label>
                       <Input
                         value={bkgData.name || ""}
                         onChange={(e) =>
@@ -194,11 +206,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className={labelClass}>
+                        <Mail className="inline h-3 w-3 mr-1" />
                         Официален Имейл
                       </Label>
                       <Input
@@ -210,11 +223,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className={labelClass}>
+                        <Phone className="inline h-3 w-3 mr-1" />
                         Телефон за връзка
                       </Label>
                       <Input
@@ -226,11 +240,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        className={inputClass}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className={labelClass}>
+                        <Globe className="inline h-3 w-3 mr-1" />
                         Уебсайт
                       </Label>
                       <Input
@@ -242,13 +257,111 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        placeholder="https://bkgalabovo.alle.bg/"
+                        className={inputClass}
                       />
+                    </div>
+                    <div className="space-y-3 md:col-span-2">
+                      <Label className={labelClass}>
+                        <MapPin className="inline h-3 w-3 mr-1" />
+                        Адрес
+                      </Label>
+                      <Input
+                        value={bkgData.address || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "bkgalabovo",
+                            "address",
+                            e.target.value
+                          )
+                        }
+                        placeholder="ул. Александър Стамболийски 41, 6280 Гълъбово, България"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
+                    <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
+                      Социални мрежи
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <InstagramIcon className="inline h-3 w-3 mr-1 text-pink-500" />
+                          Instagram
+                        </Label>
+                        <Input
+                          value={bkgData.instagram || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "bkgalabovo",
+                              "instagram",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.instagram.com/badminton.galabovo/"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <YoutubeIcon className="inline h-3 w-3 mr-1 text-red-500" />
+                          YouTube
+                        </Label>
+                        <Input
+                          value={bkgData.youtube || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "bkgalabovo",
+                              "youtube",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.youtube.com/@BKGalabovo"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <FacebookIcon className="inline h-3 w-3 mr-1 text-blue-500" />
+                          Facebook Страница
+                        </Label>
+                        <Input
+                          value={bkgData.facebook || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "bkgalabovo",
+                              "facebook",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.facebook.com/badmintongalabovo/"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <Users className="inline h-3 w-3 mr-1 text-blue-400" />
+                          Facebook Група (Родители и деца)
+                        </Label>
+                        <Input
+                          value={bkgData.facebookGroup || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "bkgalabovo",
+                              "facebookGroup",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.facebook.com/groups/645571089477573/"
+                          className={inputClass}
+                        />
+                      </div>
                     </div>
                   </div>
                 </BentoCard>
 
-                <BentoCard className="p-10 space-y-8 md:col-span-2 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                   <div className="flex items-center gap-4 mb-2">
                     <Activity
                       className="h-5 w-5 text-[#00f2fe]"
@@ -260,9 +373,7 @@ export default function SettingsClient() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Име на обекта
-                      </Label>
+                      <Label className={labelClass}>Име на обекта</Label>
                       <Input
                         value={rzData.name || ""}
                         onChange={(e) =>
@@ -272,11 +383,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                        className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className={labelClass}>
+                        <Mail className="inline h-3 w-3 mr-1" />
                         Официален Имейл
                       </Label>
                       <Input
@@ -288,11 +400,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                        className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className={labelClass}>
+                        <Phone className="inline h-3 w-3 mr-1" />
                         Телефон за връзка
                       </Label>
                       <Input
@@ -304,12 +417,13 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                        className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Уебсайт / Социални мрежи
+                      <Label className={labelClass}>
+                        <Globe className="inline h-3 w-3 mr-1" />
+                        Уебсайт
                       </Label>
                       <Input
                         value={rzData.website || ""}
@@ -320,50 +434,129 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]"
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3 md:col-span-2">
+                      <Label className={labelClass}>
+                        <MapPin className="inline h-3 w-3 mr-1" />
+                        Адрес
+                      </Label>
+                      <Input
+                        value={rzData.address || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "address",
+                            e.target.value
+                          )
+                        }
+                        className={inputClassRz}
                       />
                     </div>
                   </div>
-                </BentoCard>
-
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-2">
-                    <Globe className="h-5 w-5 text-primary" strokeWidth={1.5} />
-                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Локализация
-                    </h3>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Основна Валута
-                      </Label>
-                      <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
-                        EUR (€)
+                  <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
+                    <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
+                      Социални мрежи
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <InstagramIcon className="inline h-3 w-3 mr-1 text-pink-500" />
+                          Instagram
+                        </Label>
+                        <Input
+                          value={rzData.instagram || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "recoveryzone",
+                              "instagram",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.instagram.com/recoveryzonebyzm/"
+                          className={inputClassRz}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <FacebookIcon className="inline h-3 w-3 mr-1 text-blue-500" />
+                          Facebook
+                        </Label>
+                        <Input
+                          value={rzData.facebook || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "recoveryzone",
+                              "facebook",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.facebook.com/..."
+                          className={inputClassRz}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>
+                          <YoutubeIcon className="inline h-3 w-3 mr-1 text-red-500" />
+                          YouTube
+                        </Label>
+                        <Input
+                          value={rzData.youtube || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "recoveryzone",
+                              "youtube",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://www.youtube.com/..."
+                          className={inputClassRz}
+                        />
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Часова Зона
-                      </Label>
-                      <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
-                        UTC+2 (Europe/Sofia)
-                      </div>
-                    </div>
                   </div>
                 </BentoCard>
 
-                <BentoCard className="p-10 space-y-6 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 flex flex-col justify-center items-center text-center">
-                  <div className="h-20 w-20 bg-primary/5 text-primary rounded-3xl flex items-center justify-center mb-4 transition-all hover:scale-105">
-                    <CheckCircle2 size={36} strokeWidth={1} />
-                  </div>
-                  <h4 className="font-light text-xl text-zinc-900 dark:text-white">
-                    Системата е Оптимизирана
-                  </h4>
-                  <p className="text-sm text-zinc-400 max-w-[200px] font-light leading-relaxed">
-                    Всички системни параметри са в нормални граници.
-                  </p>
-                </BentoCard>
+                {/* ── Localization + Status ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                    <div className="flex items-center gap-4 mb-2">
+                      <Globe
+                        className="h-5 w-5 text-primary"
+                        strokeWidth={1.5}
+                      />
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Локализация
+                      </h3>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className={labelClass}>Основна Валута</Label>
+                        <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
+                          EUR (€)
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className={labelClass}>Часова Зона</Label>
+                        <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
+                          UTC+2 (Europe/Sofia)
+                        </div>
+                      </div>
+                    </div>
+                  </BentoCard>
+                  <BentoCard className="p-10 space-y-6 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 flex flex-col justify-center items-center text-center">
+                    <div className="h-20 w-20 bg-primary/5 text-primary rounded-3xl flex items-center justify-center mb-4 transition-all hover:scale-105">
+                      <CheckCircle2 size={36} strokeWidth={1} />
+                    </div>
+                    <h4 className="font-light text-xl text-zinc-900 dark:text-white">
+                      Системата е Оптимизирана
+                    </h4>
+                    <p className="text-sm text-zinc-400 max-w-[200px] font-light leading-relaxed">
+                      Всички системни параметри са в нормални граници.
+                    </p>
+                  </BentoCard>
+                </div>
               </div>
             </TabsContent>
 

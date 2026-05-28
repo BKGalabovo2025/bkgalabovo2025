@@ -10,11 +10,20 @@ import {
   MapPin,
   Phone,
   Mail,
+  Globe,
   ChevronRight,
   Star,
   Target,
   Shield,
 } from "lucide-react";
+import {
+  InstagramIcon,
+  YoutubeIcon,
+  FacebookIcon,
+} from "@/components/icons/social-icons";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { getSiteById } from "@/services/site-service";
+import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 
 export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
@@ -52,9 +61,6 @@ const ageGroups = [
   { label: "Ветерани", sublabel: "35+ г.", icon: Trophy },
 ];
 
-import { getAdminDb } from "@/lib/firebase-admin";
-import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
-
 function serializeDoc(data: any) {
   if (!data) return data;
   const copy = { ...data };
@@ -75,6 +81,9 @@ function serializeDoc(data: any) {
 
 export default async function ClubPage() {
   const adminDb = getAdminDb();
+
+  // Fetch site data for dynamic contact/social info
+  const site = await getSiteById("bkgalabovo");
 
   // 1. Fetch trainings (clubServices) for bkgalabovo
   const servicesSnapshot = await adminDb.collection("clubServices").get();
@@ -108,6 +117,50 @@ export default async function ClubPage() {
       })
     )
     .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
+
+  // Resolve contact info — prefer DB, fallback to defaults
+  const clubName = site?.name || "Бадминтон Клуб Гълъбово";
+  const clubEmail = site?.email || "bk_galabovo@abv.bg";
+  const clubPhone = site?.phone || "+359 899 82 99 23";
+  const clubAddress =
+    site?.address ||
+    'Спортна зала "Енергетик", ул. Александър Стамболийски 41, 6280 Гълъбово';
+  const clubWebsite = site?.website || "https://bkgalabovo.alle.bg/";
+  const clubInstagram =
+    site?.instagram || "https://www.instagram.com/badminton.galabovo/";
+  const clubYoutube = site?.youtube || "https://www.youtube.com/@BKGalabovo";
+  const clubFacebook =
+    site?.facebook || "https://www.facebook.com/badmintongalabovo/";
+  const clubFacebookGroup =
+    site?.facebookGroup || "https://www.facebook.com/groups/645571089477573/";
+
+  const socialLinks = [
+    {
+      href: clubInstagram,
+      icon: InstagramIcon,
+      label: "Instagram",
+      color: "hover:text-pink-400",
+    },
+    {
+      href: clubYoutube,
+      icon: YoutubeIcon,
+      label: "YouTube",
+      color: "hover:text-red-400",
+    },
+    {
+      href: clubFacebook,
+      icon: FacebookIcon,
+      label: "Facebook",
+      color: "hover:text-blue-400",
+    },
+    {
+      href: clubFacebookGroup,
+      icon: Users,
+      label: "Facebook Група",
+      color: "hover:text-blue-300",
+    },
+  ].filter((s) => s.href);
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
@@ -319,7 +372,8 @@ export default async function ClubPage() {
           <h2 className="text-4xl font-light tracking-tight mb-12">
             Намерете ни
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            {/* Address */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
               <MapPin
                 size={20}
@@ -328,13 +382,10 @@ export default async function ClubPage() {
               />
               <p className="text-white font-medium mb-2">Адрес</p>
               <p className="text-zinc-500 text-sm leading-relaxed">
-                гр. Гълъбово, п.к. 6280
-                <br />
-                обл. Стара Загора
-                <br />
-                ул. „Иван Вазов&ldquo; №22
+                {clubAddress}
               </p>
             </div>
+            {/* Phone */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
               <Phone
                 size={20}
@@ -343,12 +394,13 @@ export default async function ClubPage() {
               />
               <p className="text-white font-medium mb-2">Телефон</p>
               <a
-                href="tel:+359899829923"
+                href={`tel:${clubPhone.replace(/\s/g, "")}`}
                 className="text-zinc-400 hover:text-blue-400 text-sm transition-colors"
               >
-                +359 899 82 99 23
+                {clubPhone}
               </a>
             </div>
+            {/* Email */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
               <Mail
                 size={20}
@@ -357,11 +409,43 @@ export default async function ClubPage() {
               />
               <p className="text-white font-medium mb-2">Имейл</p>
               <a
-                href="mailto:bk_galabovo@abv.bg"
+                href={`mailto:${clubEmail}`}
                 className="text-zinc-400 hover:text-blue-400 text-sm transition-colors break-all"
               >
-                bk_galabovo@abv.bg
+                {clubEmail}
               </a>
+            </div>
+          </div>
+
+          {/* Website + Social Links */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+            <p className="text-[11px] uppercase tracking-[0.4em] text-blue-400 mb-6">
+              Намерете ни онлайн
+            </p>
+            <div className="flex flex-wrap gap-4 items-center">
+              {clubWebsite && (
+                <a
+                  href={clubWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm text-zinc-300 hover:text-white transition-all"
+                >
+                  <Globe size={16} className="text-blue-400" />
+                  Уебсайт
+                </a>
+              )}
+              {socialLinks.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm text-zinc-300 transition-all ${s.color}`}
+                >
+                  <s.icon size={16} />
+                  {s.label}
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -374,8 +458,23 @@ export default async function ClubPage() {
             <Trophy size={14} className="text-white" />
           </div>
           <span className="text-sm font-medium text-zinc-400">
-            СНЦ „Бадминтон клуб Гълъбово&ldquo;
+            СНЦ „{clubName}&ldquo;
           </span>
+        </div>
+        {/* Social icons in footer */}
+        <div className="flex items-center gap-3">
+          {socialLinks.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={s.label}
+              className={`h-8 w-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 transition-all ${s.color} hover:border-zinc-600`}
+            >
+              <s.icon size={14} />
+            </a>
+          ))}
         </div>
         <span className="text-[10px] uppercase tracking-widest text-zinc-700">
           © {new Date().getFullYear()} БК Гълъбово

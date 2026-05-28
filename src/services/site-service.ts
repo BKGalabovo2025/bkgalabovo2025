@@ -14,9 +14,14 @@ const SITES_COLLECTION = "sites";
 interface SiteDocumentData {
   name?: string;
   address?: string;
+  description?: string;
   email?: string;
   phone?: string;
   website?: string;
+  instagram?: string;
+  youtube?: string;
+  facebook?: string;
+  facebookGroup?: string;
   logo?: string;
   inventory?: import("@/types/site.types").SiteInventory;
   recoveryInventory?: {
@@ -67,9 +72,14 @@ export const docToSite = (doc: {
     id: doc.id,
     name: data.name || doc.id,
     address: data.address || "",
+    description: data.description || "",
     email: data.email || "",
     phone: data.phone || "",
     website: data.website || "",
+    instagram: data.instagram || "",
+    youtube: data.youtube || "",
+    facebook: data.facebook || "",
+    facebookGroup: data.facebookGroup || "",
     logo: data.logo || "",
     inventory,
     schedule: data.schedule || null,
