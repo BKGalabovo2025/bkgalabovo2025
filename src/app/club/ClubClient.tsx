@@ -207,6 +207,34 @@ export default function ClubClient({
         </div>
       </section>
 
+      {/* Services Call to Action */}
+      <section className="py-24 px-6 bg-zinc-950 border-t border-zinc-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-blue-900/10 via-zinc-950/0 to-zinc-950/0 pointer-events-none" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+            Каталог
+          </p>
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+            Нашите Услуги и Тренировки
+          </h2>
+          <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+            Разгледайте пълния списък с предлагани групови и индивидуални
+            тренировки, наеми на кортове, абонаментни карти и спортна
+            екипировка.
+          </p>
+          <Link
+            href="/club/catalog"
+            className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:-translate-y-1 group"
+          >
+            Разгледай нашите услуги
+            <ArrowRight
+              size={20}
+              className="group-hover:translate-x-1 transition-transform"
+            />
+          </Link>
+        </div>
+      </section>
+
       {/* Schedule 7 days */}
       <section id="schedule" className="py-24 px-6 bg-zinc-950 relative">
         <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
@@ -308,16 +336,6 @@ export default function ClubClient({
                 </li>
               ))}
             </ul>
-            <Link
-              href="/club/catalog"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border border-blue-400 hover:bg-blue-400/10 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(30,58,138,0.3)] group"
-            >
-              Разгледай нашите услуги{" "}
-              <ArrowRight
-                size={18}
-                className="group-hover:translate-x-1 transition-transform text-blue-400"
-              />
-            </Link>
           </div>
 
           {/* Carousel */}
@@ -372,8 +390,8 @@ export default function ClubClient({
 
       {/* Contacts & Social */}
       <section id="contacts" className="py-24 px-6 bg-zinc-950">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col gap-16">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4">
                 Свържете се с нас
