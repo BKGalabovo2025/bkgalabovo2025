@@ -113,6 +113,7 @@ export default async function RecoveryCatalogPage() {
               generalServices={generalServices}
               products={products}
               recoveryServices={recoveryServices}
+              allowedTabs={["recovery"]}
             />
           </div>
         </div>

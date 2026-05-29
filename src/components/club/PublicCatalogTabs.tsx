@@ -29,6 +29,7 @@ interface PublicCatalogTabsProps {
   generalServices: any[];
   products: any[];
   recoveryServices?: any[];
+  allowedTabs?: ("trainings" | "general" | "products" | "recovery")[];
 }
 
 export default function PublicCatalogTabs({
@@ -36,10 +37,11 @@ export default function PublicCatalogTabs({
   generalServices,
   products,
   recoveryServices = [],
+  allowedTabs = ["trainings", "general", "products", "recovery"],
 }: PublicCatalogTabsProps) {
   const [activeTab, setActiveTab] = useState<
     "trainings" | "general" | "products" | "recovery"
-  >("trainings");
+  >(allowedTabs[0] || "trainings");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -103,50 +105,58 @@ export default function PublicCatalogTabs({
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-zinc-900/50 border border-zinc-800/80 p-4 rounded-3xl backdrop-blur-md">
         {/* Tabs switcher */}
         <div className="flex items-center p-1 bg-zinc-950/80 border border-zinc-800/50 rounded-2xl w-full md:w-auto overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => handleTabChange("trainings")}
-            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
-              activeTab === "trainings"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Trophy size={14} />
-            Тренировки
-          </button>
-          <button
-            onClick={() => handleTabChange("general")}
-            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
-              activeTab === "general"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Activity size={14} />
-            Клубни Услуги
-          </button>
-          <button
-            onClick={() => handleTabChange("products")}
-            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
-              activeTab === "products"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Package size={14} />
-            Магазин & Наличност
-          </button>
-          <button
-            onClick={() => handleTabChange("recovery")}
-            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
-              activeTab === "recovery"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            <Zap size={14} />
-            Възстановяване
-          </button>
+          {allowedTabs.includes("trainings") && (
+            <button
+              onClick={() => handleTabChange("trainings")}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+                activeTab === "trainings"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Trophy size={14} />
+              Тренировки
+            </button>
+          )}
+          {allowedTabs.includes("general") && (
+            <button
+              onClick={() => handleTabChange("general")}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+                activeTab === "general"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Activity size={14} />
+              Клубни Услуги
+            </button>
+          )}
+          {allowedTabs.includes("products") && (
+            <button
+              onClick={() => handleTabChange("products")}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+                activeTab === "products"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Package size={14} />
+              Магазин & Наличност
+            </button>
+          )}
+          {allowedTabs.includes("recovery") && (
+            <button
+              onClick={() => handleTabChange("recovery")}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+                activeTab === "recovery"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Zap size={14} />
+              Възстановяване
+            </button>
+          )}
         </div>
 
         {/* Search Input */}
