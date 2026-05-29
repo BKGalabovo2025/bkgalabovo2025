@@ -5,8 +5,9 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 
 export const metadata: Metadata = {
-  title: "Каталог | БК Гълъбово",
-  description: "Разгледайте нашите тренировки, услуги и продукти.",
+  title: "Каталог | Recovery Zone by ZM",
+  description:
+    "Разгледайте нашите възстановителни процедури, услуги и продукти.",
 };
 
 function serializeDoc(data: any) {
@@ -27,23 +28,45 @@ function serializeDoc(data: any) {
   return copy;
 }
 
-export default async function CatalogPage() {
+export default async function RecoveryCatalogPage() {
   const adminDb = getAdminDb();
+
+  // We fetch the same catalogs, but for Recovery Zone we can either show everything or filter for "recoveryzone"
+  // For maximum compatibility with PublicCatalogTabs, we provide all data just like the Club page.
+  // We don't filter out things unless they are explicitly assigned to another site (if siteId exists).
+  // Wait, if it's explicitly assigned to "bkgalabovo", it probably shouldn't be in the recovery zone catalog?
+  // Let's filter out items that have siteId explicitly set to something else, or keep it generic if siteId is missing.
+  // Actually, they might share products or services. Let's fetch the same way.
 
   const servicesSnapshot = await adminDb.collection("clubServices").get();
   const services = servicesSnapshot.docs
     .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
+    .filter(
+      (item) =>
+        !item.siteId ||
+        item.siteId === "recoveryzone" ||
+        item.siteId === "bkgalabovo"
+    );
 
   const generalSnapshot = await adminDb.collection("clubGeneralServices").get();
   const generalServices = generalSnapshot.docs
     .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
+    .filter(
+      (item) =>
+        !item.siteId ||
+        item.siteId === "recoveryzone" ||
+        item.siteId === "bkgalabovo"
+    );
 
   const productsSnapshot = await adminDb.collection("products").get();
   const products = productsSnapshot.docs
     .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
+    .filter(
+      (item) =>
+        !item.siteId ||
+        item.siteId === "recoveryzone" ||
+        item.siteId === "bkgalabovo"
+    );
 
   const recoverySnapshot = await adminDb.collection("recoveryServices").get();
   const recoveryServices = recoverySnapshot.docs.map((doc) =>
@@ -53,15 +76,15 @@ export default async function CatalogPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-blue-400/30">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-emerald-400/30">
         <Link
-          href="/club"
-          className="flex items-center gap-2 text-zinc-400 hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)] transition-all text-sm"
+          href="/recovery-zone"
+          className="flex items-center gap-2 text-zinc-400 hover:text-emerald-400 hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-all text-sm"
         >
           <ArrowLeft size={16} />
-          Назад към клуба
+          Назад към Recovery Zone
         </Link>
-        <span className="font-medium text-sm text-blue-400 uppercase tracking-widest drop-shadow-[0_0_8px_rgba(30,58,138,0.3)]">
+        <span className="font-medium text-sm text-emerald-400 uppercase tracking-widest drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
           Каталог
         </span>
         <div className="w-20"></div>
@@ -73,17 +96,18 @@ export default async function CatalogPage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-12">
             <h1 className="text-4xl font-light tracking-tight mb-4">
-              Клубни{" "}
-              <span className="text-blue-400 drop-shadow-[0_0_12px_rgba(30,58,138,0.4)]">
-                Каталози
+              Recovery Zone{" "}
+              <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
+                Каталог
               </span>
             </h1>
             <p className="text-zinc-400">
-              Тук ще намерите всички наши тренировки, клубни услуги и продукти.
+              Разгледайте нашите възстановителни процедури, тренировки и
+              продукти.
             </p>
           </div>
 
-          <div className="bg-black/80 border border-blue-400/20 rounded-3xl p-6 md:p-10 glassmorphism">
+          <div className="bg-black/80 border border-emerald-400/20 rounded-3xl p-6 md:p-10 glassmorphism">
             <PublicCatalogTabs
               trainings={services}
               generalServices={generalServices}

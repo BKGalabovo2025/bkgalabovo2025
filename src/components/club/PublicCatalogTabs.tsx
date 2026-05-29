@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ChevronLeft,
   ShoppingBag,
+  Zap,
 } from "lucide-react";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
@@ -27,15 +28,17 @@ interface PublicCatalogTabsProps {
   trainings: any[];
   generalServices: any[];
   products: any[];
+  recoveryServices?: any[];
 }
 
 export default function PublicCatalogTabs({
   trainings,
   generalServices,
   products,
+  recoveryServices = [],
 }: PublicCatalogTabsProps) {
   const [activeTab, setActiveTab] = useState<
-    "trainings" | "general" | "products"
+    "trainings" | "general" | "products" | "recovery"
   >("trainings");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -49,8 +52,10 @@ export default function PublicCatalogTabs({
         return generalServices;
       case "products":
         return products;
+      case "recovery":
+        return recoveryServices;
     }
-  }, [activeTab, trainings, generalServices, products]);
+  }, [activeTab, trainings, generalServices, products, recoveryServices]);
 
   // Extract unique categories for filtering
   const categories = useMemo(() => {
@@ -84,7 +89,9 @@ export default function PublicCatalogTabs({
   }, [activeDataset, searchQuery, selectedCategory]);
 
   // Reset filters when tab changes
-  const handleTabChange = (tab: "trainings" | "general" | "products") => {
+  const handleTabChange = (
+    tab: "trainings" | "general" | "products" | "recovery"
+  ) => {
     setActiveTab(tab);
     setSearchQuery("");
     setSelectedCategory("all");
@@ -128,6 +135,17 @@ export default function PublicCatalogTabs({
           >
             <Package size={14} />
             Магазин & Наличност
+          </button>
+          <button
+            onClick={() => handleTabChange("recovery")}
+            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+              activeTab === "recovery"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <Zap size={14} />
+            Възстановяване
           </button>
         </div>
 
@@ -190,7 +208,7 @@ function CatalogCard({
   tab,
 }: {
   item: any;
-  tab: "trainings" | "general" | "products";
+  tab: "trainings" | "general" | "products" | "recovery";
 }) {
   const images = useMemo(() => {
     if (!item.imageUrl) return [];
@@ -297,6 +315,8 @@ function CatalogCard({
               <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />
             ) : tab === "general" ? (
               <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />
+            ) : tab === "recovery" ? (
+              <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />
             ) : (
               <ShoppingBag className="h-12 w-12 opacity-35" strokeWidth={1} />
             )}
@@ -345,7 +365,9 @@ function CatalogCard({
                 ? "Тренировка"
                 : tab === "general"
                   ? "Услуга"
-                  : "Магазин"}
+                  : tab === "recovery"
+                    ? "Възстановяване"
+                    : "Магазин"}
             </Badge>
           </div>
         </div>

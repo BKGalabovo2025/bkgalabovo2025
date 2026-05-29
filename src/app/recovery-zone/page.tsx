@@ -80,12 +80,12 @@ export default async function RecoveryZonePage() {
             >
               Информация
             </a>
-            <a
-              href="#pricing"
+            <Link
+              href="/recovery-zone/catalog"
               className="hover:text-emerald-400 transition-colors"
             >
               Каталог Възстановяване
-            </a>
+            </Link>
             <a
               href="#team"
               className="hover:text-emerald-400 transition-colors"
@@ -137,12 +137,12 @@ export default async function RecoveryZonePage() {
                 възстановяването, намали умората и се върни в играта по-силен.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <a
-                  href="#pricing"
+                <Link
+                  href="/recovery-zone/catalog"
                   className="w-full sm:w-auto px-12 py-6 bg-linear-to-r from-purple-500 to-emerald-500 hover:opacity-90 text-white rounded-2xl text-xs font-bold transition-all shadow-2xl shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-3"
                 >
                   ВИЖ ПРОГРАМИТЕ <ChevronDown size={16} />
-                </a>
+                </Link>
               </div>
             </div>
 
