@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Script from "next/script";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -491,6 +492,22 @@ export default function ClubClient({
                     YouTube
                   </span>
                 </a>
+              </div>
+
+              {/* Instagram Feed Widget */}
+              <div className="mt-8 overflow-hidden rounded-2xl relative w-full">
+                <Script
+                  src="https://elfsightcdn.com/platform.js"
+                  strategy="lazyOnload"
+                />
+                <div
+                  className="elfsight-app-38429d6c-a19f-4a06-97e0-33126f15eb84"
+                  data-elfsight-app-lazy
+                ></div>
+                <div
+                  className="elfsight-app-026b377a-abc3-4a27-9a45-85779cc6e70e"
+                  data-elfsight-app-lazy
+                ></div>
               </div>
             </div>
           </div>
