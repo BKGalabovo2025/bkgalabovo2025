@@ -22,7 +22,7 @@ import {
 import { CreateEventDialog } from "@/components/schedule/CreateEventDialog";
 import { EditEventDialog } from "@/components/schedule/EditEventDialog";
 import { AttendeesDialog } from "@/components/schedule/AttendeesDialog";
-import { MonthlyScheduleDialog } from "@/components/schedule/MonthlyScheduleDialog";
+import MonthlyScheduleDialog from "@/components/schedule/MonthlyScheduleDialog";
 import { PrintableEvent } from "@/components/schedule/PrintableEvent";
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
 import {

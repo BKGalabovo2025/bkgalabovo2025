@@ -13,7 +13,15 @@ import {
 import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import Image from "next/image";
+import { Eye } from "lucide-react";
 
 interface PublicCatalogTabsProps {
   trainings: any[];
@@ -190,6 +198,7 @@ function CatalogCard({
   }, [item.imageUrl]);
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const nextImg = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -323,15 +332,69 @@ function CatalogCard({
             </span>
           </div>
 
-          <Badge className="bg-zinc-950 text-zinc-400 border-zinc-800/60 shadow-none font-medium text-[8px] uppercase tracking-wider px-2.5 py-1 flex items-center gap-1 border">
-            {tab === "trainings"
-              ? "Тренировка"
-              : tab === "general"
-                ? "Услуга"
-                : "Магазин"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="h-7 w-7 flex items-center justify-center rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors border border-blue-500/20"
+              title="Детайли"
+            >
+              <Eye size={14} />
+            </button>
+            <Badge className="bg-zinc-950 text-zinc-400 border-zinc-800/60 shadow-none font-medium text-[8px] uppercase tracking-wider px-2.5 py-1 flex items-center gap-1 border">
+              {tab === "trainings"
+                ? "Тренировка"
+                : tab === "general"
+                  ? "Услуга"
+                  : "Магазин"}
+            </Badge>
+          </div>
         </div>
       </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[600px] bg-zinc-950 border-zinc-800 p-0 overflow-hidden">
+          <div className="relative h-64 w-full bg-black">
+            {images.length > 0 ? (
+              <Image
+                src={images[0]}
+                alt={item.name}
+                fill
+                className="object-cover opacity-80"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-zinc-900/40 text-zinc-700">
+                <span className="text-[10px] uppercase tracking-widest font-semibold">
+                  Няма снимка
+                </span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
+            <div className="absolute top-4 left-4">{renderBadges()}</div>
+          </div>
+
+          <div className="p-6 md:p-8 relative -mt-16">
+            <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 shadow-2xl mb-6">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-white mb-2 leading-tight">
+                  {item.name}
+                </DialogTitle>
+                <div className="text-xl font-medium tracking-tight text-blue-400">
+                  {item.price > 0
+                    ? `${item.price.toFixed(2)} EUR`
+                    : "По заявка"}
+                </div>
+              </DialogHeader>
+            </div>
+
+            <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              <DialogDescription className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
+                {item.description ||
+                  "Няма предоставено описание за този артикул."}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </BentoCard>
   );
 }
