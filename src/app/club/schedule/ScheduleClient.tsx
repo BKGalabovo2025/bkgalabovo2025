@@ -173,7 +173,7 @@ export default function ScheduleClient({ schedule }: Props) {
                         >
                           {/* Left side: colored bar + info */}
                           <div className="flex items-center gap-5">
-                            <div className="w-1 h-12 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex-shrink-0" />
+                            <div className="w-1 h-12 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] shrink-0" />
                             <div>
                               <p className="text-white font-bold text-base tracking-tight">
                                 {event.title}
@@ -194,7 +194,7 @@ export default function ScheduleClient({ schedule }: Props) {
                           {/* Right side: CTA */}
                           <Link
                             href="/club#contacts"
-                            className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors flex-shrink-0 group-hover:gap-2"
+                            className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors shrink-0 group-hover:gap-2"
                           >
                             Запиши се
                             <ChevronRight
