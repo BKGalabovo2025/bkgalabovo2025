@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Settings,
@@ -21,6 +22,7 @@ import {
   Camera,
   CheckCircle2,
   Activity,
+  Clock,
   Loader2,
   MapPin,
   Phone,
@@ -63,6 +65,60 @@ export default function SettingsClient() {
 
     fetchSettings();
   }, []);
+
+  
+  
+  const handleScheduleChange = (siteId: string, day: string, field: 'open' | 'close' | 'isOpen', value: string | boolean) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const sched = site.schedule || {
+        monday: { open: "08:00", close: "22:00", isOpen: true },
+        tuesday: { open: "08:00", close: "22:00", isOpen: true },
+        wednesday: { open: "08:00", close: "22:00", isOpen: true },
+        thursday: { open: "08:00", close: "22:00", isOpen: true },
+        friday: { open: "08:00", close: "22:00", isOpen: true },
+        saturday: { open: "08:00", close: "22:00", isOpen: true },
+        sunday: { open: "08:00", close: "22:00", isOpen: true },
+      };
+      
+      return {
+        ...prev,
+        [siteId]: {
+          ...site,
+          schedule: {
+            ...sched,
+            [day]: {
+              ...sched[day as keyof typeof sched],
+              [field]: value,
+            }
+          }
+        }
+      };
+    });
+  };
+
+  const handleInventoryChange = (siteId: string, type: 'compressors' | 'legs' | 'arms' | 'hips', value: number) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const inv = site.inventory || { attachments: { legs: 0, arms: 0, hips: 0 }, compressors: 0 };
+      const atts = inv.attachments || { legs: 0, arms: 0, hips: 0 };
+      
+      const newInv = { ...inv };
+      if (type === 'compressors') {
+        newInv.compressors = value;
+      } else {
+        newInv.attachments = { ...atts, [type]: value };
+      }
+      
+      return {
+        ...prev,
+        [siteId]: {
+          ...site,
+          inventory: newInv,
+        }
+      };
+    });
+  };
 
   const handleInputChange = (
     siteId: string,
@@ -175,6 +231,14 @@ export default function SettingsClient() {
               >
                 <User className="mr-4 h-5 w-5" strokeWidth={1.5} /> Личен Профил
               </TabsTrigger>
+
+              <TabsTrigger
+                value="recovery"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-[#00f2fe]/10 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-[#00f2fe] text-[13px] uppercase tracking-widest"
+              >
+                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Зона Възстановяване
+              </TabsTrigger>
+
             </TabsList>
           </div>
 
@@ -833,6 +897,108 @@ export default function SettingsClient() {
                 </div>
               </BentoCard>
             </TabsContent>
+
+            <TabsContent value="recovery" className="m-0 focus-visible:outline-none">
+              <div className="grid grid-cols-1 gap-6">
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Activity className="h-5 w-5 text-[#00f2fe]" strokeWidth={1.5} />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">Инвентар & Оборудване</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Брой Компресори</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={rzData.inventory?.compressors || 0}
+                        onChange={(e) => handleInventoryChange("recoveryzone", "compressors", parseInt(e.target.value) || 0)}
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Приставки &quot;ТАЗ&quot;</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={rzData.inventory?.attachments?.hips || 0}
+                        onChange={(e) => handleInventoryChange("recoveryzone", "hips", parseInt(e.target.value) || 0)}
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Приставки &quot;КРАКА&quot;</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={rzData.inventory?.attachments?.legs || 0}
+                        onChange={(e) => handleInventoryChange("recoveryzone", "legs", parseInt(e.target.value) || 0)}
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Приставки &quot;РЪЦЕ&quot;</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={rzData.inventory?.attachments?.arms || 0}
+                        onChange={(e) => handleInventoryChange("recoveryzone", "arms", parseInt(e.target.value) || 0)}
+                        className={inputClassRz}
+                      />
+                    </div>
+                  </div>
+                </BentoCard>
+
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Clock className="h-5 w-5 text-[#00f2fe]" strokeWidth={1.5} />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">Работно Време</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day, i) => {
+                      const dayNames = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"];
+                      const sched = rzData.schedule || {};
+                      const daySched = (sched as any)[day] || { open: "08:00", close: "22:00", isOpen: true };
+                      
+                      return (
+                        <div key={day} className="flex items-center gap-6 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
+                          <div className="w-32">
+                            <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dayNames[i]}</Label>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Checkbox 
+                              checked={daySched.isOpen}
+                              onCheckedChange={(c) => handleScheduleChange("recoveryzone", day, "isOpen", !!c)}
+                            />
+                            <span className="text-[10px] uppercase font-bold text-zinc-400 w-16">{daySched.isOpen ? "Отворено" : "Затворено"}</span>
+                          </div>
+                          {daySched.isOpen && (
+                            <div className="flex items-center gap-3 flex-1 justify-end">
+                              <Input 
+                                type="time"
+                                value={daySched.open}
+                                onChange={(e) => handleScheduleChange("recoveryzone", day, "open", e.target.value)}
+                                className="w-32 h-10"
+                              />
+                              <span className="text-zinc-400">-</span>
+                              <Input 
+                                type="time"
+                                value={daySched.close}
+                                onChange={(e) => handleScheduleChange("recoveryzone", day, "close", e.target.value)}
+                                className="w-32 h-10"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </BentoCard>
+
+              </div>
+            </TabsContent>
+
 
             <TabsContent
               value="profile"

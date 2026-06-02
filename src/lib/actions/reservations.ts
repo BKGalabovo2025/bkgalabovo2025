@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { clubInfo } from "@/config/club";
 import { formatPrice } from "@/lib/currency";
+import { serverCache } from "@/lib/server-cache";
 
 const reservationSchema = z.object({
   clientName: z.string().min(2),
@@ -298,7 +299,7 @@ export async function createReservationAction(
     }
 
     revalidatePath("/reservations");
-    const { serverCache } = require("@/lib/server-cache");
+    // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
@@ -403,7 +404,7 @@ export async function updateReservationAction(
     });
 
     revalidatePath("/reservations");
-    const { serverCache } = require("@/lib/server-cache");
+    // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
@@ -432,7 +433,7 @@ export async function deleteReservationAction(
     await db.collection("reservations").doc(reservationId).delete();
     revalidatePath("/reservations");
     
-    const { serverCache } = require("@/lib/server-cache");
+    // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
@@ -592,7 +593,7 @@ export async function markReservationAsPaidAction(
       });
 
     revalidatePath("/reservations");
-    const { serverCache } = require("@/lib/server-cache");
+    // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
@@ -699,6 +700,162 @@ export async function sendDonationReceiptEmailAction(
         error instanceof Error
           ? error.message
           : "Грешка при изпращане на имейл.",
+    };
+  }
+}
+
+export async function createPackageReservationsAction(
+  idToken: string,
+  reservationsData: Record<string, unknown>[],
+  paymentMethod?: string
+) {
+  try {
+    const user = await getAuthUser(idToken);
+    const db = getAdminDb();
+    
+    if (!reservationsData || reservationsData.length === 0) {
+      throw new Error("Няма данни за резервации.");
+    }
+
+    const packageGroupId = db.collection("reservations").doc().id;
+    let saleId = "";
+
+    const parsedReservations = reservationsData.map(r => reservationSchema.parse(r));
+    const firstRes = parsedReservations[0];
+    
+    let finalMemberId = firstRes.memberId;
+    if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
+      finalMemberId = await findOrCreateGuestProfile(
+        db,
+        user,
+        firstRes.clientName,
+        firstRes.clientPhone,
+        firstRes.clientEmail,
+        firstRes.siteId
+      );
+    }
+
+    if (firstRes.status === "paid") {
+      saleId = await createSaleForReservation(
+        db,
+        user,
+        packageGroupId,
+        {
+          ...firstRes,
+          memberId: finalMemberId,
+        },
+        paymentMethod || "Cash"
+      );
+    }
+
+    const batch = db.batch();
+    
+    for (const r of parsedReservations) {
+      const resRef = db.collection("reservations").doc();
+      const startTime = Timestamp.fromDate(new Date(r.startTime));
+      const endTime = Timestamp.fromDate(new Date(r.endTime));
+
+      batch.set(resRef, {
+        ...r,
+        memberId: finalMemberId,
+        packageGroupId,
+        saleId,
+        startTime,
+        endTime,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        createdBy: {
+          userId: user.uid,
+          userName: user.name || user.email || "Unknown",
+        },
+      });
+    }
+
+    await batch.commit();
+
+    revalidatePath("/reservations");
+    serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
+
+    return { success: true, message: "Пакетът е създаден успешно." };
+  } catch (error: unknown) {
+    console.error("Create Package Error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Грешка при създаване на пакета.",
+    };
+  }
+}
+
+export async function updatePackageReservationsAction(
+  idToken: string,
+  packageGroupId: string,
+  data: { status: string; paymentMethod?: string }
+) {
+  try {
+    const user = await getAuthUser(idToken);
+    const db = getAdminDb();
+
+    const reservationsSnap = await db
+      .collection("reservations")
+      .where("packageGroupId", "==", packageGroupId)
+      .get();
+
+    if (reservationsSnap.empty) {
+      throw new Error("Пакетът не е намерен.");
+    }
+
+    const firstRes = reservationsSnap.docs[0].data();
+    let finalMemberId = firstRes.memberId;
+    let saleId = firstRes.saleId || "";
+
+    if (data.status === "paid" && firstRes.status !== "paid") {
+      saleId = await createSaleForReservation(
+        db,
+        user,
+        packageGroupId,
+        {
+          ...firstRes,
+          memberId: finalMemberId,
+        },
+        data.paymentMethod || "Cash"
+      );
+    } else if (data.status === "unpaid" && firstRes.status === "paid") {
+      if (saleId) {
+        await deleteSaleForReservation(db, packageGroupId);
+        const saleSnap = await db.collection("sales").doc(saleId).get();
+        if (saleSnap.exists) {
+          await saleSnap.ref.delete();
+        }
+        saleId = "";
+      }
+    }
+
+    const batch = db.batch();
+    reservationsSnap.docs.forEach((doc) => {
+      batch.update(doc.ref, {
+        status: data.status,
+        saleId,
+        updatedAt: Timestamp.now(),
+        updatedBy: {
+          userId: user.uid,
+          userName: user.name || user.email || "Unknown",
+        },
+      });
+    });
+
+    await batch.commit();
+
+    revalidatePath("/reservations");
+    serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
+
+    return { success: true, message: "Пакетът е актуализиран успешно." };
+  } catch (error: unknown) {
+    console.error("Update Package Error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Грешка при актуализиране на пакета.",
     };
   }
 }
