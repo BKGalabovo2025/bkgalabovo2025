@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
-import { ensureAdmin } from "@/lib/auth-utils";
+import { ensureAdmin, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
 import { serverCache } from "@/lib/server-cache";
+import { Member, Sale, ScheduleEvent } from "@/types";
+import * as admin from "firebase-admin";
 
 // --- Type for Server Action State ---
 export type MemberActionState = {
@@ -277,6 +279,162 @@ export async function bulkUpdateMemberStatusAction(
     return {
       success: false,
       message: "Грешка при масово обновяване на статуса.",
+    };
+  }
+}
+
+function snapToData<T>(
+  doc: admin.firestore.QueryDocumentSnapshot | admin.firestore.DocumentSnapshot
+): T {
+  const data = doc.data();
+  if (!data) return null as any;
+  const convertTimestamps = (val: any): any => {
+    if (!val) return val;
+    if (typeof val.toDate === "function") {
+      return val.toDate().toISOString();
+    }
+    if (Array.isArray(val)) {
+      return val.map(convertTimestamps);
+    }
+    if (typeof val === "object") {
+      const copy: any = {};
+      for (const key of Object.keys(val)) {
+        copy[key] = convertTimestamps(val[key]);
+      }
+      return copy;
+    }
+    return val;
+  };
+  return {
+    id: doc.id,
+    ...convertTimestamps(data),
+  } as T;
+}
+
+export interface Family {
+  id: string;
+  name?: string;
+  memberIds: string[];
+  siteId?: string;
+}
+
+/**
+ * Server action to fetch a member's complete profile data (member, family, family members, sales, attendances) concurrently.
+ */
+export async function getMemberProfileDataServerAction(
+  memberId: string
+): Promise<MemberActionState> {
+  try {
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
+
+    const adminDb = getAdminDb();
+
+    // Fetch member, family search, and events concurrently
+    const memberDocRef = adminDb.collection("members").doc(memberId);
+    const familiesColRef = adminDb.collection("families");
+    const eventsColRef = adminDb.collection("events");
+
+    const [memberSnap, familyQuerySnap, eventsQuerySnap] = await Promise.all([
+      memberDocRef.get(),
+      familiesColRef.where("memberIds", "array-contains", memberId).get(),
+      eventsColRef.where("attendeeMemberIds", "array-contains", memberId).get(),
+    ]);
+
+    if (!memberSnap.exists) {
+      return {
+        success: false,
+        message: "Членът не бе намерен.",
+      };
+    }
+
+    const memberData = snapToData<Member>(memberSnap);
+
+    // Sort attendances by startDate desc
+    const attendances = eventsQuerySnap.docs
+      .map((d) => snapToData<ScheduleEvent>(d))
+      .sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
+
+    let family: Family | null = null;
+    let familyMembers: Member[] = [];
+    const targetMemberIds = [memberId];
+
+    if (!familyQuerySnap.empty) {
+      const familyDoc = familyQuerySnap.docs[0];
+      family = { ...familyDoc.data(), id: familyDoc.id } as Family;
+
+      const otherMemberIds = family.memberIds.filter((id) => id !== memberId);
+      if (otherMemberIds.length > 0) {
+        targetMemberIds.push(...otherMemberIds);
+
+        // Fetch other family members concurrently
+        const otherMembersSnaps = await Promise.all(
+          otherMemberIds.map((id) =>
+            adminDb.collection("members").doc(id).get()
+          )
+        );
+        familyMembers = otherMembersSnaps
+          .filter((snap) => snap.exists)
+          .map((snap) => snapToData<Member>(snap));
+      }
+    }
+
+    // Fetch sales for all family members (or single member if no family) concurrently
+    const salesSnaps = await Promise.all(
+      targetMemberIds.map((id) =>
+        adminDb.collection("sales").where("memberId", "==", id).get()
+      )
+    );
+
+    // Also fetch sales where memberIdsForAttendance contains the memberId
+    const salesAttendanceSnaps = await Promise.all(
+      targetMemberIds.map((id) =>
+        adminDb
+          .collection("sales")
+          .where("memberIdsForAttendance", "array-contains", id)
+          .get()
+      )
+    );
+
+    // Merge and deduplicate sales
+    const salesMap = new Map<string, Sale>();
+
+    salesSnaps.forEach((querySnap) => {
+      querySnap.docs.forEach((doc) => {
+        const sale = snapToData<Sale>(doc);
+        salesMap.set(sale.id, sale);
+      });
+    });
+
+    salesAttendanceSnaps.forEach((querySnap) => {
+      querySnap.docs.forEach((doc) => {
+        const sale = snapToData<Sale>(doc);
+        salesMap.set(sale.id, sale);
+      });
+    });
+
+    const sales = Array.from(salesMap.values()).sort(
+      (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+    );
+
+    return {
+      success: true,
+      data: {
+        member: memberData,
+        family,
+        familyMembers,
+        attendances,
+        sales,
+      },
+    };
+  } catch (error: any) {
+    console.error("getMemberProfileDataServerAction Error:", error);
+    return {
+      success: false,
+      message: error.message || "Грешка при извличане на профила.",
     };
   }
 }

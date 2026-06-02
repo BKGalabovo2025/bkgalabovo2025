@@ -2,18 +2,7 @@
 
 import useSWR from "swr";
 import { Member, ScheduleEvent, Sale } from "@/types";
-import { getMemberById } from "@/services/member-service";
-import { getAttendancesByMemberId } from "@/services/attendance-service";
-import { getSalesByMemberId } from "@/services/sales-service";
-import { db } from "@/lib/firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  documentId,
-} from "firebase/firestore";
-import { docToMember } from "@/services/member-service";
+import { getMemberProfileDataServerAction } from "@/lib/actions/members";
 
 export interface Family {
   id: string;
@@ -34,68 +23,24 @@ const fetcher = async (memberId: string): Promise<MemberProfileData> => {
   if (!memberId) {
     throw new Error("No member ID provided.");
   }
-
-  const familiesRef = collection(db, "families");
-  const q = query(familiesRef, where("memberIds", "array-contains", memberId));
-
-  const [memberData, attendancesData, familySnapshot] = await Promise.all([
-    getMemberById(memberId),
-    getAttendancesByMemberId(memberId),
-    getDocs(q),
-  ]);
-
-  if (!memberData) {
-    throw new Error("Member not found.");
+  const result = await getMemberProfileDataServerAction(memberId);
+  if (!result.success || !result.data) {
+    throw new Error(result.message || "Failed to load member profile.");
   }
-
-  let familyData: Family | null = null;
-  const familyMembers: Member[] = [];
-  const targetMemberIds = [memberId];
-
-  if (!familySnapshot.empty) {
-    const familyDoc = familySnapshot.docs[0];
-    familyData = { ...familyDoc.data(), id: familyDoc.id } as Family;
-
-    // Fetch other members of the same family
-    const otherMemberIds = familyData.memberIds.filter((id) => id !== memberId);
-    if (otherMemberIds.length > 0) {
-      targetMemberIds.push(...otherMemberIds);
-      const membersRef = collection(db, "members");
-      // Limit to 30 as per Firestore 'in' limitation
-      const mq = query(
-        membersRef,
-        where(documentId(), "in", otherMemberIds.slice(0, 30))
-      );
-      const mSnapshot = await getDocs(mq);
-      familyMembers.push(
-        ...(mSnapshot.docs.map(docToMember).filter(Boolean) as Member[])
-      );
-    }
-  }
-
-  // Fetch sales for all members in family (or just this member if no family)
-  const [salesResults] = await Promise.all([
-    Promise.all(targetMemberIds.map((id) => getSalesByMemberId(id))),
-  ]);
-  const salesMap = new Map();
-  salesResults.flat().forEach((sale) => salesMap.set(sale.id, sale));
-  const salesData = Array.from(salesMap.values()).sort(
-    (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
-  );
-
-  return {
-    member: memberData,
-    family: familyData,
-    familyMembers,
-    attendances: attendancesData,
-    sales: salesData,
-  };
+  return result.data;
 };
 
-export const useMemberProfile = (memberId: string) => {
+export const useMemberProfile = (
+  memberId: string,
+  fallbackData?: MemberProfileData
+) => {
   const { data, error, isLoading, mutate } = useSWR<MemberProfileData>(
     memberId ? memberId : null,
-    () => fetcher(memberId)
+    () => fetcher(memberId),
+    {
+      fallbackData,
+      revalidateOnFocus: false, // Prevent excessive refetches on window focus
+    }
   );
 
   return {
