@@ -78,6 +78,9 @@ export default function ScheduleClient() {
   const isRecoveryZone = activeBranch === "recoveryzone";
 
   // Event Scheduler states
+  // loadPast becomes true the first time the user clicks the "Минали" tab
+  const [loadPast, setLoadPast] = useState(false);
+
   const {
     events,
     members,
@@ -87,8 +90,9 @@ export default function ScheduleClient() {
     deleteEvent,
     updateAttendees,
     isLoading,
+    isPastLoading,
     error,
-  } = useEvents();
+  } = useEvents(loadPast);
 
   const [activeTab, setActiveTab] = useState("current");
   const [filterType, setFilterType] = useState<ScheduleEventType | "all">(
@@ -160,6 +164,8 @@ export default function ScheduleClient() {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setCurrentPage(1);
+    // Trigger past-events load the first time "past" tab is selected
+    if (tab === "past") setLoadPast(true);
   };
 
   const triggerPrint = async (event: ScheduleEvent) => {
@@ -478,7 +484,12 @@ export default function ScheduleClient() {
                 value="past"
                 className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
               >
-                Минали
+                <span className="flex items-center gap-2">
+                  Минали
+                  {isPastLoading && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  )}
+                </span>
               </TabsTrigger>
             </TabsList>
 

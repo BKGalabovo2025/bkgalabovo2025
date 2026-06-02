@@ -3,6 +3,7 @@ import {
   FirestoreDataConverter,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore";
 import { getDb } from "./firebase";
 import { getSiteConfig } from "@/config/sites";
@@ -66,7 +67,6 @@ const clubServiceConverter: FirestoreDataConverter<ClubService> = {
     } as unknown as ClubService;
   },
 };
-
 
 const productConverter: FirestoreDataConverter<Product> = {
   toFirestore: (product) => {
@@ -197,10 +197,10 @@ const sessionConverter: FirestoreDataConverter<RecoverySession> = {
   toFirestore: (session) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...data } = session;
-    return { 
-      ...data, 
+    return {
+      ...data,
       durationMinutes: session.durationMinutes || session.duration || 30,
-      siteId: "recoveryzone" 
+      siteId: "recoveryzone",
     };
   },
   fromFirestore: (snapshot, options) => {
@@ -313,7 +313,6 @@ export const getSalesCollection = () =>
 export const getClubServicesCollection = () =>
   collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
-
 export const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
@@ -372,7 +371,6 @@ export const getClubServicesQuery = () => {
   );
 };
 
-
 export const getProductsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getProductsCollection());
@@ -393,6 +391,42 @@ export const getEventsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getEventsCollection());
   return query(getEventsCollection(), where("siteId", "==", siteConfig.id));
+};
+
+/** Returns only current + upcoming events (startDate >= today midnight).
+ *  Used for the priority (fast) load in useEvents. */
+export const getActiveEventsQuery = () => {
+  const siteConfig = getSiteConfig();
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const todayTs = Timestamp.fromDate(todayMidnight);
+
+  if (siteConfig.id === "bkgalabovo") {
+    return query(getEventsCollection(), where("startDate", ">=", todayTs));
+  }
+  return query(
+    getEventsCollection(),
+    where("siteId", "==", siteConfig.id),
+    where("startDate", ">=", todayTs)
+  );
+};
+
+/** Returns only past events (startDate < today midnight).
+ *  Used for lazy loading when the "Минали" tab is clicked. */
+export const getPastEventsQuery = () => {
+  const siteConfig = getSiteConfig();
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const todayTs = Timestamp.fromDate(todayMidnight);
+
+  if (siteConfig.id === "bkgalabovo") {
+    return query(getEventsCollection(), where("startDate", "<", todayTs));
+  }
+  return query(
+    getEventsCollection(),
+    where("siteId", "==", siteConfig.id),
+    where("startDate", "<", todayTs)
+  );
 };
 
 export const getTournamentsQuery = () => {

@@ -5,6 +5,11 @@ import { z } from "zod";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
+import { serverCache } from "@/lib/server-cache";
+
+// --- Cache key ---
+const PRODUCTS_CACHE_KEY = "products:all";
+const PRODUCTS_CACHE_TTL = 60_000; // 1 minute
 
 // --- Zod Schemas ---
 const ProductSchema = z.object({
@@ -23,6 +28,25 @@ export type InventoryActionState = {
   message?: string | null;
   success?: boolean;
 };
+
+/**
+ * Returns all products, served from a 1-minute server-side cache.
+ * Falls back to a direct Firestore read on cache miss.
+ */
+export async function getProductsServerAction() {
+  return serverCache.get(
+    PRODUCTS_CACHE_KEY,
+    async () => {
+      const adminDb = getAdminDb();
+      const snapshot = await adminDb.collection("products").get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Record<string, unknown>),
+      }));
+    },
+    PRODUCTS_CACHE_TTL
+  );
+}
 
 // --- Public Server Actions ---
 
@@ -67,6 +91,7 @@ export async function createProductAction(
     });
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return {
       success: true,
       message: `Продуктът '${validatedFields.data.name}' бе създаден успешно.`,
@@ -124,6 +149,7 @@ export async function updateProductPriceAction(
     });
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return { success: true, message: "Цената бе актуализирана успешно." };
   } catch (error: unknown) {
     console.error("updateProductPriceAction Error:", error);
@@ -178,6 +204,7 @@ export async function restockProductAction(
     });
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return { success: true, message: "Наличността бе обновена успешно." };
   } catch (error: unknown) {
     console.error("restockProductAction Error:", error);
@@ -232,6 +259,7 @@ export async function adjustProductStockAction(
     });
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return { success: true, message: "Наличността бе коригирана успешно." };
   } catch (error: unknown) {
     console.error("adjustProductStockAction Error:", error);
@@ -259,6 +287,7 @@ export async function deleteProductAction(
     await adminDb.collection("products").doc(id).delete();
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return { success: true, message: "Продуктът бе изтрит успешно." };
   } catch (error: unknown) {
     console.error("deleteProductAction Error:", error);
@@ -340,6 +369,7 @@ export async function updateProductAction(
     });
 
     revalidatePath("/inventory");
+    serverCache.invalidate(PRODUCTS_CACHE_KEY);
     return {
       success: true,
       message: `Продуктът бе актуализиран успешно.`,

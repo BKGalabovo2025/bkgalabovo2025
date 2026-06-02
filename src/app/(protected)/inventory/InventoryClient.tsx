@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsWithCache } from "@/hooks/useProductsWithCache";
 import { Product } from "@/types";
 import {
   Edit,
@@ -16,6 +16,8 @@ import {
   Plus,
   LayoutGrid,
   ShoppingBag,
+  AlertTriangle,
+  PackageX,
 } from "lucide-react";
 import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import { EditProductDialog } from "@/components/inventory/EditProductDialog";
@@ -42,7 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProductList = () => {
-  const { products, isLoading, error, deleteProduct } = useProducts();
+  const { products, isLoading, error, deleteProduct } = useProductsWithCache();
   const { idToken } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -77,7 +79,7 @@ const ProductList = () => {
     setSelectedProduct(null);
   };
 
-  if (isLoading) {
+  if (isLoading && products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-6">
         <Loader2
@@ -327,6 +329,57 @@ const ProductList = () => {
 
 import { AddProductDialog } from "@/components/inventory/AddProductDialog";
 
+/** Pulsing banner that summarises low/out-of-stock items. */
+function LowStockBanner() {
+  const { products } = useProductsWithCache();
+  const outOfStock = products.filter((p) => p.stock <= 0);
+  const lowStock = products.filter(
+    (p) => p.stock > 0 && p.stock <= (p.restockThreshold || 5)
+  );
+
+  if (outOfStock.length === 0 && lowStock.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 px-6 py-4 rounded-3xl border border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/20 mb-6">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
+        </span>
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
+          Внимание — Наличности
+        </span>
+      </div>
+      {outOfStock.length > 0 && (
+        <div className="flex items-center gap-1.5 bg-rose-500 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider">
+          <PackageX className="h-3 w-3" />
+          {outOfStock.length} изчерпан
+          {outOfStock.length === 1 ? " артикул" : " артикула"}
+        </div>
+      )}
+      {lowStock.length > 0 && (
+        <div className="flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider">
+          <AlertTriangle className="h-3 w-3" />
+          {lowStock.length} с ниска наличност
+        </div>
+      )}
+      <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-medium ml-auto hidden sm:block">
+        {outOfStock.length > 0
+          ? outOfStock
+              .map((p) => p.name)
+              .slice(0, 3)
+              .join(", ") +
+            (outOfStock.length > 3 ? ` (+${outOfStock.length - 3})` : "")
+          : lowStock
+              .map((p) => p.name)
+              .slice(0, 3)
+              .join(", ") +
+            (lowStock.length > 3 ? ` (+${lowStock.length - 3})` : "")}
+      </p>
+    </div>
+  );
+}
+
 interface InventoryClientProps {
   showPageHeader?: boolean;
 }
@@ -403,6 +456,7 @@ export default function InventoryClient({
           value="inventory"
           className="mt-0 focus-visible:outline-none outline-none ring-0"
         >
+          <LowStockBanner />
           <ProductList />
         </TabsContent>
 
