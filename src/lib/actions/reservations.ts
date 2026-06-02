@@ -52,21 +52,24 @@ async function createSaleForReservation(
 ) {
   const saleRef = db.collection("sales").doc();
   const totalPrice = reservation.totalPrice ?? reservation.price ?? 0;
-  
-  const startTime = reservation.startTime instanceof Timestamp 
-    ? reservation.startTime.toDate()
-    : new Date(reservation.startTime);
-  const endTime = reservation.endTime instanceof Timestamp 
-    ? reservation.endTime.toDate()
-    : new Date(reservation.endTime);
 
-  const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+  const startTime =
+    reservation.startTime instanceof Timestamp
+      ? reservation.startTime.toDate()
+      : new Date(reservation.startTime);
+  const endTime =
+    reservation.endTime instanceof Timestamp
+      ? reservation.endTime.toDate()
+      : new Date(reservation.endTime);
+
+  const durationHours =
+    (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
   const quantity = Math.max(1, Math.round(durationHours));
   const unitPrice = totalPrice / quantity;
 
   const courtId = reservation.courtId;
-  const productName = courtId 
-    ? `Наем на Корт № ${courtId}` 
+  const productName = courtId
+    ? `Наем на Корт № ${courtId}`
     : `Възстановяване: ${reservation.serviceName || "Услуга"}`;
 
   const saleData = {
@@ -75,7 +78,9 @@ async function createSaleForReservation(
     saleDate: Timestamp.fromDate(startTime),
     items: [
       {
-        productId: courtId ? `court_rental_${courtId}` : `recovery_session_${reservation.serviceId || "generic"}`,
+        productId: courtId
+          ? `court_rental_${courtId}`
+          : `recovery_session_${reservation.serviceId || "generic"}`,
         name: productName,
         quantity: quantity,
         price: unitPrice,
@@ -94,7 +99,7 @@ async function createSaleForReservation(
   };
 
   await saleRef.set(saleData);
-  
+
   // Update lastPaymentDate if not a guest
   if (reservation.memberId && reservation.memberId !== "GUEST_EXTERNAL") {
     const memberRef = db.collection("members").doc(reservation.memberId);
@@ -106,13 +111,12 @@ async function createSaleForReservation(
   return saleRef.id;
 }
 
-async function deleteSaleForReservation(
-  db: any,
-  reservationId: string
-) {
+async function deleteSaleForReservation(db: any, reservationId: string) {
   const salesRef = db.collection("sales");
-  const salesSnapshot = await salesRef.where("reservationId", "==", reservationId).get();
-  
+  const salesSnapshot = await salesRef
+    .where("reservationId", "==", reservationId)
+    .get();
+
   if (!salesSnapshot.empty) {
     const batch = db.batch();
     salesSnapshot.docs.forEach((doc: any) => {
@@ -212,7 +216,7 @@ export async function createReservationAction(
     // Conflict check - Reservations
     const reservationsRef = db.collection("reservations");
     let hasConflict = false;
-    
+
     if (validated.courtId) {
       const conflictingRes = await reservationsRef
         .where("siteId", "==", validated.siteId)
@@ -245,7 +249,8 @@ export async function createReservationAction(
         const slot = doc.data();
         const overlapsTime = slot.endTime > startTime;
         const appliesToCourt =
-          slot.courtIds.length === 0 || slot.courtIds.includes(validated.courtId!);
+          slot.courtIds.length === 0 ||
+          slot.courtIds.includes(validated.courtId!);
         return overlapsTime && appliesToCourt;
       });
     }
@@ -376,7 +381,7 @@ export async function updateReservationAction(
     }
 
     let saleId = oldReservation.saleId || "";
-    
+
     if (validated.status === "paid") {
       await deleteSaleForReservation(db, reservationId);
       saleId = await createSaleForReservation(
@@ -389,7 +394,10 @@ export async function updateReservationAction(
         },
         validated.paymentMethod
       );
-    } else if (validated.status !== "paid" && oldReservation.status === "paid") {
+    } else if (
+      validated.status !== "paid" &&
+      oldReservation.status === "paid"
+    ) {
       await deleteSaleForReservation(db, reservationId);
       saleId = "";
     }
@@ -427,12 +435,12 @@ export async function deleteReservationAction(
   try {
     await getAuthUser(idToken);
     const db = getAdminDb();
-    
+
     await deleteSaleForReservation(db, reservationId);
-    
+
     await db.collection("reservations").doc(reservationId).delete();
     revalidatePath("/reservations");
-    
+
     // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
@@ -548,13 +556,16 @@ export async function markReservationAsPaidAction(
   try {
     const user = await getAuthUser(idToken);
     const db = getAdminDb();
-    
-    const reservationDoc = await db.collection("reservations").doc(reservationId).get();
+
+    const reservationDoc = await db
+      .collection("reservations")
+      .doc(reservationId)
+      .get();
     if (!reservationDoc.exists) {
       throw new Error("Резервацията не е намерена.");
     }
     const reservation = reservationDoc.data()!;
-    
+
     let finalMemberId = reservation.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
       finalMemberId = await findOrCreateGuestProfile(
@@ -712,7 +723,7 @@ export async function createPackageReservationsAction(
   try {
     const user = await getAuthUser(idToken);
     const db = getAdminDb();
-    
+
     if (!reservationsData || reservationsData.length === 0) {
       throw new Error("Няма данни за резервации.");
     }
@@ -720,9 +731,11 @@ export async function createPackageReservationsAction(
     const packageGroupId = db.collection("reservations").doc().id;
     let saleId = "";
 
-    const parsedReservations = reservationsData.map(r => reservationSchema.parse(r));
+    const parsedReservations = reservationsData.map((r) =>
+      reservationSchema.parse(r)
+    );
     const firstRes = parsedReservations[0];
-    
+
     let finalMemberId = firstRes.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
       finalMemberId = await findOrCreateGuestProfile(
@@ -749,7 +762,7 @@ export async function createPackageReservationsAction(
     }
 
     const batch = db.batch();
-    
+
     for (const r of parsedReservations) {
       const resRef = db.collection("reservations").doc();
       const startTime = Timestamp.fromDate(new Date(r.startTime));
@@ -782,7 +795,10 @@ export async function createPackageReservationsAction(
     console.error("Create Package Error:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Грешка при създаване на пакета.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при създаване на пакета.",
     };
   }
 }
@@ -806,7 +822,7 @@ export async function updatePackageReservationsAction(
     }
 
     const firstRes = reservationsSnap.docs[0].data();
-    let finalMemberId = firstRes.memberId;
+    const finalMemberId = firstRes.memberId;
     let saleId = firstRes.saleId || "";
 
     if (data.status === "paid" && firstRes.status !== "paid") {
@@ -855,7 +871,42 @@ export async function updatePackageReservationsAction(
     console.error("Update Package Error:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Грешка при актуализиране на пакета.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при актуализиране на пакета.",
     };
+  }
+}
+
+export async function getPackageReservationsAction(
+  idToken: string,
+  packageGroupId: string
+) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    const snap = await db
+      .collection("reservations")
+      .where("packageGroupId", "==", packageGroupId)
+      .get();
+
+    if (snap.empty) return { success: true, data: [] };
+
+    const reservations = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    // Sort by startTime
+    reservations.sort((a, b) => {
+      const timeA = (a as any).startTime.toDate().getTime();
+      const timeB = (b as any).startTime.toDate().getTime();
+      return timeA - timeB;
+    });
+
+    return { success: true, data: JSON.parse(JSON.stringify(reservations)) };
+  } catch (error: unknown) {
+    console.error("Get Package Error:", error);
+    return { success: false, data: [] };
   }
 }

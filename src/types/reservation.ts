@@ -22,6 +22,8 @@ export type ReservationStatus =
 export interface Reservation {
   id: string;
   siteId: string;
+  packageGroupId?: string;
+  saleId?: string;
 
   // Court Specific
   courtId?: number; // 1-6

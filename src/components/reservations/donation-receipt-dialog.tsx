@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Printer, Mail, Loader2, BadgeCheck, Scissors } from "lucide-react";
 import {
   Dialog,
@@ -15,7 +15,10 @@ import { Reservation } from "@/types/reservation";
 import { formatPrice } from "@/lib/currency";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
-import { sendDonationReceiptEmailAction } from "@/lib/actions/reservations";
+import {
+  sendDonationReceiptEmailAction,
+  getPackageReservationsAction,
+} from "@/lib/actions/reservations";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 
@@ -27,18 +30,14 @@ interface DonationReceiptDialogProps {
 interface DocumentCopyProps {
   label: string;
   reservation: Reservation;
-  formattedDate: string;
-  timeRange: string;
-  durationHours: number;
 }
 
 const DocumentCopy = ({
   label,
   reservation,
-  formattedDate,
-  timeRange,
-  durationHours,
-}: DocumentCopyProps) => (
+  reservations,
+  totalPrice,
+}: DocumentCopyProps & { reservations: Reservation[]; totalPrice: number }) => (
   <div className="flex flex-col flex-1 border border-black p-10 bg-white relative">
     <div className="flex flex-col h-full text-black">
       {/* Header */}
@@ -97,15 +96,25 @@ const DocumentCopy = ({
                 ползване на бадминтон корт
               </td>
               <td className="p-3 text-center border-r border-black font-bold">
-                {reservation.courtId || "-"}
+                {reservations
+                  .map((r) => r.courtId || "-")
+                  .filter((v, i, a) => a.indexOf(v) === i)
+                  .join(", ")}
               </td>
               <td className="p-3 text-center border-r border-black">
-                {formattedDate}
-                <br />
-                {timeRange} ({durationHours} ч.)
+                {reservations.map((r, idx) => {
+                  const st = r.startTime.toDate();
+                  const et = r.endTime.toDate();
+                  return (
+                    <div key={idx}>
+                      {format(st, "dd.MM.yyyy", { locale: bg })}{" "}
+                      {format(st, "HH:mm")} - {format(et, "HH:mm")}
+                    </div>
+                  );
+                })}
               </td>
               <td className="p-3 text-right font-bold">
-                {formatPrice(reservation.totalPrice ?? reservation.price ?? 0)}
+                {formatPrice(totalPrice)}
               </td>
             </tr>
             <tr>
@@ -116,7 +125,7 @@ const DocumentCopy = ({
                 Обща стойност:
               </td>
               <td className="p-2 text-right font-bold text-xs">
-                {formatPrice(reservation.totalPrice ?? reservation.price ?? 0)}
+                {formatPrice(totalPrice)}
               </td>
             </tr>
           </tbody>
@@ -154,8 +163,35 @@ export function DonationReceiptDialog({
 }: DonationReceiptDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [packageReservations, setPackageReservations] = useState<Reservation[]>(
+    [reservation]
+  );
   const receiptRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (isOpen && reservation.packageGroupId) {
+      user?.getIdToken().then((token) => {
+        getPackageReservationsAction(token, reservation.packageGroupId!).then(
+          (res) => {
+            if (res.success && res.data.length > 0) {
+              // Need to convert string dates back to Timestamps for display compatibility if needed,
+              // but the action returns JSON parsed which means string dates.
+              // Let's map them to have .toDate() method.
+              const mapped = res.data.map((r: any) => ({
+                ...r,
+                startTime: { toDate: () => new Date(r.startTime) },
+                endTime: { toDate: () => new Date(r.endTime) },
+              }));
+              setPackageReservations(mapped);
+            }
+          }
+        );
+      });
+    } else {
+      setPackageReservations([reservation]);
+    }
+  }, [isOpen, reservation, user]);
 
   const handlePrint = () => {
     window.print();
@@ -182,13 +218,9 @@ export function DonationReceiptDialog({
     }
   };
 
-  const startTime = reservation.startTime.toDate();
-  const endTime = reservation.endTime.toDate();
-
-  const formattedDate = format(startTime, "dd.MM.yyyy 'г.'", { locale: bg });
-  const timeRange = `${format(startTime, "HH:mm")} - ${format(endTime, "HH:mm")}`;
-  const durationHours = Math.ceil(
-    (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
+  const totalPrice = packageReservations.reduce(
+    (sum, r) => sum + (r.totalPrice ?? r.price ?? 0),
+    0
   );
 
   return (
@@ -246,9 +278,8 @@ export function DonationReceiptDialog({
             <DocumentCopy
               label="Екземпляр за клиента"
               reservation={reservation}
-              formattedDate={formattedDate}
-              timeRange={timeRange}
-              durationHours={durationHours}
+              reservations={packageReservations}
+              totalPrice={totalPrice}
             />
 
             <div className="relative py-2 no-print-visible flex items-center justify-center">
@@ -261,9 +292,8 @@ export function DonationReceiptDialog({
             <DocumentCopy
               label="Екземпляр за клуба"
               reservation={reservation}
-              formattedDate={formattedDate}
-              timeRange={timeRange}
-              durationHours={durationHours}
+              reservations={packageReservations}
+              totalPrice={totalPrice}
             />
           </div>
         </div>
