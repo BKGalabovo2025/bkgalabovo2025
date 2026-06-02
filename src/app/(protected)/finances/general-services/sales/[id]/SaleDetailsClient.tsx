@@ -241,7 +241,7 @@ export default function SaleDetailsClient() {
                 ))}
               </ul>
             </div>
-            <div className="p-8 bg-zinc-950 text-white flex justify-between items-center rounded-b-[2.5rem]">
+            <div className="p-8 bg-zinc-950 text-white flex justify-between items-center rounded-b-5xl">
               <div>
                 <p className="text-[10px] uppercase font-medium text-white/40 tracking-[0.2em]">
                   Обща сума
