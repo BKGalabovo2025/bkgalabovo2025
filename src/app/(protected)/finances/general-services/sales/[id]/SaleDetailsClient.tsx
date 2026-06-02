@@ -122,7 +122,10 @@ export default function SaleDetailsClient() {
         <p className="text-zinc-400 font-medium">
           Продажбата не беше намерена.
         </p>
-        <Button variant="link" onClick={() => router.push("/finances/general-services")}>
+        <Button
+          variant="link"
+          onClick={() => router.push("/finances/general-services")}
+        >
           Назад към продажби
         </Button>
       </div>
@@ -146,7 +149,9 @@ export default function SaleDetailsClient() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push(`/finances/general-services/sales/${saleId}/receipt`)}
+            onClick={() =>
+              router.push(`/finances/general-services/sales/${saleId}/receipt`)
+            }
             className="rounded-xl"
           >
             <Receipt className="mr-2 h-4 w-4" /> Касова бележка
@@ -154,7 +159,9 @@ export default function SaleDetailsClient() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push(`/finances/general-services/sales/${saleId}/edit`)}
+            onClick={() =>
+              router.push(`/finances/general-services/sales/${saleId}/edit`)
+            }
             className="rounded-xl"
           >
             <FilePenLine className="mr-2 h-4 w-4" /> Редакция
@@ -377,7 +384,7 @@ export default function SaleDetailsClient() {
                       Бележка
                     </p>
                     <p className="font-medium text-sm text-zinc-700 italic">
-                      "{sale.note}"
+                      &quot;{sale.note}&quot;
                     </p>
                   </div>
                 </div>
