@@ -60,7 +60,9 @@ export default async function CatalogsPage() {
               ? data.updatedAt.toDate().toISOString()
               : data.updatedAt || new Date().toISOString(),
             requiredResources: data.requiredResources || null,
-          } as ClubService;
+            imageUrl: data.imageUrl || null,
+            imageDisplayMode: data.imageDisplayMode || "collage",
+          } as unknown as ClubService;
         });
       },
       300000

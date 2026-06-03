@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Trophy,
   Activity,
@@ -225,8 +225,18 @@ function CatalogCard({
     return item.imageUrl.split(",").filter(Boolean);
   }, [item.imageUrl]);
 
+  const displayMode = item.imageDisplayMode || "collage";
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Auto-rotate for carousel
+  React.useEffect(() => {
+    if (displayMode !== "carousel" || images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveImgIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [displayMode, images.length]);
 
   const nextImg = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -284,42 +294,67 @@ function CatalogCard({
       {/* Product Image section with navigation */}
       <div className="relative h-56 w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-800/60 shrink-0">
         {images.length > 0 ? (
-          <>
-            <Image
-              src={images[activeImgIndex]}
-              alt={item.name}
-              sizes="(max-width: 768px) 100vw, 33vw"
-              priority={true}
-              className="object-cover group-hover:scale-110 transition-transform duration-700"
-              fill
-            />
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={prevImg}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+          displayMode === "collage" ? (
+            <div className="flex w-full h-full">
+              {images.map((imgUrl: string, idx: number) => (
+                <div
+                  key={imgUrl}
+                  className="h-full relative overflow-hidden"
+                  style={{ width: `${100 / images.length}%` }}
                 >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={nextImg}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
-                >
-                  <ChevronRight size={16} />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {images.map((_: any, i: number) => (
-                    <div
-                      key={i}
-                      className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-                        activeImgIndex === i ? "bg-white w-3" : "bg-white/40"
-                      }`}
-                    />
-                  ))}
+                  <Image
+                    src={imgUrl}
+                    alt={`${item.name} - ${idx + 1}`}
+                    fill
+                    sizes="(max-w-768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  {idx > 0 && (
+                    <div className="absolute left-0 top-0 bottom-0 w-px bg-white/20 z-10" />
+                  )}
                 </div>
-              </>
-            )}
-          </>
+              ))}
+            </div>
+          ) : (
+            <>
+              <Image
+                src={images[activeImgIndex]}
+                alt={item.name}
+                sizes="(max-width: 768px) 100vw, 33vw"
+                priority={true}
+                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                fill
+              />
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImg}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    onClick={nextImg}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                    {images.map((_: any, i: number) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          activeImgIndex === i
+                            ? "bg-white w-4"
+                            : "bg-white/40 w-1.5"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
             {tab === "trainings" ? (

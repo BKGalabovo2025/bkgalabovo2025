@@ -1,10 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { useState, useRef } from "react";
-import { useAuth } from "@/context/auth-context";
-import { uploadFile } from "@/services/storage-service";
-import { toast } from "sonner";
+import { useState } from "react";
 import Image from "next/image";
 import { ClubService } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -22,6 +19,7 @@ import {
   MapPin,
   Camera,
   Trash,
+  Check,
 } from "lucide-react";
 
 interface RecoverySessionFormProps {
@@ -46,12 +44,12 @@ export function RecoverySessionForm({
   onCancel,
   errors,
 }: RecoverySessionFormProps) {
-  const { idToken } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState(
     (initialData as any)?.imageUrl || ""
   );
-  const [isUploading, setIsUploading] = useState(false);
+  const [imageDisplayMode, setImageDisplayMode] = useState<
+    "collage" | "carousel"
+  >((initialData as any)?.imageDisplayMode || "collage");
 
   // Supported zones in all caps to match UI
   const SUPPORTED_ZONES = ["РЪЦЕ", "КРАКА", "ТАЗ"];
@@ -220,6 +218,7 @@ export function RecoverySessionForm({
       <input type="hidden" name="proceduresPerDay" value={proceduresPerDay} />
       <input type="hidden" name="zones" value={zones.join(",")} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
+      <input type="hidden" name="imageDisplayMode" value={imageDisplayMode} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Basic Info */}
@@ -245,6 +244,7 @@ export function RecoverySessionForm({
                 <Input
                   id="name"
                   name="name"
+                  autoComplete="off"
                   defaultValue={initialData?.name}
                   placeholder="напр. Криотерапия - Цяло тяло"
                   className="h-14 rounded-2xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all text-lg"
@@ -258,9 +258,9 @@ export function RecoverySessionForm({
               </div>
 
               <div className="space-y-4">
-                <Label className="text-zinc-500 font-medium ml-1">
+                <p className="text-sm text-zinc-500 font-medium ml-1">
                   Категория
-                </Label>
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   {CATEGORIES.map((cat) => (
                     <button
@@ -334,22 +334,22 @@ export function RecoverySessionForm({
 
             <div className="space-y-6">
               <div className="space-y-4">
-                <Label className="text-zinc-500 font-medium ml-1">
+                <p className="text-sm text-zinc-500 font-medium ml-1">
                   Зони за ползване
-                </Label>
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {SUPPORTED_ZONES.map((zone) => (
-                    <label
+                    <div
                       key={zone}
+                      onClick={() => handleZoneToggle(zone)}
                       className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${zones.includes(zone) ? "bg-cyan-600 text-white border-cyan-600" : "bg-zinc-50 border-zinc-100 text-zinc-700 hover:bg-zinc-100"}`}
                     >
                       <Checkbox
                         checked={zones.includes(zone)}
-                        onCheckedChange={() => handleZoneToggle(zone)}
                         className={zones.includes(zone) ? "border-white" : ""}
                       />
                       <span className="text-xs font-medium">{zone}</span>
-                    </label>
+                    </div>
                   ))}
                 </div>
                 {errors?.zones && (
@@ -363,9 +363,9 @@ export function RecoverySessionForm({
 
               <div className="space-y-6 pt-6 border-t border-zinc-50">
                 <div className="flex items-center gap-2">
-                  <Label className="text-zinc-500 font-medium ml-1">
+                  <p className="text-sm text-zinc-500 font-medium ml-1">
                     Необходими ресурси за сесията
-                  </Label>
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -491,91 +491,60 @@ export function RecoverySessionForm({
             </div>
 
             <div className="space-y-6">
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file || !idToken) return;
-
-                  if (!file.type.startsWith("image/")) {
-                    toast.error("Грешка", {
-                      description: "Моля, изберете валиден графичен файл.",
-                    });
-                    return;
-                  }
-
-                  if (file.size > 2 * 1024 * 1024) {
-                    toast.error("Грешка", {
-                      description: "Изображението трябва да е под 2MB.",
-                    });
-                    return;
-                  }
-
-                  setIsUploading(true);
-                  try {
-                    const path = `recovery/${Date.now()}_${file.name}`;
-                    const downloadUrl = await uploadFile(path, file, idToken);
-                    setImageUrl((prev: string) => {
-                      const list = prev ? prev.split(",").filter(Boolean) : [];
-                      return [...list, downloadUrl].join(",");
-                    });
-                    toast.success("Успех!", {
-                      description: "Снимката е качена успешно.",
-                    });
-                  } catch (err) {
-                    console.error(err);
-                    toast.error("Грешка при качване", {
-                      description: (err as Error).message,
-                    });
-                  } finally {
-                    setIsUploading(false);
-                  }
-                }}
-              />
-
-              <div className="grid grid-cols-1 gap-8 items-start">
-                <div className="space-y-4">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                    Добавяне на снимка от компютъра
-                  </Label>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="w-full h-32 rounded-3xl border-2 border-dashed border-zinc-200 hover:border-zinc-300 transition-colors flex flex-col items-center justify-center p-6 text-zinc-400 group bg-zinc-50/50"
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="h-10 w-10 animate-spin text-amber-500 mb-3" />
-                        <span className="text-xs font-light text-zinc-500">
-                          Качване на снимката...
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Camera
-                          className="h-8 w-8 text-zinc-300 group-hover:text-zinc-500 mb-2 transition-colors"
-                          strokeWidth={1}
-                        />
-                        <span className="text-xs font-semibold text-zinc-600 group-hover:text-zinc-900 transition-colors">
-                          Качете нов файл
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  "/zones/arm.png",
+                  "/zones/legs.webp",
+                  "/zones/pelvis.webp",
+                ].map((path) => {
+                  const isSelected = imageUrl.includes(path);
+                  return (
+                    <div
+                      key={path}
+                      onClick={() => {
+                        setImageUrl((prev: string) => {
+                          const list = prev
+                            ? prev.split(",").filter(Boolean)
+                            : [];
+                          if (list.includes(path)) {
+                            return list
+                              .filter((p: string) => p !== path)
+                              .join(",");
+                          } else {
+                            return [...list, path].join(",");
+                          }
+                        });
+                      }}
+                      className={`relative aspect-video rounded-2xl overflow-hidden border-2 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-amber-500 shadow-md ring-2 ring-amber-500/20"
+                          : "border-zinc-200 hover:border-amber-300"
+                      }`}
+                    >
+                      <Image
+                        src={path}
+                        alt="Zone Preview"
+                        fill
+                        sizes="150px"
+                        className="object-cover"
+                      />
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-1 shadow-sm">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {imageUrl ? (
                 <div className="pt-6 border-t border-zinc-100 space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
                       Избрани снимки (
                       {imageUrl.split(",").filter(Boolean).length})
-                    </Label>
+                    </p>
                     <Button
                       type="button"
                       variant="ghost"
@@ -623,6 +592,44 @@ export function RecoverySessionForm({
                   </div>
                 </div>
               ) : null}
+
+              {/* Display Mode Toggle */}
+              {imageUrl && imageUrl.split(",").filter(Boolean).length > 1 && (
+                <div className="pt-6 border-t border-zinc-100 space-y-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    Режим на показване
+                  </p>
+                  <div className="flex bg-zinc-50 p-1 rounded-xl border border-zinc-100">
+                    <button
+                      type="button"
+                      onClick={() => setImageDisplayMode("collage")}
+                      className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                        imageDisplayMode === "collage"
+                          ? "bg-white text-zinc-900 shadow-sm border border-zinc-200"
+                          : "text-zinc-500 hover:text-zinc-700"
+                      }`}
+                    >
+                      Колаж (Обединени)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageDisplayMode("carousel")}
+                      className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                        imageDisplayMode === "carousel"
+                          ? "bg-white text-zinc-900 shadow-sm border border-zinc-200"
+                          : "text-zinc-500 hover:text-zinc-700"
+                      }`}
+                    >
+                      Въртележка
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-400">
+                    {imageDisplayMode === "collage"
+                      ? "Снимките ще бъдат разделени на равни части и показани едновременно."
+                      : "Снимките ще се сменят автоматично с възможност за ръчно прелистване."}
+                  </p>
+                </div>
+              )}
             </div>
           </BentoCard>
         </div>
@@ -651,6 +658,7 @@ export function RecoverySessionForm({
                     name="price"
                     type="number"
                     step="0.01"
+                    autoComplete="off"
                     defaultValue={initialData?.price}
                     className="h-12 rounded-xl border-zinc-100 bg-zinc-50 pl-10"
                     required
@@ -667,9 +675,9 @@ export function RecoverySessionForm({
               </div>
 
               <div className="space-y-4">
-                <Label className="text-zinc-500 font-medium ml-1">
+                <p className="text-sm text-zinc-500 font-medium ml-1">
                   Продължителност
-                </Label>
+                </p>
                 <div className="grid grid-cols-3 gap-2">
                   {[15, 30, 45].map((mins) => (
                     <button

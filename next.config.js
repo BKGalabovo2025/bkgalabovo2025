@@ -39,6 +39,7 @@ const nextConfig = {
     root: __dirname,
   },
   images: {
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: "https",

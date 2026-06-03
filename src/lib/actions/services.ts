@@ -306,6 +306,10 @@ const RecoverySessionSchema = z.object({
     compressors: z.coerce.number().min(0).default(0),
   }),
   imageUrl: z.string().optional().nullable(),
+  imageDisplayMode: z
+    .enum(["collage", "carousel"])
+    .optional()
+    .default("collage"),
 });
 
 export async function createRecoverySession(
@@ -338,6 +342,7 @@ export async function createRecoverySession(
         compressors: formData.get("req_compressors") || 0,
       },
       imageUrl: formData.get("imageUrl") || null,
+      imageDisplayMode: formData.get("imageDisplayMode") || "collage",
     };
 
     const validatedFields = RecoverySessionSchema.safeParse(rawData);
@@ -417,6 +422,7 @@ export async function updateRecoverySession(
         compressors: formData.get("req_compressors") || 0,
       },
       imageUrl: formData.get("imageUrl") || null,
+      imageDisplayMode: formData.get("imageDisplayMode") || "collage",
     };
 
     const validatedFields = RecoverySessionSchema.safeParse(rawData);

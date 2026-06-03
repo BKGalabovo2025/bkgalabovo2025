@@ -188,6 +188,7 @@ export interface RecoverySession {
   proceduresPerDay: number;
   sessionType: string;
   imageUrl?: string;
+  imageDisplayMode?: "collage" | "carousel";
   imageHint?: string;
   isActive: boolean;
   siteId: string;

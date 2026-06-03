@@ -141,6 +141,8 @@ export type ClubService = {
   numberOfDays?: number;
   proceduresPerDay?: number;
   sessionType?: string;
+  imageUrl?: string | null;
+  imageDisplayMode?: "collage" | "carousel";
 
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601

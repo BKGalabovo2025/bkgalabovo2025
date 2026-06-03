@@ -1,6 +1,6 @@
 "use client";
-
 import React from "react";
+
 import Image from "next/image";
 import { ClubService } from "@/types";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -14,6 +14,8 @@ import {
   Trash2,
   Clock,
   Users,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -105,56 +107,97 @@ const RecoveryCard = ({
   onSale: () => void;
   onDelete: () => void;
 }) => {
-  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
-
   const images = (service as any).imageUrl
     ? (service as any).imageUrl.split(",").filter(Boolean)
     : [];
 
+  const displayMode = (service as any).imageDisplayMode || "collage";
+  const [activeImgIndex, setActiveImgIndex] = React.useState(0);
+
+  // Auto-rotate for carousel
   React.useEffect(() => {
-    if (images.length <= 1) return;
+    if (displayMode !== "carousel" || images.length <= 1) return;
     const interval = setInterval(() => {
-      setActiveImageIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
+      setActiveImgIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [displayMode, images.length]);
+
+  const nextImg = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImgIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImg = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   return (
     <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20 transition-all duration-500 rounded-5xl flex flex-col h-full">
-      {/* Cover Image or Icon Header */}
-      <div className="relative h-48 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-50 dark:border-zinc-800">
+      {/* Cover Image Header with Horizontal Scroll */}
+      <div className="relative h-48 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-50 dark:border-zinc-800 overflow-hidden">
         {images.length > 0 ? (
-          <>
-            {images.map((imgUrl: string, idx: number) => (
+          displayMode === "collage" ? (
+            <div className="flex w-full h-full">
+              {images.map((imgUrl: string, idx: number) => (
+                <div
+                  key={imgUrl}
+                  className="h-full relative overflow-hidden"
+                  style={{ width: `${100 / images.length}%` }}
+                >
+                  <Image
+                    src={imgUrl}
+                    alt={`${service.name} - ${idx + 1}`}
+                    fill
+                    sizes="(max-w-768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-700 hover:scale-110"
+                  />
+                  {idx > 0 && (
+                    <div className="absolute left-0 top-0 bottom-0 w-px bg-white/30 z-10" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
               <Image
-                key={imgUrl}
-                src={imgUrl}
-                alt={`${service.name} - ${idx + 1}`}
+                src={images[activeImgIndex]}
+                alt={`${service.name} - ${activeImgIndex + 1}`}
                 fill
                 sizes="(max-w-768px) 100vw, 33vw"
-                className={`object-cover group-hover:scale-110 absolute inset-0 transition-all duration-1000 ${
-                  idx === activeImageIndex
-                    ? "opacity-100 z-0 scale-100"
-                    : "opacity-0 -z-10 scale-95"
-                }`}
+                className="object-cover transition-transform duration-700"
               />
-            ))}
-
-            {images.length > 1 && (
-              <div className="absolute bottom-4 right-4 z-10 flex gap-1 bg-black/20 dark:bg-black/40 backdrop-blur-md px-2 py-1.5 rounded-full">
-                {images.map((_: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      idx === activeImageIndex
-                        ? "bg-white w-3"
-                        : "bg-white/50 w-1.5"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImg}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    onClick={nextImg}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                    {images.map((_: any, i: number) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          activeImgIndex === i
+                            ? "bg-white w-4"
+                            : "bg-white/50 w-1.5"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-800 bg-zinc-50 dark:bg-zinc-900">
             <Activity

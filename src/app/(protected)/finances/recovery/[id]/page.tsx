@@ -25,21 +25,25 @@ async function getRecoverySession(id: string): Promise<ClubService> {
     currency: "EUR",
     durationMinutes: data.duration || 0,
     category: data.category || "Други",
-    zones: Array.isArray(data.zones) 
-      ? data.zones 
-      : (typeof data.zones === "string" ? data.zones.split(",").filter(Boolean) : []),
+    zones: Array.isArray(data.zones)
+      ? data.zones
+      : typeof data.zones === "string"
+        ? data.zones.split(",").filter(Boolean)
+        : [],
     athleteCount: data.athleteCount || 1,
     numberOfDays: data.numberOfDays || 1,
     proceduresPerDay: data.proceduresPerDay || 1,
     sessionType: data.sessionType || "Възстановяване",
     requiredResources: data.requiredResources || {
       attachments: { arms: 0, legs: 0, hips: 0 },
-      compressors: 0
+      compressors: 0,
     },
     requiresBooking: true,
     createdAt: data.createdAt || "",
     updatedAt: data.updatedAt || "",
-  } as ClubService;
+    imageUrl: data.imageUrl || null,
+    imageDisplayMode: data.imageDisplayMode || "collage",
+  } as unknown as ClubService;
 }
 
 export default async function EditRecoverySessionPage({
@@ -50,17 +54,24 @@ export default async function EditRecoverySessionPage({
   const { id } = await params;
   const [data, site] = await Promise.all([
     getRecoverySession(id),
-    getSiteById("recoveryzone")
+    getSiteById("recoveryzone"),
   ]);
 
-  const siteInventory = site?.inventory ? {
-    compressors: site.inventory.compressors || 0,
-    attachments: {
-      arms: site.inventory.attachments?.arms || 0,
-      legs: site.inventory.attachments?.legs || 0,
-      hips: site.inventory.attachments?.hips || 0,
-    }
-  } : undefined;
+  const siteInventory = site?.inventory
+    ? {
+        compressors: site.inventory.compressors || 0,
+        attachments: {
+          arms: site.inventory.attachments?.arms || 0,
+          legs: site.inventory.attachments?.legs || 0,
+          hips: site.inventory.attachments?.hips || 0,
+        },
+      }
+    : undefined;
 
-  return <EditRecoverySessionClient initialData={data} siteInventory={siteInventory} />;
+  return (
+    <EditRecoverySessionClient
+      initialData={data}
+      siteInventory={siteInventory}
+    />
+  );
 }
