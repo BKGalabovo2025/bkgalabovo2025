@@ -30,45 +30,14 @@ function serializeDoc(data: any) {
 
 export default async function RecoveryCatalogPage() {
   const adminDb = getAdminDb();
-
   // We fetch the same catalogs, but for Recovery Zone we can either show everything or filter for "recoveryzone"
   // For maximum compatibility with PublicCatalogTabs, we provide all data just like the Club page.
   // We don't filter out things unless they are explicitly assigned to another site (if siteId exists).
   // Wait, if it's explicitly assigned to "bkgalabovo", it probably shouldn't be in the recovery zone catalog?
   // Let's filter out items that have siteId explicitly set to something else, or keep it generic if siteId is missing.
-  // Actually, they might share products or services. Let's fetch the same way.
+  // 2) The Recovery Zone catalog page fetches only Recovery Services.
 
-  const servicesSnapshot = await adminDb.collection("clubServices").get();
-  const services = servicesSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter(
-      (item) =>
-        !item.siteId ||
-        item.siteId === "recoveryzone" ||
-        item.siteId === "bkgalabovo"
-    );
-
-  const generalSnapshot = await adminDb.collection("clubGeneralServices").get();
-  const generalServices = generalSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter(
-      (item) =>
-        !item.siteId ||
-        item.siteId === "recoveryzone" ||
-        item.siteId === "bkgalabovo"
-    );
-
-  const productsSnapshot = await adminDb.collection("products").get();
-  const products = productsSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
-    .filter(
-      (item) =>
-        !item.siteId ||
-        item.siteId === "recoveryzone" ||
-        item.siteId === "bkgalabovo"
-    );
-
-  const recoverySnapshot = await adminDb.collection("recoveryServices").get();
+  const recoverySnapshot = await adminDb.collection("sessions").get();
   const recoveryServices = recoverySnapshot.docs.map((doc) =>
     serializeDoc({ id: doc.id, ...doc.data() })
   );
@@ -109,9 +78,9 @@ export default async function RecoveryCatalogPage() {
 
           <div className="bg-black/80 border border-emerald-400/20 rounded-3xl p-6 md:p-10 glassmorphism">
             <PublicCatalogTabs
-              trainings={services}
-              generalServices={generalServices}
-              products={products}
+              trainings={[]}
+              generalServices={[]}
+              products={[]}
               recoveryServices={recoveryServices}
               allowedTabs={["recovery"]}
             />

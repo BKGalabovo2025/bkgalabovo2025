@@ -45,7 +45,7 @@ export default async function CatalogPage() {
     .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
     .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
-  const recoverySnapshot = await adminDb.collection("recoveryServices").get();
+  const recoverySnapshot = await adminDb.collection("sessions").get();
   const recoveryServices = recoverySnapshot.docs.map((doc) =>
     serializeDoc({ id: doc.id, ...doc.data() })
   );

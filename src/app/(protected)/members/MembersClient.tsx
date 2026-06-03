@@ -52,7 +52,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFamilies } from "@/hooks/useFamilies";
-import { Contact as FamilyIcon } from "lucide-react";
+import { Contact as FamilyIcon, Activity } from "lucide-react";
+import { RecoveryClientsList } from "@/components/finances/RecoveryClientsList";
+import { useAppStore } from "@/store/use-app-store";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -73,7 +75,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { idToken } = useAuth();
   const { families } = useFamilies();
-  const [activeTab, setActiveTab] = useState("members");
+  const { activeBranch } = useAppStore();
+  const isRecoveryBranch = activeBranch === "recoveryzone";
+
+  const [activeTab, setActiveTab] = useState(
+    isRecoveryBranch ? "recovery-clients" : "members"
+  );
 
   // Умни филтри
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
@@ -122,6 +129,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const filteredMembers = useMemo(() => {
     return members
       .filter((member) => {
+        // Оставяме само клубните членове
+        const isRegular =
+          !member.isGuest &&
+          member.memberType !== "guest" &&
+          member.memberType !== "recovery";
+        if (!isRegular) return false;
+
         const matchesSearch =
           `${member.firstName} ${member.lastName}`
             .toLowerCase()
@@ -251,10 +265,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   }, [filteredMembers, currentPage]);
 
   const stats = useMemo(() => {
+    const regularMembers = members.filter(
+      (m) =>
+        !m.isGuest && m.memberType !== "guest" && m.memberType !== "recovery"
+    );
     return {
-      total: members.length,
-      active: members.filter((m) => m.status === "active").length,
-      inactive: members.filter((m) => m.status === "inactive").length,
+      total: regularMembers.length,
+      active: regularMembers.filter((m) => m.status === "active").length,
+      inactive: regularMembers.filter((m) => m.status === "inactive").length,
     };
   }, [members]);
 
@@ -381,26 +399,46 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-12 w-full sm:w-[560px]">
-          <TabsTrigger
-            value="members"
-            className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
-          >
-            <Users className="h-4 w-4 mr-2" /> Членове
-          </TabsTrigger>
-          <TabsTrigger
-            value="guests"
-            className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
-          >
-            <UserCog className="h-4 w-4 mr-2" /> Външни
-          </TabsTrigger>
-          <TabsTrigger
-            value="families"
-            className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
-          >
-            <FamilyIcon className="h-4 w-4 mr-2" /> Семейства
-          </TabsTrigger>
-        </TabsList>
+        {!isRecoveryBranch && (
+          <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-12 w-full sm:w-fit overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
+            <TabsTrigger
+              value="members"
+              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+            >
+              <Users className="h-4 w-4 mr-2" /> Членове
+            </TabsTrigger>
+            <TabsTrigger
+              value="guests"
+              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+            >
+              <UserCog className="h-4 w-4 mr-2" /> Външни
+            </TabsTrigger>
+            <TabsTrigger
+              value="families"
+              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+            >
+              <FamilyIcon className="h-4 w-4 mr-2" /> Семейства
+            </TabsTrigger>
+            <TabsTrigger
+              value="recovery-clients"
+              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+            >
+              <Activity className="h-4 w-4 mr-2" /> Зона Възстановяване
+            </TabsTrigger>
+          </TabsList>
+        )}
+
+        <TabsContent
+          value="recovery-clients"
+          className={cn(
+            isRecoveryBranch ? "mt-0" : "mt-8",
+            "animate-in fade-in"
+          )}
+        >
+          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl min-h-[calc(100vh-16rem)]">
+            <RecoveryClientsList members={members} />
+          </BentoCard>
+        </TabsContent>
 
         <TabsContent value="members" className="mt-8 space-y-8">
           {/* Stats Bento Grid */}
@@ -1057,7 +1095,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   Външни клиенти
                 </p>
                 <p className="text-2xl sm:text-3xl font-light text-amber-600">
-                  {members.filter((m) => m.isGuest).length}
+                  {
+                    members.filter((m) => m.isGuest || m.memberType === "guest")
+                      .length
+                  }
                 </p>
               </div>
             </BentoCard>
@@ -1094,7 +1135,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 <UserPlus className="mr-2 h-3.5 w-3.5" /> Нов Гост
               </Button>
             </div>
-            {members.filter((m) => m.isGuest).length === 0 ? (
+            {members.filter((m) => m.isGuest || m.memberType === "guest")
+              .length === 0 ? (
               <div className="p-16 text-center">
                 <div className="h-16 w-16 bg-amber-50 dark:bg-amber-950/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <UserCog className="h-8 w-8 text-amber-300" strokeWidth={1} />
@@ -1110,7 +1152,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6">
                 {members
-                  .filter((m) => m.isGuest)
+                  .filter((m) => m.isGuest || m.memberType === "guest")
                   .sort((a, b) =>
                     `${a.firstName} ${a.lastName}`.localeCompare(
                       `${b.firstName} ${b.lastName}`,

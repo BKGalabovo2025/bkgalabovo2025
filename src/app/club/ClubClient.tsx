@@ -208,16 +208,16 @@ export default function ClubClient({
       </section>
 
       {/* Services Call to Action */}
-      <section className="py-24 px-6 bg-zinc-950 border-t border-zinc-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-blue-900/10 via-zinc-950/0 to-zinc-950/0 pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+      <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-blue-900/40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]" />
+        <div className="max-w-4xl mx-auto text-center relative z-10 bg-black/60 p-12 md:p-16 rounded-4xl border border-blue-400/20 backdrop-blur-xl shadow-2xl">
+          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 bg-blue-400/10 inline-block px-3 py-1 rounded-full">
             Каталог
           </p>
-          <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
             Нашите Услуги и Тренировки
           </h2>
-          <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+          <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
             Разгледайте пълния списък с предлагани групови и индивидуални
             тренировки, наеми на кортове, абонаментни карти и спортна
             екипировка.

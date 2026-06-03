@@ -385,6 +385,17 @@ export const MemberDetailsCard = ({
         <TabsContent value="personal" className="focus-visible:outline-none">
           <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
+              <InfoRow
+                icon={Contact}
+                label="Тип клиент"
+                value={
+                  member.memberType === "guest"
+                    ? "Външен / Гост"
+                    : member.memberType === "recovery"
+                      ? "Клиент Възстановяване"
+                      : "Клубен Член"
+                }
+              />
               <InfoRow icon={Mail} label="Имейл" value={member.email} />
               <InfoRow icon={Phone} label="Телефон" value={member.phone} />
               <InfoRow
@@ -456,6 +467,18 @@ export const MemberDetailsCard = ({
                 value={member.apparelSize}
               />
               <InfoRow icon={Home} label="Адрес" value={member.address} />
+
+              {member.healthConditionNotes && (
+                <div className="md:col-span-2 mt-4">
+                  <InfoRow
+                    icon={Stethoscope}
+                    label="Здравно състояние / Травми"
+                    value={member.healthConditionNotes}
+                    isBlock={true}
+                  />
+                </div>
+              )}
+
               <div className="md:col-span-2">
                 <InfoRow
                   icon={FileText}

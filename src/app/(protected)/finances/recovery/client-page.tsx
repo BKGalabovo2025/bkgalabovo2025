@@ -9,9 +9,21 @@ import { PlusCircle, LayoutGrid, List } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/shared/data-table";
 import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RecoverySaleWizardDialog } from "@/components/finances/RecoverySaleWizardDialog";
+import { useSWRConfig } from "swr";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatPrice } from "@/lib/currency";
+import { RecoveryHistory } from "@/components/finances/RecoveryHistory";
+import { RecoverySalesHistory } from "@/components/finances/RecoverySalesHistory";
+import { RecoveryReservationsHistory } from "@/components/finances/RecoveryReservationsHistory";
+import { RecoveryClientPackages } from "@/components/finances/RecoveryClientPackages";
+import {
+  History,
+  ShoppingBag,
+  CalendarDays,
+  PackageSearch,
+} from "lucide-react";
 
 interface RecoveryClientPageProps {
   data: ClubService[];
@@ -23,7 +35,11 @@ export default function RecoveryClientPage({
   showPageHeader = true,
 }: RecoveryClientPageProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [activeTab, setActiveTab] = useState("services");
+  const [selectedSaleService, setSelectedSaleService] =
+    useState<ClubService | null>(null);
 
   const columns: ColumnDef<ClubService>[] = [
     {
@@ -164,19 +180,124 @@ export default function RecoveryClientPage({
         </PageHeader>
       )}
 
-      {view === "grid" ? (
-        <RecoveryMenu services={data} />
-      ) : (
-        <BentoCard className="p-8 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
-          <DataTable
-            columns={columns}
-            data={data}
-            filterColumnId="name"
-            filterPlaceholder="Търсене по име..."
-            isLoading={false}
-            emptyStateMessage="Няма намерени процедури."
-          />
-        </BentoCard>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex justify-between items-center mb-12 flex-wrap gap-4 px-2">
+          <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-fit border border-zinc-100 dark:border-zinc-800 mb-0">
+            <TabsTrigger
+              value="services"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+            >
+              <LayoutGrid className="mr-3 h-4 w-4" strokeWidth={1.5} /> Услуги
+            </TabsTrigger>
+            <TabsTrigger
+              value="packages"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+            >
+              <PackageSearch className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              Пакети
+            </TabsTrigger>
+            <TabsTrigger
+              value="reservations"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+            >
+              <CalendarDays className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              Резервации
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+            >
+              <History className="mr-3 h-4 w-4" strokeWidth={1.5} /> Движения
+            </TabsTrigger>
+            <TabsTrigger
+              value="sales"
+              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+            >
+              <ShoppingBag className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              Продажби
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "services" && !showPageHeader && (
+            <div className="flex items-center gap-4">
+              <Tabs
+                value={view}
+                onValueChange={(v) => setView(v as "grid" | "table")}
+                className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
+              >
+                <TabsList className="bg-transparent h-9 border-none">
+                  <TabsTrigger
+                    value="grid"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="table"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  >
+                    <List className="h-4 w-4" />
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="services" className="space-y-6 animate-in fade-in">
+          {view === "grid" ? (
+            <RecoveryMenu
+              services={data}
+              onSale={(service) => setSelectedSaleService(service)}
+            />
+          ) : (
+            <BentoCard className="p-8 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
+              <DataTable
+                columns={columns}
+                data={data}
+                filterColumnId="name"
+                filterPlaceholder="Търсене по име..."
+                isLoading={false}
+                emptyStateMessage="Няма намерени процедури."
+              />
+            </BentoCard>
+          )}
+        </TabsContent>
+
+        <TabsContent value="packages" className="animate-in fade-in">
+          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+            <RecoveryClientPackages />
+          </BentoCard>
+        </TabsContent>
+
+        <TabsContent value="reservations" className="animate-in fade-in">
+          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+            <RecoveryReservationsHistory />
+          </BentoCard>
+        </TabsContent>
+
+        <TabsContent value="history" className="animate-in fade-in">
+          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+            <RecoveryHistory />
+          </BentoCard>
+        </TabsContent>
+
+        <TabsContent value="sales" className="animate-in fade-in">
+          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+            <RecoverySalesHistory />
+          </BentoCard>
+        </TabsContent>
+      </Tabs>
+      {selectedSaleService && (
+        <RecoverySaleWizardDialog
+          service={selectedSaleService}
+          isOpen={!!selectedSaleService}
+          onClose={() => setSelectedSaleService(null)}
+          onSaleSuccess={() => {
+            setSelectedSaleService(null);
+            mutate("recoveryServices");
+          }}
+        />
       )}
     </div>
   );

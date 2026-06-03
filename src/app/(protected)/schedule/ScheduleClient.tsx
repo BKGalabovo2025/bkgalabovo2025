@@ -112,9 +112,9 @@ export default function ScheduleClient() {
   const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
 
   // Unified Top-level main tabs
-  const [activeMainTab, setActiveMainTab] = useState<"events" | "courts">(
-    "events"
-  );
+  const [activeMainTab, setActiveMainTab] = useState<
+    "events" | "courts" | "recovery"
+  >("events");
 
   // Reservations states
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -360,9 +360,21 @@ export default function ScheduleClient() {
 
   // Dynamic PageHeader actions based on active main tab
   const headerActions = useMemo(() => {
-    if (activeMainTab === "courts" || isRecoveryZone) {
+    if (
+      activeMainTab === "courts" ||
+      activeMainTab === "recovery" ||
+      isRecoveryZone
+    ) {
+      const mode =
+        activeMainTab === "recovery" || isRecoveryZone ? "recovery" : "courts";
       return (
-        <div className="flex flex-wrap gap-4">
+        <div className="flex items-center gap-3">
+          <ReservationDialog mode={mode} onSave={handleSaveReservation}>
+            <Button className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all">
+              <Plus className="mr-3 h-4 w-4" strokeWidth={2.5} /> Нова
+              Резервация
+            </Button>
+          </ReservationDialog>
           {!isRecoveryZone && activeBranch === "bkgalabovo" && (
             <BlockSlotDialog
               onSave={handleSaveReservation}
@@ -380,12 +392,6 @@ export default function ScheduleClient() {
               </Button>
             </BlockSlotDialog>
           )}
-          <ReservationDialog onSave={handleSaveReservation}>
-            <Button className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all">
-              <Plus className="mr-3 h-4 w-4" strokeWidth={2.5} /> Нова
-              Резервация
-            </Button>
-          </ReservationDialog>
         </div>
       );
     } else {
@@ -420,7 +426,9 @@ export default function ScheduleClient() {
             ? "Управление на резервации за възстановителни процедури в recoveryzone."
             : activeMainTab === "courts"
               ? "Управление на кортовете и заетостта в реално време."
-              : "Управление на тренировъчни графици, състезания и клубни събития."
+              : activeMainTab === "recovery"
+                ? "Управление на резервации за възстановителни процедури."
+                : "Управление на тренировъчни графици, състезания и клубни събития."
         }
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
@@ -454,6 +462,17 @@ export default function ScheduleClient() {
             )}
           >
             Резервация на кортове
+          </button>
+          <button
+            onClick={() => setActiveMainTab("recovery")}
+            className={cn(
+              "pb-4 text-xs font-semibold tracking-widest uppercase transition-all border-b-2 relative",
+              activeMainTab === "recovery"
+                ? "border-primary text-zinc-950 dark:text-white"
+                : "border-transparent text-zinc-400 hover:text-zinc-650"
+            )}
+          >
+            Резервация за възстановяване
           </button>
         </div>
       )}
@@ -648,17 +667,29 @@ export default function ScheduleClient() {
             <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
               <div className="bg-white dark:bg-zinc-950">
                 <AgendaView
-                  key={`${currentDate.toISOString()}-${refreshKey}`}
+                  key={`${currentDate.toISOString()}-${refreshKey}-${activeMainTab}`}
                   refreshKey={refreshKey}
                   date={currentDate}
                   courtCount={COURT_COUNT}
+                  mode={
+                    activeMainTab === "recovery" || isRecoveryZone
+                      ? "recovery"
+                      : "courts"
+                  }
                 />
               </div>
             </BentoCard>
           </TabsContent>
 
           <TabsContent value="history" className="mt-0 outline-none">
-            <ReservationHistory onViewInCalendar={handleViewInCalendar} />
+            <ReservationHistory
+              onViewInCalendar={handleViewInCalendar}
+              mode={
+                activeMainTab === "recovery" || isRecoveryZone
+                  ? "recovery"
+                  : "courts"
+              }
+            />
           </TabsContent>
         </Tabs>
       )}

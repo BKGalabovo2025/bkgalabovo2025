@@ -28,9 +28,10 @@ import { toast } from "sonner";
 
 interface RecoveryMenuProps {
   services: ClubService[];
+  onSale?: (service: ClubService) => void;
 }
 
-export function RecoveryMenu({ services }: RecoveryMenuProps) {
+export function RecoveryMenu({ services, onSale }: RecoveryMenuProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
@@ -74,6 +75,7 @@ export function RecoveryMenu({ services }: RecoveryMenuProps) {
                 key={service.id}
                 service={service}
                 onEdit={() => router.push(`/finances/recovery/${service.id}`)}
+                onSale={() => onSale?.(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
               />
             ))}
@@ -95,102 +97,86 @@ export function RecoveryMenu({ services }: RecoveryMenuProps) {
 const RecoveryCard = ({
   service,
   onEdit,
+  onSale,
   onDelete,
 }: {
   service: ClubService;
   onEdit: () => void;
+  onSale: () => void;
   onDelete: () => void;
 }) => {
-  const [imgError, setImgError] = React.useState(false);
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
-  // Logic for dynamic collage icons based on zones
-  const getServiceIcons = (zones: string[]) => {
-    const images: string[] = [];
-    if (!zones) return images;
-    const normalized = zones.map((z) => z.toUpperCase());
+  const images = (service as any).imageUrl
+    ? (service as any).imageUrl.split(",").filter(Boolean)
+    : [];
 
-    if (normalized.includes("КРАКА")) images.push("/legs.webp");
-    if (normalized.includes("РЪЦЕ")) images.push("/arm.png");
-    if (normalized.includes("ТАЗ")) images.push("/pelvis.webp");
-
-    return images;
-  };
-
-  const icons = getServiceIcons(service.zones || []);
+  React.useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   return (
-    <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-cyan-200/50 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-500 rounded-5xl p-8 pt-16 flex flex-col h-full">
-      {/* Status Badge at the absolute top */}
-      <div className="absolute top-5 left-0 right-0 flex justify-center px-8 pointer-events-none">
-        {(() => {
-          const res = service.requiredResources;
-          const zones = (service.zones || []).map((z) => z.toUpperCase());
+    <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20 transition-all duration-500 rounded-5xl flex flex-col h-full">
+      {/* Cover Image or Icon Header */}
+      <div className="relative h-48 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-50 dark:border-zinc-800">
+        {images.length > 0 ? (
+          <>
+            {images.map((imgUrl: string, idx: number) => (
+              <Image
+                key={imgUrl}
+                src={imgUrl}
+                alt={`${service.name} - ${idx + 1}`}
+                fill
+                sizes="(max-w-768px) 100vw, 33vw"
+                className={`object-cover group-hover:scale-110 absolute inset-0 transition-all duration-1000 ${
+                  idx === activeImageIndex
+                    ? "opacity-100 z-0 scale-100"
+                    : "opacity-0 -z-10 scale-95"
+                }`}
+              />
+            ))}
 
-          const hasCompressor = (res?.compressors || 0) > 0;
-          const hasMatchingAttachment =
-            res &&
-            ((zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
-              (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
-              (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0));
-
-          const isUpdated = hasCompressor && hasMatchingAttachment;
-
-          if (!isUpdated) {
-            return (
-              <span className="px-4 py-1.5 bg-amber-50/80 backdrop-blur-sm text-amber-600 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full border border-amber-100/50 flex items-center gap-2 shadow-sm transition-all">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                За поддръжка
-              </span>
-            );
-          }
-          return (
-            <span className="px-4 py-1.5 bg-emerald-50/80 backdrop-blur-sm text-emerald-600 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full border border-emerald-100/50 flex items-center gap-2 shadow-sm transition-all">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Готова
+            {images.length > 1 && (
+              <div className="absolute bottom-4 right-4 z-10 flex gap-1 bg-black/20 dark:bg-black/40 backdrop-blur-md px-2 py-1.5 rounded-full">
+                {images.map((_: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      idx === activeImageIndex
+                        ? "bg-white w-3"
+                        : "bg-white/50 w-1.5"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+            <Activity
+              className="h-12 w-12 opacity-30 text-cyan-500"
+              strokeWidth={1}
+            />
+            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] opacity-40 mt-2">
+              ПРОЦЕДУРА
             </span>
-          );
-        })()}
-      </div>
+          </div>
+        )}
 
-      {/* Header with Icon and Actions */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-2">
-          {icons.length > 0 && !imgError ? (
-            <div className="flex items-center gap-2">
-              {icons.map((src, idx) => (
-                <React.Fragment key={src}>
-                  <div className="relative w-11 h-11 rounded-xl bg-white border border-zinc-100 flex items-center justify-center overflow-hidden shadow-sm">
-                    <Image
-                      src={src}
-                      alt=""
-                      fill
-                      sizes="44px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={() => setImgError(true)}
-                    />
-                  </div>
-                  {idx < icons.length - 1 && (
-                    <span className="text-zinc-300 font-light">+</span>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : (
-            <div className="w-11 h-11 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
-              <Activity className="h-5 w-5" strokeWidth={1.5} />
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
+        {/* Dropdown Menu on Image Hover */}
+        <div className="absolute top-4 right-4 z-10 flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-zinc-100/50 dark:border-zinc-850 hover:bg-white"
               >
-                <MoreHorizontal className="h-4 w-4 text-zinc-400" />
+                <MoreHorizontal className="h-4 w-4 text-zinc-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -205,122 +191,179 @@ const RecoveryCard = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="rounded-xl gap-2 focus:bg-red-50 text-red-600 py-3"
+                className="rounded-xl gap-2 focus:bg-red-50 text-red-650 py-3"
               >
                 <Trash2 className="h-4 w-4" /> Изтриване
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
 
-      {/* Title & Description */}
-      <div className="space-y-3 flex-1">
-        <div className="flex flex-wrap gap-2 mb-1">
-          {service.category && (
-            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-md">
-              {service.category}
-            </span>
-          )}
-          {service.sessionType && (
-            <span className="text-[9px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-50 px-2 py-0.5 rounded-md">
-              {service.sessionType}
-            </span>
-          )}
+        {/* Status badge in bottom corner */}
+        <div className="absolute bottom-4 left-4 z-10">
+          {(() => {
+            const res = service.requiredResources;
+            const zones = (service.zones || []).map((z) => z.toUpperCase());
+
+            const hasCompressor = (res?.compressors || 0) > 0;
+            const hasMatchingAttachment =
+              res &&
+              ((zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
+                (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
+                (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0));
+
+            const isUpdated = hasCompressor && hasMatchingAttachment;
+
+            if (!isUpdated) {
+              return (
+                <div className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border backdrop-blur-md bg-amber-50/90 border-amber-200 text-amber-700 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  Поддръжка
+                </div>
+              );
+            }
+            return (
+              <div className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border backdrop-blur-md bg-emerald-50/90 border-emerald-200 text-emerald-700 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Готова
+              </div>
+            );
+          })()}
         </div>
-        <h4 className="text-xl font-medium tracking-tight text-zinc-900">
-          {service.name}
-        </h4>
-        <p className="text-sm text-zinc-400 font-light leading-relaxed line-clamp-3">
-          {service.description}
-        </p>
       </div>
 
-      {/* Zones */}
-      <div className="flex flex-wrap gap-2 my-6">
-        {Array.from(
-          new Set(Array.isArray(service.zones) ? service.zones : [])
-        ).map((zone) => (
-          <span
-            key={zone}
-            className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium"
-          >
-            {zone}
-          </span>
-        ))}
-      </div>
-
-      {/* Features */}
-      <div className="space-y-3 mb-8 pt-6 border-t border-zinc-50">
-        <div className="flex items-center gap-3 text-xs text-zinc-500">
-          <Clock className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
-          <span>
-            {service.durationMinutes === 45 &&
-            service.category === "VIP СЕСИИ" ? (
-              <span className="font-medium text-cyan-600">
-                15 минути + 30 минути
+      {/* Content Area */}
+      <div className="p-8 flex-1 flex flex-col justify-between">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2 mb-1">
+            {service.category && (
+              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-md">
+                {service.category}
               </span>
-            ) : (
-              `${service.durationMinutes} минути`
             )}
-          </span>
+            {service.sessionType && (
+              <span className="text-[9px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-50 px-2 py-0.5 rounded-md">
+                {service.sessionType}
+              </span>
+            )}
+          </div>
+          <h4 className="text-xl font-medium tracking-tight text-zinc-900 group-hover:text-cyan-600 transition-colors line-clamp-1">
+            {service.name}
+          </h4>
+          <p className="text-sm text-zinc-400 font-light leading-relaxed line-clamp-3 min-h-16">
+            {service.description}
+          </p>
+
+          {/* Zones */}
+          <div className="flex flex-wrap gap-2 pt-2">
+            {Array.from(
+              new Set(Array.isArray(service.zones) ? service.zones : [])
+            ).map((zone) => (
+              <span
+                key={zone}
+                className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium"
+              >
+                {zone}
+              </span>
+            ))}
+          </div>
+
+          {/* Features */}
+          <div className="space-y-3 pt-4 border-t border-zinc-50">
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <Clock className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
+              <span>
+                {service.durationMinutes === 45 &&
+                service.category === "VIP СЕСИИ" ? (
+                  <span className="font-medium text-cyan-600">
+                    15 минути + 30 минути
+                  </span>
+                ) : (
+                  `${service.durationMinutes} минути`
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <Users className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
+              <span>{service.athleteCount} спортисти</span>
+            </div>
+            {(service.numberOfDays || 0) > 1 && (
+              <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <Calendar className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
+                <span>
+                  {service.numberOfDays} дни / {service.proceduresPerDay}{" "}
+                  процедури на ден
+                </span>
+              </div>
+            )}
+
+            {service.requiredResources && (
+              <div className="pt-2 mt-2 space-y-1">
+                <p className="text-[9px] text-zinc-400 uppercase tracking-widest font-medium mb-1">
+                  Ресурси
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  {(service.requiredResources.compressors ?? 0) > 0 && (
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                      {service.requiredResources.compressors} компресора
+                    </div>
+                  )}
+                  {(service.requiredResources.attachments?.arms ?? 0) > 0 && (
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                      <span className="w-1 h-1 rounded-full bg-blue-400" />
+                      {service.requiredResources.attachments?.arms} РЪЦЕ
+                    </div>
+                  )}
+                  {(service.requiredResources.attachments?.legs ?? 0) > 0 && (
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                      <span className="w-1 h-1 rounded-full bg-cyan-400" />
+                      {service.requiredResources.attachments?.legs} КРАКА
+                    </div>
+                  )}
+                  {(service.requiredResources.attachments?.hips ?? 0) > 0 && (
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                      <span className="w-1 h-1 rounded-full bg-purple-400" />
+                      {service.requiredResources.attachments?.hips} ТАЗ
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-zinc-500">
-          <Users className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
-          <span>{service.athleteCount} спортисти</span>
-        </div>
-        {(service.numberOfDays || 0) > 1 && (
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
-            <Calendar className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
-            <span>
-              {service.numberOfDays} дни / {service.proceduresPerDay} процедури
-              на ден
+
+        <div>
+          {/* Price */}
+          <div className="flex items-baseline gap-1 pt-6 border-t border-zinc-50 mb-6 mt-6">
+            <span className="text-3xl font-light tracking-tighter text-zinc-950">
+              {formatPrice(service.price).replace(" EUR", "")}
+            </span>
+            <span className="text-sm font-medium text-zinc-400 uppercase tracking-widest ml-1">
+              EUR
             </span>
           </div>
-        )}
-        {service.requiredResources && (
-          <div className="pt-4 mt-4 border-t border-zinc-50 space-y-2">
-            <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">
-              Ресурси
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {(service.requiredResources.compressors ?? 0) > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  {service.requiredResources.compressors} компресора
-                </div>
-              )}
-              {(service.requiredResources.attachments?.arms ?? 0) > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  {service.requiredResources.attachments?.arms} маншета РЪЦЕ
-                </div>
-              )}
-              {(service.requiredResources.attachments?.legs ?? 0) > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  {service.requiredResources.attachments?.legs} маншета КРАКА
-                </div>
-              )}
-              {(service.requiredResources.attachments?.hips ?? 0) > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                  {service.requiredResources.attachments?.hips} маншета ТАЗ
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Price */}
-      <div className="flex items-baseline gap-1 mt-auto pt-6 border-t border-zinc-50">
-        <span className="text-3xl font-light tracking-tighter text-zinc-950">
-          {formatPrice(service.price).replace(" EUR", "")}
-        </span>
-        <span className="text-sm font-medium text-zinc-400 uppercase tracking-widest ml-1">
-          EUR
-        </span>
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-3 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSale}
+              className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 transition-all shadow-none"
+            >
+              Продажба
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onEdit}
+              className="w-full h-11 rounded-xl font-medium text-[10px] uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-none border-none"
+            >
+              Редактиране
+            </Button>
+          </div>
+        </div>
       </div>
     </BentoCard>
   );

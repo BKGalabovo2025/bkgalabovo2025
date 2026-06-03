@@ -33,11 +33,14 @@ import { DonationReceiptDialog } from "./donation-receipt-dialog";
 import { useAppStore } from "@/store/use-app-store";
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
+import { getAllRecoveryServices } from "@/services/club-service";
+import { ClubService } from "@/types";
 
 interface AgendaViewProps {
   date: Date;
   courtCount: number;
   refreshKey: number;
+  mode?: "courts" | "recovery";
 }
 
 type AgendaItem =
@@ -48,12 +51,22 @@ export function AgendaView({
   date,
   courtCount,
   refreshKey: _refreshKey,
+  mode,
 }: AgendaViewProps) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [services, setServices] = useState<ClubService[]>([]);
   const { activeBranch } = useAppStore();
   const { getFreshToken } = useAuth();
+
+  const effectiveBranch = mode === "recovery" ? "recoveryzone" : activeBranch;
+
+  useEffect(() => {
+    if (mode === "recovery") {
+      getAllRecoveryServices().then((data) => setServices(data));
+    }
+  }, [mode]);
 
   useEffect(() => {
     const unsubReservations = subscribeToReservationsForDay(
@@ -62,7 +75,7 @@ export function AgendaView({
         setReservations(res);
         setIsLoading(false);
       },
-      activeBranch
+      effectiveBranch
     );
 
     const unsubBlocked = subscribeToBlockedSlotsForDay(
@@ -71,14 +84,14 @@ export function AgendaView({
         setBlockedSlots(slots);
         setIsLoading(false);
       },
-      activeBranch
+      effectiveBranch
     );
 
     return () => {
       unsubReservations();
       unsubBlocked();
     };
-  }, [date, activeBranch]);
+  }, [date, effectiveBranch]);
 
   const sortedItems = useMemo(() => {
     const items: AgendaItem[] = [
@@ -207,6 +220,11 @@ export function AgendaView({
                   minute: "2-digit",
                 })}
               </span>
+              {isReservation && (data as Reservation).bufferAfter ? (
+                <span className="text-[9px] text-amber-500/80 font-bold tracking-tight">
+                  + {(data as Reservation).bufferAfter} мин. почистване
+                </span>
+              ) : null}
             </div>
 
             {/* Content Column */}
@@ -215,23 +233,32 @@ export function AgendaView({
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-center justify-center min-w-12 h-12 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10">
                   <span className="text-[8px] font-black uppercase tracking-tighter opacity-50">
-                    {activeBranch === "bkgalabovo" ? "Корт" : "Услуга"}
+                    {effectiveBranch === "bkgalabovo" ? "Корт" : "Услуга"}
                   </span>
                   <span className="text-sm font-bold leading-none whitespace-nowrap">
                     {isReservation
-                      ? activeBranch === "bkgalabovo"
+                      ? effectiveBranch === "bkgalabovo"
                         ? (data as Reservation).courtId
-                        : (data as Reservation).serviceName
+                        : (() => {
+                            const res = data as Reservation;
+                            const svcName =
+                              res.serviceName ||
+                              services.find((s) => s.id === res.serviceId)
+                                ?.name;
+                            return svcName
+                              ? `${svcName}${res.selectedZone ? ` (${res.selectedZone})` : ""}`
+                              : "Услуга";
+                          })()
                       : (data as BlockedSlot).courtIds.length > 0
-                        ? (data as BlockedSlot).courtIds.join(", ")
-                        : "Всички"}
+                        ? `Корт ${(data as BlockedSlot).courtIds.join(", ")}`
+                        : "Всички кортове"}
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     {isReservation ? (
-                      activeBranch === "bkgalabovo" ? (
+                      effectiveBranch === "bkgalabovo" ? (
                         <User className="w-4 h-4 text-zinc-400" />
                       ) : (
                         <Activity className="w-4 h-4 text-primary" />
@@ -334,6 +361,7 @@ export function AgendaView({
               {isReservation ? (
                 <ReservationDialog
                   reservation={data as Reservation}
+                  mode={mode}
                   onSave={() => {}}
                 >
                   <Button

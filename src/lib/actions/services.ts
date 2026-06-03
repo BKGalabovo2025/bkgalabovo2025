@@ -305,6 +305,7 @@ const RecoverySessionSchema = z.object({
     }),
     compressors: z.coerce.number().min(0).default(0),
   }),
+  imageUrl: z.string().optional().nullable(),
 });
 
 export async function createRecoverySession(
@@ -314,7 +315,7 @@ export async function createRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -336,6 +337,7 @@ export async function createRecoverySession(
         },
         compressors: formData.get("req_compressors") || 0,
       },
+      imageUrl: formData.get("imageUrl") || null,
     };
 
     const validatedFields = RecoverySessionSchema.safeParse(rawData);
@@ -362,6 +364,15 @@ export async function createRecoverySession(
         updatedAt: new Date().toISOString(),
       });
 
+    await _logHistory(
+      adminDb,
+      sessionId,
+      user.uid,
+      user.displayName || user.email || "Unknown User",
+      "create",
+      `Създадена процедура: ${data.name}`
+    );
+
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
@@ -383,7 +394,7 @@ export async function updateRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
     const rawData = {
@@ -405,6 +416,7 @@ export async function updateRecoverySession(
         },
         compressors: formData.get("req_compressors") || 0,
       },
+      imageUrl: formData.get("imageUrl") || null,
     };
 
     const validatedFields = RecoverySessionSchema.safeParse(rawData);
@@ -418,13 +430,43 @@ export async function updateRecoverySession(
 
     const data = validatedFields.data;
 
-    await adminDb
-      .collection("sessions")
-      .doc(id)
-      .update({
-        ...data,
-        updatedAt: new Date().toISOString(),
-      });
+    const docRef = adminDb.collection("sessions").doc(id);
+    const docSnap = await docRef.get();
+    const oldData = docSnap.exists ? docSnap.data() : null;
+
+    await docRef.update({
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+
+    let changesDesc = `Обновена процедура: ${data.name}`;
+    if (oldData) {
+      const changes = [];
+      if (Number(oldData.price) !== Number(data.price))
+        changes.push(`цена (${oldData.price} -> ${data.price})`);
+      if (oldData.name !== data.name) changes.push(`име`);
+      if (oldData.description !== data.description) changes.push(`описание`);
+      if (
+        Number(oldData.durationMinutes || oldData.duration) !==
+        Number(data.durationMinutes)
+      )
+        changes.push(
+          `времетраене (${oldData.durationMinutes || oldData.duration} -> ${data.durationMinutes})`
+        );
+
+      if (changes.length > 0) {
+        changesDesc += ` (Променени: ${changes.join(", ")})`;
+      }
+    }
+
+    await _logHistory(
+      adminDb,
+      id,
+      user.uid,
+      user.displayName || user.email || "Unknown User",
+      "update",
+      changesDesc
+    );
 
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
@@ -442,9 +484,22 @@ export async function updateRecoverySession(
 
 export async function deleteRecoverySession(idToken: string, id: string) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
+
+    const doc = await adminDb.collection("sessions").doc(id).get();
+    const serviceName = doc.exists ? doc.data()?.name || "Unknown" : "Unknown";
+
     await adminDb.collection("sessions").doc(id).delete();
+
+    await _logHistory(
+      adminDb,
+      id,
+      user.uid,
+      user.displayName || user.email || "Unknown User",
+      "delete",
+      `Изтрита процедура: ${serviceName}`
+    );
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
@@ -603,7 +658,11 @@ export async function executeTrainingSaleAction(
           const attendee = attendees[idx];
           // Skip if not attended or already paid by THIS sale
           if (!attendee.attended) continue;
-          if (attendee.paymentStatus === "paid" && attendee.saleId === saleRef.id) continue;
+          if (
+            attendee.paymentStatus === "paid" &&
+            attendee.saleId === saleRef.id
+          )
+            continue;
 
           const updatedAttendees = [...attendees];
           updatedAttendees[idx] = {

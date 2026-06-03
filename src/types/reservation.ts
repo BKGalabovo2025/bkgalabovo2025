@@ -22,7 +22,6 @@ export type ReservationStatus =
 export interface Reservation {
   id: string;
   siteId: string;
-  packageGroupId?: string;
   saleId?: string;
 
   // Court Specific
@@ -32,6 +31,7 @@ export interface Reservation {
   // Recovery Specific
   serviceId?: string;
   serviceName?: string;
+  selectedZone?: string;
   usedResources?: {
     attachments: Partial<Record<string, number>>;
     compressors: number;
@@ -57,6 +57,17 @@ export interface Reservation {
   status: ReservationStatus;
   notes?: string;
   bufferAfter?: number; // in minutes
+
+  // Package tracking
+  packageGroupId?: string;
+  isPackageChild?: boolean;
+  packageDetails?: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    clientName: string;
+    zone: string;
+  }[];
 
   // Audit Tracking
   createdAt: Timestamp;

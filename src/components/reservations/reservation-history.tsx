@@ -12,20 +12,78 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Clock, MapPin, Eye, Search, Activity } from "lucide-react";
+import {
+  User,
+  Clock,
+  MapPin,
+  Eye,
+  Search,
+  Activity,
+  CheckCircle2,
+  FileText,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
+import {
+  deleteReservationAction,
+  markReservationAsPaidAction,
+} from "@/lib/actions/reservations";
+import { ReservationDialog } from "./reservation-dialog";
+import { DonationReceiptDialog } from "./donation-receipt-dialog";
+import { getAllRecoveryServices } from "@/services/club-service";
 
 interface ReservationHistoryProps {
   onViewInCalendar: (date: Date) => void;
+  mode?: "courts" | "recovery";
 }
 
 export function ReservationHistory({
   onViewInCalendar,
+  mode,
 }: ReservationHistoryProps) {
-  const { activeBranch: siteId } = useAppStore();
-  const { reservations, isLoading } = useReservations(siteId);
+  const { activeBranch } = useAppStore();
+  const { getFreshToken } = useAuth();
+  const [services, setServices] = useState<any[]>([]);
+  const effectiveBranch = mode === "recovery" ? "recoveryzone" : activeBranch;
+  const { reservations, isLoading } = useReservations(effectiveBranch);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (mode === "recovery") {
+      getAllRecoveryServices().then((data) => setServices(data));
+    }
+  }, [mode]);
+
+  const handleDeleteReservation = async (id: string) => {
+    const token = await getFreshToken(true);
+    if (!token) return;
+    try {
+      const result = await deleteReservationAction(token, id);
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
+    } catch {
+      toast.error("Грешка при изтриване.");
+    }
+  };
+
+  const handleMarkAsPaid = async (id: string) => {
+    const token = await getFreshToken(true);
+    if (!token) return;
+    try {
+      const result = await markReservationAsPaidAction(token, id);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } catch {
+      toast.error("Грешка при актуализиране на плащане.");
+    }
+  };
 
   const filteredReservations = reservations.filter(
     (res) =>
@@ -83,7 +141,7 @@ export function ReservationHistory({
               <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
                 Направена от
               </TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[200px] text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,6 +212,11 @@ export function ReservationHistory({
                           {format(startTime, "HH:mm")} -{" "}
                           {format(endTime, "HH:mm")}
                         </div>
+                        {res.bufferAfter ? (
+                          <div className="text-[9px] text-amber-500/80 font-bold tracking-tight">
+                            + {res.bufferAfter} мин. почистване
+                          </div>
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -181,7 +244,15 @@ export function ReservationHistory({
                           className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
                         >
                           <Activity className="h-3 w-3 text-emerald-500" />
-                          {res.serviceName || "Услуга"}
+                          {(() => {
+                            const svcName =
+                              res.serviceName ||
+                              services.find((s) => s.id === res.serviceId)
+                                ?.name;
+                            return svcName
+                              ? `${svcName}${res.selectedZone ? ` (${res.selectedZone})` : ""}`
+                              : "Услуга";
+                          })()}
                         </Badge>
                       )}
                     </TableCell>
@@ -213,15 +284,67 @@ export function ReservationHistory({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewInCalendar(startTime)}
-                        className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white transition-all group"
-                        title="Виж в календара"
-                      >
-                        <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        {res.status !== "paid" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+                            onClick={() => handleMarkAsPaid(res.id)}
+                            title="Маркирай като платено"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </Button>
+                        )}
+
+                        {res.status === "paid" && (
+                          <DonationReceiptDialog reservation={res as any}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                              title="Издай документ"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </Button>
+                          </DonationReceiptDialog>
+                        )}
+
+                        <ReservationDialog
+                          reservation={res as any}
+                          mode={mode}
+                          onSave={() => {}}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                            title="Редактирай"
+                          >
+                            <Pencil className="w-4 h-4 text-zinc-400" />
+                          </Button>
+                        </ReservationDialog>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+                          onClick={() => handleDeleteReservation(res.id)}
+                          title="Изтрий"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewInCalendar(startTime)}
+                          className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white transition-all group"
+                          title="Виж в календара"
+                        >
+                          <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

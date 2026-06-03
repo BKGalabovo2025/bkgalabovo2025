@@ -81,6 +81,7 @@ interface ReservationDialogProps {
   reservation?: Reservation;
   initialData?: Partial<z.infer<typeof reservationSchema>>;
   onSave?: () => void;
+  mode?: "courts" | "recovery";
 }
 
 type Step = "time" | "packageDays" | "details" | "review";

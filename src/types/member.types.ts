@@ -47,6 +47,7 @@ export const MemberSchema = z.object({
   educationInstitution: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  healthConditionNotes: z.string().nullable().optional(),
 
   // --- ADDED: Emergency Contact ---
   emergencyContactName: z.string().nullable().optional(),
@@ -111,7 +112,10 @@ export const MemberSchema = z.object({
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),
   isGuest: z.boolean().optional(),
-  memberType: z.enum(["regular", "guest"]).catch("regular").optional(),
+  memberType: z
+    .enum(["regular", "guest", "recovery"])
+    .catch("regular")
+    .optional(),
 });
 
 /**
