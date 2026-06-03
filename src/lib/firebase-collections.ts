@@ -3,7 +3,7 @@ import {
   FirestoreDataConverter,
   query,
   where,
-  Timestamp,
+  orderBy,
 } from "firebase/firestore";
 import { getDb } from "./firebase";
 import { getSiteConfig } from "@/config/sites";
@@ -393,39 +393,81 @@ export const getEventsQuery = () => {
   return query(getEventsCollection(), where("siteId", "==", siteConfig.id));
 };
 
-/** Returns only current + upcoming events (startDate >= today midnight).
+/** Returns only events for today (midnight to 23:59:59).
  *  Used for the priority (fast) load in useEvents. */
-export const getActiveEventsQuery = () => {
+export const getTodayEventsQuery = () => {
   const siteConfig = getSiteConfig();
-  const todayMidnight = new Date();
-  todayMidnight.setHours(0, 0, 0, 0);
-  const todayTs = Timestamp.fromDate(todayMidnight);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+  const startStr = startOfToday.toISOString();
+  const endStr = endOfToday.toISOString();
 
   if (siteConfig.id === "bkgalabovo") {
-    return query(getEventsCollection(), where("startDate", ">=", todayTs));
+    return query(
+      getEventsCollection(),
+      where("startDate", ">=", startStr),
+      where("startDate", "<=", endStr),
+      orderBy("startDate", "asc")
+    );
   }
+
   return query(
     getEventsCollection(),
     where("siteId", "==", siteConfig.id),
-    where("startDate", ">=", todayTs)
+    where("startDate", ">=", startStr),
+    where("startDate", "<=", endStr),
+    orderBy("startDate", "asc")
   );
 };
 
-/** Returns only past events (startDate < today midnight).
- *  Used for lazy loading when the "Минали" tab is clicked. */
-export const getPastEventsQuery = () => {
+export const getUpcomingEventsQuery = () => {
   const siteConfig = getSiteConfig();
-  const todayMidnight = new Date();
-  todayMidnight.setHours(0, 0, 0, 0);
-  const todayTs = Timestamp.fromDate(todayMidnight);
+  const startOfTomorrow = new Date();
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+  startOfTomorrow.setHours(0, 0, 0, 0);
+
+  const startStr = startOfTomorrow.toISOString();
 
   if (siteConfig.id === "bkgalabovo") {
-    return query(getEventsCollection(), where("startDate", "<", todayTs));
+    return query(
+      getEventsCollection(),
+      where("startDate", ">=", startStr),
+      orderBy("startDate", "asc")
+    );
   }
+
   return query(
     getEventsCollection(),
     where("siteId", "==", siteConfig.id),
-    where("startDate", "<", todayTs)
+    where("startDate", ">=", startStr),
+    orderBy("startDate", "asc")
+  );
+};
+
+export const getPastEventsQuery = () => {
+  const siteConfig = getSiteConfig();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startStr = startOfToday.toISOString();
+
+  if (siteConfig.id === "bkgalabovo") {
+    return query(
+      getEventsCollection(),
+      where("startDate", "<", startStr),
+      orderBy("startDate", "desc")
+    );
+  }
+
+  return query(
+    getEventsCollection(),
+    where("siteId", "==", siteConfig.id),
+    where("startDate", "<", startStr),
+    orderBy("startDate", "desc")
   );
 };
 

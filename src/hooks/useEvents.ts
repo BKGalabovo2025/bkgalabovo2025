@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   onSnapshot,
   doc,
@@ -11,7 +11,8 @@ import {
 import { getDb } from "@/lib/firebase";
 import {
   getEventsCollection,
-  getActiveEventsQuery,
+  getTodayEventsQuery,
+  getUpcomingEventsQuery,
   getPastEventsQuery,
 } from "@/lib/firebase-collections";
 import { docToScheduleEvent } from "@/services/schedule-service";
@@ -32,25 +33,24 @@ import { useAuth } from "@/context/auth-context";
  * Smart-streaming events hook.
  *
  * Strategy:
- * - Phase 1 (immediate): subscribes to current + upcoming events only
- *   (startDate >= today midnight) → `isLoading` becomes false quickly
- * - Phase 2 (lazy): past events are fetched only when `loadPast = true`
- *   is passed by the consumer (i.e. when the "Минали" tab is clicked)
- *
- * @param loadPast - set to true to trigger loading of past events
+ * - Phase 1 (Critical): subscribes to ONLY today's events -> isLoading becomes false instantly.
+ * - Phase 2 (Background): subscribes to upcoming events (tomorrow onwards).
+ * - Phase 3 (Delayed): past events are fetched automatically in the background 300ms after load.
  */
-export const useEvents = (loadPast = false) => {
-  const [activeEvents, setActiveEvents] = useState<ScheduleEvent[]>([]);
+export const useEvents = () => {
+  const [todayEvents, setTodayEvents] = useState<ScheduleEvent[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<ScheduleEvent[]>([]);
   const [pastEvents, setPastEvents] = useState<ScheduleEvent[]>([]);
+
   const [members, setMembers] = useState<Member[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpcomingLoading, setIsUpcomingLoading] = useState(true);
   const [isPastLoading, setIsPastLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
   const { activeBranch } = useAppStore();
   const { getFreshToken } = useAuth();
-
-  // Track whether past subscription is already set up
-  const pastUnsubRef = useRef<(() => void) | null>(null);
 
   // --- Members ---
   useEffect(() => {
@@ -87,9 +87,9 @@ export const useEvents = (loadPast = false) => {
     [members]
   );
 
-  // --- Phase 1: Active events (today + upcoming) — immediate load ---
+  // --- Phase 1: Today events — immediate load, unblocks UI ---
   useEffect(() => {
-    const q = getActiveEventsQuery();
+    const q = getTodayEventsQuery();
 
     const unsubscribe = onSnapshot(
       q,
@@ -97,31 +97,23 @@ export const useEvents = (loadPast = false) => {
         const eventsData = snapshot.docs
           .map(docToEnrichedEvent)
           .filter(Boolean) as ScheduleEvent[];
-        setActiveEvents(eventsData);
-        setIsLoading(false);
+        setTodayEvents(eventsData);
+        setIsLoading(false); // Unblock the UI as soon as today is ready!
       },
       (err) => {
-        console.error("Error fetching active events:", err);
+        console.error("Error fetching today events:", err);
         setError(err);
         setIsLoading(false);
-        toast.error("Грешка при зареждане на събитията", {
-          description: "Не може да се установи връзка със сървъра.",
-        });
+        toast.error("Грешка при зареждане на днешните събития");
       }
     );
 
     return () => unsubscribe();
   }, [members, activeBranch, docToEnrichedEvent]);
 
-  // --- Phase 2: Past events — lazy, only when loadPast becomes true ---
+  // --- Phase 2: Upcoming events — background load ---
   useEffect(() => {
-    if (!loadPast) return;
-
-    // Avoid re-subscribing if already subscribed
-    if (pastUnsubRef.current) return;
-
-    setIsPastLoading(true);
-    const q = getPastEventsQuery();
+    const q = getUpcomingEventsQuery();
 
     const unsubscribe = onSnapshot(
       q,
@@ -129,28 +121,52 @@ export const useEvents = (loadPast = false) => {
         const eventsData = snapshot.docs
           .map(docToEnrichedEvent)
           .filter(Boolean) as ScheduleEvent[];
-        setPastEvents(eventsData);
-        setIsPastLoading(false);
+        setUpcomingEvents(eventsData);
+        setIsUpcomingLoading(false);
       },
       (err) => {
-        console.error("Error fetching past events:", err);
-        setIsPastLoading(false);
-        toast.error("Грешка при зареждане на минали събития");
+        console.error("Error fetching upcoming events:", err);
+        setIsUpcomingLoading(false);
       }
     );
 
-    pastUnsubRef.current = unsubscribe;
+    return () => unsubscribe();
+  }, [members, activeBranch, docToEnrichedEvent]);
+
+  // --- Phase 3: Past events — delayed background load (300ms) ---
+  useEffect(() => {
+    setIsPastLoading(true);
+    let unsubscribe: () => void;
+
+    const timer = setTimeout(() => {
+      const q = getPastEventsQuery();
+
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const eventsData = snapshot.docs
+            .map(docToEnrichedEvent)
+            .filter(Boolean) as ScheduleEvent[];
+          setPastEvents(eventsData);
+          setIsPastLoading(false);
+        },
+        (err) => {
+          console.error("Error fetching past events:", err);
+          setIsPastLoading(false);
+        }
+      );
+    }, 300);
 
     return () => {
-      if (pastUnsubRef.current) {
-        pastUnsubRef.current();
-        pastUnsubRef.current = null;
+      clearTimeout(timer);
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-  }, [loadPast, members, activeBranch, docToEnrichedEvent]);
+  }, [members, activeBranch, docToEnrichedEvent]);
 
-  // Merged events for consumers that need everything
-  const events = [...activeEvents, ...pastEvents];
+  // Merged events for consumers
+  const events = [...todayEvents, ...upcomingEvents, ...pastEvents];
 
   // --- Mutations (unchanged from original) ---
 
@@ -199,24 +215,38 @@ export const useEvents = (loadPast = false) => {
 
   const updateEvent = useCallback(
     async (eventId: string, eventData: Partial<NewEvent>) => {
-      let originalEvents: ScheduleEvent[] = [];
+      let originalToday: ScheduleEvent[] = [];
+      let originalUpcoming: ScheduleEvent[] = [];
+      let originalPast: ScheduleEvent[] = [];
 
-      setActiveEvents((currentEvents) => {
-        originalEvents = currentEvents;
-        const optimisticPayload = {
-          ...eventData,
-          startDate: toISOStringOrUndefined(
-            eventData.startDate as Date | Timestamp | string | undefined
-          ),
-          endDate: toISOStringOrUndefined(
-            eventData.endDate as Date | Timestamp | string | undefined
-          ),
-        };
-        return currentEvents.map((e) =>
+      const optimisticPayload = {
+        ...eventData,
+        startDate: toISOStringOrUndefined(
+          eventData.startDate as Date | Timestamp | string | undefined
+        ),
+        endDate: toISOStringOrUndefined(
+          eventData.endDate as Date | Timestamp | string | undefined
+        ),
+      };
+
+      const updater = (currentEvents: ScheduleEvent[]) =>
+        currentEvents.map((e) =>
           e.id === eventId
             ? ({ ...e, ...optimisticPayload } as ScheduleEvent)
             : e
         );
+
+      setTodayEvents((c) => {
+        originalToday = c;
+        return updater(c);
+      });
+      setUpcomingEvents((c) => {
+        originalUpcoming = c;
+        return updater(c);
+      });
+      setPastEvents((c) => {
+        originalPast = c;
+        return updater(c);
       });
 
       try {
@@ -227,7 +257,9 @@ export const useEvents = (loadPast = false) => {
           console.error("Cache invalidation failed", err)
         );
       } catch (err) {
-        setActiveEvents(originalEvents);
+        setTodayEvents(originalToday);
+        setUpcomingEvents(originalUpcoming);
+        setPastEvents(originalPast);
         console.error("Error updating event:", err);
         toast.error("Грешка при обновяване", {
           description: "Промените не бяха запазени. Моля, опитайте отново.",
@@ -240,17 +272,29 @@ export const useEvents = (loadPast = false) => {
 
   const deleteEvent = useCallback(async (eventId: string) => {
     const db = getDb();
-    let originalActive: ScheduleEvent[] = [];
+    let originalToday: ScheduleEvent[] = [];
+    let originalUpcoming: ScheduleEvent[] = [];
+    let originalPast: ScheduleEvent[] = [];
     let eventTitle: string | undefined = "";
 
-    setActiveEvents((currentEvents) => {
-      originalActive = currentEvents;
-      eventTitle = currentEvents.find((e) => e.id === eventId)?.title;
+    const filterFn = (currentEvents: ScheduleEvent[]) => {
+      const found = currentEvents.find((e) => e.id === eventId);
+      if (found && !eventTitle) eventTitle = found.title;
       return currentEvents.filter((e) => e.id !== eventId);
+    };
+
+    setTodayEvents((c) => {
+      originalToday = c;
+      return filterFn(c);
     });
-    setPastEvents((currentEvents) =>
-      currentEvents.filter((e) => e.id !== eventId)
-    );
+    setUpcomingEvents((c) => {
+      originalUpcoming = c;
+      return filterFn(c);
+    });
+    setPastEvents((c) => {
+      originalPast = c;
+      return filterFn(c);
+    });
 
     try {
       const eventRef = doc(db, "events", eventId);
@@ -262,7 +306,9 @@ export const useEvents = (loadPast = false) => {
         console.error("Cache invalidation failed", err)
       );
     } catch (err) {
-      setActiveEvents(originalActive);
+      setTodayEvents(originalToday);
+      setUpcomingEvents(originalUpcoming);
+      setPastEvents(originalPast);
       console.error("Error deleting event:", err);
       toast.error("Грешка при изтриване");
       throw err;
@@ -271,13 +317,13 @@ export const useEvents = (loadPast = false) => {
 
   const updateAttendees = useCallback(
     async (eventId: string, newAttendees: Attendee[]) => {
-      let originalActive: ScheduleEvent[] = [];
+      let originalToday: ScheduleEvent[] = [];
+      let originalUpcoming: ScheduleEvent[] = [];
+      let originalPast: ScheduleEvent[] = [];
 
       const attendeeMemberIds = newAttendees.map((a) => a.memberId);
 
-      // Optimistic update
-      setActiveEvents((currentEvents) => {
-        originalActive = [...currentEvents];
+      const updater = (currentEvents: ScheduleEvent[]) => {
         return currentEvents.map((e) => {
           if (e.id === eventId) {
             const updatedAttendees = newAttendees.map((a) => {
@@ -292,6 +338,20 @@ export const useEvents = (loadPast = false) => {
             return e;
           }
         });
+      };
+
+      // Optimistic update
+      setTodayEvents((c) => {
+        originalToday = [...c];
+        return updater(c);
+      });
+      setUpcomingEvents((c) => {
+        originalUpcoming = [...c];
+        return updater(c);
+      });
+      setPastEvents((c) => {
+        originalPast = [...c];
+        return updater(c);
       });
 
       try {
@@ -310,7 +370,7 @@ export const useEvents = (loadPast = false) => {
 
         // If the server auto-updated payment statuses, sync optimistic state
         if (result.updatedAttendees) {
-          setActiveEvents((currentEvents) =>
+          const finalUpdater = (currentEvents: ScheduleEvent[]) =>
             currentEvents.map((e) =>
               e.id === eventId
                 ? {
@@ -319,8 +379,11 @@ export const useEvents = (loadPast = false) => {
                     attendeeMemberIds,
                   }
                 : e
-            )
-          );
+            );
+
+          setTodayEvents(finalUpdater);
+          setUpcomingEvents(finalUpdater);
+          setPastEvents(finalUpdater);
         }
 
         toast.success("Присъствията са обновени", {
@@ -331,7 +394,9 @@ export const useEvents = (loadPast = false) => {
         );
       } catch (err) {
         // Rollback on error
-        setActiveEvents(originalActive);
+        setTodayEvents(originalToday);
+        setUpcomingEvents(originalUpcoming);
+        setPastEvents(originalPast);
         console.error("Error updating attendees:", err);
         toast.error("Грешка при обновяване на присъствия");
         throw err;
@@ -342,7 +407,8 @@ export const useEvents = (loadPast = false) => {
 
   return {
     events,
-    activeEvents,
+    todayEvents,
+    upcomingEvents,
     pastEvents,
     addEvent,
     addMultipleEvents,
@@ -350,6 +416,7 @@ export const useEvents = (loadPast = false) => {
     deleteEvent,
     updateAttendees,
     isLoading,
+    isUpcomingLoading,
     isPastLoading,
     error,
     members,
