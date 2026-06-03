@@ -208,7 +208,7 @@ const ProductList = () => {
                   <div className="p-8 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-4 mb-2">
-                        <h3 className="text-lg font-medium leading-snug text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem] flex items-center">
+                        <h3 className="text-lg font-medium leading-snug text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors line-clamp-2 min-h-14 flex items-center">
                           {product.name}
                         </h3>
                       </div>

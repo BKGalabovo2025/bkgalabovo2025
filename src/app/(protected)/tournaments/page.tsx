@@ -1,5 +1,13 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Турнири | Бадминтон клуб Гълъбово",
+  description:
+    "Всички организирани турнири по бадминтон от БК Гълъбово — активни, приключили и предстоящи. Класирания, схеми и резултати.",
+};
+
 import { Tournament } from "@/types/tournament.types";
 import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";

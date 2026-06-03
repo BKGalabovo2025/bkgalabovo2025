@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback, useRef } from "react";
 import { RankingEntry } from "@/types/ranking.types";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +33,7 @@ import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
 import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
+import { refreshRankingsAction } from "@/lib/actions/rankings";
 
 const CATEGORY_TABS = [
   { id: "all", label: "Общо" },
@@ -59,7 +60,42 @@ export default function RankingsClient({
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
   const [isPending, startTransition] = useTransition();
+  const [rankings, setRankings] = useState<RankingEntry[]>(initialRankings);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [secondsAgo, setSecondsAgo] = useState(0);
   const period = searchParams.get("period") || "all";
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clockRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const { rankings: fresh, updatedAt } =
+        await refreshRankingsAction(period);
+      setRankings(fresh);
+      setLastUpdated(new Date(updatedAt));
+      setSecondsAgo(0);
+    } catch {
+      // silently ignore refresh errors
+    }
+  }, [period]);
+
+  // 60-second auto-refresh
+  useEffect(() => {
+    intervalRef.current = setInterval(refresh, 60_000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [refresh]);
+
+  // "X seconds ago" clock
+  useEffect(() => {
+    clockRef.current = setInterval(() => {
+      setSecondsAgo((s) => s + 1);
+    }, 1000);
+    return () => {
+      if (clockRef.current) clearInterval(clockRef.current);
+    };
+  }, [lastUpdated]);
 
   const handlePeriodChange = (value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -75,7 +111,7 @@ export default function RankingsClient({
   };
 
   const filteredRankings = (() => {
-    if (activeTab === "all") return initialRankings;
+    if (activeTab === "all") return rankings;
 
     const catLabel =
       activeTab === "singles"
@@ -97,6 +133,18 @@ export default function RankingsClient({
 
   const topThree = filteredRankings.slice(0, 3);
 
+  const liveIndicator = (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50">
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+      </span>
+      <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+        {secondsAgo < 5 ? "Опреснено сега" : `Преди ${secondsAgo}с`}
+      </span>
+    </div>
+  );
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 relative">
       {isPending && (
@@ -114,6 +162,7 @@ export default function RankingsClient({
         ]}
       >
         <div className="flex flex-wrap items-center gap-3">
+          {liveIndicator}
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-slate-400" />
             <Select value={period} onValueChange={handlePeriodChange}>
