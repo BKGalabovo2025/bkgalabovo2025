@@ -111,7 +111,7 @@ export const MemberSchema = z.object({
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),
   isGuest: z.boolean().optional(),
-  memberType: z.enum(["regular", "guest"]).optional(),
+  memberType: z.enum(["regular", "guest"]).catch("regular").optional(),
 });
 
 /**
