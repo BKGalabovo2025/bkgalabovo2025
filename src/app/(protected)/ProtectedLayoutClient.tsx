@@ -63,7 +63,7 @@ function GlobalHeader() {
                       src={site.logo}
                       alt={site.title}
                       fill
-                      sizes="100vw"
+                      sizes="(max-width: 768px) 100vw, 20vw"
                       className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
                     />
                   </div>

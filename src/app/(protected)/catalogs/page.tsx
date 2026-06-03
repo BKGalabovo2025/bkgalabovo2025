@@ -53,8 +53,12 @@ export default async function CatalogsPage() {
             proceduresPerDay: data.proceduresPerDay || 1,
             sessionType: data.sessionType || "Възстановяване",
             requiresBooking: true,
-            createdAt: data.createdAt || new Date().toISOString(),
-            updatedAt: data.updatedAt || new Date().toISOString(),
+            createdAt: data.createdAt?.toDate
+              ? data.createdAt.toDate().toISOString()
+              : data.createdAt || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate
+              ? data.updatedAt.toDate().toISOString()
+              : data.updatedAt || new Date().toISOString(),
             requiredResources: data.requiredResources || null,
           } as ClubService;
         });
@@ -74,8 +78,17 @@ export default async function CatalogsPage() {
         ]}
       />
 
-      <Suspense fallback={<div className="p-8 text-center text-zinc-500">Зареждане на каталозите...</div>}>
-        <CatalogsClient services={services} recoveryServices={recoveryServices} />
+      <Suspense
+        fallback={
+          <div className="p-8 text-center text-zinc-500">
+            Зареждане на каталозите...
+          </div>
+        }
+      >
+        <CatalogsClient
+          services={services}
+          recoveryServices={recoveryServices}
+        />
       </Suspense>
     </div>
   );

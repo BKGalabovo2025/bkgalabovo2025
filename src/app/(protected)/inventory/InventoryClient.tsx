@@ -135,7 +135,8 @@ const ProductList = () => {
                         src={product.imageUrl}
                         alt={product.name}
                         fill
-                        sizes="100vw"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        priority={true}
                         className="object-cover group-hover:scale-110 transition-transform duration-1000"
                       />
                     ) : (

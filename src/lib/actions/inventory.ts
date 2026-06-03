@@ -6,6 +6,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { serverCache } from "@/lib/server-cache";
+import { serializeFirestoreData } from "@/lib/serialize-utils";
 
 // --- Cache key ---
 const PRODUCTS_CACHE_KEY = "products:all";
@@ -39,10 +40,11 @@ export async function getProductsServerAction() {
     async () => {
       const adminDb = getAdminDb();
       const snapshot = await adminDb.collection("products").get();
-      return snapshot.docs.map((doc) => ({
+      const products = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...(doc.data() as Record<string, unknown>),
+        ...doc.data(),
       }));
+      return serializeFirestoreData(products) as Record<string, unknown>[];
     },
     PRODUCTS_CACHE_TTL
   );

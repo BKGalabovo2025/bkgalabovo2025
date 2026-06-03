@@ -288,9 +288,10 @@ function CatalogCard({
             <Image
               src={images[activeImgIndex]}
               alt={item.name}
+              sizes="(max-width: 768px) 100vw, 33vw"
+              priority={true}
+              className="object-cover group-hover:scale-110 transition-transform duration-700"
               fill
-              sizes="(max-w-768px) 100vw, 33vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
             {images.length > 1 && (
               <>

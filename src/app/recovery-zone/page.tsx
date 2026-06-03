@@ -66,7 +66,7 @@ export default async function RecoveryZonePage() {
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, 20vw"
                 priority
                 className="object-contain"
               />
@@ -243,7 +243,7 @@ export default async function RecoveryZonePage() {
                           src={item.image}
                           alt={item.name}
                           fill
-                          sizes="100vw"
+                          sizes="(max-width: 768px) 100vw, 20vw"
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       </div>
@@ -624,7 +624,7 @@ export default async function RecoveryZonePage() {
                 src="/1.png"
                 alt="Recovery Zone by ZM"
                 fill
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, 20vw"
                 className="object-contain"
               />
             </div>
