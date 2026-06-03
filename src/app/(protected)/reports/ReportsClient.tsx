@@ -8,12 +8,12 @@ import AttendanceReport from "@/components/reports/attendance-report";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { BarChart3, Users, Wallet, RefreshCw } from "lucide-react";
-import { Sale, Member, Product } from "@/types";
+import { Member, Product } from "@/types";
 import type { AttendanceReportItem } from "@/services/report-service";
+import type { FinancialReportData } from "@/lib/actions/reports";
 
 interface ReportsClientProps {
-  initialSales: Sale[];
-  initialMembers: Member[];
+  initialFinancialData: FinancialReportData;
   initialLiabilities: Member[];
   initialLiabilitiesPeriod: {
     year: number;
@@ -28,8 +28,7 @@ interface ReportsClientProps {
 }
 
 export default function ReportsClient({
-  initialSales,
-  initialMembers,
+  initialFinancialData,
   initialLiabilities,
   initialLiabilitiesPeriod,
   initialAttendanceData,
@@ -80,10 +79,7 @@ export default function ReportsClient({
             value="financial"
             className="mt-0 focus-visible:outline-none outline-none ring-0 p-6"
           >
-            <FinancialReport
-              initialSales={initialSales}
-              initialMembers={initialMembers}
-            />
+            <FinancialReport initialData={initialFinancialData} />
           </TabsContent>
           <TabsContent
             value="liabilities"

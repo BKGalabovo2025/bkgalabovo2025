@@ -234,3 +234,164 @@ export const exportToCSV = <T extends Record<string, unknown>>(
   link.setAttribute("download", filename);
   link.click();
 };
+
+// ──────────────────────────────────────────────
+// FINANCIAL EXPORT
+// ──────────────────────────────────────────────
+export interface FinancialExportRow {
+  date: string;
+  member: string;
+  type: string;
+  amount: number;
+}
+
+export interface FinancialExportOptions {
+  title: string;
+  subtitle?: string;
+  period?: string;
+  rows: FinancialExportRow[];
+  total: number;
+}
+
+export async function exportFinancialToExcel(
+  options: FinancialExportOptions
+): Promise<void> {
+  const ExcelJS = (await import("exceljs")).default;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Финансов Отчет");
+
+  // Заглавие
+  let currentRow = 1;
+  worksheet.getCell(`A${currentRow}`).value = options.title;
+  worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
+  currentRow++;
+
+  if (options.subtitle) {
+    worksheet.getCell(`A${currentRow}`).value = options.subtitle;
+    worksheet.getCell(`A${currentRow}`).font = { italic: true };
+    currentRow++;
+  }
+
+  if (options.period) {
+    worksheet.getCell(`A${currentRow}`).value = `Период: ${options.period}`;
+    currentRow++;
+  }
+
+  currentRow++; // Празен ред
+
+  // Заглавия на колоните
+  const headers = ["Дата", "Член", "Тип", "Сума (лв.)"];
+  const headerRow = worksheet.getRow(currentRow);
+  headerRow.values = headers;
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FFE0E0E0" },
+  };
+  currentRow++;
+
+  // Данни
+  options.rows.forEach((r) => {
+    worksheet.getRow(currentRow).values = [r.date, r.member, r.type, r.amount];
+    currentRow++;
+  });
+
+  // Общо
+  const totalRow = worksheet.getRow(currentRow);
+  totalRow.values = ["", "", "ОБЩО:", options.total];
+  totalRow.font = { bold: true };
+  totalRow.getCell(4).numFmt = "0.00";
+
+  // Ширини на колоните
+  worksheet.columns = [
+    { key: "date", width: 15 },
+    { key: "member", width: 35 },
+    { key: "type", width: 20 },
+    { key: "amount", width: 15 },
+  ];
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `Financial_Report_${new Date().getTime()}.xlsx`;
+  anchor.click();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function exportFinancialToPdf(
+  options: FinancialExportOptions
+): Promise<void> {
+  const { default: jsPDF } = await import("jspdf");
+  const { default: html2canvas } = await import("html2canvas");
+
+  const container = document.createElement("div");
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "800px";
+  container.style.backgroundColor = "white";
+  container.style.padding = "40px";
+  container.style.fontFamily = "sans-serif";
+
+  container.innerHTML = `
+    <h1 style="font-size: 24px; margin-bottom: 5px; color: #1a1a1a;">${options.title}</h1>
+    ${options.subtitle ? `<p style="font-size: 14px; color: #666; margin-bottom: 5px;">${options.subtitle}</p>` : ""}
+    ${options.period ? `<p style="font-size: 16px; color: #3e40c8; margin-bottom: 20px;">Период: ${options.period}</p>` : ""}
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="background-color: #1e40af; color: white;">
+          <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Дата</th>
+          <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Член</th>
+          <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Тип</th>
+          <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Сума (лв.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${options.rows
+          .map(
+            (r, idx) => `
+          <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+            <td style="padding: 10px; border: 1px solid #ddd;">${r.date}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${r.member}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${r.type}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: 500;">${r.amount.toFixed(2)}</td>
+          </tr>
+        `
+          )
+          .join("")}
+          <tr style="background-color: #e2e8f0; font-weight: bold; font-size: 14px;">
+            <td colspan="3" style="padding: 10px; border: 1px solid #ddd; text-align: right;">ОБЩО:</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: right; color: #16a34a;">${options.total.toFixed(2)} лв.</td>
+          </tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">
+      Генерирано от Бадминтон клуб Гълъбово Management System • ${new Date().toLocaleDateString("bg-BG")}
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+    doc.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    doc.save(`Financial_Report_${new Date().getTime()}.pdf`);
+  } finally {
+    document.body.removeChild(container);
+  }
+}

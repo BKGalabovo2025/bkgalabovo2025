@@ -5,6 +5,7 @@ import * as admin from "firebase-admin";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { serverCache } from "@/lib/server-cache";
 import { Member, Product, ScheduleEvent } from "@/types";
+import { generateFinancialReportAction } from "@/lib/actions/reports";
 
 export const dynamic = "force-dynamic";
 
@@ -111,6 +112,13 @@ export default async function ReportsPage() {
     ),
   ]);
 
+  // Initial Financial Report Data for the current month
+  const initialFinancialData = await generateFinancialReportAction(
+    startOfMonth.toISOString(),
+    now.toISOString(),
+    "all"
+  );
+
   // 1. In-memory Calculation for Liabilities (Unpaid members)
   // Get all members who paid for the current month
   const salesForMonth = sales.filter((sale) => {
@@ -182,8 +190,7 @@ export default async function ReportsPage() {
 
   return (
     <ReportsClient
-      initialSales={sales}
-      initialMembers={members}
+      initialFinancialData={initialFinancialData}
       initialLiabilities={unpaidMembers}
       initialLiabilitiesPeriod={{ year: currentYear, month: currentMonth }}
       initialAttendanceData={attendanceReport}

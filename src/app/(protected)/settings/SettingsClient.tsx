@@ -24,6 +24,7 @@ import {
   Activity,
   Clock,
   Loader2,
+  RefreshCw,
   MapPin,
   Phone,
   Users,
@@ -36,6 +37,8 @@ import {
 import { toast } from "react-hot-toast";
 import { getAllSites, updateSite } from "@/services/site-service";
 import { Site } from "@/types/site.types";
+import { getAuditLogsAction } from "@/lib/actions/audit";
+import { AuditLog } from "@/lib/audit-logger";
 
 export default function SettingsClient() {
   const [isSaving, setIsSaving] = useState(false);
@@ -43,6 +46,20 @@ export default function SettingsClient() {
   const [formData, setFormData] = useState<{
     [key: string]: Partial<Site>;
   }>({});
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const logs = await getAuditLogsAction(50);
+      setAuditLogs(logs);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -64,11 +81,15 @@ export default function SettingsClient() {
     };
 
     fetchSettings();
+    fetchLogs();
   }, []);
 
-  
-  
-  const handleScheduleChange = (siteId: string, day: string, field: 'open' | 'close' | 'isOpen', value: string | boolean) => {
+  const handleScheduleChange = (
+    siteId: string,
+    day: string,
+    field: "open" | "close" | "isOpen",
+    value: string | boolean
+  ) => {
     setFormData((prev) => {
       const site = prev[siteId] || {};
       const sched = site.schedule || {
@@ -80,7 +101,7 @@ export default function SettingsClient() {
         saturday: { open: "08:00", close: "22:00", isOpen: true },
         sunday: { open: "08:00", close: "22:00", isOpen: true },
       };
-      
+
       return {
         ...prev,
         [siteId]: {
@@ -90,32 +111,39 @@ export default function SettingsClient() {
             [day]: {
               ...sched[day as keyof typeof sched],
               [field]: value,
-            }
-          }
-        }
+            },
+          },
+        },
       };
     });
   };
 
-  const handleInventoryChange = (siteId: string, type: 'compressors' | 'legs' | 'arms' | 'hips', value: number) => {
+  const handleInventoryChange = (
+    siteId: string,
+    type: "compressors" | "legs" | "arms" | "hips",
+    value: number
+  ) => {
     setFormData((prev) => {
       const site = prev[siteId] || {};
-      const inv = site.inventory || { attachments: { legs: 0, arms: 0, hips: 0 }, compressors: 0 };
+      const inv = site.inventory || {
+        attachments: { legs: 0, arms: 0, hips: 0 },
+        compressors: 0,
+      };
       const atts = inv.attachments || { legs: 0, arms: 0, hips: 0 };
-      
+
       const newInv = { ...inv };
-      if (type === 'compressors') {
+      if (type === "compressors") {
         newInv.compressors = value;
       } else {
         newInv.attachments = { ...atts, [type]: value };
       }
-      
+
       return {
         ...prev,
         [siteId]: {
           ...site,
           inventory: newInv,
-        }
+        },
       };
     });
   };
@@ -236,9 +264,17 @@ export default function SettingsClient() {
                 value="recovery"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-[#00f2fe]/10 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-[#00f2fe] text-[13px] uppercase tracking-widest"
               >
-                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Зона Възстановяване
+                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Зона
+                Възстановяване
               </TabsTrigger>
 
+              <TabsTrigger
+                value="audit"
+                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest mt-8"
+              >
+                <Clock className="mr-4 h-5 w-5" strokeWidth={1.5} /> Системна
+                история
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -898,14 +934,22 @@ export default function SettingsClient() {
               </BentoCard>
             </TabsContent>
 
-            <TabsContent value="recovery" className="m-0 focus-visible:outline-none">
+            <TabsContent
+              value="recovery"
+              className="m-0 focus-visible:outline-none"
+            >
               <div className="grid grid-cols-1 gap-6">
                 <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                   <div className="flex items-center gap-4 mb-6">
-                    <Activity className="h-5 w-5 text-[#00f2fe]" strokeWidth={1.5} />
-                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">Инвентар & Оборудване</h3>
+                    <Activity
+                      className="h-5 w-5 text-[#00f2fe]"
+                      strokeWidth={1.5}
+                    />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Инвентар & Оборудване
+                    </h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <Label className={labelClass}>Брой Компресори</Label>
@@ -913,37 +957,67 @@ export default function SettingsClient() {
                         type="number"
                         min="0"
                         value={rzData.inventory?.compressors || 0}
-                        onChange={(e) => handleInventoryChange("recoveryzone", "compressors", parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInventoryChange(
+                            "recoveryzone",
+                            "compressors",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
                         className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Приставки &quot;ТАЗ&quot;</Label>
+                      <Label className={labelClass}>
+                        Приставки &quot;ТАЗ&quot;
+                      </Label>
                       <Input
                         type="number"
                         min="0"
                         value={rzData.inventory?.attachments?.hips || 0}
-                        onChange={(e) => handleInventoryChange("recoveryzone", "hips", parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInventoryChange(
+                            "recoveryzone",
+                            "hips",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
                         className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Приставки &quot;КРАКА&quot;</Label>
+                      <Label className={labelClass}>
+                        Приставки &quot;КРАКА&quot;
+                      </Label>
                       <Input
                         type="number"
                         min="0"
                         value={rzData.inventory?.attachments?.legs || 0}
-                        onChange={(e) => handleInventoryChange("recoveryzone", "legs", parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInventoryChange(
+                            "recoveryzone",
+                            "legs",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
                         className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Приставки &quot;РЪЦЕ&quot;</Label>
+                      <Label className={labelClass}>
+                        Приставки &quot;РЪЦЕ&quot;
+                      </Label>
                       <Input
                         type="number"
                         min="0"
                         value={rzData.inventory?.attachments?.arms || 0}
-                        onChange={(e) => handleInventoryChange("recoveryzone", "arms", parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInventoryChange(
+                            "recoveryzone",
+                            "arms",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
                         className={inputClassRz}
                       />
                     </div>
@@ -952,40 +1026,93 @@ export default function SettingsClient() {
 
                 <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
                   <div className="flex items-center gap-4 mb-6">
-                    <Clock className="h-5 w-5 text-[#00f2fe]" strokeWidth={1.5} />
-                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">Работно Време</h3>
+                    <Clock
+                      className="h-5 w-5 text-[#00f2fe]"
+                      strokeWidth={1.5}
+                    />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Работно Време
+                    </h3>
                   </div>
                   <div className="space-y-4">
-                    {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day, i) => {
-                      const dayNames = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"];
+                    {[
+                      "monday",
+                      "tuesday",
+                      "wednesday",
+                      "thursday",
+                      "friday",
+                      "saturday",
+                      "sunday",
+                    ].map((day, i) => {
+                      const dayNames = [
+                        "Понеделник",
+                        "Вторник",
+                        "Сряда",
+                        "Четвъртък",
+                        "Петък",
+                        "Събота",
+                        "Неделя",
+                      ];
                       const sched = rzData.schedule || {};
-                      const daySched = (sched as any)[day] || { open: "08:00", close: "22:00", isOpen: true };
-                      
+                      const daySched = (sched as any)[day] || {
+                        open: "08:00",
+                        close: "22:00",
+                        isOpen: true,
+                      };
+
                       return (
-                        <div key={day} className="flex items-center gap-6 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
+                        <div
+                          key={day}
+                          className="flex items-center gap-6 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30"
+                        >
                           <div className="w-32">
-                            <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dayNames[i]}</Label>
+                            <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                              {dayNames[i]}
+                            </Label>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Checkbox 
+                            <Checkbox
                               checked={daySched.isOpen}
-                              onCheckedChange={(c) => handleScheduleChange("recoveryzone", day, "isOpen", !!c)}
+                              onCheckedChange={(c) =>
+                                handleScheduleChange(
+                                  "recoveryzone",
+                                  day,
+                                  "isOpen",
+                                  !!c
+                                )
+                              }
                             />
-                            <span className="text-[10px] uppercase font-bold text-zinc-400 w-16">{daySched.isOpen ? "Отворено" : "Затворено"}</span>
+                            <span className="text-[10px] uppercase font-bold text-zinc-400 w-16">
+                              {daySched.isOpen ? "Отворено" : "Затворено"}
+                            </span>
                           </div>
                           {daySched.isOpen && (
                             <div className="flex items-center gap-3 flex-1 justify-end">
-                              <Input 
+                              <Input
                                 type="time"
                                 value={daySched.open}
-                                onChange={(e) => handleScheduleChange("recoveryzone", day, "open", e.target.value)}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    "recoveryzone",
+                                    day,
+                                    "open",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-32 h-10"
                               />
                               <span className="text-zinc-400">-</span>
-                              <Input 
+                              <Input
                                 type="time"
                                 value={daySched.close}
-                                onChange={(e) => handleScheduleChange("recoveryzone", day, "close", e.target.value)}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    "recoveryzone",
+                                    day,
+                                    "close",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-32 h-10"
                               />
                             </div>
@@ -995,10 +1122,8 @@ export default function SettingsClient() {
                     })}
                   </div>
                 </BentoCard>
-
               </div>
             </TabsContent>
-
 
             <TabsContent
               value="profile"
@@ -1084,6 +1209,73 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
               </div>
+            </TabsContent>
+
+            <TabsContent
+              value="audit"
+              className="m-0 focus-visible:outline-none"
+            >
+              <BentoCard className="p-10 space-y-8 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 min-h-[600px]">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Clock className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Системна История (Одиторски дневник)
+                    </h3>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={fetchLogs}
+                    disabled={loadingLogs}
+                    className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                  >
+                    {loadingLogs ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Опресни
+                  </Button>
+                </div>
+
+                <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                  <div className="bg-zinc-50 dark:bg-zinc-900 px-6 py-4 grid grid-cols-12 gap-4 text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                    <div className="col-span-3">Дата / Време</div>
+                    <div className="col-span-3">Действие</div>
+                    <div className="col-span-4">Детайли</div>
+                    <div className="col-span-2">Потребител</div>
+                  </div>
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto">
+                    {auditLogs.length === 0 ? (
+                      <div className="p-10 text-center text-sm font-light text-zinc-500">
+                        {loadingLogs
+                          ? "Зареждане на дневника..."
+                          : "Няма намерени записи в историята."}
+                      </div>
+                    ) : (
+                      auditLogs.map((log) => (
+                        <div
+                          key={log.id}
+                          className="px-6 py-4 grid grid-cols-12 gap-4 text-sm font-light hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                        >
+                          <div className="col-span-3 text-zinc-500">
+                            {new Date(log.timestamp).toLocaleString("bg-BG")}
+                          </div>
+                          <div className="col-span-3 text-zinc-900 dark:text-zinc-100">
+                            {log.action}
+                          </div>
+                          <div className="col-span-4 text-zinc-600 dark:text-zinc-400">
+                            {log.details}
+                          </div>
+                          <div className="col-span-2 text-zinc-500 truncate">
+                            {log.userEmail}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </BentoCard>
             </TabsContent>
           </div>
         </div>

@@ -1,7 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Sale, Member } from "@/types";
+import { useState, useEffect, useTransition } from "react";
+import {
+  FinancialReportData,
+  generateFinancialReportAction,
+} from "@/lib/actions/reports";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Card,
   CardContent,
@@ -27,16 +36,23 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addDays } from "date-fns";
+
 import {
+  FileSpreadsheet,
+  FileText,
+  ChevronDown,
   Download,
   TrendingUp,
   PieChart as PieChartIcon,
   Calendar as CalendarIcon,
   Filter,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { exportToCSV } from "@/lib/export-utils";
+import {
+  exportFinancialToExcel,
+  exportFinancialToPdf,
+} from "@/lib/export-utils";
 import { formatDateInput, formatDateShort } from "@/lib/date-utils";
 import { formatPrice } from "@/lib/currency";
 import {
@@ -51,61 +67,33 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface FinancialReportProps {
-  initialSales: Sale[];
-  initialMembers: Member[];
+  initialData: FinancialReportData;
 }
 
-const FinancialReport = ({
-  initialSales,
-  initialMembers,
-}: FinancialReportProps) => {
-  const [sales] = useState<Sale[]>(initialSales);
-  const [members] = useState<Member[]>(initialMembers);
+const FinancialReport = ({ initialData }: FinancialReportProps) => {
+  const [data, setData] = useState<FinancialReportData>(initialData);
+  const [isPending, startTransition] = useTransition();
 
   // Filters
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(() =>
-    addDays(new Date(), -30)
-  );
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
   const [dateTo, setDateTo] = useState<Date | undefined>(() => new Date());
   const [paymentType, setPaymentType] = useState<string>("all");
 
-  const memberMap = useMemo(
-    () => new Map(members.map((m) => [m.id, m])),
-    [members]
-  );
-
-  const filteredSales = useMemo(() => {
-    const startDate = dateFrom ? new Date(dateFrom) : null;
-    if (startDate) startDate.setHours(0, 0, 0, 0);
-
-    const endDate = dateTo ? new Date(dateTo) : null;
-    if (endDate) endDate.setHours(23, 59, 59, 999);
-
-    return sales.filter((s) => {
-      const saleDate = new Date(s.saleDate);
-
-      const isInDateRange =
-        (!startDate || saleDate >= startDate) &&
-        (!endDate || saleDate <= endDate);
-
-      const isTypeMatch =
-        paymentType === "all" ||
-        (paymentType === "inventory");
-
-      return isInDateRange && isTypeMatch;
+  useEffect(() => {
+    startTransition(async () => {
+      const fromStr = dateFrom ? dateFrom.toISOString() : null;
+      const toStr = dateTo ? dateTo.toISOString() : null;
+      const result = await generateFinancialReportAction(
+        fromStr,
+        toStr,
+        paymentType
+      );
+      setData(result);
     });
-  }, [sales, dateFrom, dateTo, paymentType]);
-
-  const stats = useMemo(() => {
-    const totalRevenue = filteredSales.reduce((acc, s) => acc + s.totalAmount, 0);
-
-    return {
-      total: totalRevenue,
-      chartData: [
-        { name: "Приходи от продажби", value: totalRevenue, color: "#2563eb" },
-      ].filter((d) => d.value > 0),
-    };
-  }, [filteredSales]);
+  }, [dateFrom, dateTo, paymentType]);
 
   const handleDateChange =
     (setter: (date: Date | undefined) => void) =>
@@ -177,29 +165,77 @@ const FinancialReport = ({
         </div>
 
         <div className="flex flex-col justify-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              const exportData = filteredSales.map((s) => {
-                const member = s.memberId ? memberMap.get(s.memberId) : null;
-                return {
-                  Дата: formatDateShort(s.saleDate),
-                  Член: member ? `${member.firstName} ${member.lastName}` : "—",
-                  Тип: "Продажба",
-                  Сума: s.totalAmount,
-                };
-              });
-              exportToCSV(
-                exportData,
-                `Report_${formatDateInput(new Date())}.csv`
-              );
-            }}
-            disabled={filteredSales.length === 0}
-            className="rounded-xl h-12 border-zinc-100 font-medium text-[11px] uppercase tracking-widest px-8 transition-all hover:bg-zinc-50"
-          >
-            <Download className="mr-3 h-4 w-4" strokeWidth={1.5} /> Експорт
-            (CSV)
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={data.sales.length === 0 || isPending}
+                className="rounded-xl h-12 border-zinc-100 font-medium text-[11px] uppercase tracking-widest px-8 transition-all hover:bg-zinc-50 flex items-center justify-between"
+              >
+                <div className="flex items-center">
+                  {isPending ? (
+                    <Loader2
+                      className="mr-3 h-4 w-4 animate-spin"
+                      strokeWidth={1.5}
+                    />
+                  ) : (
+                    <Download className="mr-3 h-4 w-4" strokeWidth={1.5} />
+                  )}
+                  Експорт
+                </div>
+                <ChevronDown
+                  className="ml-3 h-4 w-4 text-zinc-400"
+                  strokeWidth={1.5}
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 rounded-xl p-2 shadow-xl border-zinc-100"
+            >
+              <DropdownMenuItem
+                className="text-sm font-medium rounded-lg cursor-pointer p-3 flex items-center"
+                onClick={() => {
+                  const exportData = data.sales.map((s) => ({
+                    date: formatDateShort(s.saleDate),
+                    member: s.memberName,
+                    type: "Продажба",
+                    amount: s.totalAmount,
+                  }));
+                  exportFinancialToExcel({
+                    title: "Финансов Отчет",
+                    subtitle: "Бадминтон Клуб Гълъбово",
+                    period: `${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
+                    rows: exportData,
+                    total: data.total,
+                  });
+                }}
+              >
+                <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-600" />{" "}
+                Експорт в Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-sm font-medium rounded-lg cursor-pointer p-3 flex items-center"
+                onClick={() => {
+                  const exportData = data.sales.map((s) => ({
+                    date: formatDateShort(s.saleDate),
+                    member: s.memberName,
+                    type: "Продажба",
+                    amount: s.totalAmount,
+                  }));
+                  exportFinancialToPdf({
+                    title: "Финансов Отчет",
+                    subtitle: "Бадминтон Клуб Гълъбово",
+                    period: `${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
+                    rows: exportData,
+                    total: data.total,
+                  });
+                }}
+              >
+                <FileText className="mr-3 h-4 w-4 text-red-500" /> Експорт в PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -223,11 +259,15 @@ const FinancialReport = ({
             </div>
           </CardHeader>
           <CardContent className="p-8 h-[350px]">
-            {stats.chartData.length > 0 ? (
+            {isPending ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 text-zinc-300 animate-spin" />
+              </div>
+            ) : data.chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={stats.chartData}
+                    data={data.chartData}
                     cx="50%"
                     cy="50%"
                     innerRadius={80}
@@ -236,7 +276,7 @@ const FinancialReport = ({
                     dataKey="value"
                     stroke="none"
                   >
-                    {stats.chartData.map((entry, index) => (
+                    {data.chartData.map((entry: any, index: number) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={entry.color}
@@ -284,14 +324,11 @@ const FinancialReport = ({
                 Общ Приход
               </p>
               <h3 className="text-5xl font-light tracking-tighter mt-6 mb-8">
-                {formatPrice(stats.total)}
+                {isPending ? "—" : formatPrice(data.total)}
               </h3>
-              <div className="space-y-3">
-              </div>
+              <div className="space-y-3"></div>
             </CardContent>
           </Card>
-
-
         </div>
       </div>
 
@@ -321,12 +358,14 @@ const FinancialReport = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSales.length > 0 ? (
-                filteredSales.map((s) => {
-                  const member = s.memberId ? memberMap.get(s.memberId) : null;
-                  const memberName = member
-                    ? `${member.firstName} ${member.lastName}`
-                    : "—";
+              {isPending ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-48 text-center">
+                    <Loader2 className="h-6 w-6 text-zinc-300 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : data.sales.length > 0 ? (
+                data.sales.map((s) => {
                   return (
                     <TableRow
                       key={s.id}
@@ -336,7 +375,7 @@ const FinancialReport = ({
                         {formatDateShort(s.saleDate)}
                       </TableCell>
                       <TableCell className="text-sm font-light text-zinc-600">
-                        {memberName}
+                        {s.memberName}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -365,7 +404,7 @@ const FinancialReport = ({
                 </TableRow>
               )}
             </TableBody>
-            {filteredSales.length > 0 && (
+            {data.sales.length > 0 && !isPending && (
               <TableFooter className="bg-zinc-50/50 border-none">
                 <TableRow className="h-20 hover:bg-transparent">
                   <TableCell
@@ -375,7 +414,7 @@ const FinancialReport = ({
                     Общо за периода
                   </TableCell>
                   <TableCell className="text-right pr-8 font-light text-2xl text-zinc-950">
-                    {formatPrice(stats.total)}
+                    {formatPrice(data.total)}
                   </TableCell>
                 </TableRow>
               </TableFooter>
