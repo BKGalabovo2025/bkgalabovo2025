@@ -237,6 +237,66 @@ export async function createReservationAction(
       };
     }
 
+    // Inventory check for Recovery Zone
+    if (validated.siteId === "recoveryzone" && validated.usedResources) {
+      const siteDoc = await db.collection("sites").doc("recoveryzone").get();
+      if (siteDoc.exists) {
+        const siteInfo = siteDoc.data() || {};
+        if (siteInfo.inventory) {
+          const maxComp = siteInfo.inventory.compressors || 0;
+          const maxLegs = siteInfo.inventory.attachments?.legs || 0;
+          const maxArms = siteInfo.inventory.attachments?.arms || 0;
+          const maxHips = siteInfo.inventory.attachments?.hips || 0;
+
+          const overlappingRes = await reservationsRef
+            .where("siteId", "==", "recoveryzone")
+            .where("startTime", "<", endTime)
+            .get();
+
+          let usedComp = 0;
+          let usedLegs = 0;
+          let usedArms = 0;
+          let usedHips = 0;
+
+          overlappingRes.docs.forEach((doc) => {
+            const res = doc.data();
+            if (res.endTime > startTime && res.usedResources) {
+              usedComp += res.usedResources.compressors || 0;
+              usedLegs += res.usedResources.attachments?.legs || 0;
+              usedArms += res.usedResources.attachments?.arms || 0;
+              usedHips += res.usedResources.attachments?.hips || 0;
+            }
+          });
+
+          const reqComp = validated.usedResources.compressors || 0;
+          const reqLegs = validated.usedResources.attachments?.legs || 0;
+          const reqArms = validated.usedResources.attachments?.arms || 0;
+          const reqHips = validated.usedResources.attachments?.hips || 0;
+
+          if (usedComp + reqComp > maxComp)
+            return {
+              success: false,
+              message: `Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`,
+            };
+          if (usedLegs + reqLegs > maxLegs)
+            return {
+              success: false,
+              message: `Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`,
+            };
+          if (usedArms + reqArms > maxArms)
+            return {
+              success: false,
+              message: `Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`,
+            };
+          if (usedHips + reqHips > maxHips)
+            return {
+              success: false,
+              message: `Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`,
+            };
+        }
+      }
+    }
+
     // Conflict check - Blocked Slots
     let hasBlocked = false;
     if (validated.courtId) {
@@ -746,6 +806,119 @@ export async function createPackageReservationsAction(
       reservationSchema.parse(r)
     );
     const firstRes = parsedReservations[0];
+
+    // Inventory cache for Recovery Zone
+    let maxComp = 0;
+    let maxLegs = 0;
+    let maxArms = 0;
+    let maxHips = 0;
+    let hasInventoryCheck = false;
+
+    if (firstRes.siteId === "recoveryzone") {
+      const siteDoc = await db.collection("sites").doc("recoveryzone").get();
+      if (siteDoc.exists) {
+        const siteInfo = siteDoc.data() || {};
+        if (siteInfo.inventory) {
+          maxComp = siteInfo.inventory.compressors || 0;
+          maxLegs = siteInfo.inventory.attachments?.legs || 0;
+          maxArms = siteInfo.inventory.attachments?.arms || 0;
+          maxHips = siteInfo.inventory.attachments?.hips || 0;
+          hasInventoryCheck = true;
+        }
+      }
+    }
+
+    // Validation pass for all days before creating anything
+    for (let i = 0; i < parsedReservations.length; i++) {
+      const r = parsedReservations[i];
+      const rStartTime = Timestamp.fromDate(new Date(r.startTime));
+      const rEndTime = Timestamp.fromDate(new Date(r.endTime));
+
+      // Court Conflict Check
+      if (r.courtId) {
+        const conflictingRes = await db
+          .collection("reservations")
+          .where("siteId", "==", r.siteId)
+          .where("courtId", "==", r.courtId)
+          .where("startTime", "<", rEndTime)
+          .get();
+
+        const conflict = conflictingRes.docs.some((doc: any) => {
+          const res = doc.data();
+          return res.endTime > rStartTime;
+        });
+
+        if (conflict) {
+          throw new Error(
+            `Ден ${i + 1} се застъпва със съществуваща резервация.`
+          );
+        }
+
+        const blockedRef = db.collection("blockedSlots");
+        const blockedSlots = await blockedRef
+          .where("siteId", "==", r.siteId)
+          .where("startTime", "<", rEndTime)
+          .get();
+
+        const hasBlocked = blockedSlots.docs.some((doc: any) => {
+          const slot = doc.data();
+          const overlapsTime = slot.endTime > rStartTime;
+          const appliesToCourt =
+            slot.courtIds.length === 0 || slot.courtIds.includes(r.courtId!);
+          return overlapsTime && appliesToCourt;
+        });
+
+        if (hasBlocked) {
+          throw new Error(`Ден ${i + 1} е блокиран от администратор.`);
+        }
+      }
+
+      // Inventory Check
+      if (hasInventoryCheck && r.usedResources) {
+        const overlappingRes = await db
+          .collection("reservations")
+          .where("siteId", "==", "recoveryzone")
+          .where("startTime", "<", rEndTime)
+          .get();
+
+        let usedComp = 0;
+        let usedLegs = 0;
+        let usedArms = 0;
+        let usedHips = 0;
+
+        overlappingRes.docs.forEach((doc: any) => {
+          const res = doc.data();
+          if (res.endTime > rStartTime && res.usedResources) {
+            usedComp += res.usedResources.compressors || 0;
+            usedLegs += res.usedResources.attachments?.legs || 0;
+            usedArms += res.usedResources.attachments?.arms || 0;
+            usedHips += res.usedResources.attachments?.hips || 0;
+          }
+        });
+
+        const reqComp = r.usedResources.compressors || 0;
+        const reqLegs = r.usedResources.attachments?.legs || 0;
+        const reqArms = r.usedResources.attachments?.arms || 0;
+        const reqHips = r.usedResources.attachments?.hips || 0;
+
+        if (usedComp + reqComp > maxComp)
+          throw new Error(
+            `Ден ${i + 1}: Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`
+          );
+        if (usedLegs + reqLegs > maxLegs)
+          throw new Error(
+            `Ден ${i + 1}: Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`
+          );
+        if (usedArms + reqArms > maxArms)
+          throw new Error(
+            `Ден ${i + 1}: Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`
+          );
+        if (usedHips + reqHips > maxHips)
+          throw new Error(
+            `Ден ${i + 1}: Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`
+          );
+      }
+    }
 
     let finalMemberId = firstRes.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
