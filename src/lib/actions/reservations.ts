@@ -1094,3 +1094,83 @@ export async function getPackageReservationsAction(
     return { success: false, data: [] };
   }
 }
+
+export async function checkRecoveryInventoryAction(
+  siteId: string,
+  startTimeIso: string,
+  endTimeIso: string,
+  reqResources: {
+    compressors: number;
+    attachments: { legs: number; arms: number; hips: number };
+  },
+  ignoreReservationId?: string
+) {
+  try {
+    if (siteId !== "recoveryzone") return { success: true };
+    const db = getAdminDb();
+    const siteDoc = await db.collection("sites").doc("recoveryzone").get();
+    if (!siteDoc.exists) return { success: true };
+    const siteInfo = siteDoc.data() || {};
+    if (!siteInfo.inventory) return { success: true };
+
+    const maxComp = siteInfo.inventory.compressors || 0;
+    const maxLegs = siteInfo.inventory.attachments?.legs || 0;
+    const maxArms = siteInfo.inventory.attachments?.arms || 0;
+    const maxHips = siteInfo.inventory.attachments?.hips || 0;
+
+    const startTime = Timestamp.fromDate(new Date(startTimeIso));
+    const endTime = Timestamp.fromDate(new Date(endTimeIso));
+
+    const overlappingRes = await db
+      .collection("reservations")
+      .where("siteId", "==", "recoveryzone")
+      .where("startTime", "<", endTime)
+      .get();
+
+    let usedComp = 0;
+    let usedLegs = 0;
+    let usedArms = 0;
+    let usedHips = 0;
+
+    overlappingRes.docs.forEach((doc: any) => {
+      if (ignoreReservationId && doc.id === ignoreReservationId) return;
+      const res = doc.data();
+      if (res.endTime > startTime && res.usedResources) {
+        usedComp += res.usedResources.compressors || 0;
+        usedLegs += res.usedResources.attachments?.legs || 0;
+        usedArms += res.usedResources.attachments?.arms || 0;
+        usedHips += res.usedResources.attachments?.hips || 0;
+      }
+    });
+
+    const reqComp = reqResources.compressors || 0;
+    const reqLegs = reqResources.attachments?.legs || 0;
+    const reqArms = reqResources.attachments?.arms || 0;
+    const reqHips = reqResources.attachments?.hips || 0;
+
+    if (usedComp + reqComp > maxComp)
+      return {
+        success: false,
+        message: "���� ���������� ���������� (������� , �������� ).",
+      };
+    if (usedLegs + reqLegs > maxLegs)
+      return {
+        success: false,
+        message: "���� ���������� ��������� ����� (�������� ).",
+      };
+    if (usedArms + reqArms > maxArms)
+      return {
+        success: false,
+        message: "���� ���������� ��������� ���� (�������� ).",
+      };
+    if (usedHips + reqHips > maxHips)
+      return {
+        success: false,
+        message: "���� ���������� ��������� ��� (�������� ).",
+      };
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, message: "������ ��� �������� �� ���������." };
+  }
+}

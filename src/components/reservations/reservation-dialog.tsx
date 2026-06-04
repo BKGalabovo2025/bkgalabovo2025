@@ -20,6 +20,7 @@ import {
   updateReservationAction,
   createPackageReservationsAction,
   updatePackageReservationsAction,
+  checkRecoveryInventoryAction,
 } from "@/lib/actions/reservations";
 import { getGeneralServicesServerAction } from "@/lib/actions/general-services-server";
 import { useAuth } from "@/context/auth-context";
@@ -350,6 +351,50 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           }
         }
 
+        let hasError = false;
+        if (isRecoveryZone) {
+          let reqComp = 0;
+          const reqAtts = { legs: 0, arms: 0, hips: 0 };
+
+          if (watchedValues.selectedZone) {
+            reqComp++;
+            if (watchedValues.selectedZone === "Крака") reqAtts.legs++;
+            if (watchedValues.selectedZone === "Ръце") reqAtts.arms++;
+            if (watchedValues.selectedZone === "Таз") reqAtts.hips++;
+          }
+          if (isTwoClients && watchedValues.client2Zone) {
+            reqComp++;
+            if (watchedValues.client2Zone === "Крака") reqAtts.legs++;
+            if (watchedValues.client2Zone === "Ръце") reqAtts.arms++;
+            if (watchedValues.client2Zone === "Таз") reqAtts.hips++;
+          }
+
+          if (watchedValues.startTime && watchedValues.endTime) {
+            const startTimeObj = new Date(
+              watchedValues.startTime.getTime() -
+                watchedValues.startTime.getTimezoneOffset() * 60000
+            );
+            const endTimeObj = new Date(
+              watchedValues.endTime.getTime() -
+                watchedValues.endTime.getTimezoneOffset() * 60000
+            );
+
+            const inventoryCheck = await checkRecoveryInventoryAction(
+              "recoveryzone",
+              startTimeObj.toISOString(),
+              endTimeObj.toISOString(),
+              { compressors: reqComp, attachments: reqAtts }
+            );
+
+            if (!inventoryCheck.success) {
+              toast.error(inventoryCheck.message);
+              hasError = true;
+            }
+          }
+        }
+
+        if (hasError) return;
+
         if (isPackage && daysCount > 1) {
           // Smart Auto Fill
           const newDays = [];
@@ -378,51 +423,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           setPackageDays(newDays);
           setCurrentStep("packageDays");
         } else {
-          // Additional validation for single recovery sessions against inventory MAX capacity
-          let hasError = false;
-          if (isRecoveryZone && siteInfo?.inventory) {
-            let reqComp = 0;
-            const reqAtts = { legs: 0, arms: 0, hips: 0 };
-
-            if (watchedValues.selectedZone) {
-              reqComp++;
-              if (watchedValues.selectedZone === "Крака") reqAtts.legs++;
-              if (watchedValues.selectedZone === "Ръце") reqAtts.arms++;
-              if (watchedValues.selectedZone === "Таз") reqAtts.hips++;
-            }
-            if (isTwoClients && watchedValues.client2Zone) {
-              reqComp++;
-              if (watchedValues.client2Zone === "Крака") reqAtts.legs++;
-              if (watchedValues.client2Zone === "Ръце") reqAtts.arms++;
-              if (watchedValues.client2Zone === "Таз") reqAtts.hips++;
-            }
-
-            const inv = siteInfo.inventory.attachments || {};
-            const invComp = siteInfo.inventory.compressors || 0;
-
-            if (reqComp > invComp) {
-              toast.error(
-                `Нямате достатъчно компресори (търсени ${reqComp}, налични ${invComp}).`
-              );
-              hasError = true;
-            }
-            if (reqAtts.legs > (inv.legs || 0)) {
-              toast.error(`Нямате достатъчно приставки КРАКА.`);
-              hasError = true;
-            }
-            if (reqAtts.arms > (inv.arms || 0)) {
-              toast.error(`Нямате достатъчно приставки РЪЦЕ.`);
-              hasError = true;
-            }
-            if (reqAtts.hips > (inv.hips || 0)) {
-              toast.error(`Нямате достатъчно приставки ТАЗ.`);
-              hasError = true;
-            }
-          }
-
-          if (!hasError) {
-            setCurrentStep("details");
-          }
+          setCurrentStep("details");
         }
       } else {
         if (form.formState.errors.endTime)
@@ -442,7 +443,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
             hasError = true;
           }
         }
-        if (isRecoveryZone && siteInfo?.inventory) {
+        if (isRecoveryZone) {
           let reqComp = 0;
           const reqAtts = { legs: 0, arms: 0, hips: 0 };
           if (p.client1Zone) {
@@ -470,32 +471,27 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
             }
           }
 
-          const inv = siteInfo.inventory.attachments || {};
-          const invComp = siteInfo.inventory.compressors || 0;
+          if (!hasError && p.startTime && p.endTime) {
+            const stObj = new Date(p.startTime);
+            const etObj = new Date(p.endTime);
+            const startTimeIso = new Date(
+              stObj.getTime() - stObj.getTimezoneOffset() * 60000
+            ).toISOString();
+            const endTimeIso = new Date(
+              etObj.getTime() - etObj.getTimezoneOffset() * 60000
+            ).toISOString();
 
-          if (reqComp > invComp) {
-            toast.error(
-              `Ден ${p.dayIndex + 1}: Нямате достатъчно компресори (търсени ${reqComp}, налични ${invComp}).`
+            const inventoryCheck = await checkRecoveryInventoryAction(
+              "recoveryzone",
+              startTimeIso,
+              endTimeIso,
+              { compressors: reqComp, attachments: reqAtts }
             );
-            hasError = true;
-          }
-          if (reqAtts.legs > (inv.legs || 0)) {
-            toast.error(
-              `Ден ${p.dayIndex + 1}: Нямате достатъчно приставки КРАКА.`
-            );
-            hasError = true;
-          }
-          if (reqAtts.arms > (inv.arms || 0)) {
-            toast.error(
-              `Ден ${p.dayIndex + 1}: Нямате достатъчно приставки РЪЦЕ.`
-            );
-            hasError = true;
-          }
-          if (reqAtts.hips > (inv.hips || 0)) {
-            toast.error(
-              `Ден ${p.dayIndex + 1}: Нямате достатъчно приставки ТАЗ.`
-            );
-            hasError = true;
+
+            if (!inventoryCheck.success) {
+              toast.error(`Ден ${p.dayIndex + 1}: ${inventoryCheck.message}`);
+              hasError = true;
+            }
           }
         }
       }
