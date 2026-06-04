@@ -375,7 +375,51 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           setPackageDays(newDays);
           setCurrentStep("packageDays");
         } else {
-          setCurrentStep("details");
+          // Additional validation for single recovery sessions against inventory MAX capacity
+          let hasError = false;
+          if (isRecoveryZone && siteInfo?.inventory) {
+            let reqComp = 0;
+            const reqAtts = { legs: 0, arms: 0, hips: 0 };
+
+            if (watchedValues.selectedZone) {
+              reqComp++;
+              if (watchedValues.selectedZone === "Крака") reqAtts.legs++;
+              if (watchedValues.selectedZone === "Ръце") reqAtts.arms++;
+              if (watchedValues.selectedZone === "Таз") reqAtts.hips++;
+            }
+            if (isTwoClients && watchedValues.client2Zone) {
+              reqComp++;
+              if (watchedValues.client2Zone === "Крака") reqAtts.legs++;
+              if (watchedValues.client2Zone === "Ръце") reqAtts.arms++;
+              if (watchedValues.client2Zone === "Таз") reqAtts.hips++;
+            }
+
+            const inv = siteInfo.inventory.attachments || {};
+            const invComp = siteInfo.inventory.compressors || 0;
+
+            if (reqComp > invComp) {
+              toast.error(
+                `Нямате достатъчно компресори (търсени ${reqComp}, налични ${invComp}).`
+              );
+              hasError = true;
+            }
+            if (reqAtts.legs > (inv.legs || 0)) {
+              toast.error(`Нямате достатъчно приставки КРАКА.`);
+              hasError = true;
+            }
+            if (reqAtts.arms > (inv.arms || 0)) {
+              toast.error(`Нямате достатъчно приставки РЪЦЕ.`);
+              hasError = true;
+            }
+            if (reqAtts.hips > (inv.hips || 0)) {
+              toast.error(`Нямате достатъчно приставки ТАЗ.`);
+              hasError = true;
+            }
+          }
+
+          if (!hasError) {
+            setCurrentStep("details");
+          }
         }
       } else {
         if (form.formState.errors.endTime)
@@ -746,6 +790,20 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               {/* Step 1: Time & Court */}
               {currentStep === "time" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="grid grid-cols-2 gap-4">
+                    <DateTimePicker
+                      control={form.control}
+                      name="startTime"
+                      label="Начален час"
+                    />
+                    <DateTimePicker
+                      control={form.control}
+                      name="endTime"
+                      label="Краен час"
+                      disabled={isRecoveryZone}
+                    />
+                  </div>
+
                   {!isRecoveryZone ? (
                     <FormField
                       control={form.control}
@@ -917,19 +975,6 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                       }}
                     />
                   )}
-                  <div className="grid grid-cols-2 gap-4">
-                    <DateTimePicker
-                      control={form.control}
-                      name="startTime"
-                      label="Начален час"
-                    />
-                    <DateTimePicker
-                      control={form.control}
-                      name="endTime"
-                      label="Краен час"
-                      disabled={isRecoveryZone}
-                    />
-                  </div>
                 </div>
               )}
 
