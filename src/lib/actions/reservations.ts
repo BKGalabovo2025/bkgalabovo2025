@@ -566,6 +566,17 @@ export async function markReservationAsPaidAction(
     }
     const reservation = reservationDoc.data()!;
 
+    if (reservation.packageGroupId) {
+      return await updatePackageReservationsAction(
+        idToken,
+        reservation.packageGroupId,
+        {
+          status: "paid",
+          paymentMethod: "Cash",
+        }
+      );
+    }
+
     let finalMemberId = reservation.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
       finalMemberId = await findOrCreateGuestProfile(
