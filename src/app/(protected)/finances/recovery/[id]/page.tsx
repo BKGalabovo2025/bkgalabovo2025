@@ -39,8 +39,12 @@ async function getRecoverySession(id: string): Promise<ClubService> {
       compressors: 0,
     },
     requiresBooking: true,
-    createdAt: data.createdAt || "",
-    updatedAt: data.updatedAt || "",
+    createdAt: data.createdAt?.toDate
+      ? data.createdAt.toDate().toISOString()
+      : data.createdAt || "",
+    updatedAt: data.updatedAt?.toDate
+      ? data.updatedAt.toDate().toISOString()
+      : data.updatedAt || "",
     imageUrl: data.imageUrl || null,
     imageDisplayMode: data.imageDisplayMode || "collage",
   } as unknown as ClubService;
