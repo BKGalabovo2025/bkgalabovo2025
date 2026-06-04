@@ -18,27 +18,54 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
     return null;
   }
   const data = doc.data();
-  const saleDate = data.saleDate?.toDate?.() || new Date();
-  const createdAt = data.createdAt?.toDate?.() || new Date();
 
-  console.log(`Sale ID: ${doc.id}, Raw Type: ${data.type}`);
+  try {
+    let saleDate = new Date();
+    if (data.saleDate) {
+      if (typeof data.saleDate.toDate === "function") {
+        saleDate = data.saleDate.toDate();
+      } else if (
+        typeof data.saleDate === "string" ||
+        typeof data.saleDate === "number"
+      ) {
+        saleDate = new Date(data.saleDate);
+      }
+    }
 
-  return {
-    id: doc.id,
-    siteId: data.siteId || "default",
-    memberId: data.memberId,
-    saleDate: saleDate.toISOString(),
-    items: data.items || [],
-    status: data.status || "completed",
-    currency: data.currency || "EUR",
-    totalAmount: Number(data.totalAmount) || 0,
-    isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
-    paymentMethod: data.paymentMethod || "В брой",
-    note: data.note || "",
-    type: data.type || "inventory",
+    let createdAt = new Date();
+    if (data.createdAt) {
+      if (typeof data.createdAt.toDate === "function") {
+        createdAt = data.createdAt.toDate();
+      } else if (
+        typeof data.createdAt === "string" ||
+        typeof data.createdAt === "number"
+      ) {
+        createdAt = new Date(data.createdAt);
+      }
+    }
 
-    createdAt: createdAt.toISOString(),
-  };
+    if (isNaN(saleDate.getTime())) saleDate = new Date();
+    if (isNaN(createdAt.getTime())) createdAt = new Date();
+
+    return {
+      id: doc.id,
+      siteId: data.siteId || "default",
+      memberId: data.memberId,
+      saleDate: saleDate.toISOString(),
+      items: data.items || [],
+      status: data.status || "completed",
+      currency: data.currency || "EUR",
+      totalAmount: Number(data.totalAmount) || 0,
+      isPaid: typeof data.isPaid === "boolean" ? data.isPaid : true,
+      paymentMethod: data.paymentMethod || "В брой",
+      note: data.note || "",
+      type: data.type || "inventory",
+      createdAt: createdAt.toISOString(),
+    };
+  } catch (error) {
+    console.error(`Error parsing sale ${doc.id}`, error);
+    return null;
+  }
 };
 
 export const getSales = async (): Promise<Sale[]> => {
