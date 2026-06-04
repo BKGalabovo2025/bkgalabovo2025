@@ -358,15 +358,17 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
           if (watchedValues.selectedZone) {
             reqComp++;
-            if (watchedValues.selectedZone === "Крака") reqAtts.legs++;
-            if (watchedValues.selectedZone === "Ръце") reqAtts.arms++;
-            if (watchedValues.selectedZone === "Таз") reqAtts.hips++;
+            const z = watchedValues.selectedZone.toUpperCase();
+            if (z === "КРАКА" || z === "КРАКА") reqAtts.legs++; // fallback just in case
+            if (z === "РЪЦЕ") reqAtts.arms++;
+            if (z === "ТАЗ") reqAtts.hips++;
           }
           if (isTwoClients && watchedValues.client2Zone) {
             reqComp++;
-            if (watchedValues.client2Zone === "Крака") reqAtts.legs++;
-            if (watchedValues.client2Zone === "Ръце") reqAtts.arms++;
-            if (watchedValues.client2Zone === "Таз") reqAtts.hips++;
+            const z2 = watchedValues.client2Zone.toUpperCase();
+            if (z2 === "КРАКА") reqAtts.legs++;
+            if (z2 === "РЪЦЕ") reqAtts.arms++;
+            if (z2 === "ТАЗ") reqAtts.hips++;
           }
 
           if (watchedValues.startTime && watchedValues.endTime) {
@@ -448,9 +450,10 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           const reqAtts = { legs: 0, arms: 0, hips: 0 };
           if (p.client1Zone) {
             reqComp++;
-            if (p.client1Zone === "Крака") reqAtts.legs++;
-            if (p.client1Zone === "Ръце") reqAtts.arms++;
-            if (p.client1Zone === "Таз") reqAtts.hips++;
+            const z = p.client1Zone.toUpperCase();
+            if (z === "КРАКА" || z === "КРАКА") reqAtts.legs++; // fallback
+            if (z === "РЪЦЕ") reqAtts.arms++;
+            if (z === "ТАЗ") reqAtts.hips++;
           } else {
             toast.error(
               `Ден ${p.dayIndex + 1}: Моля, изберете зона за Клиент 1.`
@@ -460,9 +463,10 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           if (isTwoClients) {
             if (p.client2Zone) {
               reqComp++;
-              if (p.client2Zone === "Крака") reqAtts.legs++;
-              if (p.client2Zone === "Ръце") reqAtts.arms++;
-              if (p.client2Zone === "Таз") reqAtts.hips++;
+              const z2 = p.client2Zone.toUpperCase();
+              if (z2 === "КРАКА") reqAtts.legs++;
+              if (z2 === "РЪЦЕ") reqAtts.arms++;
+              if (z2 === "ТАЗ") reqAtts.hips++;
             } else {
               toast.error(
                 `Ден ${p.dayIndex + 1}: Моля, изберете зона за Клиент 2.`
@@ -975,10 +979,11 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                                           field2.value
                                       ) {
                                         const zoneName = field2.value;
+                                        const z = zoneName?.toUpperCase();
                                         const key =
-                                          zoneName === "Крака"
+                                          z === "КРАКА"
                                             ? "legs"
-                                            : zoneName === "Ръце"
+                                            : z === "РЪЦЕ"
                                               ? "arms"
                                               : "hips";
                                         const maxQty =
@@ -1176,10 +1181,11 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                                   pd.client1Zone === pd.client2Zone
                                 ) {
                                   const zoneName = pd.client2Zone;
+                                  const z = zoneName?.toUpperCase();
                                   const key =
-                                    zoneName === "Крака"
+                                    z === "КРАКА"
                                       ? "legs"
-                                      : zoneName === "Ръце"
+                                      : z === "РЪЦЕ"
                                         ? "arms"
                                         : "hips";
                                   const maxQty =
