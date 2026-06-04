@@ -69,6 +69,7 @@ const reservationSchema = z.object({
   courtId: z.number().optional(),
   serviceId: z.string().optional(),
   selectedZone: z.string().optional(),
+  client2Zone: z.string().optional(),
   startTime: z.date().optional(),
   endTime: z.date().optional(),
   memberId: z.string().optional(),
@@ -198,6 +199,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     clientPhone,
     clientEmail,
     selectedZone,
+    client2Zone,
   } = watchedValues;
 
   const isTwoClients = useMemo(() => {
@@ -367,7 +369,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               startTime: nextDate,
               endTime: nextEndTime,
               client1Zone: i === 0 ? selectedZone : "",
-              client2Zone: "",
+              client2Zone: i === 0 ? client2Zone : "",
             });
           }
           setPackageDays(newDays);
@@ -550,16 +552,29 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
         );
       } else {
         let finalResources = selectedService?.requiredResources;
-        if (values.selectedZone && finalResources) {
-          const zone = values.selectedZone;
-          finalResources = {
-            compressors: 1,
-            attachments: {
-              legs: zone === "Крака" ? 1 : 0,
-              arms: zone === "Ръце" ? 1 : 0,
-              hips: zone === "Таз" ? 1 : 0,
-            },
-          };
+        if (isRecoveryZone) {
+          let reqComp = 0,
+            reqLegs = 0,
+            reqArms = 0,
+            reqHips = 0;
+          if (values.selectedZone) {
+            reqComp++;
+            if (values.selectedZone === "Крака") reqLegs++;
+            if (values.selectedZone === "Ръце") reqArms++;
+            if (values.selectedZone === "Таз") reqHips++;
+          }
+          if (isTwoClients && values.client2Zone) {
+            reqComp++;
+            if (values.client2Zone === "Крака") reqLegs++;
+            if (values.client2Zone === "Ръце") reqArms++;
+            if (values.client2Zone === "Таз") reqHips++;
+          }
+          if (reqComp > 0) {
+            finalResources = {
+              compressors: reqComp,
+              attachments: { legs: reqLegs, arms: reqArms, hips: reqHips },
+            };
+          }
         }
 
         const dataToSave = cleanPayload({
@@ -574,6 +589,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           serviceName: selectedService?.name,
           usedResources: finalResources,
           selectedZone: values.selectedZone,
+          client2Zone: values.client2Zone,
           isExclusive: selectedService?.isExclusive ?? false,
           bufferAfter: selectedService?.bufferAfter ?? 5,
         });
@@ -838,30 +854,65 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                           return <div className="hidden" />;
 
                         return (
-                          <FormItem className="animate-in slide-in-from-top-2 duration-300">
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                              <Activity className="w-3 h-3" /> Коя зона ще се
-                              ползва?
-                            </FormLabel>
-                            <div className="grid grid-cols-3 gap-2">
-                              {availableZones.map((zone) => (
-                                <button
-                                  key={zone}
-                                  type="button"
-                                  onClick={() => field.onChange(zone)}
-                                  className={cn(
-                                    "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
-                                    field.value === zone
-                                      ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
-                                      : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
-                                  )}
-                                >
-                                  {zone}
-                                </button>
-                              ))}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
+                          <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                <Activity className="w-3 h-3" /> Коя зона ще се
+                                ползва? {isTwoClients ? "(КЛИЕНТ 1)" : ""}
+                              </FormLabel>
+                              <div className="grid grid-cols-3 gap-2">
+                                {availableZones.map((zone) => (
+                                  <button
+                                    key={zone}
+                                    type="button"
+                                    onClick={() => field.onChange(zone)}
+                                    className={cn(
+                                      "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
+                                      field.value === zone
+                                        ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                                        : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                    )}
+                                  >
+                                    {zone}
+                                  </button>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+
+                            {isTwoClients && (
+                              <FormField
+                                control={form.control}
+                                name="client2Zone"
+                                render={({ field: field2 }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                      <Activity className="w-3 h-3" /> Коя зона
+                                      ще се ползва? (КЛИЕНТ 2)
+                                    </FormLabel>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {availableZones.map((zone) => (
+                                        <button
+                                          key={`client2-${zone}`}
+                                          type="button"
+                                          onClick={() => field2.onChange(zone)}
+                                          className={cn(
+                                            "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
+                                            field2.value === zone
+                                              ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                                              : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                          )}
+                                        >
+                                          {zone}
+                                        </button>
+                                      ))}
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </div>
                         );
                       }}
                     />
