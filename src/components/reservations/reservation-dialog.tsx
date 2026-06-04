@@ -967,6 +967,38 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                                       ))}
                                     </div>
                                     <FormMessage />
+                                    {(() => {
+                                      if (
+                                        watchedValues.selectedZone &&
+                                        field2.value &&
+                                        watchedValues.selectedZone ===
+                                          field2.value
+                                      ) {
+                                        const zoneName = field2.value;
+                                        const key =
+                                          zoneName === "Крака"
+                                            ? "legs"
+                                            : zoneName === "Ръце"
+                                              ? "arms"
+                                              : "hips";
+                                        const maxQty =
+                                          siteInfo?.inventory?.attachments?.[
+                                            key
+                                          ] || 0;
+                                        if (maxQty < 2) {
+                                          return (
+                                            <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">
+                                              Внимание: Разполагате само с{" "}
+                                              {maxQty} приставка за{" "}
+                                              {zoneName.toUpperCase()}. Моля,
+                                              изберете различна зона за Клиент
+                                              2.
+                                            </p>
+                                          );
+                                        }
+                                      }
+                                      return null;
+                                    })()}
                                   </FormItem>
                                 )}
                               />
