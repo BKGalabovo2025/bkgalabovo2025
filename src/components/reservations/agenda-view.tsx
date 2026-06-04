@@ -268,7 +268,9 @@ export function AgendaView({
                     )}
                     <h4 className="font-bold text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
                       {isReservation
-                        ? (data as Reservation).clientName
+                        ? (data as Reservation).client2Name
+                          ? `${(data as Reservation).clientName} & ${(data as Reservation).client2Name}`
+                          : (data as Reservation).clientName
                         : (data as BlockedSlot).title}
                     </h4>
                   </div>
@@ -276,7 +278,9 @@ export function AgendaView({
                     <div className="flex items-center gap-4 text-zinc-500 text-xs font-medium">
                       <div className="flex items-center gap-1.5">
                         <Phone className="w-3 h-3 opacity-50" />
-                        {(data as Reservation).clientPhone}
+                        {(data as Reservation).client2Phone
+                          ? `${(data as Reservation).clientPhone} / ${(data as Reservation).client2Phone}`
+                          : (data as Reservation).clientPhone}
                       </div>
                       {(data as Reservation).clientEmail && (
                         <div className="hidden sm:flex items-center gap-1.5">

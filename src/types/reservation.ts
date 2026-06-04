@@ -52,6 +52,8 @@ export interface Reservation {
   clientName: string;
   clientPhone: string;
   clientEmail?: string;
+  client2Name?: string;
+  client2Phone?: string;
 
   // Shared State
   status: ReservationStatus;
