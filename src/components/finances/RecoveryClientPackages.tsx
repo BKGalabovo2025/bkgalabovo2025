@@ -123,6 +123,7 @@ export function RecoveryClientPackages() {
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {pkg.clientName}
+                        {pkg.client2Name ? ` & ${pkg.client2Name}` : ""}
                       </span>
                       {pkg.clientPhone && (
                         <span className="text-xs text-zinc-400">

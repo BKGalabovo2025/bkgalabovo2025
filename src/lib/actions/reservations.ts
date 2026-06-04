@@ -33,6 +33,9 @@ const reservationSchema = z.object({
   bufferAfter: z.number().optional(),
   price: z.number().optional(),
   finalPrice: z.number().optional(),
+  client2Name: z.string().optional(),
+  client2Phone: z.string().optional(),
+  client2Zone: z.string().optional(),
 });
 
 const blockedSlotSchema = z.object({
@@ -330,6 +333,17 @@ export async function createReservationAction(
         validated.clientName,
         validated.clientPhone,
         validated.clientEmail,
+        validated.siteId
+      );
+    }
+
+    if (validated.client2Name) {
+      await findOrCreateGuestProfile(
+        db,
+        user,
+        validated.client2Name,
+        validated.client2Phone || "",
+        "",
         validated.siteId
       );
     }
@@ -932,6 +946,17 @@ export async function createPackageReservationsAction(
       );
     }
 
+    if (firstRes.client2Name) {
+      await findOrCreateGuestProfile(
+        db,
+        user,
+        firstRes.client2Name,
+        firstRes.client2Phone || "",
+        "",
+        firstRes.siteId
+      );
+    }
+
     if (firstRes.status === "paid") {
       saleId = await createSaleForReservation(
         db,
@@ -946,6 +971,28 @@ export async function createPackageReservationsAction(
     }
 
     const batch = db.batch();
+
+    // Create a ClientPackage record
+    const clientPackageRef = db
+      .collection("client_packages")
+      .doc(packageGroupId);
+    batch.set(clientPackageRef, {
+      siteId: firstRes.siteId || "recoveryzone",
+      memberId: finalMemberId,
+      clientName: firstRes.clientName,
+      clientPhone: firstRes.clientPhone || "",
+      client2Name: firstRes.client2Name || "",
+      client2Phone: firstRes.client2Phone || "",
+      serviceId: firstRes.serviceId || "",
+      packageName: firstRes.serviceName || "Пакет",
+      sessionsTotal: parsedReservations.length,
+      sessionsRemaining: parsedReservations.length,
+      purchaseDate: Timestamp.now(),
+      status: "active",
+      pricePaid: firstRes.totalPrice ?? firstRes.price ?? 0,
+      currency: "EUR",
+      saleId: saleId,
+    });
 
     for (const r of parsedReservations) {
       const resRef = db.collection("reservations").doc();

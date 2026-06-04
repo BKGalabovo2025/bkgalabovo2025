@@ -152,14 +152,13 @@ export function RecoveryReservationsHistory() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
                         {res.clientName}
+                        {res.client2Name ? ` & ${res.client2Name}` : ""}
                       </span>
-                      {res.clientPhone && (
-                        <span className="text-xs text-zinc-400">
-                          {res.clientPhone}
-                        </span>
-                      )}
+                      <span className="text-xs text-zinc-400">
+                        {res.clientPhone || "Няма телефон"}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-4">
