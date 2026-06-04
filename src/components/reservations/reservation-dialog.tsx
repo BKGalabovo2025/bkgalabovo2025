@@ -91,6 +91,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   reservation,
   initialData,
   onSave,
+  mode,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -108,7 +109,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     }[]
   >([]);
   const { activeBranch } = useAppStore();
-  const isRecoveryZone = activeBranch === "recoveryzone";
+  const isRecoveryZone = mode === "recovery" || activeBranch === "recoveryzone";
 
   const [members, setMembers] = useState<any[]>([]);
   const [membersLoading, setMembersLoading] = useState(false);
@@ -522,7 +523,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           allReservations.push(
             cleanPayload({
               ...values,
-              siteId: activeBranch,
+              siteId: isRecoveryZone ? "recoveryzone" : activeBranch,
               startTime: pd.startTime?.toISOString(),
               endTime: pd.endTime?.toISOString(),
               totalPrice: price,
@@ -563,7 +564,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
         const dataToSave = cleanPayload({
           ...values,
-          siteId: activeBranch,
+          siteId: isRecoveryZone ? "recoveryzone" : activeBranch,
           startTime: values.startTime?.toISOString(),
           endTime: values.endTime?.toISOString(),
           totalPrice: price,
