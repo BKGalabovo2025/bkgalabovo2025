@@ -29,7 +29,7 @@ import { useAppStore } from "@/store/use-app-store";
 import { toast } from "sonner";
 import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
-import { getAllClubServices } from "@/services/club-service";
+import { getAllRecoveryServices } from "@/services/club-service";
 import { cn } from "@/lib/utils";
 import { getAllMembers } from "@/services/member-service";
 import { getSiteById } from "@/services/site-service";
@@ -140,7 +140,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
   React.useEffect(() => {
     if (isRecoveryZone) {
-      getAllClubServices().then((data: ClubService[]) => {
+      getAllRecoveryServices().then((data: ClubService[]) => {
         setServices(data.filter((s: ClubService) => s.requiresBooking));
       });
       getSiteById("recoveryzone").then((site) => {
