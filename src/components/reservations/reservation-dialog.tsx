@@ -342,9 +342,12 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
       const isValid = await trigger(fieldsToTrigger);
       if (isValid) {
-        if (!isPackage && startTime) {
+        if (startTime) {
           const warning = checkWorkingHours(startTime);
-          if (warning) toast.error(warning, { duration: 5000 });
+          if (warning) {
+            toast.error(warning, { duration: 5000 });
+            return; // Block advancing if start time is invalid
+          }
         }
 
         if (isPackage && daysCount > 1) {
@@ -432,10 +435,12 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
       for (const p of packageDays) {
         if (p.startTime) {
           const warning = checkWorkingHours(p.startTime);
-          if (warning)
+          if (warning) {
             toast.error(`Ден ${p.dayIndex + 1}: ${warning}`, {
               duration: 5000,
             });
+            hasError = true;
+          }
         }
         if (isRecoveryZone && siteInfo?.inventory) {
           let reqComp = 0;
@@ -982,11 +987,11 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
               {currentStep === "packageDays" && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider mb-2">
-                    Избор на следващи дни
+                    ПРЕГЛЕД НА ВСИЧКИ ДНИ
                   </h3>
                   <p className="text-xs text-zinc-500">
-                    Системата автоматично попълва часовете и зоните за
-                    следващите дни от пакета. Можете да ги промените.
+                    Системата автоматично попълва часовете и зоните за всички
+                    дни от пакета. Можете да ги промените при нужда.
                   </p>
                   {packageDays.map((pd, index) => (
                     <div
