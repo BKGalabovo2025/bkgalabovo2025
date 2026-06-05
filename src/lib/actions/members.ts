@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { ensureAdmin, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
 import { serverCache } from "@/lib/server-cache";
@@ -364,7 +365,10 @@ export async function getMemberProfileDataServerAction(
 
     if (!familyQuerySnap.empty) {
       const familyDoc = familyQuerySnap.docs[0];
-      family = { ...familyDoc.data(), id: familyDoc.id } as Family;
+      family = serializeFirestoreData({
+        ...familyDoc.data(),
+        id: familyDoc.id,
+      }) as Family;
 
       const otherMemberIds = family.memberIds.filter((id) => id !== memberId);
       if (otherMemberIds.length > 0) {
