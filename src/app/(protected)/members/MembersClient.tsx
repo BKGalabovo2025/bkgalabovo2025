@@ -371,6 +371,33 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncStatuses = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch("/api/cron/check-statuses", {
+        headers: {
+          // If you set a CRON_SECRET, you'd need to pass it here, but typically admin actions have their own endpoint or we bypass for UI
+          // For simplicity, we just call the endpoint. If it requires auth, we might need to handle it.
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(
+          `Успешно синхронизирани! Деактивирани: ${data.deactivatedCount}, Активирани: ${data.activatedCount}`
+        );
+        router.refresh();
+      } else {
+        toast.error("Грешка: " + (data.error || "Неуспешна синхронизация"));
+      }
+    } catch (e) {
+      toast.error("Възникна грешка при синхронизацията.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 px-3 sm:px-6 lg:px-8">
       <PageHeader
@@ -382,6 +409,17 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         ]}
       >
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleSyncStatuses}
+            disabled={isSyncing}
+            className="rounded-xl border-zinc-200 font-medium text-[10px] sm:text-xs uppercase tracking-widest h-10 sm:h-11 px-4 sm:px-6 hover:bg-zinc-50 w-full sm:w-auto"
+          >
+            <Activity
+              className={cn("mr-2 h-4 w-4", isSyncing && "animate-spin")}
+            />{" "}
+            Синхронизирай статуси
+          </Button>
           <Button
             variant="outline"
             onClick={handleExport}
@@ -487,6 +525,24 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 </p>
                 <p className="text-2xl sm:text-3xl font-light text-rose-600">
                   {stats.inactive}
+                </p>
+              </div>
+            </BentoCard>
+
+            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2 lg:col-span-3">
+              <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                  Относно Клубни Членове
+                </p>
+                <p className="text-xs font-light text-zinc-500 leading-relaxed">
+                  Клубните членове са редовни участници в клуба. Те разполагат с
+                  пълно досие, членска карта, проследяване на статус
+                  (активен/неактивен), финансова история и история на
+                  посещенията. Статусът им се обновява автоматично спрямо
+                  тяхната активност.
                 </p>
               </div>
             </BentoCard>
@@ -1218,7 +1274,24 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </BentoCard>
         </TabsContent>
 
-        <TabsContent value="families" className="mt-8">
+        <TabsContent value="families" className="mt-8 space-y-8">
+          <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
+            <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
+              <FamilyIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                Относно Семейства
+              </p>
+              <p className="text-xs font-light text-zinc-500 leading-relaxed">
+                Семейните профили обединяват няколко членове на клуба в една
+                група за по-лесно управление. Те позволяват споделяне на семейни
+                такси и отстъпки, както и общо проследяване на финансовата
+                история.
+              </p>
+            </div>
+          </BentoCard>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {families.map((family) => {
               const familyMembers = initialMembers.filter((m) =>

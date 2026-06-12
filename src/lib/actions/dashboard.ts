@@ -139,6 +139,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           trainingsCount,
           guestsCount,
           familiesCount,
+          recoveryMembersCount,
         ] = await Promise.all([
           col("members").count().get(),
           col("members").where("status", "==", "active").count().get(),
@@ -161,9 +162,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             .get(),
           col("members").where("isGuest", "==", true).count().get(),
           col("families").count().get(),
+          col("members").where("memberType", "==", "recovery").count().get(),
         ]);
 
         // ── DOCUMENT QUERIES (only what must be displayed) ─────────────────────
+        const adminStartOfDay = admin.firestore.Timestamp.fromDate(startOfDay);
+        const adminEndOfDay = admin.firestore.Timestamp.fromDate(endOfDay);
+
         const [
           recentSalesSnap,
           salesFor6MonthsSnap,
@@ -171,6 +176,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           activeSubsSnap,
           eventsSnap,
           productsSnap,
+          reservationsSnap,
         ] = await Promise.all([
           // Last 5 sales for the "Recent Sales" widget
           col("sales").orderBy("saleDate", "desc").limit(5).get(),
@@ -193,6 +199,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
           // Products (small collection, needed for low-stock list)
           col("products").limit(200).get(),
+
+          // Today's reservations (both court and recovery)
+          col("reservations")
+            .where("startTime", ">=", adminStartOfDay)
+            .where("startTime", "<=", adminEndOfDay)
+            .limit(100)
+            .get(),
         ]);
 
         // Map documents
@@ -212,6 +225,16 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         );
         const unpaidSales = activeSubsSnap.docs.map((d) => snapToData<Sale>(d));
         const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
+        const reservations = reservationsSnap.docs.map((d) =>
+          snapToData<any>(d)
+        );
+
+        // Sort events by start date
+        const sortedEvents = [...events].sort(
+          (a, b) =>
+            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        );
+
         const todayTrainingsCount = events.filter(
           (e) => e.type === "training"
         ).length;
@@ -227,14 +250,19 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         ).length;
         const todayEventsCount = events.length;
 
+        const todayRecoveryCount = reservations.filter(
+          (r) => !r.courtId
+        ).length;
+        const todayCourtCount = reservations.filter((r) => r.courtId).length;
+
         const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
 
         // Low-stock products (client-side filter — products collection is small)
-        const lowStockProducts = allProducts.filter(
-          (p) =>
-            typeof p.restockThreshold === "number" &&
-            p.stock <= p.restockThreshold
-        );
+        const lowStockProducts = allProducts.filter((p) => {
+          const threshold =
+            typeof p.restockThreshold === "number" ? p.restockThreshold : 5;
+          return p.stock <= threshold;
+        });
 
         // Revenue calculations from the scoped sales set
         const calcRevenue = (list: Sale[]) =>
@@ -265,8 +293,35 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           .filter((s) => s.isPaid === true && s.type === "training_service")
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
+        const revenueCourts = salesLast30Days
+          .filter(
+            (s) =>
+              s.isPaid === true &&
+              s.type === "general_service" &&
+              s.items?.some((i) => i.productId?.startsWith("court_rental_"))
+          )
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+        const revenueRecovery = salesLast30Days
+          .filter(
+            (s) =>
+              s.isPaid === true &&
+              s.type === "general_service" &&
+              s.items?.some((i) => i.productId?.startsWith("recovery_session_"))
+          )
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
         const revenueServices = salesLast30Days
-          .filter((s) => s.isPaid === true && s.type === "general_service")
+          .filter(
+            (s) =>
+              s.isPaid === true &&
+              s.type === "general_service" &&
+              !s.items?.some(
+                (i) =>
+                  i.productId?.startsWith("court_rental_") ||
+                  i.productId?.startsWith("recovery_session_")
+              )
+          )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
         const revenueShop = salesLast30Days
@@ -308,7 +363,11 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
         const totalGuests = guestsCount.data().count;
         const totalFamilies = familiesCount.data().count;
-        const totalClubMembers = tMem - totalGuests;
+        const totalRecovery = recoveryMembersCount.data().count;
+        const totalClubMembers = Math.max(
+          0,
+          tMem - totalGuests - totalRecovery
+        );
 
         const stats = {
           totalMembers: tMem,
@@ -317,6 +376,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           unpaidSales: unpaidSalesCount.data().count,
           revenueLast30Days,
           revenueChange,
+          newMembersCount: newMemThis,
           newMembersLast30Days: newMemThis,
           newMembersChange,
           salesLast30Days: salesCountLast30,
@@ -332,14 +392,27 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           totalGuests,
           totalFamilies,
           totalClubMembers,
+          totalRecovery,
+          inactiveMembersCount: tMem - aMem,
           revenueTrainings,
           revenueServices,
+          revenueCourts,
+          revenueRecovery,
           revenueShop,
           todayTrainingsCount,
           todayCompetitionsCount,
           todayCampsCount,
           todayOtherEventsCount,
           todayEventsCount,
+          todayRecoveryCount,
+          todayCourtCount,
+          todayEventsList: sortedEvents.map((e) => ({
+            id: e.id,
+            title: e.title,
+            startDate: e.startDate,
+            type: e.type,
+            attendeesCount: e.attendees?.length || 0,
+          })),
         };
 
         const revenueChartData = getRevenueTrendData(salesFor6Months);

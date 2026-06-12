@@ -50,7 +50,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
       ? new Date(member.registrationDate)
       : null;
     const eventDate = event?.startDate ? new Date(event.startDate) : null;
-    
+
     if (regDate) regDate.setHours(0, 0, 0, 0);
     if (eventDate) eventDate.setHours(0, 0, 0, 0);
 
@@ -75,16 +75,24 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
     try {
       const attendees: Attendee[] = Array.from(attendeeIds).map((id) => {
         const member = members.find((m) => m.id === id);
-        const existingAttendee = event.attendees?.find((a) => a.memberId === id);
-        
+        const existingAttendee = event.attendees?.find(
+          (a) => a.memberId === id
+        );
+
         return {
           memberId: id,
           name: member ? formatFullName(member) : "Unknown",
           attended: true,
           // Preserve existing payment data to avoid wiping it on UI updates
-          ...(existingAttendee?.paymentStatus && { paymentStatus: existingAttendee.paymentStatus }),
-          ...(existingAttendee?.paymentType && { paymentType: existingAttendee.paymentType }),
-          ...(existingAttendee?.paymentDate && { paymentDate: existingAttendee.paymentDate }),
+          ...(existingAttendee?.paymentStatus && {
+            paymentStatus: existingAttendee.paymentStatus,
+          }),
+          ...(existingAttendee?.paymentType && {
+            paymentType: existingAttendee.paymentType,
+          }),
+          ...(existingAttendee?.paymentDate && {
+            paymentDate: existingAttendee.paymentDate,
+          }),
           ...(existingAttendee?.saleId && { saleId: existingAttendee.saleId }),
         };
       });
@@ -169,7 +177,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                 const eventDate = event?.startDate
                   ? new Date(event.startDate)
                   : null;
-                
+
                 if (regDate) regDate.setHours(0, 0, 0, 0);
                 if (eventDate) eventDate.setHours(0, 0, 0, 0);
 
@@ -206,9 +214,16 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                           <Check className="h-3 w-3 stroke-3" />
                         )}
                       </div>
-                      <span className="text-sm font-medium truncate">
-                        {formatFullName(member)}
-                      </span>
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="text-sm font-medium truncate">
+                          {formatFullName(member)}
+                        </span>
+                        {member.status === "inactive" && (
+                          <span className="text-[9px] font-medium uppercase tracking-wide bg-amber-500/10 dark:bg-amber-950/20 px-2 py-0.5 rounded-full text-amber-600 dark:text-amber-400 border border-amber-500/10 shrink-0">
+                            Неактивен
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {isBeforeRegistration ? (
                       <span className="text-[9px] font-medium uppercase tracking-wide bg-rose-500/10 dark:bg-rose-950/20 px-2 py-0.5 rounded-full text-rose-600 dark:text-rose-400 border border-rose-500/10 shrink-0">

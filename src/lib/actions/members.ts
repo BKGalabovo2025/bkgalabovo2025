@@ -57,6 +57,7 @@ export async function createMemberAction(
       hasMedicalCertificate: false,
       isLicensed: false,
       ...data,
+      status: "active",
       name,
       registrationDate: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),

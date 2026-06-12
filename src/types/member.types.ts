@@ -12,7 +12,10 @@ export const MemberSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
   name: z.string(), // This is a derived field, added in the code, not in the database
-  status: z.enum(["active", "inactive", "suspended"]),
+  status: z
+    .enum(["active", "inactive", "suspended"])
+    .catch("active")
+    .optional(),
   ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
 
   // --- Date Fields (as ISO strings) ---
