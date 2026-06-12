@@ -383,18 +383,24 @@ export const RecoverySaleWizardDialog = ({
     unpaidMonths.length > 0 &&
     unpaidMonths.every((m) => selectedMonthKeys.includes(m.monthKey));
 
-  // Total = unitPrice × months (for subscription multi-select) or flat price
+  // Total = unitPrice × quantity
   const totalAmount = useMemo(() => {
     const base = parseFloat(price) || 0;
-    if (
-      !isGuestSale &&
-      paymentMode === "subscription" &&
-      selectedMonthKeys.length > 1
-    ) {
-      return base * selectedMonthKeys.length;
+
+    if (isGuestSale) return base;
+
+    if (paymentMode === "subscription") {
+      const months = selectedMonthKeys.length || 1;
+      return base * months;
     }
+
+    if (paymentMode === "individual") {
+      const eventsCount = selectedEventIds.length || 1;
+      return base * eventsCount;
+    }
+
     return base;
-  }, [price, isGuestSale, paymentMode, selectedMonthKeys]);
+  }, [price, isGuestSale, paymentMode, selectedMonthKeys, selectedEventIds]);
 
   const handleExecuteSale = async () => {
     if (!idToken) return;

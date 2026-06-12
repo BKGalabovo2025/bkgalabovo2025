@@ -58,7 +58,11 @@ function getOverdueReminders(
         )
       : [];
     const memberSales = allSales.filter((s) => s.memberId === member.id);
-    const overdueCheck = checkIsMemberOverdue(member, familyMembers, memberSales);
+    const overdueCheck = checkIsMemberOverdue(
+      member,
+      familyMembers,
+      memberSales
+    );
     return {
       id: `overdue-${member.id}-${index}`,
       title: "Просрочено плащане",
@@ -78,7 +82,7 @@ function getOverdueReminders(
 export async function getDashboardDataServerAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) return { success: false, error: "Unauthorized" };
 
     const adminDb = getAdminDb();
     const now = new Date();
@@ -172,19 +176,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           col("sales").orderBy("saleDate", "desc").limit(5).get(),
 
           // Up to 6 months of completed+paid sales for revenue stats & chart
-          col("sales")
-            .where("status", "==", "completed")
-            .limit(500)
-            .get(),
+          col("sales").where("status", "==", "completed").limit(500).get(),
 
           // Active members (needed for overdue reminder generation)
           col("members").where("status", "==", "active").limit(300).get(),
 
           // Unpaid sales (needed for overdue check)
-          col("sales")
-            .where("isPaid", "==", false)
-            .limit(300)
-            .get(),
+          col("sales").where("isPaid", "==", false).limit(300).get(),
 
           // Today's events for display
           col("events")
@@ -205,18 +203,28 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           .map((d) => snapToData<Sale>(d))
           .filter((s): s is Sale => s !== null)
           .filter((s) => new Date(s.saleDate) >= sixMonthsAgo)
-          .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
+          .sort(
+            (a, b) =>
+              new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+          );
         const activeMembers = activeMembersSnap.docs.map((d) =>
           snapToData<Member>(d)
         );
-        const unpaidSales = activeSubsSnap.docs.map((d) =>
-          snapToData<Sale>(d)
-        );
+        const unpaidSales = activeSubsSnap.docs.map((d) => snapToData<Sale>(d));
         const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
-        const todayTrainingsCount = events.filter((e) => e.type === "training").length;
-        const todayCompetitionsCount = events.filter((e) => e.type === "competition").length;
+        const todayTrainingsCount = events.filter(
+          (e) => e.type === "training"
+        ).length;
+        const todayCompetitionsCount = events.filter(
+          (e) => e.type === "competition"
+        ).length;
         const todayCampsCount = events.filter((e) => e.type === "camp").length;
-        const todayOtherEventsCount = events.filter((e) => e.type !== "training" && e.type !== "competition" && e.type !== "camp").length;
+        const todayOtherEventsCount = events.filter(
+          (e) =>
+            e.type !== "training" &&
+            e.type !== "competition" &&
+            e.type !== "camp"
+        ).length;
         const todayEventsCount = events.length;
 
         const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
@@ -262,7 +270,9 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
         const revenueShop = salesLast30Days
-          .filter((s) => s.isPaid === true && (s.type === "inventory" || !s.type))
+          .filter(
+            (s) => s.isPaid === true && (s.type === "inventory" || !s.type)
+          )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
         const totalRevenue = salesFor6Months
@@ -366,4 +376,3 @@ export async function invalidateDashboardCacheAction() {
     return { success: false, error: error.message };
   }
 }
-

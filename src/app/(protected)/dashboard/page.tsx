@@ -81,6 +81,11 @@ export default async function DashboardPage() {
   const initialData = result.success ? (result as any).data : null;
   const errorMessage = !result.success ? (result as any).error : null;
 
+  if (errorMessage === "Unauthorized") {
+    const { redirect } = await import("next/navigation");
+    redirect("/login");
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12 w-full">
       <div className="px-0 w-full">
