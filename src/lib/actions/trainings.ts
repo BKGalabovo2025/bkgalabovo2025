@@ -58,10 +58,16 @@ export async function getGlobalTrainingSessionsAction(limitCount = 50) {
       .limit(limitCount)
       .get();
 
-    const trainings = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const trainings = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt,
+      };
+    });
 
     return { success: true, data: trainings };
   } catch (error: any) {
@@ -86,10 +92,16 @@ export async function getTrainingSessionsForMemberAction(
       .orderBy("date", "desc")
       .get();
 
-    const trainings = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const trainings = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt,
+      };
+    });
 
     return { success: true, data: trainings };
   } catch (error: any) {
