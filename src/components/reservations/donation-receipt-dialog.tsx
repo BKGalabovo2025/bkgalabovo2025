@@ -37,125 +37,148 @@ const DocumentCopy = ({
   reservation,
   reservations,
   totalPrice,
-}: DocumentCopyProps & { reservations: Reservation[]; totalPrice: number }) => (
-  <div className="flex flex-col flex-1 border border-black p-10 bg-white relative">
-    <div className="flex flex-col h-full text-black">
-      {/* Header */}
-      <div className="flex justify-between items-start border-b border-black pb-4 mb-6">
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold uppercase tracking-tight">
-            ДОКУМЕНТ ЗА ДАРЕНИЕ
-          </h2>
-          <p className="text-[10px] font-bold">
-            № {reservation.id.substring(0, 8).toUpperCase()} /{" "}
-            {new Date().toLocaleDateString("bg-BG")}
-          </p>
-          <p className="text-[10px] font-bold uppercase mt-1 text-zinc-500">
-            {label}
+}: DocumentCopyProps & { reservations: Reservation[]; totalPrice: number }) => {
+  const isRecovery = reservation.siteId === "recoveryzone";
+
+  return (
+    <div className="flex flex-col flex-1 border border-black p-10 bg-white relative">
+      <div className="flex flex-col h-full text-black">
+        {/* Header */}
+        <div className="flex justify-between items-start border-b border-black pb-4 mb-6">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold uppercase tracking-tight">
+              ДОКУМЕНТ ЗА ДАРЕНИЕ
+            </h2>
+            <p className="text-[10px] font-bold">
+              № {reservation.id.substring(0, 8).toUpperCase()} /{" "}
+              {new Date().toLocaleDateString("bg-BG")}
+            </p>
+            <p className="text-[10px] font-bold uppercase mt-1 text-zinc-500">
+              {label}
+            </p>
+          </div>
+          <div className="text-right text-[10px] space-y-0.5">
+            <p className="font-bold uppercase">{clubInfo.name}</p>
+            <p className="uppercase">{clubInfo.address}</p>
+            <p className="uppercase">{clubInfo.contact}</p>
+          </div>
+        </div>
+
+        {/* Unified Legal Statement */}
+        <div className="mb-8">
+          <p className="text-[11px] leading-relaxed text-justify">
+            С настоящия документ се потвърждава постъпило целево дарение от{" "}
+            <span className="font-bold uppercase">
+              {reservation.client2Name || reservation.client2Zone
+                ? `${reservation.clientName} и ${reservation.client2Name || "Клиент 2"}`
+                : reservation.clientName}
+            </span>{" "}
+            (тел.{" "}
+            {reservation.client2Phone
+              ? `${reservation.clientPhone} / ${reservation.client2Phone}`
+              : reservation.clientPhone || "непосочен"}
+            ) в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще
+            бъдат използвани изцяло за поддържане на материално-техническата
+            база (МТО) на клуба и неговите уставни цели
+            {isRecovery
+              ? ", включително развитие на възстановителния център"
+              : ", включително развитие на детско-юношеската школа по бадминтон"}
+            .
           </p>
         </div>
-        <div className="text-right text-[10px] space-y-0.5">
-          <p className="font-bold uppercase">{clubInfo.name}</p>
-          <p className="uppercase">{clubInfo.address}</p>
-          <p className="uppercase">{clubInfo.contact}</p>
-        </div>
-      </div>
 
-      {/* Unified Legal Statement */}
-      <div className="mb-8">
-        <p className="text-[11px] leading-relaxed text-justify">
-          С настоящия документ се потвърждава постъпило целево дарение от{" "}
-          <span className="font-bold uppercase">{reservation.clientName}</span>{" "}
-          (тел. {reservation.clientPhone || "непосочен"}) в полза на СНЦ
-          „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат използвани
-          изцяло за поддържане на материално-техническата база (МТО) на клуба и
-          неговите уставни цели, включително развитие на детско-юношеската школа
-          по бадминтон.
-        </p>
-      </div>
-
-      {/* Content Table */}
-      <div className="flex-1">
-        <table className="w-full border-collapse border border-black">
-          <thead>
-            <tr className="bg-zinc-100 border-b border-black text-[9px] font-bold uppercase">
-              <th className="p-2 text-left border-r border-black">
-                Описание на дарението
-              </th>
-              <th className="p-2 text-center border-r border-black">Корт</th>
-              <th className="p-2 text-center border-r border-black">
-                Дата / Час
-              </th>
-              <th className="p-2 text-right">Сума</th>
-            </tr>
-          </thead>
-          <tbody className="text-[10px]">
-            <tr className="border-b border-black">
-              <td className="p-3 border-r border-black">
-                Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за
-                ползване на бадминтон корт
-              </td>
-              <td className="p-3 text-center border-r border-black font-bold">
-                {reservations
-                  .map((r) => r.courtId || "-")
-                  .filter((v, i, a) => a.indexOf(v) === i)
-                  .join(", ")}
-              </td>
-              <td className="p-3 text-center border-r border-black">
-                {reservations.map((r, idx) => {
-                  const st = r.startTime.toDate();
-                  const et = r.endTime.toDate();
-                  return (
-                    <div key={idx}>
-                      {format(st, "dd.MM.yyyy", { locale: bg })}{" "}
-                      {format(st, "HH:mm")} - {format(et, "HH:mm")}
-                    </div>
-                  );
-                })}
-              </td>
-              <td className="p-3 text-right font-bold">
-                {formatPrice(totalPrice)}
-              </td>
-            </tr>
-            <tr>
-              <td
-                colSpan={3}
-                className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
-              >
-                Обща стойност:
-              </td>
-              <td className="p-2 text-right font-bold text-xs">
-                {formatPrice(totalPrice)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Signatures */}
-      <div className="mt-12 flex justify-between gap-20">
+        {/* Content Table */}
         <div className="flex-1">
-          <div className="h-px bg-black w-full" />
-          <p className="text-[8px] font-bold mt-1 uppercase text-center">
-            За Клуба: {clubInfo.name}
-          </p>
+          <table className="w-full border-collapse border border-black">
+            <thead>
+              <tr className="bg-zinc-100 border-b border-black text-[9px] font-bold uppercase">
+                <th className="p-2 text-left border-r border-black">
+                  Описание на дарението
+                </th>
+                <th className="p-2 text-center border-r border-black">
+                  {isRecovery ? "Услуга" : "Корт"}
+                </th>
+                <th className="p-2 text-center border-r border-black">
+                  Дата / Час
+                </th>
+                <th className="p-2 text-right">Сума</th>
+              </tr>
+            </thead>
+            <tbody className="text-[10px]">
+              <tr className="border-b border-black">
+                <td className="p-3 border-r border-black">
+                  Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“
+                  {isRecovery
+                    ? " от възстановителни процедури"
+                    : " за ползване на бадминтон корт"}
+                </td>
+                <td className="p-3 text-center border-r border-black font-bold">
+                  {isRecovery
+                    ? reservation.serviceName || "Услуга"
+                    : reservations
+                        .map((r) => r.courtId || "-")
+                        .filter((v, i, a) => a.indexOf(v) === i)
+                        .join(", ")}
+                </td>
+                <td className="p-3 text-center border-r border-black">
+                  {reservations.map((r, idx) => {
+                    const st = r.startTime.toDate();
+                    const et = r.endTime.toDate();
+                    return (
+                      <div key={idx}>
+                        {format(st, "dd.MM.yyyy", { locale: bg })}{" "}
+                        {format(st, "HH:mm")} - {format(et, "HH:mm")}
+                      </div>
+                    );
+                  })}
+                </td>
+                <td className="p-3 text-right font-bold">
+                  {formatPrice(totalPrice)}
+                </td>
+              </tr>
+              <tr>
+                <td
+                  colSpan={3}
+                  className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                >
+                  Обща стойност:
+                </td>
+                <td className="p-2 text-right font-bold text-xs">
+                  {formatPrice(totalPrice)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div className="flex-1">
-          <div className="h-px bg-black w-full" />
-          <p className="text-[8px] font-bold mt-1 uppercase text-center">
-            Дарител: {reservation.clientName}
-          </p>
-        </div>
-      </div>
 
-      <div className="mt-6 text-center">
-        <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
-          ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
-        </p>
+        {/* Signatures */}
+        <div className="mt-12 flex justify-between gap-20">
+          <div className="flex-1">
+            <div className="h-px bg-black w-full" />
+            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+              За Клуба: {clubInfo.name}
+            </p>
+          </div>
+          <div className="flex-1">
+            <div className="h-px bg-black w-full" />
+            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+              Дарител:{" "}
+              {reservation.client2Name || reservation.client2Zone
+                ? `${reservation.clientName} и ${reservation.client2Name || "Клиент 2"}`
+                : reservation.clientName}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
+            ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export function DonationReceiptDialog({
   reservation,
@@ -218,10 +241,12 @@ export function DonationReceiptDialog({
     }
   };
 
-  const totalPrice = packageReservations.reduce(
-    (sum, r) => sum + (r.totalPrice ?? r.price ?? 0),
-    0
-  );
+  const totalPrice = reservation.packageGroupId
+    ? (packageReservations[0]?.totalPrice ?? packageReservations[0]?.price ?? 0)
+    : packageReservations.reduce(
+        (sum, r) => sum + (r.totalPrice ?? r.price ?? 0),
+        0
+      );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -231,11 +231,18 @@ export function AgendaView({
             <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6">
               {/* Court Badge */}
               <div className="flex items-center gap-3">
-                <div className="flex flex-col items-center justify-center min-w-12 h-12 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10">
-                  <span className="text-[8px] font-black uppercase tracking-tighter opacity-50">
+                <div className="flex flex-col items-center justify-center min-w-12 min-h-12 py-2 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10 max-w-[200px] text-center">
+                  <span className="text-[8px] font-black uppercase tracking-tighter opacity-50 mb-0.5">
                     {effectiveBranch === "bkgalabovo" ? "Корт" : "Услуга"}
                   </span>
-                  <span className="text-sm font-bold leading-none whitespace-nowrap">
+                  <span
+                    className={cn(
+                      "font-bold leading-tight",
+                      effectiveBranch === "bkgalabovo"
+                        ? "text-sm whitespace-nowrap"
+                        : "text-[11px]"
+                    )}
+                  >
                     {isReservation
                       ? effectiveBranch === "bkgalabovo"
                         ? (data as Reservation).courtId
@@ -245,9 +252,7 @@ export function AgendaView({
                               res.serviceName ||
                               services.find((s) => s.id === res.serviceId)
                                 ?.name;
-                            return svcName
-                              ? `${svcName}${res.selectedZone ? ` (${res.selectedZone})` : ""}`
-                              : "Услуга";
+                            return svcName || "Услуга";
                           })()
                       : (data as BlockedSlot).courtIds.length > 0
                         ? `Корт ${(data as BlockedSlot).courtIds.join(", ")}`
@@ -268,9 +273,10 @@ export function AgendaView({
                     )}
                     <h4 className="font-bold text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
                       {isReservation
-                        ? (data as Reservation).client2Name
-                          ? `${(data as Reservation).clientName} & ${(data as Reservation).client2Name}`
-                          : (data as Reservation).clientName
+                        ? (data as Reservation).client2Name ||
+                          (data as Reservation).client2Zone
+                          ? `${(data as Reservation).clientName}${(data as Reservation).selectedZone ? ` (${(data as Reservation).selectedZone})` : ""} & ${(data as Reservation).client2Name || "Клиент 2"}${(data as Reservation).client2Zone ? ` (${(data as Reservation).client2Zone})` : ""}`
+                          : `${(data as Reservation).clientName}${(data as Reservation).selectedZone ? ` (${(data as Reservation).selectedZone})` : ""}`
                         : (data as BlockedSlot).title}
                     </h4>
                   </div>

@@ -123,7 +123,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
   // Use values from stats or fallback to 0/placeholder
   const monthlyRevenue = stats?.revenueLast30Days || 0;
-  const revenueTrend = stats?.revenueChange || 0;
 
   if (!mounted) {
     return (
@@ -345,17 +344,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           <div className="flex items-center justify-between mb-2">
             <div className="p-2.5 rounded-2xl bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-200">
               <TrendingUp className="h-5 w-5" strokeWidth={1.5} />
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-none",
-                revenueTrend >= 0
-                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400"
-                  : "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-450"
-              )}
-            >
-              {revenueTrend >= 0 ? "↗" : "↘"} {revenueTrend > 0 ? "+" : ""}
-              {revenueTrend.toFixed(0)}%
             </div>
           </div>
           <div className="relative z-10 flex-1 flex flex-col justify-end">

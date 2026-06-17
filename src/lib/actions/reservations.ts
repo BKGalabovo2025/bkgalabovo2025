@@ -1037,7 +1037,7 @@ export async function createPackageReservationsAction(
 export async function updatePackageReservationsAction(
   idToken: string,
   packageGroupId: string,
-  data: { status: string; paymentMethod?: string }
+  data: any
 ) {
   try {
     const user = await getAuthUser(idToken);
@@ -1053,7 +1053,8 @@ export async function updatePackageReservationsAction(
     }
 
     const firstRes = reservationsSnap.docs[0].data();
-    const finalMemberId = firstRes.memberId;
+    const finalMemberId =
+      data.memberId !== undefined ? data.memberId : firstRes.memberId;
     let saleId = firstRes.saleId || "";
 
     if (data.status === "paid" && firstRes.status !== "paid") {
@@ -1079,16 +1080,43 @@ export async function updatePackageReservationsAction(
     }
 
     const batch = db.batch();
+
+    const sharedFields = [
+      "clientName",
+      "clientPhone",
+      "clientEmail",
+      "client2Name",
+      "client2Phone",
+      "selectedZone",
+      "client2Zone",
+      "memberId",
+      "notes",
+    ];
+
     reservationsSnap.docs.forEach((doc) => {
-      batch.update(doc.ref, {
-        status: data.status,
-        saleId,
+      const updatePayload: any = {
         updatedAt: Timestamp.now(),
         updatedBy: {
           userId: user.uid,
           userName: user.name || user.email || "Unknown",
         },
-      });
+      };
+
+      if (data.status !== undefined) {
+        updatePayload.status = data.status;
+        updatePayload.saleId = saleId;
+      }
+      if (data.paymentMethod !== undefined) {
+        updatePayload.paymentMethod = data.paymentMethod;
+      }
+
+      for (const field of sharedFields) {
+        if (data[field] !== undefined) {
+          updatePayload[field] = data[field];
+        }
+      }
+
+      batch.update(doc.ref, updatePayload);
     });
 
     await batch.commit();
@@ -1124,14 +1152,21 @@ export async function getPackageReservationsAction(
 
     if (snap.empty) return { success: true, data: [] };
 
-    const reservations = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const reservations = snap.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        startTime: data.startTime?.toDate().toISOString(),
+        endTime: data.endTime?.toDate().toISOString(),
+        createdAt: data.createdAt?.toDate().toISOString(),
+        updatedAt: data.updatedAt?.toDate().toISOString(),
+      };
+    });
     // Sort by startTime
     reservations.sort((a, b) => {
-      const timeA = (a as any).startTime.toDate().getTime();
-      const timeB = (b as any).startTime.toDate().getTime();
+      const timeA = new Date(a.startTime).getTime();
+      const timeB = new Date(b.startTime).getTime();
       return timeA - timeB;
     });
 

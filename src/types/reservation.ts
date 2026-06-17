@@ -32,6 +32,7 @@ export interface Reservation {
   serviceId?: string;
   serviceName?: string;
   selectedZone?: string;
+  client2Zone?: string;
   usedResources?: {
     attachments: Partial<Record<string, number>>;
     compressors: number;

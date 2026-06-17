@@ -76,6 +76,7 @@ const reservationSchema = z.object({
   memberId: z.string().optional(),
   paymentMethod: z.string().optional(),
   status: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 interface ReservationDialogProps {
@@ -98,6 +99,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>("time");
+  const [isReviewReady, setIsReviewReady] = useState(false);
   const [services, setServices] = useState<ClubService[]>([]);
   const [siteInfo, setSiteInfo] = useState<Site | null>(null);
   const [packageDays, setPackageDays] = useState<
@@ -118,6 +120,8 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [showMemberDropdown, setShowMemberDropdown] = useState(false);
   const [applyPaymentToPackage, setApplyPaymentToPackage] = useState(true);
+  const [ignoreWorkingHoursWarning, setIgnoreWorkingHoursWarning] =
+    useState(false);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -139,6 +143,14 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (currentStep === "review") {
+      setIsReviewReady(false);
+      const timer = setTimeout(() => setIsReviewReady(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
 
   React.useEffect(() => {
     if (isRecoveryZone) {
@@ -262,17 +274,27 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
     setIsOpen(open);
     if (open) {
       setCurrentStep("time");
+      setIgnoreWorkingHoursWarning(false);
       if (isEditMode && reservation) {
         reset({
           ...reservation,
           startTime: reservation.startTime.toDate(),
           endTime: reservation.endTime.toDate(),
+          clientName: reservation.clientName || "",
+          clientPhone: reservation.clientPhone || "",
+          clientEmail: reservation.clientEmail || "",
+          client2Name: reservation.client2Name || "",
+          client2Phone: reservation.client2Phone || "",
+          notes: reservation.notes || "",
         });
       } else {
         reset({
           clientName: "",
           clientPhone: "",
           clientEmail: "",
+          client2Name: "",
+          client2Phone: "",
+          notes: "",
           ...initialData,
         });
       }
@@ -345,7 +367,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
       if (isValid) {
         if (startTime) {
           const warning = checkWorkingHours(startTime);
-          if (warning) {
+          if (warning && !ignoreWorkingHoursWarning) {
             toast.error(warning, { duration: 5000 });
             return; // Block advancing if start time is invalid
           }
@@ -438,7 +460,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
       for (const p of packageDays) {
         if (p.startTime) {
           const warning = checkWorkingHours(p.startTime);
-          if (warning) {
+          if (warning && !ignoreWorkingHoursWarning) {
             toast.error(`Ден ${p.dayIndex + 1}: ${warning}`, {
               duration: 5000,
             });
@@ -655,18 +677,19 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
             paymentMethod: values.paymentMethod || "Cash",
           });
 
-          if (
-            result.success &&
-            reservation?.packageGroupId &&
-            applyPaymentToPackage &&
-            values.status !== reservation.status
-          ) {
+          if (result.success && reservation?.packageGroupId) {
             result = await updatePackageReservationsAction(
               token,
               reservation.packageGroupId,
               {
-                status: values.status || "unpaid",
-                paymentMethod: values.paymentMethod || "Cash",
+                ...dataToSave,
+                ...(applyPaymentToPackage &&
+                values.status !== reservation.status
+                  ? {
+                      status: values.status || "unpaid",
+                      paymentMethod: values.paymentMethod || "Cash",
+                    }
+                  : {}),
               }
             );
           }
@@ -780,17 +803,15 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
         <div className="p-8 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  // Only allow default enter submission on the final step
-                  if (currentStep !== "review") {
-                    e.preventDefault();
-                    handleNext();
-                  }
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (currentStep === "review") {
+                  form.handleSubmit(onSubmit)();
+                } else {
+                  handleNext();
                 }
               }}
+              className="space-y-6"
             >
               {/* Step 1: Time & Court */}
               {currentStep === "time" && (
@@ -1013,6 +1034,27 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                       }}
                     />
                   )}
+
+                  {/* Bypass Working Hours Checkbox */}
+                  <div className="flex items-center space-x-2 pt-4 border-t border-zinc-200/50">
+                    <input
+                      type="checkbox"
+                      id="ignoreWorkingHoursWarning"
+                      checked={ignoreWorkingHoursWarning}
+                      onChange={(e) =>
+                        setIgnoreWorkingHoursWarning(e.target.checked)
+                      }
+                      className="w-4 h-4 rounded text-cyan-600 focus:ring-cyan-500 border-zinc-300"
+                    />
+                    <label
+                      htmlFor="ignoreWorkingHoursWarning"
+                      className="text-[11px] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-600"
+                    >
+                      Игнорирай предупрежденията за извънработно време
+                      (маркирай, ако резервацията е потвърдена въпреки
+                      часа/деня)
+                    </label>
+                  </div>
                 </div>
               )}
 
@@ -1651,7 +1693,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
                 ) : (
                   <Button
                     type="submit"
-                    disabled={isSaving}
+                    disabled={isSaving || !isReviewReady}
                     className="flex-1 h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-primary/20 border-none"
                   >
                     {isSaving ? (
