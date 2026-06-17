@@ -19,8 +19,9 @@ export function CourtVisualizer({
   const isFrontRight = activeZone === "frontForehand";
   const isMidLeft = activeZone === "midBackhand";
   const isMidRight = activeZone === "midForehand";
-  const isBackLeft = activeZone === "backBackhand" || activeZone === "overhead";
-  const isBackRight = activeZone === "backForehand";
+  const isBackLeft = activeZone === "backBackhand";
+  const isBackRight =
+    activeZone === "backForehand" || activeZone === "overhead";
 
   // Zone colors: default is transparent. Active is a bright primary color (e.g. red or green depending on theme, but we use Tailwind bg-primary)
   const zoneClass = "transition-colors duration-200 border border-white/20";
@@ -31,7 +32,7 @@ export function CourtVisualizer({
   return (
     <div
       className={cn(
-        "relative w-full max-w-sm aspect-1/2 mx-auto bg-zinc-900 rounded-lg p-2 border-2 border-zinc-700 shadow-xl",
+        "relative w-full max-w-[280px] aspect-1/2 mx-auto bg-zinc-900 rounded-lg p-2 border-2 border-zinc-700 shadow-xl flex flex-col justify-between select-none",
         className
       )}
     >
@@ -49,7 +50,7 @@ export function CourtVisualizer({
             "rounded-tl-md relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Б</span>
+          <span className="text-white/10 font-bold text-[10px]">Бекхенд</span>
         </div>
         <div
           className={cn(
@@ -58,7 +59,7 @@ export function CourtVisualizer({
             "rounded-tr-md relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Ф</span>
+          <span className="text-white/10 font-bold text-[10px]">Форхенд</span>
         </div>
 
         {/* Mid zones */}
@@ -69,7 +70,7 @@ export function CourtVisualizer({
             "relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Б</span>
+          <span className="text-white/10 font-bold text-[10px]">Бекхенд</span>
         </div>
         <div
           className={cn(
@@ -78,7 +79,7 @@ export function CourtVisualizer({
             "relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Ф</span>
+          <span className="text-white/10 font-bold text-[10px]">Форхенд</span>
         </div>
 
         {/* Back zones */}
@@ -89,7 +90,7 @@ export function CourtVisualizer({
             "rounded-bl-md relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Б</span>
+          <span className="text-white/10 font-bold text-[10px]">Бекхенд</span>
         </div>
         <div
           className={cn(
@@ -98,7 +99,7 @@ export function CourtVisualizer({
             "rounded-br-md relative flex items-center justify-center"
           )}
         >
-          <span className="text-white/20 font-bold text-xs">Ф</span>
+          <span className="text-white/10 font-bold text-[10px]">Форхенд</span>
         </div>
       </div>
 

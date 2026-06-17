@@ -113,9 +113,12 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     {trainer.timeRemaining}
                   </div>
                   <p className="text-zinc-400 text-lg mt-2">
-                    {settings.mode === "agility_test" &&
-                    trainer.state === "working"
-                      ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
+                    {settings.mode === "agility_test"
+                      ? trainer.state === "working"
+                        ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
+                        : trainer.state === "countdown"
+                          ? "Подготовка..."
+                          : ""
                       : `Серия ${trainer.currentSet} от ${settings.sets}`}
                   </p>
                 </div>

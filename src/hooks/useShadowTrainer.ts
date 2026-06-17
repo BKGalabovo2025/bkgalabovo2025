@@ -96,8 +96,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (stateRef.current !== "working") return;
 
     if (settings.mode === "agility_test") {
-      if (agilityActionsDoneRef.current >= 20) {
-        // Stop agility test when 20 actions are done
+      if (agilityActionsDoneRef.current >= settings.workSec) {
+        // Stop agility test when settings.workSec actions are done
         setState("finished");
         cleanup();
         if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
@@ -213,11 +213,13 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         setAgilityActionsDone(0);
       } else {
         setTimeRemaining(settings.workSec); // count DOWN
+        setAgilityActionsDone(0);
       }
 
       if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.beep);
       requestWakeLock();
-      actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
+      // Trigger the first action immediately on transition start
+      actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
     } else if (stateRef.current === "working") {
       cleanup();
       setActiveZone(null);
