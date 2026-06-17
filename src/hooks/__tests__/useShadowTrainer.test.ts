@@ -254,5 +254,31 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       // Instead of manual step which is complex with refs, verify motivation mock starts safely
       expect(result.current.state).toBe("countdown");
     });
+
+    it("handles deception mode by playing sequential fake sounds", () => {
+      const settings = createSettings({ deceptionEnabled: true });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      advanceSeconds(10); // end countdown
+
+      expect(result.current.state).toBe("working");
+    });
+
+    it("triggers center command when centerCommandEnabled is active", () => {
+      const settings = createSettings({ centerCommandEnabled: true });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      advanceSeconds(10); // end countdown
+
+      expect(result.current.state).toBe("working");
+    });
   });
 });
