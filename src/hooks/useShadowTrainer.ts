@@ -278,20 +278,21 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       return;
     }
 
-    // Precise timer using Date.now() to avoid drift
+    let accumulatedMs = 0;
     let lastTick = Date.now();
 
     timerRef.current = setInterval(() => {
       const now = Date.now();
-      const deltaSec = Math.round((now - lastTick) / 1000);
       const deltaMs = now - lastTick;
+      lastTick = now;
+      accumulatedMs += deltaMs;
 
       if (stateRef.current === "working" || stateRef.current === "resting") {
         setActualElapsedMs((prev) => prev + deltaMs);
       }
 
-      if (deltaSec >= 1) {
-        lastTick = now;
+      if (accumulatedMs >= 1000) {
+        accumulatedMs -= 1000;
 
         setTimeRemaining((prev) => {
           const currentSettings = settingsRef.current;
@@ -303,7 +304,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           }
 
           if (prev <= 1) {
-            advanceState();
+            // Defer advanceState call to next tick to avoid state update loops inside setState
+            setTimeout(advanceState, 0);
             return 0;
           }
 
@@ -319,7 +321,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           return prev - 1;
         });
       }
-    }, 200); // Check more frequently to prevent drift
+    }, 100); // Poll more frequently for smooth ticks
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
