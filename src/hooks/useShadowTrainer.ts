@@ -51,6 +51,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wakeLockRef = useRef<any>(null); // any because WakeLockSentinel might not be in standard DOM types
 
+  const settingsRef = useRef(settings);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -65,6 +70,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   useEffect(() => {
     agilityActionsDoneRef.current = agilityActionsDone;
   }, [agilityActionsDone]);
+
+  const rotationGroupIndexRef = useRef(rotationGroupIndex);
+  useEffect(() => {
+    rotationGroupIndexRef.current = rotationGroupIndex;
+  }, [rotationGroupIndex]);
 
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
@@ -92,15 +102,16 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, []);
 
   const triggerNextAction = useCallback(() => {
-    if (!settings) return;
+    const currentSettings = settingsRef.current;
+    if (!currentSettings) return;
     if (stateRef.current !== "working") return;
 
-    if (settings.mode === "agility_test") {
-      if (agilityActionsDoneRef.current >= settings.workSec) {
+    if (currentSettings.mode === "agility_test") {
+      if (agilityActionsDoneRef.current >= currentSettings.workSec) {
         // Stop agility test when settings.workSec actions are done
         setState("finished");
         cleanup();
-        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
         return;
       }
       setAgilityActionsDone((prev) => prev + 1);
@@ -108,36 +119,36 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
     // Ghost match: random pace
     const pace =
-      settings.mode === "ghost_match"
+      currentSettings.mode === "ghost_match"
         ? Math.random() * 2 + 1.5
-        : settings.paceSec;
-    const zone = getRandomZoneForMode(settings.drillMode);
+        : currentSettings.paceSec;
+    const zone = getRandomZoneForMode(currentSettings.drillMode);
     setActiveZone(zone);
 
     let audioPath = AUDIO_PATHS.zones[zone];
     let secondAudioPath: string | null = null;
 
     if (
-      settings.calloutMode === "shots" ||
-      (settings.calloutMode === "mixed" && Math.random() > 0.5)
+      currentSettings.calloutMode === "shots" ||
+      (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
     ) {
       audioPath = getRandomShotForZone(zone);
-    } else if (settings.calloutMode === "zones_and_shots") {
+    } else if (currentSettings.calloutMode === "zones_and_shots") {
       audioPath = AUDIO_PATHS.zones[zone];
       secondAudioPath = getRandomShotForZone(zone);
     }
 
-    if (!settings.visualOnly) {
-      if (settings.deceptionEnabled && Math.random() < 0.1) {
-        const fakeZone = getRandomZoneForMode(settings.drillMode);
+    if (!currentSettings.visualOnly) {
+      if (currentSettings.deceptionEnabled && Math.random() < 0.1) {
+        const fakeZone = getRandomZoneForMode(currentSettings.drillMode);
         let fakePath = AUDIO_PATHS.zones[fakeZone];
         const secondFakePath: string | null = null;
         if (
-          settings.calloutMode === "shots" ||
-          (settings.calloutMode === "mixed" && Math.random() > 0.5)
+          currentSettings.calloutMode === "shots" ||
+          (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
         ) {
           fakePath = getRandomShotForZone(fakeZone);
-        } else if (settings.calloutMode === "zones_and_shots") {
+        } else if (currentSettings.calloutMode === "zones_and_shots") {
           fakePath = AUDIO_PATHS.zones[fakeZone];
           // Not playing a fake shot to keep it quick
         }
@@ -159,7 +170,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
     }
 
-    if (settings.centerCommandEnabled && !settings.visualOnly) {
+    if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
       setTimeout(
         () => {
           if (stateRef.current === "working") {
@@ -174,15 +185,16 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       setActiveZone(null); // clear highlight
       actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
     }, pace * 1000);
-  }, [settings, cleanup]);
+  }, [cleanup]);
 
   const speakMotivation = useCallback(() => {
-    if (!settings?.motivationEnabled) return;
+    const currentSettings = settingsRef.current;
+    if (!currentSettings?.motivationEnabled) return;
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-    const groupSize = settings.courtsAvailable || 1;
-    const startIndex = rotationGroupIndex * groupSize;
-    const currentPlayers = settings.activePlayers.slice(
+    const groupSize = currentSettings.courtsAvailable || 1;
+    const startIndex = rotationGroupIndexRef.current * groupSize;
+    const currentPlayers = currentSettings.activePlayers.slice(
       startIndex,
       startIndex + groupSize
     );
@@ -200,23 +212,24 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       msg.lang = "bg-BG";
       window.speechSynthesis.speak(msg);
     }
-  }, [settings, rotationGroupIndex]);
+  }, []);
 
   const advanceState = useCallback(() => {
-    if (!settings) return;
+    const currentSettings = settingsRef.current;
+    if (!currentSettings) return;
 
     if (stateRef.current === "countdown") {
       setState("working");
 
-      if (settings.mode === "agility_test") {
+      if (currentSettings.mode === "agility_test") {
         setTimeRemaining(0); // count UP
         setAgilityActionsDone(0);
       } else {
-        setTimeRemaining(settings.workSec); // count DOWN
+        setTimeRemaining(currentSettings.workSec); // count DOWN
         setAgilityActionsDone(0);
       }
 
-      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.beep);
+      if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.beep);
       requestWakeLock();
       // Trigger the first action immediately on transition start
       actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
@@ -225,26 +238,27 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       setActiveZone(null);
 
       if (
-        currentSetRef.current >= settings.sets ||
-        settings.mode === "agility_test"
+        currentSetRef.current >= currentSettings.sets ||
+        currentSettings.mode === "agility_test"
       ) {
         setState("finished");
-        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
       } else {
         setState("resting");
-        setTimeRemaining(settings.restSec);
-        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
+        setTimeRemaining(currentSettings.restSec);
+        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
       }
     } else if (stateRef.current === "resting") {
       setCurrentSet((c) => c + 1);
 
       if (
-        settings.courtsAvailable &&
-        settings.activePlayers.length > settings.courtsAvailable
+        currentSettings.courtsAvailable &&
+        currentSettings.activePlayers.length > currentSettings.courtsAvailable
       ) {
         setRotationGroupIndex((prev) => {
           const maxGroups = Math.ceil(
-            settings.activePlayers.length / settings.courtsAvailable
+            currentSettings.activePlayers.length /
+              currentSettings.courtsAvailable
           );
           return (prev + 1) % maxGroups;
         });
@@ -252,11 +266,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       setState("countdown");
       setTimeRemaining(10);
-      if (!settings.visualOnly) {
+      if (!currentSettings.visualOnly) {
         playAudio(AUDIO_PATHS.common.startSet);
       }
     }
-  }, [settings, cleanup, triggerNextAction]);
+  }, [cleanup, triggerNextAction]);
 
   useEffect(() => {
     if (state === "idle" || state === "finished" || state === "paused") {
@@ -280,9 +294,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         lastTick = now;
 
         setTimeRemaining((prev) => {
+          const currentSettings = settingsRef.current;
           if (
             stateRef.current === "working" &&
-            settings?.mode === "agility_test"
+            currentSettings?.mode === "agility_test"
           ) {
             return prev + 1; // Count UP
           }
@@ -294,9 +309,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
           if (
             stateRef.current === "working" &&
-            settings?.mode !== "agility_test" &&
+            currentSettings?.mode !== "agility_test" &&
             prev === 16 &&
-            settings?.motivationEnabled
+            currentSettings?.motivationEnabled
           ) {
             speakMotivation();
           }
@@ -309,7 +324,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [state, advanceState, settings, speakMotivation]);
+  }, [state, advanceState, speakMotivation]);
 
   const startTraining = useCallback(() => {
     if (!settings) return;

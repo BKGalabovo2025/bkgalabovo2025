@@ -16,9 +16,9 @@ export default async function ShadowTrainingPage() {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center min-h-full pb-20 pt-4 px-4 bg-zinc-50 dark:bg-black overflow-y-auto">
-      <div className="w-full max-w-4xl space-y-6">
-        <div>
+    <div className="flex-1 w-full flex flex-col items-center h-[calc(100vh-65px)] p-4 bg-zinc-50 dark:bg-black overflow-hidden">
+      <div className="w-full max-w-4xl flex flex-col h-full space-y-4">
+        <div className="shrink-0">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
             Shadow Training
             <Link href="/training/shadow/history">
@@ -32,7 +32,9 @@ export default async function ShadowTrainingPage() {
           </p>
         </div>
 
-        <ShadowWizard initialMembers={members} />
+        <div className="flex-1 min-h-0">
+          <ShadowWizard initialMembers={members} />
+        </div>
       </div>
     </div>
   );

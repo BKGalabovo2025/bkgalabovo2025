@@ -46,6 +46,16 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
 
   const handleSave = async () => {
     if (!user) return;
+
+    // Threshold verification: at least 10 seconds of actual exercise elapsed
+    const elapsedSeconds = (trainer.actualElapsedMs || 0) / 1000;
+    if (elapsedSeconds < 10) {
+      const confirmSave = confirm(
+        `Внимание: Тренировката е продължила само ${Math.round(elapsedSeconds)} секунди. Сигурни ли сте, че искате да я запишете в историята?`
+      );
+      if (!confirmSave) return;
+    }
+
     try {
       const token = await user.getIdToken();
       await createTrainingSessionAction(token, {
@@ -193,10 +203,10 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
   }
 
   return (
-    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
-      <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8 pb-12">
+    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm h-full flex flex-col overflow-hidden">
+      <CardContent className="p-4 sm:p-6 flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar space-y-6 sm:space-y-8 pb-12">
         {/* Wizard Progress */}
-        <div className="flex items-center justify-between mb-8 relative px-2">
+        <div className="flex items-center justify-between mb-8 relative px-2 shrink-0">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full z-0" />
           <div
             className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full z-0 transition-all duration-300"
