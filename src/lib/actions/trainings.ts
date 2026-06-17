@@ -71,11 +71,12 @@ export async function getGlobalTrainingSessionsAction(limitCount = 50) {
 }
 
 export async function getTrainingSessionsForMemberAction(
-  idToken: string,
+  _idToken: string,
   memberId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
     const db = getAdminDb();
 
     // memberIds is an array, we can use array-contains
@@ -98,12 +99,13 @@ export async function getTrainingSessionsForMemberAction(
 }
 
 export async function updateRpeScoresAction(
-  idToken: string,
+  _idToken: string,
   trainingId: string,
   scores: Record<string, number>
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
     const db = getAdminDb();
 
     await db.collection("trainings").doc(trainingId).set(
@@ -123,11 +125,12 @@ export async function updateRpeScoresAction(
 }
 
 export async function deleteTrainingSessionAction(
-  idToken: string,
+  _idToken: string,
   trainingId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
     const db = getAdminDb();
 
     await db.collection("trainings").doc(trainingId).delete();
