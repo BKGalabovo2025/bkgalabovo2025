@@ -10,12 +10,12 @@ export const AUDIO_PATHS = {
     center: "/shadow/common/tsentar.mp3",
   },
   zones: {
-    frontRight: "/shadow/zones/forhend_mrezha.mp3",
-    midRight: "/shadow/zones/forhend_sreda.mp3",
-    backRight: "/shadow/zones/forhend_zadna_linia.mp3",
-    frontLeft: "/shadow/zones/bekhend_mrezha.mp3",
-    midLeft: "/shadow/zones/bekhend_sreda.mp3",
-    backLeft: "/shadow/zones/bekhend_zadna_linia.mp3",
+    frontForehand: "/shadow/zones/forhend_mrezha.mp3",
+    midForehand: "/shadow/zones/forhend_sreda.mp3",
+    backForehand: "/shadow/zones/forhend_zadna_linia.mp3",
+    frontBackhand: "/shadow/zones/bekhend_mrezha.mp3",
+    midBackhand: "/shadow/zones/bekhend_sreda.mp3",
+    backBackhand: "/shadow/zones/bekhend_zadna_linia.mp3",
     overhead: "/shadow/zones/overhead_zadna_linia.mp3",
   },
   shots: {
@@ -44,12 +44,12 @@ export type ZoneId = keyof typeof AUDIO_PATHS.zones;
 export type ShotId = keyof typeof AUDIO_PATHS.shots;
 
 export const ZONE_NAMES: Record<ZoneId, string> = {
-  frontRight: "Форхенд Мрежа",
-  midRight: "Форхенд Среда",
-  backRight: "Форхенд Задна",
-  frontLeft: "Бекхенд Мрежа",
-  midLeft: "Бекхенд Среда",
-  backLeft: "Бекхенд Задна",
+  frontForehand: "Форхенд Мрежа",
+  midForehand: "Форхенд Среда",
+  backForehand: "Форхенд Задна",
+  frontBackhand: "Бекхенд Мрежа",
+  midBackhand: "Бекхенд Среда",
+  backBackhand: "Бекхенд Задна",
   overhead: "Оувърхед",
 };
 
@@ -65,11 +65,17 @@ export function getRandomZoneForMode(
 ): ZoneId {
   let pool = ZONES_ARRAY;
   if (modeType === "front_only") {
-    pool = ["frontRight", "frontLeft"];
+    pool = ["frontForehand", "frontBackhand"];
   } else if (modeType === "back_only") {
-    pool = ["backRight", "backLeft", "overhead"];
+    pool = ["backForehand", "backBackhand", "overhead"];
   } else if (modeType === "front_back") {
-    pool = ["frontRight", "frontLeft", "backRight", "backLeft", "overhead"];
+    pool = [
+      "frontForehand",
+      "frontBackhand",
+      "backForehand",
+      "backBackhand",
+      "overhead",
+    ];
   }
   const index = Math.floor(Math.random() * pool.length);
   return pool[index];
