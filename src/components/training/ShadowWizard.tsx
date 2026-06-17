@@ -20,7 +20,7 @@ interface Props {
 export function ShadowWizard({ initialMembers = [] }: Props) {
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [step, setStep] = useState(1);
   const [settings, setSettings] = useState<ShadowSettings>({
     mode: "standard",
@@ -33,14 +33,16 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     deceptionEnabled: false,
     motivationEnabled: false,
     visualOnly: false,
+    calloutMode: "zones",
+    centerCommandEnabled: false,
     activePlayers: [], // Empty initially
     courtsAvailable: 1,
   });
 
   const trainer = useShadowTrainer(step === 5 ? settings : null);
 
-  const handleNext = () => setStep(s => s + 1);
-  const handlePrev = () => setStep(s => s - 1);
+  const handleNext = () => setStep((s) => s + 1);
+  const handlePrev = () => setStep((s) => s - 1);
 
   const handleSave = async () => {
     if (!user) return;
@@ -50,19 +52,23 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         siteId: "bkgalabovo",
         type: "shadow",
         date: new Date().toISOString(),
-        memberIds: settings.activePlayers.map(p => p.id),
-        durationMs: settings.mode === "agility_test" 
-          ? trainer.timeRemaining * 1000 
-          : (settings.workSec + settings.restSec) * settings.sets * 1000,
+        memberIds: settings.activePlayers.map((p) => p.id),
+        durationMs:
+          settings.mode === "agility_test"
+            ? trainer.timeRemaining * 1000
+            : (settings.workSec + settings.restSec) * settings.sets * 1000,
         shadowDetails: {
           mode: settings.mode,
           preset: settings.preset as any,
           setsCompleted: trainer.currentSet,
           totalSets: settings.sets,
-          workTimeSec: settings.mode === "agility_test" ? trainer.timeRemaining : settings.workSec,
+          workTimeSec:
+            settings.mode === "agility_test"
+              ? trainer.timeRemaining
+              : settings.workSec,
           restTimeSec: settings.restSec,
           deceptionEnabled: settings.deceptionEnabled,
-        }
+        },
       });
       alert("Тренировката е запазена успешно!");
       router.push("/training/shadow/history");
@@ -78,42 +84,55 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         <Card className="border-none shadow-xl bg-zinc-900 overflow-hidden text-white relative">
           {trainer.state === "finished" && (
             <div className="absolute inset-0 bg-green-900/90 z-50 flex flex-col items-center justify-center space-y-4">
-               <CheckCircle2 size={64} className="text-green-400" />
-               <h2 className="text-2xl font-bold">Тренировката приключи!</h2>
-               <Button size="lg" onClick={handleSave} className="bg-white text-green-900 hover:bg-zinc-200">
-                 <Save className="mr-2 h-5 w-5" />
-                 Запази в историята
-               </Button>
+              <CheckCircle2 size={64} className="text-green-400" />
+              <h2 className="text-2xl font-bold">Тренировката приключи!</h2>
+              <Button
+                size="lg"
+                onClick={handleSave}
+                className="bg-white text-green-900 hover:bg-zinc-200"
+              >
+                <Save className="mr-2 h-5 w-5" />
+                Запази в историята
+              </Button>
             </div>
           )}
 
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
-              
               <div className="flex-1 w-full space-y-6">
                 <div className="text-center md:text-left">
                   <p className="text-zinc-400 uppercase tracking-widest text-sm font-semibold mb-1">
-                    {trainer.state === "countdown" ? "Приготви се..." : 
-                     trainer.state === "working" ? "РАБОТА" : 
-                     trainer.state === "resting" ? "ПОЧИВКА" : 
-                     trainer.state === "paused" ? "ПАУЗА" : ""}
+                    {trainer.state === "countdown"
+                      ? "Приготви се..."
+                      : trainer.state === "working"
+                        ? "РАБОТА"
+                        : trainer.state === "resting"
+                          ? "ПОЧИВКА"
+                          : trainer.state === "paused"
+                            ? "ПАУЗА"
+                            : ""}
                   </p>
                   <div className="text-8xl font-black tabular-nums tracking-tighter">
                     {trainer.timeRemaining}
                   </div>
                   <p className="text-zinc-400 text-lg mt-2">
-                    {settings.mode === "agility_test" && trainer.state === "working" 
+                    {settings.mode === "agility_test" &&
+                    trainer.state === "working"
                       ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
-                      : `Серия ${trainer.currentSet} от ${settings.sets}`
-                    }
+                      : `Серия ${trainer.currentSet} от ${settings.sets}`}
                   </p>
                 </div>
 
                 <div className="bg-zinc-800/50 p-4 rounded-xl">
-                  <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-2">На корта в момента:</h3>
+                  <h3 className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+                    На корта в момента:
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {trainer.currentRotationPlayers.map((p, i) => (
-                      <div key={i} className="px-3 py-1.5 bg-primary/20 text-primary rounded-md text-sm font-medium">
+                      <div
+                        key={i}
+                        className="px-3 py-1.5 bg-primary/20 text-primary rounded-md text-sm font-medium"
+                      >
                         {p.displayName}
                       </div>
                     ))}
@@ -122,21 +141,40 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
 
                 <div className="flex gap-3">
                   {trainer.state === "idle" ? (
-                    <Button size="lg" className="w-full h-14 text-lg" onClick={trainer.startTraining}>
+                    <Button
+                      size="lg"
+                      className="w-full h-14 text-lg"
+                      onClick={trainer.startTraining}
+                    >
                       <Play className="mr-2" /> СТАРТ
                     </Button>
                   ) : (
                     <>
                       {trainer.state === "paused" ? (
-                        <Button size="lg" variant="default" className="flex-1 h-14" onClick={trainer.resumeTraining}>
+                        <Button
+                          size="lg"
+                          variant="default"
+                          className="flex-1 h-14"
+                          onClick={trainer.resumeTraining}
+                        >
                           ПРОДЪЛЖИ
                         </Button>
                       ) : (
-                        <Button size="lg" variant="outline" className="flex-1 h-14 text-zinc-900" onClick={trainer.pauseTraining}>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="flex-1 h-14 text-zinc-900"
+                          onClick={trainer.pauseTraining}
+                        >
                           <Pause className="mr-2" /> ПАУЗА
                         </Button>
                       )}
-                      <Button size="lg" variant="destructive" className="flex-1 h-14" onClick={trainer.stopTraining}>
+                      <Button
+                        size="lg"
+                        variant="destructive"
+                        className="flex-1 h-14"
+                        onClick={trainer.stopTraining}
+                      >
                         <Square className="mr-2" /> СТОП
                       </Button>
                     </>
@@ -147,7 +185,6 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               <div className="flex-1 w-full max-w-sm">
                 <CourtVisualizer activeZone={trainer.activeZone} />
               </div>
-
             </div>
           </CardContent>
         </Card>
@@ -161,10 +198,16 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         {/* Wizard Progress */}
         <div className="flex items-center justify-between mb-8 relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full z-0" />
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full z-0 transition-all duration-300" style={{ width: `${((step - 1) / 3) * 100}%` }} />
-          
-          {[1, 2, 3, 4].map(num => (
-            <div key={num} className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-colors duration-300 font-bold text-sm ${step >= num ? "bg-primary text-primary-foreground" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"}`}>
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full z-0 transition-all duration-300"
+            style={{ width: `${((step - 1) / 3) * 100}%` }}
+          />
+
+          {[1, 2, 3, 4].map((num) => (
+            <div
+              key={num}
+              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-colors duration-300 font-bold text-sm ${step >= num ? "bg-primary text-primary-foreground" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"}`}
+            >
               {num}
             </div>
           ))}
@@ -174,27 +217,91 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           <div className="space-y-6 animate-in slide-in-from-right-4">
             <div>
               <h2 className="text-xl font-bold">1. Режим на тренировка</h2>
-              <p className="text-zinc-500 text-sm">Изберете типа на натоварването.</p>
+              <p className="text-zinc-500 text-sm">
+                Изберете типа на натоварването.
+              </p>
             </div>
-            
+
             <div className="space-y-3">
               {[
-                { id: "standard", title: "Стандартен", desc: "Свободна тренировка с фиксиран таймер и равномерни команди." },
-                { id: "ghost_match", title: "Ghost Match", desc: "Симулация на реален мач. Разиграванията и паузите са с различна дължина." },
-                { id: "agility_test", title: "Скоростен Тест", desc: "Тест за време на 20 зони. Измерва скоростта на придвижване." },
-              ].map(mode => (
-                <div key={mode.id} 
-                     onClick={() => setSettings({ 
-                       ...settings, 
-                       mode: mode.id as any,
-                       workSec: mode.id === "agility_test" ? 20 : 45,
-                       sets: mode.id === "agility_test" ? 1 : 3
-                     })}
-                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${settings.mode === mode.id ? "border-primary bg-primary/5" : "border-transparent bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800"}`}>
+                {
+                  id: "standard",
+                  title: "Стандартен",
+                  desc: "Свободна тренировка с фиксиран таймер и равномерни команди.",
+                },
+                {
+                  id: "ghost_match",
+                  title: "Ghost Match",
+                  desc: "Симулация на реален мач. Разиграванията и паузите са с различна дължина.",
+                },
+                {
+                  id: "agility_test",
+                  title: "Скоростен Тест",
+                  desc: "Тест за време на 20 зони. Измерва скоростта на придвижване.",
+                },
+              ].map((mode) => (
+                <div
+                  key={mode.id}
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      mode: mode.id as any,
+                      workSec: mode.id === "agility_test" ? 20 : 45,
+                      sets: mode.id === "agility_test" ? 1 : 3,
+                    })
+                  }
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${settings.mode === mode.id ? "border-primary bg-primary/5" : "border-transparent bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800"}`}
+                >
                   <h3 className="font-semibold">{mode.title}</h3>
                   <p className="text-sm text-zinc-500 mt-1">{mode.desc}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div>
+                <Label>Движение по корта</Label>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {[
+                    { id: "all", title: "Цял корт" },
+                    { id: "front_only", title: "Само мрежа" },
+                    { id: "back_only", title: "Само задна линия" },
+                    { id: "front_back", title: "Мрежа и Задна (без среда)" },
+                  ].map((d) => (
+                    <div
+                      key={d.id}
+                      onClick={() =>
+                        setSettings({ ...settings, drillMode: d.id as any })
+                      }
+                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.drillMode === d.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800"}`}
+                    >
+                      {d.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Произнасяне (Аудио)</Label>
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  {[
+                    { id: "zones", title: "Само Зони" },
+                    { id: "shots", title: "Само Удари" },
+                    { id: "mixed", title: "Смесено" },
+                    { id: "zones_and_shots", title: "Зони + Удари" },
+                  ].map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() =>
+                        setSettings({ ...settings, calloutMode: c.id as any })
+                      }
+                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.calloutMode === c.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800"}`}
+                    >
+                      {c.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -203,56 +310,79 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           <div className="space-y-6 animate-in slide-in-from-right-4">
             <div>
               <h2 className="text-xl font-bold">2. Участници и Ротация</h2>
-              <p className="text-zinc-500 text-sm">Кой тренира в момента и на колко корта?</p>
+              <p className="text-zinc-500 text-sm">
+                Кой тренира в момента и на колко корта?
+              </p>
             </div>
-            
+
             <div className="space-y-4">
               <div className="space-y-4">
                 <Label>Маркирай играчи</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950">
-                  {initialMembers.map(m => {
-                    const isChecked = settings.activePlayers.some(p => p.id === m.id);
+                  {initialMembers.map((m) => {
+                    const isChecked = settings.activePlayers.some(
+                      (p) => p.id === m.id
+                    );
                     return (
                       <div key={m.id} className="flex items-center gap-3">
-                        <Checkbox 
-                          id={`player-${m.id}`} 
+                        <Checkbox
+                          id={`player-${m.id}`}
                           checked={isChecked}
                           onCheckedChange={(c) => {
                             if (c) {
                               setSettings({
-                                ...settings, 
-                                activePlayers: [...settings.activePlayers, { id: m.id, displayName: `${m.firstName} ${m.lastName}` }]
+                                ...settings,
+                                activePlayers: [
+                                  ...settings.activePlayers,
+                                  {
+                                    id: m.id,
+                                    displayName: `${m.firstName} ${m.lastName}`,
+                                  },
+                                ],
                               });
                             } else {
                               setSettings({
-                                ...settings, 
-                                activePlayers: settings.activePlayers.filter(p => p.id !== m.id)
+                                ...settings,
+                                activePlayers: settings.activePlayers.filter(
+                                  (p) => p.id !== m.id
+                                ),
                               });
                             }
                           }}
                         />
-                        <label htmlFor={`player-${m.id}`} className="cursor-pointer text-sm font-medium">
+                        <label
+                          htmlFor={`player-${m.id}`}
+                          className="cursor-pointer text-sm font-medium"
+                        >
                           {m.firstName} {m.lastName}
                         </label>
                       </div>
                     );
                   })}
                   {initialMembers.length === 0 && (
-                    <div className="text-zinc-500 text-sm">Няма активни играчи.</div>
+                    <div className="text-zinc-500 text-sm">
+                      Няма активни играчи.
+                    </div>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2 pt-4">
                 <Label>Брой свободни кортове</Label>
-                <Input 
-                  type="number" 
-                  min={1} 
-                  value={settings.courtsAvailable} 
-                  onChange={e => setSettings({...settings, courtsAvailable: parseInt(e.target.value) || 1})} 
+                <Input
+                  type="number"
+                  min={1}
+                  value={settings.courtsAvailable}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      courtsAvailable: parseInt(e.target.value) || 1,
+                    })
+                  }
                 />
                 <p className="text-xs text-zinc-500">
-                  Ако маркирате повече играчи, отколкото са кортовете, системата автоматично ще ги ротира след всяка серия.
+                  Ако маркирате повече играчи, отколкото са кортовете, системата
+                  автоматично ще ги ротира след всяка серия.
                 </p>
               </div>
             </div>
@@ -263,25 +393,70 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           <div className="space-y-6 animate-in slide-in-from-right-4">
             <div>
               <h2 className="text-xl font-bold">3. Време и Програма</h2>
-              <p className="text-zinc-500 text-sm">Настройте интервалите на натоварване.</p>
+              <p className="text-zinc-500 text-sm">
+                Настройте интервалите на натоварване.
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Брой серии</Label>
-                <Input type="number" value={settings.sets} onChange={e => setSettings({...settings, sets: parseInt(e.target.value) || 1})} />
+                <Input
+                  type="number"
+                  value={settings.sets}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      sets: parseInt(e.target.value) || 1,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Темпо (сек. между команди)</Label>
-                <Input type="number" step="0.5" value={settings.paceSec} onChange={e => setSettings({...settings, paceSec: parseFloat(e.target.value) || 3})} />
+                <Input
+                  type="number"
+                  step="0.5"
+                  value={settings.paceSec}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      paceSec: parseFloat(e.target.value) || 3,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
-                <Label>{settings.mode === "agility_test" ? "Цел: Брой движения" : "Работа (секунди)"}</Label>
-                <Input type="number" value={settings.workSec} onChange={e => setSettings({...settings, workSec: parseInt(e.target.value) || (settings.mode === "agility_test" ? 20 : 45)})} />
+                <Label>
+                  {settings.mode === "agility_test"
+                    ? "Цел: Брой движения"
+                    : "Работа (секунди)"}
+                </Label>
+                <Input
+                  type="number"
+                  value={settings.workSec}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      workSec:
+                        parseInt(e.target.value) ||
+                        (settings.mode === "agility_test" ? 20 : 45),
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>Почивка (секунди)</Label>
-                <Input type="number" value={settings.restSec} onChange={e => setSettings({...settings, restSec: parseInt(e.target.value) || 15})} />
+                <Input
+                  type="number"
+                  value={settings.restSec}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      restSec: parseInt(e.target.value) || 15,
+                    })
+                  }
+                />
               </div>
             </div>
           </div>
@@ -290,47 +465,101 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         {step === 4 && (
           <div className="space-y-6 animate-in slide-in-from-right-4">
             <div>
-              <h2 className="text-xl font-bold">4. Разширени опции (God-Tier)</h2>
-              <p className="text-zinc-500 text-sm">Включете специалните модификатори.</p>
+              <h2 className="text-xl font-bold">
+                4. Разширени опции (God-Tier)
+              </h2>
+              <p className="text-zinc-500 text-sm">
+                Включете специалните модификатори.
+              </p>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-start space-x-3 bg-zinc-100 dark:bg-zinc-900 p-4 rounded-xl">
-                <Checkbox 
-                  id="deception" 
-                  checked={settings.deceptionEnabled} 
-                  onCheckedChange={(c) => setSettings({...settings, deceptionEnabled: !!c})}
+                <Checkbox
+                  id="deception"
+                  checked={settings.deceptionEnabled}
+                  onCheckedChange={(c) =>
+                    setSettings({ ...settings, deceptionEnabled: !!c })
+                  }
                   className="mt-1"
                 />
                 <div className="space-y-1 leading-none">
-                  <label htmlFor="deception" className="font-semibold cursor-pointer">Измамни удари (Deception)</label>
-                  <p className="text-sm text-zinc-500">Понякога аудиото сменя командата в последния момент, тренирайки баланса и рязкото спиране.</p>
+                  <label
+                    htmlFor="deception"
+                    className="font-semibold cursor-pointer"
+                  >
+                    Измамни удари (Deception)
+                  </label>
+                  <p className="text-sm text-zinc-500">
+                    Понякога аудиото сменя командата в последния момент,
+                    тренирайки баланса и рязкото спиране.
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-3 bg-zinc-100 dark:bg-zinc-900 p-4 rounded-xl">
-                <Checkbox 
-                  id="ai" 
-                  checked={settings.motivationEnabled} 
-                  onCheckedChange={(c) => setSettings({...settings, motivationEnabled: !!c})}
+                <Checkbox
+                  id="ai"
+                  checked={settings.motivationEnabled}
+                  onCheckedChange={(c) =>
+                    setSettings({ ...settings, motivationEnabled: !!c })
+                  }
                   className="mt-1"
                 />
                 <div className="space-y-1 leading-none">
-                  <label htmlFor="ai" className="font-semibold cursor-pointer">AI Мотивация (Глас)</label>
-                  <p className="text-sm text-zinc-500">Системата ще изговаря имената на децата (напр. "Давай, Иван!"), за да ги надъхва в края на серията.</p>
+                  <label htmlFor="ai" className="font-semibold cursor-pointer">
+                    AI Мотивация (Глас)
+                  </label>
+                  <p className="text-sm text-zinc-500">
+                    Системата ще изговаря имената на децата (напр. &quot;Давай,
+                    Иван!&quot;), за да ги надъхва в края на серията.
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-3 bg-zinc-100 dark:bg-zinc-900 p-4 rounded-xl">
-                <Checkbox 
-                  id="visual" 
-                  checked={settings.visualOnly} 
-                  onCheckedChange={(c) => setSettings({...settings, visualOnly: !!c})}
+                <Checkbox
+                  id="visual"
+                  checked={settings.visualOnly}
+                  onCheckedChange={(c) =>
+                    setSettings({ ...settings, visualOnly: !!c })
+                  }
                   className="mt-1"
                 />
                 <div className="space-y-1 leading-none">
-                  <label htmlFor="visual" className="font-semibold cursor-pointer">Visual Reaction Mode (Без звук)</label>
-                  <p className="text-sm text-zinc-500">Спира звука. Зоната само светва на екрана. Тренира периферното зрение.</p>
+                  <label
+                    htmlFor="visual"
+                    className="font-semibold cursor-pointer"
+                  >
+                    Visual Reaction Mode (Без звук)
+                  </label>
+                  <p className="text-sm text-zinc-500">
+                    Спира звука. Зоната само светва на екрана. Тренира
+                    периферното зрение.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 bg-zinc-100 dark:bg-zinc-900 p-4 rounded-xl">
+                <Checkbox
+                  id="center"
+                  checked={settings.centerCommandEnabled}
+                  onCheckedChange={(c) =>
+                    setSettings({ ...settings, centerCommandEnabled: !!c })
+                  }
+                  className="mt-1"
+                />
+                <div className="space-y-1 leading-none">
+                  <label
+                    htmlFor="center"
+                    className="font-semibold cursor-pointer"
+                  >
+                    Команда &quot;Център&quot;
+                  </label>
+                  <p className="text-sm text-zinc-500">
+                    Системата автоматично ще казва &quot;Център&quot; по средата
+                    на времето за изпълнение.
+                  </p>
                 </div>
               </div>
             </div>
@@ -338,11 +567,16 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         )}
 
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={handlePrev} disabled={step === 1}>Назад</Button>
+          <Button variant="outline" onClick={handlePrev} disabled={step === 1}>
+            Назад
+          </Button>
           {step < 4 ? (
             <Button onClick={handleNext}>Напред</Button>
           ) : (
-            <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 text-white font-bold">
+            <Button
+              onClick={handleNext}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold"
+            >
               <Play className="w-4 h-4 mr-2" /> СТАРТИРАЙ ТРЕНИРОВКА
             </Button>
           )}

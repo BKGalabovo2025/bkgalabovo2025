@@ -37,7 +37,7 @@ export const AUDIO_PATHS = {
     driveStraight: "/shadow/shots/plosko_po_prava.mp3",
     driveCross: "/shadow/shots/plosko_po_diagonal.mp3",
     defense: "/shadow/shots/zashtita.mp3",
-  }
+  },
 };
 
 export type ZoneId = keyof typeof AUDIO_PATHS.zones;
@@ -60,7 +60,9 @@ export function getRandomZone(): ZoneId {
   return ZONES_ARRAY[index];
 }
 
-export function getRandomZoneForMode(modeType: "all" | "front_only" | "back_only" | "front_back"): ZoneId {
+export function getRandomZoneForMode(
+  modeType: "all" | "front_only" | "back_only" | "front_back"
+): ZoneId {
   let pool = ZONES_ARRAY;
   if (modeType === "front_only") {
     pool = ["frontRight", "frontLeft"];
@@ -89,13 +91,15 @@ class AudioPool {
 
   // Call this inside a user interaction (e.g. onClick) to unlock on iOS/Safari
   public unlock() {
-    this.pool.forEach(a => {
+    this.pool.forEach((a) => {
       a.volume = 0;
-      a.play().then(() => {
-        a.pause();
-        a.currentTime = 0;
-        a.volume = 1;
-      }).catch(() => {});
+      a.play()
+        .then(() => {
+          a.pause();
+          a.currentTime = 0;
+          a.volume = 1;
+        })
+        .catch(() => {});
     });
   }
 
@@ -103,11 +107,11 @@ class AudioPool {
     if (this.pool.length === 0) return;
     const audio = this.pool[this.index];
     this.index = (this.index + 1) % this.pool.length;
-    
+
     audio.src = path;
     audio.currentTime = 0;
     audio.volume = 1;
-    audio.play().catch(e => console.log("Audio play error", e));
+    audio.play().catch((e) => console.log("Audio play error", e));
   }
 }
 
@@ -115,4 +119,41 @@ export const shadowAudioPool = new AudioPool(3);
 
 export function playAudio(path: string) {
   shadowAudioPool.play(path);
+}
+
+export const SHOTS_BY_ZONE_GROUP = {
+  front: [
+    "netKill",
+    "netStraight",
+    "netCross",
+    "liftStraight",
+    "liftCross",
+  ] as ShotId[],
+  mid: ["driveStraight", "driveCross", "defense"] as ShotId[],
+  back: [
+    "clearStraight",
+    "clearCross",
+    "smashStraight",
+    "smashCross",
+    "jumpSmashStraight",
+    "jumpSmashCross",
+    "halfSmashStraight",
+    "halfSmashCross",
+    "dropStraight",
+    "dropCross",
+  ] as ShotId[],
+};
+
+export function getRandomShotForZone(zone: ZoneId): string {
+  let shots: ShotId[] = [];
+  if (zone.startsWith("front")) {
+    shots = SHOTS_BY_ZONE_GROUP.front;
+  } else if (zone.startsWith("mid")) {
+    shots = SHOTS_BY_ZONE_GROUP.mid;
+  } else {
+    // backRight, backLeft, overhead
+    shots = SHOTS_BY_ZONE_GROUP.back;
+  }
+  const randomShotId = shots[Math.floor(Math.random() * shots.length)];
+  return AUDIO_PATHS.shots[randomShotId];
 }
