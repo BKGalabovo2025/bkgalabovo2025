@@ -331,4 +331,81 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       expect(result.current.state).toBe("working");
     });
   });
+
+  describe("Pause, Resume, Stop and Wake Lock", () => {
+    let wakeLockRequestMock: any;
+    let wakeLockReleaseMock: any;
+
+    beforeEach(() => {
+      wakeLockReleaseMock = vi.fn().mockResolvedValue(undefined);
+      wakeLockRequestMock = vi.fn().mockResolvedValue({
+        release: wakeLockReleaseMock,
+      });
+
+      if (typeof window !== "undefined") {
+        vi.stubGlobal("navigator", {
+          wakeLock: {
+            request: wakeLockRequestMock,
+          },
+        });
+      }
+    });
+
+    it("should request wake lock when training starts and release when paused/stopped", async () => {
+      const settings = createSettings();
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      // wait for microtasks to resolve so wakeLockRef.current is set
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // countdown state starts
+      expect(result.current.state).toBe("countdown");
+      expect(wakeLockRequestMock).toHaveBeenCalledWith("screen");
+
+      // Advance to working
+      advanceSeconds(10);
+      expect(result.current.state).toBe("working");
+
+      // Now pause training
+      act(() => {
+        result.current.pauseTraining();
+      });
+      expect(result.current.state).toBe("paused");
+      expect(wakeLockReleaseMock).toHaveBeenCalled();
+
+      // Now resume training
+      act(() => {
+        result.current.resumeTraining();
+      });
+      expect(result.current.state).toBe("working");
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(wakeLockRequestMock).toHaveBeenCalledTimes(3);
+
+      // Now stop training
+      act(() => {
+        result.current.stopTraining();
+      });
+      expect(result.current.state).toBe("finished");
+      expect(wakeLockReleaseMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("should handle null settings or empty activePlayers gracefully", () => {
+      const { result } = renderHook(() => useShadowTrainer(null));
+      expect(result.current.state).toBe("idle");
+
+      act(() => {
+        result.current.startTraining();
+      });
+      expect(result.current.state).toBe("idle"); // stays idle since settings are null
+    });
+  });
 });

@@ -6,6 +6,10 @@ import {
   getRandomZoneForMode,
   getRandomShotForZone,
   ZoneId,
+  playAudio,
+  playAudioSequence,
+  stopAudio,
+  shadowAudioManager,
 } from "../audio-map";
 
 describe("Shadow Training Audio Map & Helpers", () => {
@@ -76,6 +80,22 @@ describe("Shadow Training Audio Map & Helpers", () => {
       const shotPath = getRandomShotForZone("backForehand");
       expect(typeof shotPath).toBe("string");
       expect(shotPath).toContain("/shadow/shots/");
+    });
+  });
+
+  describe("AudioManager & Global Helpers", () => {
+    it("playAudio, playAudioSequence, stopAudio трябва да са дефинирани като функции", () => {
+      expect(typeof playAudio).toBe("function");
+      expect(typeof playAudioSequence).toBe("function");
+      expect(typeof stopAudio).toBe("function");
+    });
+
+    it("shadowAudioManager трябва да съществува с очакваните методи", () => {
+      expect(shadowAudioManager).toBeDefined();
+      expect(typeof shadowAudioManager.play).toBe("function");
+      expect(typeof shadowAudioManager.playSequence).toBe("function");
+      expect(typeof shadowAudioManager.stopAll).toBe("function");
+      expect(typeof shadowAudioManager.unlock).toBe("function");
     });
   });
 });
