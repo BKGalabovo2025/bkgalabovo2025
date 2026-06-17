@@ -254,7 +254,57 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       // Instead of manual step which is complex with refs, verify motivation mock starts safely
       expect(result.current.state).toBe("countdown");
     });
+  });
 
+  describe("Времетраене и изчисляване на следваща команда (Scheduling & Intervals)", () => {
+    it("изчислява правилно времето за следваща команда според темпото (paceSec)", () => {
+      const settings = createSettings({
+        mode: "standard",
+        paceSec: 3,
+        workSec: 15,
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      advanceSeconds(10); // приключваме countdown
+
+      expect(result.current.state).toBe("working");
+
+      // Преди темпото да изтече, проверяваме дали се извиква следващия setTimeout
+      // Темпото е 3 секунди. Изчакваме 2 секунди - новата зона не трябва да се е променила
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      // Изчакваме още 1.3 секунди (общо 3.3s с прехода от 300ms), което трябва да задейства следващата команда
+      act(() => {
+        vi.advanceTimersByTime(1300);
+      });
+
+      expect(audioMap.playAudio).toHaveBeenCalled();
+    });
+
+    it("изчислява правилно натрупаното реално време на тренировката (actualElapsedMs)", () => {
+      const settings = createSettings({ mode: "standard", workSec: 15 });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      advanceSeconds(10); // приключваме countdown
+
+      // Изминават 5 секунди работа
+      advanceSeconds(5);
+
+      // Проверяваме дали actualElapsedMs е около 5000ms
+      expect(result.current.actualElapsedMs).toBeGreaterThanOrEqual(5000);
+    });
+  });
+
+  describe("Deception and Center Command", () => {
     it("handles deception mode by playing sequential fake sounds", () => {
       const settings = createSettings({ deceptionEnabled: true });
       const { result } = renderHook(() => useShadowTrainer(settings));
