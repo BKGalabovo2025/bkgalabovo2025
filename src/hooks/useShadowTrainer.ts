@@ -7,6 +7,7 @@ import {
   getRandomZoneForMode,
   playAudio,
   playAudioSequence,
+  stopAudio,
   shadowAudioManager,
   getRandomShotForZone,
 } from "@/lib/shadow-training/audio-map";
@@ -249,7 +250,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       setState("countdown");
       setTimeRemaining(10);
-      // Removed immediate playAudio here to prevent race conditions with unlock
+      if (!settings.visualOnly) {
+        playAudio(AUDIO_PATHS.common.startSet);
+      }
     }
   }, [settings, cleanup, triggerNextAction]);
 
@@ -275,15 +278,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         lastTick = now;
 
         setTimeRemaining((prev) => {
-          if (
-            stateRef.current === "countdown" &&
-            prev === 10 &&
-            !settings?.visualOnly
-          ) {
-            // First tick of countdown
-            playAudio(AUDIO_PATHS.common.startSet);
-          }
-
           if (
             stateRef.current === "working" &&
             settings?.mode === "agility_test"
@@ -318,6 +312,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const startTraining = useCallback(() => {
     if (!settings) return;
     shadowAudioManager.unlock(); // Unlock audio on user gesture
+    stopAudio();
     requestWakeLock();
     setState("countdown");
     setCurrentSet(1);
@@ -325,11 +320,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setRotationGroupIndex(0);
     setAgilityActionsDone(0);
     setActualElapsedMs(0);
-    // Audio for startSet will play on first tick in useEffect
+    if (!settings.visualOnly) {
+      playAudio(AUDIO_PATHS.common.startSet);
+    }
   }, [settings]);
 
   const pauseTraining = useCallback(() => {
     setState("paused");
+    stopAudio();
     cleanup();
   }, [cleanup]);
 
@@ -343,6 +341,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const stopTraining = useCallback(() => {
     setState("finished");
+    stopAudio();
     cleanup();
   }, [cleanup]);
 

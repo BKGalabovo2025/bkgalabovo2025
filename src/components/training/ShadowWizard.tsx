@@ -190,10 +190,10 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
   }
 
   return (
-    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm max-h-[calc(100vh-80px)] overflow-y-auto">
-      <CardContent className="p-6 space-y-8 pb-12">
+    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+      <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8 pb-12">
         {/* Wizard Progress */}
-        <div className="flex items-center justify-between mb-8 relative">
+        <div className="flex items-center justify-between mb-8 relative px-2">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full z-0" />
           <div
             className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full z-0 transition-all duration-300"
@@ -228,7 +228,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 },
                 {
                   id: "ghost_match",
-                  title: "Ghost Match",
+                  title: "Симулация на мач (Ghost Match)",
                   desc: "Симулация на реален мач. Разиграванията и паузите са с различна дължина.",
                 },
                 {
@@ -255,10 +255,10 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               ))}
             </div>
 
-            <div className="space-y-4 pt-4 pb-8 border-t border-zinc-200 dark:border-zinc-800">
-              <div>
+            <div className="space-y-6 pt-6 pb-6 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="space-y-2">
                 <Label>Движение по корта</Label>
-                <div className="grid grid-cols-2 gap-3 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                   {[
                     { id: "all", title: "Цял корт" },
                     { id: "front_only", title: "Само мрежа" },
@@ -270,7 +270,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                       onClick={() =>
                         setSettings({ ...settings, drillMode: d.id as any })
                       }
-                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.drillMode === d.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800"}`}
+                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.drillMode === d.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
                     >
                       {d.title}
                     </div>
@@ -278,12 +278,12 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label>Произнасяне (Аудио)</Label>
-                <div className="grid grid-cols-3 gap-3 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
                   {[
-                    { id: "zones", title: "Само Зони" },
-                    { id: "shots", title: "Само Удари" },
+                    { id: "zones", title: "Само зони" },
+                    { id: "shots", title: "Само удари" },
                     { id: "mixed", title: "Смесено" },
                     { id: "zones_and_shots", title: "Зони + Удари" },
                   ].map((c) => (
@@ -292,7 +292,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                       onClick={() =>
                         setSettings({ ...settings, calloutMode: c.id as any })
                       }
-                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.calloutMode === c.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800"}`}
+                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.calloutMode === c.id ? "bg-primary/10 border-primary text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-850"}`}
                     >
                       {c.title}
                     </div>
@@ -313,15 +313,15 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Label>Маркирай играчи</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[250px] overflow-y-auto p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 custom-scrollbar">
                   {initialMembers.map((m) => {
                     const isChecked = settings.activePlayers.some(
                       (p) => p.id === m.id
                     );
                     return (
-                      <div key={m.id} className="flex items-center gap-3">
+                      <div key={m.id} className="flex items-center gap-3 py-1">
                         <Checkbox
                           id={`player-${m.id}`}
                           checked={isChecked}
@@ -349,7 +349,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                         />
                         <label
                           htmlFor={`player-${m.id}`}
-                          className="cursor-pointer text-sm font-medium"
+                          className="cursor-pointer text-sm font-medium select-none"
                         >
                           {m.firstName} {m.lastName}
                         </label>
@@ -364,7 +364,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-4">
+              <div className="space-y-2 pt-2">
                 <Label>Брой свободни кортове</Label>
                 <Input
                   type="number"
@@ -377,7 +377,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     })
                   }
                 />
-                <p className="text-xs text-zinc-500 mt-2">
+                <p className="text-xs text-zinc-500 mt-1">
                   Ако маркирате повече играчи, отколкото са кортовете, системата
                   автоматично ще ги ротира след всяка серия.
                 </p>
@@ -387,8 +387,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-3 rounded-lg text-sm mt-4">
                       <strong>Внимание:</strong> За {settings.courtsAvailable}{" "}
                       {settings.courtsAvailable === 1 ? "корт" : "корта"} са
-                      необходими поне {settings.courtsAvailable * 2} играчи.
-                      Може да има проблем с ротацията.
+                      необходими поне {settings.courtsAvailable * 2} играчи за
+                      пълно натоварване. Възможни са празни места при ротацията.
                     </div>
                   )}
               </div>
@@ -405,7 +405,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Брой серии</Label>
                 <Input
@@ -493,7 +493,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     htmlFor="deception"
                     className="font-semibold cursor-pointer"
                   >
-                    Измамни удари
+                    Измамни удари (Реакция)
                   </label>
                   <p className="text-sm text-zinc-500">
                     Понякога аудиото сменя командата в последния момент,
@@ -513,7 +513,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 />
                 <div className="space-y-1 leading-none">
                   <label htmlFor="ai" className="font-semibold cursor-pointer">
-                    AI Мотивация (Глас)
+                    AI Мотивация (Гласово надъхване)
                   </label>
                   <p className="text-sm text-zinc-500">
                     Системата ще изговаря имената на децата (напр. &quot;Давай,
@@ -536,7 +536,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     htmlFor="visual"
                     className="font-semibold cursor-pointer"
                   >
-                    Режим: Визуална реакция
+                    Визуален режим (без звук)
                   </label>
                   <p className="text-sm text-zinc-500">
                     Спира звука. Зоната само светва на екрана. Тренира
@@ -562,8 +562,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     Команда &quot;Център&quot;
                   </label>
                   <p className="text-sm text-zinc-500">
-                    Системата автоматично ще казва &quot;Център&quot; по средата
-                    на времето за изпълнение.
+                    Системата автоматично ще изисква връщане в центъра по
+                    средата на интервала.
                   </p>
                 </div>
               </div>
@@ -571,15 +571,34 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           </div>
         )}
 
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between pt-4 border-t border-zinc-100 dark:border-zinc-900">
           <Button variant="outline" onClick={handlePrev} disabled={step === 1}>
             Назад
           </Button>
           {step < 4 ? (
-            <Button onClick={handleNext}>Напред</Button>
+            <Button
+              onClick={() => {
+                if (step === 2) {
+                  if (settings.activePlayers.length === 0) {
+                    alert("Моля, изберете поне един играч!");
+                    return;
+                  }
+                }
+                handleNext();
+              }}
+            >
+              Напред
+            </Button>
           ) : (
             <Button
-              onClick={handleNext}
+              onClick={() => {
+                if (settings.activePlayers.length === 0) {
+                  alert("Трябва да изберете поне един играч в стъпка 2!");
+                  setStep(2);
+                  return;
+                }
+                handleNext();
+              }}
               className="bg-green-600 hover:bg-green-700 text-white font-bold"
             >
               <Play className="w-4 h-4 mr-2" /> СТАРТИРАЙ ТРЕНИРОВКА

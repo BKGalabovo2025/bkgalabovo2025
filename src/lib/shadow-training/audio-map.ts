@@ -85,6 +85,7 @@ class AudioManager {
   private currentAudio: HTMLAudioElement | null = null;
   private audioSequence: string[] = [];
   private sequenceIndex = 0;
+  private isPlaying = false;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -93,11 +94,13 @@ class AudioManager {
 
       this.currentAudio.onended = () => {
         this.sequenceIndex++;
-        if (this.sequenceIndex < this.audioSequence.length) {
+        if (this.sequenceIndex < this.audioSequence.length && this.isPlaying) {
           this.currentAudio!.src = this.audioSequence[this.sequenceIndex];
           this.currentAudio!.play().catch((e) =>
             console.log("Sequence play error", e)
           );
+        } else {
+          this.isPlaying = false;
         }
       };
     }
@@ -117,13 +120,24 @@ class AudioManager {
     }
   }
 
+  public stopAll() {
+    this.isPlaying = false;
+    this.audioSequence = [];
+    this.sequenceIndex = 0;
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.currentTime = 0;
+    }
+  }
+
   public play(path: string) {
     if (!this.currentAudio) return;
+    this.stopAll();
+
+    this.isPlaying = true;
     this.audioSequence = [path];
     this.sequenceIndex = 0;
 
-    this.currentAudio.pause();
-    this.currentAudio.currentTime = 0;
     this.currentAudio.src = path;
     this.currentAudio.volume = 1;
     this.currentAudio.play().catch((e) => console.log("Audio play error", e));
@@ -131,11 +145,12 @@ class AudioManager {
 
   public playSequence(paths: string[]) {
     if (!this.currentAudio || paths.length === 0) return;
+    this.stopAll();
+
+    this.isPlaying = true;
     this.audioSequence = paths;
     this.sequenceIndex = 0;
 
-    this.currentAudio.pause();
-    this.currentAudio.currentTime = 0;
     this.currentAudio.src = paths[0];
     this.currentAudio.volume = 1;
     this.currentAudio
@@ -152,6 +167,10 @@ export function playAudio(path: string) {
 
 export function playAudioSequence(paths: string[]) {
   shadowAudioManager.playSequence(paths);
+}
+
+export function stopAudio() {
+  shadowAudioManager.stopAll();
 }
 
 export const SHOTS_BY_ZONE_GROUP = {
