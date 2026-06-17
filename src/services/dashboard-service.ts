@@ -1,6 +1,6 @@
 import { Member, Sale, Product, ScheduleEvent } from "@/types";
 
-export type TotalRevenue = {
+type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }
 };
 

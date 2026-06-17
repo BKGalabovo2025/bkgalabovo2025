@@ -238,7 +238,7 @@ export const exportToCSV = <T extends Record<string, unknown>>(
 // ──────────────────────────────────────────────
 // FINANCIAL EXPORT
 // ──────────────────────────────────────────────
-export interface FinancialExportRow {
+interface FinancialExportRow {
   date: string;
   member: string;
   type: string;

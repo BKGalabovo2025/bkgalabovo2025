@@ -227,7 +227,7 @@ export async function createReservationAction(
         .where("startTime", "<", endTime)
         .get();
 
-      hasConflict = conflictingRes.docs.some((doc) => {
+      hasConflict = conflictingRes.docs.some((doc: any) => {
         const res = doc.data();
         return res.endTime > startTime;
       });
@@ -261,7 +261,7 @@ export async function createReservationAction(
           let usedArms = 0;
           let usedHips = 0;
 
-          overlappingRes.docs.forEach((doc) => {
+          overlappingRes.docs.forEach((doc: any) => {
             const res = doc.data();
             if (res.endTime > startTime && res.usedResources) {
               usedComp += res.usedResources.compressors || 0;
@@ -308,7 +308,7 @@ export async function createReservationAction(
         .where("siteId", "==", validated.siteId)
         .where("startTime", "<", endTime)
         .get();
-      hasBlocked = blockedSlots.docs.some((doc) => {
+      hasBlocked = blockedSlots.docs.some((doc: any) => {
         const slot = doc.data();
         const overlapsTime = slot.endTime > startTime;
         const appliesToCourt =
@@ -428,7 +428,7 @@ export async function updateReservationAction(
         .where("startTime", "<", endTime)
         .get();
 
-      hasConflict = conflictingRes.docs.some((doc) => {
+      hasConflict = conflictingRes.docs.some((doc: any) => {
         if (doc.id === reservationId) return false;
         const res = doc.data();
         return res.endTime > startTime;
@@ -1093,7 +1093,7 @@ export async function updatePackageReservationsAction(
       "notes",
     ];
 
-    reservationsSnap.docs.forEach((doc) => {
+    reservationsSnap.docs.forEach((doc: any) => {
       const updatePayload: any = {
         updatedAt: Timestamp.now(),
         updatedBy: {
@@ -1152,7 +1152,7 @@ export async function getPackageReservationsAction(
 
     if (snap.empty) return { success: true, data: [] };
 
-    const reservations = snap.docs.map((doc) => {
+    const reservations = snap.docs.map((doc: any) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -1164,7 +1164,7 @@ export async function getPackageReservationsAction(
       };
     });
     // Sort by startTime
-    reservations.sort((a, b) => {
+    reservations.sort((a: any, b: any) => {
       const timeA = new Date(a.startTime).getTime();
       const timeB = new Date(b.startTime).getTime();
       return timeA - timeB;

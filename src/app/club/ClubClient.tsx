@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import Image from "next/image";
@@ -49,6 +49,26 @@ export default function ClubClient({
   hallImages?: string[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
+  const [isWidgetVisible, setIsWidgetVisible] = useState(false);
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsWidgetVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: "300px" }
+    );
+
+    if (widgetRef.current) {
+      observer.observe(widgetRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -362,12 +382,14 @@ export default function ClubClient({
             <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <button
                 onClick={prevImage}
+                aria-label="Предишна снимка"
                 className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
               >
                 <ChevronLeft size={20} />
               </button>
               <button
                 onClick={nextImage}
+                aria-label="Следваща снимка"
                 className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
               >
                 <ChevronRight size={20} />
@@ -375,13 +397,18 @@ export default function ClubClient({
             </div>
 
             {/* Indicators */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
               {hallImages.map((_, i) => (
                 <button
                   key={i}
+                  aria-label={`Отиди на снимка ${i + 1}`}
                   onClick={() => setActiveImage(i)}
-                  className={`h-2 transition-all duration-300 rounded-full ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/30"}`}
-                />
+                  className="p-3 touch-manipulation flex items-center justify-center group"
+                >
+                  <div 
+                    className={`h-2 transition-all duration-300 rounded-full group-hover:bg-white/60 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/30"}`} 
+                  />
+                </button>
               ))}
             </div>
           </div>
@@ -512,20 +539,24 @@ export default function ClubClient({
                 </a>
               </div>
 
-              {/* Instagram Feed Widget */}
-              <div className="mt-8 overflow-hidden rounded-2xl relative w-full">
-                <Script
-                  src="https://elfsightcdn.com/platform.js"
-                  strategy="lazyOnload"
-                />
-                <div
-                  className="elfsight-app-38429d6c-a19f-4a06-97e0-33126f15eb84"
-                  data-elfsight-app-lazy
-                ></div>
-                <div
-                  className="elfsight-app-026b377a-abc3-4a27-9a45-85779cc6e70e"
-                  data-elfsight-app-lazy
-                ></div>
+              {/* Instagram Feed Widget (Lazy Loaded) */}
+              <div ref={widgetRef} className="mt-8 overflow-hidden rounded-2xl relative w-full min-h-[400px]">
+                {isWidgetVisible && (
+                  <>
+                    <Script
+                      src="https://elfsightcdn.com/platform.js"
+                      strategy="lazyOnload"
+                    />
+                    <div
+                      className="elfsight-app-38429d6c-a19f-4a06-97e0-33126f15eb84"
+                      data-elfsight-app-lazy
+                    ></div>
+                    <div
+                      className="elfsight-app-026b377a-abc3-4a27-9a45-85779cc6e70e"
+                      data-elfsight-app-lazy
+                    ></div>
+                  </>
+                )}
               </div>
             </div>
           </div>

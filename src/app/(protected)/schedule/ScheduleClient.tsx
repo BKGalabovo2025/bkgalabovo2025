@@ -19,11 +19,13 @@ import {
   History,
   LayoutGrid,
 } from "lucide-react";
-import { CreateEventDialog } from "@/components/schedule/CreateEventDialog";
-import { EditEventDialog } from "@/components/schedule/EditEventDialog";
-import { AttendeesDialog } from "@/components/schedule/AttendeesDialog";
-import MonthlyScheduleDialog from "@/components/schedule/MonthlyScheduleDialog";
+import dynamic from "next/dynamic";
 import { PrintableEvent } from "@/components/schedule/PrintableEvent";
+
+const CreateEventDialog = dynamic(() => import("@/components/schedule/CreateEventDialog").then(m => m.CreateEventDialog), { ssr: false });
+const EditEventDialog = dynamic(() => import("@/components/schedule/EditEventDialog").then(m => m.EditEventDialog), { ssr: false });
+const AttendeesDialog = dynamic(() => import("@/components/schedule/AttendeesDialog").then(m => m.AttendeesDialog), { ssr: false });
+const MonthlyScheduleDialog = dynamic(() => import("@/components/schedule/MonthlyScheduleDialog"), { ssr: false });
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
 import {
   AlertDialog,
@@ -52,9 +54,10 @@ import { useAppStore } from "@/store/use-app-store";
 
 // Reservations components
 import { AgendaView } from "@/components/reservations/agenda-view";
-import { ReservationDialog } from "@/components/reservations/reservation-dialog";
-import { BlockSlotDialog } from "@/components/reservations/block-slot-dialog";
 import { ReservationHistory } from "@/components/reservations/reservation-history";
+
+const ReservationDialog = dynamic(() => import("@/components/reservations/reservation-dialog").then(m => m.ReservationDialog), { ssr: false });
+const BlockSlotDialog = dynamic(() => import("@/components/reservations/block-slot-dialog").then(m => m.BlockSlotDialog), { ssr: false });
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
   training: "Тренировка",

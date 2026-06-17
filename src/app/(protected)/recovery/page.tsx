@@ -293,7 +293,7 @@ export default function RecoveryPage() {
                     {format(date, "EEEE, d MMMM yyyy", { locale: bg })}
                   </CardDescription>
                 </div>
-                <TabsList className="grid w-[400px] grid-cols-2">
+                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
                   <TabsTrigger value="available">Свободни часове</TabsTrigger>
                   <TabsTrigger value="existing">Резервации</TabsTrigger>
                 </TabsList>

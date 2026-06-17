@@ -89,4 +89,4 @@ if (
 const getDb = () => db;
 const getFirebaseAuth = () => auth;
 
-export { app, db, auth, getDb, getFirebaseAuth };
+export { db, getDb, getFirebaseAuth };

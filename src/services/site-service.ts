@@ -45,7 +45,7 @@ interface SiteDocumentData {
   faqs?: { q: string; a: string }[];
 }
 
-export const docToSite = (doc: {
+const docToSite = (doc: {
   id: string;
   exists: (() => boolean) | boolean;
   data: () => SiteDocumentData | undefined;

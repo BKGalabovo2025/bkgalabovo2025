@@ -314,7 +314,7 @@ export const getSalesCollection = () =>
 export const getClubServicesCollection = () =>
   collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
-export const getProductsCollection = () =>
+const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
 export const getTournamentCollection = () =>
@@ -326,7 +326,7 @@ export const getTournamentEntriesCollection = () =>
 export const getTournamentMatchesCollection = () =>
   collection(getDb(), "tournament_matches").withConverter(matchConverter);
 
-export const getInventoryEventsCollection = () =>
+const getInventoryEventsCollection = () =>
   collection(getDb(), "inventoryEvents").withConverter(inventoryEventConverter);
 
 export const getEventsCollection = () =>
@@ -335,18 +335,18 @@ export const getEventsCollection = () =>
 export const getTournamentsCollection = () =>
   collection(getDb(), "tournaments").withConverter(tournamentConverter);
 
-export const getClientPackagesCollection = () =>
+const getClientPackagesCollection = () =>
   collection(getDb(), "client_packages").withConverter(clientPackageConverter);
 
-export const getGeneralServicesCollection = () =>
+const getGeneralServicesCollection = () =>
   collection(getDb(), "clubGeneralServices").withConverter(
     generalServiceConverter
   );
 
-export const getReservationsCollection = () =>
+const getReservationsCollection = () =>
   collection(getDb(), "reservations").withConverter(reservationConverter);
 
-export const getBlockedSlotsCollection = () =>
+const getBlockedSlotsCollection = () =>
   collection(getDb(), "blockedSlots").withConverter(blockedSlotConverter);
 
 // --- Tenant-Aware Query Getters ---
@@ -524,7 +524,7 @@ export const getPriceHistoryQuery = () => {
 };
 
 // Recovery Zone Sessions
-export const getSessionsCollection = () =>
+const getSessionsCollection = () =>
   collection(getDb(), "sessions").withConverter(sessionConverter);
 
 export const getSessionsQuery = () => {

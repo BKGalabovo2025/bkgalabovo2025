@@ -74,7 +74,7 @@ export type PriceHistory = {
 /**
  * Defines the type for a group targeted by a service.
  */
-export type TargetGroup =
+type TargetGroup =
   | "Деца"
   | "Любители"
   | "Състезатели"
@@ -83,7 +83,7 @@ export type TargetGroup =
 /**
  * Defines a special right granted by a club service.
  */
-export type SpecialRight = {
+type SpecialRight = {
   right: "kartoteka" | "equipment";
   description: string;
   trigger: {
@@ -95,7 +95,7 @@ export type SpecialRight = {
 /**
  * Defines the cancellation policy for a club service.
  */
-export type CancellationPolicy = {
+type CancellationPolicy = {
   isAllowed: boolean;
   noticePeriodDays: number;
   feeType: "none" | "fixed" | "percentage";

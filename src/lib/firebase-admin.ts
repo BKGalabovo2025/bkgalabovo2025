@@ -122,4 +122,4 @@ const getAdminStorage = () => {
   return adminStorage;
 };
 
-export { getAdminDb, getAdminAuth, getAdminStorage, initializeFirebaseAdmin };
+export { getAdminDb, getAdminAuth, getAdminStorage };

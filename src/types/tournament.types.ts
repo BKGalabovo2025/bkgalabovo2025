@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-export const TournamentFormatEnum = z.enum(["berger", "knockout", "mixed"]);
-export const TournamentStatusEnum = z.enum([
+const TournamentFormatEnum = z.enum(["berger", "knockout", "mixed"]);
+const TournamentStatusEnum = z.enum([
   "upcoming",
   "registration_open",
   "ongoing",
   "completed",
 ]);
-export const MatchStatusEnum = z.enum(["pending", "in_progress", "completed"]);
-export const CategoryEnum = z.enum([
+const MatchStatusEnum = z.enum(["pending", "in_progress", "completed"]);
+const CategoryEnum = z.enum([
   "singles", // Единично
   "doubles", // Двойки
   "mixed", // Смесени двойки
@@ -171,7 +171,7 @@ export const TournamentEntrySchema = z.object({
 export type TournamentEntry = z.infer<typeof TournamentEntrySchema>;
 
 // 3. Схема за Мач
-export const MatchSchema = z.object({
+const MatchSchema = z.object({
   id: z.string().optional(),
   tournamentId: z.string(),
   categoryId: CategoryEnum,

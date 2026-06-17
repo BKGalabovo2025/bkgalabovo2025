@@ -128,7 +128,7 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
         <div className="relative z-10 w-full flex items-end justify-center gap-12 mb-32 px-12">
           {/* 2nd Place */}
           {topThree[1] && (
-            <div className="flex flex-col items-center w-[300px]">
+            <div className="flex flex-col items-center w-full max-w-[300px]">
               <div className="text-7xl mb-10 opacity-80">🥈</div>
               <div className="w-full bg-white border border-zinc-100 rounded-[60px] p-16 text-center shadow-xl">
                 <p className="text-4xl font-light text-zinc-900 truncate mb-6">
@@ -146,7 +146,7 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
 
           {/* 1st Place */}
           {topThree[0] && (
-            <div className="flex flex-col items-center w-[400px] mb-24">
+            <div className="flex flex-col items-center w-full max-w-[400px] mb-24">
               <div className="text-[140px] mb-12">🥇</div>
               <div className="w-full bg-zinc-950 rounded-[80px] p-24 text-center shadow-2xl relative">
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-zinc-950 border border-zinc-100 px-12 py-4 rounded-full font-medium text-2xl uppercase tracking-[0.3em] shadow-xl">
@@ -167,7 +167,7 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
 
           {/* 3rd Place */}
           {topThree[2] && (
-            <div className="flex flex-col items-center w-[300px]">
+            <div className="flex flex-col items-center w-full max-w-[300px]">
               <div className="text-7xl mb-10 opacity-80">🥉</div>
               <div className="w-full bg-white border border-zinc-100 rounded-[60px] p-16 text-center shadow-xl">
                 <p className="text-4xl font-light text-zinc-900 truncate mb-6">

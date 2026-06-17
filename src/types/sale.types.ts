@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Zod schema for a single item within a sale.
  */
-export const SaleItemSchema = z.object({
+const SaleItemSchema = z.object({
   productId: z.string().min(1, "Product ID is required."),
   name: z.string().min(1, "Product name is required."),
   quantity: z.number().int().positive("Quantity must be a positive integer."),

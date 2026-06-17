@@ -313,7 +313,7 @@ function snapToData<T>(
   } as T;
 }
 
-export interface Family {
+interface Family {
   id: string;
   name?: string;
   memberIds: string[];

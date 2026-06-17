@@ -13,7 +13,7 @@ export type SiteConfig = {
   };
 };
 
-export const SITES: Record<string, SiteConfig> = {
+const SITES: Record<string, SiteConfig> = {
   bkgalabovo: {
     id: "bkgalabovo",
     name: 'СНЦ "Бадминтон клуб Гълъбово"',

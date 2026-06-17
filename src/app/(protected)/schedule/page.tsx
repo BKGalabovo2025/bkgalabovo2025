@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default function SchedulePage() {
   return (
-    <div className="pb-12">
+    <main className="pb-12">
       <Suspense
         fallback={
           <div className="flex flex-col items-center justify-center py-40 space-y-6">
@@ -22,6 +22,6 @@ export default function SchedulePage() {
       >
         <ScheduleClient />
       </Suspense>
-    </div>
+    </main>
   );
 }

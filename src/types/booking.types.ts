@@ -16,7 +16,7 @@ export interface ResourceRequirements {
 /**
  * Defines the possible states for a reservation.
  */
-export type ReservationStatus =
+type ReservationStatus =
   | "cancelled"
   | "checked-in"
   | "completed"
@@ -28,7 +28,7 @@ export type ReservationStatus =
  * Represents a reservation in the system.
  * Ported from Recovery Zone to support multi-tenant booking logic.
  */
-export interface Reservation {
+interface Reservation {
   id: string;
   siteId: string; // Added for multi-tenancy
   serviceId: string; // Link to ClubService

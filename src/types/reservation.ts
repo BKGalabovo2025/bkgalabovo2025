@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
  * Defines the possible states for a reservation.
  * Combines Court statuses and Recovery Zone statuses.
  */
-export type ReservationStatus =
+type ReservationStatus =
   | "unpaid"
   | "paid"
   | "cancelled"

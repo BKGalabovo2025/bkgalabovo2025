@@ -39,7 +39,7 @@ export const docToProduct = (doc: DocumentSnapshot): Product | null => {
   return product;
 };
 
-export const docToInventoryEvent = (
+const docToInventoryEvent = (
   doc: DocumentSnapshot
 ): InventoryEvent | null => {
   if (!doc.id || !doc.exists()) {
