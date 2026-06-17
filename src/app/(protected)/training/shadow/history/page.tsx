@@ -1,5 +1,6 @@
 import { getGlobalTrainingSessionsAction } from "@/lib/actions/trainings";
-import { cookies } from "next/headers";
+import { getAllMembersServer } from "@/services/member-service.server";
+
 import {
   Card,
   CardHeader,
@@ -18,14 +19,19 @@ export const metadata = {
 };
 
 export default async function GlobalShadowHistoryPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value || "";
-  const res = await getGlobalTrainingSessionsAction(token, 100);
+  const [res, allMembers] = await Promise.all([
+    getGlobalTrainingSessionsAction(100),
+    getAllMembersServer().catch(() => []),
+  ]);
   const sessions = res.success ? res.data : [];
 
+  // Build a quick id -> name lookup map
+  const memberNameMap: Record<string, string> = {};
+  allMembers.forEach((m) => {
+    memberNameMap[m.id] = m.name || `${m.firstName} ${m.lastName}`.trim();
+  });
+
   // Group by member to calculate leaderboard
-  // (In real life we would resolve memberIds to real names. We are skipping exact name resolution here for brevity,
-  // but we can assume we'd join with members collection).
   const memberMinutes: Record<string, number> = {};
   sessions.forEach((s: any) => {
     s.memberIds.forEach((id: string) => {
@@ -35,7 +41,11 @@ export default async function GlobalShadowHistoryPage() {
   });
 
   const leaderboard = Object.entries(memberMinutes)
-    .map(([id, min]) => ({ id, min }))
+    .map(([id, min]) => ({
+      id,
+      min,
+      name: memberNameMap[id] || `#${id.slice(0, 8)}`,
+    }))
     .sort((a, b) => b.min - a.min)
     .slice(0, 5);
 
@@ -87,7 +97,7 @@ export default async function GlobalShadowHistoryPage() {
                         <div className="font-bold text-lg text-zinc-400 w-4">
                           {idx + 1}.
                         </div>
-                        <div className="font-medium">Играч {lb.id}</div>
+                        <div className="font-medium">{lb.name}</div>
                       </div>
                       <div className="text-primary font-bold">
                         {Math.round(lb.min)} мин

@@ -1,7 +1,7 @@
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
+import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { TrainingSession } from "@/types/training.types";
@@ -31,19 +31,25 @@ export async function createTrainingSessionAction(
     revalidatePath("/training");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, id: docRef.id, message: "Тренировката е запазена успешно." };
+    return {
+      success: true,
+      id: docRef.id,
+      message: "Тренировката е запазена успешно.",
+    };
   } catch (error: any) {
     console.error("Error saving training:", error);
-    return { success: false, message: error.message || "Грешка при запазване." };
+    return {
+      success: false,
+      message: error.message || "Грешка при запазване.",
+    };
   }
 }
 
-export async function getGlobalTrainingSessionsAction(
-  idToken: string,
-  limitCount = 50
-) {
+export async function getGlobalTrainingSessionsAction(limitCount = 50) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
+
     const db = getAdminDb();
 
     const snapshot = await db
@@ -133,6 +139,9 @@ export async function deleteTrainingSessionAction(
     return { success: true, message: "Тренировката е изтрита успешно." };
   } catch (error: any) {
     console.error("Error deleting training:", error);
-    return { success: false, message: error.message || "Грешка при изтриване." };
+    return {
+      success: false,
+      message: error.message || "Грешка при изтриване.",
+    };
   }
 }
