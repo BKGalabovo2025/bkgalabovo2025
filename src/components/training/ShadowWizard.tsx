@@ -51,13 +51,15 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         type: "shadow",
         date: new Date().toISOString(),
         memberIds: settings.activePlayers.map(p => p.id),
-        durationMs: (settings.workSec + settings.restSec) * settings.sets * 1000,
+        durationMs: settings.mode === "agility_test" 
+          ? trainer.timeRemaining * 1000 
+          : (settings.workSec + settings.restSec) * settings.sets * 1000,
         shadowDetails: {
           mode: settings.mode,
           preset: settings.preset as any,
           setsCompleted: trainer.currentSet,
           totalSets: settings.sets,
-          workTimeSec: settings.workSec,
+          workTimeSec: settings.mode === "agility_test" ? trainer.timeRemaining : settings.workSec,
           restTimeSec: settings.restSec,
           deceptionEnabled: settings.deceptionEnabled,
         }
@@ -100,7 +102,10 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     {trainer.timeRemaining}
                   </div>
                   <p className="text-zinc-400 text-lg mt-2">
-                    Серия {trainer.currentSet} от {settings.sets}
+                    {settings.mode === "agility_test" && trainer.state === "working" 
+                      ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
+                      : `Серия ${trainer.currentSet} от ${settings.sets}`
+                    }
                   </p>
                 </div>
 
@@ -179,7 +184,12 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 { id: "agility_test", title: "Скоростен Тест", desc: "Тест за време на 20 зони. Измерва скоростта на придвижване." },
               ].map(mode => (
                 <div key={mode.id} 
-                     onClick={() => setSettings({ ...settings, mode: mode.id as any })}
+                     onClick={() => setSettings({ 
+                       ...settings, 
+                       mode: mode.id as any,
+                       workSec: mode.id === "agility_test" ? 20 : 45,
+                       sets: mode.id === "agility_test" ? 1 : 3
+                     })}
                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${settings.mode === mode.id ? "border-primary bg-primary/5" : "border-transparent bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800"}`}>
                   <h3 className="font-semibold">{mode.title}</h3>
                   <p className="text-sm text-zinc-500 mt-1">{mode.desc}</p>
@@ -266,8 +276,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 <Input type="number" step="0.5" value={settings.paceSec} onChange={e => setSettings({...settings, paceSec: parseFloat(e.target.value) || 3})} />
               </div>
               <div className="space-y-2">
-                <Label>Работа (секунди)</Label>
-                <Input type="number" value={settings.workSec} onChange={e => setSettings({...settings, workSec: parseInt(e.target.value) || 45})} />
+                <Label>{settings.mode === "agility_test" ? "Цел: Брой движения" : "Работа (секунди)"}</Label>
+                <Input type="number" value={settings.workSec} onChange={e => setSettings({...settings, workSec: parseInt(e.target.value) || (settings.mode === "agility_test" ? 20 : 45)})} />
               </div>
               <div className="space-y-2">
                 <Label>Почивка (секунди)</Label>

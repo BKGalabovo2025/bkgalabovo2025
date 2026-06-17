@@ -2,41 +2,41 @@
 
 export const AUDIO_PATHS = {
   common: {
-    startSet: "/shadow/common/podgotvi_se.mp3.mp3", // Could be used for 10s countdown
-    beep: "/shadow/common/lek_podskok.mp3.mp3", // Could be used as tick or beep
-    endSet: "/shadow/common/krai.mp3.mp3",
-    rest: "/shadow/common/pochivka.mp3.mp3",
-    endRest: "/shadow/common/krai_pochivka.mp3.mp3",
-    center: "/shadow/common/tsentar.mp3.mp3",
+    startSet: "/shadow/common/podgotvi_se.mp3", // Could be used for 10s countdown
+    beep: "/shadow/common/lek_podskok.mp3", // Could be used as tick or beep
+    endSet: "/shadow/common/krai.mp3",
+    rest: "/shadow/common/pochivka.mp3",
+    endRest: "/shadow/common/krai_pochivka.mp3",
+    center: "/shadow/common/tsentar.mp3",
   },
   zones: {
-    frontRight: "/shadow/zones/forhend_mrezha.mp3.mp3",
-    midRight: "/shadow/zones/forhend_sreda.mp3.mp3",
-    backRight: "/shadow/zones/forhend_zadna_linia.mp3.mp3",
-    frontLeft: "/shadow/zones/bekhend_mrezha.mp3.mp3",
-    midLeft: "/shadow/zones/bekhend_sreda.mp3.mp3",
-    backLeft: "/shadow/zones/bekhend_zadna_linia.mp3.mp3",
-    overhead: "/shadow/zones/overhead_zadna_linia.mp3.mp3",
+    frontRight: "/shadow/zones/forhend_mrezha.mp3",
+    midRight: "/shadow/zones/forhend_sreda.mp3",
+    backRight: "/shadow/zones/forhend_zadna_linia.mp3",
+    frontLeft: "/shadow/zones/bekhend_mrezha.mp3",
+    midLeft: "/shadow/zones/bekhend_sreda.mp3",
+    backLeft: "/shadow/zones/bekhend_zadna_linia.mp3",
+    overhead: "/shadow/zones/overhead_zadna_linia.mp3",
   },
   shots: {
-    clearStraight: "/shadow/shots/iztegliane_po_prava.mp3.mp3",
-    clearCross: "/shadow/shots/iztegliane_po_diagonal.mp3.mp3",
-    smashStraight: "/shadow/shots/smach_po_prava.mp3.mp3",
-    smashCross: "/shadow/shots/smach_po_diagonal.mp3.mp3",
-    jumpSmashStraight: "/shadow/shots/smach_s_otskok_po_prava.mp3.mp3",
-    jumpSmashCross: "/shadow/shots/smach_s_otskok_po_diagonal.mp3.mp3",
-    halfSmashStraight: "/shadow/shots/polusmach_po_prava.mp3.mp3",
-    halfSmashCross: "/shadow/shots/polusmach_po_diagonal.mp3.mp3",
-    dropStraight: "/shadow/shots/skasiavane_prava.mp3.mp3",
-    dropCross: "/shadow/shots/skasiavane_po_diagonal.mp3.mp3",
-    netKill: "/shadow/shots/dobivane.mp3.mp3",
-    netStraight: "/shadow/shots/kuso_prava.mp3.mp3",
-    netCross: "/shadow/shots/kuso_diagonal.mp3.mp3",
+    clearStraight: "/shadow/shots/iztegliane_po_prava.mp3",
+    clearCross: "/shadow/shots/iztegliane_po_diagonal.mp3",
+    smashStraight: "/shadow/shots/smach_po_prava.mp3",
+    smashCross: "/shadow/shots/smach_po_diagonal.mp3",
+    jumpSmashStraight: "/shadow/shots/smach_s_otskok_po_prava.mp3",
+    jumpSmashCross: "/shadow/shots/smach_s_otskok_po_diagonal.mp3",
+    halfSmashStraight: "/shadow/shots/polusmach_po_prava.mp3",
+    halfSmashCross: "/shadow/shots/polusmach_po_diagonal.mp3",
+    dropStraight: "/shadow/shots/skasiavane_prava.mp3",
+    dropCross: "/shadow/shots/skasiavane_po_diagonal.mp3",
+    netKill: "/shadow/shots/dobivane.mp3",
+    netStraight: "/shadow/shots/kuso_prava.mp3",
+    netCross: "/shadow/shots/kuso_diagonal.mp3",
     liftStraight: "/shadow/shots/dulgo_po_prava.mp3", // Only 1 .mp3 extension here
-    liftCross: "/shadow/shots/dulgo_po_diagonal.mp3.mp3",
-    driveStraight: "/shadow/shots/plosko_po_prava.mp3.mp3",
-    driveCross: "/shadow/shots/plosko_po_diagonal.mp3.mp3",
-    defense: "/shadow/shots/zashtita.mp3.mp3",
+    liftCross: "/shadow/shots/dulgo_po_diagonal.mp3",
+    driveStraight: "/shadow/shots/plosko_po_prava.mp3",
+    driveCross: "/shadow/shots/plosko_po_diagonal.mp3",
+    defense: "/shadow/shots/zashtita.mp3",
   }
 };
 
@@ -73,8 +73,46 @@ export function getRandomZoneForMode(modeType: "all" | "front_only" | "back_only
   return pool[index];
 }
 
+class AudioPool {
+  private pool: HTMLAudioElement[] = [];
+  private index = 0;
+
+  constructor(size = 3) {
+    if (typeof window !== "undefined") {
+      for (let i = 0; i < size; i++) {
+        const audio = new Audio();
+        audio.preload = "auto";
+        this.pool.push(audio);
+      }
+    }
+  }
+
+  // Call this inside a user interaction (e.g. onClick) to unlock on iOS/Safari
+  public unlock() {
+    this.pool.forEach(a => {
+      a.volume = 0;
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+        a.volume = 1;
+      }).catch(() => {});
+    });
+  }
+
+  public play(path: string) {
+    if (this.pool.length === 0) return;
+    const audio = this.pool[this.index];
+    this.index = (this.index + 1) % this.pool.length;
+    
+    audio.src = path;
+    audio.currentTime = 0;
+    audio.volume = 1;
+    audio.play().catch(e => console.log("Audio play error", e));
+  }
+}
+
+export const shadowAudioPool = new AudioPool(3);
+
 export function playAudio(path: string) {
-  if (typeof window === "undefined") return;
-  const audio = new Audio(path);
-  audio.play().catch((e) => console.log("Audio play error", e));
+  shadowAudioPool.play(path);
 }

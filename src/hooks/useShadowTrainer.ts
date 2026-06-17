@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AUDIO_PATHS, ZoneId, getRandomZoneForMode, playAudio } from "@/lib/shadow-training/audio-map";
+import { AUDIO_PATHS, ZoneId, getRandomZoneForMode, playAudio, shadowAudioPool } from "@/lib/shadow-training/audio-map";
 
 export type TrainerState = "idle" | "countdown" | "working" | "resting" | "finished" | "paused";
 
@@ -10,7 +10,7 @@ export interface ShadowSettings {
   preset: string;
   drillMode: "all" | "front_only" | "back_only" | "front_back";
   sets: number;
-  workSec: number;
+  workSec: number; // For agility_test, this will be the Target Actions
   restSec: number;
   paceSec: number;
   deceptionEnabled: boolean;
@@ -23,46 +23,70 @@ export interface ShadowSettings {
 export function useShadowTrainer(settings: ShadowSettings | null) {
   const [state, setState] = useState<TrainerState>("idle");
   const [currentSet, setCurrentSet] = useState(1);
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(0); // Also used as elapsed time in agility
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
-
-  // Rotation logic
   const [rotationGroupIndex, setRotationGroupIndex] = useState(0);
+  const [agilityActionsDone, setAgilityActionsDone] = useState(0);
 
-  // Refs for intervals and timeouts
+  // Refs for intervals, timeouts, and wake lock
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // To track exact pause state
+  const wakeLockRef = useRef<any>(null); // any because WakeLockSentinel might not be in standard DOM types
+
   const stateRef = useRef(state);
   useEffect(() => { stateRef.current = state; }, [state]);
-
-  const timeRemainingRef = useRef(timeRemaining);
-  useEffect(() => { timeRemainingRef.current = timeRemaining; }, [timeRemaining]);
 
   const currentSetRef = useRef(currentSet);
   useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
 
+  const agilityActionsDoneRef = useRef(agilityActionsDone);
+  useEffect(() => { agilityActionsDoneRef.current = agilityActionsDone; }, [agilityActionsDone]);
+
+  const requestWakeLock = async () => {
+    if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      try {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+      } catch (err) {
+        console.log("Wake Lock error:", err);
+      }
+    }
+  };
+
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  };
+
   const cleanup = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
+    releaseWakeLock();
   }, []);
 
   const triggerNextAction = useCallback(() => {
     if (!settings) return;
     if (stateRef.current !== "working") return;
 
+    if (settings.mode === "agility_test") {
+      if (agilityActionsDoneRef.current >= 20) {
+        // Stop agility test when 20 actions are done
+        setState("finished");
+        cleanup();
+        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+        return;
+      }
+      setAgilityActionsDone(prev => prev + 1);
+    }
+
     // Ghost match: random pace
     const pace = settings.mode === "ghost_match" ? (Math.random() * 2 + 1.5) : settings.paceSec;
-
-    // Pick random zone
     const zone = getRandomZoneForMode(settings.drillMode);
     setActiveZone(zone);
 
     if (!settings.visualOnly) {
-      // Deception logic
       if (settings.deceptionEnabled && Math.random() < 0.1) {
-        // Fake another zone first
         const fakeZone = getRandomZoneForMode(settings.drillMode);
         playAudio(AUDIO_PATHS.zones[fakeZone]);
         setTimeout(() => {
@@ -74,20 +98,17 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
     }
 
-    // Schedule next action
     actionTimeoutRef.current = setTimeout(() => {
       setActiveZone(null); // clear highlight
-      // Add slight delay before next call
       actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
     }, pace * 1000);
 
-  }, [settings]);
+  }, [settings, cleanup]);
 
   const speakMotivation = useCallback(() => {
     if (!settings?.motivationEnabled) return;
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     
-    // Pick a random player from current rotation
     const groupSize = settings.courtsAvailable || 1;
     const startIndex = rotationGroupIndex * groupSize;
     const currentPlayers = settings.activePlayers.slice(startIndex, startIndex + groupSize);
@@ -95,9 +116,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (currentPlayers.length > 0) {
       const randomPlayer = currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
       const phrases = [
-        `Давай, ${randomPlayer.displayName}!`,
-        `Още малко, ${randomPlayer.displayName}!`,
-        `Дръж стойката, ${randomPlayer.displayName}!`
+        `Давай, ${randomPlayer.displayName.split(" ")[0]}!`,
+        `Още малко, ${randomPlayer.displayName.split(" ")[0]}!`,
+        `Дръж стойката, ${randomPlayer.displayName.split(" ")[0]}!`
       ];
       const text = phrases[Math.floor(Math.random() * phrases.length)];
       const msg = new SpeechSynthesisUtterance(text);
@@ -110,38 +131,35 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (!settings) return;
     
     if (stateRef.current === "countdown") {
-      // Countdown finished -> Start Working
       setState("working");
-      setTimeRemaining(settings.workSec);
       
-      if (!settings.visualOnly) {
-        playAudio(AUDIO_PATHS.common.startSet);
+      if (settings.mode === "agility_test") {
+        setTimeRemaining(0); // count UP
+        setAgilityActionsDone(0);
+      } else {
+        setTimeRemaining(settings.workSec); // count DOWN
       }
-
-      // Start the action loop
+      
+      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.startSet);
+      requestWakeLock();
       actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
     } 
     else if (stateRef.current === "working") {
       cleanup();
       setActiveZone(null);
       
-      if (currentSetRef.current >= settings.sets) {
-        // Finished everything
+      if (currentSetRef.current >= settings.sets || settings.mode === "agility_test") {
         setState("finished");
-        setTimeRemaining(0);
         if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
       } else {
-        // Go to rest
         setState("resting");
         setTimeRemaining(settings.restSec);
         if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
       }
     }
     else if (stateRef.current === "resting") {
-      // Rest finished -> Next Set
       setCurrentSet(c => c + 1);
       
-      // Handle Rotation
       if (settings.courtsAvailable && settings.activePlayers.length > settings.courtsAvailable) {
         setRotationGroupIndex(prev => {
           const maxGroups = Math.ceil(settings.activePlayers.length / settings.courtsAvailable);
@@ -150,7 +168,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
 
       setState("countdown");
-      setTimeRemaining(10); // 10s countdown before next set
+      setTimeRemaining(10);
       if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
     }
   }, [settings, cleanup, triggerNextAction]);
@@ -161,21 +179,33 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       return;
     }
 
+    // Precise timer using Date.now() to avoid drift
+    let lastTick = Date.now();
+    
     timerRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          advanceState();
-          return 0;
-        }
+      const now = Date.now();
+      const deltaSec = Math.round((now - lastTick) / 1000);
+      if (deltaSec >= 1) {
+        lastTick = now;
+        
+        setTimeRemaining(prev => {
+          if (stateRef.current === "working" && settings?.mode === "agility_test") {
+            return prev + 1; // Count UP
+          }
+          
+          if (prev <= 1) {
+            advanceState();
+            return 0;
+          }
 
-        // TTS Motivation hook (at 15s left in work state)
-        if (stateRef.current === "working" && prev === 16 && settings?.motivationEnabled) {
-           speakMotivation();
-        }
+          if (stateRef.current === "working" && settings?.mode !== "agility_test" && prev === 16 && settings?.motivationEnabled) {
+             speakMotivation();
+          }
 
-        return prev - 1;
-      });
-    }, 1000);
+          return prev - 1;
+        });
+      }
+    }, 200); // Check more frequently to prevent drift
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -184,11 +214,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const startTraining = useCallback(() => {
     if (!settings) return;
+    shadowAudioPool.unlock(); // Unlock audio on user gesture
+    requestWakeLock();
     setState("countdown");
     setCurrentSet(1);
     setTimeRemaining(10);
     setRotationGroupIndex(0);
-    if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest); // beep for get ready
+    setAgilityActionsDone(0);
+    if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
   }, [settings]);
 
   const pauseTraining = useCallback(() => {
@@ -198,10 +231,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const resumeTraining = useCallback(() => {
     if (stateRef.current === "paused") {
-      // We just need to change state to what it was. We need to remember it.
-      // For simplicity, we just resume the timer in working state (or resting)
-      // It's better to add a 'previousState' ref
       setState("working"); 
+      requestWakeLock();
       actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
     }
   }, [triggerNextAction]);
@@ -211,7 +242,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     cleanup();
   }, [cleanup]);
 
-  // Derive current active players for UI
   const currentRotationPlayers = settings ? settings.activePlayers.slice(
     rotationGroupIndex * (settings.courtsAvailable || 1),
     rotationGroupIndex * (settings.courtsAvailable || 1) + (settings.courtsAvailable || 1)
@@ -223,6 +253,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     timeRemaining,
     activeZone,
     currentRotationPlayers,
+    agilityActionsDone,
     startTraining,
     pauseTraining,
     resumeTraining,
