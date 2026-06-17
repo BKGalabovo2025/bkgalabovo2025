@@ -212,7 +212,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         setTimeRemaining(settings.workSec); // count DOWN
       }
 
-      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.startSet);
+      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.beep);
       requestWakeLock();
       actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
     } else if (stateRef.current === "working") {
@@ -228,7 +228,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       } else {
         setState("resting");
         setTimeRemaining(settings.restSec);
-        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
+        if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
       }
     } else if (stateRef.current === "resting") {
       setCurrentSet((c) => c + 1);
@@ -247,7 +247,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       setState("countdown");
       setTimeRemaining(10);
-      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
+      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.startSet);
     }
   }, [settings, cleanup, triggerNextAction]);
 
