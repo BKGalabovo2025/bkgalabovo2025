@@ -81,50 +81,77 @@ export function getRandomZoneForMode(
   return pool[index];
 }
 
-class AudioPool {
-  private pool: HTMLAudioElement[] = [];
-  private index = 0;
+class AudioManager {
+  private currentAudio: HTMLAudioElement | null = null;
+  private audioSequence: string[] = [];
+  private sequenceIndex = 0;
 
-  constructor(size = 3) {
+  constructor() {
     if (typeof window !== "undefined") {
-      for (let i = 0; i < size; i++) {
-        const audio = new Audio();
-        audio.preload = "auto";
-        this.pool.push(audio);
-      }
+      this.currentAudio = new Audio();
+      this.currentAudio.preload = "auto";
+
+      this.currentAudio.onended = () => {
+        this.sequenceIndex++;
+        if (this.sequenceIndex < this.audioSequence.length) {
+          this.currentAudio!.src = this.audioSequence[this.sequenceIndex];
+          this.currentAudio!.play().catch((e) =>
+            console.log("Sequence play error", e)
+          );
+        }
+      };
     }
   }
 
-  // Call this inside a user interaction (e.g. onClick) to unlock on iOS/Safari
   public unlock() {
-    this.pool.forEach((a) => {
-      a.volume = 0;
-      a.play()
+    if (this.currentAudio) {
+      this.currentAudio.volume = 0;
+      this.currentAudio
+        .play()
         .then(() => {
-          a.pause();
-          a.currentTime = 0;
-          a.volume = 1;
+          this.currentAudio!.pause();
+          this.currentAudio!.currentTime = 0;
+          this.currentAudio!.volume = 1;
         })
         .catch(() => {});
-    });
+    }
   }
 
   public play(path: string) {
-    if (this.pool.length === 0) return;
-    const audio = this.pool[this.index];
-    this.index = (this.index + 1) % this.pool.length;
+    if (!this.currentAudio) return;
+    this.audioSequence = [path];
+    this.sequenceIndex = 0;
 
-    audio.src = path;
-    audio.currentTime = 0;
-    audio.volume = 1;
-    audio.play().catch((e) => console.log("Audio play error", e));
+    this.currentAudio.pause();
+    this.currentAudio.currentTime = 0;
+    this.currentAudio.src = path;
+    this.currentAudio.volume = 1;
+    this.currentAudio.play().catch((e) => console.log("Audio play error", e));
+  }
+
+  public playSequence(paths: string[]) {
+    if (!this.currentAudio || paths.length === 0) return;
+    this.audioSequence = paths;
+    this.sequenceIndex = 0;
+
+    this.currentAudio.pause();
+    this.currentAudio.currentTime = 0;
+    this.currentAudio.src = paths[0];
+    this.currentAudio.volume = 1;
+    this.currentAudio
+      .play()
+      .catch((e) => console.log("Sequence start error", e));
   }
 }
 
-export const shadowAudioPool = new AudioPool(3);
+export const shadowAudioManager = new AudioManager();
 
 export function playAudio(path: string) {
-  shadowAudioPool.play(path);
+  shadowAudioManager.play(path);
+}
+
+export function playAudioSequence(paths: string[]) {
+  shadowAudioManager.playSequence(paths);
 }
 
 export const SHOTS_BY_ZONE_GROUP = {

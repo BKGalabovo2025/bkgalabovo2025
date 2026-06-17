@@ -53,10 +53,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         type: "shadow",
         date: new Date().toISOString(),
         memberIds: settings.activePlayers.map((p) => p.id),
-        durationMs:
-          settings.mode === "agility_test"
-            ? trainer.timeRemaining * 1000
-            : (settings.workSec + settings.restSec) * settings.sets * 1000,
+        durationMs: trainer.actualElapsedMs || 0,
         shadowDetails: {
           mode: settings.mode,
           preset: settings.preset as any,
@@ -193,8 +190,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
   }
 
   return (
-    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm">
-      <CardContent className="p-6 space-y-8">
+    <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm max-h-[calc(100vh-80px)] overflow-y-auto">
+      <CardContent className="p-6 space-y-8 pb-12">
         {/* Wizard Progress */}
         <div className="flex items-center justify-between mb-8 relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full z-0" />
@@ -258,7 +255,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               ))}
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="space-y-4 pt-4 pb-8 border-t border-zinc-200 dark:border-zinc-800">
               <div>
                 <Label>Движение по корта</Label>
                 <div className="grid grid-cols-2 gap-3 mt-2">
@@ -380,10 +377,20 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     })
                   }
                 />
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-zinc-500 mt-2">
                   Ако маркирате повече играчи, отколкото са кортовете, системата
                   автоматично ще ги ротира след всяка серия.
                 </p>
+                {settings.activePlayers.length > 0 &&
+                  settings.activePlayers.length <
+                    settings.courtsAvailable * 2 && (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-3 rounded-lg text-sm mt-4">
+                      <strong>Внимание:</strong> За {settings.courtsAvailable}{" "}
+                      {settings.courtsAvailable === 1 ? "корт" : "корта"} са
+                      необходими поне {settings.courtsAvailable * 2} играчи.
+                      Може да има проблем с ротацията.
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -465,9 +472,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         {step === 4 && (
           <div className="space-y-6 animate-in slide-in-from-right-4">
             <div>
-              <h2 className="text-xl font-bold">
-                4. Разширени опции (God-Tier)
-              </h2>
+              <h2 className="text-xl font-bold">4. Разширени опции</h2>
               <p className="text-zinc-500 text-sm">
                 Включете специалните модификатори.
               </p>
@@ -488,7 +493,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     htmlFor="deception"
                     className="font-semibold cursor-pointer"
                   >
-                    Измамни удари (Deception)
+                    Измамни удари
                   </label>
                   <p className="text-sm text-zinc-500">
                     Понякога аудиото сменя командата в последния момент,
@@ -531,7 +536,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     htmlFor="visual"
                     className="font-semibold cursor-pointer"
                   >
-                    Visual Reaction Mode (Без звук)
+                    Режим: Визуална реакция
                   </label>
                   <p className="text-sm text-zinc-500">
                     Спира звука. Зоната само светва на екрана. Тренира

@@ -6,7 +6,8 @@ import {
   ZoneId,
   getRandomZoneForMode,
   playAudio,
-  shadowAudioPool,
+  playAudioSequence,
+  shadowAudioManager,
   getRandomShotForZone,
 } from "@/lib/shadow-training/audio-map";
 
@@ -42,6 +43,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
   const [rotationGroupIndex, setRotationGroupIndex] = useState(0);
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
+  const [actualElapsedMs, setActualElapsedMs] = useState(0);
 
   // Refs for intervals, timeouts, and wake lock
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,31 +130,31 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       if (settings.deceptionEnabled && Math.random() < 0.1) {
         const fakeZone = getRandomZoneForMode(settings.drillMode);
         let fakePath = AUDIO_PATHS.zones[fakeZone];
+        const secondFakePath: string | null = null;
         if (
           settings.calloutMode === "shots" ||
           (settings.calloutMode === "mixed" && Math.random() > 0.5)
         ) {
           fakePath = getRandomShotForZone(fakeZone);
         } else if (settings.calloutMode === "zones_and_shots") {
-          fakePath = AUDIO_PATHS.zones[fakeZone]; // Just use zone for fake
+          fakePath = AUDIO_PATHS.zones[fakeZone];
+          // Not playing a fake shot to keep it quick
         }
-        playAudio(fakePath);
+
+        const fakeSequence = [fakePath];
+        if (secondFakePath) fakeSequence.push(secondFakePath);
+        playAudioSequence(fakeSequence);
+
         setTimeout(() => {
           if (stateRef.current !== "working") return;
-          playAudio(audioPath);
-          if (secondAudioPath) {
-            setTimeout(() => {
-              if (stateRef.current === "working") playAudio(secondAudioPath!);
-            }, 800);
-          }
+          const realSequence = [audioPath];
+          if (secondAudioPath) realSequence.push(secondAudioPath);
+          playAudioSequence(realSequence);
         }, 600);
       } else {
-        playAudio(audioPath);
-        if (secondAudioPath) {
-          setTimeout(() => {
-            if (stateRef.current === "working") playAudio(secondAudioPath!);
-          }, 800);
-        }
+        const sequence = [audioPath];
+        if (secondAudioPath) sequence.push(secondAudioPath);
+        playAudioSequence(sequence);
       }
     }
 
@@ -247,7 +249,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       setState("countdown");
       setTimeRemaining(10);
-      if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.startSet);
+      // Removed immediate playAudio here to prevent race conditions with unlock
     }
   }, [settings, cleanup, triggerNextAction]);
 
@@ -263,10 +265,25 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     timerRef.current = setInterval(() => {
       const now = Date.now();
       const deltaSec = Math.round((now - lastTick) / 1000);
+      const deltaMs = now - lastTick;
+
+      if (stateRef.current === "working" || stateRef.current === "resting") {
+        setActualElapsedMs((prev) => prev + deltaMs);
+      }
+
       if (deltaSec >= 1) {
         lastTick = now;
 
         setTimeRemaining((prev) => {
+          if (
+            stateRef.current === "countdown" &&
+            prev === 10 &&
+            !settings?.visualOnly
+          ) {
+            // First tick of countdown
+            playAudio(AUDIO_PATHS.common.startSet);
+          }
+
           if (
             stateRef.current === "working" &&
             settings?.mode === "agility_test"
@@ -300,14 +317,15 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const startTraining = useCallback(() => {
     if (!settings) return;
-    shadowAudioPool.unlock(); // Unlock audio on user gesture
+    shadowAudioManager.unlock(); // Unlock audio on user gesture
     requestWakeLock();
     setState("countdown");
     setCurrentSet(1);
     setTimeRemaining(10);
     setRotationGroupIndex(0);
     setAgilityActionsDone(0);
-    if (!settings.visualOnly) playAudio(AUDIO_PATHS.common.startSet);
+    setActualElapsedMs(0);
+    // Audio for startSet will play on first tick in useEffect
   }, [settings]);
 
   const pauseTraining = useCallback(() => {
@@ -343,6 +361,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     activeZone,
     currentRotationPlayers,
     agilityActionsDone,
+    actualElapsedMs,
     startTraining,
     pauseTraining,
     resumeTraining,
