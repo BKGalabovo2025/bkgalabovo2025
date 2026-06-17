@@ -115,3 +115,24 @@ export async function updateRpeScoresAction(
     return { success: false, message: error.message };
   }
 }
+
+export async function deleteTrainingSessionAction(
+  idToken: string,
+  trainingId: string
+) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+
+    await db.collection("trainings").doc(trainingId).delete();
+
+    revalidatePath("/members");
+    revalidatePath("/training");
+    serverCache.invalidatePattern("dashboard:");
+
+    return { success: true, message: "Тренировката е изтрита успешно." };
+  } catch (error: any) {
+    console.error("Error deleting training:", error);
+    return { success: false, message: error.message || "Грешка при изтриване." };
+  }
+}

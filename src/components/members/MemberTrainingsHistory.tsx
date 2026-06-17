@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Zap, Medal } from "lucide-react";
 import { TrainingSession } from "@/types/training.types";
 
+import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
+
 interface Props {
   memberId: string;
 }
@@ -17,14 +19,22 @@ export function MemberTrainingsHistory({ memberId }: Props) {
   const [trainings, setTrainings] = useState<TrainingSession[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // We should also handle re-fetching if a training is deleted. But router.refresh() from DeleteTrainingButton 
+  // won't re-trigger this client-side fetch unless we pass a callback. 
+  // Let's create a fetch function to be called after deletion.
+  const fetchTrainings = () => {
     if (!idToken) return;
+    setLoading(true);
     getTrainingSessionsForMemberAction(idToken, memberId).then(res => {
       if (res.success && res.data) {
         setTrainings(res.data as TrainingSession[]);
       }
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchTrainings();
   }, [idToken, memberId]);
 
   if (loading) {
@@ -93,6 +103,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                   <div className="text-center">
                     <div className="font-bold">{session.shadowDetails?.totalSets || 0}</div>
                     <div className="text-[10px] uppercase text-zinc-400">Серии</div>
+                  </div>
+                  <div onClick={() => setTimeout(fetchTrainings, 500)}>
+                    <DeleteTrainingButton trainingId={session.id || ""} />
                   </div>
                 </div>
               </CardContent>

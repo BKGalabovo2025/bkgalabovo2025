@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Zap, Trophy } from "lucide-react";
+import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
 
 export const metadata = {
   title: "Shadow Training History | BK Galabovo",
@@ -90,9 +91,12 @@ export default async function GlobalShadowHistoryPage() {
                           {format(new Date(session.date), "dd MMM yyyy HH:mm")} • {session.memberIds.length} участници
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold">{Math.round((session.durationMs || 0) / 60000)} минути</div>
-                        <div className="text-xs text-zinc-500">{(session.shadowDetails?.totalSets || 0)} серии</div>
+                      <div className="text-right flex items-center gap-4">
+                        <div>
+                          <div className="text-sm font-bold">{Math.round((session.durationMs || 0) / 60000)} минути</div>
+                          <div className="text-xs text-zinc-500">{(session.shadowDetails?.totalSets || 0)} серии</div>
+                        </div>
+                        <DeleteTrainingButton trainingId={session.id} />
                       </div>
                     </div>
                   ))

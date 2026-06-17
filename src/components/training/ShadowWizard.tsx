@@ -13,14 +13,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
 
-// This would normally fetch real members. Using dummy logic for Wizard UX demo.
-// In real life, fetch members from a store or context.
-const dummyMembers = [
-  { id: "1", displayName: "Иван Иванов" },
-  { id: "2", displayName: "Георги Георгиев" },
-];
+interface Props {
+  initialMembers?: any[];
+}
 
-export function ShadowWizard() {
+export function ShadowWizard({ initialMembers = [] }: Props) {
   const router = useRouter();
   const { user } = useAuth();
   
@@ -36,7 +33,7 @@ export function ShadowWizard() {
     deceptionEnabled: false,
     motivationEnabled: false,
     visualOnly: false,
-    activePlayers: dummyMembers,
+    activePlayers: [], // Empty initially
     courtsAvailable: 1,
   });
 
@@ -200,7 +197,43 @@ export function ShadowWizard() {
             </div>
             
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-4">
+                <Label>Маркирай играчи</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950">
+                  {initialMembers.map(m => {
+                    const isChecked = settings.activePlayers.some(p => p.id === m.id);
+                    return (
+                      <div key={m.id} className="flex items-center gap-3">
+                        <Checkbox 
+                          id={`player-${m.id}`} 
+                          checked={isChecked}
+                          onCheckedChange={(c) => {
+                            if (c) {
+                              setSettings({
+                                ...settings, 
+                                activePlayers: [...settings.activePlayers, { id: m.id, displayName: `${m.firstName} ${m.lastName}` }]
+                              });
+                            } else {
+                              setSettings({
+                                ...settings, 
+                                activePlayers: settings.activePlayers.filter(p => p.id !== m.id)
+                              });
+                            }
+                          }}
+                        />
+                        <label htmlFor={`player-${m.id}`} className="cursor-pointer text-sm font-medium">
+                          {m.firstName} {m.lastName}
+                        </label>
+                      </div>
+                    );
+                  })}
+                  {initialMembers.length === 0 && (
+                    <div className="text-zinc-500 text-sm">Няма активни играчи.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4">
                 <Label>Брой свободни кортове</Label>
                 <Input 
                   type="number" 
