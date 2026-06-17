@@ -26,6 +26,7 @@ import {
   Medal,
   Settings,
   PanelLeft,
+  Zap,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -245,6 +246,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                   Тренировъчен процес
                 </div>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/training/shadow")}
+                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  >
+                    <Link
+                      href="/training/shadow"
+                      className="flex items-center gap-3 w-full"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Zap size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Shadow Training</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton

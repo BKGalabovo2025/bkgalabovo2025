@@ -57,6 +57,19 @@ const MemberAttendanceHistory = dynamic(
     ),
   }
 );
+const MemberTrainingsHistory = dynamic(
+  () =>
+    import("./MemberTrainingsHistory").then(
+      (mod) => mod.MemberTrainingsHistory
+    ),
+  {
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на тренировки...
+      </div>
+    ),
+  }
+);
 // Removed MemberSubscriptionsTab import
 
 import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
@@ -378,6 +391,12 @@ export const MemberDetailsCard = ({
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
               Присъствия
+            </TabsTrigger>
+            <TabsTrigger
+              value="trainings"
+              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Тренировки
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1142,6 +1161,10 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
           <MemberAttendanceHistory memberId={member.id} />
+        </TabsContent>
+
+        <TabsContent value="trainings" className="focus-visible:outline-none">
+          <MemberTrainingsHistory memberId={member.id} />
         </TabsContent>
       </Tabs>
     </div>
