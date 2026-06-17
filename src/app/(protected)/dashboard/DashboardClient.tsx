@@ -152,6 +152,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             className="rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all h-12 w-12 flex items-center justify-center shrink-0"
             onClick={() => handleRefresh(false)}
             disabled={refreshing}
+            aria-label={language === "bg" ? "Обнови" : "Refresh"}
             title={language === "bg" ? "Обнови" : "Refresh"}
           >
             <RefreshCw
@@ -190,7 +191,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <div className="relative z-10 flex-1 flex flex-col justify-end">
             <div className="flex items-baseline justify-between mb-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600/70 dark:text-blue-400/70">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-800 dark:text-blue-300">
                 Общо членове
               </p>
               <div className="flex items-center gap-1">
@@ -207,7 +208,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
               </div>
             ) : (
-              <div className="space-y-1 text-zinc-650 dark:text-zinc-350">
+              <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
                 <div className="flex items-center justify-between text-[11px] leading-tight">
                   <span className="font-light">Клубни членове:</span>
                   <span className="font-bold text-blue-700 dark:text-blue-300">
@@ -255,7 +256,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             </div>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2.5 text-emerald-600/70 dark:text-emerald-400/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2.5 text-emerald-800 dark:text-emerald-300">
               {t("dash.today_training")}
             </p>
             {loading ? (
@@ -266,7 +267,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="space-y-1 text-zinc-650 dark:text-zinc-350 border-b border-emerald-100 dark:border-emerald-800/50 pb-3">
+                <div className="space-y-1 text-zinc-700 dark:text-zinc-300 border-b border-emerald-100 dark:border-emerald-800/50 pb-3">
                   <div className="flex items-center justify-between text-[11px] leading-tight">
                     <span className="font-light">Тренировки:</span>
                     <span className="font-bold text-emerald-700 dark:text-emerald-300">
@@ -311,7 +312,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                           <span className="font-bold text-emerald-800 dark:text-emerald-200 line-clamp-1">
                             {event.title}
                           </span>
-                          <span className="font-light text-emerald-600/80 dark:text-emerald-400/80">
+                          <span className="font-light text-zinc-500 dark:text-zinc-400">
                             {new Date(event.startDate).toLocaleTimeString(
                               "bg-BG",
                               { hour: "2-digit", minute: "2-digit" }
@@ -348,7 +349,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <div className="relative z-10 flex-1 flex flex-col justify-end">
             <div className="flex items-baseline justify-between mb-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-600/70 dark:text-purple-400/70">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-800 dark:text-purple-300">
                 {t("dash.monthly_revenue")} (
                 {new Date().toLocaleString("bg-BG", { month: "long" })})
               </p>
@@ -366,7 +367,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
               </div>
             ) : (
-              <div className="space-y-1 text-zinc-650 dark:text-zinc-350">
+              <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
                 <div className="flex items-center justify-between text-[11px] leading-tight">
                   <span className="font-light">Тренировки:</span>
                   <span className="font-bold text-purple-700 dark:text-purple-300">
@@ -375,7 +376,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 </div>
                 <div className="flex items-center justify-between text-[11px] leading-tight">
                   <span className="font-light">Клубни услуги:</span>
-                  <span className="font-bold text-teal-600 dark:text-teal-400">
+                  <span className="font-bold text-teal-800 dark:text-teal-400">
                     {formatPrice(stats?.revenueServices ?? 0)}
                   </span>
                 </div>
@@ -387,7 +388,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 </div>
                 <div className="flex items-center justify-between text-[11px] leading-tight">
                   <span className="font-light">Кортове:</span>
-                  <span className="font-bold text-pink-600 dark:text-pink-400">
+                  <span className="font-bold text-pink-800 dark:text-pink-400">
                     {formatPrice(stats?.revenueCourts ?? 0)}
                   </span>
                 </div>
@@ -437,8 +438,8 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 className={cn(
                   "text-[10px] font-bold uppercase tracking-[0.2em]",
                   (stats?.lowStockCount || 0) > 0
-                    ? "text-rose-600/70 dark:text-rose-400/70"
-                    : "text-emerald-600/70 dark:text-emerald-400/70"
+                    ? "text-rose-800 dark:text-rose-300"
+                    : "text-emerald-800 dark:text-emerald-300"
                 )}
               >
                 {t("dash.low_stock")}

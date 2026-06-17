@@ -27,10 +27,10 @@ describe("CourtVisualizer Component", () => {
     expect(activeZones[0].textContent).toContain("Бекхенд");
   });
 
-  it("treats overhead as backRight zone", () => {
+  it("treats overhead as backLeft zone", () => {
     const { container } = render(<CourtVisualizer activeZone="overhead" />);
     const activeZones = container.querySelectorAll(".bg-primary\\/80");
     expect(activeZones.length).toBe(1);
-    expect(activeZones[0].textContent).toContain("Форхенд");
+    expect(activeZones[0].textContent).toContain("Бекхенд");
   });
 });

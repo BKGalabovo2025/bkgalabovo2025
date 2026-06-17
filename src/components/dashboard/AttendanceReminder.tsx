@@ -19,7 +19,7 @@ export const AttendanceReminder = ({
 
   const todayTrainings = useMemo(() => {
     // Prefer real-time client-side events once loaded, fallback to server-rendered initialEvents
-    const activeEvents = !clientLoading ? events : (initialEvents || events);
+    const activeEvents = !clientLoading ? events : initialEvents || events;
 
     if (!activeEvents) return [];
 
@@ -63,7 +63,7 @@ export const AttendanceReminder = ({
       </div>
 
       <div>
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
+        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 mb-6 flex items-center gap-3">
           <CalendarCheck2
             className="h-4 w-4 text-emerald-500"
             strokeWidth={1.5}
@@ -81,7 +81,7 @@ export const AttendanceReminder = ({
                 <p className="text-sm font-bold text-zinc-900 leading-tight truncate">
                   {training.title}
                 </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-light flex-wrap">
+                <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 dark:text-zinc-400 font-light flex-wrap">
                   <span className="text-zinc-700 font-medium">
                     {new Date(training.startDate).toLocaleTimeString("bg-BG", {
                       hour: "2-digit",
@@ -97,7 +97,7 @@ export const AttendanceReminder = ({
               <Button
                 size="sm"
                 onClick={() => router.push(`/schedule?eventId=${training.id}`)}
-                className="w-full sm:w-auto h-8 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-none text-[9px] font-extrabold uppercase tracking-wider shrink-0 px-3 flex items-center justify-center gap-1.5 transition-all group/btn"
+                className="w-full sm:w-auto h-8 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-none text-[10px] font-extrabold uppercase tracking-wider shrink-0 px-3 flex items-center justify-center gap-1.5 transition-all group/btn"
               >
                 <span>Отбележи</span>
                 <ArrowRight

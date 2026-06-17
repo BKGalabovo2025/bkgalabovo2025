@@ -21,11 +21,9 @@ export default async function ShadowTrainingPage() {
         <div className="shrink-0">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
             Shadow Training
-            <Link href="/training/shadow/history">
-              <Button variant="outline" size="sm">
-                История
-              </Button>
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/training/shadow/history">История</Link>
+            </Button>
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
             Интерактивен треньор за движения по корта.

@@ -153,4 +153,37 @@ describe("ShadowWizard Component Flow", () => {
 
     vi.useRealTimers();
   });
+
+  it("allows closing without saving, resetting to step 1", async () => {
+    render(<ShadowWizard initialMembers={mockMembers} />);
+
+    // Step 1 -> 2
+    fireEvent.click(screen.getByText("Напред"));
+
+    // Select player
+    fireEvent.click(screen.getByLabelText("Иван Петров"));
+    fireEvent.click(screen.getByText("Напред"));
+
+    // Step 3 -> 4
+    fireEvent.click(screen.getByText("Напред"));
+
+    // Step 4 -> Start training wizard step
+    fireEvent.click(screen.getByText("СТАРТИРАЙ ТРЕНИРОВКА"));
+
+    // Click training START button
+    fireEvent.click(screen.getByText("СТАРТ"));
+
+    // End training early
+    fireEvent.click(screen.getByText("СТОП"));
+
+    // Should show finished screen overlay with "Затвори без запис"
+    const closeBtn = screen.getByText("Затвори без запис");
+    expect(closeBtn).toBeDefined();
+
+    fireEvent.click(closeBtn);
+
+    // Should ask for confirmation and then reset to Step 1
+    expect(window.confirm).toHaveBeenCalled();
+    expect(screen.getByText("1. Режим на тренировка")).toBeDefined();
+  });
 });

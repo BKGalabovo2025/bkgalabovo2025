@@ -127,7 +127,7 @@ export function BirthdayReminder() {
         <h3 className="font-medium text-lg">Предстоящи Рождени Дни</h3>
         <Badge
           variant="secondary"
-          className="ml-2 bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800 shadow-none font-medium text-[10px] uppercase tracking-widest px-2"
+          className="ml-2 bg-rose-50 text-rose-800 border-rose-100 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 shadow-none font-medium text-[10px] uppercase tracking-widest px-2"
         >
           {upcomingBirthdays.length} члена
         </Badge>
@@ -143,7 +143,7 @@ export function BirthdayReminder() {
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border border-zinc-100 group-hover:border-rose-200 transition-colors">
                 <AvatarImage src={bday.member.avatarUrl ?? undefined} />
-                <AvatarFallback className="bg-zinc-50 text-zinc-400 font-medium">
+                <AvatarFallback className="bg-zinc-50 text-zinc-700 font-medium">
                   {bday.member.firstName?.[0]}
                   {bday.member.lastName?.[0]}
                 </AvatarFallback>
@@ -152,7 +152,7 @@ export function BirthdayReminder() {
                 <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {bday.member.firstName} {bday.member.lastName}
                 </p>
-                <p className="text-[10px] uppercase tracking-widest font-medium text-zinc-400">
+                <p className="text-[10px] uppercase tracking-widest font-medium text-zinc-600 dark:text-zinc-400">
                   Навършва {bday.ageTurning} год.
                 </p>
               </div>
@@ -178,7 +178,7 @@ export function BirthdayReminder() {
                   След {bday.diffDays} дни
                 </Badge>
               )}
-              <span className="text-xs text-zinc-400 font-medium">
+              <span className="text-xs text-zinc-600 font-medium">
                 {bday.nextBirthday.toLocaleDateString("bg-BG", {
                   day: "numeric",
                   month: "long",

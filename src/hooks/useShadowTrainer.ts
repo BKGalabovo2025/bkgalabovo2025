@@ -46,10 +46,19 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
   const [actualElapsedMs, setActualElapsedMs] = useState(0);
 
+  const expectedTimeRemainingRef = useRef<number>(0);
+  const updateTimeRemaining = useCallback((val: number) => {
+    expectedTimeRemainingRef.current = val;
+    setTimeRemaining(val);
+  }, []);
+
+  const previousStateRef = useRef<TrainerState>("idle");
+
   // Refs for intervals, timeouts, and wake lock
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wakeLockRef = useRef<any>(null); // any because WakeLockSentinel might not be in standard DOM types
+  const isFirstActionRef = useRef(false);
 
   const settingsRef = useRef(settings);
   useEffect(() => {
@@ -102,115 +111,154 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, []);
 
   const triggerNextAction = useCallback(() => {
-    const currentSettings = settingsRef.current;
-    if (!currentSettings) return;
-    if (stateRef.current !== "working") return;
+    try {
+      const currentSettings = settingsRef.current;
+      if (!currentSettings) return;
+      if (stateRef.current !== "working") return;
 
-    if (currentSettings.mode === "agility_test") {
-      if (agilityActionsDoneRef.current >= currentSettings.workSec) {
-        // Stop agility test when settings.workSec actions are done
-        setState("finished");
-        cleanup();
-        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
-        return;
-      }
-      setAgilityActionsDone((prev) => prev + 1);
-    }
+      const isFirst = isFirstActionRef.current;
+      isFirstActionRef.current = false;
 
-    // Ghost match: random pace
-    const pace =
-      currentSettings.mode === "ghost_match"
-        ? Math.random() * 2 + 1.5
-        : currentSettings.paceSec;
-    const zone = getRandomZoneForMode(currentSettings.drillMode);
-    setActiveZone(zone);
-
-    let audioPath = AUDIO_PATHS.zones[zone];
-    let secondAudioPath: string | null = null;
-
-    if (
-      currentSettings.calloutMode === "shots" ||
-      (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
-    ) {
-      audioPath = getRandomShotForZone(zone);
-    } else if (currentSettings.calloutMode === "zones_and_shots") {
-      audioPath = AUDIO_PATHS.zones[zone];
-      secondAudioPath = getRandomShotForZone(zone);
-    }
-
-    if (!currentSettings.visualOnly) {
-      if (currentSettings.deceptionEnabled && Math.random() < 0.1) {
-        const fakeZone = getRandomZoneForMode(currentSettings.drillMode);
-        let fakePath = AUDIO_PATHS.zones[fakeZone];
-        const secondFakePath: string | null = null;
-        if (
-          currentSettings.calloutMode === "shots" ||
-          (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
-        ) {
-          fakePath = getRandomShotForZone(fakeZone);
-        } else if (currentSettings.calloutMode === "zones_and_shots") {
-          fakePath = AUDIO_PATHS.zones[fakeZone];
-          // Not playing a fake shot to keep it quick
+      if (currentSettings.mode === "agility_test") {
+        let nextCount = agilityActionsDoneRef.current;
+        if (!isFirst) {
+          nextCount = nextCount + 1;
+          setAgilityActionsDone(nextCount);
+          agilityActionsDoneRef.current = nextCount;
         }
-
-        const fakeSequence = [fakePath];
-        if (secondFakePath) fakeSequence.push(secondFakePath);
-        playAudioSequence(fakeSequence);
-
-        setTimeout(() => {
-          if (stateRef.current !== "working") return;
-          const realSequence = [audioPath];
-          if (secondAudioPath) realSequence.push(secondAudioPath);
-          playAudioSequence(realSequence);
-        }, 600);
-      } else {
-        const sequence = [audioPath];
-        if (secondAudioPath) sequence.push(secondAudioPath);
-        playAudioSequence(sequence);
+        if (nextCount >= currentSettings.workSec) {
+          // Stop agility test when settings.workSec actions are done
+          stateRef.current = "finished";
+          setState("finished");
+          cleanup();
+          if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+          return;
+        }
       }
-    }
 
-    if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
-      setTimeout(
-        () => {
-          if (stateRef.current === "working") {
-            playAudio(AUDIO_PATHS.common.center);
+      // Ghost match: random pace
+      const pace =
+        currentSettings.mode === "ghost_match"
+          ? Math.random() * 2 + 1.5
+          : currentSettings.paceSec;
+
+      let zone = getRandomZoneForMode(currentSettings.drillMode);
+      if (!zone) {
+        zone = "frontForehand";
+      }
+      setActiveZone(zone);
+
+      let audioPath = AUDIO_PATHS.zones[zone];
+      if (!audioPath) {
+        audioPath = AUDIO_PATHS.zones.frontForehand;
+      }
+      let secondAudioPath: string | null = null;
+
+      if (
+        currentSettings.calloutMode === "shots" ||
+        (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
+      ) {
+        audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
+      } else if (currentSettings.calloutMode === "zones_and_shots") {
+        audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
+        secondAudioPath =
+          getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
+      }
+
+      if (!currentSettings.visualOnly) {
+        if (currentSettings.deceptionEnabled && Math.random() < 0.1) {
+          const fakeZone =
+            getRandomZoneForMode(currentSettings.drillMode) || "frontForehand";
+          let fakePath =
+            AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
+          const secondFakePath: string | null = null;
+          if (
+            currentSettings.calloutMode === "shots" ||
+            (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
+          ) {
+            fakePath =
+              getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
+          } else if (currentSettings.calloutMode === "zones_and_shots") {
+            fakePath =
+              AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
           }
-        },
-        (pace * 1000) / 2
-      );
-    }
 
-    actionTimeoutRef.current = setTimeout(() => {
-      setActiveZone(null); // clear highlight
-      actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
-    }, pace * 1000);
+          const fakeSequence = [];
+          if (isFirst) fakeSequence.push(AUDIO_PATHS.common.beep);
+          fakeSequence.push(fakePath);
+          if (secondFakePath) fakeSequence.push(secondFakePath);
+          playAudioSequence(fakeSequence);
+
+          setTimeout(() => {
+            if (stateRef.current !== "working") return;
+            const realSequence = [audioPath];
+            if (secondAudioPath) realSequence.push(secondAudioPath);
+            playAudioSequence(realSequence);
+          }, 600);
+        } else {
+          const sequence = [];
+          if (isFirst) sequence.push(AUDIO_PATHS.common.beep);
+          sequence.push(audioPath);
+          if (secondAudioPath) sequence.push(secondAudioPath);
+          playAudioSequence(sequence);
+        }
+      }
+
+      if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
+        setTimeout(
+          () => {
+            if (stateRef.current === "working") {
+              playAudio(AUDIO_PATHS.common.center);
+            }
+          },
+          (pace * 1000) / 2
+        );
+      }
+
+      actionTimeoutRef.current = setTimeout(() => {
+        setActiveZone(null); // clear highlight
+        actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
+      }, pace * 1000);
+    } catch (error) {
+      console.error("Error in triggerNextAction", error);
+      // Schedule fallback next action to prevent complete freeze
+      const currentSettings = settingsRef.current;
+      const pace = currentSettings?.paceSec || 3;
+      actionTimeoutRef.current = setTimeout(triggerNextAction, pace * 1000);
+    }
   }, [cleanup]);
 
   const speakMotivation = useCallback(() => {
-    const currentSettings = settingsRef.current;
-    if (!currentSettings?.motivationEnabled) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      const currentSettings = settingsRef.current;
+      if (!currentSettings?.motivationEnabled) return;
+      if (typeof window === "undefined" || !("speechSynthesis" in window))
+        return;
 
-    const groupSize = currentSettings.courtsAvailable || 1;
-    const startIndex = rotationGroupIndexRef.current * groupSize;
-    const currentPlayers = currentSettings.activePlayers.slice(
-      startIndex,
-      startIndex + groupSize
-    );
+      const groupSize = currentSettings.courtsAvailable || 1;
+      const startIndex = rotationGroupIndexRef.current * groupSize;
+      const currentPlayers = currentSettings.activePlayers.slice(
+        startIndex,
+        startIndex + groupSize
+      );
 
-    if (currentPlayers.length > 0) {
-      const randomPlayer =
-        currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
-      const phrases = [
-        `Давай, ${randomPlayer.displayName.split(" ")[0]}!`,
-        `Още малко, ${randomPlayer.displayName.split(" ")[0]}!`,
-        `Дръж стойката, ${randomPlayer.displayName.split(" ")[0]}!`,
-      ];
-      const text = phrases[Math.floor(Math.random() * phrases.length)];
-      const msg = new SpeechSynthesisUtterance(text);
-      msg.lang = "bg-BG";
-      window.speechSynthesis.speak(msg);
+      if (currentPlayers.length > 0) {
+        const randomPlayer =
+          currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
+        if (!randomPlayer || !randomPlayer.displayName) return;
+        const firstName = randomPlayer.displayName.split(" ")[0] || "играч";
+        const phrases = [
+          `Давай, ${firstName}!`,
+          `Още малко, ${firstName}!`,
+          `Дръж стойката, ${firstName}!`,
+        ];
+        const text = phrases[Math.floor(Math.random() * phrases.length)];
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "bg-BG";
+        window.speechSynthesis.speak(msg);
+      }
+    } catch (e) {
+      console.error("Speech synthesis error", e);
     }
   }, []);
 
@@ -219,17 +267,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (!currentSettings) return;
 
     if (stateRef.current === "countdown") {
+      stateRef.current = "working";
       setState("working");
+      isFirstActionRef.current = true;
 
       if (currentSettings.mode === "agility_test") {
-        setTimeRemaining(0); // count UP
+        updateTimeRemaining(0); // count UP
         setAgilityActionsDone(0);
       } else {
-        setTimeRemaining(currentSettings.workSec); // count DOWN
+        updateTimeRemaining(currentSettings.workSec); // count DOWN
         setAgilityActionsDone(0);
       }
 
-      if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.beep);
       requestWakeLock();
       // Trigger the first action immediately on transition start
       actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
@@ -241,12 +290,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         currentSetRef.current >= currentSettings.sets ||
         currentSettings.mode === "agility_test"
       ) {
+        stateRef.current = "finished";
         setState("finished");
         if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
       } else {
+        stateRef.current = "resting";
         setState("resting");
-        setTimeRemaining(currentSettings.restSec);
-        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endRest);
+        updateTimeRemaining(currentSettings.restSec);
+        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
       }
     } else if (stateRef.current === "resting") {
       setCurrentSet((c) => c + 1);
@@ -264,13 +315,17 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         });
       }
 
+      stateRef.current = "countdown";
       setState("countdown");
-      setTimeRemaining(10);
+      updateTimeRemaining(10);
       if (!currentSettings.visualOnly) {
-        playAudio(AUDIO_PATHS.common.startSet);
+        playAudioSequence([
+          AUDIO_PATHS.common.endRest,
+          AUDIO_PATHS.common.startSet,
+        ]);
       }
     }
-  }, [cleanup, triggerNextAction]);
+  }, [cleanup, triggerNextAction, updateTimeRemaining]);
 
   useEffect(() => {
     if (state === "idle" || state === "finished" || state === "paused") {
@@ -281,7 +336,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     let accumulatedMs = 0;
     let lastTick = Date.now();
 
-    timerRef.current = setInterval(() => {
+    const intervalId = setInterval(() => {
       const now = Date.now();
       const deltaMs = now - lastTick;
       lastTick = now;
@@ -295,36 +350,51 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         accumulatedMs -= 1000;
 
         setTimeRemaining((prev) => {
-          const currentSettings = settingsRef.current;
-          if (
-            stateRef.current === "working" &&
-            currentSettings?.mode === "agility_test"
-          ) {
-            return prev + 1; // Count UP
+          let currentPrev = prev;
+          if (expectedTimeRemainingRef.current !== prev) {
+            currentPrev = expectedTimeRemainingRef.current;
           }
 
-          if (prev <= 1) {
+          const currentSettings = settingsRef.current;
+          const isAgilityWorking =
+            stateRef.current === "working" &&
+            currentSettings?.mode === "agility_test";
+
+          if (isAgilityWorking) {
+            const nextVal = currentPrev + 1;
+            expectedTimeRemainingRef.current = nextVal;
+            return nextVal;
+          }
+
+          if (currentPrev <= 1) {
             // Defer advanceState call to next tick to avoid state update loops inside setState
-            setTimeout(advanceState, 0);
+            if (!isAgilityWorking) {
+              setTimeout(advanceState, 0);
+            }
+            expectedTimeRemainingRef.current = 0;
             return 0;
           }
 
           if (
             stateRef.current === "working" &&
             currentSettings?.mode !== "agility_test" &&
-            prev === 16 &&
+            currentPrev === 16 &&
             currentSettings?.motivationEnabled
           ) {
             speakMotivation();
           }
 
-          return prev - 1;
+          const nextVal = currentPrev - 1;
+          expectedTimeRemainingRef.current = nextVal;
+          return nextVal;
         });
       }
     }, 100); // Poll more frequently for smooth ticks
 
+    timerRef.current = intervalId;
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      clearInterval(intervalId);
     };
   }, [state, advanceState, speakMotivation]);
 
@@ -333,18 +403,27 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     shadowAudioManager.unlock(); // Unlock audio on user gesture
     stopAudio();
     requestWakeLock();
+    stateRef.current = "countdown";
     setState("countdown");
     setCurrentSet(1);
-    setTimeRemaining(10);
+    updateTimeRemaining(10);
     setRotationGroupIndex(0);
     setAgilityActionsDone(0);
     setActualElapsedMs(0);
     if (!settings.visualOnly) {
       playAudio(AUDIO_PATHS.common.startSet);
     }
-  }, [settings]);
+  }, [settings, updateTimeRemaining]);
 
   const pauseTraining = useCallback(() => {
+    if (
+      stateRef.current !== "paused" &&
+      stateRef.current !== "idle" &&
+      stateRef.current !== "finished"
+    ) {
+      previousStateRef.current = stateRef.current;
+    }
+    stateRef.current = "paused";
     setState("paused");
     stopAudio();
     cleanup();
@@ -352,13 +431,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const resumeTraining = useCallback(() => {
     if (stateRef.current === "paused") {
-      setState("working");
+      const targetState = previousStateRef.current;
+      stateRef.current = targetState;
+      setState(targetState);
       requestWakeLock();
-      actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
+      if (targetState === "working") {
+        actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
+      }
     }
   }, [triggerNextAction]);
 
   const stopTraining = useCallback(() => {
+    stateRef.current = "finished";
     setState("finished");
     stopAudio();
     cleanup();

@@ -134,9 +134,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <div className="px-4 py-2 mt-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <li className="px-4 py-2 mt-2 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Управление и Бизнес Център
-            </div>
+            </li>
 
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -243,9 +243,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
             {!isRecoveryZone && (
               <>
-                <div className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                <li className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   Тренировъчен процес
-                </div>
+                </li>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -308,7 +308,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               type="button"
               onClick={logout}
-              className="h-11 px-3 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
+              className="h-11 px-3 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
             >
               <LogOut size={18} strokeWidth={1.5} />{" "}
               <span className="text-[14px]">Изход</span>

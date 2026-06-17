@@ -159,7 +159,19 @@ class AudioManager {
   }
 }
 
-export const shadowAudioManager = new AudioManager();
+// Global singleton registry to prevent duplicate Audio instances during Hot Module Replacement (HMR)
+const getAudioManager = (): AudioManager => {
+  if (typeof window === "undefined") {
+    return {} as any;
+  }
+  const globalWithAudio = globalThis as any;
+  if (!globalWithAudio.__shadowAudioManager__) {
+    globalWithAudio.__shadowAudioManager__ = new AudioManager();
+  }
+  return globalWithAudio.__shadowAudioManager__;
+};
+
+export const shadowAudioManager = getAudioManager();
 
 export function playAudio(path: string) {
   shadowAudioManager.play(path);

@@ -51,10 +51,10 @@ export const QuickTasks = () => {
 
   return (
     <BentoCard className="p-8 h-full flex flex-col border border-zinc-100 bg-white shadow-none rounded-4xl">
-      <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-6 flex items-center gap-3">
+      <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-6 flex items-center gap-3">
         <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />{" "}
         {t("dash.quick_tasks")}
-      </h3>
+      </h2>
 
       <div className="flex gap-2 mb-8">
         <Input
@@ -67,6 +67,7 @@ export const QuickTasks = () => {
         <Button
           onClick={addTask}
           size="icon"
+          aria-label={t("dash.add_task") || "Добави задача"}
           className="h-12 w-12 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 shrink-0 shadow-none transition-all"
         >
           <Plus size={18} strokeWidth={1.5} />
@@ -85,12 +86,13 @@ export const QuickTasks = () => {
               className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950 transition-all"
             />
             <span
-              className={`text-sm flex-1 font-light transition-all ${task.completed ? "text-zinc-300 line-through" : "text-zinc-600"}`}
+              className={`text-sm flex-1 font-light transition-all ${task.completed ? "text-zinc-300 line-through" : "text-zinc-650"}`}
             >
               {task.text}
             </span>
             <button
               onClick={() => deleteTask(task.id)}
+              aria-label="Изтрий задача"
               className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-rose-500 transition-all"
             >
               <Trash2 size={14} strokeWidth={1.5} />
@@ -98,9 +100,9 @@ export const QuickTasks = () => {
           </div>
         ))}
         {tasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 opacity-20">
-            <CheckCircle2 size={32} strokeWidth={1} />
-            <p className="text-[10px] uppercase tracking-widest mt-4">
+          <div className="flex flex-col items-center justify-center py-12">
+            <CheckCircle2 size={32} strokeWidth={1} className="text-zinc-300" />
+            <p className="text-[10px] uppercase tracking-widest mt-4 font-semibold text-zinc-700 dark:text-zinc-400">
               Всичко е изпълнено
             </p>
           </div>

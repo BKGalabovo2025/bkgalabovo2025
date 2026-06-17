@@ -68,7 +68,7 @@ describe("useShadowTrainer Comprehensive Variations", () => {
     }
     // flush setTimeout(advanceState, 0)
     act(() => {
-      vi.runOnlyPendingTimers();
+      vi.advanceTimersByTime(0);
     });
   };
 
@@ -146,6 +146,47 @@ describe("useShadowTrainer Comprehensive Variations", () => {
         result.current.stopTraining();
       });
 
+      expect(result.current.state).toBe("finished");
+    });
+
+    it("should increment agilityActionsDone on completed movements and finish when workSec is reached", () => {
+      const settings = createSettings({
+        mode: "agility_test",
+        workSec: 2,
+        paceSec: 1,
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+
+      expect(result.current.state).toBe("countdown");
+      expect(result.current.agilityActionsDone).toBe(0);
+
+      // Countdown finishes
+      advanceSeconds(10);
+      // Flush triggerNextAction (scheduled with 0ms inside advanceState)
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+
+      expect(result.current.state).toBe("working");
+      expect(result.current.agilityActionsDone).toBe(0);
+
+      // Advance 1.5s to complete 1st movement (1s pace + 300ms transition + margin)
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+      expect(result.current.agilityActionsDone).toBe(1);
+      expect(result.current.state).toBe("working");
+
+      // Advance another 1.5s to complete 2nd movement
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+
+      expect(result.current.agilityActionsDone).toBe(2);
       expect(result.current.state).toBe("finished");
     });
   });

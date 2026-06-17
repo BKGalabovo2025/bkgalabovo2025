@@ -19,9 +19,8 @@ export function CourtVisualizer({
   const isFrontRight = activeZone === "frontForehand";
   const isMidLeft = activeZone === "midBackhand";
   const isMidRight = activeZone === "midForehand";
-  const isBackLeft = activeZone === "backBackhand";
-  const isBackRight =
-    activeZone === "backForehand" || activeZone === "overhead";
+  const isBackLeft = activeZone === "backBackhand" || activeZone === "overhead";
+  const isBackRight = activeZone === "backForehand";
 
   // Zone colors: default is transparent. Active is a bright primary color (e.g. red or green depending on theme, but we use Tailwind bg-primary)
   const zoneClass = "transition-colors duration-200 border border-white/20";
@@ -50,7 +49,7 @@ export function CourtVisualizer({
             "rounded-tl-md relative flex items-end justify-start p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1 whitespace-nowrap pointer-events-none">
             Бекхенд
           </span>
         </div>
@@ -61,7 +60,7 @@ export function CourtVisualizer({
             "rounded-tr-md relative flex items-end justify-end p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1 whitespace-nowrap pointer-events-none">
             Форхенд
           </span>
         </div>
@@ -74,7 +73,7 @@ export function CourtVisualizer({
             "relative flex items-end justify-start p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1 whitespace-nowrap pointer-events-none">
             Бекхенд
           </span>
         </div>
@@ -85,7 +84,7 @@ export function CourtVisualizer({
             "relative flex items-end justify-end p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1 whitespace-nowrap pointer-events-none">
             Форхенд
           </span>
         </div>
@@ -98,7 +97,7 @@ export function CourtVisualizer({
             "rounded-bl-md relative flex items-end justify-start p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 left-1 whitespace-nowrap pointer-events-none">
             Бекхенд
           </span>
         </div>
@@ -109,7 +108,7 @@ export function CourtVisualizer({
             "rounded-br-md relative flex items-end justify-end p-1"
           )}
         >
-          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1">
+          <span className="text-white/5 font-medium text-[8px] absolute bottom-1 right-1 whitespace-nowrap pointer-events-none">
             Форхенд
           </span>
         </div>

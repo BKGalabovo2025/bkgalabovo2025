@@ -486,7 +486,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 <Users className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                   Общо членове
                 </p>
                 <p className="text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
@@ -503,7 +503,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                   Активни
                 </p>
                 <p className="text-2xl sm:text-3xl font-light text-emerald-600">
@@ -520,7 +520,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                   Неактивни
                 </p>
                 <p className="text-2xl sm:text-3xl font-light text-rose-600">
@@ -534,7 +534,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 <Users className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
                   Относно Клубни Членове
                 </p>
                 <p className="text-xs font-light text-zinc-500 leading-relaxed">
@@ -664,7 +664,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-300">
                   {/* Age Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
                       Възрастова група
                     </label>
                     <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
@@ -692,7 +692,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Medical Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
                       Медицинско
                     </label>
                     <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
@@ -720,7 +720,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Payment Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
                       Такси / Плащане
                     </label>
                     <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
@@ -748,7 +748,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Documents Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">
+                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
                       Документи
                     </label>
                     <select
@@ -927,7 +927,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           className="hidden lg:table-cell px-4"
                           onClick={() => router.push(`/members/${member.id}`)}
                         >
-                          <div className="flex items-center gap-2 text-zinc-400">
+                          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
                             <Calendar
                               className="h-3 w-3 text-zinc-300"
                               strokeWidth={1.5}
@@ -947,8 +947,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             className={cn(
                               "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
                               member.status === "active"
-                                ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                                ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
                             )}
                           >
                             {member.status === "active"
@@ -967,6 +967,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                 `${member.firstName} ${member.lastName}`
                               )
                             }
+                            aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
                             className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" strokeWidth={1.5} />
@@ -985,7 +986,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           <p className="text-xl font-light text-zinc-900 dark:text-white uppercase tracking-[0.2em]">
                             Няма намерени членове
                           </p>
-                          <p className="text-[10px] font-medium uppercase tracking-widest mt-2 text-zinc-400">
+                          <p className="text-[10px] font-medium uppercase tracking-widest mt-2 text-zinc-600 dark:text-zinc-400">
                             Опитайте с друго име или филтър.
                           </p>
                         </div>
@@ -1031,8 +1032,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           className={cn(
                             "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
                             member.status === "active"
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                              ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
                           )}
                         >
                           {member.status === "active" ? "Активен" : "Неактивен"}
@@ -1047,6 +1048,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                               `${member.firstName} ${member.lastName}`
                             )
                           }
+                          aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
                           className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
@@ -1054,7 +1056,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-900">
-                      <div className="flex items-center gap-1.5 text-zinc-400">
+                      <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
                         <Calendar
                           className="h-3 w-3 text-zinc-300"
                           strokeWidth={1.5}
@@ -1092,7 +1094,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between p-5 sm:p-6 border-t border-zinc-50 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50 gap-6">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest order-2 sm:order-1">
+                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest order-2 sm:order-1">
                   Показани{" "}
                   <span className="text-zinc-900 dark:text-white">
                     {(currentPage - 1) * ITEMS_PER_PAGE + 1}
@@ -1115,6 +1117,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     size="sm"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
+                    aria-label="Предишна страница"
                     className="rounded-xl h-11 w-11 p-0 border-zinc-100 bg-white dark:bg-zinc-800 shadow-none hover:bg-zinc-50"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -1129,6 +1132,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
                     disabled={currentPage === totalPages}
+                    aria-label="Следваща страница"
                     className="rounded-xl h-11 w-11 p-0 border-zinc-100 bg-white dark:bg-zinc-800 shadow-none hover:bg-zinc-50"
                   >
                     <ChevronRight className="h-4 w-4" />

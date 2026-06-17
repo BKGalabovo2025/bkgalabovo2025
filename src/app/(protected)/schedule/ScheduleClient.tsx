@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useEvents } from "@/hooks/useEvents";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   PlusCircle,
@@ -22,10 +22,31 @@ import {
 import dynamic from "next/dynamic";
 import { PrintableEvent } from "@/components/schedule/PrintableEvent";
 
-const CreateEventDialog = dynamic(() => import("@/components/schedule/CreateEventDialog").then(m => m.CreateEventDialog), { ssr: false });
-const EditEventDialog = dynamic(() => import("@/components/schedule/EditEventDialog").then(m => m.EditEventDialog), { ssr: false });
-const AttendeesDialog = dynamic(() => import("@/components/schedule/AttendeesDialog").then(m => m.AttendeesDialog), { ssr: false });
-const MonthlyScheduleDialog = dynamic(() => import("@/components/schedule/MonthlyScheduleDialog"), { ssr: false });
+const CreateEventDialog = dynamic(
+  () =>
+    import("@/components/schedule/CreateEventDialog").then(
+      (m) => m.CreateEventDialog
+    ),
+  { ssr: false }
+);
+const EditEventDialog = dynamic(
+  () =>
+    import("@/components/schedule/EditEventDialog").then(
+      (m) => m.EditEventDialog
+    ),
+  { ssr: false }
+);
+const AttendeesDialog = dynamic(
+  () =>
+    import("@/components/schedule/AttendeesDialog").then(
+      (m) => m.AttendeesDialog
+    ),
+  { ssr: false }
+);
+const MonthlyScheduleDialog = dynamic(
+  () => import("@/components/schedule/MonthlyScheduleDialog"),
+  { ssr: false }
+);
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
 import {
   AlertDialog,
@@ -56,8 +77,20 @@ import { useAppStore } from "@/store/use-app-store";
 import { AgendaView } from "@/components/reservations/agenda-view";
 import { ReservationHistory } from "@/components/reservations/reservation-history";
 
-const ReservationDialog = dynamic(() => import("@/components/reservations/reservation-dialog").then(m => m.ReservationDialog), { ssr: false });
-const BlockSlotDialog = dynamic(() => import("@/components/reservations/block-slot-dialog").then(m => m.BlockSlotDialog), { ssr: false });
+const ReservationDialog = dynamic(
+  () =>
+    import("@/components/reservations/reservation-dialog").then(
+      (m) => m.ReservationDialog
+    ),
+  { ssr: false }
+);
+const BlockSlotDialog = dynamic(
+  () =>
+    import("@/components/reservations/block-slot-dialog").then(
+      (m) => m.BlockSlotDialog
+    ),
+  { ssr: false }
+);
 
 const eventTypeTranslations: Record<ScheduleEventType, string> = {
   training: "Тренировка",
@@ -79,6 +112,7 @@ const COURT_COUNT = 6;
 export default function ScheduleClient() {
   const { activeBranch } = useAppStore();
   const isRecoveryZone = activeBranch === "recoveryzone";
+  const router = useRouter();
 
   const {
     events,
@@ -232,6 +266,15 @@ export default function ScheduleClient() {
   const openAttendeesDialog = (event: ScheduleEvent) => {
     setSelectedEvent(event);
     setAttendeesDialogOpen(true);
+  };
+
+  const closeAttendeesDialog = () => {
+    setAttendeesDialogOpen(false);
+    if (searchParams.get("eventId")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("eventId");
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
   };
 
   const openDeleteDialog = (eventId: string) => {
@@ -711,7 +754,7 @@ export default function ScheduleClient() {
       />
       <AttendeesDialog
         isOpen={isAttendeesDialogOpen}
-        onClose={() => setAttendeesDialogOpen(false)}
+        onClose={closeAttendeesDialog}
         event={selectedEvent}
         onUpdateAttendees={handleUpdateAttendees}
         members={members as Member[]}

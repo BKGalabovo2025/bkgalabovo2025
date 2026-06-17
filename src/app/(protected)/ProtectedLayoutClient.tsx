@@ -43,6 +43,8 @@ function GlobalHeader() {
               <button
                 key={site.id}
                 onClick={() => setActiveBranch(site.id)}
+                aria-label={`${site.title} ${site.subtitle}${isActive ? " — активен" : " — избери"}`}
+                aria-pressed={isActive}
                 className={`group flex items-center gap-2 p-1.5 rounded-xl transition-all duration-300 ${
                   isActive
                     ? "bg-white dark:bg-zinc-900 shadow-md ring-1 ring-zinc-200 dark:ring-zinc-800 opacity-100"
@@ -125,9 +127,13 @@ export default function ProtectedLayoutClient({
         <SidebarInset className="flex flex-col flex-1 min-w-0 border-l border-gray-100 dark:border-zinc-800 relative bg-slate-50/50 dark:bg-zinc-950/50">
           <Toaster position="bottom-right" />
 
+          <a href="#main-content" className="skip-link">
+            Към основното съдържание
+          </a>
+
           <GlobalHeader key={`header-${activeBranch}`} />
 
-          <main className="flex-1 overflow-y-auto">
+          <main id="main-content" className="flex-1 overflow-y-auto">
             <div
               key={`content-${activeBranch}`}
               className="max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"

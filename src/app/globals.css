@@ -93,7 +93,7 @@
     --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
-    --primary: 199 89% 48%;
+    --primary: 199 89% 33%;
     --primary-foreground: 0 0% 100%;
     --secondary: 199 89% 96%;
     --secondary-foreground: 199 89% 20%;
@@ -105,16 +105,16 @@
     --destructive-foreground: 0 0% 100%;
     --border: 199 20% 94%;
     --input: 199 20% 94%;
-    --ring: 199 89% 48%;
+    --ring: 199 89% 33%;
     --radius: 0.75rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary: 199 89% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 199 89% 96%;
     --sidebar-accent-foreground: 199 89% 20%;
     --sidebar-border: 199 20% 94%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-ring: 199 89% 33%;
   }
 
   .dark {
@@ -170,6 +170,45 @@
   .font-bold,
   .font-semibold {
     font-weight: 500;
+  }
+
+  /* ─── Accessibility: Enhanced Focus Indicator ─────────────────────
+     Provides a 3:1+ non-text contrast ratio for all keyboard-focused
+     elements. Uses brand primary color. Overrides the default ring.
+  ──────────────────────────────────────────────────────────────────── */
+  :focus-visible {
+    outline: 3px solid hsl(199deg, 89%, 33%);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .dark :focus-visible {
+    outline-color: hsl(199deg, 89%, 60%);
+  }
+
+  /* ─── Accessibility: Skip to Content Link ─────────────────────────
+     Visually hidden until focused. Allows keyboard users to bypass
+     the sidebar/header and jump directly to page content.
+  ──────────────────────────────────────────────────────────────────── */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.75rem 1.5rem;
+    background: hsl(199deg, 89%, 33%);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0 0 0.5rem 0.5rem;
+    text-decoration: none;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 0;
+    outline: 3px solid #fff;
+    outline-offset: -4px;
   }
 }
 
