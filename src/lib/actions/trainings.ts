@@ -93,8 +93,8 @@ export async function getTrainingSessionsForMemberAction(
 
     return { success: true, data: trainings };
   } catch (error: any) {
-    console.error("Error fetching member trainings:", error);
-    return { success: false, data: [] };
+    console.error("Error fetching member trainings:", error?.message || error);
+    return { success: false, data: [], error: error?.message };
   }
 }
 

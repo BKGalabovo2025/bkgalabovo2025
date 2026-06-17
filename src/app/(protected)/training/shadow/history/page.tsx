@@ -89,20 +89,23 @@ export default async function GlobalShadowHistoryPage() {
                   <p className="text-zinc-500 text-sm">Няма данни.</p>
                 ) : (
                   leaderboard.map((lb, idx) => (
-                    <div
+                    <Link
                       key={lb.id}
-                      className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-2 last:border-0"
+                      href={`/members/${lb.id}`}
+                      className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-2 last:border-0 hover:bg-primary/5 rounded-lg px-2 -mx-2 transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="font-bold text-lg text-zinc-400 w-4">
+                        <div className="font-bold text-lg text-zinc-400 w-4 group-hover:text-primary transition-colors">
                           {idx + 1}.
                         </div>
-                        <div className="font-medium">{lb.name}</div>
+                        <div className="font-medium group-hover:text-primary transition-colors">
+                          {lb.name}
+                        </div>
                       </div>
                       <div className="text-primary font-bold">
                         {Math.round(lb.min)} мин
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
