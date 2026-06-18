@@ -82,8 +82,9 @@ describe("Shadow Training Audio Map & Helpers", () => {
 
     it("shadowAudioManager трябва да съществува с очакваните методи", () => {
       expect(shadowAudioManager).toBeDefined();
-      expect(typeof shadowAudioManager.play).toBe("function");
-      expect(typeof shadowAudioManager.playSequence).toBe("function");
+      expect(typeof shadowAudioManager.playVoice).toBe("function");
+      expect(typeof shadowAudioManager.playVoiceSequence).toBe("function");
+      expect(typeof shadowAudioManager.playOverlay).toBe("function");
       expect(typeof shadowAudioManager.stopAll).toBe("function");
       expect(typeof shadowAudioManager.unlock).toBe("function");
     });

@@ -81,136 +81,116 @@ export function getRandomZoneForMode(
   return pool[index];
 }
 
-class AudioChannel {
-  public audio: HTMLAudioElement;
-  public audioSequence: string[] = [];
-  public sequenceIndex = 0;
-  public isPlaying = false;
-  public currentPlayId = 0;
-  public timeoutId: NodeJS.Timeout | null = null;
-
-  constructor() {
-    this.audio = new Audio();
-    this.audio.preload = "auto";
-  }
-
-  public stop() {
-    this.isPlaying = false;
-    this.audioSequence = [];
-    this.sequenceIndex = 0;
-    this.currentPlayId++;
-    if (this.timeoutId) clearTimeout(this.timeoutId);
-    this.audio.onended = null;
-    this.audio.pause();
-    this.audio.currentTime = 0;
-  }
-}
-
 class AudioManager {
-  private channels: AudioChannel[] = [];
-  private numChannels = 4;
-  private roundRobinIndex = 0;
+  private voiceAudio: HTMLAudioElement | null = null;
+  private overlayAudio: HTMLAudioElement | null = null;
+
+  private audioSequence: string[] = [];
+  private sequenceIndex = 0;
+  private isPlayingSequence = false;
+  private currentPlayId = 0;
+  private timeoutId: NodeJS.Timeout | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
-      for (let i = 0; i < this.numChannels; i++) {
-        this.channels.push(new AudioChannel());
-      }
+      this.voiceAudio = new Audio();
+      this.voiceAudio.preload = "auto";
+      this.overlayAudio = new Audio();
+      this.overlayAudio.preload = "auto";
     }
   }
 
   public unlock() {
-    this.channels.forEach((ch) => {
-      ch.audio.volume = 0;
-      ch.audio
-        .play()
-        .then(() => {
-          ch.audio.pause();
-          ch.audio.currentTime = 0;
-          ch.audio.volume = 1;
-        })
-        .catch(() => {});
+    [this.voiceAudio, this.overlayAudio].forEach((audio) => {
+      if (audio) {
+        audio.volume = 0;
+        audio
+          .play()
+          .then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = 1;
+          })
+          .catch(() => {});
+      }
     });
   }
 
   public stopAll() {
-    this.channels.forEach((ch) => ch.stop());
-  }
+    this.isPlayingSequence = false;
+    this.audioSequence = [];
+    this.sequenceIndex = 0;
+    this.currentPlayId++;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
 
-  private getFreeChannel(): AudioChannel | null {
-    if (this.channels.length === 0) return null;
-    let ch = this.channels.find((c) => !c.isPlaying);
-    if (!ch) {
-      ch = this.channels[this.roundRobinIndex];
-      this.roundRobinIndex = (this.roundRobinIndex + 1) % this.numChannels;
-      ch.stop();
+    if (this.voiceAudio) {
+      this.voiceAudio.onended = null;
+      this.voiceAudio.pause();
+      this.voiceAudio.currentTime = 0;
     }
-    return ch;
+    if (this.overlayAudio) {
+      this.overlayAudio.pause();
+      this.overlayAudio.currentTime = 0;
+    }
   }
 
-  private attachOnEnded(ch: AudioChannel, playId: number) {
-    ch.audio.onended = () => {
-      if (ch.currentPlayId !== playId) return;
+  private attachOnEnded(playId: number) {
+    if (!this.voiceAudio) return;
+    this.voiceAudio.onended = () => {
+      if (this.currentPlayId !== playId) return;
 
-      ch.sequenceIndex++;
-      if (ch.sequenceIndex < ch.audioSequence.length && ch.isPlaying) {
-        ch.timeoutId = setTimeout(() => {
-          if (ch.currentPlayId !== playId || !ch.isPlaying) return;
-          ch.audio.src = ch.audioSequence[ch.sequenceIndex];
-          ch.audio.play().catch((e) => {
+      this.sequenceIndex++;
+      if (
+        this.sequenceIndex < this.audioSequence.length &&
+        this.isPlayingSequence
+      ) {
+        this.timeoutId = setTimeout(() => {
+          if (this.currentPlayId !== playId || !this.isPlayingSequence) return;
+          this.voiceAudio!.src = this.audioSequence[this.sequenceIndex];
+          this.voiceAudio!.play().catch((e) => {
             if (e.name !== "AbortError") {
               console.log("Sequence play error", e);
-              ch.isPlaying = false;
+              this.isPlayingSequence = false;
             }
           });
         }, 1000);
       } else {
-        ch.isPlaying = false;
+        this.isPlayingSequence = false;
       }
     };
   }
 
-  public play(path: string) {
-    const ch = this.getFreeChannel();
-    if (!ch) return;
+  public playVoice(path: string) {
+    if (!this.voiceAudio) return;
+    this.isPlayingSequence = false;
+    this.currentPlayId++;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
 
-    ch.isPlaying = true;
-    ch.audioSequence = [path];
-    ch.sequenceIndex = 0;
+    this.voiceAudio.onended = null;
+    this.voiceAudio.src = path;
+    this.voiceAudio.play().catch(() => {});
+  }
 
-    const playId = ++ch.currentPlayId;
-    this.attachOnEnded(ch, playId);
+  public playVoiceSequence(paths: string[]) {
+    if (!this.voiceAudio || paths.length === 0) return;
+    this.currentPlayId++;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
 
-    ch.audio.src = path;
-    ch.audio.volume = 1;
-    ch.audio.play().catch((e) => {
-      if (e.name !== "AbortError") {
-        console.log("Audio play error", e);
-        ch.isPlaying = false;
-      }
+    this.isPlayingSequence = true;
+    this.audioSequence = paths;
+    this.sequenceIndex = 0;
+
+    this.attachOnEnded(this.currentPlayId);
+    this.voiceAudio.src = paths[0];
+    this.voiceAudio.play().catch(() => {
+      this.isPlayingSequence = false;
     });
   }
 
-  public playSequence(paths: string[]) {
-    if (paths.length === 0) return;
-    const ch = this.getFreeChannel();
-    if (!ch) return;
-
-    ch.isPlaying = true;
-    ch.audioSequence = paths;
-    ch.sequenceIndex = 0;
-
-    const playId = ++ch.currentPlayId;
-    this.attachOnEnded(ch, playId);
-
-    ch.audio.src = paths[0];
-    ch.audio.volume = 1;
-    ch.audio.play().catch((e) => {
-      if (e.name !== "AbortError") {
-        console.log("Sequence start error", e);
-        ch.isPlaying = false;
-      }
-    });
+  public playOverlay(path: string) {
+    if (!this.overlayAudio) return;
+    this.overlayAudio.src = path;
+    this.overlayAudio.play().catch(() => {});
   }
 }
 
@@ -229,11 +209,15 @@ const getAudioManager = (): AudioManager => {
 export const shadowAudioManager = getAudioManager();
 
 export function playAudio(path: string) {
-  shadowAudioManager.play(path);
+  if (path === AUDIO_PATHS.common.center) {
+    shadowAudioManager.playOverlay(path);
+  } else {
+    shadowAudioManager.playVoice(path);
+  }
 }
 
 export function playAudioSequence(paths: string[]) {
-  shadowAudioManager.playSequence(paths);
+  shadowAudioManager.playVoiceSequence(paths);
 }
 
 export function stopAudio() {
