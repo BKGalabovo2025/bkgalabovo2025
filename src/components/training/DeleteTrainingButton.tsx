@@ -45,6 +45,7 @@ export function DeleteTrainingButton({ trainingId }: Props) {
       onClick={handleDelete}
       disabled={isDeleting}
       title="Изтрий записа"
+      aria-label="Изтрий записа"
     >
       <Trash2 className="h-4 w-4" />
     </Button>
