@@ -109,9 +109,11 @@ class AudioManager {
           .then(() => {
             audio.pause();
             audio.currentTime = 0;
-            audio.volume = 1;
           })
-          .catch(() => {});
+          .catch(() => {})
+          .finally(() => {
+            if (audio) audio.volume = 1;
+          });
       }
     });
   }
