@@ -87,6 +87,7 @@ class AudioChannel {
   public sequenceIndex = 0;
   public isPlaying = false;
   public currentPlayId = 0;
+  public timeoutId: NodeJS.Timeout | null = null;
 
   constructor() {
     this.audio = new Audio();
@@ -98,6 +99,7 @@ class AudioChannel {
     this.audioSequence = [];
     this.sequenceIndex = 0;
     this.currentPlayId++;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
     this.audio.onended = null;
     this.audio.pause();
     this.audio.currentTime = 0;
@@ -152,13 +154,16 @@ class AudioManager {
 
       ch.sequenceIndex++;
       if (ch.sequenceIndex < ch.audioSequence.length && ch.isPlaying) {
-        ch.audio.src = ch.audioSequence[ch.sequenceIndex];
-        ch.audio.play().catch((e) => {
-          if (e.name !== "AbortError") {
-            console.log("Sequence play error", e);
-            ch.isPlaying = false;
-          }
-        });
+        ch.timeoutId = setTimeout(() => {
+          if (ch.currentPlayId !== playId || !ch.isPlaying) return;
+          ch.audio.src = ch.audioSequence[ch.sequenceIndex];
+          ch.audio.play().catch((e) => {
+            if (e.name !== "AbortError") {
+              console.log("Sequence play error", e);
+              ch.isPlaying = false;
+            }
+          });
+        }, 1000);
       } else {
         ch.isPlaying = false;
       }
