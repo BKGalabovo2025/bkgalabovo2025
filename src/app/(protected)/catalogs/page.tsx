@@ -34,6 +34,11 @@ export default async function CatalogsPage() {
         const sessionsSnapshot = await adminDb.collection("sessions").get();
         return sessionsSnapshot.docs.map((doc) => {
           const data = doc.data();
+          const parseZones = (z: any) => {
+            if (Array.isArray(z)) return z;
+            if (typeof z === "string") return z.split(",").filter(Boolean);
+            return [];
+          };
           return {
             id: doc.id,
             siteId: "recoveryzone",
@@ -43,11 +48,7 @@ export default async function CatalogsPage() {
             currency: "EUR",
             durationMinutes: data.duration || 0,
             category: data.category || "Други",
-            zones: Array.isArray(data.zones)
-              ? data.zones
-              : typeof data.zones === "string"
-                ? data.zones.split(",").filter(Boolean)
-                : [],
+            zones: parseZones(data.zones),
             athleteCount: data.athleteCount || 1,
             numberOfDays: data.numberOfDays || 1,
             proceduresPerDay: data.proceduresPerDay || 1,

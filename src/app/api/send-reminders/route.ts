@@ -57,14 +57,12 @@ export async function POST(request: Request) {
     let sentCount = 0;
     let failedCount = 0;
 
-    for (const member of overdueMembers) {
-      const memberName = `${member.firstName} ${member.lastName}`.trim();
-
+    const dispatchEmail = async (member: any, memberName: string) => {
       if (!member.email) {
         console.log(
           `SKIPPING: Member ${memberName} (ID: ${member.id}) has no email address.`
         );
-        continue;
+        return;
       }
 
       try {
@@ -72,8 +70,6 @@ export async function POST(request: Request) {
           `Attempting to dispatch email request for ${memberName} (${member.email}) via internal API...`
         );
 
-        // The payload now contains the member's name and a template identifier,
-        // instead of the rendered HTML.
         const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
           method: "POST",
           headers: {
@@ -83,8 +79,8 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             to: member.email,
             subject: "Напомняне за просрочено плащане",
-            template: "reminder", // Specify which email to render
-            data: { memberName }, // Pass the necessary data for the template
+            template: "reminder",
+            data: { memberName },
           }),
         });
 
@@ -92,7 +88,6 @@ export async function POST(request: Request) {
           const errorBody = await emailResponse.json().catch(() => ({
             error: "Could not parse error response from /api/send-email",
           }));
-          // Use a more descriptive error name
           const errorMessage =
             errorBody.error ||
             `Internal API /api/send-email failed with status ${emailResponse.status}`;
@@ -116,6 +111,11 @@ export async function POST(request: Request) {
         }
         failedCount++;
       }
+    };
+
+    for (const member of overdueMembers) {
+      const memberName = `${member.firstName} ${member.lastName}`.trim();
+      await dispatchEmail(member, memberName);
     }
 
     console.log("--- API /api/send-reminders FINISHED. ---");

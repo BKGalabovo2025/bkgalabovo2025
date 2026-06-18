@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Sale } from "@/types";
 import { toast } from "sonner";
-import { useAppStore } from "@/store/use-app-store";
+
 import {
   getRecoveryServiceHistoryAction,
   getRecoveryServiceSalesAction,
@@ -21,7 +21,7 @@ export function useRecoveryServices() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { activeBranch } = useAppStore();
+  // unused: const { activeBranch } = useAppStore();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -59,7 +59,7 @@ export function useRecoveryServices() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeBranch]);
+  }, []);
 
   useEffect(() => {
     fetchData();

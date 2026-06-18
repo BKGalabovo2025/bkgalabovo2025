@@ -145,6 +145,64 @@ export default function RecoveryPage() {
     return reservations.filter((r) => r.status !== "cancelled");
   }, [reservations]);
 
+  const renderSlotsContent = () => {
+    if (isAvailLoading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (!site?.recoveryEnabled) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-amber-600" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">
+              Възстановителната зона не е активна
+            </h3>
+            <p className="text-muted-foreground max-w-sm">
+              За избрания обект ({activeBranch}) в момента няма
+              конфигурирана активна възстановителна зона.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {availableSlots.map((slot, i) => (
+          <Button
+            key={i}
+            variant={slot.available ? "outline" : "ghost"}
+            disabled={!slot.available}
+            className={cn(
+              "h-14 flex flex-col items-center justify-center gap-1 transition-all",
+              slot.available
+                ? "hover:border-primary hover:bg-primary/5 active:scale-95"
+                : "opacity-40 grayscale cursor-not-allowed"
+            )}
+            onClick={() => handleBooking(slot.start)}
+          >
+            <div className="flex items-center gap-2 font-semibold">
+              <Clock className="h-3 w-3" />
+              {slot.time}
+            </div>
+            {slot.available && (
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                Свободно
+              </span>
+            )}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6 bg-zinc-50/50 dark:bg-zinc-950/50">
       <div className="flex items-center justify-between space-y-2">
@@ -300,53 +358,7 @@ export default function RecoveryPage() {
               </CardHeader>
 
               <TabsContent value="available" className="p-6">
-                {!site?.recoveryEnabled && !isAvailLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                    <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                      <AlertCircle className="h-8 w-8 text-amber-600" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-semibold">
-                        Възстановителната зона не е активна
-                      </h3>
-                      <p className="text-muted-foreground max-w-sm">
-                        За избрания обект ({activeBranch}) в момента няма
-                        конфигурирана активна възстановителна зона.
-                      </p>
-                    </div>
-                  </div>
-                ) : isAvailLoading ? (
-                  <div className="flex items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {availableSlots.map((slot, i) => (
-                      <Button
-                        key={i}
-                        variant={slot.available ? "outline" : "ghost"}
-                        disabled={!slot.available}
-                        className={cn(
-                          "h-14 flex flex-col items-center justify-center gap-1 transition-all",
-                          slot.available
-                            ? "hover:border-primary hover:bg-primary/5 active:scale-95"
-                            : "opacity-40 grayscale cursor-not-allowed"
-                        )}
-                        onClick={() => handleBooking(slot.start)}
-                      >
-                        <div className="flex items-center gap-2 font-semibold">
-                          <Clock className="h-3 w-3" />
-                          {slot.time}
-                        </div>
-                        {slot.available && (
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                            Свободно
-                          </span>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                )}
+                {renderSlotsContent()}
               </TabsContent>
 
               <TabsContent value="existing" className="p-0">

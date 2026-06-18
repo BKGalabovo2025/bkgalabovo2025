@@ -28,7 +28,7 @@ export default function FinancesClient({
     if (tab && tab !== operationsSubTab) {
       setOperationsSubTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, operationsSubTab]);
 
   const handleTabChange = (val: string) => {
     setOperationsSubTab(val);

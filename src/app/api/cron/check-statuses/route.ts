@@ -40,15 +40,9 @@ export async function GET(request: Request) {
       return date.toLocaleString("bg-BG", { timeZone: "Europe/Sofia" });
     };
 
-    for (const doc of membersSnap.docs) {
-      const memberId = doc.id;
-      const data = doc.data();
-      const currentStatus = data.status || "active";
-
-      // Determine the last activity date
+    const getLastActivityDate = async (memberId: string, data: any) => {
       let lastActivityDate = new Date(0);
 
-      // 1. Check Registration Date
       if (data.registrationDate) {
         if (typeof data.registrationDate.toDate === "function") {
           lastActivityDate = data.registrationDate.toDate();
@@ -57,7 +51,6 @@ export async function GET(request: Request) {
         }
       }
 
-      // 2. Check latest Sale Date
       const salesSnap = await adminDb
         .collection("sales")
         .where("memberId", "==", memberId)
@@ -70,7 +63,6 @@ export async function GET(request: Request) {
         if (saleDate > lastActivityDate) lastActivityDate = saleDate;
       }
 
-      // 3. Check latest Event Date (Attendance)
       const eventsSnap = await adminDb
         .collection("events")
         .where("attendeeMemberIds", "array-contains", memberId)
@@ -82,6 +74,16 @@ export async function GET(request: Request) {
         const eventDate = new Date(eventsSnap.docs[0].data().startDate);
         if (eventDate > lastActivityDate) lastActivityDate = eventDate;
       }
+
+      return lastActivityDate;
+    };
+
+    for (const doc of membersSnap.docs) {
+      const memberId = doc.id;
+      const data = doc.data();
+      const currentStatus = data.status || "active";
+
+      const lastActivityDate = await getLastActivityDate(memberId, data);
 
       const isInactive = lastActivityDate < thirtyDaysAgo;
 

@@ -195,6 +195,136 @@ export const EditGeneralServiceDialog = ({
     }
   };
 
+  const renderMovementsContent = () => {
+    if (historyLoading) {
+      return (
+        <div className="py-20 flex flex-col items-center justify-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500 opacity-35" />
+          <p className="text-zinc-400 text-xs font-light">
+            Зареждане на движения...
+          </p>
+        </div>
+      );
+    }
+    if (movements.length === 0) {
+      return (
+        <div className="py-20 text-center text-zinc-400 text-xs font-light">
+          Няма записани движения за тази услуга.
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {movements.map((move) => {
+          return (
+            <div
+              key={move.id}
+              className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-[10px]">
+                  {formatDateTimeDisplay(move.createdAt)}
+                </span>
+                <Badge
+                  className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${getEventBadgeClass(
+                    move.type
+                  )}`}
+                >
+                  {getEventLabel(move.type)}
+                </Badge>
+              </div>
+              {move.oldPrice !== undefined && move.newPrice !== undefined && (
+                <div className="flex justify-between items-center text-[11px] text-zinc-500">
+                  <span>Промяна на цена:</span>
+                  <span>
+                    {formatPrice(move.oldPrice)} &rarr; {formatPrice(move.newPrice)}
+                  </span>
+                </div>
+              )}
+              <div className="text-[10px] text-zinc-400/80 text-right mt-1">
+                Оператор: {move.userName}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderSalesContent = () => {
+    if (historyLoading) {
+      return (
+        <div className="py-20 flex flex-col items-center justify-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-35" />
+          <p className="text-zinc-400 text-xs font-light">
+            Зареждане на продажби...
+          </p>
+        </div>
+      );
+    }
+    if (sales.length === 0) {
+      return (
+        <div className="py-20 text-center text-zinc-400 text-xs font-light">
+          Няма записани продажби за тази услуга.
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {sales.map((sale) => {
+          const item = sale.items.find(
+            (i) => i.productId === service?.id
+          );
+          const memberName =
+            sale.memberId === "GUEST_EXTERNAL"
+              ? "Външен клиент"
+              : membersMap[sale.memberId] || "Зареден Член";
+          return (
+            <div
+              key={sale.id}
+              className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-[10px]">
+                  {new Date(sale.saleDate).toLocaleDateString(
+                    "bg-BG"
+                  )}
+                </span>
+                <Badge
+                  className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${
+                    sale.isPaid
+                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
+                      : "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400"
+                  }`}
+                >
+                  {sale.isPaid ? "Платено" : "Неплатено"}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Клиент:</span>
+                <span className="font-semibold text-zinc-900 dark:text-white">
+                  {memberName}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Брой:</span>
+                <span className="font-medium">
+                  {item?.quantity || 1} бр.
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                <span className="text-zinc-500">Сума:</span>
+                <span className="font-bold text-emerald-500">
+                  {formatPrice(sale.totalAmount)}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (!service) return null;
 
   return (
@@ -368,130 +498,18 @@ export const EditGeneralServiceDialog = ({
                 </TabsTrigger>
               </TabsList>
 
-              {/* TAB 1: SERVICE MOVEMENTS HISTORY */}
               <TabsContent
                 value="movements"
                 className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1 mt-0"
               >
-                {historyLoading ? (
-                  <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-amber-500 opacity-35" />
-                    <p className="text-zinc-400 text-xs font-light">
-                      Зареждане на движения...
-                    </p>
-                  </div>
-                ) : movements.length > 0 ? (
-                  <div className="space-y-3">
-                    {movements.map((move) => {
-                      return (
-                        <div
-                          key={move.id}
-                          className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="text-zinc-400 text-[10px]">
-                              {formatDateTimeDisplay(move.createdAt)}
-                            </span>
-                            <Badge
-                              className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${getEventBadgeClass(
-                                move.type
-                              )}`}
-                            >
-                              {getEventLabel(move.type)}
-                            </Badge>
-                          </div>
-                          {move.oldPrice !== undefined && move.newPrice !== undefined && (
-                            <div className="flex justify-between items-center text-[11px] text-zinc-500">
-                              <span>Промяна на цена:</span>
-                              <span>
-                                {formatPrice(move.oldPrice)} &rarr; {formatPrice(move.newPrice)}
-                              </span>
-                            </div>
-                          )}
-                          <div className="text-[10px] text-zinc-400/80 text-right mt-1">
-                            Оператор: {move.userName}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-20 text-center text-zinc-400 text-xs font-light">
-                    Няма записани движения за тази услуга.
-                  </div>
-                )}
+                {renderMovementsContent()}
               </TabsContent>
 
-              {/* TAB 2: SERVICE SALES HISTORY */}
               <TabsContent
                 value="sales"
                 className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1 mt-0"
               >
-                {historyLoading ? (
-                  <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-35" />
-                    <p className="text-zinc-400 text-xs font-light">
-                      Зареждане на продажби...
-                    </p>
-                  </div>
-                ) : sales.length > 0 ? (
-                  <div className="space-y-3">
-                    {sales.map((sale) => {
-                      const item = sale.items.find(
-                        (i) => i.productId === service.id
-                      );
-                      const memberName =
-                        sale.memberId === "GUEST_EXTERNAL"
-                          ? "Външен клиент"
-                          : membersMap[sale.memberId] || "Зареден Член";
-                      return (
-                        <div
-                          key={sale.id}
-                          className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="text-zinc-400 text-[10px]">
-                              {new Date(sale.saleDate).toLocaleDateString(
-                                "bg-BG"
-                              )}
-                            </span>
-                            <Badge
-                              className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${
-                                sale.isPaid
-                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
-                                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400"
-                              }`}
-                            >
-                              {sale.isPaid ? "Платено" : "Неплатено"}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-zinc-500">Клиент:</span>
-                            <span className="font-semibold text-zinc-900 dark:text-white">
-                              {memberName}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-zinc-500">Брой:</span>
-                            <span className="font-medium">
-                              {item?.quantity || 1} бр.
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50">
-                            <span className="text-zinc-500">Сума:</span>
-                            <span className="font-bold text-emerald-500">
-                              {formatPrice(sale.totalAmount)}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-20 text-center text-zinc-400 text-xs font-light">
-                    Няма записани продажби за тази услуга.
-                  </div>
-                )}
+                {renderSalesContent()}
               </TabsContent>
             </Tabs>
           </div>

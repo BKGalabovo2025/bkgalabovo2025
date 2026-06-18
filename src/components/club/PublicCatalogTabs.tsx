@@ -24,12 +24,14 @@ import {
 import Image from "next/image";
 import { Eye } from "lucide-react";
 
+type CatalogTab = "trainings" | "general" | "products" | "recovery";
+
 interface PublicCatalogTabsProps {
   trainings: any[];
   generalServices: any[];
   products: any[];
   recoveryServices?: any[];
-  allowedTabs?: ("trainings" | "general" | "products" | "recovery")[];
+  allowedTabs?: CatalogTab[];
 }
 
 export default function PublicCatalogTabs({
@@ -39,9 +41,7 @@ export default function PublicCatalogTabs({
   recoveryServices = [],
   allowedTabs = ["trainings", "general", "products", "recovery"],
 }: PublicCatalogTabsProps) {
-  const [activeTab, setActiveTab] = useState<
-    "trainings" | "general" | "products" | "recovery"
-  >(allowedTabs[0] || "trainings");
+  const [activeTab, setActiveTab] = useState<CatalogTab>(allowedTabs[0] || "trainings");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -91,9 +91,7 @@ export default function PublicCatalogTabs({
   }, [activeDataset, searchQuery, selectedCategory]);
 
   // Reset filters when tab changes
-  const handleTabChange = (
-    tab: "trainings" | "general" | "products" | "recovery"
-  ) => {
+  const handleTabChange = (tab: CatalogTab) => {
     setActiveTab(tab);
     setSearchQuery("");
     setSelectedCategory("all");
@@ -218,7 +216,7 @@ function CatalogCard({
   tab,
 }: {
   item: any;
-  tab: "trainings" | "general" | "products" | "recovery";
+  tab: CatalogTab;
 }) {
   const images = useMemo(() => {
     if (!item.imageUrl) return [];
@@ -289,88 +287,104 @@ function CatalogCard({
     return null;
   };
 
+  const getTabIcon = (currentTab: string) => {
+    if (currentTab === "trainings") return <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    if (currentTab === "general") return <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    if (currentTab === "recovery") return <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    return <ShoppingBag className="h-12 w-12 opacity-35" strokeWidth={1} />;
+  };
+
+  const getTabLabel = (currentTab: string) => {
+    if (currentTab === "trainings") return "Тренировка";
+    if (currentTab === "general") return "Услуга";
+    if (currentTab === "recovery") return "Възстановяване";
+    return "Магазин";
+  };
+
+  const renderImages = () => {
+    if (images.length === 0) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
+          {getTabIcon(tab)}
+          <span className="text-[9px] font-semibold uppercase tracking-widest opacity-40 mt-3">
+            Няма снимка
+          </span>
+        </div>
+      );
+    }
+
+    if (displayMode === "collage") {
+      return (
+        <div className="flex w-full h-full">
+          {images.map((imgUrl: string, idx: number) => (
+            <div
+              key={imgUrl}
+              className="h-full relative overflow-hidden"
+              style={{ width: `${100 / images.length}%` }}
+            >
+              <Image
+                src={imgUrl}
+                alt={`${item.name} - ${idx + 1}`}
+                fill
+                sizes="(max-w-768px) 100vw, 33vw"
+                className="object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              {idx > 0 && (
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-white/20 z-10" />
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <Image
+          src={images[activeImgIndex]}
+          alt={item.name}
+          sizes="(max-width: 768px) 100vw, 33vw"
+          priority={true}
+          className="object-cover group-hover:scale-110 transition-transform duration-700"
+          fill
+        />
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prevImg}
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={nextImg}
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+            >
+              <ChevronRight size={16} />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {images.map((_: any, i: number) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    activeImgIndex === i
+                      ? "bg-white w-4"
+                      : "bg-white/40 w-1.5"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <BentoCard className="group relative overflow-hidden bg-zinc-900 border border-zinc-800/80 shadow-none hover:border-zinc-700/80 hover:shadow-2xl hover:shadow-blue-900/5 transition-all duration-500 rounded-3xl flex flex-col h-full min-h-[420px]">
       {/* Product Image section with navigation */}
       <div className="relative h-56 w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-800/60 shrink-0">
-        {images.length > 0 ? (
-          displayMode === "collage" ? (
-            <div className="flex w-full h-full">
-              {images.map((imgUrl: string, idx: number) => (
-                <div
-                  key={imgUrl}
-                  className="h-full relative overflow-hidden"
-                  style={{ width: `${100 / images.length}%` }}
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={`${item.name} - ${idx + 1}`}
-                    fill
-                    sizes="(max-w-768px) 100vw, 33vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  {idx > 0 && (
-                    <div className="absolute left-0 top-0 bottom-0 w-px bg-white/20 z-10" />
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <Image
-                src={images[activeImgIndex]}
-                alt={item.name}
-                sizes="(max-width: 768px) 100vw, 33vw"
-                priority={true}
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
-                fill
-              />
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImg}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    onClick={nextImg}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                    {images.map((_: any, i: number) => (
-                      <div
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          activeImgIndex === i
-                            ? "bg-white w-4"
-                            : "bg-white/40 w-1.5"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          )
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
-            {tab === "trainings" ? (
-              <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />
-            ) : tab === "general" ? (
-              <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />
-            ) : tab === "recovery" ? (
-              <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />
-            ) : (
-              <ShoppingBag className="h-12 w-12 opacity-35" strokeWidth={1} />
-            )}
-            <span className="text-[9px] font-semibold uppercase tracking-widest opacity-40 mt-3">
-              Няма снимка
-            </span>
-          </div>
-        )}
+        {renderImages()}
 
         {/* Top Floating Badge */}
         <div className="absolute top-4 left-4 z-10">{renderBadges()}</div>
@@ -407,13 +421,7 @@ function CatalogCard({
               <Eye size={14} />
             </button>
             <Badge className="bg-zinc-950 text-zinc-400 border-zinc-800/60 shadow-none font-medium text-[8px] uppercase tracking-wider px-2.5 py-1 flex items-center gap-1 border">
-              {tab === "trainings"
-                ? "Тренировка"
-                : tab === "general"
-                  ? "Услуга"
-                  : tab === "recovery"
-                    ? "Възстановяване"
-                    : "Магазин"}
+              {getTabLabel(tab)}
             </Badge>
           </div>
         </div>

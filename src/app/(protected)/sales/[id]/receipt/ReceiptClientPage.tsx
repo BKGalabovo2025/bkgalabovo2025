@@ -40,15 +40,8 @@ interface ReceiptCopyProps {
   familyMembers?: Member[];
 }
 
-const ReceiptCopy = ({
-  label,
-  sale,
-  member,
-  relatedMember,
-  service,
-  family,
-  familyMembers,
-}: ReceiptCopyProps) => {
+
+const getReceiptDates = (sale: Sale | null) => {
   const paymentDate = sale?.saleDate
     ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
         day: "2-digit",
@@ -57,25 +50,30 @@ const ReceiptCopy = ({
       })
     : new Date().toLocaleDateString("bg-BG");
 
-  const issueDate = sale?.createdAt
-    ? new Date(sale.createdAt).toLocaleDateString("bg-BG", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
-    : sale?.saleDate
-      ? new Date(sale.saleDate).toLocaleDateString("bg-BG", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        })
-      : new Date().toLocaleDateString("bg-BG");
+  let issueDate = new Date().toLocaleDateString("bg-BG");
+  if (sale?.createdAt) {
+    issueDate = new Date(sale.createdAt).toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } else if (sale?.saleDate) {
+    issueDate = new Date(sale.saleDate).toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }
 
-  const isCourtRental =
-    sale?.items?.[0]?.productId?.startsWith("court_rental") ||
-    sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+  return { paymentDate, issueDate };
+};
 
-  if (isCourtRental) {
+const CourtRentalReceipt = ({
+  label,
+  sale,
+  member,
+}: ReceiptCopyProps) => {
+  const { issueDate } = getReceiptDates(sale);
     const hours = sale?.items?.[0]?.quantity || 1;
     const totalAmount = sale?.totalAmount || 0;
     const clientName =
@@ -104,7 +102,7 @@ const ReceiptCopy = ({
     // Extract court number from product ID (e.g. court_rental_3 -> 3) or name
     const courtMatch = sale?.items?.[0]?.productId?.match(/\d+/);
     const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
-    const courtId = courtMatch ? courtMatch[0] : nameMatch ? nameMatch[0] : "-";
+    const courtId = courtMatch?.[0] || nameMatch?.[0] || "-";
 
     return (
       <div
@@ -221,7 +219,18 @@ const ReceiptCopy = ({
         </div>
       </div>
     );
-  }
+};
+
+const StandardReceipt = ({
+  label,
+  sale,
+  member,
+  relatedMember,
+  service,
+  family,
+  familyMembers,
+}: ReceiptCopyProps) => {
+  const { paymentDate, issueDate } = getReceiptDates(sale);
 
   return (
     <div
@@ -339,25 +348,6 @@ const ReceiptCopy = ({
                     <td className="p-2 border-r border-black font-bold">
                       {item.name || "(Липсва име)"}
 
-                      {sale?.targetMonthLabels &&
-                        sale.targetMonthLabels.length > 0 && (
-                          <span className="block text-[8px] text-[#475569] font-normal mt-0.5">
-                            ({sale.targetMonthLabels.join(", ")})
-                          </span>
-                        )}
-                      {sale?.paymentMode === "individual" &&
-                        sale?.paidEventIds &&
-                        sale.paidEventIds.length > 0 && (
-                          <span className="block text-[8px] text-[#475569] font-normal mt-0.5">
-                            ({sale.paidEventIds.length} тренировки
-                            {sale.targetEventDates &&
-                            sale.targetEventDates.length > 0
-                              ? ` на ${sale.targetEventDates.join(", ")}`
-                              : ""}
-                            )
-                          </span>
-                        )}
-
                       {service?.name && (
                         <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
                           {service.name}
@@ -432,6 +422,17 @@ const ReceiptCopy = ({
       </div>
     </div>
   );
+};
+
+const ReceiptCopy = (props: ReceiptCopyProps) => {
+  const isCourtRental =
+    props.sale?.items?.[0]?.productId?.startsWith("court_rental") ||
+    props.sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+
+  if (isCourtRental) {
+    return <CourtRentalReceipt {...props} />;
+  }
+  return <StandardReceipt {...props} />;
 };
 
 export default function ReceiptClientPage({

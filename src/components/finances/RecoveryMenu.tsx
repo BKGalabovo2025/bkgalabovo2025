@@ -133,82 +133,90 @@ const RecoveryCard = ({
     setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const renderImages = () => {
+    if (images.length === 0) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+          <Activity
+            className="h-12 w-12 opacity-30 text-cyan-500"
+            strokeWidth={1}
+          />
+          <span className="text-[9px] font-semibold uppercase tracking-[0.2em] opacity-40 mt-2">
+            ПРОЦЕДУРА
+          </span>
+        </div>
+      );
+    }
+    if (displayMode === "collage") {
+      return (
+        <div className="flex w-full h-full">
+          {images.map((imgUrl: string, idx: number) => (
+            <div
+              key={imgUrl}
+              className="h-full relative overflow-hidden"
+              style={{ width: `${100 / images.length}%` }}
+            >
+              <Image
+                src={imgUrl}
+                alt={`${service.name} - ${idx + 1}`}
+                fill
+                sizes="(max-w-768px) 100vw, 33vw"
+                className="object-cover transition-transform duration-700 hover:scale-110"
+              />
+              {idx > 0 && (
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-white/30 z-10" />
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <>
+        <Image
+          src={images[activeImgIndex]}
+          alt={`${service.name} - ${activeImgIndex + 1}`}
+          fill
+          sizes="(max-w-768px) 100vw, 33vw"
+          className="object-cover transition-transform duration-700"
+        />
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prevImg}
+              className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              onClick={nextImg}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
+            >
+              <ChevronRight size={14} />
+            </button>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {images.map((_: any, i: number) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    activeImgIndex === i
+                      ? "bg-white w-4"
+                      : "bg-white/50 w-1.5"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20 transition-all duration-500 rounded-5xl flex flex-col h-full">
       {/* Cover Image Header with Horizontal Scroll */}
       <div className="relative h-48 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-50 dark:border-zinc-800 overflow-hidden">
-        {images.length > 0 ? (
-          displayMode === "collage" ? (
-            <div className="flex w-full h-full">
-              {images.map((imgUrl: string, idx: number) => (
-                <div
-                  key={imgUrl}
-                  className="h-full relative overflow-hidden"
-                  style={{ width: `${100 / images.length}%` }}
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={`${service.name} - ${idx + 1}`}
-                    fill
-                    sizes="(max-w-768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-700 hover:scale-110"
-                  />
-                  {idx > 0 && (
-                    <div className="absolute left-0 top-0 bottom-0 w-px bg-white/30 z-10" />
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <Image
-                src={images[activeImgIndex]}
-                alt={`${service.name} - ${activeImgIndex + 1}`}
-                fill
-                sizes="(max-w-768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700"
-              />
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImg}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <button
-                    onClick={nextImg}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white/60 backdrop-blur-sm shadow-xs border border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-zinc-700"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                    {images.map((_: any, i: number) => (
-                      <div
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          activeImgIndex === i
-                            ? "bg-white w-4"
-                            : "bg-white/50 w-1.5"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          )
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-            <Activity
-              className="h-12 w-12 opacity-30 text-cyan-500"
-              strokeWidth={1}
-            />
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] opacity-40 mt-2">
-              ПРОЦЕДУРА
-            </span>
-          </div>
-        )}
+        {renderImages()}
 
         {/* Dropdown Menu on Image Hover */}
         <div className="absolute top-4 right-4 z-10 flex gap-2">

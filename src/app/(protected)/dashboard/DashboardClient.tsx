@@ -124,6 +124,227 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   // Use values from stats or fallback to 0/placeholder
   const monthlyRevenue = stats?.revenueLast30Days || 0;
 
+  const renderMembersContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Клубни членове:</span>
+          <span className="font-bold text-blue-700 dark:text-blue-300">
+            {stats?.totalClubMembers ?? 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Външни клиенти:</span>
+          <span className="font-bold text-amber-700 dark:text-amber-400">
+            {stats?.totalGuests ?? 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Възстановяване:</span>
+          <span className="font-bold text-emerald-700 dark:text-emerald-400">
+            {stats?.totalRecovery ?? 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Неактивни:</span>
+          <span className="font-bold text-rose-600 dark:text-rose-400">
+            {stats?.inactiveMembersCount ?? 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Семейства:</span>
+          <span className="font-bold text-purple-700 dark:text-purple-400">
+            {stats?.totalFamilies ?? 0}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderScheduleContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        <div className="space-y-1 text-zinc-700 dark:text-zinc-300 border-b border-emerald-100 dark:border-emerald-800/50 pb-3">
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Тренировки:</span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+              {stats?.todayTrainingsCount ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Състезания:</span>
+            <span className="font-bold text-rose-600 dark:text-rose-400">
+              {stats?.todayCompetitionsCount ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Лагери & Други:</span>
+            <span className="font-bold text-amber-700 dark:text-amber-400">
+              {(stats?.todayCampsCount ?? 0) +
+                (stats?.todayOtherEventsCount ?? 0)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Възстановяване:</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400">
+              {stats?.todayRecoveryCount ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Кортове:</span>
+            <span className="font-bold text-purple-600 dark:text-purple-400">
+              {stats?.todayCourtCount ?? 0}
+            </span>
+          </div>
+        </div>
+
+        {stats?.todayEventsList && stats.todayEventsList.length > 0 && (
+          <div className="space-y-2 pt-1">
+            {stats.todayEventsList.slice(0, 3).map((event: any) => (
+              <div
+                key={event.id}
+                className="flex items-start justify-between text-[10px] leading-tight bg-white/50 dark:bg-black/20 p-2 rounded-xl"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-emerald-800 dark:text-emerald-200 line-clamp-1">
+                    {event.title}
+                  </span>
+                  <span className="font-light text-zinc-500 dark:text-zinc-400">
+                    {new Date(event.startDate).toLocaleTimeString(
+                      "bg-BG",
+                      { hour: "2-digit", minute: "2-digit" }
+                    )}
+                  </span>
+                </div>
+                <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded text-emerald-700 dark:text-emerald-300 font-medium whitespace-nowrap">
+                  {event.attendeesCount} зап.
+                </span>
+              </div>
+            ))}
+            {stats.todayEventsList.length > 3 && (
+              <div
+                className="text-[10px] text-center text-emerald-600/70 dark:text-emerald-400/70 font-medium mt-1 cursor-pointer hover:underline"
+                onClick={() => router.push("/schedule")}
+              >
+                + още {stats.todayEventsList.length - 3} събития
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderRevenueContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
+          <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Тренировки:</span>
+          <span className="font-bold text-purple-700 dark:text-purple-300">
+            {formatPrice(stats?.revenueTrainings ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Клубни услуги:</span>
+          <span className="font-bold text-teal-800 dark:text-teal-400">
+            {formatPrice(stats?.revenueServices ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Възстановяване:</span>
+          <span className="font-bold text-indigo-600 dark:text-indigo-400">
+            {formatPrice(stats?.revenueRecovery ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Кортове:</span>
+          <span className="font-bold text-pink-800 dark:text-pink-400">
+            {formatPrice(stats?.revenueCourts ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-light">Магазин / Стоки:</span>
+          <span className="font-bold text-purple-700 dark:text-purple-300">
+            {formatPrice(stats?.revenueShop ?? 0)}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderLowStockContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-current opacity-10" />
+          <Skeleton className="h-3 w-full bg-current opacity-10" />
+        </div>
+      );
+    }
+    if ((stats?.lowStockCount || 0) > 0) {
+      return (
+        <div className="space-y-1.5 relative">
+          {stats?.lowStockProducts?.slice(0, 4).map((p: any) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between text-[11px] leading-tight bg-white/40 dark:bg-black/20 px-2 py-1 rounded-md border border-rose-100/50 dark:border-rose-900/20"
+            >
+              <span
+                className="font-medium truncate max-w-[100px] text-zinc-700 dark:text-zinc-300"
+                title={p.name}
+              >
+                {p.name}
+              </span>
+              <span className="font-extrabold text-rose-700 dark:text-rose-400">
+                {p.stock} бр.
+              </span>
+            </div>
+          ))}
+          {(stats?.lowStockProducts?.length || 0) > 4 && (
+            <div className="text-[9px] font-medium text-right mt-1 opacity-70 text-rose-600 dark:text-rose-400">
+              + още {(stats?.lowStockProducts?.length || 0) - 4}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1">
+        <div className="text-[12px] font-medium leading-tight text-emerald-800 dark:text-emerald-300">
+          Всички стоки са налични.
+        </div>
+        <div className="text-[10px] opacity-70">Към магазина</div>
+      </div>
+    );
+  };
+
   if (!mounted) {
     return (
       <div className="space-y-8 animate-pulse pb-12">
@@ -201,46 +422,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 <ArrowUpRight className="h-4 w-4 opacity-0 -translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 text-blue-700 dark:text-blue-300" />
               </div>
             </div>
-            {loading ? (
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
-              </div>
-            ) : (
-              <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Клубни членове:</span>
-                  <span className="font-bold text-blue-700 dark:text-blue-300">
-                    {stats?.totalClubMembers ?? 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Външни клиенти:</span>
-                  <span className="font-bold text-amber-700 dark:text-amber-400">
-                    {stats?.totalGuests ?? 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Възстановяване:</span>
-                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                    {stats?.totalRecovery ?? 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Неактивни:</span>
-                  <span className="font-bold text-rose-600 dark:text-rose-400">
-                    {stats?.inactiveMembersCount ?? 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Семейства:</span>
-                  <span className="font-bold text-purple-700 dark:text-purple-400">
-                    {stats?.totalFamilies ?? 0}
-                  </span>
-                </div>
-              </div>
-            )}
+            {renderMembersContent()}
           </div>
         </BentoCard>
         <BentoCard
@@ -259,83 +441,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2.5 text-emerald-800 dark:text-emerald-300">
               {t("dash.today_training")}
             </p>
-            {loading ? (
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="space-y-1 text-zinc-700 dark:text-zinc-300 border-b border-emerald-100 dark:border-emerald-800/50 pb-3">
-                  <div className="flex items-center justify-between text-[11px] leading-tight">
-                    <span className="font-light">Тренировки:</span>
-                    <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                      {stats?.todayTrainingsCount ?? 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] leading-tight">
-                    <span className="font-light">Състезания:</span>
-                    <span className="font-bold text-rose-600 dark:text-rose-400">
-                      {stats?.todayCompetitionsCount ?? 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] leading-tight">
-                    <span className="font-light">Лагери & Други:</span>
-                    <span className="font-bold text-amber-700 dark:text-amber-400">
-                      {(stats?.todayCampsCount ?? 0) +
-                        (stats?.todayOtherEventsCount ?? 0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] leading-tight">
-                    <span className="font-light">Възстановяване:</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {stats?.todayRecoveryCount ?? 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] leading-tight">
-                    <span className="font-light">Кортове:</span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
-                      {stats?.todayCourtCount ?? 0}
-                    </span>
-                  </div>
-                </div>
-
-                {stats?.todayEventsList && stats.todayEventsList.length > 0 && (
-                  <div className="space-y-2 pt-1">
-                    {stats.todayEventsList.slice(0, 3).map((event: any) => (
-                      <div
-                        key={event.id}
-                        className="flex items-start justify-between text-[10px] leading-tight bg-white/50 dark:bg-black/20 p-2 rounded-xl"
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-bold text-emerald-800 dark:text-emerald-200 line-clamp-1">
-                            {event.title}
-                          </span>
-                          <span className="font-light text-zinc-500 dark:text-zinc-400">
-                            {new Date(event.startDate).toLocaleTimeString(
-                              "bg-BG",
-                              { hour: "2-digit", minute: "2-digit" }
-                            )}
-                          </span>
-                        </div>
-                        <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded text-emerald-700 dark:text-emerald-300 font-medium whitespace-nowrap">
-                          {event.attendeesCount} зап.
-                        </span>
-                      </div>
-                    ))}
-                    {stats.todayEventsList.length > 3 && (
-                      <div
-                        className="text-[10px] text-center text-emerald-600/70 dark:text-emerald-400/70 font-medium mt-1 cursor-pointer hover:underline"
-                        onClick={() => router.push("/schedule")}
-                      >
-                        + още {stats.todayEventsList.length - 3} събития
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            {renderScheduleContent()}
           </div>
         </BentoCard>
         <BentoCard
@@ -360,46 +466,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 <ArrowUpRight className="h-4 w-4 opacity-0 -translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 text-purple-700 dark:text-purple-300" />
               </div>
             </div>
-            {loading ? (
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
-                <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
-              </div>
-            ) : (
-              <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Тренировки:</span>
-                  <span className="font-bold text-purple-700 dark:text-purple-300">
-                    {formatPrice(stats?.revenueTrainings ?? 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Клубни услуги:</span>
-                  <span className="font-bold text-teal-800 dark:text-teal-400">
-                    {formatPrice(stats?.revenueServices ?? 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Възстановяване:</span>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatPrice(stats?.revenueRecovery ?? 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Кортове:</span>
-                  <span className="font-bold text-pink-800 dark:text-pink-400">
-                    {formatPrice(stats?.revenueCourts ?? 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] leading-tight">
-                  <span className="font-light">Магазин / Стоки:</span>
-                  <span className="font-bold text-purple-700 dark:text-purple-300">
-                    {formatPrice(stats?.revenueShop ?? 0)}
-                  </span>
-                </div>
-              </div>
-            )}
+            {renderRevenueContent()}
           </div>
         </BentoCard>
         <BentoCard
@@ -446,43 +513,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               </p>
               <ArrowUpRight className="h-4 w-4 opacity-0 -translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0" />
             </div>
-            {loading ? (
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-full bg-current opacity-10" />
-                <Skeleton className="h-3 w-full bg-current opacity-10" />
-              </div>
-            ) : (stats?.lowStockCount || 0) > 0 ? (
-              <div className="space-y-1.5 relative">
-                {stats?.lowStockProducts?.slice(0, 4).map((p: any) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between text-[11px] leading-tight bg-white/40 dark:bg-black/20 px-2 py-1 rounded-md border border-rose-100/50 dark:border-rose-900/20"
-                  >
-                    <span
-                      className="font-medium truncate max-w-[100px] text-zinc-700 dark:text-zinc-300"
-                      title={p.name}
-                    >
-                      {p.name}
-                    </span>
-                    <span className="font-extrabold text-rose-700 dark:text-rose-400">
-                      {p.stock} бр.
-                    </span>
-                  </div>
-                ))}
-                {(stats?.lowStockProducts?.length || 0) > 4 && (
-                  <div className="text-[9px] font-medium text-right mt-1 opacity-70 text-rose-600 dark:text-rose-400">
-                    + още {(stats?.lowStockProducts?.length || 0) - 4}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <div className="text-[12px] font-medium leading-tight text-emerald-800 dark:text-emerald-300">
-                  Всички стоки са налични.
-                </div>
-                <div className="text-[10px] opacity-70">Към магазина</div>
-              </div>
-            )}
+            {renderLowStockContent()}
           </div>
         </BentoCard>
       </div>

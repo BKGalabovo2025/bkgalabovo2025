@@ -26,8 +26,7 @@ export function TrainingHistory() {
   const [filterType, setFilterType] = useState<string>("all");
 
   const filteredEvents = events.filter((event) => {
-    if (filterType !== "all" && event.type !== filterType) return false;
-    return true;
+    return filterType === "all" || event.type === filterType;
   });
 
   const getEventIcon = (type: string) => {

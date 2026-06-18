@@ -255,6 +255,14 @@ export default function TournamentDetailsClient({
     }
   };
 
+  const getMedalEmoji = (idx: number, wins: number) => {
+    if (wins === 0) return idx + 1;
+    if (idx === 0) return <span className="text-yellow-500">🥇</span>;
+    if (idx === 1) return <span>🥈</span>;
+    if (idx === 2) return <span>🥉</span>;
+    return idx + 1;
+  };
+
   const handleSaveScore = async (
     matchId: string,
     score: string,
@@ -333,12 +341,7 @@ export default function TournamentDetailsClient({
     const options = {
       title: tournament.title,
       subtitle: `${formatDateShort(tournament.startDate)} - ${tournament.location}`,
-      category:
-        category === "singles"
-          ? "Единично"
-          : category === "doubles"
-            ? "Двойки"
-            : "Смесени",
+      category: getCategoryName(category),
       rows,
     };
 
@@ -933,15 +936,7 @@ export default function TournamentDetailsClient({
                             }
                           >
                             <TableCell className="text-center font-medium text-zinc-900">
-                              {idx === 0 && s.wins > 0 ? (
-                                <span className="text-yellow-500">🥇</span>
-                              ) : idx === 1 && s.wins > 0 ? (
-                                <span>🥈</span>
-                              ) : idx === 2 && s.wins > 0 ? (
-                                <span>🥉</span>
-                              ) : (
-                                idx + 1
-                              )}
+                              {getMedalEmoji(idx, s.wins)}
                             </TableCell>
                             <TableCell className="font-medium">
                               {s.name}

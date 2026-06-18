@@ -124,6 +124,30 @@ const ProductList = () => {
                 product.stock <= (product.restockThreshold || 5);
               const isOutOfStock = product.stock <= 0;
 
+              const getStatusBadge = () => {
+                if (isOutOfStock) {
+                  return (
+                    <div className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
+                      Изчерпан
+                    </div>
+                  );
+                }
+                if (isLowStock) {
+                  return (
+                    <div className="bg-amber-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
+                      Ниска наличност
+                    </div>
+                  );
+                }
+                return null;
+              };
+
+              const getStockClasses = () => {
+                if (isOutOfStock) return "bg-rose-500/10 border-rose-500/20 text-rose-500";
+                if (isLowStock) return "bg-amber-500/10 border-amber-500/20 text-amber-500";
+                return "bg-white/80 dark:bg-zinc-900/80 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-white";
+              };
+
               return (
                 <BentoCard
                   key={product.id}
@@ -153,15 +177,7 @@ const ProductList = () => {
 
                     {/* Status Badges */}
                     <div className="absolute top-6 left-6 flex flex-col gap-2">
-                      {isOutOfStock ? (
-                        <div className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
-                          Изчерпан
-                        </div>
-                      ) : isLowStock ? (
-                        <div className="bg-amber-500 text-white px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-widest shadow-none">
-                          Ниска наличност
-                        </div>
-                      ) : null}
+                      {getStatusBadge()}
                     </div>
 
                     <div className="absolute top-6 right-6 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
@@ -193,13 +209,7 @@ const ProductList = () => {
 
                     <div className="absolute bottom-6 left-6">
                       <div
-                        className={`px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest backdrop-blur-md border ${
-                          isOutOfStock
-                            ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
-                            : isLowStock
-                              ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
-                              : "bg-white/80 dark:bg-zinc-900/80 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-white"
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest backdrop-blur-md border ${getStockClasses()}`}
                       >
                         {product.stock} бр.
                       </div>
@@ -338,6 +348,11 @@ function LowStockBanner() {
     (p) => p.stock > 0 && p.stock <= (p.restockThreshold || 5)
   );
 
+  const getNamesString = (list: typeof products) => {
+    const names = list.map((p) => p.name).slice(0, 3).join(", ");
+    return list.length > 3 ? `${names} (+${list.length - 3})` : names;
+  };
+
   if (outOfStock.length === 0 && lowStock.length === 0) return null;
 
   return (
@@ -365,17 +380,7 @@ function LowStockBanner() {
         </div>
       )}
       <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-medium ml-auto hidden sm:block">
-        {outOfStock.length > 0
-          ? outOfStock
-              .map((p) => p.name)
-              .slice(0, 3)
-              .join(", ") +
-            (outOfStock.length > 3 ? ` (+${outOfStock.length - 3})` : "")
-          : lowStock
-              .map((p) => p.name)
-              .slice(0, 3)
-              .join(", ") +
-            (lowStock.length > 3 ? ` (+${lowStock.length - 3})` : "")}
+        {outOfStock.length > 0 ? getNamesString(outOfStock) : getNamesString(lowStock)}
       </p>
     </div>
   );

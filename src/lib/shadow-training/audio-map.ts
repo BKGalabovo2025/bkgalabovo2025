@@ -112,7 +112,7 @@ class AudioManager {
           })
           .catch(() => {})
           .finally(() => {
-            if (audio) audio.volume = 1;
+            audio.volume = 1;
           });
       }
     });
@@ -209,8 +209,7 @@ class AudioManager {
   public playSyntheticBeep() {
     if (typeof window === "undefined" || !window.AudioContext) return;
     try {
-      // @ts-ignore
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const audioCtx = new AudioContextClass();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();

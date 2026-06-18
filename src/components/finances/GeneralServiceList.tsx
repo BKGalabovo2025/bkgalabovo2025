@@ -58,6 +58,7 @@ export function GeneralServiceList() {
         toast.error(result.error);
       }
     } catch (err) {
+      console.error("Delete general service error:", err);
       toast.error("Възникна грешка при изтриване");
     } finally {
       setIsDeleting(false);
@@ -139,7 +140,7 @@ export function GeneralServiceList() {
 
                 <div className="absolute bottom-6 left-6">
                   <div className="px-4 py-2 rounded-xl text-[11px] font-medium uppercase tracking-widest backdrop-blur-md border bg-white/80 dark:bg-zinc-900/80 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-white">
-                    {service.pricingUnit === "fixed" ? "Фиксирана" : service.pricingUnit === "per_hour" ? "На час" : "На сесия"}
+                    {{ fixed: "Фиксирана", per_hour: "На час", per_session: "На сесия" }[service.pricingUnit] || service.pricingUnit}
                   </div>
                 </div>
               </div>

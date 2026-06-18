@@ -159,25 +159,33 @@ export function BirthdayReminder() {
             </div>
 
             <div className="text-right flex flex-col items-end gap-1">
-              {bday.diffDays === 0 ? (
-                <Badge className="bg-rose-500 hover:bg-rose-600 shadow-none border-none animate-pulse">
-                  ДНЕС! 🥳
-                </Badge>
-              ) : bday.diffDays === 1 ? (
-                <Badge
-                  variant="outline"
-                  className="border-rose-200 text-rose-600 bg-rose-50 dark:bg-rose-900/20"
-                >
-                  УТРЕ
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="border-zinc-200 text-zinc-500 dark:border-zinc-700"
-                >
-                  След {bday.diffDays} дни
-                </Badge>
-              )}
+              {(() => {
+                if (bday.diffDays === 0) {
+                  return (
+                    <Badge className="bg-rose-500 hover:bg-rose-600 shadow-none border-none animate-pulse">
+                      ДНЕС! 🥳
+                    </Badge>
+                  );
+                }
+                if (bday.diffDays === 1) {
+                  return (
+                    <Badge
+                      variant="outline"
+                      className="border-rose-200 text-rose-600 bg-rose-50 dark:bg-rose-900/20"
+                    >
+                      УТРЕ
+                    </Badge>
+                  );
+                }
+                return (
+                  <Badge
+                    variant="outline"
+                    className="border-zinc-200 text-zinc-500 dark:border-zinc-700"
+                  >
+                    След {bday.diffDays} дни
+                  </Badge>
+                );
+              })()}
               <span className="text-xs text-zinc-600 font-medium">
                 {bday.nextBirthday.toLocaleDateString("bg-BG", {
                   day: "numeric",

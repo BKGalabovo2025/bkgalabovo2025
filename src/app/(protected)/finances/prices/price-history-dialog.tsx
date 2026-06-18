@@ -51,6 +51,59 @@ export function PriceHistoryDialog({
     fetchHistory();
   }, [isOpen, price.id]);
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    if (history.length === 0) {
+      return (
+        <p className="text-center text-muted-foreground">
+          Няма намерена история за тази цена.
+        </p>
+      );
+    }
+
+    return (
+      <ScrollArea className="h-80 pr-4">
+        <div className="space-y-4">
+          {history.map((entry) => (
+            <div key={entry.id} className="p-3 border rounded-lg">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(entry.timestamp).toLocaleString("bg-BG")}
+                  </p>
+                  <p className="font-medium">
+                    Променено от: {entry.userName}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 font-mono text-lg">
+                  <span className="text-red-600">
+                    {formatPrice(entry.oldValue)}
+                  </span>
+                  <ArrowRight className="h-5 w-5" />
+                  <span className="text-green-600">
+                    {formatPrice(entry.newValue)}
+                  </span>
+                </div>
+              </div>
+              {entry.notes && (
+                <p className="mt-2 text-sm bg-gray-100 p-2 rounded">
+                  <b>Бележка:</b> {entry.notes}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -64,48 +117,7 @@ export function PriceHistoryDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-40">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : history.length === 0 ? (
-            <p className="text-center text-muted-foreground">
-              Няма намерена история за тази цена.
-            </p>
-          ) : (
-            <ScrollArea className="h-80 pr-4">
-              <div className="space-y-4">
-                {history.map((entry) => (
-                  <div key={entry.id} className="p-3 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(entry.timestamp).toLocaleString("bg-BG")}
-                        </p>
-                        <p className="font-medium">
-                          Променено от: {entry.userName}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2 font-mono text-lg">
-                        <span className="text-red-600">
-                          {formatPrice(entry.oldValue)}
-                        </span>
-                        <ArrowRight className="h-5 w-5" />
-                        <span className="text-green-600">
-                          {formatPrice(entry.newValue)}
-                        </span>
-                      </div>
-                    </div>
-                    {entry.notes && (
-                      <p className="mt-2 text-sm bg-gray-100 p-2 rounded">
-                        <b>Бележка:</b> {entry.notes}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
+          {renderContent()}
         </div>
         <DialogFooter>
           <DialogClose asChild>

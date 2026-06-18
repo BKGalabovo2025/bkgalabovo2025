@@ -94,10 +94,14 @@ export async function generateMetadata({
     };
   }
 
+  const categoryMap: Record<string, string> = {
+    singles: "Единично",
+    doubles: "Двойки",
+    mixed: "Смесени"
+  };
+
   const categoryNames = (tournament.categories || [])
-    .map((c: string) =>
-      c === "singles" ? "Единично" : c === "doubles" ? "Двойки" : "Смесени"
-    )
+    .map((c: string) => categoryMap[c] || c)
     .join(", ");
 
   return {

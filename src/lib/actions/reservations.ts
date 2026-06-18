@@ -1248,11 +1248,12 @@ export async function checkRecoveryInventoryAction(
     if (usedHips + reqHips > maxHips)
       return {
         success: false,
-        message: "���� ���������� ��������� ��� (�������� ).",
+        message: "    ( ).",
       };
 
     return { success: true };
-  } catch (error: any) {
-    return { success: false, message: "������ ��� �������� �� ���������." };
+  } catch (error) {
+    console.error("Check recovery inventory error:", error);
+    return { success: false, message: "Грешка при проверка на наличността." };
   }
 }

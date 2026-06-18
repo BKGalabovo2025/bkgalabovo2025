@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getTrainingSessionsForMemberAction } from "@/lib/actions/trainings";
 import { useAuth } from "@/context/auth-context";
 import { format } from "date-fns";
@@ -24,7 +24,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
   // won't re-trigger this client-side fetch unless we pass a callback.
   // Let's create a fetch function to be called after deletion.
 
-  const fetchTrainings = () => {
+  const fetchTrainings = useCallback(() => {
     if (!idToken) return;
     setLoading(true);
     getTrainingSessionsForMemberAction(idToken, memberId).then((res) => {
@@ -35,11 +35,11 @@ export function MemberTrainingsHistory({ memberId }: Props) {
       }
       setLoading(false);
     });
-  };
+  }, [idToken, memberId]);
 
   useEffect(() => {
     fetchTrainings();
-  }, [idToken, memberId]);
+  }, [fetchTrainings]);
 
   if (loading) {
     return (

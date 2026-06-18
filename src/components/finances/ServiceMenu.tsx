@@ -240,6 +240,16 @@ function ServiceCard({
     return () => clearInterval(interval);
   }, [images.length]);
 
+  const renderIcon = () => {
+    if (service.type === "Членски внос") {
+      return <UserCheck className="h-12 w-12 opacity-30" strokeWidth={1} />;
+    }
+    if (isSubscription) {
+      return <Calendar className="h-12 w-12 opacity-30" strokeWidth={1} />;
+    }
+    return <Zap className="h-12 w-12 opacity-30" strokeWidth={1} />;
+  };
+
   return (
     <BentoCard className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20 transition-all duration-500 rounded-5xl flex flex-col h-full">
       {/* Cover Image or Icon Header */}
@@ -278,13 +288,7 @@ function ServiceCard({
           </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 dark:text-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-            {service.type === "Членски внос" ? (
-              <UserCheck className="h-12 w-12 opacity-30" strokeWidth={1} />
-            ) : isSubscription ? (
-              <Calendar className="h-12 w-12 opacity-30" strokeWidth={1} />
-            ) : (
-              <Zap className="h-12 w-12 opacity-30" strokeWidth={1} />
-            )}
+            {renderIcon()}
             <span className="text-[9px] font-semibold uppercase tracking-[0.2em] opacity-40 mt-2">
               {service.type}
             </span>

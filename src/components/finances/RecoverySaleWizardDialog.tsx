@@ -402,38 +402,53 @@ export const RecoverySaleWizardDialog = ({
     return base;
   }, [price, isGuestSale, paymentMode, selectedMonthKeys, selectedEventIds]);
 
+  const getPaidEventIds = () => {
+    if (isGuestSale || paymentMode !== "subscription") return [];
+    
+    return monthlyAttendance
+      .filter((m) => selectedMonthKeys.includes(m.monthKey))
+      .flatMap((m) =>
+        m.events
+          .filter((e) => {
+            return e.attendees?.some(
+              (a: Attendee) =>
+                targetMemberIds.includes(a.memberId) &&
+                (!a.paymentStatus || a.paymentStatus === "unpaid")
+            );
+          })
+          .map((e) => e.id)
+      );
+  };
+
+  const getSaleQuantity = () => {
+    if (isGuestSale) return 1;
+    if (paymentMode === "subscription") return selectedMonthKeys.length || 1;
+    return selectedEventIds.length || 1;
+  };
+
+  const getTargetEventDates = () => {
+    if (isGuestSale || paymentMode !== "individual") return null;
+    return selectedEventIds
+      .map((id) => {
+        const ev = memberEvents.find((e) => e.id === id);
+        return ev ? new Date(ev.startDate).toLocaleDateString("bg-BG") : null;
+      })
+      .filter(Boolean);
+  };
+
+  const getPaidEventIdsForSale = () => {
+    if (isGuestSale) return [];
+    if (paymentMode === "individual") return selectedEventIds;
+    return getPaidEventIds();
+  };
+
   const handleExecuteSale = async () => {
     if (!idToken) return;
     setIsProcessing(true);
     setStep(5);
 
     const customPrice = parseFloat(price);
-
-    // Collect all unpaid event IDs across all selected months
-    const paidEventIdsForSubscription = isGuestSale
-      ? []
-      : paymentMode === "subscription"
-        ? monthlyAttendance
-            .filter((m) => selectedMonthKeys.includes(m.monthKey))
-            .flatMap((m) =>
-              m.events
-                .filter((e) => {
-                  const hasUnpaidTarget = e.attendees?.some(
-                    (a: Attendee) =>
-                      targetMemberIds.includes(a.memberId) &&
-                      (!a.paymentStatus || a.paymentStatus === "unpaid")
-                  );
-                  return hasUnpaidTarget;
-                })
-                .map((e) => e.id)
-            )
-        : [];
-
-    const qty = isGuestSale
-      ? 1
-      : paymentMode === "subscription"
-        ? selectedMonthKeys.length || 1
-        : selectedEventIds.length || 1;
+    const qty = getSaleQuantity();
 
     try {
       const clientName = isGuestSale
@@ -446,19 +461,7 @@ export const RecoverySaleWizardDialog = ({
         .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
         .map((m) => m.monthLabel);
 
-      // Build target dates for individual visits
-      const targetEventDates = isGuestSale
-        ? null
-        : paymentMode === "individual"
-          ? selectedEventIds
-              .map((id) => {
-                const ev = memberEvents.find((e) => e.id === id);
-                return ev
-                  ? new Date(ev.startDate).toLocaleDateString("bg-BG")
-                  : null;
-              })
-              .filter(Boolean)
-          : null;
+      const targetEventDates = getTargetEventDates();
 
       const saleData = {
         siteId: activeBranch || "bkgalabovo",
@@ -485,11 +488,7 @@ export const RecoverySaleWizardDialog = ({
         targetMonths: isGuestSale ? null : selectedMonthKeys,
         targetMonthLabels: isGuestSale ? null : selectedMonthLabels,
         targetEventDates: targetEventDates,
-        paidEventIds: isGuestSale
-          ? []
-          : paymentMode === "individual"
-            ? selectedEventIds
-            : paidEventIdsForSubscription,
+        paidEventIds: getPaidEventIdsForSale(),
         memberIdForAttendance: isGuestSale ? null : selectedMember?.id,
         memberIdsForAttendance: isGuestSale ? null : targetMemberIds,
       };
@@ -548,6 +547,406 @@ export const RecoverySaleWizardDialog = ({
 
   const displayStep = Math.min(step, totalSteps);
 
+  const getMemberButtonClasses = (isSelected: boolean, isGuestTab: boolean) => {
+    if (!isSelected) return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
+    return isGuestTab 
+      ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
+      : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
+  };
+
+  const getMemberAvatarClasses = (isSelected: boolean, isGuestTab: boolean) => {
+    if (!isSelected) return "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
+    return isGuestTab ? "bg-amber-500 text-white" : "bg-emerald-500 text-white";
+  };
+
+  const renderMembersList = () => {
+    if (filteredMembers.length === 0) {
+      return (
+        <div className="p-8 text-center text-zinc-400 text-xs font-light">
+          {clientTypeTab === "guest"
+            ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
+            : "Няма намерени членове по този критерий."}
+        </div>
+      );
+    }
+    
+    return filteredMembers.map((member) => {
+      const isSelected = selectedMember?.id === member.id;
+      const isGuestTab = clientTypeTab === "guest";
+      return (
+        <button
+          key={member.id}
+          type="button"
+          onClick={() => {
+            setSelectedMember(member);
+            setIsGuestSale(member.isGuest || false);
+          }}
+          className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${getMemberButtonClasses(isSelected, isGuestTab)}`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0",
+                getMemberAvatarClasses(isSelected, isGuestTab)
+              )}
+            >
+              {member.firstName[0]}
+              {member.lastName[0]}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                {member.firstName} {member.lastName}
+              </span>
+              <span className="text-[10px] text-zinc-400 font-light mt-0.5">
+                {member.phone || member.email || "Няма контакти"}
+              </span>
+            </div>
+          </div>
+          {isSelected && (
+            <Check
+              className={cn(
+                "h-4 w-4 shrink-0",
+                isGuestTab ? "text-amber-500" : "text-emerald-500"
+              )}
+            />
+          )}
+        </button>
+      );
+    });
+  };
+
+  const renderStepDescription = () => {
+    if (step === 5) {
+      return <span>Регистриране на продажбата...</span>;
+    }
+    if (step > 5) {
+      return <span>Продажбата е завършена успешно. Благодарим ви!</span>;
+    }
+    
+    const guestSteps = ["Избор на клиент", "Детайли на плащане", "Потвърждение"];
+    const memberSteps = ["Избор на клиент", "Присъствия и период", "Начин на плащане", "Потвърждение"];
+    const currentStepName = isGuestSale ? guestSteps[step - 1] : memberSteps[step - 1];
+
+    return (
+      <span>
+        Стъпка {displayStep} от {totalSteps}: {currentStepName}
+      </span>
+    );
+  };
+
+  const renderSubscriptionAttendance = () => {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+            Изберете месеци за плащане
+          </Label>
+          {unpaidMonths.length > 1 && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedMonthKeys(
+                  allUnpaidMonthsSelected
+                    ? []
+                    : unpaidMonths.map((m) => m.monthKey)
+                )
+              }
+              className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest transition-colors"
+            >
+              {allUnpaidMonthsSelected ? "Изчисти" : "Избери всички неплатени"}
+            </button>
+          )}
+        </div>
+
+        {monthlyAttendance.length === 0 ? (
+          <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
+            <CalendarDays className="h-8 w-8 text-zinc-200 mx-auto mb-3" />
+            <p className="text-xs font-light text-zinc-400">
+              Няма регистрирани присъствия за {selectedMember?.firstName}.
+            </p>
+            <p className="text-[10px] font-light text-zinc-300 mt-1">
+              Можете да продължите с плащане без свързани присъствия.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSelectedMonthKeys(["NO_EVENTS"])}
+              className={cn(
+                "mt-4 px-4 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all",
+                selectedMonthKeys.includes("NO_EVENTS")
+                  ? "bg-emerald-500 text-white"
+                  : "bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+              )}
+            >
+              {selectedMonthKeys.includes("NO_EVENTS") ? (
+                <>
+                  <Check className="inline h-3 w-3 mr-1" />
+                  Избрано
+                </>
+              ) : (
+                "Продължи без присъствия"
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="max-h-[280px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
+            {monthlyAttendance.map((monthData) => {
+              const isSelected = selectedMonthKeys.includes(monthData.monthKey);
+              const hasUnpaid = monthData.unpaidCount > 0;
+              return (
+                <button
+                  key={monthData.monthKey}
+                  type="button"
+                  onClick={() => toggleMonthSelection(monthData.monthKey)}
+                  className={cn(
+                    "w-full text-left px-5 py-4 rounded-2xl border transition-all duration-200",
+                    isSelected
+                      ? "bg-emerald-50 border-emerald-300 dark:bg-emerald-950/20 dark:border-emerald-700"
+                      : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Checkbox */}
+                    <div
+                      className={cn(
+                        "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
+                        isSelected
+                          ? "bg-emerald-500 border-emerald-500"
+                          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                      )}
+                    >
+                      {isSelected && (
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+
+                    {/* Month info */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={cn(
+                          "text-sm font-semibold",
+                          isSelected
+                            ? "text-emerald-900 dark:text-emerald-200"
+                            : "text-zinc-900 dark:text-zinc-100"
+                        )}
+                      >
+                        {monthData.monthLabel}
+                      </p>
+                      <div className="text-[10px] text-zinc-400 font-light mt-1 flex flex-col gap-0.5">
+                        {Object.values(monthData.memberStats).length > 1 ? (
+                          Object.values(monthData.memberStats).map((stat) => {
+                            const total = stat.paidCount + stat.unpaidCount;
+                            if (total === 0) return null;
+                            return (
+                              <span
+                                key={stat.memberId}
+                                className={
+                                  isSelected
+                                    ? "text-emerald-700/70 dark:text-emerald-300/70"
+                                    : ""
+                                }
+                              >
+                                • {stat.firstName}: {total} присъстви
+                                {total === 1 ? "е" : "я"}
+                                {stat.unpaidCount > 0 && (
+                                  <span className="text-rose-500 font-medium ml-1">
+                                    ({stat.unpaidCount} неплатени)
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span
+                            className={
+                              isSelected
+                                ? "text-emerald-700/70 dark:text-emerald-300/70"
+                                : ""
+                            }
+                          >
+                            {monthData.paidCount + monthData.unpaidCount}{" "}
+                            присъствия общо
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {monthData.paidCount > 0 && (
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-semibold uppercase">
+                          {monthData.paidCount} платени
+                        </span>
+                      )}
+                      {hasUnpaid ? (
+                        <span className="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[9px] font-semibold uppercase">
+                          {monthData.unpaidCount} неплатени
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full text-[9px] font-semibold uppercase">
+                          Изплатен
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Selection summary */}
+        {selectedMonthKeys.length > 0 &&
+          !selectedMonthKeys.includes("NO_EVENTS") && (
+            <div
+              className={cn(
+                "px-4 py-3 rounded-2xl border flex items-center justify-between",
+                selectedMonthKeys.length > 1
+                  ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800"
+                  : "bg-zinc-50 border-zinc-100 dark:bg-zinc-900/30 dark:border-zinc-800"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <CalendarDays
+                  className="h-3.5 w-3.5 text-emerald-600"
+                  strokeWidth={2}
+                />
+                <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-widest">
+                  Избрани: {selectedMonthKeys.length}{" "}
+                  {selectedMonthKeys.length === 1 ? "месец" : "месеца"}
+                </span>
+              </div>
+              {selectedMonthKeys.length > 1 && (
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                  Общо:{" "}
+                  {formatPrice(
+                    (parseFloat(price) || 0) * selectedMonthKeys.length
+                  )}
+                </span>
+              )}
+            </div>
+          )}
+      </div>
+    );
+  };
+
+  const renderIndividualAttendance = () => {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+            Изберете тренировки за плащане
+          </Label>
+          {unpaidEvents.length > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedEventIds(
+                  selectedEventIds.length === unpaidEvents.length
+                    ? []
+                    : unpaidEvents.map((e) => e.id)
+                )
+              }
+              className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest"
+            >
+              {selectedEventIds.length === unpaidEvents.length
+                ? "Изчисти"
+                : "Избери всички"}
+            </button>
+          )}
+        </div>
+        {unpaidEvents.length === 0 ? (
+          <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
+            <CheckSquare className="h-8 w-8 text-emerald-200 mx-auto mb-3" />
+            <p className="text-xs font-light text-zinc-400">
+              Няма неплатени тренировки за {selectedMember?.firstName}.
+            </p>
+          </div>
+        ) : (
+          <div className="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
+            {unpaidEvents.map((event) => {
+              const isChecked = selectedEventIds.includes(event.id);
+              return (
+                <button
+                  key={event.id}
+                  type="button"
+                  onClick={() => toggleEventSelection(event.id)}
+                  className={cn(
+                    "w-full text-left px-4 py-3.5 rounded-2xl border transition-all duration-200 flex items-center gap-3",
+                    isChecked
+                      ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800"
+                      : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
+                      isChecked
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-zinc-200 bg-white dark:bg-zinc-900"
+                    )}
+                  >
+                    {isChecked && (
+                      <Check
+                        className="h-3 w-3 text-white"
+                        strokeWidth={3}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={cn(
+                        "text-sm font-medium truncate",
+                        isChecked
+                          ? "text-blue-900 dark:text-blue-200"
+                          : "text-zinc-900 dark:text-zinc-100"
+                      )}
+                    >
+                      {event.title}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 font-light mt-0.5">
+                      {format(
+                        new Date(event.startDate),
+                        "dd MMMM yyyy",
+                        { locale: bg }
+                      )}
+                      {event.location && ` · ${event.location}`}
+                    </p>
+                  </div>
+                  {isChecked && (
+                    <Check className="h-4 w-4 text-blue-500 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {selectedEventIds.length > 0 && (
+          <div className="px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium">
+            Избрани: {selectedEventIds.length} тренировки
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAttendanceSection = () => {
+    if (attendanceLoading) {
+      return (
+        <div className="py-12 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="h-7 w-7 animate-spin text-emerald-500 opacity-40" />
+          <p className="text-zinc-400 text-xs font-light">
+            Зареждане на присъствията...
+          </p>
+        </div>
+      );
+    }
+    
+    if (paymentMode === "subscription") {
+      return renderSubscriptionAttendance();
+    }
+    return renderIndividualAttendance();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[620px] p-8 sm:p-10 rounded-5xl bg-white dark:bg-zinc-950 border-none shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -560,25 +959,7 @@ export const RecoverySaleWizardDialog = ({
             Продажба: {service.name}
           </DialogTitle>
           <DialogDescription className="font-light text-zinc-500 mt-1">
-            {step < 5 ? (
-              <span>
-                Стъпка {displayStep} от {totalSteps}:{" "}
-                {isGuestSale
-                  ? ["Избор на клиент", "Детайли на плащане", "Потвърждение"][
-                      step - 1
-                    ]
-                  : [
-                      "Избор на клиент",
-                      "Присъствия и период",
-                      "Начин на плащане",
-                      "Потвърждение",
-                    ][step - 1]}
-              </span>
-            ) : step === 5 ? (
-              <span>Регистриране на продажбата...</span>
-            ) : (
-              <span>Продажбата е завършена успешно. Благодарим ви!</span>
-            )}
+            {renderStepDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -827,70 +1208,7 @@ export const RecoverySaleWizardDialog = ({
                   </div>
                 ) : (
                   <div className="border border-zinc-100 dark:border-zinc-900 rounded-2xl max-h-[240px] overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-900 custom-scrollbar">
-                    {filteredMembers.length > 0 ? (
-                      filteredMembers.map((member) => {
-                        const isSelected = selectedMember?.id === member.id;
-                        return (
-                          <button
-                            key={member.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedMember(member);
-                              setIsGuestSale(member.isGuest || false);
-                            }}
-                            className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${
-                              isSelected
-                                ? clientTypeTab === "guest"
-                                  ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
-                                  : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300"
-                                : "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={cn(
-                                  "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0",
-                                  isSelected
-                                    ? clientTypeTab === "guest"
-                                      ? "bg-amber-500 text-white"
-                                      : "bg-emerald-500 text-white"
-                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-                                )}
-                              >
-                                {member.firstName[0]}
-                                {member.lastName[0]}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                                  {member.firstName} {member.lastName}
-                                </span>
-                                <span className="text-[10px] text-zinc-400 font-light mt-0.5">
-                                  {member.phone ||
-                                    member.email ||
-                                    "Няма контакти"}
-                                </span>
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 shrink-0",
-                                  clientTypeTab === "guest"
-                                    ? "text-amber-500"
-                                    : "text-emerald-500"
-                                )}
-                              />
-                            )}
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="p-8 text-center text-zinc-400 text-xs font-light">
-                        {clientTypeTab === "guest"
-                          ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
-                          : "Няма намерени членове по този критерий."}
-                      </div>
-                    )}
+                    {renderMembersList()}
                   </div>
                 )}
               </div>
@@ -960,318 +1278,7 @@ export const RecoverySaleWizardDialog = ({
               </div>
             </div>
 
-            {attendanceLoading ? (
-              <div className="py-12 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="h-7 w-7 animate-spin text-emerald-500 opacity-40" />
-                <p className="text-zinc-400 text-xs font-light">
-                  Зареждане на присъствията...
-                </p>
-              </div>
-            ) : paymentMode === "subscription" ? (
-              /* SUBSCRIPTION: Monthly multi-select */
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
-                    Изберете месеци за плащане
-                  </Label>
-                  {unpaidMonths.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedMonthKeys(
-                          allUnpaidMonthsSelected
-                            ? []
-                            : unpaidMonths.map((m) => m.monthKey)
-                        )
-                      }
-                      className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest transition-colors"
-                    >
-                      {allUnpaidMonthsSelected
-                        ? "Изчисти"
-                        : "Избери всички неплатени"}
-                    </button>
-                  )}
-                </div>
-
-                {monthlyAttendance.length === 0 ? (
-                  <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
-                    <CalendarDays className="h-8 w-8 text-zinc-200 mx-auto mb-3" />
-                    <p className="text-xs font-light text-zinc-400">
-                      Няма регистрирани присъствия за {selectedMember.firstName}
-                      .
-                    </p>
-                    <p className="text-[10px] font-light text-zinc-300 mt-1">
-                      Можете да продължите с плащане без свързани присъствия.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMonthKeys(["NO_EVENTS"])}
-                      className={cn(
-                        "mt-4 px-4 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all",
-                        selectedMonthKeys.includes("NO_EVENTS")
-                          ? "bg-emerald-500 text-white"
-                          : "bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
-                      )}
-                    >
-                      {selectedMonthKeys.includes("NO_EVENTS") ? (
-                        <>
-                          <Check className="inline h-3 w-3 mr-1" />
-                          Избрано
-                        </>
-                      ) : (
-                        "Продължи без присъствия"
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="max-h-[280px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
-                    {monthlyAttendance.map((monthData) => {
-                      const isSelected = selectedMonthKeys.includes(
-                        monthData.monthKey
-                      );
-                      const hasUnpaid = monthData.unpaidCount > 0;
-                      return (
-                        <button
-                          key={monthData.monthKey}
-                          type="button"
-                          onClick={() =>
-                            toggleMonthSelection(monthData.monthKey)
-                          }
-                          className={cn(
-                            "w-full text-left px-5 py-4 rounded-2xl border transition-all duration-200",
-                            isSelected
-                              ? "bg-emerald-50 border-emerald-300 dark:bg-emerald-950/20 dark:border-emerald-700"
-                              : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            {/* Checkbox */}
-                            <div
-                              className={cn(
-                                "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
-                                isSelected
-                                  ? "bg-emerald-500 border-emerald-500"
-                                  : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                              )}
-                            >
-                              {isSelected && (
-                                <Check
-                                  className="h-3 w-3 text-white"
-                                  strokeWidth={3}
-                                />
-                              )}
-                            </div>
-
-                            {/* Month info */}
-                            <div className="flex-1 min-w-0">
-                              <p
-                                className={cn(
-                                  "text-sm font-semibold",
-                                  isSelected
-                                    ? "text-emerald-900 dark:text-emerald-200"
-                                    : "text-zinc-900 dark:text-zinc-100"
-                                )}
-                              >
-                                {monthData.monthLabel}
-                              </p>
-                              <div className="text-[10px] text-zinc-400 font-light mt-1 flex flex-col gap-0.5">
-                                {Object.values(monthData.memberStats).length >
-                                1 ? (
-                                  Object.values(monthData.memberStats).map(
-                                    (stat) => {
-                                      const total =
-                                        stat.paidCount + stat.unpaidCount;
-                                      if (total === 0) return null;
-                                      return (
-                                        <span
-                                          key={stat.memberId}
-                                          className={
-                                            isSelected
-                                              ? "text-emerald-700/70 dark:text-emerald-300/70"
-                                              : ""
-                                          }
-                                        >
-                                          • {stat.firstName}: {total} присъстви
-                                          {total === 1 ? "е" : "я"}
-                                          {stat.unpaidCount > 0 && (
-                                            <span className="text-rose-500 font-medium ml-1">
-                                              ({stat.unpaidCount} неплатени)
-                                            </span>
-                                          )}
-                                        </span>
-                                      );
-                                    }
-                                  )
-                                ) : (
-                                  <span
-                                    className={
-                                      isSelected
-                                        ? "text-emerald-700/70 dark:text-emerald-300/70"
-                                        : ""
-                                    }
-                                  >
-                                    {monthData.paidCount +
-                                      monthData.unpaidCount}{" "}
-                                    присъствия общо
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Badges */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              {monthData.paidCount > 0 && (
-                                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-semibold uppercase">
-                                  {monthData.paidCount} платени
-                                </span>
-                              )}
-                              {hasUnpaid ? (
-                                <span className="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[9px] font-semibold uppercase">
-                                  {monthData.unpaidCount} неплатени
-                                </span>
-                              ) : (
-                                <span className="px-2.5 py-1 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full text-[9px] font-semibold uppercase">
-                                  Изплатен
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Selection summary */}
-                {selectedMonthKeys.length > 0 &&
-                  !selectedMonthKeys.includes("NO_EVENTS") && (
-                    <div
-                      className={cn(
-                        "px-4 py-3 rounded-2xl border flex items-center justify-between",
-                        selectedMonthKeys.length > 1
-                          ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800"
-                          : "bg-zinc-50 border-zinc-100 dark:bg-zinc-900/30 dark:border-zinc-800"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <CalendarDays
-                          className="h-3.5 w-3.5 text-emerald-600"
-                          strokeWidth={2}
-                        />
-                        <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-widest">
-                          Избрани: {selectedMonthKeys.length}{" "}
-                          {selectedMonthKeys.length === 1 ? "месец" : "месеца"}
-                        </span>
-                      </div>
-                      {selectedMonthKeys.length > 1 && (
-                        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                          Общо:{" "}
-                          {formatPrice(
-                            (parseFloat(price) || 0) * selectedMonthKeys.length
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  )}
-              </div>
-            ) : (
-              /* INDIVIDUAL: Specific event checklist */
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
-                    Изберете тренировки за плащане
-                  </Label>
-                  {unpaidEvents.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedEventIds(
-                          selectedEventIds.length === unpaidEvents.length
-                            ? []
-                            : unpaidEvents.map((e) => e.id)
-                        )
-                      }
-                      className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest"
-                    >
-                      {selectedEventIds.length === unpaidEvents.length
-                        ? "Изчисти"
-                        : "Избери всички"}
-                    </button>
-                  )}
-                </div>
-                {unpaidEvents.length === 0 ? (
-                  <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
-                    <CheckSquare className="h-8 w-8 text-emerald-200 mx-auto mb-3" />
-                    <p className="text-xs font-light text-zinc-400">
-                      Няма неплатени тренировки за {selectedMember.firstName}.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
-                    {unpaidEvents.map((event) => {
-                      const isChecked = selectedEventIds.includes(event.id);
-                      return (
-                        <button
-                          key={event.id}
-                          type="button"
-                          onClick={() => toggleEventSelection(event.id)}
-                          className={cn(
-                            "w-full text-left px-4 py-3.5 rounded-2xl border transition-all duration-200 flex items-center gap-3",
-                            isChecked
-                              ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800"
-                              : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
-                              isChecked
-                                ? "bg-blue-500 border-blue-500"
-                                : "border-zinc-200 bg-white dark:bg-zinc-900"
-                            )}
-                          >
-                            {isChecked && (
-                              <Check
-                                className="h-3 w-3 text-white"
-                                strokeWidth={3}
-                              />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className={cn(
-                                "text-sm font-medium truncate",
-                                isChecked
-                                  ? "text-blue-900 dark:text-blue-200"
-                                  : "text-zinc-900 dark:text-zinc-100"
-                              )}
-                            >
-                              {event.title}
-                            </p>
-                            <p className="text-[10px] text-zinc-400 font-light mt-0.5">
-                              {format(
-                                new Date(event.startDate),
-                                "dd MMMM yyyy",
-                                { locale: bg }
-                              )}
-                              {event.location && ` · ${event.location}`}
-                            </p>
-                          </div>
-                          {isChecked && (
-                            <Check className="h-4 w-4 text-blue-500 shrink-0" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {selectedEventIds.length > 0 && (
-                  <div className="px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium">
-                    Избрани: {selectedEventIds.length} тренировки
-                  </div>
-                )}
-              </div>
-            )}
+            {renderAttendanceSection()}
           </div>
         )}
 
@@ -1714,21 +1721,21 @@ export const RecoverySaleWizardDialog = ({
             <div>
               {/* For guest: steps 1→2→3 = totalSteps 3, execute at step 3 */}
               {/* For member: steps 1→2→3→4 = totalSteps 4, execute at step 4 */}
-              {step < (isGuestSale ? 3 : 4) ? (
-                <Button
-                  onClick={handleNextStep}
-                  disabled={isProcessing}
-                  className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
-                >
-                  Напред <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              ) : (
+              {step >= (isGuestSale ? 3 : 4) ? (
                 <Button
                   onClick={handleExecuteSale}
                   disabled={isProcessing}
                   className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
                 >
                   Завърши продажбата <Check className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNextStep}
+                  disabled={isProcessing}
+                  className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                >
+                  Напред <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>

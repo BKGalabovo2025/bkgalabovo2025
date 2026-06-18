@@ -403,38 +403,53 @@ export const TrainingSaleWizardDialog = ({
     return base;
   }, [price, isGuestSale, paymentMode, selectedMonthKeys, selectedEventIds]);
 
+  const getPaidEventIds = () => {
+    if (isGuestSale || paymentMode !== "subscription") return [];
+    
+    return monthlyAttendance
+      .filter((m) => selectedMonthKeys.includes(m.monthKey))
+      .flatMap((m) =>
+        m.events
+          .filter((e) => {
+            return e.attendees?.some(
+              (a: Attendee) =>
+                targetMemberIds.includes(a.memberId) &&
+                (!a.paymentStatus || a.paymentStatus === "unpaid")
+            );
+          })
+          .map((e) => e.id)
+      );
+  };
+
+  const getSaleQuantity = () => {
+    if (isGuestSale) return 1;
+    if (paymentMode === "subscription") return selectedMonthKeys.length || 1;
+    return selectedEventIds.length || 1;
+  };
+
+  const getTargetEventDates = () => {
+    if (isGuestSale || paymentMode !== "individual") return null;
+    return selectedEventIds
+      .map((id) => {
+        const ev = memberEvents.find((e) => e.id === id);
+        return ev ? new Date(ev.startDate).toLocaleDateString("bg-BG") : null;
+      })
+      .filter(Boolean);
+  };
+
+  const getPaidEventIdsForSale = () => {
+    if (isGuestSale) return [];
+    if (paymentMode === "individual") return selectedEventIds;
+    return getPaidEventIds();
+  };
+
   const handleExecuteSale = async () => {
     if (!idToken) return;
     setIsProcessing(true);
     setStep(5);
 
     const customPrice = parseFloat(price);
-
-    // Collect all unpaid event IDs across all selected months
-    const paidEventIdsForSubscription = isGuestSale
-      ? []
-      : paymentMode === "subscription"
-        ? monthlyAttendance
-            .filter((m) => selectedMonthKeys.includes(m.monthKey))
-            .flatMap((m) =>
-              m.events
-                .filter((e) => {
-                  const hasUnpaidTarget = e.attendees?.some(
-                    (a: Attendee) =>
-                      targetMemberIds.includes(a.memberId) &&
-                      (!a.paymentStatus || a.paymentStatus === "unpaid")
-                  );
-                  return hasUnpaidTarget;
-                })
-                .map((e) => e.id)
-            )
-        : [];
-
-    const qty = isGuestSale
-      ? 1
-      : paymentMode === "subscription"
-        ? selectedMonthKeys.length || 1
-        : selectedEventIds.length || 1;
+    const qty = getSaleQuantity();
 
     try {
       const clientName = isGuestSale
@@ -447,19 +462,7 @@ export const TrainingSaleWizardDialog = ({
         .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
         .map((m) => m.monthLabel);
 
-      // Build target dates for individual visits
-      const targetEventDates = isGuestSale
-        ? null
-        : paymentMode === "individual"
-          ? selectedEventIds
-              .map((id) => {
-                const ev = memberEvents.find((e) => e.id === id);
-                return ev
-                  ? new Date(ev.startDate).toLocaleDateString("bg-BG")
-                  : null;
-              })
-              .filter(Boolean)
-          : null;
+      const targetEventDates = getTargetEventDates();
 
       const saleData = {
         siteId: activeBranch || "bkgalabovo",
@@ -486,11 +489,7 @@ export const TrainingSaleWizardDialog = ({
         targetMonths: isGuestSale ? null : selectedMonthKeys,
         targetMonthLabels: isGuestSale ? null : selectedMonthLabels,
         targetEventDates: targetEventDates,
-        paidEventIds: isGuestSale
-          ? []
-          : paymentMode === "individual"
-            ? selectedEventIds
-            : paidEventIdsForSubscription,
+        paidEventIds: getPaidEventIdsForSale(),
         memberIdForAttendance: isGuestSale ? null : selectedMember?.id,
         memberIdsForAttendance: isGuestSale ? null : targetMemberIds,
       };

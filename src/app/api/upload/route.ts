@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     try {
       await getAuthUser(token);
     } catch (authError) {
+      console.error("Auth error:", authError);
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
@@ -86,6 +87,7 @@ export async function DELETE(request: NextRequest) {
     try {
       await getAuthUser(token);
     } catch (authError) {
+      console.error("Auth error:", authError);
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }

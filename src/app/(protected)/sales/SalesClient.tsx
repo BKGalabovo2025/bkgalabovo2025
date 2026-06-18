@@ -137,6 +137,154 @@ export default function SalesClient({
   const loading = false;
   const error = null;
 
+  const renderTableContent = () => {
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-32 space-y-6">
+          <Loader2
+            className="h-10 w-10 animate-spin text-zinc-200"
+            strokeWidth={1}
+          />
+          <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
+            Зареждане на продажби...
+          </p>
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="text-center py-32 text-rose-500 flex flex-col items-center">
+          <AlertTriangle
+            className="h-10 w-10 mb-6 opacity-30"
+            strokeWidth={1}
+          />
+          <p className="text-sm font-light uppercase tracking-widest">
+            {error || "An error occurred while loading the sales."}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader className="bg-zinc-50/50">
+            <TableRow className="border-none hover:bg-transparent h-16">
+              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 px-8">
+                Дата и Час
+              </TableHead>
+              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+                Клиент
+              </TableHead>
+              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+                Статус
+              </TableHead>
+              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+                Сума
+              </TableHead>
+              <TableHead className="w-[80px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedSales.length > 0 ? (
+              sortedSales.map((sale) => (
+                <TableRow
+                  key={sale.id}
+                  onClick={() => handleRowClick(sale.id)}
+                  className="cursor-pointer group border-zinc-50 hover:bg-zinc-50/50 transition-colors h-20"
+                >
+                  <TableCell className="px-8">
+                    <div className="flex items-center gap-3">
+                      <Calendar
+                        className="h-3.5 w-3.5 text-zinc-300"
+                        strokeWidth={1.5}
+                      />
+                      <span className="text-sm font-light text-zinc-600">
+                        {new Date(sale.saleDate).toLocaleString("bg-BG")}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <User
+                        className="h-3.5 w-3.5 text-zinc-300"
+                        strokeWidth={1.5}
+                      />
+                      <span className="text-sm font-medium text-zinc-900">
+                        {sale.memberName}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={cn(
+                        "border-none rounded-full px-3 py-1 text-[9px] uppercase tracking-widest font-medium",
+                        sale.isPaid
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-amber-50 text-amber-600"
+                      )}
+                    >
+                      {sale.isPaid ? "Платено" : "Висящо"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-medium text-sm text-zinc-950 pr-8 tabular-nums">
+                    {formatPrice(sale.totalAmount)}
+                  </TableCell>
+                  <TableCell
+                    className="text-right px-6"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all"
+                        >
+                          <MoreVertical className="h-4 w-4 text-zinc-300" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="rounded-3xl shadow-2xl border-zinc-100 p-2 min-w-[160px]"
+                      >
+                        <DropdownMenuItem
+                          className="text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer font-medium rounded-xl p-3"
+                          onSelect={() => setSaleToDelete(sale.id)}
+                        >
+                          <Trash2
+                            className="mr-3 h-4 w-4"
+                            strokeWidth={1.5}
+                          />
+                          <span className="text-[11px] uppercase tracking-widest">
+                            Изтрий
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="py-32 text-center">
+                  <ShoppingCart
+                    className="h-12 w-12 text-zinc-100 mx-auto mb-6"
+                    strokeWidth={1}
+                  />
+                  <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
+                    Все още няма продажби
+                  </p>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {showPageHeader ? (
@@ -229,143 +377,7 @@ export default function SalesClient({
       )}
 
       <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-6">
-            <Loader2
-              className="h-10 w-10 animate-spin text-zinc-200"
-              strokeWidth={1}
-            />
-            <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
-              Зареждане на продажби...
-            </p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-32 text-rose-500 flex flex-col items-center">
-            <AlertTriangle
-              className="h-10 w-10 mb-6 opacity-30"
-              strokeWidth={1}
-            />
-            <p className="text-sm font-light uppercase tracking-widest">
-              {error || "An error occurred while loading the sales."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-zinc-50/50">
-                <TableRow className="border-none hover:bg-transparent h-16">
-                  <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 px-8">
-                    Дата и Час
-                  </TableHead>
-                  <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
-                    Клиент
-                  </TableHead>
-                  <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
-                    Статус
-                  </TableHead>
-                  <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
-                    Сума
-                  </TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedSales.length > 0 ? (
-                  sortedSales.map((sale) => (
-                    <TableRow
-                      key={sale.id}
-                      onClick={() => handleRowClick(sale.id)}
-                      className="cursor-pointer group border-zinc-50 hover:bg-zinc-50/50 transition-colors h-20"
-                    >
-                      <TableCell className="px-8">
-                        <div className="flex items-center gap-3">
-                          <Calendar
-                            className="h-3.5 w-3.5 text-zinc-300"
-                            strokeWidth={1.5}
-                          />
-                          <span className="text-sm font-light text-zinc-600">
-                            {new Date(sale.saleDate).toLocaleString("bg-BG")}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <User
-                            className="h-3.5 w-3.5 text-zinc-300"
-                            strokeWidth={1.5}
-                          />
-                          <span className="text-sm font-medium text-zinc-900">
-                            {sale.memberName}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={cn(
-                            "border-none rounded-full px-3 py-1 text-[9px] uppercase tracking-widest font-medium",
-                            sale.isPaid
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-amber-50 text-amber-600"
-                          )}
-                        >
-                          {sale.isPaid ? "Платено" : "Висящо"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-sm text-zinc-950 pr-8 tabular-nums">
-                        {formatPrice(sale.totalAmount)}
-                      </TableCell>
-                      <TableCell
-                        className="text-right px-6"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-10 w-10 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all"
-                            >
-                              <MoreVertical className="h-4 w-4 text-zinc-300" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="rounded-3xl shadow-2xl border-zinc-100 p-2 min-w-[160px]"
-                          >
-                            <DropdownMenuItem
-                              className="text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer font-medium rounded-xl p-3"
-                              onSelect={() => setSaleToDelete(sale.id)}
-                            >
-                              <Trash2
-                                className="mr-3 h-4 w-4"
-                                strokeWidth={1.5}
-                              />
-                              <span className="text-[11px] uppercase tracking-widest">
-                                Изтрий
-                              </span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="py-32 text-center">
-                      <ShoppingCart
-                        className="h-12 w-12 text-zinc-100 mx-auto mb-6"
-                        strokeWidth={1}
-                      />
-                      <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
-                        Все още няма продажби
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        {renderTableContent()}
       </BentoCard>
 
       <AlertDialog

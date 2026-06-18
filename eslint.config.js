@@ -1,5 +1,6 @@
 import nextConfig from "eslint-config-next";
 import tseslint from "typescript-eslint";
+import sonarjs from "eslint-plugin-sonarjs";
 
 export default tseslint.config(
   {
@@ -26,6 +27,7 @@ export default tseslint.config(
   },
   ...nextConfig,
   ...tseslint.configs.recommended,
+  sonarjs.configs.recommended,
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     rules: {

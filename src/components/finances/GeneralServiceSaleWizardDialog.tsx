@@ -234,6 +234,93 @@ export const GeneralServiceSaleWizardDialog = ({
   const qty = parseInt(quantity, 10) || 1;
   const unitPrice = parseFloat(price) || 0;
   const totalAmount = unitPrice * qty;
+  const totalSteps = 3;
+  const displayStep = Math.min(step, totalSteps);
+
+  const getTabClasses = (isActive: boolean) => {
+    return cn(
+      "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all",
+      isActive
+        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm font-bold"
+        : "text-zinc-500 hover:text-zinc-700"
+    );
+  };
+
+  const getMemberButtonClasses = (isSelected: boolean, isGuestTab: boolean) => {
+    if (!isSelected) return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
+    return isGuestTab 
+      ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
+      : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
+  };
+
+  const renderStepDescription = () => {
+    if (step < 5) {
+      return (
+        <span>
+          Стъпка {step} от 4: Попълнете детайлите за продажба на услугата.
+        </span>
+      );
+    }
+    return <span>Продажбата е завършена успешно. Благодарим ви!</span>;
+  };
+
+  const getMemberAvatarClasses = (isSelected: boolean, isGuestTab: boolean) => {
+    if (!isSelected) return "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
+    return isGuestTab ? "bg-amber-500 text-white" : "bg-emerald-500 text-white";
+  };
+
+  const renderMembersList = () => {
+    if (filteredMembers.length === 0) {
+      return (
+        <div className="p-8 text-center text-zinc-400 text-xs font-light">
+          {clientTypeTab === "guest"
+            ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
+            : "Няма намерени членове по този критерий."}
+        </div>
+      );
+    }
+    
+    return filteredMembers.map((member) => {
+      const isSelected = selectedMember?.id === member.id;
+      const isGuestTab = clientTypeTab === "guest";
+      return (
+        <button
+          key={member.id}
+          type="button"
+          onClick={() => setSelectedMember(member)}
+          className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${getMemberButtonClasses(isSelected, isGuestTab)}`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0",
+                getMemberAvatarClasses(isSelected, isGuestTab)
+              )}
+            >
+              {member.firstName[0]}
+              {member.lastName[0]}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                {member.firstName} {member.lastName}
+              </span>
+              <span className="text-[10px] text-zinc-400 font-light mt-0.5">
+                {member.phone || member.email || "Няма контакти"}
+              </span>
+            </div>
+          </div>
+          {isSelected && (
+            <Check
+              className={cn(
+                "h-4 w-4 shrink-0",
+                isGuestTab ? "text-amber-500" : "text-emerald-500"
+              )}
+            />
+          )}
+        </button>
+      );
+    });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -247,13 +334,7 @@ export const GeneralServiceSaleWizardDialog = ({
             Продажба: {service.name}
           </DialogTitle>
           <DialogDescription className="font-light text-zinc-500 mt-1">
-            {step < 5 ? (
-              <span>
-                Стъпка {step} от 4: Попълнете детайлите за продажба на услугата.
-              </span>
-            ) : (
-              <span>Продажбата е завършена успешно. Благодарим ви!</span>
-            )}
+            {renderStepDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -436,12 +517,7 @@ export const GeneralServiceSaleWizardDialog = ({
                       setClientTypeTab("member");
                       setSelectedMember(null);
                     }}
-                    className={cn(
-                      "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all",
-                      clientTypeTab === "member"
-                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm font-bold"
-                        : "text-zinc-500 hover:text-zinc-700"
-                    )}
+                    className={getTabClasses(clientTypeTab === "member")}
                   >
                     Клубни членове
                   </button>
@@ -451,12 +527,7 @@ export const GeneralServiceSaleWizardDialog = ({
                       setClientTypeTab("guest");
                       setSelectedMember(null);
                     }}
-                    className={cn(
-                      "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all",
-                      clientTypeTab === "guest"
-                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm font-bold"
-                        : "text-zinc-500 hover:text-zinc-700"
-                    )}
+                    className={getTabClasses(clientTypeTab === "guest")}
                   >
                     Външни клиенти (Гости)
                   </button>
@@ -499,67 +570,7 @@ export const GeneralServiceSaleWizardDialog = ({
                   </div>
                 ) : (
                   <div className="border border-zinc-100 dark:border-zinc-900 rounded-2xl max-h-[220px] overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-900 custom-scrollbar">
-                    {filteredMembers.length > 0 ? (
-                      filteredMembers.map((member) => {
-                        const isSelected = selectedMember?.id === member.id;
-                        return (
-                          <button
-                            key={member.id}
-                            type="button"
-                            onClick={() => setSelectedMember(member)}
-                            className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${
-                              isSelected
-                                ? clientTypeTab === "guest"
-                                  ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
-                                  : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300"
-                                : "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={cn(
-                                  "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0",
-                                  isSelected
-                                    ? clientTypeTab === "guest"
-                                      ? "bg-amber-500 text-white"
-                                      : "bg-emerald-500 text-white"
-                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-                                )}
-                              >
-                                {member.firstName[0]}
-                                {member.lastName[0]}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                                  {member.firstName} {member.lastName}
-                                </span>
-                                <span className="text-[10px] text-zinc-400 font-light mt-0.5">
-                                  {member.phone ||
-                                    member.email ||
-                                    "Няма контакти"}
-                                </span>
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 shrink-0",
-                                  clientTypeTab === "guest"
-                                    ? "text-amber-500"
-                                    : "text-emerald-500"
-                                )}
-                              />
-                            )}
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="p-8 text-center text-zinc-400 text-xs font-light">
-                        {clientTypeTab === "guest"
-                          ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
-                          : "Няма намерени членове по този критерий."}
-                      </div>
-                    )}
+                    {renderMembersList()}
                   </div>
                 )}
               </div>

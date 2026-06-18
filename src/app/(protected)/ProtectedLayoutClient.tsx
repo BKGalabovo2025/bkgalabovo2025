@@ -21,6 +21,7 @@ function GlobalHeader() {
       title: "Бадминтон Клуб",
       subtitle: "Гълъбово",
       color: "blue",
+      activeClasses: "border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20",
     },
     {
       id: "recoveryzone",
@@ -28,6 +29,7 @@ function GlobalHeader() {
       title: "RECOVERY ZONE",
       subtitle: "by ZM",
       color: "emerald",
+      activeClasses: "border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20",
     },
   ];
 
@@ -54,9 +56,7 @@ function GlobalHeader() {
                 <div
                   className={`h-9 w-9 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border transition-all duration-300 ${
                     isActive
-                      ? site.id === "bkgalabovo"
-                        ? "border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20"
-                        : "border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20"
+                      ? site.activeClasses
                       : "border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900"
                   }`}
                 >

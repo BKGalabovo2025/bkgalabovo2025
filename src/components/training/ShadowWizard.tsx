@@ -88,6 +88,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
       alert("Тренировката е запазена успешно!");
       router.push("/training/shadow/history");
     } catch (e) {
+      console.error("Save training error:", e);
       alert("Грешка при запазване.");
     }
   };

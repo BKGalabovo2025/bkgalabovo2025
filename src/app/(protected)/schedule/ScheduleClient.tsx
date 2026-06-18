@@ -399,6 +399,100 @@ export default function ScheduleClient() {
     }
   }
 
+  const getPageDescription = () => {
+    if (isRecoveryZone) return "Управление на резервации за възстановителни процедури в recoveryzone.";
+    if (activeMainTab === "courts") return "Управление на кортовете и заетостта в реално време.";
+    if (activeMainTab === "recovery") return "Управление на резервации за възстановителни процедури.";
+    return "Управление на тренировъчни графици, състезания и клубни събития.";
+  };
+
+  const renderEventsTabContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-40 space-y-6">
+          <Loader2
+            className="h-12 w-12 animate-spin text-primary opacity-20"
+            strokeWidth={1}
+          />
+          <p className="text-zinc-400 font-medium uppercase tracking-[0.2em] text-[10px]">
+            Зареждане на събития...
+          </p>
+        </div>
+      );
+    }
+    
+    if (errorObject) {
+      return (
+        <div className="text-center py-40 text-rose-500 flex flex-col items-center">
+          <AlertTriangle
+            className="h-12 w-12 mb-6 opacity-20"
+            strokeWidth={1}
+          />
+          <p className="font-light text-2xl text-zinc-900 dark:text-white">
+            Грешка при зареждане
+          </p>
+          <p className="text-zinc-400 text-sm mt-2 font-light">
+            {errorObject.message}
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <>
+        <TabsContent value="current" className="mt-0 outline-none">
+          <EventsList
+            eventsToShow={filteredEvents}
+            grouped={groupedEvents}
+            filterType={filterType}
+            activeTab={activeTab}
+            members={members as Member[]}
+            membersMap={membersMap}
+            openEditDialog={openEditDialog}
+            openDeleteDialog={openDeleteDialog}
+            openAttendeesDialog={openAttendeesDialog}
+            triggerPrint={triggerPrint}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </TabsContent>
+        <TabsContent value="upcoming" className="mt-0 outline-none">
+          <EventsList
+            eventsToShow={filteredEvents}
+            grouped={groupedEvents}
+            filterType={filterType}
+            activeTab={activeTab}
+            members={members as Member[]}
+            membersMap={membersMap}
+            openEditDialog={openEditDialog}
+            openDeleteDialog={openDeleteDialog}
+            openAttendeesDialog={openAttendeesDialog}
+            triggerPrint={triggerPrint}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </TabsContent>
+        <TabsContent value="past" className="mt-0 outline-none">
+          <EventsList
+            eventsToShow={paginatedEvents}
+            grouped={groupedEvents}
+            totalEvents={filteredEvents.length}
+            filterType={filterType}
+            activeTab={activeTab}
+            members={members as Member[]}
+            membersMap={membersMap}
+            openEditDialog={openEditDialog}
+            openDeleteDialog={openDeleteDialog}
+            openAttendeesDialog={openAttendeesDialog}
+            triggerPrint={triggerPrint}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </TabsContent>
+      </>
+    );
+  };
+
   // Dynamic PageHeader actions based on active main tab
   const headerActions = useMemo(() => {
     if (
@@ -462,15 +556,7 @@ export default function ScheduleClient() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
         title={!isRecoveryZone ? "График" : "Резервации & Релакс"}
-        description={
-          isRecoveryZone
-            ? "Управление на резервации за възстановителни процедури в recoveryzone."
-            : activeMainTab === "courts"
-              ? "Управление на кортовете и заетостта в реално време."
-              : activeMainTab === "recovery"
-                ? "Управление на резервации за възстановителни процедури."
-                : "Управление на тренировъчни графици, състезания и клубни събития."
-        }
+        description={getPageDescription()}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: !isRecoveryZone ? "График" : "Резервации & Релакс" },
@@ -596,46 +682,7 @@ export default function ScheduleClient() {
           </div>
 
           <div className="space-y-6">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-40 space-y-6">
-                <Loader2
-                  className="h-12 w-12 animate-spin text-primary opacity-20"
-                  strokeWidth={1}
-                />
-                <p className="text-zinc-400 font-medium uppercase tracking-[0.2em] text-[10px]">
-                  Зареждане на събития...
-                </p>
-              </div>
-            ) : errorObject ? (
-              <div className="text-center py-40 text-rose-500 flex flex-col items-center">
-                <AlertTriangle
-                  className="h-12 w-12 mb-6 opacity-20"
-                  strokeWidth={1}
-                />
-                <p className="font-light text-2xl text-zinc-900 dark:text-white">
-                  Грешка при зареждане
-                </p>
-                <p className="text-zinc-400 text-sm mt-2 font-light">
-                  {errorObject.message}
-                </p>
-              </div>
-            ) : (
-              <>
-                <TabsContent value="current" className="mt-0 outline-none">
-                  {renderEventsList(filteredEvents, groupedEvents)}
-                </TabsContent>
-                <TabsContent value="upcoming" className="mt-0 outline-none">
-                  {renderEventsList(filteredEvents, groupedEvents)}
-                </TabsContent>
-                <TabsContent value="past" className="mt-0 outline-none">
-                  {renderEventsList(
-                    paginatedEvents,
-                    groupedEvents,
-                    filteredEvents.length
-                  )}
-                </TabsContent>
-              </>
-            )}
+            {renderEventsTabContent()}
           </div>
         </Tabs>
       ) : (
@@ -797,97 +844,121 @@ export default function ScheduleClient() {
       </AlertDialog>
     </div>
   );
+}
 
-  function renderEventsList(
-    eventsToShow: ScheduleEvent[],
-    grouped: Record<string, ScheduleEvent[]>,
-    totalEvents?: number
-  ) {
-    const finalTotalEvents = totalEvents ?? eventsToShow.length;
+interface EventsListProps {
+  eventsToShow: ScheduleEvent[];
+  grouped: Record<string, ScheduleEvent[]>;
+  totalEvents?: number;
+  filterType: string;
+  activeTab: string;
+  members: Member[];
+  membersMap: Record<string, Member>;
+  openEditDialog: (event: ScheduleEvent) => void;
+  openDeleteDialog: (id: string) => void;
+  openAttendeesDialog: (event: ScheduleEvent) => void;
+  triggerPrint: (event: ScheduleEvent) => void;
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+}
 
-    if (finalTotalEvents === 0) {
-      return (
-        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
-          <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
-            <CalendarDays
-              className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
-              strokeWidth={1}
-            />
-          </div>
-          <h3 className="text-3xl font-light text-zinc-900 dark:text-white">
-            {filterType === "all"
-              ? `Няма ${tabTranslations[activeTab]} събития`
-              : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
-          </h3>
-          <p className="text-zinc-400 mt-4 font-light max-w-sm leading-relaxed">
-            Можете да промените филтрите или да създадете ново събитие, за да
-            започнете.
-          </p>
-        </BentoCard>
-      );
-    }
+function EventsList({
+  eventsToShow,
+  grouped,
+  totalEvents,
+  filterType,
+  activeTab,
+  members,
+  membersMap,
+  openEditDialog,
+  openDeleteDialog,
+  openAttendeesDialog,
+  triggerPrint,
+  currentPage,
+  setCurrentPage,
+}: EventsListProps) {
+  const finalTotalEvents = totalEvents ?? eventsToShow.length;
 
+  if (finalTotalEvents === 0) {
     return (
-      <div className="space-y-12">
-        <div className="space-y-10">
-          {Object.entries(grouped).map(([month, monthEvents]) => (
-            <div key={month} className="space-y-8">
-              <div className="flex items-center gap-6 px-1">
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 shrink-0">
-                  {month}
-                </h2>
-                <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {(monthEvents as ScheduleEvent[]).map(
-                  (event: ScheduleEvent) => (
-                    <EventListItem
-                      key={event.id}
-                      event={event}
-                      members={members as Member[]}
-                      membersMap={membersMap}
-                      onEdit={openEditDialog}
-                      onDelete={openDeleteDialog}
-                      onManageAttendees={openAttendeesDialog}
-                      onPrint={triggerPrint}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          ))}
+      <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
+        <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
+          <CalendarDays
+            className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
+            strokeWidth={1}
+          />
         </div>
-
-        {activeTab === "past" && finalTotalEvents > EVENTS_PER_PAGE && (
-          <div className="flex justify-center items-center gap-8 mt-16 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-900 w-fit mx-auto shadow-none">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              aria-label="Предишна страница"
-              className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-            >
-              <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
-            </Button>
-            <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 px-4">
-              Страница {currentPage}{" "}
-              <span className="text-zinc-200 dark:text-zinc-800 mx-4">/</span>{" "}
-              {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
-              aria-label="Следваща страница"
-              className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-            >
-              <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
-            </Button>
-          </div>
-        )}
-      </div>
+        <h3 className="text-3xl font-light text-zinc-900 dark:text-white">
+          {filterType === "all"
+            ? `Няма ${tabTranslations[activeTab]} събития`
+            : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
+        </h3>
+        <p className="text-zinc-400 mt-4 font-light max-w-sm leading-relaxed">
+          Можете да промените филтрите или да създадете ново събитие, за да
+          започнете.
+        </p>
+      </BentoCard>
     );
   }
+
+  return (
+    <div className="space-y-12">
+      <div className="space-y-10">
+        {Object.entries(grouped).map(([month, monthEvents]) => (
+          <div key={month} className="space-y-8">
+            <div className="flex items-center gap-6 px-1">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 shrink-0">
+                {month}
+              </h2>
+              <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {(monthEvents as ScheduleEvent[]).map((event: ScheduleEvent) => (
+                <EventListItem
+                  key={event.id}
+                  event={event}
+                  members={members}
+                  membersMap={membersMap}
+                  onEdit={openEditDialog}
+                  onDelete={openDeleteDialog}
+                  onManageAttendees={openAttendeesDialog}
+                  onPrint={triggerPrint}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {activeTab === "past" && finalTotalEvents > EVENTS_PER_PAGE && (
+        <div className="flex justify-center items-center gap-8 mt-16 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-900 w-fit mx-auto shadow-none">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            aria-label="Предишна страница"
+            className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          >
+            <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
+          </Button>
+          <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 px-4">
+            Страница {currentPage}{" "}
+            <span className="text-zinc-200 dark:text-zinc-800 mx-4">/</span>{" "}
+            {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
+            aria-label="Следваща страница"
+            className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          >
+            <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }

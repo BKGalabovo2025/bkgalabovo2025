@@ -94,21 +94,27 @@ export function AddMemberToFamilyDialog({
           </div>
 
           <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
-              </div>
-            ) : filteredMembers.length === 0 ? (
-              <div className="text-center py-12 space-y-2">
-                <p className="text-sm text-zinc-400">
-                  Няма намерени свободни членове.
-                </p>
-                <p className="text-[10px] text-zinc-300 uppercase tracking-widest2">
-                  Проверете дали членът вече не е в друго семейство
-                </p>
-              </div>
-            ) : (
-              filteredMembers.map((member) => (
+            {(() => {
+              if (loading) {
+                return (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
+                  </div>
+                );
+              }
+              if (filteredMembers.length === 0) {
+                return (
+                  <div className="text-center py-12 space-y-2">
+                    <p className="text-sm text-zinc-400">
+                      Няма намерени свободни членове.
+                    </p>
+                    <p className="text-[10px] text-zinc-300 uppercase tracking-widest2">
+                      Проверете дали членът вече не е в друго семейство
+                    </p>
+                  </div>
+                );
+              }
+              return filteredMembers.map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100 group"
@@ -144,8 +150,8 @@ export function AddMemberToFamilyDialog({
                     )}
                   </Button>
                 </div>
-              ))
-            )}
+              ));
+            })()}
           </div>
         </div>
       </DialogContent>

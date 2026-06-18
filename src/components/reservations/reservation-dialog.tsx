@@ -381,7 +381,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           if (watchedValues.selectedZone) {
             reqComp++;
             const z = watchedValues.selectedZone.toUpperCase();
-            if (z === "КРАКА" || z === "КРАКА") reqAtts.legs++; // fallback just in case
+            if (z === "КРАКА") reqAtts.legs++;
             if (z === "РЪЦЕ") reqAtts.arms++;
             if (z === "ТАЗ") reqAtts.hips++;
           }
@@ -473,7 +473,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = ({
           if (p.client1Zone) {
             reqComp++;
             const z = p.client1Zone.toUpperCase();
-            if (z === "КРАКА" || z === "КРАКА") reqAtts.legs++; // fallback
+            if (z === "КРАКА") reqAtts.legs++;
             if (z === "РЪЦЕ") reqAtts.arms++;
             if (z === "ТАЗ") reqAtts.hips++;
           } else {

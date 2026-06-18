@@ -333,17 +333,25 @@ function TournamentCard({
     }
   };
 
+  const getFormatLabel = (format: string) => {
+    if (format === "berger") return "Бергер";
+    if (format === "knockout") return "Елиминация";
+    return "Микс";
+  };
+
+  const getCategoryLabel = (cat: string) => {
+    if (cat === "singles") return "Singles";
+    if (cat === "doubles") return "Doubles";
+    return "Mixed";
+  };
+
   return (
     <BentoCard className="flex flex-col h-full group hover:border-primary/30 transition-all duration-500 overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl">
       <div className="p-8 pb-6">
         <div className="flex justify-between items-center mb-6">
           {getStatusBadge(tournament.status)}
           <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-300">
-            {tournament.format === "berger"
-              ? "Бергер"
-              : tournament.format === "knockout"
-                ? "Елиминация"
-                : "Микс"}
+            {getFormatLabel(tournament.format || "")}
           </span>
         </div>
         <h3 className="text-2xl font-light text-zinc-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-16">
@@ -389,11 +397,7 @@ function TournamentCard({
               key={cat}
               className="text-[9px] font-medium bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 px-3 py-1 rounded-full uppercase tracking-widest"
             >
-              {cat === "singles"
-                ? "Singles"
-                : cat === "doubles"
-                  ? "Doubles"
-                  : "Mixed"}
+              {getCategoryLabel(cat)}
             </span>
           ))}
         </div>

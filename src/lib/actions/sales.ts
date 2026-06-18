@@ -264,13 +264,11 @@ export async function updateSaleAction(
                 targetMemberIds.includes(attendee.memberId) &&
                 attendee.saleId === saleRef.id
               ) {
-                const {
-                  paymentStatus,
-                  paymentType,
-                  paymentDate,
-                  saleId,
-                  ...rest
-                } = attendee;
+                const rest = { ...attendee };
+                delete rest.paymentStatus;
+                delete rest.paymentType;
+                delete rest.paymentDate;
+                delete rest.saleId;
                 return rest;
               }
               return attendee;

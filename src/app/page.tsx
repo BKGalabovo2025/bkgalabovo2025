@@ -20,6 +20,18 @@ export default function HomePage() {
     null
   );
 
+  const getBlobColor1 = (hoverState: string | null) => {
+    if (hoverState === "bk") return "rgba(37,99,235,0.15)";
+    if (hoverState === "recovery") return "rgba(16,185,129,0.08)";
+    return "rgba(255,255,255,0.03)";
+  };
+
+  const getBlobColor2 = (hoverState: string | null) => {
+    if (hoverState === "recovery") return "rgba(16,185,129,0.18)";
+    if (hoverState === "bk") return "rgba(37,99,235,0.08)";
+    return "rgba(255,255,255,0.03)";
+  };
+
   useEffect(() => {
     if (!authLoading && user) {
       router.replace("/dashboard");
@@ -47,23 +59,13 @@ export default function HomePage() {
       <div
         className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] transition-all duration-1000 pointer-events-none"
         style={{
-          background:
-            hovered === "bk"
-              ? "rgba(37,99,235,0.15)"
-              : hovered === "recovery"
-                ? "rgba(16,185,129,0.08)"
-                : "rgba(255,255,255,0.03)",
+          background: getBlobColor1(hovered),
         }}
       />
       <div
         className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] transition-all duration-1000 pointer-events-none"
         style={{
-          background:
-            hovered === "recovery"
-              ? "rgba(16,185,129,0.18)"
-              : hovered === "bk"
-                ? "rgba(37,99,235,0.08)"
-                : "rgba(255,255,255,0.03)",
+          background: getBlobColor2(hovered),
         }}
       />
 

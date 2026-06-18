@@ -392,6 +392,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         toast.error("Грешка: " + (data.error || "Неуспешна синхронизация"));
       }
     } catch (e) {
+      console.error("Sync statuses error:", e);
       toast.error("Възникна грешка при синхронизацията.");
     } finally {
       setIsSyncing(false);
@@ -648,11 +649,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             : "text-zinc-500 hover:text-zinc-700"
                         )}
                       >
-                        {f === "all"
-                          ? "Всички"
-                          : f === "active"
-                            ? "Активни"
-                            : "Неактивни"}
+                        {
+                          ({
+                            all: "Всички",
+                            active: "Активни",
+                            inactive: "Неактивни",
+                          })[f]
+                        }
                       </button>
                     ))}
                   </div>
@@ -680,11 +683,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
-                          {a === "all"
-                            ? "Всички"
-                            : a === "under18"
-                              ? "под 18"
-                              : "18+"}
+                          {
+                            ({
+                              all: "Всички",
+                              under18: "под 18",
+                              "18plus": "18+",
+                            })[a]
+                          }
                         </button>
                       ))}
                     </div>
@@ -708,11 +713,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
-                          {m === "all"
-                            ? "Всички"
-                            : m === "valid"
-                              ? "Има"
-                              : "Няма"}
+                          {
+                            ({
+                              all: "Всички",
+                              valid: "Има",
+                              missing: "Няма",
+                            })[m]
+                          }
                         </button>
                       ))}
                     </div>
@@ -736,11 +743,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
-                          {p === "all"
-                            ? "Всички"
-                            : p === "paid"
-                              ? "Платена"
-                              : "Неплатена"}
+                          {
+                            ({
+                              all: "Всички",
+                              paid: "Платена",
+                              due: "Неплатена",
+                            })[p]
+                          }
                         </button>
                       ))}
                     </div>
@@ -858,7 +867,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 </TableHeader>
                 <TableBody>
                   {paginatedMembers.length > 0 ? (
-                    paginatedMembers.map((member) => (
+                    paginatedMembers.map((member) => {
+                      const ageGrp = member.ageGroup || (member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null);
+                      return (
                       <TableRow
                         key={member.id}
                         className={cn(
@@ -908,16 +919,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           className="px-4"
                           onClick={() => router.push(`/members/${member.id}`)}
                         >
-                          {member.ageGroup ||
-                          (member.dateOfBirth
-                            ? getAgeGroup(member.dateOfBirth)
-                            : null) ? (
+                          {ageGrp ? (
                             <Badge
                               variant="outline"
                               className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
                             >
-                              {member.ageGroup ||
-                                getAgeGroup(member.dateOfBirth!)}
+                              {ageGrp}
                             </Badge>
                           ) : (
                             <span className="text-zinc-300 text-[11px]">—</span>
@@ -974,7 +981,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="h-64 text-center">

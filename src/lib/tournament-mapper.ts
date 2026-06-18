@@ -6,6 +6,16 @@ import {
 } from "@/types/tournament.types";
 import type { DocumentSnapshot } from "firebase/firestore";
 
+type FirestoreDate = { toDate?: () => Date } | Date | string | null | undefined;
+
+export const toISODate = (date: FirestoreDate): string | undefined => {
+  if (!date) return undefined;
+  if (typeof (date as { toDate?: () => Date }).toDate === "function") {
+    return (date as { toDate: () => Date }).toDate().toISOString();
+  }
+  return date instanceof Date ? date.toISOString() : (date as string);
+};
+
 /**
  * Maps a Firestore document snapshot to a Tournament object,
  * handling Timestamp to ISO string conversions and Zod validation.
@@ -14,15 +24,7 @@ export function mapDocToTournament(docSnapshot: DocumentSnapshot): Tournament {
   const data = docSnapshot.data();
   if (!data) return { id: docSnapshot.id } as Tournament;
 
-  const toISODate = (
-    date: { toDate?: () => Date } | Date | string | null | undefined
-  ): string | undefined => {
-    if (!date) return undefined;
-    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
-      return (date as { toDate: () => Date }).toDate().toISOString();
-    }
-    return date instanceof Date ? date.toISOString() : (date as string);
-  };
+
 
   try {
     return TournamentSchema.parse({
@@ -47,15 +49,7 @@ export function mapDocToEntry(docSnapshot: DocumentSnapshot): TournamentEntry {
   const data = docSnapshot.data();
   if (!data) return { id: docSnapshot.id } as unknown as TournamentEntry;
 
-  const toISODate = (
-    date: { toDate?: () => Date } | Date | string | null | undefined
-  ): string | undefined => {
-    if (!date) return undefined;
-    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
-      return (date as { toDate: () => Date }).toDate().toISOString();
-    }
-    return date instanceof Date ? date.toISOString() : (date as string);
-  };
+
 
   return {
     ...data,
@@ -71,15 +65,7 @@ export function mapDocToMatch(docSnapshot: DocumentSnapshot): Match {
   const data = docSnapshot.data();
   if (!data) return { id: docSnapshot.id } as unknown as Match;
 
-  const toISODate = (
-    date: { toDate?: () => Date } | Date | string | null | undefined
-  ): string | undefined => {
-    if (!date) return undefined;
-    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
-      return (date as { toDate: () => Date }).toDate().toISOString();
-    }
-    return date instanceof Date ? date.toISOString() : (date as string);
-  };
+
 
   return {
     ...data,

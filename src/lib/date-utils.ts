@@ -1,11 +1,14 @@
 import { format, isValid } from "date-fns";
 import { bg } from "date-fns/locale";
 
+export type DateInput = Date | string | number;
+
+
 /**
  * Standard date format for the application.
  * Example: "5 май 2026 г."
  */
-export const formatDateDisplay = (date: Date | string | number) => {
+export const formatDateDisplay = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "d MMMM yyyy 'г.'", { locale: bg });
@@ -15,7 +18,7 @@ export const formatDateDisplay = (date: Date | string | number) => {
  * Detailed date and time format.
  * Example: "5 май 2026 г., 15:30 ч."
  */
-export const formatDateTimeDisplay = (date: Date | string | number) => {
+export const formatDateTimeDisplay = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "d MMMM yyyy 'г.', HH:mm 'ч.'", { locale: bg });
@@ -24,7 +27,7 @@ export const formatDateTimeDisplay = (date: Date | string | number) => {
 /**
  * ISO date string for form inputs (yyyy-MM-dd).
  */
-export const formatDateInput = (date: Date | string | number | undefined) => {
+export const formatDateInput = (date: DateInput | undefined) => {
   if (!date) return "";
   const d = new Date(date);
   if (!isValid(d)) return "";
@@ -35,7 +38,7 @@ export const formatDateInput = (date: Date | string | number | undefined) => {
  * ISO date-time string for datetime-local form inputs (yyyy-MM-ddTHH:mm).
  */
 export const formatDateTimeLocal = (
-  date: Date | string | number | undefined
+  date: DateInput | undefined
 ) => {
   if (!date) return "";
   const d = new Date(date);
@@ -68,7 +71,7 @@ export const toISOStringOrUndefined = (date: unknown): string | undefined => {
  * Month and year display.
  * Example: "Май 2026"
  */
-export const formatMonthYear = (date: Date | string | number) => {
+export const formatMonthYear = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "MMMM yyyy", { locale: bg });
@@ -78,7 +81,7 @@ export const formatMonthYear = (date: Date | string | number) => {
  * Short date format.
  * Example: "05.05.2026"
  */
-export const formatDateShort = (date: Date | string | number) => {
+export const formatDateShort = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "dd.MM.yyyy");
@@ -90,8 +93,8 @@ export const formatDateShort = (date: Date | string | number) => {
  * If different days: "05 май 2026, 15:30 ч. - 06 май 2026, 16:30 ч."
  */
 export const formatTimeRange = (
-  start: Date | string | number,
-  end: Date | string | number
+  start: DateInput,
+  end: DateInput
 ) => {
   const s = new Date(start);
   const e = new Date(end);

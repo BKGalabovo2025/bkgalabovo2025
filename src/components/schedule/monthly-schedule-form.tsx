@@ -78,7 +78,7 @@ export default function MonthlyScheduleForm({
     },
   });
 
-  const watchedDays = form.watch("days") || [];
+  const rawWatchedDays = form.watch("days");
   const currentValues = form.getValues();
 
   const [canSubmit, setCanSubmit] = useState(false);
@@ -123,6 +123,7 @@ export default function MonthlyScheduleForm({
   );
 
   const renderedDays = useMemo(() => {
+    const watchedDays = rawWatchedDays || [];
     return daysOfWeek.map((day) => {
       const isSelected = watchedDays.includes(day.value);
       return (
@@ -161,7 +162,7 @@ export default function MonthlyScheduleForm({
         </div>
       );
     });
-  }, [watchedDays, form]);
+  }, [rawWatchedDays, form]);
 
   return (
     <div className="flex flex-col h-full">

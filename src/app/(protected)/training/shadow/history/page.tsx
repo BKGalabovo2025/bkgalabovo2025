@@ -19,6 +19,12 @@ export const metadata = {
 };
 
 export default async function GlobalShadowHistoryPage() {
+  const getModeName = (mode: string) => {
+    if (mode === "ghost_match") return "Ghost Match";
+    if (mode === "agility_test") return "Скоростен Тест";
+    return "Стандартна тренировка";
+  };
+
   const [res, allMembers] = await Promise.all([
     getGlobalTrainingSessionsAction(100),
     getAllMembersServer().catch(() => []),
@@ -130,11 +136,7 @@ export default async function GlobalShadowHistoryPage() {
                     >
                       <div>
                         <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          {session.shadowDetails?.mode === "ghost_match"
-                            ? "Ghost Match"
-                            : session.shadowDetails?.mode === "agility_test"
-                              ? "Скоростен Тест"
-                              : "Стандартна тренировка"}
+                          {getModeName(session.shadowDetails?.mode)}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
                           {format(new Date(session.date), "dd MMM yyyy HH:mm")}{" "}

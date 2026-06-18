@@ -155,12 +155,7 @@ export function GeneralServiceMenu({
               EUR
             </span>
             <span className="text-xs text-zinc-300 lowercase ml-2 font-light">
-              /{" "}
-              {service.pricingUnit === "fixed"
-                ? "услуга"
-                : service.pricingUnit === "per_hour"
-                  ? "час"
-                  : "сесия"}
+              / {{ fixed: "услуга", per_hour: "час", per_session: "сесия" }[service.pricingUnit] || "услуга"}
             </span>
           </div>
         </BentoCard>

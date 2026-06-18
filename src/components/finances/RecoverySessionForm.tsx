@@ -132,6 +132,24 @@ export function RecoverySessionForm({
     }
   };
 
+  const updateResourcesOnZoneCheck = (zone: string) => {
+    if (zone === "КРАКА")
+      setResLegs(Math.min(athleteCount, siteInventory?.attachments?.legs || 10));
+    if (zone === "РЪЦЕ")
+      setResArms(Math.min(athleteCount, siteInventory?.attachments?.arms || 10));
+    if (zone === "ТАЗ")
+      setResHips(Math.min(athleteCount, siteInventory?.attachments?.hips || 10));
+    setResCompressors(Math.min(athleteCount, siteInventory?.compressors || 10));
+  };
+
+  const updateResourcesOnZoneUncheck = (zone: string, newZones: string[]) => {
+    if (zone === "КРАКА") setResLegs(0);
+    if (zone === "РЪЦЕ") setResArms(0);
+    if (zone === "ТАЗ") setResHips(0);
+
+    if (newZones.length === 0) setResCompressors(0);
+  };
+
   const handleZoneToggle = (zone: string) => {
     setZones((prev) => {
       const isChecking = !prev.includes(zone);
@@ -140,29 +158,9 @@ export function RecoverySessionForm({
         : prev.filter((z) => z !== zone);
 
       if (isChecking) {
-        // Multiplied by athleteCount but capped by inventory
-        if (zone === "КРАКА")
-          setResLegs(
-            Math.min(athleteCount, siteInventory?.attachments?.legs || 10)
-          );
-        if (zone === "РЪЦЕ")
-          setResArms(
-            Math.min(athleteCount, siteInventory?.attachments?.arms || 10)
-          );
-        if (zone === "ТАЗ")
-          setResHips(
-            Math.min(athleteCount, siteInventory?.attachments?.hips || 10)
-          );
-        setResCompressors(
-          Math.min(athleteCount, siteInventory?.compressors || 10)
-        );
+        updateResourcesOnZoneCheck(zone);
       } else {
-        if (zone === "КРАКА") setResLegs(0);
-        if (zone === "РЪЦЕ") setResArms(0);
-        if (zone === "ТАЗ") setResHips(0);
-
-        const remainingZones = newZones.length;
-        if (remainingZones === 0) setResCompressors(0);
+        updateResourcesOnZoneUncheck(zone, newZones);
       }
 
       return newZones;
@@ -182,25 +180,26 @@ export function RecoverySessionForm({
       setResCompressors(Math.min(count, siteInventory?.compressors || 10));
   };
 
+  const syncZoneWithResource = (zone: string, count: number) => {
+    setZones((prev) => {
+      if (count > 0 && !prev.includes(zone)) return [...prev, zone];
+      if (count === 0 && prev.includes(zone)) return prev.filter((z) => z !== zone);
+      return prev;
+    });
+  };
+
   const handleResourceChange = (field: string, value: number) => {
     if (field === "legs") {
       setResLegs(value);
-      if (value > 0 && !zones.includes("КРАКА"))
-        setZones((p) => [...p, "КРАКА"]);
-      else if (value === 0 && zones.includes("КРАКА"))
-        setZones((p) => p.filter((z) => z !== "КРАКА"));
+      syncZoneWithResource("КРАКА", value);
     }
     if (field === "arms") {
       setResArms(value);
-      if (value > 0 && !zones.includes("РЪЦЕ")) setZones((p) => [...p, "РЪЦЕ"]);
-      else if (value === 0 && zones.includes("РЪЦЕ"))
-        setZones((p) => p.filter((z) => z !== "РЪЦЕ"));
+      syncZoneWithResource("РЪЦЕ", value);
     }
     if (field === "hips") {
       setResHips(value);
-      if (value > 0 && !zones.includes("ТАЗ")) setZones((p) => [...p, "ТАЗ"]);
-      else if (value === 0 && zones.includes("ТАЗ"))
-        setZones((p) => p.filter((z) => z !== "ТАЗ"));
+      syncZoneWithResource("ТАЗ", value);
     }
     if (field === "compressors") setResCompressors(value);
   };

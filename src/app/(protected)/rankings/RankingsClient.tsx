@@ -49,6 +49,19 @@ function getMedalEmoji(position: number): string {
   return `${position}.`;
 }
 
+function getWinRateColor(winRate: number): string {
+  if (winRate > 70) return "bg-emerald-400";
+  if (winRate > 40) return "bg-yellow-400";
+  return "bg-rose-400";
+}
+
+function getPositionBadgeClasses(position: number): string {
+  if (position === 1) return "bg-yellow-500 text-white";
+  if (position === 2) return "bg-zinc-400 text-white";
+  if (position === 3) return "bg-orange-400 text-white";
+  return "bg-zinc-100 text-zinc-600";
+}
+
 interface RankingsClientProps {
   initialRankings: RankingEntry[];
 }
@@ -114,11 +127,11 @@ export default function RankingsClient({
     if (activeTab === "all") return rankings;
 
     const catLabel =
-      activeTab === "singles"
-        ? "Единично"
-        : activeTab === "doubles"
-          ? "Двойки"
-          : "Смесени";
+      {
+        singles: "Единично",
+        doubles: "Двойки",
+        mixed: "Смесени",
+      }[activeTab as "singles" | "doubles" | "mixed"] || "Смесени";
 
     return initialRankings
       .map((r) => {
@@ -415,11 +428,7 @@ export default function RankingsClient({
                                 <div
                                   className={cn(
                                     "h-full rounded-full transition-all duration-500",
-                                    winRate > 70
-                                      ? "bg-emerald-400"
-                                      : winRate > 40
-                                        ? "bg-yellow-400"
-                                        : "bg-rose-400"
+                                    getWinRateColor(winRate)
                                   )}
                                   style={{ width: `${winRate}%` }}
                                 />
@@ -433,13 +442,7 @@ export default function RankingsClient({
                             <Badge
                               className={cn(
                                 "font-medium text-[13px] px-4 py-1.5 rounded-full border-none min-w-[60px] justify-center tabular-nums",
-                                entry.position === 1
-                                  ? "bg-yellow-500 text-white"
-                                  : entry.position === 2
-                                    ? "bg-zinc-400 text-white"
-                                    : entry.position === 3
-                                      ? "bg-orange-400 text-white"
-                                      : "bg-zinc-100 text-zinc-600"
+                                getPositionBadgeClasses(entry.position)
                               )}
                             >
                               {entry.totalPoints}
