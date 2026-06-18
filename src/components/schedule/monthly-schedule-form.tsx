@@ -1,36 +1,20 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Loader2,
-  Calendar,
-  MapPin,
-  Clock,
-  Type,
-  Tag,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle2,
-} from "lucide-react";
+import { Form } from "@/components/ui/form";
+import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 
-const daysOfWeek = [
+import { MonthlyScheduleStep1 } from "./MonthlyScheduleStep1";
+import { MonthlyScheduleStep2 } from "./MonthlyScheduleStep2";
+import { MonthlyScheduleStep3 } from "./MonthlyScheduleStep3";
+
+export const daysOfWeek = [
   { id: "mon", label: "Пн", value: 1 },
   { id: "tue", label: "Вт", value: 2 },
   { id: "wed", label: "Ср", value: 3 },
@@ -40,7 +24,7 @@ const daysOfWeek = [
   { id: "sun", label: "Нд", value: 0 },
 ];
 
-const monthlyScheduleSchema = z
+export const monthlyScheduleSchema = z
   .object({
     title: z.string().min(1, "Моля, въведете заглавие."),
     type: z.enum(["training", "competition", "camp", "event", "other"]),
@@ -81,9 +65,7 @@ export default function MonthlyScheduleForm({
     },
   });
 
-  const rawWatchedDays = form.watch("days");
   const currentValues = form.getValues();
-
   const [canSubmit, setCanSubmit] = useState(false);
 
   useEffect(() => {
@@ -124,48 +106,6 @@ export default function MonthlyScheduleForm({
     },
     [step, handleNextStep, form, onSave]
   );
-
-  const renderedDays = useMemo(() => {
-    const watchedDays = rawWatchedDays || [];
-    return daysOfWeek.map((day) => {
-      const isSelected = watchedDays.includes(day.value);
-      return (
-        <div
-          key={day.id}
-          role="checkbox"
-          aria-checked={isSelected}
-          tabIndex={0}
-          onClick={() => {
-            const currentDays = form.getValues("days") || [];
-            const newValue = isSelected
-              ? currentDays.filter((v) => v !== day.value)
-              : [...currentDays, day.value];
-            form.setValue("days", newValue, { shouldValidate: true });
-          }}
-          onKeyDown={(e) => {
-            if (e.key === " " || e.key === "Enter") {
-              e.preventDefault();
-              const currentDays = form.getValues("days") || [];
-              const newValue = isSelected
-                ? currentDays.filter((v) => v !== day.value)
-                : [...currentDays, day.value];
-              form.setValue("days", newValue, { shouldValidate: true });
-            }
-          }}
-          className={cn(
-            "h-12 rounded-xl border flex flex-col items-center justify-center cursor-pointer transition-all gap-0.5 flex-1 min-w-[50px] md:min-w-[60px] select-none outline-none focus-visible:ring-2 focus-visible:ring-zinc-950",
-            isSelected
-              ? "bg-zinc-950 border-zinc-950 text-white shadow-lg shadow-zinc-950/20"
-              : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-200 hover:bg-zinc-50"
-          )}
-        >
-          <span className="text-[11px] font-medium uppercase tracking-widest">
-            {day.label}
-          </span>
-        </div>
-      );
-    });
-  }, [rawWatchedDays, form]);
 
   return (
     <div className="flex flex-col h-full">
@@ -210,211 +150,24 @@ export default function MonthlyScheduleForm({
           }}
           className="space-y-8 flex-1"
         >
-          {/* STEP 1 */}
-          <div
-            className={cn(
-              "space-y-6 transition-all duration-500",
-              step === 1 ? "block opacity-100" : "hidden opacity-0"
-            )}
-          >
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                    <Tag className="h-3 w-3" /> Тип събитие
-                  </FormLabel>
-                  <select
-                    className="w-full h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light px-4"
-                    value={field.value || "training"}
-                    onChange={(e) => field.onChange(e.target.value)}
-                  >
-                    <option value="training">Тренировка</option>
-                    <option value="competition">Състезание</option>
-                    <option value="camp">Лагер</option>
-                    <option value="event">Събитие</option>
-                    <option value="other">Друго</option>
-                  </select>
-                  <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                    <Type className="h-3 w-3" /> Име на събитието / Група
-                  </FormLabel>
-                  <Input
-                    placeholder="напр. Тренировка - Група А"
-                    className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
-                    onKeyDown={handleInputKeyDown}
-                    {...field}
-                  />
-                  <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                    <MapPin className="h-3 w-3" /> Място / Корт
-                  </FormLabel>
-                  <Input
-                    className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
-                    onKeyDown={handleInputKeyDown}
-                    {...field}
-                  />
-                  <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* STEP 2 */}
-          <div
-            className={cn(
-              "space-y-6 transition-all duration-500",
-              step === 2 ? "block opacity-100" : "hidden opacity-0"
-            )}
-          >
-            <FormField
-              control={form.control}
-              name="month"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                    <Calendar className="h-3 w-3" /> Месец за генериране
-                  </FormLabel>
-                  <Input
-                    type="month"
-                    className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light text-center"
-                    {...field}
-                  />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                      <Clock className="h-3 w-3" /> Начален час
-                    </FormLabel>
-                    <Input
-                      type="time"
-                      className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
-                      onKeyDown={handleInputKeyDown}
-                      {...field}
-                    />
-                    <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                      <Clock className="h-3 w-3" /> Краен час
-                    </FormLabel>
-                    <Input
-                      type="time"
-                      className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
-                      onKeyDown={handleInputKeyDown}
-                      {...field}
-                    />
-                    <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block mb-4">
-                Повторение в дните (Дни от седмицата)
-              </FormLabel>
-              <div className="flex flex-wrap gap-2">{renderedDays}</div>
-              <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
-            </div>
-          </div>
-
-          {/* STEP 3 */}
-          <div
-            className={cn(
-              "space-y-6 transition-all duration-500",
-              step === 3 ? "block opacity-100" : "hidden opacity-0"
-            )}
-          >
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 space-y-4 border border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center gap-3 text-emerald-500 mb-4">
-                <CheckCircle2 className="h-6 w-6" />
-                <h3 className="font-medium text-sm">
-                  Всичко е готово за генериране!
-                </h3>
-              </div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
-                    Събитие:
-                  </span>
-                  <span className="font-medium">{currentValues.title}</span>
-                  <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
-                    Място:
-                  </span>
-                  <span className="font-medium">{currentValues.location}</span>
-                  <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
-                    Месец:
-                  </span>
-                  <span className="font-medium">{currentValues.month}</span>
-                  <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
-                    Час:
-                  </span>
-                  <span className="font-medium">
-                    {currentValues.startTime} - {currentValues.endTime}
-                  </span>
-                  <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
-                    Дни:
-                  </span>
-                  <span className="font-medium">
-                    {daysOfWeek
-                      .filter((d) =>
-                        (currentValues.days || []).includes(d.value)
-                      )
-                      .map((d) =>
-                        d.id === "sun"
-                          ? "Нд"
-                          : d.id === "mon"
-                            ? "Пн"
-                            : d.id === "tue"
-                              ? "Вт"
-                              : d.id === "wed"
-                                ? "Ср"
-                                : d.id === "thu"
-                                  ? "Чт"
-                                  : d.id === "fri"
-                                    ? "Пт"
-                                    : "Сб"
-                      )
-                      .join(", ")}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MonthlyScheduleStep1 
+            form={form} 
+            isActive={step === 1} 
+            onKeyDown={handleInputKeyDown} 
+          />
+          
+          <MonthlyScheduleStep2 
+            form={form} 
+            isActive={step === 2} 
+            onKeyDown={handleInputKeyDown}
+            daysOfWeek={daysOfWeek}
+          />
+          
+          <MonthlyScheduleStep3 
+            isActive={step === 3} 
+            currentValues={currentValues}
+            daysOfWeek={daysOfWeek}
+          />
 
           {/* NAVIGATION BUTTONS */}
           <div className="flex items-center justify-between gap-4 pt-6 border-t border-zinc-100 dark:border-zinc-900 mt-8">

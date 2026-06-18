@@ -1,6 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -18,14 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Plus,
-  Minus,
-  Trophy,
-  X,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { Trophy, AlertCircle, Plus } from "lucide-react";
+import { GameScoreRow } from "./game-score-row";
 
 interface GameScore {
   p1: number;
@@ -68,6 +59,13 @@ function countWins(games: GameScore[]): { p1: number; p2: number } {
   );
 }
 
+function getPlayerHighlightClass(playerWins: number, opponentWins: number) {
+  if (playerWins > opponentWins) {
+    return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+  }
+  return "bg-muted text-muted-foreground";
+}
+
 export function ScoreDialog({
   isOpen,
   match,
@@ -87,26 +85,20 @@ export function ScoreDialog({
   const fmt: MatchFormatPreset = getMatchFormat(matchFormatId);
   const maxGames = fmt.gamesNeededToWin * 2 - 1;
 
-  // Use useEffect to reset games when match or isOpen changes,
-  // though key={match.id} in parent handles most cases.
-
   if (!match) return null;
 
   const player1Name = getEntryName(match.player1EntryId);
   const player2Name = getEntryName(match.player2EntryId);
   const wins = countWins(games);
 
-  // Валидираме всеки гейм
   const gameValidations = games.map((g) => {
-    if (g.p1 === 0 && g.p2 === 0) return null; // Непопълнен гейм
+    if (g.p1 === 0 && g.p2 === 0) return null;
     return isValidGameScore(g.p1, g.p2, fmt);
   });
 
   const allGamesValid = gameValidations.every((v) => v === null || v.valid);
 
-  // Проверяваме дали мачът е приключил (някой е достигнал нужния брой геймове)
-  const matchOver =
-    wins.p1 >= fmt.gamesNeededToWin || wins.p2 >= fmt.gamesNeededToWin;
+  const matchOver = wins.p1 >= fmt.gamesNeededToWin || wins.p2 >= fmt.gamesNeededToWin;
 
   const autoWinnerId =
     wins.p1 >= fmt.gamesNeededToWin
@@ -147,7 +139,6 @@ export function ScoreDialog({
         const val = Math.max(0, isNaN(value) ? 0 : value);
         const otherPlayer = player === "p1" ? "p2" : "p1";
 
-        // Автоматично попълване: ако другият играч е на 0, предлагаме победен резултат
         let newOtherVal = g[otherPlayer];
         if (val > 0 && newOtherVal === 0) {
           if (val < fmt.pointsPerGame - 1) {
@@ -191,6 +182,39 @@ export function ScoreDialog({
     }
   };
 
+  const getPreviewBoxContent = () => {
+    if (!allGamesValid) {
+      return (
+        <span className="flex items-center justify-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          Невалиден резултат за формат &quot;{fmt.label}&quot;
+        </span>
+      );
+    }
+    if (autoWinnerId) {
+      return (
+        <span className="flex items-center justify-center gap-2">
+          <Trophy className="w-4 h-4" />
+          Победител: {getEntryName(autoWinnerId)}
+        </span>
+      );
+    }
+    if (wins.p1 === wins.p2 && games.length < maxGames) {
+      return `Равен резултат – добавете ${fmt.gamesNeededToWin > 1 ? "решителен гейм" : "още точки"}`;
+    }
+    return "Въведете резултатите";
+  };
+
+  const getPreviewBoxClass = () => {
+    if (!allGamesValid) {
+      return "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800";
+    }
+    if (autoWinnerId) {
+      return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800";
+    }
+    return "bg-muted text-muted-foreground border-transparent";
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 sm:max-w-lg">
@@ -200,21 +224,14 @@ export function ScoreDialog({
 
         {/* Формат */}
         <div className="text-xs text-center text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-md border">
-          📋 Формат:{" "}
-          <span className="font-medium text-foreground">{fmt.label}</span>
+          📋 Формат: <span className="font-medium text-foreground">{fmt.label}</span>
         </div>
 
         <div className="py-2 space-y-5">
           {/* Заглавна лента с имената */}
           <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-center">
             <div
-              className={`px-3 py-2 rounded-lg truncate transition-colors ${
-                wins.p1 > wins.p2
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : wins.p2 > wins.p1
-                    ? "bg-muted text-muted-foreground"
-                    : "bg-muted"
-              }`}
+              className={`px-3 py-2 rounded-lg truncate transition-colors ${getPlayerHighlightClass(wins.p1, wins.p2)}`}
             >
               {player1Name}
             </div>
@@ -229,13 +246,7 @@ export function ScoreDialog({
               )}
             </div>
             <div
-              className={`px-3 py-2 rounded-lg truncate transition-colors ${
-                wins.p2 > wins.p1
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : wins.p1 > wins.p2
-                    ? "bg-muted text-muted-foreground"
-                    : "bg-muted"
-              }`}
+              className={`px-3 py-2 rounded-lg truncate transition-colors ${getPlayerHighlightClass(wins.p2, wins.p1)}`}
             >
               {player2Name}
             </div>
@@ -243,113 +254,18 @@ export function ScoreDialog({
 
           {/* Резултати по геймове */}
           <div className="space-y-3">
-            {games.map((game, idx) => {
-              const validation = gameValidations[idx];
-              const hasError = validation && !validation.valid;
-              const isOk = validation && validation.valid;
-
-              return (
-                <div key={idx} className="space-y-1">
-                  <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                    {/* Играч 1 */}
-                    <div className="flex items-center gap-1 justify-end">
-                      <button
-                        type="button"
-                        onClick={() => updateScore(idx, "p1", -1)}
-                        className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <input
-                        type="number"
-                        min={0}
-                        value={game.p1}
-                        onChange={(e) =>
-                          setScore(idx, "p1", parseInt(e.target.value))
-                        }
-                        className={`w-14 h-10 text-center text-xl font-bold border rounded-lg bg-background focus:outline-none focus:ring-2 transition-colors ${
-                          hasError
-                            ? "border-red-400 focus:ring-red-400"
-                            : isOk
-                              ? "border-green-400 focus:ring-green-400"
-                              : "focus:ring-primary"
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => updateScore(idx, "p1", 1)}
-                        className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-
-                    {/* Разделител */}
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        Гейм {idx + 1}
-                      </span>
-                      {isOk && (
-                        <CheckCircle2 className="w-3 h-3 text-green-500" />
-                      )}
-                      {hasError && (
-                        <AlertCircle className="w-3 h-3 text-red-500" />
-                      )}
-                      {games.length > 1 && !isOk && (
-                        <button
-                          type="button"
-                          onClick={() => removeGame(idx)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Играч 2 */}
-                    <div className="flex items-center gap-1 justify-start">
-                      <button
-                        type="button"
-                        onClick={() => updateScore(idx, "p2", -1)}
-                        className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <input
-                        type="number"
-                        min={0}
-                        value={game.p2}
-                        onChange={(e) =>
-                          setScore(idx, "p2", parseInt(e.target.value))
-                        }
-                        className={`w-14 h-10 text-center text-xl font-bold border rounded-lg bg-background focus:outline-none focus:ring-2 transition-colors ${
-                          hasError
-                            ? "border-red-400 focus:ring-red-400"
-                            : isOk
-                              ? "border-green-400 focus:ring-green-400"
-                              : "focus:ring-primary"
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => updateScore(idx, "p2", 1)}
-                        className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Грешка за гейма */}
-                  {hasError && (
-                    <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {validation?.error}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+            {games.map((game, idx) => (
+              <GameScoreRow
+                key={idx}
+                idx={idx}
+                game={game}
+                validation={gameValidations[idx] ?? null}
+                totalGames={games.length}
+                onUpdateScore={updateScore}
+                onSetScore={setScore}
+                onRemoveGame={removeGame}
+              />
+            ))}
           </div>
 
           {/* Добави гейм */}
@@ -367,29 +283,9 @@ export function ScoreDialog({
 
           {/* Победител preview */}
           <div
-            className={`p-3 rounded-lg text-center text-sm font-semibold transition-all border ${
-              autoWinnerId && allGamesValid
-                ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"
-                : !allGamesValid
-                  ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800"
-                  : "bg-muted text-muted-foreground border-transparent"
-            }`}
+            className={`p-3 rounded-lg text-center text-sm font-semibold transition-all border ${getPreviewBoxClass()}`}
           >
-            {!allGamesValid ? (
-              <span className="flex items-center justify-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Невалиден резултат за формат &quot;{fmt.label}&quot;
-              </span>
-            ) : autoWinnerId ? (
-              <span className="flex items-center justify-center gap-2">
-                <Trophy className="w-4 h-4" />
-                Победител: {getEntryName(autoWinnerId)}
-              </span>
-            ) : wins.p1 === wins.p2 && games.length < maxGames ? (
-              `Равен резултат – добавете ${fmt.gamesNeededToWin > 1 ? "решителен гейм" : "още точки"}`
-            ) : (
-              "Въведете резултатите"
-            )}
+            {getPreviewBoxContent()}
           </div>
         </div>
 

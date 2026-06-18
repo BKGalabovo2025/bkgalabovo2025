@@ -1,6 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Member, Sale } from "@/types";
@@ -11,78 +8,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  Mail,
-  Phone,
-  Calendar,
-  Users,
-  Building,
-  ArrowLeft,
-  Pencil,
-  FileText,
-  Home,
-  PhoneCall,
-  BarChart2,
-  Printer,
-  AlertTriangle,
-  CheckCircle,
-  UserMinus,
-  ScrollText,
-  ShieldCheck,
-  ClipboardCheck,
-  Stethoscope,
-  Contact,
-  Trophy,
-} from "lucide-react";
+import { ArrowLeft, Pencil, Camera, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-
-const MemberSalesHistory = dynamic(
-  () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
-  {
-    loading: () => (
-      <div className="p-8 text-center animate-pulse text-slate-400">
-        Зареждане на история...
-      </div>
-    ),
-  }
-);
-const MemberAttendanceHistory = dynamic(
-  () =>
-    import("./MemberAttendanceHistory").then(
-      (mod) => mod.MemberAttendanceHistory
-    ),
-  {
-    loading: () => (
-      <div className="p-8 text-center animate-pulse text-slate-400">
-        Зареждане на присъствия...
-      </div>
-    ),
-  }
-);
-const MemberTrainingsHistory = dynamic(
-  () =>
-    import("./MemberTrainingsHistory").then(
-      (mod) => mod.MemberTrainingsHistory
-    ),
-  {
-    loading: () => (
-      <div className="p-8 text-center animate-pulse text-slate-400">
-        Зареждане на тренировки...
-      </div>
-    ),
-  }
-);
-// Removed MemberSubscriptionsTab import
-
 import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
-
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { uploadFile } from "@/services/storage-service";
-import { Camera, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
+
+import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
+import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
+
+const MemberSalesHistory = dynamic(
+  () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
+  {
+    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на история...</div>,
+  }
+);
+const MemberAttendanceHistory = dynamic(
+  () => import("./MemberAttendanceHistory").then((mod) => mod.MemberAttendanceHistory),
+  {
+    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на присъствия...</div>,
+  }
+);
+const MemberTrainingsHistory = dynamic(
+  () => import("./MemberTrainingsHistory").then((mod) => mod.MemberTrainingsHistory),
+  {
+    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на тренировки...</div>,
+  }
+);
 
 interface MemberDetailsCardProps {
   member: Member;
@@ -118,21 +74,12 @@ export const MemberDetailsCard = ({
     ? new Date(member.registrationDate).toLocaleDateString("bg-BG")
     : null;
 
-  // 1. Изчисляваме статуса динамично и унифицирано с абонаментите
-  const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(
-    member,
-    familyMembers,
-    sales
-  );
+  const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(member, familyMembers, sales);
 
   const latestSaleDate = (() => {
-    const completedSales = sales.filter(
-      (s) => s.memberId === member.id && s.isPaid && s.status === "completed"
-    );
+    const completedSales = sales.filter((s) => s.memberId === member.id && s.isPaid && s.status === "completed");
     if (completedSales.length === 0) return null;
-    completedSales.sort(
-      (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
-    );
+    completedSales.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
     return new Date(completedSales[0].saleDate);
   })();
 
@@ -164,7 +111,6 @@ export const MemberDetailsCard = ({
     const updates: Record<string, string | boolean | null> = {};
     const now = new Date().toISOString();
 
-    // Map base names to actual fields
     const boolField =
       baseField === "isLicensed"
         ? "isLicensed"
@@ -179,17 +125,13 @@ export const MemberDetailsCard = ({
       updates[handedField] = now;
     } else if (action === "cancel") {
       updates[boolField] = false;
-      // We don't necessarily clear the handed date, or we do?
-      // User said "cancel" (Отмени) should probably clear it.
       updates[handedField] = null;
     }
 
     try {
       const result = await updateMemberAction(member.id, idToken, updates);
       if (result.success) {
-        if (action !== "print") {
-          toast.success("Статусът е обновен успешно!");
-        }
+        if (action !== "print") toast.success("Статусът е обновен успешно!");
         if (onRefresh) onRefresh();
         router.refresh();
       } else {
@@ -205,13 +147,11 @@ export const MemberDetailsCard = ({
     const file = e.target.files?.[0];
     if (!file || !idToken) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Моля, изберете валидно изображение");
       return;
     }
 
-    // Validate size (e.g., 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Изображението е твърде голямо (макс. 2MB)");
       return;
@@ -222,9 +162,7 @@ export const MemberDetailsCard = ({
       const path = `avatars/${member.id}_${Date.now()}`;
       const downloadUrl = await uploadFile(path, file);
 
-      const result = await updateMemberAction(member.id, idToken, {
-        avatarUrl: downloadUrl,
-      });
+      const result = await updateMemberAction(member.id, idToken, { avatarUrl: downloadUrl });
 
       if (result.success) {
         toast.success("Снимката е обновена успешно");
@@ -267,11 +205,7 @@ export const MemberDetailsCard = ({
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 text-center md:text-left">
             <div className="relative group">
               <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
-                <AvatarImage
-                  src={member.avatarUrl ?? undefined}
-                  alt={fullName}
-                  className="object-cover animate-in fade-in duration-500"
-                />
+                <AvatarImage src={member.avatarUrl ?? undefined} alt={fullName} className="object-cover animate-in fade-in duration-500" />
                 <AvatarFallback className="text-4xl font-semibold text-zinc-400 dark:text-zinc-500 bg-zinc-100/50 dark:bg-zinc-900 flex items-center justify-center">
                   {getInitials(fullName)}
                 </AvatarFallback>
@@ -281,42 +215,25 @@ export const MemberDetailsCard = ({
                 disabled={isUploading}
                 className="absolute inset-2 flex items-center justify-center bg-zinc-950/20 backdrop-blur-sm text-white rounded-5xl opacity-0 group-hover:opacity-100 transition-all disabled:opacity-100"
               >
-                {isUploading ? (
-                  <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} />
-                ) : (
-                  <Camera size={32} strokeWidth={1.5} />
-                )}
+                {isUploading ? <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} /> : <Camera size={32} strokeWidth={1.5} />}
               </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
             </div>
 
             <div className="flex-1 space-y-3 sm:space-y-4 mb-2 sm:mb-4">
-              <h2 className="text-3xl sm:text-5xl font-light text-zinc-950 tracking-tighter">
-                {fullName}
-              </h2>
+              <h2 className="text-3xl sm:text-5xl font-light text-zinc-950 tracking-tighter">{fullName}</h2>
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <Badge
                   variant="outline"
                   className={cn(
                     "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2",
-                    member.status === "active"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                      : "bg-rose-50 text-rose-700 border-rose-100"
+                    member.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
                   )}
                 >
                   {member.status === "active" ? "Активен" : "Неактивен"}
                 </Badge>
                 {ageGroup && (
-                  <Badge
-                    variant="outline"
-                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 border-zinc-100 text-zinc-400"
-                  >
+                  <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 border-zinc-100 text-zinc-400">
                     {ageGroup}
                   </Badge>
                 )}
@@ -333,18 +250,10 @@ export const MemberDetailsCard = ({
                     <span
                       className={cn(
                         "text-sm font-semibold tracking-wide",
-                        isOverdue
-                          ? "text-rose-600 dark:text-rose-400"
-                          : !lastPayment
-                            ? "text-zinc-500"
-                            : "text-emerald-600 dark:text-emerald-400"
+                        isOverdue ? "text-rose-600 dark:text-rose-400" : !lastPayment ? "text-zinc-500" : "text-emerald-600 dark:text-emerald-400"
                       )}
                     >
-                      {isOverdue
-                        ? "Дължи такса"
-                        : !lastPayment
-                          ? "Няма продажби"
-                          : "Платено"}
+                      {isOverdue ? "Дължи такса" : !lastPayment ? "Няма продажби" : "Платено"}
                     </span>
                     {lastPayment && (
                       <>
@@ -355,11 +264,7 @@ export const MemberDetailsCard = ({
                       </>
                     )}
                   </div>
-                  {overdueReason && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">
-                      {overdueReason}
-                    </p>
-                  )}
+                  {overdueReason && <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">{overdueReason}</p>}
                 </div>
               </div>
             </div>
@@ -388,7 +293,6 @@ export const MemberDetailsCard = ({
             >
               Финансова история
             </TabsTrigger>
-            {/* Removed Услуги & Членство Trigger */}
             <TabsTrigger
               value="attendance"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
@@ -405,762 +309,27 @@ export const MemberDetailsCard = ({
         </div>
 
         <TabsContent value="personal" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
-              <InfoRow
-                icon={Contact}
-                label="Тип клиент"
-                value={
-                  member.memberType === "guest"
-                    ? "Външен / Гост"
-                    : member.memberType === "recovery"
-                      ? "Клиент Възстановяване"
-                      : "Клубен Член"
-                }
-              />
-              <InfoRow icon={Mail} label="Имейл" value={member.email} />
-              <InfoRow icon={Phone} label="Телефон" value={member.phone} />
-              <InfoRow
-                icon={PhoneCall}
-                label="Тип на телефона"
-                value={formatPhoneType(member.phoneType)}
-              />
-              <InfoRow
-                icon={Phone}
-                label="Спешен контакт"
-                value={
-                  member.emergencyContactName
-                    ? `${member.emergencyContactName} (${member.emergencyContactPhone || "—"})`
-                    : null
-                }
-              />
-              <InfoRow
-                icon={Calendar}
-                label="Дата на раждане"
-                value={formattedBirthDate}
-              />
-              <InfoRow
-                icon={BarChart2}
-                label="Възрастова група"
-                value={member.ageGroup || ageGroup}
-              />
-              <InfoRow
-                icon={Users}
-                label="Пол"
-                value={
-                  member.gender === "male"
-                    ? "Мъж"
-                    : member.gender === "female"
-                      ? "Жена"
-                      : null
-                }
-              />
-              <InfoRow
-                icon={Trophy}
-                label="Ниво на умения"
-                value={
-                  member.skillLevel === "beginner"
-                    ? "Начинаещ"
-                    : member.skillLevel === "intermediate"
-                      ? "Средно напреднал"
-                      : member.skillLevel === "advanced"
-                        ? "Напреднал"
-                        : member.skillLevel === "professional"
-                          ? "Професионалист"
-                          : null
-                }
-              />
-              <div className="md:col-span-2">
-                <div className="h-px bg-zinc-50 my-6" />
-              </div>
-              <InfoRow
-                icon={Calendar}
-                label="Регистрация"
-                value={formattedRegistrationDate}
-              />
-              <InfoRow
-                icon={Building}
-                label="Училище"
-                value={member.educationInstitution}
-              />
-              <InfoRow
-                icon={Users}
-                label="Екипировка"
-                value={member.apparelSize}
-              />
-              <InfoRow icon={Home} label="Адрес" value={member.address} />
-
-              {member.healthConditionNotes && (
-                <div className="md:col-span-2 mt-4">
-                  <InfoRow
-                    icon={Stethoscope}
-                    label="Здравно състояние / Травми"
-                    value={member.healthConditionNotes}
-                    isBlock={true}
-                  />
-                </div>
-              )}
-
-              <div className="md:col-span-2">
-                <InfoRow
-                  icon={FileText}
-                  label="Бележки"
-                  value={member.notes}
-                  isBlock={true}
-                />
-              </div>
-            </div>
-
-            {familyMembers && familyMembers.length > 0 && (
-              <div className="mt-16">
-                <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-8 flex items-center gap-3">
-                  <Users className="h-4 w-4" strokeWidth={1.5} />
-                  Членове на семейството
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {familyMembers.map((familyMember) => (
-                    <div
-                      key={familyMember.id}
-                      className="flex items-center gap-4 p-4 rounded-2xl border border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-all group"
-                      onClick={() => router.push(`/members/${familyMember.id}`)}
-                    >
-                      <Avatar className="h-12 w-12 rounded-xl ring-1 ring-zinc-100">
-                        <AvatarImage
-                          src={familyMember.avatarUrl ?? undefined}
-                          alt={formatFullName(familyMember)}
-                        />
-                        <AvatarFallback className="bg-zinc-50 text-zinc-400">
-                          {getInitials(formatFullName(familyMember))}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-900 truncate">
-                          {formatFullName(familyMember)}
-                        </p>
-                        <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest truncate mt-1">
-                          {familyMember.status === "active"
-                            ? "Активен"
-                            : "Неактивен"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <MemberPersonalTab
+            member={member}
+            familyMembers={familyMembers}
+            ageGroup={ageGroup}
+            formattedBirthDate={formattedBirthDate}
+            formattedRegistrationDate={formattedRegistrationDate}
+            formatPhoneType={formatPhoneType}
+          />
         </TabsContent>
 
         <TabsContent value="documents" className="focus-visible:outline-none">
-          <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-4 sm:space-y-6">
-            {/* Membership Application */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasMembershipApplication
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <FileText
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Молба за членство
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasMembershipApplication ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предадена на{" "}
-                        {formatDocDate(member.membershipApplicationHandedAt)}
-                      </span>
-                    ) : member.membershipApplicationPrintedAt ? (
-                      <span>
-                        Разпечатана на{" "}
-                        {formatDocDate(member.membershipApplicationPrintedAt)}
-                      </span>
-                    ) : (
-                      "Основен документ за приемане в клуба."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("membershipApplication", "print");
-                    window.open(
-                      `/members/${member.id}/membership-application`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasMembershipApplication &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "membershipApplication",
-                      member.hasMembershipApplication ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasMembershipApplication
-                    ? "Отмени"
-                    : "Отбележи предадена"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Membership Termination */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasTerminationRequest
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <UserMinus
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Молба за прекратяване
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasTerminationRequest ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предадена на{" "}
-                        {formatDocDate(member.terminationRequestHandedAt)}
-                      </span>
-                    ) : member.terminationRequestPrintedAt ? (
-                      <span>
-                        Разпечатана на{" "}
-                        {formatDocDate(member.terminationRequestPrintedAt)}
-                      </span>
-                    ) : (
-                      "Документ за прекратяване на членство."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("terminationRequest", "print");
-                    window.open(
-                      `/members/${member.id}/termination-request`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasTerminationRequest &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "terminationRequest",
-                      member.hasTerminationRequest ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasTerminationRequest
-                    ? "Отмени"
-                    : "Отбележи предадена"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Internal Rules */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasInternalRules
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <ScrollText
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Вътрешен правилник
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasInternalRules ? (
-                      <span className="text-emerald-600 font-medium">
-                        Приет на {formatDocDate(member.internalRulesHandedAt)}
-                      </span>
-                    ) : member.internalRulesPrintedAt ? (
-                      <span>
-                        Разпечатан на{" "}
-                        {formatDocDate(member.internalRulesPrintedAt)}
-                      </span>
-                    ) : (
-                      "Правила за работа и етика в клуба."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("internalRules", "print");
-                    window.open(
-                      `/members/${member.id}/internal-rules`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasInternalRules &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "internalRules",
-                      member.hasInternalRules ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasInternalRules ? "Отмени" : "Отбележи приет"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Informed Consent Declaration */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasSignedDeclaration
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  {member.hasSignedDeclaration ? (
-                    <CheckCircle
-                      className="h-5 w-5 sm:h-6 sm:w-6"
-                      strokeWidth={1.5}
-                    />
-                  ) : (
-                    <AlertTriangle
-                      className="h-5 w-5 sm:h-6 sm:w-6"
-                      strokeWidth={1.5}
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Декларация за информирано съгласие
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasSignedDeclaration ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предадена на{" "}
-                        {formatDocDate(member.signedDeclarationHandedAt)}
-                      </span>
-                    ) : member.signedDeclarationPrintedAt ? (
-                      <span>
-                        Разпечатана на{" "}
-                        {formatDocDate(member.signedDeclarationPrintedAt)}
-                      </span>
-                    ) : (
-                      "Липсва декларация!"
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("signedDeclaration", "print");
-                    window.open(`/members/${member.id}/declaration`, "_blank");
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasSignedDeclaration &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "signedDeclaration",
-                      member.hasSignedDeclaration ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasSignedDeclaration
-                    ? "Отмени"
-                    : "Отбележи предадена"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Participation & Travel Declaration */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasTravelDeclaration
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <ShieldCheck
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Съгласие за участие и пътуване
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasTravelDeclaration ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предадено на{" "}
-                        {formatDocDate(member.travelDeclarationHandedAt)}
-                      </span>
-                    ) : member.travelDeclarationPrintedAt ? (
-                      <span>
-                        Разпечатано на{" "}
-                        {formatDocDate(member.travelDeclarationPrintedAt)}
-                      </span>
-                    ) : (
-                      "Съгласие за транспорт и спортни събития."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("travelDeclaration", "print");
-                    window.open(
-                      `/members/${member.id}/participation-travel`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasTravelDeclaration &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "travelDeclaration",
-                      member.hasTravelDeclaration ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasTravelDeclaration
-                    ? "Отмени"
-                    : "Отбележи предадено"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Safety Instruction */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasSafetyInstruction
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <ClipboardCheck
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Инструктаж за безопасност
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasSafetyInstruction ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предаден на{" "}
-                        {formatDocDate(member.safetyInstructionHandedAt)}
-                      </span>
-                    ) : member.safetyInstructionPrintedAt ? (
-                      <span>
-                        Разпечатан на{" "}
-                        {formatDocDate(member.safetyInstructionPrintedAt)}
-                      </span>
-                    ) : (
-                      "Правила за пътуване и състезания."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("safetyInstruction", "print");
-                    window.open(
-                      `/members/${member.id}/safety-instruction`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasSafetyInstruction &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "safetyInstruction",
-                      member.hasSafetyInstruction ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasSafetyInstruction ? "Отмени" : "Отбележи предаден"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Combined Athlete Card (Kartoteka) */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.isLicensed
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <Contact
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Картотека към БФБ
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.isLicensed ? (
-                      <span className="text-emerald-600 font-medium">
-                        Активна от {formatDocDate(member.isLicensedHandedAt)}
-                      </span>
-                    ) : member.isLicensedPrintedAt ? (
-                      <span>
-                        Разпечатана на{" "}
-                        {formatDocDate(member.isLicensedPrintedAt)}
-                      </span>
-                    ) : (
-                      "Няма активна картотека."
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("isLicensed", "print");
-                    window.open(`/members/${member.id}/athlete-card`, "_blank");
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.isLicensed &&
-                      "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "isLicensed",
-                      member.isLicensed ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.isLicensed ? "Отмени" : "Активирай"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Medical Certificate */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
-              <div className="flex items-center gap-4 sm:gap-6 w-full">
-                <div
-                  className={cn(
-                    "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
-                    member.hasMedicalCertificate
-                      ? "bg-zinc-950 text-white"
-                      : "bg-white border border-zinc-100 text-zinc-300"
-                  )}
-                >
-                  <Stethoscope
-                    className="h-5 w-5 sm:h-6 sm:w-6"
-                    strokeWidth={1.5}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
-                    Медицинско свидетелство
-                  </h4>
-                  <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
-                    {member.hasMedicalCertificate ? (
-                      <span className="text-emerald-600 font-medium">
-                        Предадено на{" "}
-                        {formatDocDate(member.medicalCertificateHandedAt)}
-                      </span>
-                    ) : member.medicalCertificatePrintedAt ? (
-                      <span>
-                        Разпечатано на{" "}
-                        {formatDocDate(member.medicalCertificatePrintedAt)}
-                      </span>
-                    ) : (
-                      "Липсва медицинско свидетелство!"
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <Button
-                  variant="outline"
-                  className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
-                  onClick={() => {
-                    updateDocumentStatus("medicalCertificate", "print");
-                    window.open(
-                      `/members/${member.id}/medical-certificate`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  <Printer
-                    className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    strokeWidth={1.5}
-                  />
-                  Печат
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
-                    !member.hasMedicalCertificate &&
-                      "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
-                  )}
-                  onClick={() =>
-                    updateDocumentStatus(
-                      "medicalCertificate",
-                      member.hasMedicalCertificate ? "cancel" : "submit"
-                    )
-                  }
-                >
-                  {member.hasMedicalCertificate
-                    ? "Отмени"
-                    : "Отбележи предадено"}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <MemberDocumentsTab
+            member={member}
+            formatDocDate={formatDocDate}
+            updateDocumentStatus={updateDocumentStatus}
+          />
         </TabsContent>
 
         <TabsContent value="sales" className="focus-visible:outline-none">
           <MemberSalesHistory memberId={member.id} />
         </TabsContent>
-
-        {/* Removed subscriptions TabContent */}
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
           <MemberAttendanceHistory memberId={member.id} />
@@ -1170,49 +339,6 @@ export const MemberDetailsCard = ({
           <MemberTrainingsHistory memberId={member.id} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-};
-
-const InfoRow = ({
-  icon: Icon,
-  label,
-  value,
-  isBlock = false,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | null | undefined;
-  isBlock?: boolean;
-}) => {
-  if (value === null || value === undefined || value === "") return null;
-
-  return (
-    <div
-      className={cn(
-        "flex py-4 sm:py-6 border-b border-zinc-50 last:border-0",
-        isBlock
-          ? "flex-col items-start gap-3 sm:gap-4"
-          : "flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
-      )}
-    >
-      <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0">
-          <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
-        </div>
-        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
-          {label}
-        </span>
-      </div>
-      {!isBlock ? (
-        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0">
-          {value}
-        </span>
-      ) : (
-        <span className="text-sm font-light text-zinc-400 leading-relaxed max-w-xl pl-12">
-          {value}
-        </span>
-      )}
     </div>
   );
 };

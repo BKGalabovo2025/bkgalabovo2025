@@ -1,32 +1,23 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSales } from "@/hooks/useSales";
 import { mutate } from "swr";
-import { Button } from "@/components/ui/button";
-import { Loader2, MoreHorizontal, Receipt } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
+
+import { MemberSalesHistoryTableRow } from "./MemberSalesHistoryTableRow";
+import { MemberSalesHistoryMobileCard } from "./MemberSalesHistoryMobileCard";
 
 interface MemberSalesHistoryProps {
   memberId: string;
@@ -34,7 +25,6 @@ interface MemberSalesHistoryProps {
   familyMembers?: import("@/types").Member[];
 }
 
-// Helper to determine if an item is a true subscription based on its name
 const isSubscriptionItem = (name: string): boolean => {
   const lower = name.toLowerCase();
   return (
@@ -54,8 +44,8 @@ const formatPaymentMethod = (method?: string) => {
 
 const formatSaleDateCell = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isCourtRental = 
-    sale.items?.[0]?.productId?.startsWith("court_rental") || 
+  const isCourtRental =
+    sale.items?.[0]?.productId?.startsWith("court_rental") ||
     sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
 
   const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
@@ -63,8 +53,9 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
   if (isCourtRental) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
-    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
-      " - " + 
+    const timeRange =
+      start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) +
+      " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
     return (
       <>
@@ -95,8 +86,8 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
 
 const formatSaleDateMobile = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isCourtRental = 
-    sale.items?.[0]?.productId?.startsWith("court_rental") || 
+  const isCourtRental =
+    sale.items?.[0]?.productId?.startsWith("court_rental") ||
     sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
 
   const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
@@ -104,16 +95,19 @@ const formatSaleDateMobile = (sale: import("@/types").Sale) => {
   if (isCourtRental) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
-    const timeRange = start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) + 
-      " - " + 
+    const timeRange =
+      start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) +
+      " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
     return `${formattedDate} ${timeRange} (${hours} ч.)`;
   }
 
-  return `${formattedDate} в ${start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}`;
+  return `${formattedDate} в ${start.toLocaleTimeString("bg-BG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
 };
 
-// Helper to determine badge variant and text based on status, payment status, and amount
 const getStatusDetails = (
   status: string,
   isPaid: boolean,
@@ -136,6 +130,7 @@ const getStatusDetails = (
 
   return { text: status, variant: "secondary" as const };
 };
+
 export const MemberSalesHistory = ({
   memberId,
   memberIds,
@@ -164,7 +159,6 @@ export const MemberSalesHistory = ({
     {}
   );
 
-  // Group sales by year
   const salesByYear: Record<number, typeof sales> = {};
   sales.forEach((sale) => {
     const year = new Date(sale.saleDate).getFullYear();
@@ -323,130 +317,24 @@ export const MemberSalesHistory = ({
                               })
                               .join(", ");
 
+                            const isSubscription = isSubscriptionItem(itemsList);
+
                             return (
-                              <TableRow
+                              <MemberSalesHistoryTableRow
                                 key={sale.id}
-                                onClick={() =>
-                                  handleRowClick(sale.id, sale.isPaid, sale.type)
-                                }
-                                className="cursor-pointer border-zinc-50 hover:bg-zinc-50/50 transition-all group"
-                              >
-                                <TableCell className="py-4 pl-5">
-                                  {formatSaleDateCell(sale)}
-                                </TableCell>
-                                <TableCell className="py-4 max-w-[300px]">
-                                  <div
-                                    className="text-xs font-medium text-zinc-900 truncate"
-                                    title={itemsList}
-                                  >
-                                    {itemsList}
-                                  </div>
-                                  {isSubscriptionItem(itemsList) && (
-                                    <div className="text-[9px] text-zinc-400 uppercase tracking-widest mt-0.5">
-                                      Услуга
-                                    </div>
-                                  )}
-                                  {sale.memberId !== memberId &&
-                                    familyMembers && (
-                                      <div className="text-[9px] text-amber-600 font-medium mt-0.5">
-                                        За:{" "}
-                                        {familyMembers.find(
-                                          (m) => m.id === sale.memberId
-                                        )?.firstName || "Семейство"}{" "}
-                                        {familyMembers.find(
-                                          (m) => m.id === sale.memberId
-                                        )?.lastName || ""}
-                                      </div>
-                                    )}
-                                </TableCell>
-                                <TableCell className="py-4">
-                                  <span className="text-sm font-light text-zinc-600 dark:text-zinc-400">
-                                    {formatPaymentMethod(sale.paymentMethod)}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant={statusDetails.variant}
-                                    className={cn(
-                                      "rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest border-transparent",
-                                      statusDetails.variant === "default"
-                                        ? "bg-emerald-500 text-white"
-                                        : statusDetails.variant === "secondary"
-                                          ? "bg-amber-500 text-white"
-                                          : "bg-zinc-100 text-zinc-400 border-zinc-100"
-                                    )}
-                                  >
-                                    {statusDetails.text}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right py-4 font-medium text-xs text-zinc-950">
-                                  {formatPrice(sale.totalAmount)}
-                                </TableCell>
-                                <TableCell
-                                  className="text-right pr-5"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          aria-haspopup="true"
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-7 w-7 rounded-lg text-zinc-400 hover:text-zinc-950"
-                                        >
-                                          <MoreHorizontal className="h-3.5 w-3.5" />
-                                          <span className="sr-only">
-                                            Toggle menu
-                                          </span>
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent
-                                        align="end"
-                                        className="rounded-xl border-zinc-100 shadow-none"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <DropdownMenuItem
-                                          onSelect={() =>
-                                            handleRowClick(sale.id, sale.isPaid, sale.type)
-                                          }
-                                          className="text-[10px] font-medium uppercase tracking-widest py-1.5"
-                                        >
-                                          Преглед на квитанция
-                                        </DropdownMenuItem>
-                                        {sale.isPaid ? (
-                                          <DropdownMenuItem
-                                            onSelect={() =>
-                                              handleMarkAsUnpaid(sale.id)
-                                            }
-                                            className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                                          >
-                                            Отмени плащането
-                                          </DropdownMenuItem>
-                                        ) : (
-                                          <DropdownMenuItem
-                                            onSelect={() =>
-                                              handleMarkAsPaid(sale.id)
-                                            }
-                                            className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
-                                          >
-                                            Маркирай като платено
-                                          </DropdownMenuItem>
-                                        )}
-                                        <DropdownMenuSeparator className="bg-zinc-100" />
-                                        <DropdownMenuItem
-                                          onSelect={() =>
-                                            handleDeleteSale(sale.id)
-                                          }
-                                          className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                        >
-                                          Изтрий запис
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
+                                sale={sale}
+                                memberId={memberId}
+                                familyMembers={familyMembers}
+                                statusDetails={statusDetails}
+                                itemsList={itemsList}
+                                isSubscription={isSubscription}
+                                formatSaleDateCell={formatSaleDateCell}
+                                formatPaymentMethod={formatPaymentMethod}
+                                handleRowClick={handleRowClick}
+                                handleMarkAsPaid={handleMarkAsPaid}
+                                handleMarkAsUnpaid={handleMarkAsUnpaid}
+                                handleDeleteSale={handleDeleteSale}
+                              />
                             );
                           })}
                         </TableBody>
@@ -463,131 +351,30 @@ export const MemberSalesHistory = ({
                         );
 
                         const itemsList = sale.items
-                          .map(
-                            (item) => {
-                              const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
-                              return `${item.name}${qtyStr}`;
-                            }
-                          )
+                          .map((item) => {
+                            const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
+                            return `${item.name}${qtyStr}`;
+                          })
                           .join(", ");
 
+                        const isSubscription = isSubscriptionItem(itemsList);
+
                         return (
-                          <div
+                          <MemberSalesHistoryMobileCard
                             key={sale.id}
-                            onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
-                            className="bg-zinc-50/40 border border-zinc-100 rounded-xl p-4 active:scale-[0.98] transition-all"
-                          >
-                            <div className="flex justify-between items-start mb-3">
-                              <div className="space-y-1">
-                                <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest">
-                                  {formatSaleDateMobile(sale)}
-                                </p>
-                                <h3 className="text-xs font-medium text-zinc-950 line-clamp-2 leading-relaxed">
-                                  {itemsList}
-                                </h3>
-                                {sale.memberId !== memberId &&
-                                  familyMembers && (
-                                    <div className="text-[9px] text-amber-600 font-medium">
-                                      За:{" "}
-                                      {familyMembers.find(
-                                        (m) => m.id === sale.memberId
-                                      )?.firstName || "Семейство"}{" "}
-                                      {familyMembers.find(
-                                        (m) => m.id === sale.memberId
-                                      )?.lastName || ""}
-                                    </div>
-                                  )}
-                              </div>
-                              <div
-                                className="flex items-center gap-2"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Badge
-                                  variant={statusDetails.variant}
-                                  className={cn(
-                                    "rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest border-transparent shrink-0",
-                                    statusDetails.variant === "default"
-                                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10"
-                                      : statusDetails.variant === "secondary"
-                                        ? "bg-amber-500 text-white shadow-lg shadow-amber-500/10"
-                                        : "bg-zinc-100 text-zinc-400 border-zinc-100"
-                                  )}
-                                >
-                                  {statusDetails.text}
-                                </Badge>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-6 w-6 rounded-lg text-zinc-400 hover:text-zinc-950"
-                                    >
-                                      <MoreHorizontal className="h-3 w-3" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    align="end"
-                                    className="rounded-xl border-zinc-100 shadow-none"
-                                  >
-                                    <DropdownMenuItem
-                                      onSelect={() =>
-                                        handleRowClick(sale.id, sale.isPaid, sale.type)
-                                      }
-                                      className="text-[10px] font-medium uppercase tracking-widest py-1.5"
-                                    >
-                                      Преглед на квитанция
-                                    </DropdownMenuItem>
-                                    {sale.isPaid ? (
-                                      <DropdownMenuItem
-                                        onSelect={() =>
-                                          handleMarkAsUnpaid(sale.id)
-                                        }
-                                        className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                                      >
-                                        Отмени плащането
-                                      </DropdownMenuItem>
-                                    ) : (
-                                      <DropdownMenuItem
-                                        onSelect={() =>
-                                          handleMarkAsPaid(sale.id)
-                                        }
-                                        className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
-                                      >
-                                        Маркирай като платено
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuSeparator className="bg-zinc-100" />
-                                    <DropdownMenuItem
-                                      onSelect={() => handleDeleteSale(sale.id)}
-                                      className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    >
-                                      Изтрий запис
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                            <div className="flex justify-between items-center pt-3 border-t border-zinc-100/50">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <div className="h-5 w-5 rounded-full bg-white border border-zinc-100 flex items-center justify-center">
-                                  <Receipt className="h-2.5 w-2.5 text-zinc-400" />
-                                </div>
-                                <span className="text-[8px] text-zinc-400 uppercase tracking-widest font-medium">
-                                  {sale.type === "general_service"
-                                    ? "Клубна Услуга"
-                                    : isSubscriptionItem(itemsList)
-                                      ? "Услуга"
-                                      : "Продажба"}
-                                </span>
-                                <span className="text-[8px] text-zinc-400/80 font-normal">
-                                  • {formatPaymentMethod(sale.paymentMethod)} • {new Date(sale.saleDate).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
-                                </span>
-                              </div>
-                              <span className="text-sm font-medium tracking-tight text-zinc-950">
-                                {formatPrice(sale.totalAmount)}
-                              </span>
-                            </div>
-                          </div>
+                            sale={sale}
+                            memberId={memberId}
+                            familyMembers={familyMembers}
+                            statusDetails={statusDetails}
+                            itemsList={itemsList}
+                            isSubscription={isSubscription}
+                            formatSaleDateMobile={formatSaleDateMobile}
+                            formatPaymentMethod={formatPaymentMethod}
+                            handleRowClick={handleRowClick}
+                            handleMarkAsPaid={handleMarkAsPaid}
+                            handleMarkAsUnpaid={handleMarkAsUnpaid}
+                            handleDeleteSale={handleDeleteSale}
+                          />
                         );
                       })}
                     </div>
