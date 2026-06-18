@@ -1,0 +1,167 @@
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\EditGeneralServiceDialog.tsx:88 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\GeneralServiceSaleWizardDialog.tsx:54 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\GeneralServiceSaleWizardDialog.tsx:238 [sonarjs/no-unused-vars] Remove the declaration of the unused 'displayStep' variable.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\GeneralServiceSaleWizardDialog.tsx:238 [sonarjs/no-dead-store] Remove this useless assignment to variable "displayStep".
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\RecoverySaleWizardDialog.tsx:84 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 31 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\RecoverySaleWizardDialog.tsx:209 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\RecoverySaleWizardDialog.tsx:414 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\RecoverySaleWizardDialog.tsx:1724 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\RecoverySessionForm.tsx:510 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:84 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 72 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:210 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:415 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:577 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:843 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:854 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:970 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\finances\TrainingSaleWizardDialog.tsx:1717 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\EditProductDialog.tsx:96 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\EditProductDialog.tsx:582 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\EditProductDialog.tsx:605 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\EditProductDialog.tsx:644 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\ProductSaleWizardDialog.tsx:54 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 28 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\ProductSaleWizardDialog.tsx:501 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\inventory\ProductSaleWizardDialog.tsx:512 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\MemberAttendanceHistory.tsx:281 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\MemberAttendanceHistory.tsx:292 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\MemberAttendanceHistory.tsx:339 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\MemberTrainingsHistory.tsx:122 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:103 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 78 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:335 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:342 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:413 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:450 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:461 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:463 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:465 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:579 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:655 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:730 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:811 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:884 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:960 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:1033 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-details-card.tsx:1104 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-form.tsx:63 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-form.tsx:424 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-form.tsx:426 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:223 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:227 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:319 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:371 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:465 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:506 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\members\member-sales-history.tsx:573 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reports\attendance-report.tsx:247 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reports\financial-report.tsx:266 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reports\financial-report.tsx:367 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reports\liabilities-report.tsx:211 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:188 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 33 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:247 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:257 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:266 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:276 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:278 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:278 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:278 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:278 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:279 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\agenda-view.tsx:279 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\block-slot-dialog.tsx:239 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\donation-receipt-dialog.tsx:204 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:98 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:332 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 187 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:554 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 112 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:772 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:886 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:982 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:1007 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:1230 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-dialog.tsx:1701 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:236 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:236 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:236 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:236 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:237 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:237 [sonarjs/no-nested-template-literals] Refactor this code to not use nested template literals.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\reservations\reservation-history.tsx:264 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\AttendeesDialog.tsx:198 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\AttendeesDialog.tsx:208 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\AttendeesDialog.tsx:232 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\CreateEventDialog.tsx:197 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\EditEventDialog.tsx:200 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:138 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:147 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:174 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:188 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:394 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:397 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:399 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:401 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:403 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\schedule\monthly-schedule-form.tsx:405 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\shared\data-table-column-header.tsx:42 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\shared\data-table.tsx:133 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\TournamentBracket.tsx:76 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\TournamentBracket.tsx:155 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\TournamentBracket.tsx:191 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:68 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 26 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:111 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:211 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:232 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:270 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:325 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:370 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:380 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:385 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\score-dialog.tsx:386 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\tournament-form.tsx:464 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\tournament-form.tsx:476 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\tournaments\tournament-form.tsx:536 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:21 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 33 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:140 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:142 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:144 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:153 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\components\training\ShadowWizard.tsx:155 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useEvents.ts:329 [sonarjs/no-nested-functions] Refactor this code to not nest functions more than 4 levels deep.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:149 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 62 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:178 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:179 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:182 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:186 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:209 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:227 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:235 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:322 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:330 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\hooks\useShadowTrainer.ts:340 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 22 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\dashboard.ts:288 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\dashboard.ts:349 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\dashboard.ts:360 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\events.ts:56 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\events.ts:78 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\events.ts:96 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\reservations.ts:207 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 33 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\reservations.ts:803 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 38 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales-server.ts:72 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 20 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales.ts:132 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 58 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales.ts:177 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales.ts:243 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales.ts:306 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\sales.ts:377 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\actions\services.ts:519 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 69 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\export-utils.ts:164 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\export-utils.ts:166 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\firebase-admin.ts:7 [sonarjs/cognitive-complexity] Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\firebase.ts:47 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\shadow-training\audio-map.ts:59 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\shadow-training\audio-map.ts:80 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\lib\shadow-training\audio-map.ts:306 [sonarjs/pseudo-random] Make sure that using this pseudorandom number generator is safe here.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\club-service.ts:41 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\dashboard-service.ts:61 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\dashboard-service.ts:79 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\dashboard-service.ts:112 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\ranking-service.server.ts:136 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\ranking-service.ts:125 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.
+D:\FIREBASE STUDIO\bkgalabovo2025\src\services\schedule-service.ts:44 [sonarjs/no-nested-conditional] Extract this nested ternary operation into an independent statement.

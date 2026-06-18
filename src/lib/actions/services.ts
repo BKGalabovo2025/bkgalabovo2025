@@ -516,6 +516,168 @@ export async function deleteRecoverySession(idToken: string, id: string) {
   }
 }
 
+function _createSaleRecord(batch: any, adminDb: any, saleData: any, user: any, now: string) {
+  const saleRef = adminDb.collection("sales").doc();
+  const formattedSaleDate = saleData.saleDate
+    ? new Date(saleData.saleDate).toISOString()
+    : now;
+
+  const newSale = {
+    ...saleData,
+    id: saleRef.id,
+    saleDate: formattedSaleDate,
+    createdAt: now,
+    createdBy: { uid: user.uid, email: user.email },
+  };
+  batch.set(saleRef, newSale);
+  return saleRef;
+}
+
+function _createHistoryEvent(batch: any, adminDb: any, saleData: any, serviceName: string, clientName: string | undefined, user: any, saleRef: any) {
+  const serviceId = saleData.items[0]?.productId;
+  if (!serviceId) return;
+
+  const qty = saleData.items[0]?.quantity || 1;
+  const totalAmt = saleData.totalAmount || 0;
+  const eventRef = adminDb.collection("serviceHistory").doc();
+  const historyEvent = {
+    serviceId: serviceId,
+    userId: user.uid,
+    userName: user.displayName || user.email || "Unknown User",
+    action: "sale",
+    changes: `Продажба на '${serviceName}' към ${clientName || "Неизвестен клиент"}: ${qty} бр. на стойност ${totalAmt} EUR`,
+    timestamp: FieldValue.serverTimestamp(),
+    relatedSaleId: saleRef.id,
+  };
+  batch.set(eventRef, historyEvent);
+}
+
+async function _updatePaidEventsAttendance(adminDb: any, paidEventIds: string[], targetMemberIds: string[], paymentType: string, saleId: string) {
+  if (paidEventIds.length === 0 || targetMemberIds.length === 0) return;
+  const nowIso = new Date().toISOString();
+  const chunkSize = 100;
+  for (let i = 0; i < paidEventIds.length; i += chunkSize) {
+    const chunk = paidEventIds.slice(i, i + chunkSize);
+    const attendanceBatch = adminDb.batch();
+
+    for (const eventId of chunk) {
+      const eventRef = adminDb.collection("events").doc(eventId);
+      const eventSnap = await eventRef.get();
+
+      if (!eventSnap.exists) continue;
+
+      const eventData = eventSnap.data();
+      const attendees: any[] = eventData?.attendees || [];
+
+      const updatedAttendees = attendees.map((attendee) => {
+        if (targetMemberIds.includes(attendee.memberId)) {
+          return {
+            ...attendee,
+            paymentStatus: "paid",
+            paymentType: paymentType,
+            paymentDate: nowIso,
+            saleId: saleId,
+          };
+        }
+        return attendee;
+      });
+
+      attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+    }
+
+    await attendanceBatch.commit();
+  }
+}
+
+async function _syncMonthlyAttendance(adminDb: any, targetMonths: string[], targetMemberIds: string[], paymentType: string, saleId: string) {
+  if (targetMonths.length === 0 || targetMemberIds.length === 0) return;
+  const nowIsoSync = new Date().toISOString();
+
+  for (const memberId of targetMemberIds) {
+    const eventsSnap = await adminDb
+      .collection("events")
+      .where("attendeeMemberIds", "array-contains", memberId)
+      .get();
+
+    const syncBatch = adminDb.batch();
+    let syncCount = 0;
+
+    for (const eventDoc of eventsSnap.docs) {
+      const event = eventDoc.data();
+
+      let eventDate: Date;
+      if (event.startDate && typeof event.startDate.toDate === "function") {
+        eventDate = event.startDate.toDate();
+      } else if (event.startDate) {
+        eventDate = new Date(event.startDate);
+      } else {
+        continue;
+      }
+
+      const eventMonthKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
+
+      if (!targetMonths.includes(eventMonthKey)) continue;
+
+      const attendees: any[] = event.attendees || [];
+      const idx = attendees.findIndex((a: any) => a.memberId === memberId);
+      if (idx === -1) continue;
+
+      const attendee = attendees[idx];
+      if (!attendee.attended) continue;
+      if (
+        attendee.paymentStatus === "paid" &&
+        attendee.saleId === saleId
+      )
+        continue;
+
+      const updatedAttendees = [...attendees];
+      updatedAttendees[idx] = {
+        ...attendee,
+        paymentStatus: "paid",
+        paymentType: paymentType,
+        paymentDate: nowIsoSync,
+        saleId: saleId,
+      };
+
+      syncBatch.update(eventDoc.ref, { attendees: updatedAttendees });
+      syncCount++;
+
+      if (syncCount % 400 === 0) {
+        await syncBatch.commit();
+      }
+    }
+
+    if (syncCount % 400 !== 0) {
+      await syncBatch.commit();
+    }
+  }
+}
+
+async function _updateMembersLastPaymentDate(adminDb: any, saleData: any, targetMemberIds: string[]) {
+  if (!saleData.isPaid) return;
+
+  const updateMember = async (id: string) => {
+    if (!id || id === "GUEST_EXTERNAL") return;
+    const mRef = adminDb.collection("members").doc(id);
+    const mSnap = await mRef.get();
+    if (mSnap.exists) {
+      await mRef.update({
+        lastPaymentDate: new Date(saleData.saleDate).toISOString(),
+      });
+    }
+  };
+
+  if (saleData.memberId) {
+    await updateMember(saleData.memberId);
+  }
+
+  for (const tId of targetMemberIds) {
+    if (tId !== saleData.memberId) {
+      await updateMember(tId);
+    }
+  }
+}
+
 export async function executeTrainingSaleAction(
   idToken: string,
   saleData: Record<string, any>,
@@ -530,45 +692,15 @@ export async function executeTrainingSaleAction(
     const batch = adminDb.batch();
 
     // 1. Създаване на записа за продажба
-    const saleRef = adminDb.collection("sales").doc();
-    const formattedSaleDate = saleData.saleDate
-      ? new Date(saleData.saleDate).toISOString()
-      : now;
-
-    const newSale = {
-      ...saleData,
-      id: saleRef.id,
-      saleDate: formattedSaleDate,
-      createdAt: now,
-      createdBy: { uid: user.uid, email: user.email },
-    };
-    batch.set(saleRef, newSale);
+    const saleRef = _createSaleRecord(batch, adminDb, saleData, user, now);
 
     // 2. Записване на събитие в историята на тренировъчната услуга
-    const serviceId = saleData.items[0]?.productId;
-    if (serviceId) {
-      const qty = saleData.items[0]?.quantity || 1;
-      const totalAmt = saleData.totalAmount || 0;
-      const eventRef = adminDb.collection("serviceHistory").doc();
-      const historyEvent = {
-        serviceId: serviceId,
-        userId: user.uid,
-        userName: user.displayName || user.email || "Unknown User",
-        action: "sale",
-        changes: `Продажба на '${serviceName}' към ${clientName || "Неизвестен клиент"}: ${qty} бр. на стойност ${totalAmt} EUR`,
-        timestamp: FieldValue.serverTimestamp(),
-        relatedSaleId: saleRef.id,
-      };
-      batch.set(eventRef, historyEvent);
-    }
+    _createHistoryEvent(batch, adminDb, saleData, serviceName, clientName, user, saleRef);
 
     await batch.commit();
 
     // 3. Атомарно обновяване на присъствията в събитията (платен статус)
-    // Прави се след commit на основния batch за да не достигаме Firestore лимита от 500 writes
     const paidEventIds: string[] = saleData.paidEventIds || [];
-
-    // Support either a single member or an array of members (for family subscriptions)
     const targetMemberIds: string[] =
       saleData.memberIdsForAttendance ||
       (saleData.memberIdForAttendance ? [saleData.memberIdForAttendance] : []);
@@ -576,152 +708,16 @@ export async function executeTrainingSaleAction(
     const paymentType: "subscription" | "individual" =
       saleData.paymentMode === "subscription" ? "subscription" : "individual";
 
-    if (
-      paidEventIds.length > 0 &&
-      targetMemberIds.length > 0 &&
-      saleData.isPaid
-    ) {
-      // Process in batches of 100 events max
-      const chunkSize = 100;
-      for (let i = 0; i < paidEventIds.length; i += chunkSize) {
-        const chunk = paidEventIds.slice(i, i + chunkSize);
-        const attendanceBatch = adminDb.batch();
-
-        for (const eventId of chunk) {
-          const eventRef = adminDb.collection("events").doc(eventId);
-          const eventSnap = await eventRef.get();
-
-          if (!eventSnap.exists) continue;
-
-          const eventData = eventSnap.data();
-          const attendees: any[] = eventData?.attendees || [];
-
-          const nowIso = new Date().toISOString();
-
-          // Find and update the specific members' attendee records
-          const updatedAttendees = attendees.map((attendee) => {
-            if (targetMemberIds.includes(attendee.memberId)) {
-              return {
-                ...attendee,
-                paymentStatus: "paid",
-                paymentType: paymentType,
-                paymentDate: nowIso,
-                saleId: saleRef.id,
-              };
-            }
-            return attendee;
-          });
-
-          attendanceBatch.update(eventRef, { attendees: updatedAttendees });
-        }
-
-        await attendanceBatch.commit();
-      }
+    if (saleData.isPaid) {
+      await _updatePaidEventsAttendance(adminDb, paidEventIds, targetMemberIds, paymentType, saleRef.id);
+      
+      // 4. AUTO-SYNC: Mark ALL attended events in the covered months as paid
+      const targetMonths: string[] = saleData.targetMonths || [];
+      await _syncMonthlyAttendance(adminDb, targetMonths, targetMemberIds, paymentType, saleRef.id);
     }
 
-    // 4. AUTO-SYNC: Mark ALL attended events in the covered months as paid
-    // This covers events attended AFTER the subscription was sold (not in paidEventIds)
-    const targetMonths: string[] = saleData.targetMonths || [];
-    if (
-      targetMonths.length > 0 &&
-      targetMemberIds.length > 0 &&
-      saleData.isPaid
-    ) {
-      const nowIsoSync = new Date().toISOString();
-
-      for (const memberId of targetMemberIds) {
-        // Get all events where this member is an attendee
-        const eventsSnap = await adminDb
-          .collection("events")
-          .where("attendeeMemberIds", "array-contains", memberId)
-          .get();
-
-        const syncBatch = adminDb.batch();
-        let syncCount = 0;
-
-        for (const eventDoc of eventsSnap.docs) {
-          const event = eventDoc.data();
-
-          // Parse event date
-          let eventDate: Date;
-          if (event.startDate && typeof event.startDate.toDate === "function") {
-            eventDate = event.startDate.toDate();
-          } else if (event.startDate) {
-            eventDate = new Date(event.startDate);
-          } else {
-            continue;
-          }
-
-          const eventMonthKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
-
-          // Skip if this event is not in a covered month
-          if (!targetMonths.includes(eventMonthKey)) continue;
-
-          const attendees: any[] = event.attendees || [];
-          const idx = attendees.findIndex((a) => a.memberId === memberId);
-          if (idx === -1) continue;
-
-          const attendee = attendees[idx];
-          // Skip if not attended or already paid by THIS sale
-          if (!attendee.attended) continue;
-          if (
-            attendee.paymentStatus === "paid" &&
-            attendee.saleId === saleRef.id
-          )
-            continue;
-
-          const updatedAttendees = [...attendees];
-          updatedAttendees[idx] = {
-            ...attendee,
-            paymentStatus: "paid",
-            paymentType: paymentType,
-            paymentDate: nowIsoSync,
-            saleId: saleRef.id,
-          };
-
-          syncBatch.update(eventDoc.ref, { attendees: updatedAttendees });
-          syncCount++;
-
-          // Commit and start new batch if needed
-          if (syncCount % 400 === 0) {
-            await syncBatch.commit();
-          }
-        }
-
-        if (syncCount % 400 !== 0) {
-          await syncBatch.commit();
-        }
-      }
-    }
-
-    // Update the member's lastPaymentDate if this sale is paid
-    if (
-      saleData.isPaid &&
-      saleData.memberId &&
-      saleData.memberId !== "GUEST_EXTERNAL"
-    ) {
-      // Update the main member who made the purchase
-      const memberRef = adminDb.collection("members").doc(saleData.memberId);
-      const memberSnap = await memberRef.get();
-      if (memberSnap.exists) {
-        await memberRef.update({
-          lastPaymentDate: new Date(saleData.saleDate).toISOString(),
-        });
-      }
-
-      // Also update lastPaymentDate for any additional family members
-      for (const tId of targetMemberIds) {
-        if (tId !== saleData.memberId && tId !== "GUEST_EXTERNAL") {
-          const mRef = adminDb.collection("members").doc(tId);
-          const mSnap = await mRef.get();
-          if (mSnap.exists) {
-            await mRef.update({
-              lastPaymentDate: new Date(saleData.saleDate).toISOString(),
-            });
-          }
-        }
-      }
-    }
+    // 5. Update the member's lastPaymentDate if this sale is paid
+    await _updateMembersLastPaymentDate(adminDb, saleData, targetMemberIds);
 
     serverCache.invalidatePattern("sales:");
     revalidatePath("/catalogs");

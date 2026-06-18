@@ -314,10 +314,10 @@ export const MemberSalesHistory = ({
                             );
 
                             const itemsList = sale.items
-                              .map(
-                                (item) =>
-                                  `${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ""}`
-                              )
+                              .map((item) => {
+                                const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
+                                return `${item.name}${qtyStr}`;
+                              })
                               .join(", ");
 
                             return (
@@ -461,8 +461,10 @@ export const MemberSalesHistory = ({
 
                         const itemsList = sale.items
                           .map(
-                            (item) =>
-                              `${item.name}${item.quantity > 1 ? ` (x${item.quantity})` : ""}`
+                            (item) => {
+                              const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
+                              return `${item.name}${qtyStr}`;
+                            }
                           )
                           .join(", ");
 

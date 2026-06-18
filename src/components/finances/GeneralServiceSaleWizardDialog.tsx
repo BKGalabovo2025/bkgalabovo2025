@@ -234,8 +234,7 @@ export const GeneralServiceSaleWizardDialog = ({
   const qty = parseInt(quantity, 10) || 1;
   const unitPrice = parseFloat(price) || 0;
   const totalAmount = unitPrice * qty;
-  const totalSteps = 3;
-  const displayStep = Math.min(step, totalSteps);
+
 
   const getTabClasses = (isActive: boolean) => {
     return cn(

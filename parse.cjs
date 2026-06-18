@@ -1,1 +1,11 @@
-const fs = require('fs'); const content = fs.readFileSync('eslint_report.json', 'utf16le').replace(/^\uFEFF/, ''); const data = JSON.parse(content); const rules = ['sonarjs/prefer-single-boolean-return', 'sonarjs/no-gratuitous-expressions', '@typescript-eslint/ban-ts-comment', 'sonarjs/no-identical-expressions', 'sonarjs/no-identical-functions', 'sonarjs/use-type-alias', 'sonarjs/no-ignored-exceptions', '@typescript-eslint/no-unused-vars', 'react-hooks/exhaustive-deps']; data.forEach(file => { file.messages.forEach(msg => { if (rules.includes(msg.ruleId)) { console.log(file.filePath + ':' + msg.line + ':' + msg.column + ' - ' + msg.ruleId); } }); });
+const fs = require('fs');
+const data = JSON.parse(fs.readFileSync('eslint-report3.json', 'utf8'));
+data.forEach(f => {
+  if (f.messages) {
+    f.messages.forEach(m => {
+      if (m.ruleId === 'sonarjs/no-nested-functions' || m.ruleId === 'sonarjs/no-nested-template-literals') {
+        console.log(f.filePath.split('\\\\').pop() + ':' + m.line + ' [' + m.ruleId + '] ');
+      }
+    });
+  }
+});

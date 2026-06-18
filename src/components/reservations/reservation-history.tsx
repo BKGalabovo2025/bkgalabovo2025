@@ -41,6 +41,19 @@ interface ReservationHistoryProps {
   mode?: "courts" | "recovery";
 }
 
+const getReservationTitle = (res: any) => {
+  const c1Name = res.clientName;
+  const c1Zone = res.selectedZone ? ` (${res.selectedZone})` : "";
+  const c1Str = `${c1Name}${c1Zone}`;
+
+  if (res.client2Name || res.client2Zone) {
+    const c2Name = res.client2Name || "Клиент 2";
+    const c2Zone = res.client2Zone ? ` (${res.client2Zone})` : "";
+    return `${c1Str} & ${c2Name}${c2Zone}`;
+  }
+  return c1Str;
+};
+
 export function ReservationHistory({
   onViewInCalendar,
   mode,
@@ -232,9 +245,7 @@ export function ReservationHistory({
                       <TableCell>
                         <div className="flex flex-col gap-0.5">
                           <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                            {res.client2Name || res.client2Zone
-                              ? `${res.clientName}${res.selectedZone ? ` (${res.selectedZone})` : ""} & ${res.client2Name || "Клиент 2"}${res.client2Zone ? ` (${res.client2Zone})` : ""}`
-                              : `${res.clientName}${res.selectedZone ? ` (${res.selectedZone})` : ""}`}
+                            {getReservationTitle(res)}
                           </span>
                           <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-tight">
                             {res.client2Phone

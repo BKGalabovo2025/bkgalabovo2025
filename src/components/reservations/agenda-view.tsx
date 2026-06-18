@@ -47,6 +47,19 @@ type AgendaItem =
   | { type: "reservation"; data: Reservation }
   | { type: "blocked"; data: BlockedSlot };
 
+const getReservationTitle = (res: Reservation) => {
+  const c1Name = res.clientName;
+  const c1Zone = res.selectedZone ? ` (${res.selectedZone})` : "";
+  const c1Str = `${c1Name}${c1Zone}`;
+
+  if (res.client2Name || res.client2Zone) {
+    const c2Name = res.client2Name || "Клиент 2";
+    const c2Zone = res.client2Zone ? ` (${res.client2Zone})` : "";
+    return `${c1Str} & ${c2Name}${c2Zone}`;
+  }
+  return c1Str;
+};
+
 export function AgendaView({
   date,
   courtCount,
@@ -273,10 +286,7 @@ export function AgendaView({
                     )}
                     <h4 className="font-bold text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
                       {isReservation
-                        ? (data as Reservation).client2Name ||
-                          (data as Reservation).client2Zone
-                          ? `${(data as Reservation).clientName}${(data as Reservation).selectedZone ? ` (${(data as Reservation).selectedZone})` : ""} & ${(data as Reservation).client2Name || "Клиент 2"}${(data as Reservation).client2Zone ? ` (${(data as Reservation).client2Zone})` : ""}`
-                          : `${(data as Reservation).clientName}${(data as Reservation).selectedZone ? ` (${(data as Reservation).selectedZone})` : ""}`
+                        ? getReservationTitle(data as Reservation)
                         : (data as BlockedSlot).title}
                     </h4>
                   </div>

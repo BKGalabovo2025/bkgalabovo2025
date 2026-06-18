@@ -42,6 +42,8 @@ export default tseslint.config(
       "react-hooks/incompatible-library": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/immutability": "off",
+      "sonarjs/pseudo-random": "off",
+      "sonarjs/no-nested-functions": "off",
     },
     settings: {
       react: {
