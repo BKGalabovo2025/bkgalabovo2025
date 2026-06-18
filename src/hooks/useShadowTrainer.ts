@@ -111,6 +111,174 @@ function _rotatePlayers(
   return sorted.slice(0, groupSize);
 }
 
+type TriggerNextActionRefs = {
+  stateRef: React.MutableRefObject<TrainerState>;
+  settingsRef: React.MutableRefObject<ShadowSettings | null>;
+  agilityActionsDoneRef: React.MutableRefObject<number>;
+  isFirstActionRef: React.MutableRefObject<boolean>;
+  consecutiveFastShotsRef: React.MutableRefObject<number>;
+  deceptionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  centerTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+};
+
+function _handleAgilityTestAction(
+  isFirst: boolean,
+  refs: TriggerNextActionRefs,
+  setAgilityActionsDone: (v: number) => void,
+  cleanup: () => void
+): boolean {
+  const currentSettings = refs.settingsRef.current!;
+  let nextCount = refs.agilityActionsDoneRef.current;
+  if (!isFirst) {
+    nextCount = nextCount + 1;
+    setAgilityActionsDone(nextCount);
+    refs.agilityActionsDoneRef.current = nextCount;
+  }
+  if (nextCount >= currentSettings.workSec) {
+    refs.stateRef.current = "finished";
+    cleanup();
+    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+    return true; // signal: finished
+  }
+  return false;
+}
+
+function _scheduleAudio(
+  isFirst: boolean,
+  pace: number,
+  audioPath: string,
+  secondAudioPath: string | null,
+  deceptionEnabled: boolean,
+  deceptionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
+  stateRef: React.MutableRefObject<TrainerState>,
+  drillMode: string,
+  calloutMode: string
+) {
+  if (deceptionEnabled && Math.random() < 0.1) {
+    const fakeResolved = _resolveAudioPathsAndZone(drillMode, calloutMode);
+    const fakePath = fakeResolved.audioPath;
+    const secondFakePath = fakeResolved.secondAudioPath;
+    const fakeSequence: string[] = [];
+    if (isFirst) fakeSequence.push(AUDIO_PATHS.common.beep);
+    fakeSequence.push(fakePath);
+    if (secondFakePath) fakeSequence.push(secondFakePath);
+    playAudioSequence(fakeSequence);
+    const deceptionDelay = Math.max(300, Math.min(pace * 1000 * 0.35, 800));
+    deceptionTimeoutRef.current = setTimeout(() => {
+      if (stateRef.current !== "working") return;
+      const realSequence = [audioPath];
+      if (secondAudioPath) realSequence.push(secondAudioPath);
+      playAudioSequence(realSequence);
+    }, deceptionDelay);
+  } else {
+    const sequence: string[] = [];
+    if (isFirst) sequence.push(AUDIO_PATHS.common.beep);
+    sequence.push(audioPath);
+    if (secondAudioPath) sequence.push(secondAudioPath);
+    playAudioSequence(sequence);
+  }
+}
+
+function _scheduleNextAction(
+  pace: number,
+  secondAudioPath: string | null,
+  centerCommandEnabled: boolean,
+  visualOnly: boolean,
+  centerTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
+  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
+  stateRef: React.MutableRefObject<TrainerState>,
+  setActiveZone: (zone: ZoneId | null) => void,
+  triggerNextAction: () => void
+) {
+  if (centerCommandEnabled && !visualOnly) {
+    centerTimeoutRef.current = setTimeout(() => {
+      if (stateRef.current === "working") {
+        playAudio(AUDIO_PATHS.common.center);
+      }
+    }, (pace * 1000) / 2);
+  }
+  const expectedAudioFiles = 1 + (secondAudioPath ? 1 : 0);
+  const approxAudioDuration = expectedAudioFiles * 900;
+  let nextPaceMs = pace * 1000;
+  if (nextPaceMs < approxAudioDuration) {
+    nextPaceMs = approxAudioDuration + 200;
+  }
+  actionTimeoutRef.current = setTimeout(() => {
+    setActiveZone(null); // clear zone highlight
+    actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
+  }, nextPaceMs);
+}
+
+type AdvanceStateRefs = {
+  stateRef: React.MutableRefObject<TrainerState>;
+  currentSetRef: React.MutableRefObject<number>;
+  timerRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  isFirstActionRef: React.MutableRefObject<boolean>;
+  currentPlayersRef: React.MutableRefObject<any[]>;
+  playCountsRef: React.MutableRefObject<Record<string, number>>;
+};
+
+function _advanceFromCountdown(
+  currentSettings: ShadowSettings,
+  refs: AdvanceStateRefs,
+  updateTimeRemaining: (v: number) => void,
+  setAgilityActionsDone: (v: number) => void,
+  requestWakeLock: () => void,
+  triggerNextAction: () => void
+) {
+  refs.stateRef.current = "working";
+  refs.isFirstActionRef.current = true;
+  if (currentSettings.mode === "agility_test") {
+    updateTimeRemaining(0);
+  } else {
+    updateTimeRemaining(currentSettings.workSec);
+  }
+  setAgilityActionsDone(0);
+  requestWakeLock();
+  refs.actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
+}
+
+function _advanceFromWorking(
+  currentSettings: ShadowSettings,
+  refs: AdvanceStateRefs,
+  updateTimeRemaining: (v: number) => void,
+  setCurrentPlayersState: (p: any[]) => void,
+  cleanup: () => void
+) {
+  cleanup();
+  const isLastSet = refs.currentSetRef.current >= currentSettings.sets || currentSettings.mode === "agility_test";
+  if (isLastSet) {
+    refs.stateRef.current = "finished";
+    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
+  } else {
+    const nextPlayers = _rotatePlayers(currentSettings, refs.currentPlayersRef, refs.playCountsRef);
+    if (nextPlayers !== refs.currentPlayersRef.current) {
+      refs.currentPlayersRef.current = nextPlayers;
+      setCurrentPlayersState(nextPlayers);
+    }
+    refs.stateRef.current = "resting";
+    stopAudio();
+    updateTimeRemaining(currentSettings.restSec);
+    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
+  }
+}
+
+function _advanceFromResting(
+  currentSettings: ShadowSettings,
+  refs: AdvanceStateRefs,
+  updateTimeRemaining: (v: number) => void,
+  setCurrentSet: (fn: (c: number) => number) => void
+) {
+  setCurrentSet((c) => c + 1);
+  refs.stateRef.current = "countdown";
+  updateTimeRemaining(10);
+  if (!currentSettings.visualOnly) {
+    playAudioSequence([AUDIO_PATHS.common.endRest, AUDIO_PATHS.common.startSet]);
+  }
+}
+
 export function useShadowTrainer(settings: ShadowSettings | null) {
   const [state, setState] = useState<TrainerState>("idle");
   const [currentSet, setCurrentSet] = useState(1);
@@ -219,6 +387,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     };
   }, []);
 
+  const actionRefs: TriggerNextActionRefs = {
+    stateRef, settingsRef, agilityActionsDoneRef, isFirstActionRef,
+    consecutiveFastShotsRef, deceptionTimeoutRef, centerTimeoutRef, actionTimeoutRef
+  };
+
   const triggerNextAction = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;
@@ -229,93 +402,38 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       isFirstActionRef.current = false;
 
       if (currentSettings.mode === "agility_test") {
-        let nextCount = agilityActionsDoneRef.current;
-        if (!isFirst) {
-          nextCount = nextCount + 1;
-          setAgilityActionsDone(nextCount);
-          agilityActionsDoneRef.current = nextCount;
-        }
-        if (nextCount >= currentSettings.workSec) {
-          // Stop agility test when settings.workSec actions are done
-          stateRef.current = "finished";
-          setState("finished");
-          cleanup();
-          if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
-          return;
-        }
+        const finished = _handleAgilityTestAction(isFirst, actionRefs, setAgilityActionsDone, cleanup);
+        if (finished) { setState("finished"); return; }
       }
 
-      let pace = currentSettings.paceSec;
-      if (currentSettings.mode === "ghost_match") {
-        pace = _calculateGhostMatchPace(consecutiveFastShotsRef);
-      }
+      const pace = currentSettings.mode === "ghost_match"
+        ? _calculateGhostMatchPace(consecutiveFastShotsRef)
+        : currentSettings.paceSec;
 
-      const resolved = _resolveAudioPathsAndZone(currentSettings.drillMode, currentSettings.calloutMode);
-      const zone = resolved.zone;
-      const audioPath = resolved.audioPath;
-      const secondAudioPath = resolved.secondAudioPath;
-
+      const { zone, audioPath, secondAudioPath } = _resolveAudioPathsAndZone(
+        currentSettings.drillMode, currentSettings.calloutMode
+      );
       setActiveZone(zone);
 
       if (!currentSettings.visualOnly) {
-        if (currentSettings.deceptionEnabled && Math.random() < 0.1) {
-          const fakeResolved = _resolveAudioPathsAndZone(currentSettings.drillMode, currentSettings.calloutMode);
-          const fakePath = fakeResolved.audioPath;
-          const secondFakePath = fakeResolved.secondAudioPath;
-
-          const fakeSequence = [];
-          if (isFirst) fakeSequence.push(AUDIO_PATHS.common.beep);
-          fakeSequence.push(fakePath);
-          if (secondFakePath) fakeSequence.push(secondFakePath);
-          playAudioSequence(fakeSequence);
-
-          const deceptionDelay = Math.max(
-            300,
-            Math.min(pace * 1000 * 0.35, 800)
-          );
-          deceptionTimeoutRef.current = setTimeout(() => {
-            if (stateRef.current !== "working") return;
-            const realSequence = [audioPath];
-            if (secondAudioPath) realSequence.push(secondAudioPath);
-            playAudioSequence(realSequence);
-          }, deceptionDelay);
-        } else {
-          const sequence = [];
-          if (isFirst) sequence.push(AUDIO_PATHS.common.beep);
-          sequence.push(audioPath);
-          if (secondAudioPath) sequence.push(secondAudioPath);
-          playAudioSequence(sequence);
-        }
-      }
-      if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
-        centerTimeoutRef.current = setTimeout(
-          () => {
-            if (stateRef.current === "working") {
-              playAudio(AUDIO_PATHS.common.center);
-            }
-          },
-          (pace * 1000) / 2
+        _scheduleAudio(
+          isFirst, pace, audioPath, secondAudioPath,
+          currentSettings.deceptionEnabled, deceptionTimeoutRef, stateRef,
+          currentSettings.drillMode, currentSettings.calloutMode
         );
       }
 
-      const expectedAudioFiles = 1 + (secondAudioPath ? 1 : 0);
-      const approxAudioDuration = expectedAudioFiles * 900; // approx 900ms per file
-      let nextPaceMs = pace * 1000;
-      if (nextPaceMs < approxAudioDuration) {
-        nextPaceMs = approxAudioDuration + 200; // Guaranteed buffer
-      }
-
-      actionTimeoutRef.current = setTimeout(() => {
-        setActiveZone(null); // clear highlight
-        actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
-      }, nextPaceMs);
+      _scheduleNextAction(
+        pace, secondAudioPath,
+        currentSettings.centerCommandEnabled, currentSettings.visualOnly,
+        centerTimeoutRef, actionTimeoutRef, stateRef, setActiveZone, triggerNextAction
+      );
     } catch (error) {
       console.error("Error in triggerNextAction", error);
-      // Schedule fallback next action to prevent complete freeze
-      const currentSettings = settingsRef.current;
-      const pace = currentSettings?.paceSec || 3;
+      const pace = settingsRef.current?.paceSec || 3;
       actionTimeoutRef.current = setTimeout(triggerNextAction, pace * 1000);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanup]);
 
   const speakMotivation = useCallback(() => {
@@ -348,70 +466,42 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     }
   }, []);
 
+  const advanceStateRefs: AdvanceStateRefs = {
+    stateRef, currentSetRef, timerRef, actionTimeoutRef,
+    isFirstActionRef, currentPlayersRef, playCountsRef
+  };
+
   const advanceState = useCallback(() => {
     const currentSettings = settingsRef.current;
     if (!currentSettings) return;
 
-    // Explicitly kill the old interval so the next phase starts fresh with 0 accumulatedMs.
-    // The useEffect will spawn a new clean interval after re-render.
+    // Kill the old interval so the next phase starts fresh with 0 accumulatedMs
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
 
-    if (stateRef.current === "countdown") {
-      stateRef.current = "working";
+    const phase = stateRef.current;
+    if (phase === "countdown") {
       setState("working");
-      isFirstActionRef.current = true;
-
-      if (currentSettings.mode === "agility_test") {
-        updateTimeRemaining(0); // count UP
-        setAgilityActionsDone(0);
-      } else {
-        updateTimeRemaining(currentSettings.workSec); // count DOWN
-        setAgilityActionsDone(0);
-      }
-
-      requestWakeLock();
-      // Trigger the first action immediately on transition start
-      actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
-    } else if (stateRef.current === "working") {
-      cleanup();
+      _advanceFromCountdown(
+        currentSettings, advanceStateRefs, updateTimeRemaining,
+        setAgilityActionsDone, requestWakeLock, triggerNextAction
+      );
+    } else if (phase === "working") {
       setActiveZone(null);
-
-      if (
-        currentSetRef.current >= currentSettings.sets ||
-        currentSettings.mode === "agility_test"
-      ) {
-        stateRef.current = "finished";
-        setState("finished");
-        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
-      } else {
-        const nextPlayers = _rotatePlayers(currentSettings, currentPlayersRef, playCountsRef);
-        if (nextPlayers !== currentPlayersRef.current) {
-          currentPlayersRef.current = nextPlayers;
-          setCurrentPlayersState(nextPlayers);
-        }
-
-        stateRef.current = "resting";
-        setState("resting");
-        stopAudio(); // Prevent "Ghost Leaks" overlapping with "Rest" audio
-        updateTimeRemaining(currentSettings.restSec);
-        if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
-      }
-    } else if (stateRef.current === "resting") {
-      setCurrentSet((c) => c + 1);
-
-      stateRef.current = "countdown";
+      _advanceFromWorking(
+        currentSettings, advanceStateRefs, updateTimeRemaining,
+        setCurrentPlayersState, cleanup
+      );
+      setState(advanceStateRefs.stateRef.current);
+    } else if (phase === "resting") {
       setState("countdown");
-      updateTimeRemaining(10);
-      if (!currentSettings.visualOnly) {
-        playAudioSequence([
-          AUDIO_PATHS.common.endRest,
-          AUDIO_PATHS.common.startSet,
-        ]);
-      }
+      _advanceFromResting(
+        currentSettings, advanceStateRefs, updateTimeRemaining, setCurrentSet
+      );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanup, triggerNextAction, updateTimeRemaining]);
 
   useEffect(() => {
