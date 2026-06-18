@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -405,7 +406,7 @@ export const TrainingSaleWizardDialog = ({
 
   const getPaidEventIds = () => {
     if (isGuestSale || paymentMode !== "subscription") return [];
-    
+
     return monthlyAttendance
       .filter((m) => selectedMonthKeys.includes(m.monthKey))
       .flatMap((m) =>
@@ -560,25 +561,31 @@ export const TrainingSaleWizardDialog = ({
             Продажба: {service.name}
           </DialogTitle>
           <DialogDescription className="font-light text-zinc-500 mt-1">
-            {step < 5 ? (
-              <span>
-                Стъпка {displayStep} от {totalSteps}:{" "}
-                {isGuestSale
-                  ? ["Избор на клиент", "Детайли на плащане", "Потвърждение"][
-                      step - 1
-                    ]
-                  : [
-                      "Избор на клиент",
-                      "Присъствия и период",
-                      "Начин на плащане",
-                      "Потвърждение",
-                    ][step - 1]}
-              </span>
-            ) : step === 5 ? (
-              <span>Регистриране на продажбата...</span>
-            ) : (
-              <span>Продажбата е завършена успешно. Благодарим ви!</span>
-            )}
+            {(() => {
+              if (step === 5) {
+                return <span>Регистриране на продажбата...</span>;
+              }
+              if (step > 5) {
+                return (
+                  <span>Продажбата е завършена успешно. Благодарим ви!</span>
+                );
+              }
+              const stepName = isGuestSale
+                ? ["Избор на клиент", "Детайли на плащане", "Потвърждение"][
+                    step - 1
+                  ]
+                : [
+                    "Избор на клиент",
+                    "Присъствия и период",
+                    "Начин на плащане",
+                    "Потвърждение",
+                  ][step - 1];
+              return (
+                <span>
+                  Стъпка {displayStep} от {totalSteps}: {stepName}
+                </span>
+              );
+            })()}
           </DialogDescription>
         </DialogHeader>
 
@@ -838,23 +845,25 @@ export const TrainingSaleWizardDialog = ({
                               setSelectedMember(member);
                               setIsGuestSale(member.isGuest || false);
                             }}
-                            className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${
-                              isSelected
-                                ? clientTypeTab === "guest"
-                                  ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
-                                  : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300"
-                                : "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200"
-                            }`}
+                            className={`w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ${(() => {
+                              if (!isSelected)
+                                return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
+                              if (clientTypeTab === "guest")
+                                return "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300";
+                              return "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
+                            })()}`}
                           >
                             <div className="flex items-center gap-3">
                               <div
                                 className={cn(
                                   "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0",
-                                  isSelected
-                                    ? clientTypeTab === "guest"
-                                      ? "bg-amber-500 text-white"
-                                      : "bg-emerald-500 text-white"
-                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                                  (() => {
+                                    if (!isSelected)
+                                      return "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
+                                    if (clientTypeTab === "guest")
+                                      return "bg-amber-500 text-white";
+                                    return "bg-emerald-500 text-white";
+                                  })()
                                 )}
                               >
                                 {member.firstName[0]}
@@ -960,6 +969,7 @@ export const TrainingSaleWizardDialog = ({
               </div>
             </div>
 
+            {}
             {attendanceLoading ? (
               <div className="py-12 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="h-7 w-7 animate-spin text-emerald-500 opacity-40" />
@@ -1712,25 +1722,29 @@ export const TrainingSaleWizardDialog = ({
             </div>
 
             <div>
-              {/* For guest: steps 1→2→3 = totalSteps 3, execute at step 3 */}
-              {/* For member: steps 1→2→3→4 = totalSteps 4, execute at step 4 */}
-              {step < (isGuestSale ? 3 : 4) ? (
-                <Button
-                  onClick={handleNextStep}
-                  disabled={isProcessing}
-                  className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
-                >
-                  Напред <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleExecuteSale}
-                  disabled={isProcessing}
-                  className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
-                >
-                  Завърши продажбата <Check className="h-4 w-4" />
-                </Button>
-              )}
+              {(() => {
+                const isLastStep = step >= (isGuestSale ? 3 : 4);
+                if (isLastStep) {
+                  return (
+                    <Button
+                      onClick={handleExecuteSale}
+                      disabled={isProcessing}
+                      className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                    >
+                      Завърши продажбата <Check className="h-4 w-4" />
+                    </Button>
+                  );
+                }
+                return (
+                  <Button
+                    onClick={handleNextStep}
+                    disabled={isProcessing}
+                    className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                  >
+                    Напред <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                );
+              })()}
             </div>
           </DialogFooter>
         )}

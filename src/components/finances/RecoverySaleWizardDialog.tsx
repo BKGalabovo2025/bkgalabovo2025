@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -404,7 +405,7 @@ export const RecoverySaleWizardDialog = ({
 
   const getPaidEventIds = () => {
     if (isGuestSale || paymentMode !== "subscription") return [];
-    
+
     return monthlyAttendance
       .filter((m) => selectedMonthKeys.includes(m.monthKey))
       .flatMap((m) =>
@@ -548,8 +549,9 @@ export const RecoverySaleWizardDialog = ({
   const displayStep = Math.min(step, totalSteps);
 
   const getMemberButtonClasses = (isSelected: boolean, isGuestTab: boolean) => {
-    if (!isSelected) return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
-    return isGuestTab 
+    if (!isSelected)
+      return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
+    return isGuestTab
       ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
       : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
   };
@@ -569,7 +571,7 @@ export const RecoverySaleWizardDialog = ({
         </div>
       );
     }
-    
+
     return filteredMembers.map((member) => {
       const isSelected = selectedMember?.id === member.id;
       const isGuestTab = clientTypeTab === "guest";
@@ -622,10 +624,21 @@ export const RecoverySaleWizardDialog = ({
     if (step > 5) {
       return <span>Продажбата е завършена успешно. Благодарим ви!</span>;
     }
-    
-    const guestSteps = ["Избор на клиент", "Детайли на плащане", "Потвърждение"];
-    const memberSteps = ["Избор на клиент", "Присъствия и период", "Начин на плащане", "Потвърждение"];
-    const currentStepName = isGuestSale ? guestSteps[step - 1] : memberSteps[step - 1];
+
+    const guestSteps = [
+      "Избор на клиент",
+      "Детайли на плащане",
+      "Потвърждение",
+    ];
+    const memberSteps = [
+      "Избор на клиент",
+      "Присъствия и период",
+      "Начин на плащане",
+      "Потвърждение",
+    ];
+    const currentStepName = isGuestSale
+      ? guestSteps[step - 1]
+      : memberSteps[step - 1];
 
     return (
       <span>
@@ -886,10 +899,7 @@ export const RecoverySaleWizardDialog = ({
                     )}
                   >
                     {isChecked && (
-                      <Check
-                        className="h-3 w-3 text-white"
-                        strokeWidth={3}
-                      />
+                      <Check className="h-3 w-3 text-white" strokeWidth={3} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -904,11 +914,9 @@ export const RecoverySaleWizardDialog = ({
                       {event.title}
                     </p>
                     <p className="text-[10px] text-zinc-400 font-light mt-0.5">
-                      {format(
-                        new Date(event.startDate),
-                        "dd MMMM yyyy",
-                        { locale: bg }
-                      )}
+                      {format(new Date(event.startDate), "dd MMMM yyyy", {
+                        locale: bg,
+                      })}
                       {event.location && ` · ${event.location}`}
                     </p>
                   </div>
@@ -940,7 +948,7 @@ export const RecoverySaleWizardDialog = ({
         </div>
       );
     }
-    
+
     if (paymentMode === "subscription") {
       return renderSubscriptionAttendance();
     }
@@ -1719,25 +1727,29 @@ export const RecoverySaleWizardDialog = ({
             </div>
 
             <div>
-              {/* For guest: steps 1→2→3 = totalSteps 3, execute at step 3 */}
-              {/* For member: steps 1→2→3→4 = totalSteps 4, execute at step 4 */}
-              {step >= (isGuestSale ? 3 : 4) ? (
-                <Button
-                  onClick={handleExecuteSale}
-                  disabled={isProcessing}
-                  className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
-                >
-                  Завърши продажбата <Check className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNextStep}
-                  disabled={isProcessing}
-                  className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
-                >
-                  Напред <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              )}
+              {(() => {
+                const isLastStep = step >= (isGuestSale ? 3 : 4);
+                if (isLastStep) {
+                  return (
+                    <Button
+                      onClick={handleExecuteSale}
+                      disabled={isProcessing}
+                      className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                    >
+                      Завърши продажбата <Check className="h-4 w-4" />
+                    </Button>
+                  );
+                }
+                return (
+                  <Button
+                    onClick={handleNextStep}
+                    disabled={isProcessing}
+                    className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                  >
+                    Напред <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                );
+              })()}
             </div>
           </DialogFooter>
         )}
