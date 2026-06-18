@@ -81,81 +81,131 @@ export function getRandomZoneForMode(
   return pool[index];
 }
 
+class AudioChannel {
+  public audio: HTMLAudioElement;
+  public audioSequence: string[] = [];
+  public sequenceIndex = 0;
+  public isPlaying = false;
+  public currentPlayId = 0;
+
+  constructor() {
+    this.audio = new Audio();
+    this.audio.preload = "auto";
+  }
+
+  public stop() {
+    this.isPlaying = false;
+    this.audioSequence = [];
+    this.sequenceIndex = 0;
+    this.currentPlayId++;
+    this.audio.onended = null;
+    this.audio.pause();
+    this.audio.currentTime = 0;
+  }
+}
+
 class AudioManager {
-  private currentAudio: HTMLAudioElement | null = null;
-  private audioSequence: string[] = [];
-  private sequenceIndex = 0;
-  private isPlaying = false;
+  private channels: AudioChannel[] = [];
+  private numChannels = 4;
+  private roundRobinIndex = 0;
 
   constructor() {
     if (typeof window !== "undefined") {
-      this.currentAudio = new Audio();
-      this.currentAudio.preload = "auto";
-
-      this.currentAudio.onended = () => {
-        this.sequenceIndex++;
-        if (this.sequenceIndex < this.audioSequence.length && this.isPlaying) {
-          this.currentAudio!.src = this.audioSequence[this.sequenceIndex];
-          this.currentAudio!.play().catch((e) =>
-            console.log("Sequence play error", e)
-          );
-        } else {
-          this.isPlaying = false;
-        }
-      };
+      for (let i = 0; i < this.numChannels; i++) {
+        this.channels.push(new AudioChannel());
+      }
     }
   }
 
   public unlock() {
-    if (this.currentAudio) {
-      this.currentAudio.volume = 0;
-      this.currentAudio
+    this.channels.forEach((ch) => {
+      ch.audio.volume = 0;
+      ch.audio
         .play()
         .then(() => {
-          this.currentAudio!.pause();
-          this.currentAudio!.currentTime = 0;
-          this.currentAudio!.volume = 1;
+          ch.audio.pause();
+          ch.audio.currentTime = 0;
+          ch.audio.volume = 1;
         })
         .catch(() => {});
-    }
+    });
   }
 
   public stopAll() {
-    this.isPlaying = false;
-    this.audioSequence = [];
-    this.sequenceIndex = 0;
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.currentTime = 0;
+    this.channels.forEach((ch) => ch.stop());
+  }
+
+  private getFreeChannel(): AudioChannel | null {
+    if (this.channels.length === 0) return null;
+    let ch = this.channels.find((c) => !c.isPlaying);
+    if (!ch) {
+      ch = this.channels[this.roundRobinIndex];
+      this.roundRobinIndex = (this.roundRobinIndex + 1) % this.numChannels;
+      ch.stop();
     }
+    return ch;
+  }
+
+  private attachOnEnded(ch: AudioChannel, playId: number) {
+    ch.audio.onended = () => {
+      if (ch.currentPlayId !== playId) return;
+
+      ch.sequenceIndex++;
+      if (ch.sequenceIndex < ch.audioSequence.length && ch.isPlaying) {
+        ch.audio.src = ch.audioSequence[ch.sequenceIndex];
+        ch.audio.play().catch((e) => {
+          if (e.name !== "AbortError") {
+            console.log("Sequence play error", e);
+            ch.isPlaying = false;
+          }
+        });
+      } else {
+        ch.isPlaying = false;
+      }
+    };
   }
 
   public play(path: string) {
-    if (!this.currentAudio) return;
-    this.stopAll();
+    const ch = this.getFreeChannel();
+    if (!ch) return;
 
-    this.isPlaying = true;
-    this.audioSequence = [path];
-    this.sequenceIndex = 0;
+    ch.isPlaying = true;
+    ch.audioSequence = [path];
+    ch.sequenceIndex = 0;
 
-    this.currentAudio.src = path;
-    this.currentAudio.volume = 1;
-    this.currentAudio.play().catch((e) => console.log("Audio play error", e));
+    const playId = ++ch.currentPlayId;
+    this.attachOnEnded(ch, playId);
+
+    ch.audio.src = path;
+    ch.audio.volume = 1;
+    ch.audio.play().catch((e) => {
+      if (e.name !== "AbortError") {
+        console.log("Audio play error", e);
+        ch.isPlaying = false;
+      }
+    });
   }
 
   public playSequence(paths: string[]) {
-    if (!this.currentAudio || paths.length === 0) return;
-    this.stopAll();
+    if (paths.length === 0) return;
+    const ch = this.getFreeChannel();
+    if (!ch) return;
 
-    this.isPlaying = true;
-    this.audioSequence = paths;
-    this.sequenceIndex = 0;
+    ch.isPlaying = true;
+    ch.audioSequence = paths;
+    ch.sequenceIndex = 0;
 
-    this.currentAudio.src = paths[0];
-    this.currentAudio.volume = 1;
-    this.currentAudio
-      .play()
-      .catch((e) => console.log("Sequence start error", e));
+    const playId = ++ch.currentPlayId;
+    this.attachOnEnded(ch, playId);
+
+    ch.audio.src = paths[0];
+    ch.audio.volume = 1;
+    ch.audio.play().catch((e) => {
+      if (e.name !== "AbortError") {
+        console.log("Sequence start error", e);
+        ch.isPlaying = false;
+      }
+    });
   }
 }
 

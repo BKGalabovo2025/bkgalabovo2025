@@ -488,7 +488,7 @@ export default function ScheduleClient() {
               "pb-4 text-xs font-semibold tracking-widest uppercase transition-all border-b-2 relative",
               activeMainTab === "events"
                 ? "border-primary text-zinc-950 dark:text-white"
-                : "border-transparent text-zinc-400 hover:text-zinc-650"
+                : "border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
             )}
           >
             Тренировки & Събития
@@ -568,7 +568,10 @@ export default function ScheduleClient() {
                 }
                 defaultValue="all"
               >
-                <SelectTrigger className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-none font-light text-sm focus:ring-primary">
+                <SelectTrigger
+                  aria-label="Филтрирай по тип събитие"
+                  className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-none font-light text-sm focus:ring-primary"
+                >
                   <SelectValue placeholder="Филтрирай по тип" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 shadow-none bg-white dark:bg-zinc-950">
@@ -618,16 +621,19 @@ export default function ScheduleClient() {
               </div>
             ) : (
               <>
-                {activeTab === "current" &&
-                  renderEventsList(filteredEvents, groupedEvents)}
-                {activeTab === "upcoming" &&
-                  renderEventsList(filteredEvents, groupedEvents)}
-                {activeTab === "past" &&
-                  renderEventsList(
+                <TabsContent value="current" className="mt-0 outline-none">
+                  {renderEventsList(filteredEvents, groupedEvents)}
+                </TabsContent>
+                <TabsContent value="upcoming" className="mt-0 outline-none">
+                  {renderEventsList(filteredEvents, groupedEvents)}
+                </TabsContent>
+                <TabsContent value="past" className="mt-0 outline-none">
+                  {renderEventsList(
                     paginatedEvents,
                     groupedEvents,
                     filteredEvents.length
                   )}
+                </TabsContent>
               </>
             )}
           </div>
@@ -827,7 +833,7 @@ export default function ScheduleClient() {
           {Object.entries(grouped).map(([month, monthEvents]) => (
             <div key={month} className="space-y-8">
               <div className="flex items-center gap-6 px-1">
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-400 shrink-0">
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 shrink-0">
                   {month}
                 </h2>
                 <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
@@ -859,11 +865,12 @@ export default function ScheduleClient() {
               size="icon"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
+              aria-label="Предишна страница"
               className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
               <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
             </Button>
-            <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-400 px-4">
+            <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 px-4">
               Страница {currentPage}{" "}
               <span className="text-zinc-200 dark:text-zinc-800 mx-4">/</span>{" "}
               {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
@@ -873,6 +880,7 @@ export default function ScheduleClient() {
               size="icon"
               onClick={() => setCurrentPage((prev) => prev + 1)}
               disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
+              aria-label="Следваща страница"
               className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
               <ChevronRight className="h-5 w-5" strokeWidth={1.5} />

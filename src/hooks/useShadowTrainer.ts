@@ -57,6 +57,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   // Refs for intervals, timeouts, and wake lock
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const deceptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const centerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wakeLockRef = useRef<any>(null); // any because WakeLockSentinel might not be in standard DOM types
   const isFirstActionRef = useRef(false);
 
@@ -107,6 +109,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const cleanup = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
+    if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
+    if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
     releaseWakeLock();
   }, []);
 
@@ -154,11 +158,19 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
       let secondAudioPath: string | null = null;
 
-      if (
+      const isShotMode =
         currentSettings.calloutMode === "shots" ||
-        (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
-      ) {
-        audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
+        (currentSettings.calloutMode === "mixed" && Math.random() > 0.5);
+
+      if (isShotMode) {
+        if (zone.startsWith("mid")) {
+          // Tactical fix: In mid zone, "shots" alone is ambiguous. Force zone + shot.
+          audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.midForehand;
+          secondAudioPath =
+            getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
+        } else {
+          audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
+        }
       } else if (currentSettings.calloutMode === "zones_and_shots") {
         audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
         secondAudioPath =
@@ -171,16 +183,26 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
             getRandomZoneForMode(currentSettings.drillMode) || "frontForehand";
           let fakePath =
             AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
-          const secondFakePath: string | null = null;
-          if (
+          let secondFakePath: string | null = null;
+          const isFakeShotMode =
             currentSettings.calloutMode === "shots" ||
-            (currentSettings.calloutMode === "mixed" && Math.random() > 0.5)
-          ) {
-            fakePath =
-              getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
+            (currentSettings.calloutMode === "mixed" && Math.random() > 0.5);
+
+          if (isFakeShotMode) {
+            if (fakeZone.startsWith("mid")) {
+              fakePath =
+                AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
+              secondFakePath =
+                getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
+            } else {
+              fakePath =
+                getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
+            }
           } else if (currentSettings.calloutMode === "zones_and_shots") {
             fakePath =
               AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
+            secondFakePath =
+              getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
           }
 
           const fakeSequence = [];
@@ -189,12 +211,13 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           if (secondFakePath) fakeSequence.push(secondFakePath);
           playAudioSequence(fakeSequence);
 
-          setTimeout(() => {
+          const deceptionDelay = Math.min(600, pace * 1000 * 0.4);
+          deceptionTimeoutRef.current = setTimeout(() => {
             if (stateRef.current !== "working") return;
             const realSequence = [audioPath];
             if (secondAudioPath) realSequence.push(secondAudioPath);
             playAudioSequence(realSequence);
-          }, 600);
+          }, deceptionDelay);
         } else {
           const sequence = [];
           if (isFirst) sequence.push(AUDIO_PATHS.common.beep);
@@ -205,7 +228,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
 
       if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
-        setTimeout(
+        centerTimeoutRef.current = setTimeout(
           () => {
             if (stateRef.current === "working") {
               playAudio(AUDIO_PATHS.common.center);
@@ -265,6 +288,13 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const advanceState = useCallback(() => {
     const currentSettings = settingsRef.current;
     if (!currentSettings) return;
+
+    // Explicitly kill the old interval so the next phase starts fresh with 0 accumulatedMs.
+    // The useEffect will spawn a new clean interval after re-render.
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     if (stateRef.current === "countdown") {
       stateRef.current = "working";
@@ -446,6 +476,23 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setState("finished");
     stopAudio();
     cleanup();
+  }, [cleanup]);
+
+  // Clean up if settings become null (user clicked Back) or component unmounts
+  useEffect(() => {
+    if (
+      settings === null &&
+      stateRef.current !== "idle" &&
+      stateRef.current !== "finished"
+    ) {
+      stopTraining();
+    }
+  }, [settings, stopTraining]);
+
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
   }, [cleanup]);
 
   const currentRotationPlayers = settings

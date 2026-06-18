@@ -188,6 +188,13 @@ describe("useShadowTrainer Comprehensive Variations", () => {
 
       expect(result.current.agilityActionsDone).toBe(2);
       expect(result.current.state).toBe("finished");
+
+      // Verify that no orphaned timeouts execute "from beyond"
+      vi.clearAllMocks(); // Clear mocks to track post-finish calls
+      advanceSeconds(5);
+
+      expect(audioMap.playAudioSequence).not.toHaveBeenCalled();
+      expect(result.current.activeZone).toBeNull();
     });
   });
 

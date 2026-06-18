@@ -71,7 +71,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           totalSets: settings.sets,
           workTimeSec:
             settings.mode === "agility_test"
-              ? trainer.timeRemaining
+              ? Math.round(trainer.actualElapsedMs / 1000)
               : settings.workSec,
           restTimeSec: settings.restSec,
           deceptionEnabled: settings.deceptionEnabled,

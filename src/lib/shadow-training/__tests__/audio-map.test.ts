@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   ZONE_NAMES,
   ZONES_ARRAY,
-  getRandomZone,
   getRandomZoneForMode,
   getRandomShotForZone,
   ZoneId,
@@ -26,15 +25,6 @@ describe("Shadow Training Audio Map & Helpers", () => {
         expect(typeof ZONE_NAMES[zone]).toBe("string");
         expect(ZONE_NAMES[zone].length).toBeGreaterThan(0);
       });
-    });
-  });
-
-  describe("getRandomZone", () => {
-    it("трябва да връща зона от ZONES_ARRAY", () => {
-      for (let i = 0; i < 20; i++) {
-        const zone = getRandomZone();
-        expect(ZONES_ARRAY).toContain(zone);
-      }
     });
   });
 

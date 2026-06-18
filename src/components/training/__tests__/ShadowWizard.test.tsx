@@ -62,6 +62,18 @@ describe("ShadowWizard Component Flow", () => {
     { id: "m2", firstName: "Мария", lastName: "Георгиева", status: "active" },
   ];
 
+  const advanceSeconds = (seconds: number) => {
+    for (let i = 0; i < seconds; i++) {
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    }
+    // flush microtasks
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("alert", vi.fn());
@@ -149,9 +161,52 @@ describe("ShadowWizard Component Flow", () => {
     });
 
     expect(window.confirm).toHaveBeenCalled();
-    expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
 
-    vi.useRealTimers();
+    expect(window.confirm).toHaveBeenCalled();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
+  });
+
+  it("saves directly without warning if training was active for more than 10 seconds", async () => {
+    vi.useFakeTimers();
+    vi.mocked(window.confirm).mockClear();
+
+    render(<ShadowWizard initialMembers={mockMembers} />);
+
+    // Quick navigation to step 5
+    fireEvent.click(screen.getByText("Напред"));
+    fireEvent.click(screen.getByLabelText("Иван Петров"));
+    fireEvent.click(screen.getByText("Напред"));
+    fireEvent.click(screen.getByText("Напред"));
+    fireEvent.click(screen.getByText("СТАРТИРАЙ ТРЕНИРОВКА"));
+    fireEvent.click(screen.getByText("СТАРТ"));
+
+    // Advance through 10s countdown
+    advanceSeconds(10);
+    expect(screen.getByText("РАБОТА")).toBeDefined();
+
+    // Advance 30s in working state
+    advanceSeconds(30);
+
+    // End training
+    fireEvent.click(screen.getByText("СТОП"));
+
+    const saveBtn = screen.getByText("Запази в историята");
+
+    await act(async () => {
+      fireEvent.click(saveBtn);
+    });
+
+    // Should NOT trigger the sub-10s warning
+    expect(window.confirm).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
   });
 
   it("allows closing without saving, resetting to step 1", async () => {

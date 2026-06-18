@@ -151,7 +151,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                       strokeWidth={2}
                       className="text-emerald-600 dark:text-emerald-400"
                     />
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">
                       {attendeesData.attended} / {members.length} присъствали
                     </span>
                   </div>
@@ -173,7 +173,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                 {event.title}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium text-zinc-400 tracking-wider">
+              <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium text-zinc-600 dark:text-zinc-400 tracking-wider">
                 <div className="flex items-center gap-2">
                   <CalendarIcon size={14} strokeWidth={1.5} />
                   <span>{formattedDates.full}</span>
@@ -199,6 +199,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
                     onClick={() => onManageAttendees(event)}
+                    aria-label={`Присъствия за ${event.title}`}
                   >
                     <Users
                       className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
@@ -220,6 +221,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
                     onClick={() => onPrint(event)}
+                    aria-label={`Принтирай списък за ${event.title}`}
                   >
                     <Printer
                       className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
@@ -241,6 +243,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
                     onClick={() => onEdit(event)}
+                    aria-label={`Редактирай ${event.title}`}
                   >
                     <Edit
                       className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
@@ -262,6 +265,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all group/btn"
                     onClick={() => onDelete(event.id)}
+                    aria-label={`Изтрий ${event.title}`}
                   >
                     <Trash2
                       className="h-5 w-5 text-rose-400 group-hover/btn:text-rose-600 transition-colors"
@@ -291,7 +295,7 @@ export const EventListItem = React.memo<EventListItemProps>(
             tabIndex={0}
             aria-label={`Управление на ${attendeesData.list.length} присъстващи`}
           >
-            <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 shrink-0">
+            <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 shrink-0">
               Присъствали:
             </strong>
             <div className="flex items-center">

@@ -10,7 +10,17 @@ export const metadata = {
 export default async function ShadowTrainingPage() {
   let members: any[] = [];
   try {
-    members = await getAllMembersServer();
+    const raw = await getAllMembersServer();
+    // Pre-clean data to prevent Next.js serialization errors (e.g. Firebase Timestamps)
+    members = raw.map((m: any) => ({
+      id: m.id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      displayName:
+        m.firstName && m.lastName
+          ? `${m.firstName} ${m.lastName}`
+          : "Неизвестен играч",
+    }));
   } catch (e) {
     console.error("Error fetching members", e);
   }
