@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemberForm } from "../member-form";

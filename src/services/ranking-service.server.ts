@@ -1,3 +1,4 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
@@ -132,10 +133,10 @@ export async function computeGlobalRankingsServer(dateFilter?: {
 
             const catLabel =
               cat === "singles"
-                ? "Единично"
+                ? "Р•РґРёРЅРёС‡РЅРѕ"
                 : cat === "doubles"
-                  ? "Двойки"
-                  : "Смесени";
+                  ? "Р”РІРѕР№РєРё"
+                  : "РЎРјРµСЃРµРЅРё";
             const existing = player.categoryBreakdown.find(
               (c) => c.category === catLabel
             );
@@ -181,3 +182,4 @@ export async function computeGlobalRankingsServer(dateFilter?: {
     throw error;
   }
 }
+

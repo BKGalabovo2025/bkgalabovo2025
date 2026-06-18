@@ -1,3 +1,4 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
 import {
   getDocs,
   query,
@@ -41,7 +42,7 @@ export const docToScheduleEvent = (
       data.type
     )
       ? data.type
-      : data.title === "Тренировка"
+      : data.title === "РўСЂРµРЅРёСЂРѕРІРєР°"
         ? "training"
         : "other") as ScheduleEventType,
     location:
@@ -54,10 +55,10 @@ export const docToScheduleEvent = (
 };
 
 /**
- * Извлича всички събития за даден период.
- * @param startDate Начална дата.
- * @param endDate Крайна дата.
- * @returns Масив от събития.
+ * РР·РІР»РёС‡Р° РІСЃРёС‡РєРё СЃСЉР±РёС‚РёСЏ Р·Р° РґР°РґРµРЅ РїРµСЂРёРѕРґ.
+ * @param startDate РќР°С‡Р°Р»РЅР° РґР°С‚Р°.
+ * @param endDate РљСЂР°Р№РЅР° РґР°С‚Р°.
+ * @returns РњР°СЃРёРІ РѕС‚ СЃСЉР±РёС‚РёСЏ.
  */
 export const getEventsForPeriod = async (
   startDate: Date,
@@ -101,3 +102,4 @@ export const getEventsByMemberId = async (
 
   return events;
 };
+

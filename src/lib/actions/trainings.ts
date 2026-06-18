@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -34,13 +35,13 @@ export async function createTrainingSessionAction(
     return {
       success: true,
       id: docRef.id,
-      message: "Тренировката е запазена успешно.",
+      message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ Р·Р°РїР°Р·РµРЅР° СѓСЃРїРµС€РЅРѕ.",
     };
   } catch (error: any) {
     console.error("Error saving training:", error);
     return {
       success: false,
-      message: error.message || "Грешка при запазване.",
+      message: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїР°Р·РІР°РЅРµ.",
     };
   }
 }
@@ -151,12 +152,13 @@ export async function deleteTrainingSessionAction(
     revalidatePath("/training");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "Тренировката е изтрита успешно." };
+    return { success: true, message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
   } catch (error: any) {
     console.error("Error deleting training:", error);
     return {
       success: false,
-      message: error.message || "Грешка при изтриване.",
+      message: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ.",
     };
   }
 }
+

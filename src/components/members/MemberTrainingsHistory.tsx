@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";

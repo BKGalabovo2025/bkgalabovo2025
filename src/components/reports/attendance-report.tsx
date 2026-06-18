@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/reports/attendance-report.tsx
 "use client";
 

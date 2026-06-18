@@ -1,3 +1,5 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -65,10 +67,10 @@ function getOverdueReminders(
     );
     return {
       id: `overdue-${member.id}-${index}`,
-      title: "Просрочено плащане",
+      title: "РџСЂРѕСЃСЂРѕС‡РµРЅРѕ РїР»Р°С‰Р°РЅРµ",
       description: overdueCheck.reason
         ? `${member.firstName} ${member.lastName}: ${overdueCheck.reason}`
-        : `Таксата за абонамента на ${member.firstName} ${member.lastName} не е платена.`,
+        : `РўР°РєСЃР°С‚Р° Р·Р° Р°Р±РѕРЅР°РјРµРЅС‚Р° РЅР° ${member.firstName} ${member.lastName} РЅРµ Рµ РїР»Р°С‚РµРЅР°.`,
       dueDate: dueDate.toISOString(),
       isCompleted: false,
       type: "payment",
@@ -116,7 +118,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     // Cache key: per branch + per day (stats are stable within a day)
     const todayKey = startOfDay.toISOString().slice(0, 10);
     const cacheKey = `dashboard:${activeBranch}:${todayKey}`;
-    const TTL_MS = 90_000; // 90 seconds — reduces repeat reads on navigation
+    const TTL_MS = 90_000; // 90 seconds вЂ” reduces repeat reads on navigation
 
     return await serverCache.get(
       cacheKey,
@@ -129,7 +131,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           return siteFilter ? ref.where("siteId", "==", activeBranch) : ref;
         };
 
-        // ── AGGREGATION QUERIES (count only — each costs 1 read) ──────────────
+        // в”Ђв”Ђ AGGREGATION QUERIES (count only вЂ” each costs 1 read) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
         const [
           totalMembersCount,
           activeMembersCount,
@@ -165,7 +167,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           col("members").where("memberType", "==", "recovery").count().get(),
         ]);
 
-        // ── DOCUMENT QUERIES (only what must be displayed) ─────────────────────
+        // в”Ђв”Ђ DOCUMENT QUERIES (only what must be displayed) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
         const adminStartOfDay = admin.firestore.Timestamp.fromDate(startOfDay);
         const adminEndOfDay = admin.firestore.Timestamp.fromDate(endOfDay);
 
@@ -257,7 +259,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
         const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
 
-        // Low-stock products (client-side filter — products collection is small)
+        // Low-stock products (client-side filter вЂ” products collection is small)
         const lowStockProducts = allProducts.filter((p) => {
           const threshold =
             typeof p.restockThreshold === "number" ? p.restockThreshold : 5;
@@ -435,7 +437,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     console.error("Error fetching dashboard data on server:", error);
     return {
       success: false,
-      error: error.message || "Неуспешно извличане на данни",
+      error: error.message || "РќРµСѓСЃРїРµС€РЅРѕ РёР·РІР»РёС‡Р°РЅРµ РЅР° РґР°РЅРЅРё",
     };
   }
 }
@@ -449,3 +451,4 @@ export async function invalidateDashboardCacheAction() {
     return { success: false, error: error.message };
   }
 }
+

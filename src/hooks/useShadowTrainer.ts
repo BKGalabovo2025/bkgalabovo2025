@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -36,6 +37,78 @@ export interface ShadowSettings {
   centerCommandEnabled: boolean;
   activePlayers: any[]; // The full selected players array
   courtsAvailable: number;
+}
+
+function _resolveAudioPathsAndZone(
+  drillMode: string, 
+  calloutMode: string
+) {
+  const zone = getRandomZoneForMode(drillMode as any) || "frontForehand";
+  let audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.frontForehand;
+  let secondAudioPath: string | null = null;
+
+  const isShotMode =
+    calloutMode === "shots" ||
+    (calloutMode === "mixed" && Math.random() > 0.5);
+
+  if (isShotMode) {
+    if (zone.startsWith("mid")) {
+      audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.midForehand;
+      secondAudioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+    } else {
+      audioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+    }
+  } else if (calloutMode === "zones_and_shots") {
+    audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.frontForehand;
+    secondAudioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+  }
+
+  return { zone: zone as ZoneId, audioPath, secondAudioPath };
+}
+
+function _calculateGhostMatchPace(consecutiveFastShotsRef: React.MutableRefObject<number>): number {
+  let pace = 3;
+  if (consecutiveFastShotsRef.current >= 3) {
+    if (Math.random() > 0.2) {
+      pace = Math.random() * 1.0 + 2.5;
+      consecutiveFastShotsRef.current = 0;
+    } else {
+      pace = Math.random() * 1.0 + 1.2;
+      consecutiveFastShotsRef.current++;
+    }
+  } else {
+    pace = Math.random() * 1.0 + 1.2;
+    if (pace < 2.0) {
+      consecutiveFastShotsRef.current++;
+    } else {
+      consecutiveFastShotsRef.current = 0;
+    }
+  }
+  return pace;
+}
+
+function _rotatePlayers(
+  currentSettings: ShadowSettings,
+  currentPlayersRef: React.MutableRefObject<any[]>,
+  playCountsRef: React.MutableRefObject<Record<string, number>>
+): any[] {
+  const groupSize = currentSettings.courtsAvailable || 1;
+  if (currentSettings.activePlayers.length <= groupSize) return currentPlayersRef.current;
+
+  currentPlayersRef.current.forEach((p) => {
+    if (playCountsRef.current[p.id] !== undefined) {
+      playCountsRef.current[p.id]++;
+    }
+  });
+
+  const sorted = [...currentSettings.activePlayers].sort((a, b) => {
+    const cA = playCountsRef.current[a.id] || 0;
+    const cB = playCountsRef.current[b.id] || 0;
+    if (cA !== cB) return cA - cB;
+    return currentSettings.activePlayers.indexOf(a) - currentSettings.activePlayers.indexOf(b);
+  });
+
+  return sorted.slice(0, groupSize);
 }
 
 export function useShadowTrainer(settings: ShadowSettings | null) {
@@ -174,82 +247,21 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       let pace = currentSettings.paceSec;
       if (currentSettings.mode === "ghost_match") {
-        if (consecutiveFastShotsRef.current >= 3) {
-          if (Math.random() > 0.2) {
-            pace = Math.random() * 1.0 + 2.5; // 2.5s to 3.5s
-            consecutiveFastShotsRef.current = 0;
-          } else {
-            pace = Math.random() * 1.0 + 1.2; // 1.2s to 2.2s
-            consecutiveFastShotsRef.current++;
-          }
-        } else {
-          pace = Math.random() * 1.0 + 1.2; // 1.2s to 2.2s
-          if (pace < 2.0) {
-            consecutiveFastShotsRef.current++;
-          } else {
-            consecutiveFastShotsRef.current = 0;
-          }
-        }
+        pace = _calculateGhostMatchPace(consecutiveFastShotsRef);
       }
 
-      let zone = getRandomZoneForMode(currentSettings.drillMode);
-      if (!zone) {
-        zone = "frontForehand";
-      }
+      const resolved = _resolveAudioPathsAndZone(currentSettings.drillMode, currentSettings.calloutMode);
+      const zone = resolved.zone;
+      const audioPath = resolved.audioPath;
+      const secondAudioPath = resolved.secondAudioPath;
+
       setActiveZone(zone);
-
-      let audioPath = AUDIO_PATHS.zones[zone];
-      if (!audioPath) {
-        audioPath = AUDIO_PATHS.zones.frontForehand;
-      }
-      let secondAudioPath: string | null = null;
-
-      const isShotMode =
-        currentSettings.calloutMode === "shots" ||
-        (currentSettings.calloutMode === "mixed" && Math.random() > 0.5);
-
-      if (isShotMode) {
-        if (zone.startsWith("mid")) {
-          // Tactical fix: In mid zone, "shots" alone is ambiguous. Force zone + shot.
-          audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.midForehand;
-          secondAudioPath =
-            getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
-        } else {
-          audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
-        }
-      } else if (currentSettings.calloutMode === "zones_and_shots") {
-        audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
-        secondAudioPath =
-          getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
-      }
 
       if (!currentSettings.visualOnly) {
         if (currentSettings.deceptionEnabled && Math.random() < 0.1) {
-          const fakeZone =
-            getRandomZoneForMode(currentSettings.drillMode) || "frontForehand";
-          let fakePath =
-            AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
-          let secondFakePath: string | null = null;
-          const isFakeShotMode =
-            currentSettings.calloutMode === "shots" ||
-            (currentSettings.calloutMode === "mixed" && Math.random() > 0.5);
-
-          if (isFakeShotMode) {
-            if (fakeZone.startsWith("mid")) {
-              fakePath =
-                AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
-              secondFakePath =
-                getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
-            } else {
-              fakePath =
-                getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
-            }
-          } else if (currentSettings.calloutMode === "zones_and_shots") {
-            fakePath =
-              AUDIO_PATHS.zones[fakeZone] || AUDIO_PATHS.zones.frontForehand;
-            secondFakePath =
-              getRandomShotForZone(fakeZone) || AUDIO_PATHS.shots.defense;
-          }
+          const fakeResolved = _resolveAudioPathsAndZone(currentSettings.drillMode, currentSettings.calloutMode);
+          const fakePath = fakeResolved.audioPath;
+          const secondFakePath = fakeResolved.secondAudioPath;
 
           const fakeSequence = [];
           if (isFirst) fakeSequence.push(AUDIO_PATHS.common.beep);
@@ -275,7 +287,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           playAudioSequence(sequence);
         }
       }
-
       if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
         centerTimeoutRef.current = setTimeout(
           () => {
@@ -376,24 +387,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         setState("finished");
         if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
       } else {
-        const groupSize = currentSettings.courtsAvailable || 1;
-        if (currentSettings.activePlayers.length > groupSize) {
-          currentPlayersRef.current.forEach((p) => {
-            if (playCountsRef.current[p.id] !== undefined) {
-              playCountsRef.current[p.id]++;
-            }
-          });
-          const sorted = [...currentSettings.activePlayers].sort((a, b) => {
-            const cA = playCountsRef.current[a.id] || 0;
-            const cB = playCountsRef.current[b.id] || 0;
-            if (cA !== cB) return cA - cB;
-            // Secondary sort: original order to guarantee stable state
-            return (
-              currentSettings.activePlayers.indexOf(a) -
-              currentSettings.activePlayers.indexOf(b)
-            );
-          });
-          const nextPlayers = sorted.slice(0, groupSize);
+        const nextPlayers = _rotatePlayers(currentSettings, currentPlayersRef, playCountsRef);
+        if (nextPlayers !== currentPlayersRef.current) {
           currentPlayersRef.current = nextPlayers;
           setCurrentPlayersState(nextPlayers);
         }

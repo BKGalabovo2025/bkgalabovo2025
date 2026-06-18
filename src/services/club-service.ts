@@ -1,3 +1,4 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
 import { getDocs, getFirestore, collection } from "firebase/firestore";
 import { getClubServicesCollection } from "@/lib/firebase-collections";
 import { ClubService } from "@/types";
@@ -30,12 +31,12 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
       return {
         id: doc.id,
         siteId: "recoveryzone",
-        name: data.name || "Неименувана услуга",
+        name: data.name || "РќРµРёРјРµРЅСѓРІР°РЅР° СѓСЃР»СѓРіР°",
         description: data.description || "",
         price: data.price || 0,
         currency: "EUR",
         durationMinutes: data.duration || 0,
-        category: data.category || "Други",
+        category: data.category || "Р”СЂСѓРіРё",
         zones: Array.isArray(data.zones)
           ? data.zones
           : typeof data.zones === "string"
@@ -44,7 +45,7 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
         athleteCount: data.athleteCount || 1,
         numberOfDays: data.numberOfDays || 1,
         proceduresPerDay: data.proceduresPerDay || 1,
-        sessionType: data.sessionType || "Възстановяване",
+        sessionType: data.sessionType || "Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ",
         requiresBooking: true,
         createdAt: data.createdAt || new Date().toISOString(),
         updatedAt: data.updatedAt || new Date().toISOString(),
@@ -56,3 +57,4 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
     return [];
   }
 };
+

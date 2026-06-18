@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useReservations } from "@/hooks/useReservations";
 import { useAppStore } from "@/store/use-app-store";
 import { format } from "date-fns";

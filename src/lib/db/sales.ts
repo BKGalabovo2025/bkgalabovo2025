@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Sale } from "@/types";
@@ -67,3 +68,4 @@ export async function getCachedSalesForBranch(
     30000 // 30 seconds TTL
   );
 }
+

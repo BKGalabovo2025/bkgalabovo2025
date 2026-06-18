@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -8,7 +9,7 @@ import * as admin from "firebase-admin";
 export async function getTrainingServiceHistoryAction(_activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
 
     const adminDb = getAdminDb();
 
@@ -34,7 +35,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
           ...data,
           createdAt,
           type: data.action || "other",
-          serviceName: data.changes || "Тренировка",
+          serviceName: data.changes || "РўСЂРµРЅРёСЂРѕРІРєР°",
         } as any;
       });
 
@@ -43,7 +44,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
     console.error("Error getTrainingServiceHistoryAction:", error);
     return {
       success: false,
-      error: error.message || "Грешка при зареждане на история.",
+      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
     };
   }
 }
@@ -51,7 +52,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
 export async function getTrainingServiceSalesAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb
@@ -104,7 +105,8 @@ export async function getTrainingServiceSalesAction(activeBranch: string) {
     console.error("Error getTrainingServiceSalesAction:", error);
     return {
       success: false,
-      error: error.message || "Грешка при зареждане на продажби.",
+      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
     };
   }
 }
+

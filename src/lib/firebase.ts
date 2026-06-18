@@ -42,13 +42,20 @@ const isTestEnv =
   typeof process !== "undefined" &&
   (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
 
-const app = isTestEnv
-  ? ({} as any)
-  : getApps().length
-    ? getApp()
-    : initializeApp(firebaseConfig);
+const app = (() => {
+  if (isTestEnv) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  if (getApps().length) {
+    return getApp();
+  }
+  return initializeApp(firebaseConfig);
+})();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = isTestEnv ? ({} as any) : getFirestore(app);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const auth = isTestEnv ? ({} as any) : getAuth(app);
 
 // Connect to emulators in development if requested

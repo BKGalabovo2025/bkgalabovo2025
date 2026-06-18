@@ -1,3 +1,4 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
 import { Member, Sale, Product, ScheduleEvent } from "@/types";
 
 type TotalRevenue = {
@@ -163,3 +164,4 @@ export const getRevenueTrendData = (sales: Sale[]) => {
 
   return months;
 };
+

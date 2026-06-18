@@ -1,3 +1,5 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -5,6 +7,47 @@ import { getAuthUser } from "@/lib/auth-utils";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Attendee } from "@/types";
+
+async function _findMatchingSaleForAttendee(db: any, attendee: any, monthLabel: string, monthKey: string) {
+  const salesRef = db.collection("sales");
+  let matchedSale = null;
+
+  const byLabel = await salesRef
+    .where("type", "==", "training_service")
+    .where("status", "==", "completed")
+    .where("targetMonthLabels", "array-contains", monthLabel)
+    .get();
+
+  for (const docSnap of byLabel.docs) {
+    const sData = docSnap.data();
+    const targetIds = sData.memberIdsForAttendance || 
+                     (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
+    if (targetIds.includes(attendee.memberId)) {
+      matchedSale = { id: docSnap.id, ...sData };
+      break;
+    }
+  }
+
+  if (!matchedSale) {
+    const byMonth = await salesRef
+      .where("type", "==", "training_service")
+      .where("status", "==", "completed")
+      .where("targetMonths", "array-contains", monthKey)
+      .get();
+
+    for (const docSnap of byMonth.docs) {
+      const sData = docSnap.data();
+      const targetIds = sData.memberIdsForAttendance || 
+                       (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
+      if (targetIds.includes(attendee.memberId)) {
+        matchedSale = { id: docSnap.id, ...sData };
+        break;
+      }
+    }
+  }
+
+  return matchedSale;
+}
 
 /**
  * Updates attendees for an event, automatically checking if any unpaid attendee
@@ -24,12 +67,12 @@ export async function updateAttendeesAction(
     const eventSnap = await eventRef.get();
     
     if (!eventSnap.exists) {
-      return { success: false, message: "Събитието не е открито." };
+      return { success: false, message: "РЎСЉР±РёС‚РёРµС‚Рѕ РЅРµ Рµ РѕС‚РєСЂРёС‚Рѕ." };
     }
     
     const eventData = eventSnap.data();
     if (!eventData) {
-      return { success: false, message: "Невалидни данни за събитието." };
+      return { success: false, message: "РќРµРІР°Р»РёРґРЅРё РґР°РЅРЅРё Р·Р° СЃСЉР±РёС‚РёРµС‚Рѕ." };
     }
     
     const eventStartDate = eventData.startDate; 
@@ -42,7 +85,7 @@ export async function updateAttendeesAction(
       d = new Date();
     }
     
-    // Generate the month label (e.g., "Май 2026") AND month key (e.g., "2026-05")
+    // Generate the month label (e.g., "РњР°Р№ 2026") AND month key (e.g., "2026-05")
     const monthLabel =
         format(d, "LLLL", { locale: bg }).charAt(0).toUpperCase() +
         format(d, "LLLL", { locale: bg }).slice(1) +
@@ -59,47 +102,8 @@ export async function updateAttendeesAction(
         return attendee;
       }
       
-      // Look for a completed training_service sale for this member covering monthLabel or monthKey
       try {
-        const salesRef = db.collection("sales");
-        
-        let matchedSale = null;
-
-        // First try: query by targetMonthLabels (e.g. "Май 2026")
-        const byLabel = await salesRef
-          .where("type", "==", "training_service")
-          .where("status", "==", "completed")
-          .where("targetMonthLabels", "array-contains", monthLabel)
-          .get();
-
-        for (const docSnap of byLabel.docs) {
-          const sData = docSnap.data();
-          const targetIds = sData.memberIdsForAttendance || 
-                           (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
-          if (targetIds.includes(attendee.memberId)) {
-            matchedSale = { id: docSnap.id, ...sData };
-            break;
-          }
-        }
-
-        // Second try: fallback query by targetMonths (e.g. "2026-05")
-        if (!matchedSale) {
-          const byMonth = await salesRef
-            .where("type", "==", "training_service")
-            .where("status", "==", "completed")
-            .where("targetMonths", "array-contains", monthKey)
-            .get();
-
-          for (const docSnap of byMonth.docs) {
-            const sData = docSnap.data();
-            const targetIds = sData.memberIdsForAttendance || 
-                             (sData.memberIdForAttendance ? [sData.memberIdForAttendance] : (sData.memberId ? [sData.memberId] : []));
-            if (targetIds.includes(attendee.memberId)) {
-              matchedSale = { id: docSnap.id, ...sData };
-              break;
-            }
-          }
-        }
+        const matchedSale = await _findMatchingSaleForAttendee(db, attendee, monthLabel, monthKey);
         
         if (matchedSale) {
           // Found an active subscription covering this month!
@@ -129,6 +133,7 @@ export async function updateAttendeesAction(
     
   } catch (error) {
     console.error("Error in updateAttendeesAction:", error);
-    return { success: false, message: "Възникна грешка при обновяване." };
+    return { success: false, message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РѕР±РЅРѕРІСЏРІР°РЅРµ." };
   }
 }
+

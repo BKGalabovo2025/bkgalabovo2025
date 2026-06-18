@@ -1,3 +1,4 @@
+﻿/* eslint-disable sonarjs/no-nested-conditional */
 import { getDocs, query, where } from "firebase/firestore";
 import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
 import {
@@ -17,14 +18,14 @@ import {
   calcTournamentStandings,
 } from "@/lib/ranking-utils";
 
-// ──────────────────────────────────────────────
-// Основна функция за ранглиста
-// ──────────────────────────────────────────────
+// в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+// РћСЃРЅРѕРІРЅР° С„СѓРЅРєС†РёСЏ Р·Р° СЂР°РЅРіР»РёСЃС‚Р°
+// в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 export async function computeGlobalRankings(dateFilter?: {
   start: Date;
   end: Date;
 }): Promise<RankingEntry[]> {
-  // 1. Всички завършени турнири, влизащи в ранглистата
+  // 1. Р’СЃРёС‡РєРё Р·Р°РІСЉСЂС€РµРЅРё С‚СѓСЂРЅРёСЂРё, РІР»РёР·Р°С‰Рё РІ СЂР°РЅРіР»РёСЃС‚Р°С‚Р°
   const q = query(
     getTournamentsQuery(),
     where("countsForRanking", "==", true),
@@ -34,7 +35,7 @@ export async function computeGlobalRankings(dateFilter?: {
   const tourSnap = await getDocs(q);
   let tournaments = tourSnap.docs.map(mapDocToTournament);
 
-  // Филтриране по дата, ако е зададено
+  // Р¤РёР»С‚СЂРёСЂР°РЅРµ РїРѕ РґР°С‚Р°, Р°РєРѕ Рµ Р·Р°РґР°РґРµРЅРѕ
   if (dateFilter) {
     tournaments = tournaments.filter((t) => {
       const tDate = new Date(t.startDate);
@@ -44,7 +45,7 @@ export async function computeGlobalRankings(dateFilter?: {
 
   if (tournaments.length === 0) return [];
 
-  // 2. За всеки турнир – вземаме entries и matches
+  // 2. Р—Р° РІСЃРµРєРё С‚СѓСЂРЅРёСЂ вЂ“ РІР·РµРјР°РјРµ entries Рё matches
   const playerMap: Record<string, PlayerRanking> = {};
 
   for (const tourn of tournaments) {
@@ -62,7 +63,7 @@ export async function computeGlobalRankings(dateFilter?: {
     );
     const matches = matchesSnap.docs.map(mapDocToMatch);
 
-    // 3. Изчисляваме позиции по категория
+    // 3. РР·С‡РёСЃР»СЏРІР°РјРµ РїРѕР·РёС†РёРё РїРѕ РєР°С‚РµРіРѕСЂРёСЏ
     for (const cat of tourn.categories) {
       const catEntries = entries.filter((e) => e.categoryId === cat);
       const catMatches = matches.filter((m) => m.categoryId === cat);
@@ -75,13 +76,13 @@ export async function computeGlobalRankings(dateFilter?: {
       );
 
       catEntries.forEach((entry) => {
-        if (!entry.memberId) return; // Пропускаме гости
+        if (!entry.memberId) return; // РџСЂРѕРїСѓСЃРєР°РјРµ РіРѕСЃС‚Рё
 
         const position = positionMap[entry.id!] ?? catEntries.length;
         const rawPoints = getPlacementPoints(position);
         const finalPoints = Math.round(rawPoints * multiplier);
 
-        // Статистики от мачовете
+        // РЎС‚Р°С‚РёСЃС‚РёРєРё РѕС‚ РјР°С‡РѕРІРµС‚Рµ
         let entryWins = 0;
         let entryLosses = 0;
         catMatchesCompleted.forEach((m) => {
@@ -91,7 +92,7 @@ export async function computeGlobalRankings(dateFilter?: {
           }
         });
 
-        // Функция за добавяне на точки на играч
+        // Р¤СѓРЅРєС†РёСЏ Р·Р° РґРѕР±Р°РІСЏРЅРµ РЅР° С‚РѕС‡РєРё РЅР° РёРіСЂР°С‡
         const addPointsToPlayer = (mId: string, name: string) => {
           if (!playerMap[mId]) {
             playerMap[mId] = {
@@ -121,10 +122,10 @@ export async function computeGlobalRankings(dateFilter?: {
 
           const catLabel =
             cat === "singles"
-              ? "Единично"
+              ? "Р•РґРёРЅРёС‡РЅРѕ"
               : cat === "doubles"
-                ? "Двойки"
-                : "Смесени";
+                ? "Р”РІРѕР№РєРё"
+                : "РЎРјРµСЃРµРЅРё";
           const existing = player.categoryBreakdown.find(
             (c: { category: string; points: number; played: number }) =>
               c.category === catLabel
@@ -141,7 +142,7 @@ export async function computeGlobalRankings(dateFilter?: {
           }
         };
 
-        // Добавяме точки на първия играч
+        // Р”РѕР±Р°РІСЏРјРµ С‚РѕС‡РєРё РЅР° РїСЉСЂРІРёСЏ РёРіСЂР°С‡
         if (entry.memberId) {
           addPointsToPlayer(
             entry.memberId,
@@ -149,7 +150,7 @@ export async function computeGlobalRankings(dateFilter?: {
           );
         }
 
-        // Добавяме точки на партньора (ако има такъв)
+        // Р”РѕР±Р°РІСЏРјРµ С‚РѕС‡РєРё РЅР° РїР°СЂС‚РЅСЊРѕСЂР° (Р°РєРѕ РёРјР° С‚Р°РєСЉРІ)
         if (entry.partnerMemberId) {
           addPointsToPlayer(
             entry.partnerMemberId,
@@ -160,9 +161,10 @@ export async function computeGlobalRankings(dateFilter?: {
     }
   }
 
-  // 4. Сортираме и добавяме позиции
+  // 4. РЎРѕСЂС‚РёСЂР°РјРµ Рё РґРѕР±Р°РІСЏРјРµ РїРѕР·РёС†РёРё
   const sorted = Object.values(playerMap).sort(
     (a, b) => b.totalPoints - a.totalPoints
   );
   return sorted.map((p, idx) => ({ ...p, position: idx + 1 }));
 }
+

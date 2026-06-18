@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 
 const data = fs.readFileSync('eslint-report.json', 'utf8');

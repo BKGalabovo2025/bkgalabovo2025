@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const data = JSON.parse(fs.readFileSync('eslint-report3.json', 'utf8'));
 data.forEach(f => {

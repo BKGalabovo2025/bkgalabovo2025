@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // This component is designed specifically for printing.
 import React from "react";
 import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";

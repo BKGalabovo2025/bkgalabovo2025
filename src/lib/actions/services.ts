@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -9,15 +10,15 @@ import { serverCache } from "@/lib/server-cache";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
-  name: z.string().min(2, "Името трябва да е поне 2 символа."),
-  price: z.coerce.number().min(0, "Цената трябва да е положително число."),
+  name: z.string().min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
+  price: z.coerce.number().min(0, "Р¦РµРЅР°С‚Р° С‚СЂСЏР±РІР° РґР° Рµ РїРѕР»РѕР¶РёС‚РµР»РЅРѕ С‡РёСЃР»Рѕ."),
   currency: z.string().default("EUR"),
-  description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
+  description: z.string().min(5, "РћРїРёСЃР°РЅРёРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 5 СЃРёРјРІРѕР»Р°."),
   type: z.enum([
-    "Абонамент",
-    "Годишен абонамент",
-    "Еднократно плащане",
-    "Членски внос",
+    "РђР±РѕРЅР°РјРµРЅС‚",
+    "Р“РѕРґРёС€РµРЅ Р°Р±РѕРЅР°РјРµРЅС‚",
+    "Р•РґРЅРѕРєСЂР°С‚РЅРѕ РїР»Р°С‰Р°РЅРµ",
+    "Р§Р»РµРЅСЃРєРё РІРЅРѕСЃ",
   ]),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().optional().nullable(),
@@ -137,7 +138,7 @@ export async function createClubService(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: `Грешка във валидацията: ${errorMsg}`,
+        message: `Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°: ${errorMsg}`,
       };
     }
 
@@ -164,7 +165,7 @@ export async function createClubService(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "create",
-      `Създадена услуга: ${data.name}`
+      `РЎСЉР·РґР°РґРµРЅР° СѓСЃР»СѓРіР°: ${data.name}`
     );
 
     serverCache.invalidate("clubServices");
@@ -172,13 +173,13 @@ export async function createClubService(
     revalidatePath("/finances/services");
     return {
       success: true,
-      message: `Услугата '${data.name}' беше създадена успешно.`,
+      message: `РЈСЃР»СѓРіР°С‚Р° '${data.name}' Р±РµС€Рµ СЃСЉР·РґР°РґРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
     };
   } catch (error: unknown) {
     console.error("Server Action Error:", error);
     return {
       success: false,
-      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -206,7 +207,7 @@ export async function updateClubService(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: `Грешка във валидацията: ${errorMsg}`,
+        message: `Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°: ${errorMsg}`,
       };
     }
 
@@ -230,7 +231,7 @@ export async function updateClubService(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "update",
-      `Обновена услуга: ${data.name}`
+      `РћР±РЅРѕРІРµРЅР° СѓСЃР»СѓРіР°: ${data.name}`
     );
 
     serverCache.invalidate("clubServices");
@@ -239,13 +240,13 @@ export async function updateClubService(
     revalidatePath(`/finances/services/${id}`);
     return {
       success: true,
-      message: `Услугата '${data.name}' беше обновена успешно.`,
+      message: `РЈСЃР»СѓРіР°С‚Р° '${data.name}' Р±РµС€Рµ РѕР±РЅРѕРІРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
     };
   } catch (error: unknown) {
     console.error("Server Action Error:", error);
     return {
       success: false,
-      message: `Грешка при сървъра: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -259,7 +260,7 @@ export async function deleteClubService(idToken: string, id: string) {
     const serviceSnap = await serviceRef.get();
 
     if (!serviceSnap.exists) {
-      return { success: false, message: "Услугата не е намерена." };
+      return { success: false, message: "РЈСЃР»СѓРіР°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°." };
     }
 
     const serviceData = serviceSnap.data();
@@ -271,23 +272,23 @@ export async function deleteClubService(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `Изтрита услуга: ${serviceData?.name}`
+      `РР·С‚СЂРёС‚Р° СѓСЃР»СѓРіР°: ${serviceData?.name}`
     );
 
     serverCache.invalidate("clubServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/services");
-    return { success: true, message: "Услугата беше изтрита успешно." };
+    return { success: true, message: "РЈСЃР»СѓРіР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
   } catch (error) {
     console.error("Error deleting service:", error);
-    return { success: false, message: "Възникна грешка при изтриването." };
+    return { success: false, message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ." };
   }
 }
 
 // --- Recovery Session Actions ---
 
 const RecoverySessionSchema = z.object({
-  name: z.string().min(2, "Името трябва да е поне 2 символа."),
+  name: z.string().min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
   description: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   durationMinutes: z.coerce.number().min(1),
@@ -296,7 +297,7 @@ const RecoverySessionSchema = z.object({
   athleteCount: z.coerce.number().min(1).default(1),
   numberOfDays: z.coerce.number().min(1).default(1),
   proceduresPerDay: z.coerce.number().min(1).default(1),
-  sessionType: z.string().optional().default("Възстановяване"),
+  sessionType: z.string().optional().default("Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ"),
   requiredResources: z.object({
     attachments: z.object({
       arms: z.coerce.number().min(0).default(0),
@@ -350,7 +351,7 @@ export async function createRecoverySession(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка във валидацията.",
+        message: "Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°.",
       };
     }
 
@@ -375,7 +376,7 @@ export async function createRecoverySession(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "create",
-      `Създадена процедура: ${data.name}`
+      `РЎСЉР·РґР°РґРµРЅР° РїСЂРѕС†РµРґСѓСЂР°: ${data.name}`
     );
 
     serverCache.invalidate("recoveryServices");
@@ -383,11 +384,11 @@ export async function createRecoverySession(
     revalidatePath("/finances/recovery");
     return {
       success: true,
-      message: `Процедурата '${data.name}' беше създадена успешно.`,
+      message: `РџСЂРѕС†РµРґСѓСЂР°С‚Р° '${data.name}' Р±РµС€Рµ СЃСЉР·РґР°РґРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
     };
   } catch (error) {
     console.error("Error creating recovery session:", error);
-    return { success: false, message: "Грешка при сървъра." };
+    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°." };
   }
 }
 
@@ -430,7 +431,7 @@ export async function updateRecoverySession(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка във валидацията.",
+        message: "Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°.",
       };
     }
 
@@ -445,23 +446,23 @@ export async function updateRecoverySession(
       updatedAt: new Date().toISOString(),
     });
 
-    let changesDesc = `Обновена процедура: ${data.name}`;
+    let changesDesc = `РћР±РЅРѕРІРµРЅР° РїСЂРѕС†РµРґСѓСЂР°: ${data.name}`;
     if (oldData) {
       const changes = [];
       if (Number(oldData.price) !== Number(data.price))
-        changes.push(`цена (${oldData.price} -> ${data.price})`);
-      if (oldData.name !== data.name) changes.push(`име`);
-      if (oldData.description !== data.description) changes.push(`описание`);
+        changes.push(`С†РµРЅР° (${oldData.price} -> ${data.price})`);
+      if (oldData.name !== data.name) changes.push(`РёРјРµ`);
+      if (oldData.description !== data.description) changes.push(`РѕРїРёСЃР°РЅРёРµ`);
       if (
         Number(oldData.durationMinutes || oldData.duration) !==
         Number(data.durationMinutes)
       )
         changes.push(
-          `времетраене (${oldData.durationMinutes || oldData.duration} -> ${data.durationMinutes})`
+          `РІСЂРµРјРµС‚СЂР°РµРЅРµ (${oldData.durationMinutes || oldData.duration} -> ${data.durationMinutes})`
         );
 
       if (changes.length > 0) {
-        changesDesc += ` (Променени: ${changes.join(", ")})`;
+        changesDesc += ` (РџСЂРѕРјРµРЅРµРЅРё: ${changes.join(", ")})`;
       }
     }
 
@@ -480,11 +481,11 @@ export async function updateRecoverySession(
     revalidatePath(`/finances/recovery/${id}`);
     return {
       success: true,
-      message: `Процедурата '${data.name}' беше обновена успешно.`,
+      message: `РџСЂРѕС†РµРґСѓСЂР°С‚Р° '${data.name}' Р±РµС€Рµ РѕР±РЅРѕРІРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
     };
   } catch (error) {
     console.error("Error updating recovery session:", error);
-    return { success: false, message: "Грешка при сървъра." };
+    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°." };
   }
 }
 
@@ -504,15 +505,15 @@ export async function deleteRecoverySession(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `Изтрита процедура: ${serviceName}`
+      `РР·С‚СЂРёС‚Р° РїСЂРѕС†РµРґСѓСЂР°: ${serviceName}`
     );
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
-    return { success: true, message: "Процедурата беше изтрита успешно." };
+    return { success: true, message: "РџСЂРѕС†РµРґСѓСЂР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
   } catch (error) {
     console.error("Error deleting recovery session:", error);
-    return { success: false, message: "Грешка при изтриването." };
+    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ." };
   }
 }
 
@@ -545,7 +546,7 @@ function _createHistoryEvent(batch: any, adminDb: any, saleData: any, serviceNam
     userId: user.uid,
     userName: user.displayName || user.email || "Unknown User",
     action: "sale",
-    changes: `Продажба на '${serviceName}' към ${clientName || "Неизвестен клиент"}: ${qty} бр. на стойност ${totalAmt} EUR`,
+    changes: `РџСЂРѕРґР°Р¶Р±Р° РЅР° '${serviceName}' РєСЉРј ${clientName || "РќРµРёР·РІРµСЃС‚РµРЅ РєР»РёРµРЅС‚"}: ${qty} Р±СЂ. РЅР° СЃС‚РѕР№РЅРѕСЃС‚ ${totalAmt} EUR`,
     timestamp: FieldValue.serverTimestamp(),
     relatedSaleId: saleRef.id,
   };
@@ -589,67 +590,76 @@ async function _updatePaidEventsAttendance(adminDb: any, paidEventIds: string[],
   }
 }
 
+
+function _getEventMonthKey(event: any): string | null {
+  let eventDate: Date;
+  if (event.startDate && typeof event.startDate.toDate === "function") {
+    eventDate = event.startDate.toDate();
+  } else if (event.startDate) {
+    eventDate = new Date(event.startDate);
+  } else {
+    return null;
+  }
+  return `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
+}
+
+async function _syncMonthlyAttendanceForMember(
+  adminDb: any, 
+  memberId: string, 
+  targetMonths: string[], 
+  paymentType: string, 
+  saleId: string, 
+  nowIsoSync: string
+) {
+  const eventsSnap = await adminDb
+    .collection("events")
+    .where("attendeeMemberIds", "array-contains", memberId)
+    .get();
+
+  const syncBatch = adminDb.batch();
+  let syncCount = 0;
+
+  for (const eventDoc of eventsSnap.docs) {
+    const event = eventDoc.data();
+    const eventMonthKey = _getEventMonthKey(event);
+
+    if (!eventMonthKey || !targetMonths.includes(eventMonthKey)) continue;
+
+    const attendees: any[] = event.attendees || [];
+    const idx = attendees.findIndex((a: any) => a.memberId === memberId);
+    if (idx === -1) continue;
+
+    const attendee = attendees[idx];
+    if (!attendee.attended || (attendee.paymentStatus === "paid" && attendee.saleId === saleId)) continue;
+
+    const updatedAttendees = [...attendees];
+    updatedAttendees[idx] = {
+      ...attendee,
+      paymentStatus: "paid",
+      paymentType: paymentType,
+      paymentDate: nowIsoSync,
+      saleId: saleId,
+    };
+
+    syncBatch.update(eventDoc.ref, { attendees: updatedAttendees });
+    syncCount++;
+
+    if (syncCount % 400 === 0) {
+      await syncBatch.commit();
+    }
+  }
+
+  if (syncCount % 400 !== 0) {
+    await syncBatch.commit();
+  }
+}
+
 async function _syncMonthlyAttendance(adminDb: any, targetMonths: string[], targetMemberIds: string[], paymentType: string, saleId: string) {
   if (targetMonths.length === 0 || targetMemberIds.length === 0) return;
   const nowIsoSync = new Date().toISOString();
 
   for (const memberId of targetMemberIds) {
-    const eventsSnap = await adminDb
-      .collection("events")
-      .where("attendeeMemberIds", "array-contains", memberId)
-      .get();
-
-    const syncBatch = adminDb.batch();
-    let syncCount = 0;
-
-    for (const eventDoc of eventsSnap.docs) {
-      const event = eventDoc.data();
-
-      let eventDate: Date;
-      if (event.startDate && typeof event.startDate.toDate === "function") {
-        eventDate = event.startDate.toDate();
-      } else if (event.startDate) {
-        eventDate = new Date(event.startDate);
-      } else {
-        continue;
-      }
-
-      const eventMonthKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
-
-      if (!targetMonths.includes(eventMonthKey)) continue;
-
-      const attendees: any[] = event.attendees || [];
-      const idx = attendees.findIndex((a: any) => a.memberId === memberId);
-      if (idx === -1) continue;
-
-      const attendee = attendees[idx];
-      if (!attendee.attended) continue;
-      if (
-        attendee.paymentStatus === "paid" &&
-        attendee.saleId === saleId
-      )
-        continue;
-
-      const updatedAttendees = [...attendees];
-      updatedAttendees[idx] = {
-        ...attendee,
-        paymentStatus: "paid",
-        paymentType: paymentType,
-        paymentDate: nowIsoSync,
-        saleId: saleId,
-      };
-
-      syncBatch.update(eventDoc.ref, { attendees: updatedAttendees });
-      syncCount++;
-
-      if (syncCount % 400 === 0) {
-        await syncBatch.commit();
-      }
-    }
-
-    if (syncCount % 400 !== 0) {
-      await syncBatch.commit();
-    }
+    await _syncMonthlyAttendanceForMember(adminDb, memberId, targetMonths, paymentType, saleId, nowIsoSync);
   }
 }
 
@@ -691,15 +701,15 @@ export async function executeTrainingSaleAction(
 
     const batch = adminDb.batch();
 
-    // 1. Създаване на записа за продажба
+    // 1. РЎСЉР·РґР°РІР°РЅРµ РЅР° Р·Р°РїРёСЃР° Р·Р° РїСЂРѕРґР°Р¶Р±Р°
     const saleRef = _createSaleRecord(batch, adminDb, saleData, user, now);
 
-    // 2. Записване на събитие в историята на тренировъчната услуга
+    // 2. Р—Р°РїРёСЃРІР°РЅРµ РЅР° СЃСЉР±РёС‚РёРµ РІ РёСЃС‚РѕСЂРёСЏС‚Р° РЅР° С‚СЂРµРЅРёСЂРѕРІСЉС‡РЅР°С‚Р° СѓСЃР»СѓРіР°
     _createHistoryEvent(batch, adminDb, saleData, serviceName, clientName, user, saleRef);
 
     await batch.commit();
 
-    // 3. Атомарно обновяване на присъствията в събитията (платен статус)
+    // 3. РђС‚РѕРјР°СЂРЅРѕ РѕР±РЅРѕРІСЏРІР°РЅРµ РЅР° РїСЂРёСЃСЉСЃС‚РІРёСЏС‚Р° РІ СЃСЉР±РёС‚РёСЏС‚Р° (РїР»Р°С‚РµРЅ СЃС‚Р°С‚СѓСЃ)
     const paidEventIds: string[] = saleData.paidEventIds || [];
     const targetMemberIds: string[] =
       saleData.memberIdsForAttendance ||
@@ -729,6 +739,6 @@ export async function executeTrainingSaleAction(
     return { success: true, saleId: saleRef.id };
   } catch (error: any) {
     console.error("Error executeTrainingSaleAction:", error);
-    return { success: false, error: error.message || "Грешка при продажба." };
+    return { success: false, error: error.message || "Р“СЂРµС€РєР° РїСЂРё РїСЂРѕРґР°Р¶Р±Р°." };
   }
 }

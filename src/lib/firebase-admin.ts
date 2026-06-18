@@ -1,8 +1,55 @@
-import * as admin from "firebase-admin";
+﻿import * as admin from "firebase-admin";
 
 let adminDb: admin.firestore.Firestore;
 let adminAuth: admin.auth.Auth;
 let adminStorage: admin.storage.Storage;
+
+
+function _tryInitWithServiceAccount(resolvedAdmin: any, serviceAccountJson: string): boolean {
+  try {
+    const serviceAccount = JSON.parse(serviceAccountJson);
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+    }
+    resolvedAdmin.initializeApp({
+      credential: resolvedAdmin.credential.cert(serviceAccount),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "bkgalabovo2025.firebasestorage.app",
+    });
+    console.log("Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON.");
+    return true;
+  } catch (parseError) {
+    console.warn("WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON.", parseError);
+    throw parseError;
+  }
+}
+
+function _tryInitWithEnvVars(resolvedAdmin: any): boolean {
+  if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    resolvedAdmin.initializeApp({
+      credential: resolvedAdmin.credential.cert({
+        projectId: projectId,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      }),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "bkgalabovo2025.firebasestorage.app",
+    });
+    console.log("Firebase Admin SDK initialized using individual environment variables.");
+    return true;
+  }
+  return false;
+}
+
+function _tryInitWithGoogleCreds(resolvedAdmin: any, googleCreds: string | undefined): boolean {
+  if (googleCreds) {
+    resolvedAdmin.initializeApp({
+      credential: resolvedAdmin.credential.applicationDefault(),
+    });
+    console.log("Firebase Admin SDK initialized using GOOGLE_APPLICATION_CREDENTIALS.");
+    return true;
+  }
+  return false;
+}
 
 function initializeFirebaseAdmin() {
   if (admin.apps && admin.apps.length > 0) {
@@ -14,67 +61,20 @@ function initializeFirebaseAdmin() {
 
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const googleCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-  // Resolve admin object ESM default wrapper if necessary
   const resolvedAdmin: any = (admin as any).default || admin;
 
   try {
+    let initialized = false;
     if (serviceAccountJson) {
-      try {
-        const serviceAccount = JSON.parse(serviceAccountJson);
-        if (serviceAccount.private_key) {
-          serviceAccount.private_key = serviceAccount.private_key.replace(
-            /\\n/g,
-            "\n"
-          );
-        }
-        resolvedAdmin.initializeApp({
-          credential: resolvedAdmin.credential.cert(serviceAccount),
-          storageBucket:
-            process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-            "bkgalabovo2025.firebasestorage.app",
-        });
-        console.log(
-          "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
-        );
-      } catch (parseError) {
-        console.warn(
-          "WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON, trying fallback credentials.",
-          parseError
-        );
-        throw parseError;
-      }
-    } else if (
-      process.env.FIREBASE_PRIVATE_KEY &&
-      process.env.FIREBASE_CLIENT_EMAIL
-    ) {
-      const projectId =
-        process.env.FIREBASE_PROJECT_ID ||
-        process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-      resolvedAdmin.initializeApp({
-        credential: resolvedAdmin.credential.cert({
-          projectId: projectId,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-        }),
-        storageBucket:
-          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-          "bkgalabovo2025.firebasestorage.app",
-      });
-      console.log(
-        "Firebase Admin SDK initialized using individual environment variables."
-      );
-    } else if (googleCreds) {
-      resolvedAdmin.initializeApp({
-        credential: resolvedAdmin.credential.applicationDefault(),
-      });
-      console.log(
-        "Firebase Admin SDK initialized using GOOGLE_APPLICATION_CREDENTIALS."
-      );
-    } else {
-      console.warn(
-        "WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail."
-      );
+      initialized = _tryInitWithServiceAccount(resolvedAdmin, serviceAccountJson);
+    } else if (_tryInitWithEnvVars(resolvedAdmin)) {
+      initialized = true;
+    } else if (_tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
+      initialized = true;
+    }
+
+    if (!initialized) {
+      console.warn("WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail.");
       return;
     }
 

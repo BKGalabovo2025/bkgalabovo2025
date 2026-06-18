@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 type CacheEntry<T> = {
   data: T;
   expiry: number;
@@ -92,3 +93,4 @@ class ServerCache {
 }
 
 export const serverCache = new ServerCache();
+

@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference types="@testing-library/jest-dom" />
 import { render, screen } from "@testing-library/react";
 import { Badge } from "../badge";

@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 // Defines the available audio files and helper functions for Shadow Training
 
 export const AUDIO_PATHS = {
@@ -44,13 +45,13 @@ export type ZoneId = keyof typeof AUDIO_PATHS.zones;
 export type ShotId = keyof typeof AUDIO_PATHS.shots;
 
 export const ZONE_NAMES: Record<ZoneId, string> = {
-  frontForehand: "Форхенд Мрежа",
-  midForehand: "Форхенд Среда",
-  backForehand: "Форхенд Задна",
-  frontBackhand: "Бекхенд Мрежа",
-  midBackhand: "Бекхенд Среда",
-  backBackhand: "Бекхенд Задна",
-  overhead: "Оувърхед",
+  frontForehand: "Р¤РѕСЂС…РµРЅРґ РњСЂРµР¶Р°",
+  midForehand: "Р¤РѕСЂС…РµРЅРґ РЎСЂРµРґР°",
+  backForehand: "Р¤РѕСЂС…РµРЅРґ Р—Р°РґРЅР°",
+  frontBackhand: "Р‘РµРєС…РµРЅРґ РњСЂРµР¶Р°",
+  midBackhand: "Р‘РµРєС…РµРЅРґ РЎСЂРµРґР°",
+  backBackhand: "Р‘РµРєС…РµРЅРґ Р—Р°РґРЅР°",
+  overhead: "РћСѓРІСЉСЂС…РµРґ",
 };
 
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
@@ -355,3 +356,4 @@ export function preloadAudioForSettings(settings: any) {
     fetch(url).catch(() => {});
   });
 }
+

@@ -1,3 +1,4 @@
+﻿
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -43,7 +44,7 @@ export async function createMemberAction(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка при валидация на данните.",
+        message: "Р“СЂРµС€РєР° РїСЂРё РІР°Р»РёРґР°С†РёСЏ РЅР° РґР°РЅРЅРёС‚Рµ.",
       };
     }
 
@@ -82,14 +83,14 @@ export async function createMemberAction(
 
     return {
       success: true,
-      message: `Членът ${name} бе създаден успешно.`,
+      message: `Р§Р»РµРЅСЉС‚ ${name} Р±Рµ СЃСЉР·РґР°РґРµРЅ СѓСЃРїРµС€РЅРѕ.`,
       data: { id: docRef.id },
     };
   } catch (error: unknown) {
     console.error("createMemberAction Error:", error);
     return {
       success: false,
-      message: `Сървърна грешка: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+      message: `РЎСЉСЂРІСЉСЂРЅР° РіСЂРµС€РєР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -120,7 +121,7 @@ export async function updateMemberAction(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка при валидация на данните.",
+        message: "Р“СЂРµС€РєР° РїСЂРё РІР°Р»РёРґР°С†РёСЏ РЅР° РґР°РЅРЅРёС‚Рµ.",
       };
     }
 
@@ -178,13 +179,13 @@ export async function updateMemberAction(
 
     return {
       success: true,
-      message: "Данните на члена бяха актуализирани.",
+      message: "Р”Р°РЅРЅРёС‚Рµ РЅР° С‡Р»РµРЅР° Р±СЏС…Р° Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРё.",
     };
   } catch (error: unknown) {
     console.error("updateMemberAction Error:", error);
     return {
       success: false,
-      message: "Грешка при актуализиране на данните.",
+      message: "Р“СЂРµС€РєР° РїСЂРё Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРµ РЅР° РґР°РЅРЅРёС‚Рµ.",
     };
   }
 }
@@ -235,13 +236,13 @@ export async function deleteMemberAction(
 
     return {
       success: true,
-      message: "Членът бе изтрит успешно.",
+      message: "Р§Р»РµРЅСЉС‚ Р±Рµ РёР·С‚СЂРёС‚ СѓСЃРїРµС€РЅРѕ.",
     };
   } catch (error: unknown) {
     console.error("deleteMemberAction Error:", error);
     return {
       success: false,
-      message: "Грешка при изтриване на члена.",
+      message: "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ РЅР° С‡Р»РµРЅР°.",
     };
   }
 }
@@ -274,13 +275,13 @@ export async function bulkUpdateMemberStatusAction(
 
     return {
       success: true,
-      message: `Успешно обновени ${memberIds.length} членове.`,
+      message: `РЈСЃРїРµС€РЅРѕ РѕР±РЅРѕРІРµРЅРё ${memberIds.length} С‡Р»РµРЅРѕРІРµ.`,
     };
   } catch (error: unknown) {
     console.error("bulkUpdateMemberStatusAction Error:", error);
     return {
       success: false,
-      message: "Грешка при масово обновяване на статуса.",
+      message: "Р“СЂРµС€РєР° РїСЂРё РјР°СЃРѕРІРѕ РѕР±РЅРѕРІСЏРІР°РЅРµ РЅР° СЃС‚Р°С‚СѓСЃР°.",
     };
   }
 }
@@ -346,7 +347,7 @@ export async function getMemberProfileDataServerAction(
     if (!memberSnap.exists) {
       return {
         success: false,
-        message: "Членът не бе намерен.",
+        message: "Р§Р»РµРЅСЉС‚ РЅРµ Р±Рµ РЅР°РјРµСЂРµРЅ.",
       };
     }
 
@@ -439,7 +440,8 @@ export async function getMemberProfileDataServerAction(
     console.error("getMemberProfileDataServerAction Error:", error);
     return {
       success: false,
-      message: error.message || "Грешка при извличане на профила.",
+      message: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РїСЂРѕС„РёР»Р°.",
     };
   }
 }
+

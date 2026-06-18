@@ -159,13 +159,7 @@ export async function exportToPdf(options: ExportOptions): Promise<void> {
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.pointsRatio}</td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${r.winRate}</td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; background-color: ${
-              idx === 0
-                ? "#fef9c3"
-                : idx === 1
-                  ? "#f1f5f9"
-                  : idx === 2
-                    ? "#ffedd5"
-                    : "transparent"
+              ["#fef9c3", "#f1f5f9", "#ffedd5"][idx] || "transparent"
             };">${r.totalPoints}</td>
           </tr>
         `

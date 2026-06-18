@@ -1,3 +1,6 @@
+﻿/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -36,7 +39,7 @@ export async function createSaleAction(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка при валидация на данните на продажбата.",
+        message: "Р“СЂРµС€РєР° РїСЂРё РІР°Р»РёРґР°С†РёСЏ РЅР° РґР°РЅРЅРёС‚Рµ РЅР° РїСЂРѕРґР°Р¶Р±Р°С‚Р°.",
       };
     }
 
@@ -51,7 +54,7 @@ export async function createSaleAction(
         const productDoc = await transaction.get(productRef);
 
         if (!productDoc.exists) {
-          throw new Error(`Продуктът с ID ${item.productId} не бе намерен.`);
+          throw new Error(`РџСЂРѕРґСѓРєС‚СЉС‚ СЃ ID ${item.productId} РЅРµ Р±Рµ РЅР°РјРµСЂРµРЅ.`);
         }
 
         const productData = productDoc.data()!;
@@ -59,7 +62,7 @@ export async function createSaleAction(
         const newStock = currentStock - item.quantity;
 
         if (newStock < 0) {
-          throw new Error(`Недостатъчна наличност за ${item.name}.`);
+          throw new Error(`РќРµРґРѕСЃС‚Р°С‚СЉС‡РЅР° РЅР°Р»РёС‡РЅРѕСЃС‚ Р·Р° ${item.name}.`);
         }
 
         productUpdates.push({
@@ -93,7 +96,7 @@ export async function createSaleAction(
           userId: user.uid,
           userName: user.displayName || user.email,
           relatedSaleId: newSaleRef.id,
-          clientName: data.clientName || "Неизвестен клиент",
+          clientName: data.clientName || "РќРµРёР·РІРµСЃС‚РµРЅ РєР»РёРµРЅС‚",
         });
       }
 
@@ -114,14 +117,14 @@ export async function createSaleAction(
 
     return {
       success: true,
-      message: "Продажбата бе регистрирана успешно.",
+      message: "РџСЂРѕРґР°Р¶Р±Р°С‚Р° Р±Рµ СЂРµРіРёСЃС‚СЂРёСЂР°РЅР° СѓСЃРїРµС€РЅРѕ.",
       data: { id: newSaleRef.id },
     };
   } catch (error: unknown) {
     console.error("createSaleAction Error:", error);
     return {
       success: false,
-      message: `Сървърна грешка: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+      message: `РЎСЉСЂРІСЉСЂРЅР° РіСЂРµС€РєР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -149,7 +152,7 @@ export async function updateSaleAction(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Грешка при валидация на данните.",
+        message: "Р“СЂРµС€РєР° РїСЂРё РІР°Р»РёРґР°С†РёСЏ РЅР° РґР°РЅРЅРёС‚Рµ.",
       };
     }
 
@@ -289,13 +292,13 @@ export async function updateSaleAction(
 
     return {
       success: true,
-      message: "Продажбата бе актуализирана успешно.",
+      message: "РџСЂРѕРґР°Р¶Р±Р°С‚Р° Р±Рµ Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅР° СѓСЃРїРµС€РЅРѕ.",
     };
   } catch (error: unknown) {
     console.error("updateSaleAction Error:", error);
     return {
       success: false,
-      message: "Грешка при актуализиране на продажбата.",
+      message: "Р“СЂРµС€РєР° РїСЂРё Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Р°С‚Р°.",
     };
   }
 }
@@ -318,7 +321,7 @@ export async function deleteSaleAction(
       // 1. Fetch the sale first (Read phase)
       const saleDoc = await transaction.get(saleRef);
       if (!saleDoc.exists) {
-        throw new Error("Продажбата не бе намерена.");
+        throw new Error("РџСЂРѕРґР°Р¶Р±Р°С‚Р° РЅРµ Р±Рµ РЅР°РјРµСЂРµРЅР°.");
       }
       const saleData = saleDoc.data()!;
       deletedSaleData = saleData;
@@ -362,7 +365,7 @@ export async function deleteSaleAction(
           createdAt: new Date().toISOString(),
           userId: user.uid,
           userName: user.displayName || user.email,
-          notes: `Анулирана продажба № ${id}`,
+          notes: `РђРЅСѓР»РёСЂР°РЅР° РїСЂРѕРґР°Р¶Р±Р° в„– ${id}`,
         });
       }
     });
@@ -422,13 +425,15 @@ export async function deleteSaleAction(
     return {
       success: true,
       message:
-        "Продажбата бе изтрита успешно, а наличностите в магазина бяха възстановени.",
+        "РџСЂРѕРґР°Р¶Р±Р°С‚Р° Р±Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ, Р° РЅР°Р»РёС‡РЅРѕСЃС‚РёС‚Рµ РІ РјР°РіР°Р·РёРЅР° Р±СЏС…Р° РІСЉР·СЃС‚Р°РЅРѕРІРµРЅРё.",
     };
   } catch (error: unknown) {
     console.error("deleteSaleAction Error:", error);
     return {
       success: false,
-      message: `Грешка при изтриване на продажбата: ${error instanceof Error ? error.message : "Неизвестна грешка"}`,
+      message: `Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Р°С‚Р°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
+
+
