@@ -2,8 +2,8 @@
 
 export const AUDIO_PATHS = {
   common: {
-    startSet: "/shadow/common/podgotvi_se.mp3", // Could be used for 10s countdown
-    beep: "/shadow/common/lek_podskok.mp3", // Could be used as tick or beep
+    startSet: "/shadow/common/podgotvi_se.mp3",
+    beep: "/shadow/common/lek_podskok.mp3", // Note: will be replaced with synthetic beep in code
     endSet: "/shadow/common/krai.mp3",
     rest: "/shadow/common/pochivka.mp3",
     endRest: "/shadow/common/krai_pochivka.mp3",
@@ -166,7 +166,7 @@ class AudioManager {
               this.isPlayingSequence = false;
             }
           });
-        }, 1000);
+        }, 300);
       } else {
         this.isPlayingSequence = false;
       }
@@ -205,6 +205,34 @@ class AudioManager {
     this.overlayAudio.src = path;
     this.overlayAudio.play().catch(() => {});
   }
+
+  public playSyntheticBeep() {
+    if (typeof window === "undefined" || !window.AudioContext) return;
+    try {
+      // @ts-ignore
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioContextClass();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // 800Hz beep
+
+      gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioCtx.currentTime + 0.1
+      );
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+      console.log("Failed to play synthetic beep", e);
+    }
+  }
 }
 
 // Global singleton registry to prevent duplicate Audio instances during Hot Module Replacement (HMR)
@@ -224,6 +252,8 @@ export const shadowAudioManager = getAudioManager();
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
     shadowAudioManager.playOverlay(path);
+  } else if (path === AUDIO_PATHS.common.beep) {
+    shadowAudioManager.playSyntheticBeep();
   } else {
     shadowAudioManager.playVoice(path);
   }
