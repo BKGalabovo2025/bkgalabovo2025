@@ -260,3 +260,52 @@ export function getRandomShotForZone(zone: ZoneId): string {
   const randomShotId = shots[Math.floor(Math.random() * shots.length)];
   return AUDIO_PATHS.shots[randomShotId];
 }
+
+export function preloadAudioForSettings(settings: any) {
+  if (typeof window === "undefined" || settings.visualOnly) return;
+
+  const urlsToFetch = new Set<string>();
+
+  // Common sounds
+  urlsToFetch.add(AUDIO_PATHS.common.startSet);
+  urlsToFetch.add(AUDIO_PATHS.common.beep);
+  urlsToFetch.add(AUDIO_PATHS.common.endSet);
+  urlsToFetch.add(AUDIO_PATHS.common.rest);
+  urlsToFetch.add(AUDIO_PATHS.common.endRest);
+  if (settings.centerCommandEnabled) {
+    urlsToFetch.add(AUDIO_PATHS.common.center);
+  }
+
+  // Zones based on drillMode
+  const zonesToLoad = (Object.keys(AUDIO_PATHS.zones) as ZoneId[]).filter(
+    (z) => {
+      if (settings.drillMode === "all") return true;
+      if (settings.drillMode === "front_only" && z.startsWith("front"))
+        return true;
+      if (settings.drillMode === "back_only" && z.startsWith("back"))
+        return true;
+      if (settings.drillMode === "front_back" && !z.startsWith("mid"))
+        return true;
+      return false;
+    }
+  );
+
+  zonesToLoad.forEach((z) => {
+    if (settings.calloutMode !== "shots") {
+      urlsToFetch.add(AUDIO_PATHS.zones[z]);
+    }
+    if (settings.calloutMode !== "zones") {
+      let zoneGroup: "front" | "mid" | "back" = "front";
+      if (z.startsWith("mid")) zoneGroup = "mid";
+      if (z.startsWith("back")) zoneGroup = "back";
+
+      SHOTS_BY_ZONE_GROUP[zoneGroup].forEach((shot) => {
+        urlsToFetch.add(AUDIO_PATHS.shots[shot]);
+      });
+    }
+  });
+
+  urlsToFetch.forEach((url) => {
+    fetch(url).catch(() => {});
+  });
+}

@@ -114,6 +114,22 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     releaseWakeLock();
   }, []);
 
+  // Handle Wake Lock re-acquisition if tab is backgrounded and foregrounded
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible" &&
+        ["working", "resting", "countdown"].includes(stateRef.current)
+      ) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   const triggerNextAction = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;

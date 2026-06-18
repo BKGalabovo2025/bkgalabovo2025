@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useShadowTrainer, ShadowSettings } from "@/hooks/useShadowTrainer";
 import { CourtVisualizer } from "./CourtVisualizer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Play, Square, Pause, Save, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
+import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
 
 interface Props {
   initialMembers?: any[];
@@ -43,6 +44,13 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
 
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
+
+  // Background Audio Pre-loading when reaching settings phase
+  useEffect(() => {
+    if (step >= 3 && step < 5) {
+      preloadAudioForSettings(settings);
+    }
+  }, [step, settings]);
 
   const handleSave = async () => {
     if (!user) return;
