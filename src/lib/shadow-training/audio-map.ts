@@ -134,6 +134,17 @@ class AudioManager {
     }
   }
 
+  public isPlaying(): boolean {
+    if (this.isPlayingSequence) return true;
+    if (
+      this.voiceAudio &&
+      !this.voiceAudio.paused &&
+      this.voiceAudio.currentTime > 0
+    )
+      return true;
+    return false;
+  }
+
   private attachOnEnded(playId: number) {
     if (!this.voiceAudio) return;
     this.voiceAudio.onended = () => {
@@ -222,6 +233,10 @@ export function playAudioSequence(paths: string[]) {
 
 export function stopAudio() {
   shadowAudioManager.stopAll();
+}
+
+export function isAudioPlaying(): boolean {
+  return shadowAudioManager.isPlaying();
 }
 
 export const SHOTS_BY_ZONE_GROUP = {

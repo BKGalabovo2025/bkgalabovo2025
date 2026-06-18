@@ -10,6 +10,7 @@ import {
   stopAudio,
   shadowAudioManager,
   getRandomShotForZone,
+  isAudioPlaying,
 } from "@/lib/shadow-training/audio-map";
 
 export type TrainerState =
@@ -71,8 +72,12 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   useEffect(() => {
     settingsRef.current = settings;
     if (settings) {
-      const counts: Record<string, number> = {};
-      settings.activePlayers.forEach((p) => (counts[p.id] = 0));
+      const counts = playCountsRef.current;
+      settings.activePlayers.forEach((p) => {
+        if (counts[p.id] === undefined) {
+          counts[p.id] = 0;
+        }
+      });
       playCountsRef.current = counts;
 
       const groupSize = settings.courtsAvailable || 1;
@@ -308,6 +313,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       if (!currentSettings?.motivationEnabled) return;
       if (typeof window === "undefined" || !("speechSynthesis" in window))
         return;
+      if (isAudioPlaying()) return; // Do not overlap with ongoing voice command
 
       const currentPlayers = currentPlayersRef.current;
 
@@ -394,6 +400,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
         stateRef.current = "resting";
         setState("resting");
+        stopAudio(); // Prevent "Ghost Leaks" overlapping with "Rest" audio
         updateTimeRemaining(currentSettings.restSec);
         if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
       }
