@@ -42,7 +42,12 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [currentSet, setCurrentSet] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(0); // Also used as elapsed time in agility
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
-  const [rotationGroupIndex, setRotationGroupIndex] = useState(0);
+
+  // Fair Rotation Scheduler State
+  const [currentPlayersState, setCurrentPlayersState] = useState<any[]>([]);
+  const playCountsRef = useRef<Record<string, number>>({});
+  const consecutiveFastShotsRef = useRef(0);
+  const currentPlayersRef = useRef<any[]>([]);
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
   const [actualElapsedMs, setActualElapsedMs] = useState(0);
 
@@ -65,6 +70,17 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const settingsRef = useRef(settings);
   useEffect(() => {
     settingsRef.current = settings;
+    if (settings) {
+      const counts: Record<string, number> = {};
+      settings.activePlayers.forEach((p) => (counts[p.id] = 0));
+      playCountsRef.current = counts;
+
+      const groupSize = settings.courtsAvailable || 1;
+      const initialPlayers = settings.activePlayers.slice(0, groupSize);
+      currentPlayersRef.current = initialPlayers;
+      setCurrentPlayersState(initialPlayers);
+      consecutiveFastShotsRef.current = 0;
+    }
   }, [settings]);
 
   const stateRef = useRef(state);
@@ -81,11 +97,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   useEffect(() => {
     agilityActionsDoneRef.current = agilityActionsDone;
   }, [agilityActionsDone]);
-
-  const rotationGroupIndexRef = useRef(rotationGroupIndex);
-  useEffect(() => {
-    rotationGroupIndexRef.current = rotationGroupIndex;
-  }, [rotationGroupIndex]);
 
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
@@ -156,11 +167,25 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         }
       }
 
-      // Ghost match: random pace
-      const pace =
-        currentSettings.mode === "ghost_match"
-          ? Math.random() * 2 + 1.5
-          : currentSettings.paceSec;
+      let pace = currentSettings.paceSec;
+      if (currentSettings.mode === "ghost_match") {
+        if (consecutiveFastShotsRef.current >= 3) {
+          if (Math.random() > 0.2) {
+            pace = Math.random() * 1.0 + 2.5; // 2.5s to 3.5s
+            consecutiveFastShotsRef.current = 0;
+          } else {
+            pace = Math.random() * 1.0 + 1.2; // 1.2s to 2.2s
+            consecutiveFastShotsRef.current++;
+          }
+        } else {
+          pace = Math.random() * 1.0 + 1.2; // 1.2s to 2.2s
+          if (pace < 2.0) {
+            consecutiveFastShotsRef.current++;
+          } else {
+            consecutiveFastShotsRef.current = 0;
+          }
+        }
+      }
 
       let zone = getRandomZoneForMode(currentSettings.drillMode);
       if (!zone) {
@@ -227,7 +252,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           if (secondFakePath) fakeSequence.push(secondFakePath);
           playAudioSequence(fakeSequence);
 
-          const deceptionDelay = Math.min(600, pace * 1000 * 0.4);
+          const deceptionDelay = Math.max(
+            300,
+            Math.min(pace * 1000 * 0.35, 800)
+          );
           deceptionTimeoutRef.current = setTimeout(() => {
             if (stateRef.current !== "working") return;
             const realSequence = [audioPath];
@@ -254,10 +282,17 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         );
       }
 
+      const expectedAudioFiles = 1 + (secondAudioPath ? 1 : 0);
+      const approxAudioDuration = expectedAudioFiles * 900; // approx 900ms per file
+      let nextPaceMs = pace * 1000;
+      if (nextPaceMs < approxAudioDuration) {
+        nextPaceMs = approxAudioDuration + 200; // Guaranteed buffer
+      }
+
       actionTimeoutRef.current = setTimeout(() => {
         setActiveZone(null); // clear highlight
         actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
-      }, pace * 1000);
+      }, nextPaceMs);
     } catch (error) {
       console.error("Error in triggerNextAction", error);
       // Schedule fallback next action to prevent complete freeze
@@ -274,12 +309,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       if (typeof window === "undefined" || !("speechSynthesis" in window))
         return;
 
-      const groupSize = currentSettings.courtsAvailable || 1;
-      const startIndex = rotationGroupIndexRef.current * groupSize;
-      const currentPlayers = currentSettings.activePlayers.slice(
-        startIndex,
-        startIndex + groupSize
-      );
+      const currentPlayers = currentPlayersRef.current;
 
       if (currentPlayers.length > 0) {
         const randomPlayer =
@@ -340,6 +370,28 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         setState("finished");
         if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
       } else {
+        const groupSize = currentSettings.courtsAvailable || 1;
+        if (currentSettings.activePlayers.length > groupSize) {
+          currentPlayersRef.current.forEach((p) => {
+            if (playCountsRef.current[p.id] !== undefined) {
+              playCountsRef.current[p.id]++;
+            }
+          });
+          const sorted = [...currentSettings.activePlayers].sort((a, b) => {
+            const cA = playCountsRef.current[a.id] || 0;
+            const cB = playCountsRef.current[b.id] || 0;
+            if (cA !== cB) return cA - cB;
+            // Secondary sort: original order to guarantee stable state
+            return (
+              currentSettings.activePlayers.indexOf(a) -
+              currentSettings.activePlayers.indexOf(b)
+            );
+          });
+          const nextPlayers = sorted.slice(0, groupSize);
+          currentPlayersRef.current = nextPlayers;
+          setCurrentPlayersState(nextPlayers);
+        }
+
         stateRef.current = "resting";
         setState("resting");
         updateTimeRemaining(currentSettings.restSec);
@@ -347,19 +399,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
     } else if (stateRef.current === "resting") {
       setCurrentSet((c) => c + 1);
-
-      if (
-        currentSettings.courtsAvailable &&
-        currentSettings.activePlayers.length > currentSettings.courtsAvailable
-      ) {
-        setRotationGroupIndex((prev) => {
-          const maxGroups = Math.ceil(
-            currentSettings.activePlayers.length /
-              currentSettings.courtsAvailable
-          );
-          return (prev + 1) % maxGroups;
-        });
-      }
 
       stateRef.current = "countdown";
       setState("countdown");
@@ -453,7 +492,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setState("countdown");
     setCurrentSet(1);
     updateTimeRemaining(10);
-    setRotationGroupIndex(0);
     setAgilityActionsDone(0);
     setActualElapsedMs(0);
     if (!settings.visualOnly) {
@@ -511,13 +549,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     };
   }, [cleanup]);
 
-  const currentRotationPlayers = settings
-    ? settings.activePlayers.slice(
-        rotationGroupIndex * (settings.courtsAvailable || 1),
-        rotationGroupIndex * (settings.courtsAvailable || 1) +
-          (settings.courtsAvailable || 1)
-      )
-    : [];
+  const currentRotationPlayers = currentPlayersState;
 
   return {
     state,
