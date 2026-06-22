@@ -270,7 +270,7 @@ export default function ClubClient({
                 График
               </p>
               <h2 className="text-4xl md:text-5xl font-light tracking-tight">
-                Предстоящи Тренировки
+                Предстоящи Тренировки и Събития
               </h2>
               <p className="text-zinc-300 mt-2">През следващите 7 дни</p>
             </div>
