@@ -100,7 +100,7 @@ export default function ScheduleClient({ schedule }: Props) {
                 График
               </p>
               <h1 className="text-4xl font-black tracking-tight">
-                Предстоящи Тренировки
+                Предстоящи Тренировки и Събития
               </h1>
               <p className="text-zinc-400 text-sm mt-1">
                 Вижте всички предстоящи тренировки и събития на клуба.
