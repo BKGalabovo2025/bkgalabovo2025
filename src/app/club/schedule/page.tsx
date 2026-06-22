@@ -15,12 +15,18 @@ export default async function SchedulePage() {
   startOfDay.setHours(0, 0, 0, 0);
 
   // Fetch all upcoming events for bkgalabovo
-  const scheduleSnapshot = await adminDb
-    .collection("events")
-    .where("siteId", "==", "bkgalabovo")
-    .get();
+  let scheduleSnapshot;
+  try {
+    scheduleSnapshot = await adminDb
+      .collection("events")
+      .where("siteId", "==", "bkgalabovo")
+      .get();
+  } catch (error) {
+    console.error("Failed to fetch events for schedule page:", error);
+    scheduleSnapshot = { docs: [] };
+  }
 
-  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
+  const scheduleRaw = scheduleSnapshot.docs.map((doc: any) => {
     const data = doc.data();
 
     let startDateStr = new Date().toISOString();

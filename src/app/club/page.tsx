@@ -22,12 +22,18 @@ export default async function ClubMainPage() {
   endOf7Days.setHours(23, 59, 59, 999);
 
   // We fetch all events and filter locally to avoid Timestamp vs ISO String comparison issues in Firestore
-  const scheduleSnapshot = await adminDb
-    .collection("events")
-    .where("siteId", "==", "bkgalabovo")
-    .get();
+  let scheduleSnapshot;
+  try {
+    scheduleSnapshot = await adminDb
+      .collection("events")
+      .where("siteId", "==", "bkgalabovo")
+      .get();
+  } catch (error) {
+    console.error("Failed to fetch events for club page:", error);
+    scheduleSnapshot = { docs: [] };
+  }
 
-  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
+  const scheduleRaw = scheduleSnapshot.docs.map((doc: any) => {
     const data = doc.data();
 
     // Handle both Timestamp and string representations of date
