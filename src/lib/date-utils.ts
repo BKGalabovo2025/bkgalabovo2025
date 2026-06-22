@@ -5,16 +5,6 @@ export type DateInput = Date | string | number;
 
 
 /**
- * Standard date format for the application.
- * Example: "5 май 2026 г."
- */
-const formatDateDisplay = (date: DateInput) => {
-  const d = new Date(date);
-  if (!isValid(d)) return "Невалидна дата";
-  return format(d, "d MMMM yyyy 'г.'", { locale: bg });
-};
-
-/**
  * Detailed date and time format.
  * Example: "5 май 2026 г., 15:30 ч."
  */
@@ -65,16 +55,6 @@ export const toISOStringOrUndefined = (date: unknown): string | undefined => {
 
   const d = new Date(date as string | number | Date);
   return isValid(d) ? d.toISOString() : undefined;
-};
-
-/**
- * Month and year display.
- * Example: "Май 2026"
- */
-const formatMonthYear = (date: DateInput) => {
-  const d = new Date(date);
-  if (!isValid(d)) return "Невалидна дата";
-  return format(d, "MMMM yyyy", { locale: bg });
 };
 
 /**
