@@ -1,4 +1,4 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
@@ -118,7 +118,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     // Cache key: per branch + per day (stats are stable within a day)
     const todayKey = startOfDay.toISOString().slice(0, 10);
     const cacheKey = `dashboard:${activeBranch}:${todayKey}`;
-    const TTL_MS = 90_000; // 90 seconds вЂ” reduces repeat reads on navigation
+    const TTL_MS = 5 * 60 * 1000; // 5 minutes — reduces repeat reads and saves Firebase Quota
 
     return await serverCache.get(
       cacheKey,
