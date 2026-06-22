@@ -5,12 +5,11 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = request.cookies.get("session");
 
-  // Define public routes
   const isPublicRoute =
     pathname === "/login" ||
     pathname === "/" ||
-    pathname === "/club" ||
-    pathname === "/recovery-zone";
+    pathname.startsWith("/club") ||
+    pathname.startsWith("/recovery-zone");
 
   // If the route is not public and no session exists, redirect to login
   if (!isPublicRoute && !session) {
