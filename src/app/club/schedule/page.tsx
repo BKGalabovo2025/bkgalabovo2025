@@ -44,6 +44,7 @@ export default async function SchedulePage() {
       title: data.title || "Тренировка",
       startTime: startDateStr,
       endTime: endDateStr,
+      isCancelled: !!data.isCancelled,
     };
   });
 

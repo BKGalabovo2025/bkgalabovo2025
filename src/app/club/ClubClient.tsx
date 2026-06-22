@@ -50,6 +50,7 @@ export default function ClubClient({
     title: string;
     startTime: string | Date;
     endTime: string | Date;
+    isCancelled?: boolean;
   }[];
   hallImages?: string[];
 }) {
@@ -289,11 +290,18 @@ export default function ClubClient({
                 {schedule.map((slot) => (
                   <div
                     key={slot.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-4"
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-4 ${slot.isCancelled ? "opacity-60 grayscale" : ""}`}
                   >
                     <div className="mb-2 sm:mb-0">
-                      <p className="text-white font-medium">{slot.title}</p>
-                      <p className="text-sm text-zinc-300">
+                      <div className="flex items-center gap-3">
+                        <p className={`text-white font-medium ${slot.isCancelled ? "line-through text-zinc-500" : ""}`}>{slot.title}</p>
+                        {slot.isCancelled && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
+                            Отменена
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-zinc-300 mt-1">
                         {new Date(slot.startTime).toLocaleDateString("bg-BG")}
                         &nbsp;|&nbsp;
                         {new Date(slot.startTime).toLocaleTimeString("bg-BG", {
@@ -307,12 +315,18 @@ export default function ClubClient({
                         })}
                       </p>
                     </div>
-                    <Link
-                      href="#contacts"
-                      className="text-blue-400 text-sm hover:underline"
-                    >
-                      Запиши се
-                    </Link>
+                    {slot.isCancelled ? (
+                      <div className="text-rose-500 text-sm font-medium">
+                        {/* Empty for now as requested */}
+                      </div>
+                    ) : (
+                      <Link
+                        href="#contacts"
+                        className="text-blue-400 text-sm hover:underline"
+                      >
+                        Запиши се
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>

@@ -14,6 +14,8 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Tag,
+  Ban,
+  RotateCcw,
 } from "lucide-react";
 import {
   Tooltip,
@@ -31,6 +33,7 @@ interface EventListItemProps {
   onDelete: (eventId: string) => void;
   onManageAttendees: (event: ScheduleEvent) => void;
   onPrint: (event: ScheduleEvent) => void;
+  onToggleCancel: (eventId: string, currentStatus: boolean) => void;
   membersMap?: Record<string, Member>;
 }
 
@@ -53,6 +56,7 @@ export const EventListItem = React.memo<EventListItemProps>(
     onDelete,
     onManageAttendees,
     onPrint,
+    onToggleCancel,
     membersMap,
   }) => {
     const { translation, color } = eventTypeDetails[event.type] || {
@@ -135,7 +139,7 @@ export const EventListItem = React.memo<EventListItemProps>(
         }`}
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
-          <div className="flex items-start sm:items-center gap-6 grow w-full">
+          <div className={`flex items-start sm:items-center gap-6 grow w-full ${event.isCancelled ? "opacity-60 grayscale" : ""}`}>
             <div
               className={`w-1.5 h-14 rounded-full ${color} opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block`}
             ></div>
@@ -170,9 +174,17 @@ export const EventListItem = React.memo<EventListItemProps>(
                     </span>
                   </div>
                 )}
+                {event.isCancelled && (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30">
+                    <Ban size={12} strokeWidth={2} className="text-rose-600 dark:text-rose-400" />
+                    <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                      Отменена
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <h3 className="text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight">
+              <h3 className={`text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight ${event.isCancelled ? "line-through text-zinc-500 dark:text-zinc-500" : ""}`}>
                 {event.title}
               </h3>
 
@@ -266,6 +278,35 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-12 w-12 rounded-2xl hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all group/btn"
+                    onClick={() => onToggleCancel(event.id, !!event.isCancelled)}
+                    aria-label={event.isCancelled ? `Възстанови ${event.title}` : `Отмени ${event.title}`}
+                  >
+                    {event.isCancelled ? (
+                      <RotateCcw
+                        className="h-5 w-5 text-orange-400 group-hover/btn:text-orange-600 transition-colors"
+                        strokeWidth={1.5}
+                      />
+                    ) : (
+                      <Ban
+                        className="h-5 w-5 text-orange-400 group-hover/btn:text-orange-600 transition-colors"
+                        strokeWidth={1.5}
+                      />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl border-orange-100 dark:border-orange-900/30 bg-white dark:bg-zinc-950 px-4 py-2 text-orange-600">
+                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                    {event.isCancelled ? "Възстанови" : "Отмени"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all group/btn"
                     onClick={() => onDelete(event.id)}
                     aria-label={`Изтрий ${event.title}`}
@@ -285,7 +326,7 @@ export const EventListItem = React.memo<EventListItemProps>(
             </TooltipProvider>
           </div>
         </div>
-        {attendeesData.list.length > 0 && (
+        {attendeesData.list.length > 0 && !event.isCancelled && (
           <div
             className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-900 flex items-center gap-6 cursor-pointer rounded-b-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
             onClick={() => onManageAttendees(event)}

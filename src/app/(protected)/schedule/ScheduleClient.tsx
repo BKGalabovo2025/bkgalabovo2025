@@ -251,6 +251,10 @@ export default function ScheduleClient() {
     await updateEvent(eventId, eventData);
   };
 
+  const handleToggleCancel = async (eventId: string, currentStatus: boolean) => {
+    await updateEvent(eventId, { isCancelled: !currentStatus });
+  };
+
   const handleUpdateAttendees = async (
     eventId: string,
     attendees: Attendee[]
@@ -451,6 +455,7 @@ export default function ScheduleClient() {
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
             openAttendeesDialog={openAttendeesDialog}
+            onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
@@ -467,6 +472,7 @@ export default function ScheduleClient() {
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
             openAttendeesDialog={openAttendeesDialog}
+            onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
@@ -484,6 +490,7 @@ export default function ScheduleClient() {
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
             openAttendeesDialog={openAttendeesDialog}
+            onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
@@ -857,6 +864,7 @@ interface EventsListProps {
   openEditDialog: (event: ScheduleEvent) => void;
   openDeleteDialog: (id: string) => void;
   openAttendeesDialog: (event: ScheduleEvent) => void;
+  onToggleCancel: (eventId: string, currentStatus: boolean) => void;
   triggerPrint: (event: ScheduleEvent) => void;
   currentPage: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
@@ -873,6 +881,7 @@ function EventsList({
   openEditDialog,
   openDeleteDialog,
   openAttendeesDialog,
+  onToggleCancel,
   triggerPrint,
   currentPage,
   setCurrentPage,
@@ -922,6 +931,7 @@ function EventsList({
                   onEdit={openEditDialog}
                   onDelete={openDeleteDialog}
                   onManageAttendees={openAttendeesDialog}
+                  onToggleCancel={onToggleCancel}
                   onPrint={triggerPrint}
                 />
               ))}

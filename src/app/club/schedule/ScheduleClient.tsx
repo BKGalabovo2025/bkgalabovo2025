@@ -15,6 +15,7 @@ interface EventSlot {
   title: string;
   startTime: string;
   endTime: string;
+  isCancelled?: boolean;
 }
 
 interface Props {
@@ -169,15 +170,26 @@ export default function ScheduleClient({ schedule }: Props) {
                             duration: 0.3,
                             delay: groupIdx * 0.05 + i * 0.04,
                           }}
-                          className="group bg-black/70 border border-zinc-800 hover:border-blue-700/50 rounded-2xl px-6 py-5 flex items-center justify-between gap-4 transition-all duration-300 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
+                          className={`group border rounded-2xl px-6 py-5 flex items-center justify-between gap-4 transition-all duration-300 ${
+                            event.isCancelled
+                              ? "bg-black/40 border-rose-900/30 opacity-80"
+                              : "bg-black/70 border-zinc-800 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
+                          }`}
                         >
                           {/* Left side: colored bar + info */}
                           <div className="flex items-center gap-5">
-                            <div className="w-1 h-12 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] shrink-0" />
+                            <div className={`w-1 h-12 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"}`} />
                             <div>
-                              <p className="text-white font-bold text-base tracking-tight">
-                                {event.title}
-                              </p>
+                              <div className="flex items-center gap-3">
+                                <p className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}>
+                                  {event.title}
+                                </p>
+                                {event.isCancelled && (
+                                  <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
+                                    Отменена
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex flex-wrap items-center gap-3 mt-1.5">
                                 <span className="flex items-center gap-1.5 text-zinc-300 text-sm">
                                   <Clock size={13} className="text-blue-400" />
@@ -191,17 +203,23 @@ export default function ScheduleClient({ schedule }: Props) {
                             </div>
                           </div>
 
-                          {/* Right side: CTA */}
-                          <Link
-                            href="/club#contacts"
-                            className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors shrink-0 group-hover:gap-2"
-                          >
-                            Запиши се
-                            <ChevronRight
-                              size={15}
-                              className="transition-transform group-hover:translate-x-0.5"
-                            />
-                          </Link>
+                          {/* Right side: CTA or Cancelled State */}
+                          {event.isCancelled ? (
+                            <div className="flex items-center gap-2 text-rose-500 shrink-0 text-sm font-medium">
+                              {/* Option to show something else, empty for now as requested */}
+                            </div>
+                          ) : (
+                            <Link
+                              href="/club#contacts"
+                              className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors shrink-0 group-hover:gap-2"
+                            >
+                              Запиши се
+                              <ChevronRight
+                                size={15}
+                                className="transition-transform group-hover:translate-x-0.5"
+                              />
+                            </Link>
+                          )}
                         </motion.div>
                       );
                     })}

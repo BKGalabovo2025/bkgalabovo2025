@@ -217,6 +217,7 @@ export type ScheduleEvent = {
   attendeeMemberIds: string[];
   description?: string | null;
   maxAttendees?: number;
+  isCancelled?: boolean;
 };
 
 // =================================================================

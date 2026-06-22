@@ -52,6 +52,7 @@ export default async function ClubMainPage() {
       title: data.title || "Тренировка",
       startTime: startDateStr,
       endTime: endDateStr,
+      isCancelled: !!data.isCancelled,
     };
   });
 
