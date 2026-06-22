@@ -41,25 +41,34 @@ function serializeDoc(data: unknown): unknown {
 export default async function CatalogPage() {
   const adminDb = getAdminDb();
 
-  const servicesSnapshot = await adminDb.collection("clubServices").get();
-  const services = servicesSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
+  const safeFetch = async (collectionName: string) => {
+    try {
+      const snap = await adminDb.collection(collectionName).get();
+      return snap.docs.map((doc) =>
+        serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+      );
+    } catch (error) {
+      console.error(`Failed to fetch ${collectionName} for catalog page:`, error);
+      return [];
+    }
+  };
 
-  const generalSnapshot = await adminDb.collection("clubGeneralServices").get();
-  const generalServices = generalSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
-
-  const productsSnapshot = await adminDb.collection("products").get();
-  const products = productsSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
-    .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
-
-  const recoverySnapshot = await adminDb.collection("sessions").get();
-  const recoveryServices = recoverySnapshot.docs.map((doc) =>
-    serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+  const servicesRaw = await safeFetch("clubServices");
+  const services = servicesRaw.filter(
+    (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
+
+  const generalRaw = await safeFetch("clubGeneralServices");
+  const generalServices = generalRaw.filter(
+    (item) => !item.siteId || item.siteId === "bkgalabovo"
+  );
+
+  const productsRaw = await safeFetch("products");
+  const products = productsRaw.filter(
+    (item) => !item.siteId || item.siteId === "bkgalabovo"
+  );
+
+  const recoveryServices = await safeFetch("sessions");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
