@@ -48,10 +48,15 @@ export default async function RecoveryCatalogPage() {
   // Let's filter out items that have siteId explicitly set to something else, or keep it generic if siteId is missing.
   // 2) The Recovery Zone catalog page fetches only Recovery Services.
 
-  const recoverySnapshot = await adminDb.collection("sessions").get();
-  const recoveryServices = recoverySnapshot.docs.map((doc) =>
-    serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
-  );
+  let recoveryServices: Record<string, unknown>[] = [];
+  try {
+    const recoverySnapshot = await adminDb.collection("sessions").get();
+    recoveryServices = recoverySnapshot.docs.map((doc) =>
+      serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+    );
+  } catch (error) {
+    console.error("Failed to fetch sessions for recovery catalog page:", error);
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
