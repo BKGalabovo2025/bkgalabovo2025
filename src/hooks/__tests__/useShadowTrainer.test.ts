@@ -381,8 +381,8 @@ describe("useShadowTrainer Comprehensive Variations", () => {
   });
 
   describe("Pause, Resume, Stop and Wake Lock", () => {
-    let wakeLockRequestMock: any;
-    let wakeLockReleaseMock: any;
+    let wakeLockRequestMock: ReturnType<typeof vi.fn>;
+    let wakeLockReleaseMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       wakeLockReleaseMock = vi.fn().mockResolvedValue(undefined);

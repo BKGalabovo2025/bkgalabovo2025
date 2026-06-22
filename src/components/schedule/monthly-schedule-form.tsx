@@ -14,7 +14,7 @@ import { MonthlyScheduleStep1 } from "./MonthlyScheduleStep1";
 import { MonthlyScheduleStep2 } from "./MonthlyScheduleStep2";
 import { MonthlyScheduleStep3 } from "./MonthlyScheduleStep3";
 
-export const daysOfWeek = [
+const daysOfWeek = [
   { id: "mon", label: "Пн", value: 1 },
   { id: "tue", label: "Вт", value: 2 },
   { id: "wed", label: "Ср", value: 3 },
@@ -24,7 +24,7 @@ export const daysOfWeek = [
   { id: "sun", label: "Нд", value: 0 },
 ];
 
-export const monthlyScheduleSchema = z
+const monthlyScheduleSchema = z
   .object({
     title: z.string().min(1, "Моля, въведете заглавие."),
     type: z.enum(["training", "competition", "camp", "event", "other"]),
@@ -112,11 +112,11 @@ export default function MonthlyScheduleForm({
       <div className="mb-6 space-y-2">
         <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
           <span>
-            {step === 1
-              ? "Стъпка 1: Основна информация"
-              : step === 2
-                ? "Стъпка 2: Време и Повторяемост"
-                : "Стъпка 3: Финализиране"}
+            {(() => {
+              if (step === 1) return "Стъпка 1: Основна информация";
+              if (step === 2) return "Стъпка 2: Време и Повторяемост";
+              return "Стъпка 3: Финализиране";
+            })()}
           </span>
           <span>Стъпка {step} от 3</span>
         </div>
@@ -126,11 +126,11 @@ export default function MonthlyScheduleForm({
               key={i}
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-all duration-500 ease-out",
-                i === step
-                  ? "bg-zinc-950 dark:bg-white"
-                  : i < step
-                    ? "bg-zinc-950/30 dark:bg-white/30"
-                    : "bg-zinc-100 dark:bg-zinc-800"
+                (() => {
+                  if (i === step) return "bg-zinc-950 dark:bg-white";
+                  if (i < step) return "bg-zinc-950/30 dark:bg-white/30";
+                  return "bg-zinc-100 dark:bg-zinc-800";
+                })()
               )}
             />
           ))}

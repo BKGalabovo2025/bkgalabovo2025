@@ -9,22 +9,33 @@ export const metadata: Metadata = {
   description: "Разгледайте нашите тренировки, услуги и продукти.",
 };
 
-function serializeDoc(data: any) {
+function serializeDoc(data: unknown): unknown {
   if (!data) return data;
-  const copy = { ...data };
-  for (const key of Object.keys(copy)) {
-    const val = copy[key];
-    if (val && typeof val.toDate === "function") {
-      copy[key] = val.toDate().toISOString();
-    } else if (val && typeof val === "object" && "_seconds" in val) {
-      copy[key] = new Date(val._seconds * 1000).toISOString();
-    } else if (Array.isArray(val)) {
-      copy[key] = val.map(serializeDoc);
-    } else if (typeof val === "object") {
-      copy[key] = serializeDoc(val);
-    }
+  if (Array.isArray(data)) {
+    return data.map(serializeDoc);
   }
-  return copy;
+  if (typeof data === "object") {
+    const copy = { ...data } as Record<string, unknown>;
+    for (const key of Object.keys(copy)) {
+      const val = copy[key];
+      if (
+        val &&
+        typeof val === "object" &&
+        "toDate" in val &&
+        typeof (val as { toDate?: () => Date }).toDate === "function"
+      ) {
+        copy[key] = (val as { toDate: () => Date }).toDate().toISOString();
+      } else if (val && typeof val === "object" && "_seconds" in val) {
+        copy[key] = new Date(
+          (val as { _seconds: number })._seconds * 1000
+        ).toISOString();
+      } else {
+        copy[key] = serializeDoc(val);
+      }
+    }
+    return copy;
+  }
+  return data;
 }
 
 export default async function CatalogPage() {
@@ -32,22 +43,22 @@ export default async function CatalogPage() {
 
   const servicesSnapshot = await adminDb.collection("clubServices").get();
   const services = servicesSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
+    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
     .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
   const generalSnapshot = await adminDb.collection("clubGeneralServices").get();
   const generalServices = generalSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
+    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
     .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
   const productsSnapshot = await adminDb.collection("products").get();
   const products = productsSnapshot.docs
-    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }))
+    .map((doc) => serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>)
     .filter((item) => !item.siteId || item.siteId === "bkgalabovo");
 
   const recoverySnapshot = await adminDb.collection("sessions").get();
   const recoveryServices = recoverySnapshot.docs.map((doc) =>
-    serializeDoc({ id: doc.id, ...doc.data() })
+    serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
   );
 
   return (

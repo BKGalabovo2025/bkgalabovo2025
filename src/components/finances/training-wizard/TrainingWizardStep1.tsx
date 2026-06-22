@@ -12,6 +12,194 @@ import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 import { Member } from "@/types";
 
+// ── Pure helpers for styling ──────────────────────────────────────────────────
+
+function getMemberButtonClass(isSelected: boolean, clientTypeTab: "member" | "guest"): string {
+  const base = "w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light";
+  if (!isSelected) return `${base} hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200`;
+  if (clientTypeTab === "guest") return `${base} bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300`;
+  return `${base} bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300`;
+}
+
+function getMemberAvatarClass(isSelected: boolean, clientTypeTab: "member" | "guest"): string {
+  const base = "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0";
+  if (!isSelected) return `${base} bg-zinc-100 dark:bg-zinc-800 text-zinc-500`;
+  if (clientTypeTab === "guest") return `${base} bg-amber-500 text-white`;
+  return `${base} bg-emerald-500 text-white`;
+}
+
+// ── Sub-component for New Guest Form ──────────────────────────────────────────
+
+const TrainingWizardStep1NewGuestForm = ({
+  newGuestFirstName,
+  setNewGuestFirstName,
+  newGuestLastName,
+  setNewGuestLastName,
+  newGuestPhone,
+  setNewGuestPhone,
+  newGuestEmail,
+  setNewGuestEmail,
+  isSavingNewGuest,
+  setShowNewGuestForm,
+  handleRegisterGuest,
+}: {
+  newGuestFirstName: string;
+  setNewGuestFirstName: (val: string) => void;
+  newGuestLastName: string;
+  setNewGuestLastName: (val: string) => void;
+  newGuestPhone: string;
+  setNewGuestPhone: (val: string) => void;
+  newGuestEmail: string;
+  setNewGuestEmail: (val: string) => void;
+  isSavingNewGuest: boolean;
+  setShowNewGuestForm: (val: boolean) => void;
+  handleRegisterGuest: () => void;
+}) => {
+  return (
+    <div className="space-y-4 p-5 border border-amber-200 dark:border-amber-900/35 bg-amber-50/20 dark:bg-amber-950/5 rounded-2xl animate-in fade-in duration-300">
+      <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+        Регистрация на Нов Външен клиент (Гост)
+      </h4>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase text-zinc-500">Име *</Label>
+          <Input
+            placeholder="Име"
+            value={newGuestFirstName}
+            onChange={(e) => setNewGuestFirstName(e.target.value)}
+            className="h-10 rounded-xl border-zinc-200 text-xs"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase text-zinc-500">Фамилия *</Label>
+          <Input
+            placeholder="Фамилия"
+            value={newGuestLastName}
+            onChange={(e) => setNewGuestLastName(e.target.value)}
+            className="h-10 rounded-xl border-zinc-200 text-xs"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase text-zinc-500">Телефон *</Label>
+          <Input
+            placeholder="Телефон"
+            value={newGuestPhone}
+            onChange={(e) => setNewGuestPhone(e.target.value)}
+            className="h-10 rounded-xl border-zinc-200 text-xs"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase text-zinc-500">Имейл</Label>
+          <Input
+            placeholder="Имейл (по избор)"
+            value={newGuestEmail}
+            onChange={(e) => setNewGuestEmail(e.target.value)}
+            className="h-10 rounded-xl border-zinc-200 text-xs"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 justify-end pt-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={isSavingNewGuest}
+          onClick={() => setShowNewGuestForm(false)}
+          className="rounded-xl text-xs"
+        >
+          Отказ
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          disabled={isSavingNewGuest}
+          onClick={handleRegisterGuest}
+          className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-white animate-in"
+        >
+          {isSavingNewGuest && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+          Регистрирай и избери
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// ── Sub-component for Member List ──────────────────────────────────────────
+
+const TrainingWizardStep1MemberList = ({
+  filteredMembers,
+  selectedMember,
+  clientTypeTab,
+  setSelectedMember,
+  setIsGuestSale,
+}: {
+  filteredMembers: Member[];
+  selectedMember: Member | null;
+  clientTypeTab: "member" | "guest";
+  setSelectedMember: (member: Member) => void;
+  setIsGuestSale: (val: boolean) => void;
+}) => {
+  if (filteredMembers.length === 0) {
+    return (
+      <div className="p-8 text-center text-zinc-400 text-xs font-light">
+        {clientTypeTab === "guest"
+          ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
+          : "Няма намерени членове по този критерий."}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {filteredMembers.map((member: Member) => {
+        const isSelected = selectedMember?.id === member.id;
+        const buttonClass = getMemberButtonClass(isSelected, clientTypeTab);
+        const avatarClass = getMemberAvatarClass(isSelected, clientTypeTab);
+
+        return (
+          <button
+            key={member.id}
+            type="button"
+            onClick={() => {
+              setSelectedMember(member);
+              setIsGuestSale(member.isGuest || false);
+            }}
+            className={buttonClass}
+          >
+            <div className="flex items-center gap-3">
+              <div className={avatarClass}>
+                {member.firstName[0]}
+                {member.lastName[0]}
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                  {member.firstName} {member.lastName}
+                </span>
+                <span className="text-[10px] text-zinc-400 font-light mt-0.5">
+                  {member.phone || member.email || "Няма контакти"}
+                </span>
+              </div>
+            </div>
+            {isSelected && (
+              <Check
+                className={cn(
+                  "h-4 w-4 shrink-0",
+                  clientTypeTab === "guest" ? "text-amber-500" : "text-emerald-500"
+                )}
+              />
+            )}
+          </button>
+        );
+      })}
+    </>
+  );
+};
+
 export const TrainingWizardStep1 = () => {
   const {
     showNewGuestForm,
@@ -75,7 +263,7 @@ export const TrainingWizardStep1 = () => {
           status: "active",
           siteId: activeBranch || "bkgalabovo",
           registrationDate: new Date().toISOString(),
-        } as any;
+        } as unknown as Member;
 
         setMembers((prev) => [newGuestObj, ...prev]);
         setSelectedMember(newGuestObj);
@@ -116,76 +304,19 @@ export const TrainingWizardStep1 = () => {
       </div>
 
       {showNewGuestForm ? (
-        <div className="space-y-4 p-5 border border-amber-200 dark:border-amber-900/35 bg-amber-50/20 dark:bg-amber-950/5 rounded-2xl animate-in fade-in duration-300">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
-            Регистрация на Нов Външен клиент (Гост)
-          </h4>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase text-zinc-500">Име *</Label>
-              <Input
-                placeholder="Име"
-                value={newGuestFirstName}
-                onChange={(e) => setNewGuestFirstName(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase text-zinc-500">Фамилия *</Label>
-              <Input
-                placeholder="Фамилия"
-                value={newGuestLastName}
-                onChange={(e) => setNewGuestLastName(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase text-zinc-500">Телефон *</Label>
-              <Input
-                placeholder="Телефон"
-                value={newGuestPhone}
-                onChange={(e) => setNewGuestPhone(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase text-zinc-500">Имейл</Label>
-              <Input
-                placeholder="Имейл (по избор)"
-                value={newGuestEmail}
-                onChange={(e) => setNewGuestEmail(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2 justify-end pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={isSavingNewGuest}
-              onClick={() => setShowNewGuestForm(false)}
-              className="rounded-xl text-xs"
-            >
-              Отказ
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={isSavingNewGuest}
-              onClick={handleRegisterGuest}
-              className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-white animate-in"
-            >
-              {isSavingNewGuest && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-              Регистрирай и избери
-            </Button>
-          </div>
-        </div>
+        <TrainingWizardStep1NewGuestForm
+          newGuestFirstName={newGuestFirstName}
+          setNewGuestFirstName={setNewGuestFirstName}
+          newGuestLastName={newGuestLastName}
+          setNewGuestLastName={setNewGuestLastName}
+          newGuestPhone={newGuestPhone}
+          setNewGuestPhone={setNewGuestPhone}
+          newGuestEmail={newGuestEmail}
+          setNewGuestEmail={setNewGuestEmail}
+          isSavingNewGuest={isSavingNewGuest}
+          setShowNewGuestForm={setShowNewGuestForm}
+          handleRegisterGuest={handleRegisterGuest}
+        />
       ) : (
         <div className="space-y-4">
           <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 gap-1">
@@ -258,69 +389,13 @@ export const TrainingWizardStep1 = () => {
             </div>
           ) : (
             <div className="border border-zinc-100 dark:border-zinc-900 rounded-2xl max-h-[240px] overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-900 custom-scrollbar">
-              {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => {
-                  const isSelected = selectedMember?.id === member.id;
-                  let buttonClass = "w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light ";
-                  if (!isSelected) {
-                    buttonClass += "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
-                  } else if (clientTypeTab === "guest") {
-                    buttonClass += "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300";
-                  } else {
-                    buttonClass += "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
-                  }
-
-                  let avatarClass = "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0 ";
-                  if (!isSelected) {
-                    avatarClass += "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
-                  } else if (clientTypeTab === "guest") {
-                    avatarClass += "bg-amber-500 text-white";
-                  } else {
-                    avatarClass += "bg-emerald-500 text-white";
-                  }
-
-                  return (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedMember(member);
-                        setIsGuestSale(member.isGuest || false);
-                      }}
-                      className={buttonClass}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={avatarClass}>
-                          {member.firstName[0]}
-                          {member.lastName[0]}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                            {member.firstName} {member.lastName}
-                          </span>
-                          <span className="text-[10px] text-zinc-400 font-light mt-0.5">
-                            {member.phone || member.email || "Няма контакти"}
-                          </span>
-                        </div>
-                      </div>
-                      {isSelected && (
-                        <Check
-                          className={cn(
-                            "h-4 w-4 shrink-0",
-                            clientTypeTab === "guest" ? "text-amber-500" : "text-emerald-500"
-                          )}
-                        />
-                      )}
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="p-8 text-center text-zinc-400 text-xs font-light">
-                  {clientTypeTab === "guest"
-                    ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
-                    : "Няма намерени членове по този критерий."}
-                </div>
-              )}
+              <TrainingWizardStep1MemberList
+                filteredMembers={filteredMembers}
+                selectedMember={selectedMember}
+                clientTypeTab={clientTypeTab}
+                setSelectedMember={setSelectedMember}
+                setIsGuestSale={setIsGuestSale}
+              />
             </div>
           )}
         </div>

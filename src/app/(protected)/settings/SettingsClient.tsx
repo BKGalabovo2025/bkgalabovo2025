@@ -1054,7 +1054,12 @@ export default function SettingsClient() {
                         "Неделя",
                       ];
                       const sched = rzData.schedule || {};
-                      const daySched = (sched as any)[day] || {
+                      const daySched = (
+                        sched as Record<
+                          string,
+                          { open: string; close: string; isOpen: boolean }
+                        >
+                      )[day] || {
                         open: "08:00",
                         close: "22:00",
                         isOpen: true,

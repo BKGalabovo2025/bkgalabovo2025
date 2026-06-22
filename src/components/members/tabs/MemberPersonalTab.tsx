@@ -29,7 +29,33 @@ interface MemberPersonalTabProps {
   formatPhoneType: (phoneType: string | null | undefined) => string | null;
 }
 
-export const InfoRow = ({
+// ── Pure label helpers (no nested ternaries) ──────────────────────────────────────
+
+function getMemberTypeLabel(memberType: string | null | undefined): string {
+  if (memberType === "guest") return "Външен / Гост";
+  if (memberType === "recovery") return "Клиент Възстановяване";
+  return "Клубен Член";
+}
+
+function getGenderLabel(gender: string | null | undefined): string | null {
+  if (gender === "male") return "Мъж";
+  if (gender === "female") return "Жена";
+  return null;
+}
+
+function getSkillLevelLabel(skillLevel: string | null | undefined): string | null {
+  if (skillLevel === "beginner") return "Начинаещ";
+  if (skillLevel === "intermediate") return "Средно напреднал";
+  if (skillLevel === "advanced") return "Напреднал";
+  if (skillLevel === "professional") return "Професионалист";
+  return null;
+}
+
+function getFamilyMemberStatusLabel(status: string | null | undefined): string {
+  return status === "active" ? "Активен" : "Неактивен";
+}
+
+const InfoRow = ({
   icon: Icon,
   label,
   value,
@@ -85,24 +111,10 @@ export const MemberPersonalTab = ({
   return (
     <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
-        <InfoRow
-          icon={Contact}
-          label="Тип клиент"
-          value={
-            member.memberType === "guest"
-              ? "Външен / Гост"
-              : member.memberType === "recovery"
-                ? "Клиент Възстановяване"
-                : "Клубен Член"
-          }
-        />
+        <InfoRow icon={Contact} label="Тип клиент" value={getMemberTypeLabel(member.memberType)} />
         <InfoRow icon={Mail} label="Имейл" value={member.email} />
         <InfoRow icon={Phone} label="Телефон" value={member.phone} />
-        <InfoRow
-          icon={PhoneCall}
-          label="Тип на телефона"
-          value={formatPhoneType(member.phoneType)}
-        />
+        <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
         <InfoRow
           icon={Phone}
           label="Спешен контакт"
@@ -112,42 +124,10 @@ export const MemberPersonalTab = ({
               : null
           }
         />
-        <InfoRow
-          icon={Calendar}
-          label="Дата на раждане"
-          value={formattedBirthDate}
-        />
-        <InfoRow
-          icon={BarChart2}
-          label="Възрастова група"
-          value={member.ageGroup || ageGroup}
-        />
-        <InfoRow
-          icon={Users}
-          label="Пол"
-          value={
-            member.gender === "male"
-              ? "Мъж"
-              : member.gender === "female"
-                ? "Жена"
-                : null
-          }
-        />
-        <InfoRow
-          icon={Trophy}
-          label="Ниво на умения"
-          value={
-            member.skillLevel === "beginner"
-              ? "Начинаещ"
-              : member.skillLevel === "intermediate"
-                ? "Средно напреднал"
-                : member.skillLevel === "advanced"
-                  ? "Напреднал"
-                  : member.skillLevel === "professional"
-                    ? "Професионалист"
-                    : null
-          }
-        />
+        <InfoRow icon={Calendar} label="Дата на раждане" value={formattedBirthDate} />
+        <InfoRow icon={BarChart2} label="Възрастова група" value={member.ageGroup || ageGroup} />
+        <InfoRow icon={Users} label="Пол" value={getGenderLabel(member.gender)} />
+        <InfoRow icon={Trophy} label="Ниво на умения" value={getSkillLevelLabel(member.skillLevel)} />
         <div className="md:col-span-2">
           <div className="h-px bg-zinc-50 my-6" />
         </div>
@@ -216,9 +196,7 @@ export const MemberPersonalTab = ({
                     {formatFullName(familyMember)}
                   </p>
                   <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest truncate mt-1">
-                    {familyMember.status === "active"
-                      ? "Активен"
-                      : "Неактивен"}
+                    {getFamilyMemberStatusLabel(familyMember.status)}
                   </p>
                 </div>
               </div>

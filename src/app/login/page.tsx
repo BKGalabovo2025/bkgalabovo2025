@@ -42,9 +42,11 @@ const LoginPage = () => {
         description: "Пренасочваме ви към таблото за управление...",
       });
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage =
-        err.message || "Възникна грешка при входа. Моля, опитайте отново.";
+        err instanceof Error
+          ? err.message
+          : "Възникна грешка при входа. Моля, опитайте отново.";
       setError(errorMessage);
       toast.error("Грешка при вход", { description: errorMessage });
     } finally {

@@ -16,7 +16,7 @@ async function getRecoverySession(id: string): Promise<ClubService> {
   }
 
   const data = doc.data()!;
-  const parseZones = (z: any) => {
+  const parseZones = (z: unknown) => {
     if (Array.isArray(z)) return z;
     if (typeof z === "string") return z.split(",").filter(Boolean);
     return [];

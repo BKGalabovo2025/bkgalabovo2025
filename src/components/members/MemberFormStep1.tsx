@@ -20,8 +20,10 @@ import {
 import { User, Users, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { MemberFormValues } from "./member-form";
+
 interface MemberFormStep1Props {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
   isRecoveryBranch: boolean;
   selectedMemberType: string;
@@ -268,15 +270,15 @@ export function MemberFormStep1({
                 let curDay = "";
 
                 if (field.value) {
-                  const val: any = field.value;
-                  const valStr =
-                    typeof val === "string"
-                      ? val.split("T")[0]
-                      : typeof val?.toDate === "function"
-                        ? val.toDate().toISOString().split("T")[0]
-                        : val instanceof Date
-                          ? val.toISOString().split("T")[0]
-                          : String(val);
+                  const val: unknown = field.value;
+                  let valStr = String(val);
+                  if (typeof val === "string") {
+                    valStr = val.split("T")[0];
+                  } else if (val && typeof (val as { toDate?: () => Date }).toDate === "function") {
+                    valStr = (val as { toDate: () => Date }).toDate().toISOString().split("T")[0];
+                  } else if (val instanceof Date) {
+                    valStr = val.toISOString().split("T")[0];
+                  }
                   const parts = valStr.split("-");
                   curYear = parts[0] || "";
                   curMonth = parts[1] || "";

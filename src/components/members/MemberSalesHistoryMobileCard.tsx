@@ -30,13 +30,13 @@ interface MemberSalesHistoryMobileCardProps {
   handleDeleteSale: (saleId: string) => void;
 }
 
-export function getSaleTypeText(type?: string, isSubscription?: boolean) {
+function getSaleTypeText(type?: string, isSubscription?: boolean) {
   if (type === "general_service") return "Клубна Услуга";
   if (isSubscription) return "Услуга";
   return "Продажба";
 }
 
-export function getMobileBadgeClass(variant: string) {
+function getMobileBadgeClass(variant: string) {
   if (variant === "default") return "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10";
   if (variant === "secondary") return "bg-amber-500 text-white shadow-lg shadow-amber-500/10";
   return "bg-zinc-100 text-zinc-400 border-zinc-100";

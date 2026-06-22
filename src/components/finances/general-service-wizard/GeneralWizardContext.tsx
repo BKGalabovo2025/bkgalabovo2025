@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { mutate } from "swr";
 import { toast } from "sonner";
-import { GeneralService, Member } from "@/types";
+import { GeneralService, Member, Sale } from "@/types";
 import { getAllMembers } from "@/services/member-service";
 import { executeGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
 import { useAppStore } from "@/store/use-app-store";
@@ -179,7 +179,7 @@ export const GeneralWizardProvider = ({
     setStep(4);
 
     try {
-      const saleData: any = {
+      const saleData: Omit<Sale, "id"> = {
         siteId: service.siteId || activeBranch || "bkgalabovo",
         memberId: selectedMember.id,
         saleDate: new Date().toISOString(),
@@ -218,9 +218,10 @@ export const GeneralWizardProvider = ({
         setStep(3);
         toast.error("Грешка", { description: result.error });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStep(3);
-      toast.error("Грешка при продажба", { description: error.message });
+      const message = error instanceof Error ? error.message : "Неизвестна грешка";
+      toast.error("Грешка при продажба", { description: message });
     } finally {
       setIsProcessing(false);
     }

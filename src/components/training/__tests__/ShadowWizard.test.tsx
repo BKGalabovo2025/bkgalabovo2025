@@ -1,6 +1,6 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
+ 
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ShadowWizard } from "../ShadowWizard";

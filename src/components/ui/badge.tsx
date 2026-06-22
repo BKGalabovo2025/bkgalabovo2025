@@ -1,6 +1,6 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
+ 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 

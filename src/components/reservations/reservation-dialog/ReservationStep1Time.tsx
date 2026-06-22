@@ -174,8 +174,13 @@ export const ReservationStep1Time = () => {
                           if (selectedZone && field2.value && selectedZone === field2.value) {
                             const zoneName = field2.value;
                             const z = zoneName?.toUpperCase();
-                            const key = z === "КРАКА" ? "legs" : z === "РЪЦЕ" ? "arms" : "hips";
-                            const maxQty = siteInfo?.inventory?.attachments?.[key] || 0;
+                            let key = "hips";
+                            if (z === "КРАКА") {
+                              key = "legs";
+                            } else if (z === "РЪЦЕ") {
+                              key = "arms";
+                            }
+                            const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
                             if (maxQty < 2) {
                               return (
                                 <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">

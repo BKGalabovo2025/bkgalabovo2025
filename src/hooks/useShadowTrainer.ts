@@ -13,6 +13,16 @@ import {
   isAudioPlaying,
 } from "@/lib/shadow-training/audio-map";
 
+export interface ShadowPlayer {
+  id: string;
+  displayName?: string;
+  [key: string]: unknown;
+}
+
+export interface WakeLockSentinel {
+  release(): Promise<void>;
+}
+
 export type TrainerState =
   | "idle"
   | "countdown"
@@ -34,7 +44,7 @@ export interface ShadowSettings {
   visualOnly: boolean;
   calloutMode: "zones" | "shots" | "mixed" | "zones_and_shots";
   centerCommandEnabled: boolean;
-  activePlayers: any[]; // The full selected players array
+  activePlayers: ShadowPlayer[]; // The full selected players array
   courtsAvailable: number;
 }
 
@@ -44,7 +54,7 @@ function _resolveAudioPathsAndZone(
   drillMode: string,
   calloutMode: string
 ) {
-  const zone = getRandomZoneForMode(drillMode as any) || "frontForehand";
+  const zone = getRandomZoneForMode(drillMode as "all" | "front_only" | "back_only" | "front_back") || "frontForehand";
   let audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.frontForehand;
   let secondAudioPath: string | null = null;
 
@@ -90,9 +100,9 @@ function _calculateGhostMatchPace(consecutiveFastShotsRef: React.MutableRefObjec
 
 function _rotatePlayers(
   currentSettings: ShadowSettings,
-  currentPlayersRef: React.MutableRefObject<any[]>,
+  currentPlayersRef: React.MutableRefObject<ShadowPlayer[]>,
   playCountsRef: React.MutableRefObject<Record<string, number>>
-): any[] {
+): ShadowPlayer[] {
   const groupSize = currentSettings.courtsAvailable || 1;
   if (currentSettings.activePlayers.length <= groupSize) return currentPlayersRef.current;
 
@@ -216,7 +226,7 @@ type AdvanceStateRefs = {
   timerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
   isFirstActionRef: React.MutableRefObject<boolean>;
-  currentPlayersRef: React.MutableRefObject<any[]>;
+  currentPlayersRef: React.MutableRefObject<ShadowPlayer[]>;
   playCountsRef: React.MutableRefObject<Record<string, number>>;
 };
 
@@ -244,7 +254,7 @@ function _advanceFromWorking(
   currentSettings: ShadowSettings,
   refs: AdvanceStateRefs,
   updateTimeRemaining: (v: number) => void,
-  setCurrentPlayersState: (p: any[]) => void,
+  setCurrentPlayersState: (p: ShadowPlayer[]) => void,
   cleanup: () => void
 ) {
   cleanup();
@@ -362,7 +372,7 @@ function _handleTick(
 
 // ─── Extracted motivation (pure, no hook deps) ────────────────────────────────
 
-function _speakMotivation(currentPlayers: any[], motivationEnabled: boolean) {
+function _speakMotivation(currentPlayers: ShadowPlayer[], motivationEnabled: boolean) {
   if (!motivationEnabled) return;
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   if (isAudioPlaying()) return;
@@ -391,10 +401,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
 
-  const [currentPlayersState, setCurrentPlayersState] = useState<any[]>([]);
+  const [currentPlayersState, setCurrentPlayersState] = useState<ShadowPlayer[]>([]);
   const playCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
-  const currentPlayersRef = useRef<any[]>([]);
+  const currentPlayersRef = useRef<ShadowPlayer[]>([]);
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
   const [actualElapsedMs, setActualElapsedMs] = useState(0);
 
@@ -410,7 +420,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const deceptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const centerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const wakeLockRef = useRef<any>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const isFirstActionRef = useRef(false);
 
   const settingsRef = useRef(settings);
@@ -449,7 +459,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
       try {
-        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+        wakeLockRef.current = await (navigator as unknown as { wakeLock: { request(type: string): Promise<WakeLockSentinel> } }).wakeLock.request("screen");
       } catch (err) {
         console.log("Wake Lock error:", err);
       }

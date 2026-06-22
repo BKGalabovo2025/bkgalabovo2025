@@ -113,6 +113,91 @@ interface RecoveryWizardProviderProps {
   onSaleSuccess: () => void;
 }
 
+// ── Pure helper functions (reduces handleExecuteSale complexity) ───────────────
+
+function getSaleQuantity(isGuestSale: boolean, paymentMode: string, selectedMonthKeys: string[], selectedEventIds: string[]): number {
+  if (isGuestSale) return 1;
+  if (paymentMode === "subscription") return selectedMonthKeys.length || 1;
+  return selectedEventIds.length || 1;
+}
+
+function getPaidEventIdsForSale(isGuestSale: boolean, paymentMode: string, selectedEventIds: string[], getPaidEventIdsFn: () => string[]): string[] {
+  if (isGuestSale) return [];
+  if (paymentMode === "individual") return selectedEventIds;
+  return getPaidEventIdsFn();
+}
+
+function getTargetEventDates(isGuestSale: boolean, paymentMode: string, selectedEventIds: string[], memberEvents: ScheduleEvent[]): (string | null)[] | null {
+  if (isGuestSale || paymentMode !== "individual") return null;
+  return selectedEventIds
+    .map((id) => {
+      const ev = memberEvents.find((e) => e.id === id);
+      return ev ? new Date(ev.startDate).toLocaleDateString("bg-BG") : null;
+    })
+    .filter(Boolean);
+}
+
+function getClientName(isGuestSale: boolean, familyMembers: Member[]): string {
+  if (isGuestSale) return "Външен клиент";
+  return familyMembers.map((m) => `${m.firstName} ${m.lastName}`).join(", ");
+}
+
+function getSelectedMonthLabelsArr(monthlyAttendance: MonthAttendance[], selectedMonthKeys: string[]): string[] {
+  return monthlyAttendance
+    .filter((m) => selectedMonthKeys.includes(m.monthKey))
+    .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+    .map((m) => m.monthLabel);
+}
+
+function getSaleDataPayload(args: {
+  isGuestSale: boolean;
+  selectedMember: Member | null;
+  clientName: string;
+  activeBranch: string | null;
+  service: Service;
+  qty: number;
+  customPrice: number;
+  isPaid: boolean;
+  totalAmount: number;
+  paymentMethod: string;
+  note: string;
+  paymentMode: string;
+  selectedMonthKeys: string[];
+  selectedMonthLabelsArr: string[];
+  targetEventDates: (string | null)[] | null;
+  paidEventIdsForSale: string[];
+  targetMemberIds: string[];
+}) {
+  return {
+    siteId: args.activeBranch || "bkgalabovo",
+    memberId: args.isGuestSale ? "GUEST_EXTERNAL" : args.selectedMember!.id,
+    clientName: args.clientName,
+    saleDate: new Date().toISOString(),
+    items: [
+      {
+        productId: args.service.id,
+        name: args.service.name,
+        quantity: args.qty,
+        price: args.customPrice,
+      },
+    ],
+    status: "completed",
+    isPaid: args.isPaid,
+    totalAmount: args.totalAmount,
+    currency: "EUR",
+    paymentMethod: args.paymentMethod,
+    note: args.note || "",
+    type: "recovery_service",
+    paymentMode: args.isGuestSale ? null : args.paymentMode,
+    targetMonths: args.isGuestSale ? null : args.selectedMonthKeys,
+    targetMonthLabels: args.isGuestSale ? null : args.selectedMonthLabelsArr,
+    targetEventDates: args.targetEventDates,
+    paidEventIds: args.paidEventIdsForSale,
+    memberIdForAttendance: args.isGuestSale ? null : args.selectedMember?.id,
+    memberIdsForAttendance: args.isGuestSale ? null : args.targetMemberIds,
+  };
+}
+
 export const RecoveryWizardProvider = ({
   children,
   service,
@@ -201,8 +286,8 @@ export const RecoveryWizardProvider = ({
     return isSubscriptionService && service.name.toLowerCase().includes("семеен");
   }, [isSubscriptionService, service.name]);
 
-  const familyMembers = useMemo(() => {
-    if (!selectedMember || !isFamilySubscription) return [selectedMember];
+  const familyMembers = useMemo((): Member[] => {
+    if (!selectedMember || !isFamilySubscription) return selectedMember ? [selectedMember] : [];
     if (selectedMember.familyId) {
       return members.filter((m) => m.familyId === selectedMember.familyId);
     }
@@ -419,55 +504,33 @@ export const RecoveryWizardProvider = ({
     setStep(5);
 
     const customPrice = parseFloat(price);
-    const qty = isGuestSale ? 1 : paymentMode === "subscription" ? selectedMonthKeys.length || 1 : selectedEventIds.length || 1;
+    const qty = getSaleQuantity(isGuestSale, paymentMode, selectedMonthKeys, selectedEventIds);
 
     try {
-      const clientName = isGuestSale
-        ? "Външен клиент"
-        : familyMembers.map((m) => `${m!.firstName} ${m!.lastName}`).join(", ");
+      const clientName = getClientName(isGuestSale, familyMembers);
+      const selectedMonthLabelsArr = getSelectedMonthLabelsArr(monthlyAttendance, selectedMonthKeys);
+      const targetEventDates = getTargetEventDates(isGuestSale, paymentMode, selectedEventIds, memberEvents);
+      const paidEventIdsForSale = getPaidEventIdsForSale(isGuestSale, paymentMode, selectedEventIds, getPaidEventIds);
 
-      const selectedMonthLabelsArr = monthlyAttendance
-        .filter((m) => selectedMonthKeys.includes(m.monthKey))
-        .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
-        .map((m) => m.monthLabel);
-
-      const targetEventDates = isGuestSale || paymentMode !== "individual" ? null : selectedEventIds
-        .map((id) => {
-          const ev = memberEvents.find((e) => e.id === id);
-          return ev ? new Date(ev.startDate).toLocaleDateString("bg-BG") : null;
-        })
-        .filter(Boolean);
-
-      const paidEventIdsForSale = isGuestSale ? [] : paymentMode === "individual" ? selectedEventIds : getPaidEventIds();
-
-      const saleData = {
-        siteId: activeBranch || "bkgalabovo",
-        memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
-        clientName: clientName,
-        saleDate: new Date().toISOString(),
-        items: [
-          {
-            productId: service.id,
-            name: service.name,
-            quantity: qty,
-            price: customPrice,
-          },
-        ],
-        status: "completed",
-        isPaid: isPaid,
-        totalAmount: totalAmount,
-        currency: "EUR",
-        paymentMethod: paymentMethod,
-        note: note || "",
-        type: "recovery_service", // Important: type is recovery_service
-        paymentMode: isGuestSale ? null : paymentMode,
-        targetMonths: isGuestSale ? null : selectedMonthKeys,
-        targetMonthLabels: isGuestSale ? null : selectedMonthLabelsArr,
-        targetEventDates: targetEventDates,
-        paidEventIds: paidEventIdsForSale,
-        memberIdForAttendance: isGuestSale ? null : selectedMember?.id,
-        memberIdsForAttendance: isGuestSale ? null : targetMemberIds,
-      };
+      const saleData = getSaleDataPayload({
+        isGuestSale,
+        selectedMember,
+        clientName,
+        activeBranch,
+        service,
+        qty,
+        customPrice,
+        isPaid,
+        totalAmount,
+        paymentMethod,
+        note,
+        paymentMode,
+        selectedMonthKeys,
+        selectedMonthLabelsArr,
+        targetEventDates,
+        paidEventIdsForSale,
+        targetMemberIds,
+      });
 
       const result = await executeTrainingSaleAction(idToken, saleData, service.name, clientName);
 
@@ -483,9 +546,9 @@ export const RecoveryWizardProvider = ({
         setStep(4);
         toast.error("Грешка", { description: result.error || "Грешка при продажба" });
       }
-    } catch (error: any) {
+    } catch (error) {
       setStep(4);
-      toast.error("Грешка при продажба", { description: error.message });
+      toast.error("Грешка при продажба", { description: error instanceof Error ? error.message : "Възникна системна грешка" });
     } finally {
       setIsProcessing(false);
     }

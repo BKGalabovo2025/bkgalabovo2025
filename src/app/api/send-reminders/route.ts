@@ -57,7 +57,10 @@ export async function POST(request: Request) {
     let sentCount = 0;
     let failedCount = 0;
 
-    const dispatchEmail = async (member: any, memberName: string) => {
+    const dispatchEmail = async (
+      member: { id: string; email?: string | null; firstName?: string; lastName?: string },
+      memberName: string
+    ) => {
       if (!member.email) {
         console.log(
           `SKIPPING: Member ${memberName} (ID: ${member.id}) has no email address.`

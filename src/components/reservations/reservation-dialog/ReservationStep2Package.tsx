@@ -131,8 +131,13 @@ export const ReservationStep2Package = () => {
                     if (pd.client1Zone && pd.client2Zone && pd.client1Zone === pd.client2Zone) {
                       const zoneName = pd.client2Zone;
                       const z = zoneName?.toUpperCase();
-                      const key = z === "КРАКА" ? "legs" : z === "РЪЦЕ" ? "arms" : "hips";
-                      const maxQty = siteInfo?.inventory?.attachments?.[key] || 0;
+                      let key = "hips";
+                      if (z === "КРАКА") {
+                        key = "legs";
+                      } else if (z === "РЪЦЕ") {
+                        key = "arms";
+                      }
+                      const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
                       if (maxQty < 2) {
                         return (
                           <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">

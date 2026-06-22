@@ -7,9 +7,11 @@ import SalesClient from "@/app/(protected)/sales/SalesClient";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
+import { Sale, Member } from "@/types";
+
 interface FinancesClientProps {
-  initialSales: any[];
-  initialMembers: any[];
+  initialSales: Sale[];
+  initialMembers: Member[];
 }
 
 export default function FinancesClient({

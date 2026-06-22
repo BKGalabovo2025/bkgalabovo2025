@@ -135,7 +135,11 @@ export const ReservationStep4Review = () => {
                     : "bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
                 )}
               >
-                {method === "Cash" ? "В брой" : method === "Card" ? "Карта" : "Revolut"}
+                {(() => {
+                  if (method === "Cash") return "В брой";
+                  if (method === "Card") return "Карта";
+                  return "Revolut";
+                })()}
               </button>
             ))}
           </div>

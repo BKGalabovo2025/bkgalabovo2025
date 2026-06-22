@@ -46,9 +46,10 @@ export function useGeneralServices() {
       } else {
         throw new Error(salesRes.error || "Failed to fetch sales");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching general services data:", err);
-      setError(err.message || "Грешка при зареждане на данни");
+      const message = err instanceof Error ? err.message : "Грешка при зареждане на данни";
+      setError(message);
       toast.error("Грешка при зареждане на данни");
     } finally {
       setIsLoading(false);

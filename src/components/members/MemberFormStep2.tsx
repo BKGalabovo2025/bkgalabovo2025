@@ -12,8 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Phone } from "lucide-react";
 
+import { MemberFormValues } from "./member-form";
+
 interface MemberFormStep2Props {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
   selectedMemberType: string;
 }

@@ -12,10 +12,10 @@ function snapToData<T>(
   const data = doc.data();
   if (!data) return null;
 
-  const convertTimestamps = (val: any): any => {
+  const convertTimestamps = (val: unknown): unknown => {
     if (!val) return val;
-    if (typeof val.toDate === "function") {
-      return val.toDate().toISOString();
+    if (typeof (val as { toDate?: unknown }).toDate === "function") {
+      return (val as admin.firestore.Timestamp).toDate().toISOString();
     }
     if (val instanceof admin.firestore.Timestamp) {
       return val.toDate().toISOString();
@@ -24,9 +24,9 @@ function snapToData<T>(
       return val.map(convertTimestamps);
     }
     if (typeof val === "object") {
-      const copy: any = {};
+      const copy: Record<string, unknown> = {};
       for (const key of Object.keys(val)) {
-        copy[key] = convertTimestamps(val[key]);
+        copy[key] = convertTimestamps((val as Record<string, unknown>)[key]);
       }
       return copy;
     }
@@ -35,7 +35,7 @@ function snapToData<T>(
 
   return {
     id: doc.id,
-    ...convertTimestamps(data),
+    ...(convertTimestamps(data) as Record<string, unknown>),
   } as T;
 }
 
@@ -63,9 +63,9 @@ export async function getGeneralServicesServerAction(activeBranch: string) {
       );
 
     return { success: true, data: services };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getGeneralServicesServerAction:", error);
-    return { success: false, error: error.message || "Грешка при зареждане." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане." };
   }
 }
 
@@ -100,9 +100,9 @@ export async function createGeneralServiceAction(
     await adminDb.collection("generalServiceHistory").add(event);
 
     return { success: true, data: { id: docRef.id, ...serviceData } };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error createGeneralServiceAction:", error);
-    return { success: false, error: error.message || "Грешка при създаване." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при създаване." };
   }
 }
 
@@ -149,9 +149,9 @@ export async function updateGeneralServiceAction(
     await adminDb.collection("generalServiceHistory").add(event);
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updateGeneralServiceAction:", error);
-    return { success: false, error: error.message || "Грешка при редакция." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при редакция." };
   }
 }
 
@@ -186,9 +186,9 @@ export async function deleteGeneralServiceAction(id: string) {
     await adminDb.collection("generalServiceHistory").add(event);
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleteGeneralServiceAction:", error);
-    return { success: false, error: error.message || "Грешка при изтриване." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при изтриване." };
   }
 }
 
@@ -208,9 +208,9 @@ export async function getGeneralServiceHistoryAction(activeBranch: string) {
     const history = snapshot.docs.map((doc) => snapToData<GeneralServiceEvent>(doc));
 
     return { success: true, data: history };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getGeneralServiceHistoryAction:", error);
-    return { success: false, error: error.message || "Грешка при зареждане на история." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане на история." };
   }
 }
 
@@ -233,9 +233,9 @@ export async function getGeneralServiceSalesAction(activeBranch: string) {
       .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
 
     return { success: true, data: sales };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getGeneralServiceSalesAction:", error);
-    return { success: false, error: error.message || "Грешка при зареждане на продажби." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане на продажби." };
   }
 }
 
@@ -282,9 +282,9 @@ export async function executeGeneralServiceSaleAction(
     await batch.commit();
 
     return { success: true, saleId: saleRef.id };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error executeGeneralServiceSaleAction:", error);
-    return { success: false, error: error.message || "Грешка при продажба." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при продажба." };
   }
 }
 
@@ -313,8 +313,8 @@ export async function deleteGeneralServiceSaleAction(saleId: string) {
     await batch.commit();
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleteGeneralServiceSaleAction:", error);
-    return { success: false, error: error.message || "Грешка при изтриване на продажба." };
+    return { success: false, error: error instanceof Error ? error.message : "Грешка при изтриване на продажба." };
   }
 }

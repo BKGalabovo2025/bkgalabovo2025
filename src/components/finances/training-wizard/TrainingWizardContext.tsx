@@ -479,7 +479,7 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
 
       const targetEventDates = getTargetEventDates();
 
-      const saleData = {
+      const baseSaleData: Record<string, unknown> = {
         siteId: activeBranch || "bkgalabovo",
         memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
         clientName: clientName,
@@ -499,14 +499,25 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
         paymentMethod: paymentMethod,
         note: note || "",
         type: "training_service",
-        paymentMode: isGuestSale ? null : paymentMode,
-        targetMonths: isGuestSale ? null : selectedMonthKeys,
-        targetMonthLabels: isGuestSale ? null : selectedLabels,
         targetEventDates: targetEventDates,
         paidEventIds: getPaidEventIdsForSale(),
-        memberIdForAttendance: isGuestSale ? null : selectedMember?.id,
-        memberIdsForAttendance: isGuestSale ? null : targetMemberIds,
       };
+
+      if (!isGuestSale) {
+        baseSaleData.paymentMode = paymentMode;
+        baseSaleData.targetMonths = selectedMonthKeys;
+        baseSaleData.targetMonthLabels = selectedLabels;
+        baseSaleData.memberIdForAttendance = selectedMember?.id;
+        baseSaleData.memberIdsForAttendance = targetMemberIds;
+      } else {
+        baseSaleData.paymentMode = null;
+        baseSaleData.targetMonths = null;
+        baseSaleData.targetMonthLabels = null;
+        baseSaleData.memberIdForAttendance = null;
+        baseSaleData.memberIdsForAttendance = null;
+      }
+
+      const saleData = baseSaleData;
 
       const result = await executeTrainingSaleAction(idToken, saleData, service.name, clientName);
 
@@ -526,10 +537,11 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
           description: result.error || "Грешка при продажба",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStep(4);
+      const message = error instanceof Error ? error.message : "Неизвестна грешка";
       toast.error("Грешка при продажба", {
-        description: error.message,
+        description: message,
       });
     } finally {
       setIsProcessing(false);

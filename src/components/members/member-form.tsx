@@ -21,7 +21,7 @@ const MemberFormSchema = MemberSchema.omit({
   registrationDate: true,
   updatedAt: true,
 });
-type MemberFormValues = z.infer<typeof MemberFormSchema>;
+export type MemberFormValues = z.infer<typeof MemberFormSchema>;
 
 interface MemberFormProps {
   onSave: (data: MemberFormValues) => Promise<void>;
@@ -38,13 +38,13 @@ export const MemberForm = ({
   const { activeBranch } = useAppStore();
 
   // Safely convert dateOfBirth to string for Zod validation
-  const safeInitialData = { ...initialData } as any;
+  const safeInitialData = { ...initialData } as Record<string, unknown>;
   if (
     safeInitialData.dateOfBirth &&
     typeof safeInitialData.dateOfBirth !== "string"
   ) {
-    if (typeof safeInitialData.dateOfBirth?.toDate === "function") {
-      safeInitialData.dateOfBirth = safeInitialData.dateOfBirth
+    if (typeof (safeInitialData.dateOfBirth as { toDate?: () => Date })?.toDate === "function") {
+      safeInitialData.dateOfBirth = (safeInitialData.dateOfBirth as { toDate: () => Date })
         .toDate()
         .toISOString()
         .split("T")[0];

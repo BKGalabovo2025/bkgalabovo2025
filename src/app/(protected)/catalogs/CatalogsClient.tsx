@@ -9,10 +9,12 @@ import GeneralServicesClient from "@/app/(protected)/finances/general-services/G
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
 import { useAppStore } from "@/store/use-app-store";
+import { ClubService } from "@/types";
+import { Service } from "@/app/(protected)/finances/services/service.types";
 
 interface CatalogsClientProps {
-  services: any[];
-  recoveryServices: any[];
+  services: Service[];
+  recoveryServices: ClubService[];
 }
 
 export default function CatalogsClient({

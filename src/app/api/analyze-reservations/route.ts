@@ -13,7 +13,8 @@ export async function GET() {
       status: 200,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
-  } catch (error: any) {
-    return new NextResponse("Error: " + error.message, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new NextResponse("Error: " + message, { status: 500 });
   }
 }

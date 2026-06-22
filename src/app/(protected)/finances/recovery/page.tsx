@@ -15,7 +15,7 @@ async function getRecoveryServices(): Promise<ClubService[]> {
 
     const services = sessionsSnapshot.docs.map((doc) => {
       const data = doc.data();
-      const parseZones = (z: any) => {
+      const parseZones = (z: unknown) => {
         if (Array.isArray(z)) return z;
         if (typeof z === "string") return z.split(",").filter(Boolean);
         return [];

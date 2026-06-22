@@ -30,8 +30,52 @@ import {
 
 import { useAppStore } from "@/store/use-app-store";
 
+interface DashboardEvent {
+  id: string;
+  title: string;
+  startDate: string;
+  attendeesCount: number;
+}
+
+interface DashboardProduct {
+  id: string;
+  name: string;
+  stock: number;
+}
+
+interface DashboardStats {
+  revenueLast30Days?: number;
+  totalClubMembers?: number;
+  totalGuests?: number;
+  totalRecovery?: number;
+  inactiveMembersCount?: number;
+  totalFamilies?: number;
+  todayTrainingsCount?: number;
+  todayCompetitionsCount?: number;
+  todayCampsCount?: number;
+  todayOtherEventsCount?: number;
+  todayRecoveryCount?: number;
+  todayCourtCount?: number;
+  todayEventsList?: DashboardEvent[];
+  revenueTrainings?: number;
+  revenueServices?: number;
+  revenueRecovery?: number;
+  revenueCourts?: number;
+  revenueShop?: number;
+  lowStockCount?: number;
+  lowStockProducts?: DashboardProduct[];
+  newMembersCount?: number;
+  totalMembers?: number;
+  todayEventsCount?: number;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  todayTrainings: Record<string, unknown>[];
+}
+
 interface DashboardClientProps {
-  initialData: any;
+  initialData: DashboardData | null;
 }
 
 export default function DashboardClient({ initialData }: DashboardClientProps) {
@@ -40,8 +84,8 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const { t, language } = useLanguage();
   const { activeBranch } = useAppStore();
 
-  const [stats, setStats] = useState<any>(initialData?.stats || null);
-  const [todayTrainings, setTodayTrainings] = useState<any[]>(
+  const [stats, setStats] = useState<DashboardStats | null>(initialData?.stats || null);
+  const [todayTrainings, setTodayTrainings] = useState<Record<string, unknown>[]>(
     initialData?.todayTrainings || []
   );
   const loading = false;
@@ -53,43 +97,31 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     setMounted(true);
   }, []);
 
+  const checkQuotaError = (msg: string) => {
+    if (msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota")) {
+      setQuotaExhausted(true);
+    }
+  };
+
   const handleRefresh = useCallback(
     async (quiet = false) => {
-      // Don't retry if quota is known to be exhausted
       if (quiet && quotaExhausted) return;
       if (!quiet) {
         setRefreshing(true);
-        // Force clear the dashboard server cache on manual refresh
-        await invalidateDashboardCacheAction().catch((err) =>
-          console.error("Cache invalidation failed on manual refresh", err)
-        );
+        await invalidateDashboardCacheAction().catch(() => {});
       }
       try {
         const result = await getDashboardDataServerAction(activeBranch);
-        if (result.success) {
-          const data = (result as any).data;
-          if (data) {
-            setStats(data.stats);
-            setTodayTrainings(data.todayTrainings);
-            setQuotaExhausted(false);
-          }
+        if (result.success && "data" in result) {
+          const data = result.data as DashboardData;
+          setStats(data.stats);
+          setTodayTrainings(data.todayTrainings);
+          setQuotaExhausted(false);
         } else {
-          const errMsg = (result as any).error || "";
-          if (
-            errMsg.includes("RESOURCE_EXHAUSTED") ||
-            errMsg.includes("Quota")
-          ) {
-            setQuotaExhausted(true);
-          }
+          checkQuotaError(("error" in result ? result.error : "") as string);
         }
-      } catch (err: any) {
-        console.error("Error refreshing dashboard data:", err);
-        if (
-          err?.message?.includes("RESOURCE_EXHAUSTED") ||
-          err?.message?.includes("Quota")
-        ) {
-          setQuotaExhausted(true);
-        }
+      } catch (err: unknown) {
+        checkQuotaError(err instanceof Error ? err.message : String(err));
       } finally {
         if (!quiet) setRefreshing(false);
       }
@@ -218,7 +250,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
         {stats?.todayEventsList && stats.todayEventsList.length > 0 && (
           <div className="space-y-2 pt-1">
-            {stats.todayEventsList.slice(0, 3).map((event: any) => (
+            {stats.todayEventsList.slice(0, 3).map((event: DashboardEvent) => (
               <div
                 key={event.id}
                 className="flex items-start justify-between text-[10px] leading-tight bg-white/50 dark:bg-black/20 p-2 rounded-xl"
@@ -311,7 +343,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     if ((stats?.lowStockCount || 0) > 0) {
       return (
         <div className="space-y-1.5 relative">
-          {stats?.lowStockProducts?.slice(0, 4).map((p: any) => (
+          {stats?.lowStockProducts?.slice(0, 4).map((p: DashboardProduct) => (
             <div
               key={p.id}
               className="flex items-center justify-between text-[11px] leading-tight bg-white/40 dark:bg-black/20 px-2 py-1 rounded-md border border-rose-100/50 dark:border-rose-900/20"

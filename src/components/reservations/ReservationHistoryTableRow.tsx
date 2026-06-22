@@ -16,10 +16,40 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { Reservation } from "@/types";
 import { ReservationDialog } from "./reservation-dialog";
 import { DonationReceiptDialog } from "./donation-receipt-dialog";
 
-export const getReservationTitle = (res: any) => {
+export interface ReservationData {
+  id: string;
+  clientName?: string;
+  selectedZone?: string;
+  client2Name?: string;
+  client2Zone?: string;
+  clientPhone?: string;
+  client2Phone?: string;
+  status: string;
+  startTime: { toDate: () => Date };
+  endTime: { toDate: () => Date };
+  totalPrice?: number;
+  price?: number;
+  bufferAfter?: number;
+  courtId?: string | number;
+  serviceId?: string;
+  serviceName?: string;
+  currency?: string;
+  createdBy?: { userName?: string; uid?: string; email?: string };
+  teamMemberName?: string;
+  siteId?: string;
+  createdAt?: string | Date | { toDate: () => Date };
+}
+
+export interface ServiceData {
+  id: string;
+  name: string;
+}
+
+const getReservationTitle = (res: ReservationData) => {
   const c1Name = res.clientName;
   const c1Zone = res.selectedZone ? ` (${res.selectedZone})` : "";
   const c1Str = `${c1Name}${c1Zone}`;
@@ -32,7 +62,7 @@ export const getReservationTitle = (res: any) => {
   return c1Str;
 };
 
-export const getStatusLabel = (status: string) => {
+const getStatusLabel = (status: string) => {
   switch (status) {
     case "paid":
       return "Платена";
@@ -53,7 +83,7 @@ export const getStatusLabel = (status: string) => {
   }
 };
 
-export const getStatusStyles = (status: string) => {
+const getStatusStyles = (status: string) => {
   switch (status) {
     case "paid":
     case "completed":
@@ -70,8 +100,8 @@ export const getStatusStyles = (status: string) => {
 };
 
 interface ReservationHistoryTableRowProps {
-  reservation: any;
-  services: any[];
+  reservation: ReservationData;
+  services: ServiceData[];
   isPackageTail: boolean;
   mode?: "courts" | "recovery";
   handleMarkAsPaid: (id: string) => void;
@@ -194,7 +224,7 @@ export function ReservationHistoryTableRow({
           )}
 
           {res.status === "paid" && !isPackageTail && (
-            <DonationReceiptDialog reservation={res}>
+            <DonationReceiptDialog reservation={res as unknown as Reservation}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -207,7 +237,7 @@ export function ReservationHistoryTableRow({
           )}
 
           <ReservationDialog
-            reservation={res}
+            reservation={res as unknown as Reservation}
             mode={mode}
             onSave={() => {}}
           >

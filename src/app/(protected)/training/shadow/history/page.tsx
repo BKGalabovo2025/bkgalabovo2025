@@ -1,5 +1,6 @@
 import { getGlobalTrainingSessionsAction } from "@/lib/actions/trainings";
 import { getAllMembersServer } from "@/services/member-service.server";
+import { TrainingSession } from "@/types/training.types";
 
 import {
   Card,
@@ -19,7 +20,7 @@ export const metadata = {
 };
 
 export default async function GlobalShadowHistoryPage() {
-  const getModeName = (mode: string) => {
+  const getModeName = (mode?: string) => {
     if (mode === "ghost_match") return "Ghost Match";
     if (mode === "agility_test") return "Скоростен Тест";
     return "Стандартна тренировка";
@@ -29,7 +30,7 @@ export default async function GlobalShadowHistoryPage() {
     getGlobalTrainingSessionsAction(100),
     getAllMembersServer().catch(() => []),
   ]);
-  const sessions = res.success ? res.data : [];
+  const sessions = (res.success ? res.data : []) as TrainingSession[];
 
   // Build a quick id -> name lookup map
   const memberNameMap: Record<string, string> = {};
@@ -39,7 +40,7 @@ export default async function GlobalShadowHistoryPage() {
 
   // Group by member to calculate leaderboard
   const memberMinutes: Record<string, number> = {};
-  sessions.forEach((s: any) => {
+  sessions.forEach((s: TrainingSession) => {
     s.memberIds.forEach((id: string) => {
       if (!memberMinutes[id]) memberMinutes[id] = 0;
       memberMinutes[id] += (s.durationMs || 0) / 60000;
@@ -129,7 +130,7 @@ export default async function GlobalShadowHistoryPage() {
                     Няма проведени тренировки.
                   </p>
                 ) : (
-                  sessions.map((session: any) => (
+                  sessions.map((session: TrainingSession) => (
                     <div
                       key={session.id}
                       className="p-4 bg-zinc-100 dark:bg-zinc-900 rounded-xl flex justify-between items-center"
@@ -153,7 +154,7 @@ export default async function GlobalShadowHistoryPage() {
                             {session.shadowDetails?.totalSets || 0} серии
                           </div>
                         </div>
-                        <DeleteTrainingButton trainingId={session.id} />
+                        <DeleteTrainingButton trainingId={session.id!} />
                       </div>
                     </div>
                   ))

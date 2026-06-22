@@ -100,12 +100,12 @@ export function ScoreDialog({
 
   const matchOver = wins.p1 >= fmt.gamesNeededToWin || wins.p2 >= fmt.gamesNeededToWin;
 
-  const autoWinnerId =
-    wins.p1 >= fmt.gamesNeededToWin
-      ? match.player1EntryId
-      : wins.p2 >= fmt.gamesNeededToWin
-        ? match.player2EntryId
-        : null;
+  let autoWinnerId = null;
+  if (wins.p1 >= fmt.gamesNeededToWin) {
+    autoWinnerId = match.player1EntryId;
+  } else if (wins.p2 >= fmt.gamesNeededToWin) {
+    autoWinnerId = match.player2EntryId;
+  }
 
   const canSave = allGamesValid && !!autoWinnerId;
 

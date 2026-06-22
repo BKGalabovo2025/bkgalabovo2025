@@ -77,11 +77,11 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
                     <div
                       className={cn(
                         "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500",
-                        isActive
-                          ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110"
-                          : isPast
-                          ? "bg-emerald-500 text-white"
-                          : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400"
+                        (() => {
+                          if (isActive) return "bg-primary text-white shadow-lg shadow-primary/20 scale-110";
+                          if (isPast) return "bg-emerald-500 text-white";
+                          return "bg-zinc-200 dark:bg-zinc-800 text-zinc-400";
+                        })()
                       )}
                     >
                       {isPast ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
@@ -140,13 +140,15 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
                       : "bg-primary hover:bg-primary/90 shadow-primary/20 text-white"
                   )}
                 >
-                  {isSaving ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Запис...</>
-                  ) : currentStep === "review" ? (
-                    <><CheckCircle2 className="w-4 h-4 mr-2" /> Потвърди</>
-                  ) : (
-                    <>Напред <ChevronRight className="w-4 h-4 ml-2" /></>
-                  )}
+                  {(() => {
+                    if (isSaving) {
+                      return <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Запис...</>;
+                    }
+                    if (currentStep === "review") {
+                      return <><CheckCircle2 className="w-4 h-4 mr-2" /> Потвърди</>;
+                    }
+                    return <>Напред <ChevronRight className="w-4 h-4 ml-2" /></>;
+                  })()}
                 </Button>
               </div>
             </form>

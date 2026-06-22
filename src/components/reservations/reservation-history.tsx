@@ -21,6 +21,7 @@ import {
 } from "@/lib/actions/reservations";
 import { getAllRecoveryServices } from "@/services/club-service";
 import { ReservationHistoryTableRow } from "./ReservationHistoryTableRow";
+import { ClubService } from "@/types";
 
 interface ReservationHistoryProps {
   onViewInCalendar: (date: Date) => void;
@@ -33,7 +34,7 @@ export function ReservationHistory({
 }: ReservationHistoryProps) {
   const { activeBranch } = useAppStore();
   const { getFreshToken } = useAuth();
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<ClubService[]>([]);
   const effectiveBranch = mode === "recovery" ? "recoveryzone" : activeBranch;
   const { reservations, isLoading } = useReservations(effectiveBranch);
   const [searchTerm, setSearchTerm] = useState("");

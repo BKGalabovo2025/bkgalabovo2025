@@ -8,14 +8,19 @@ export const metadata = {
 };
 
 export default async function ShadowTrainingPage() {
-  let members: any[] = [];
+  let members: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    displayName: string;
+  }[] = [];
   try {
     const raw = await getAllMembersServer();
     // Pre-clean data to prevent Next.js serialization errors (e.g. Firebase Timestamps)
-    members = raw.map((m: any) => ({
+    members = raw.map((m: { id: string; firstName?: string; lastName?: string }) => ({
       id: m.id,
-      firstName: m.firstName,
-      lastName: m.lastName,
+      firstName: m.firstName || "",
+      lastName: m.lastName || "",
       displayName:
         m.firstName && m.lastName
           ? `${m.firstName} ${m.lastName}`

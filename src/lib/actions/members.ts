@@ -1,4 +1,4 @@
-﻿
+
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -11,12 +11,11 @@ import { serverCache } from "@/lib/server-cache";
 import { Member, Sale, ScheduleEvent } from "@/types";
 import * as admin from "firebase-admin";
 
-// --- Type for Server Action State ---
-export type MemberActionState = {
+export type MemberActionState<T = unknown> = {
   errors?: { [key: string]: string[] | undefined };
   message?: string | null;
   success?: boolean;
-  data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  data?: T;
 };
 
 // --- Public Server Actions ---
@@ -27,7 +26,7 @@ export type MemberActionState = {
 export async function createMemberAction(
   idToken: string,
   memberData: Record<string, unknown>
-): Promise<MemberActionState> {
+): Promise<MemberActionState<{ id: string }>> {
   try {
     const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
@@ -290,19 +289,19 @@ function snapToData<T>(
   doc: admin.firestore.QueryDocumentSnapshot | admin.firestore.DocumentSnapshot
 ): T {
   const data = doc.data();
-  if (!data) return null as any;
-  const convertTimestamps = (val: any): any => {
+  if (!data) return null as unknown as T;
+  const convertTimestamps = (val: unknown): unknown => {
     if (!val) return val;
-    if (typeof val.toDate === "function") {
-      return val.toDate().toISOString();
+    if (typeof (val as { toDate?: unknown }).toDate === "function") {
+      return (val as admin.firestore.Timestamp).toDate().toISOString();
     }
     if (Array.isArray(val)) {
       return val.map(convertTimestamps);
     }
     if (typeof val === "object") {
-      const copy: any = {};
+      const copy: Record<string, unknown> = {};
       for (const key of Object.keys(val)) {
-        copy[key] = convertTimestamps(val[key]);
+        copy[key] = convertTimestamps((val as Record<string, unknown>)[key]);
       }
       return copy;
     }
@@ -310,7 +309,7 @@ function snapToData<T>(
   };
   return {
     id: doc.id,
-    ...convertTimestamps(data),
+    ...(convertTimestamps(data) as Record<string, unknown>),
   } as T;
 }
 
@@ -326,7 +325,7 @@ interface Family {
  */
 export async function getMemberProfileDataServerAction(
   memberId: string
-): Promise<MemberActionState> {
+): Promise<MemberActionState<{ member: Member; family: Family | null; familyMembers: Member[]; attendances: ScheduleEvent[]; sales: Sale[]; }>> {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) throw new Error("Unauthorized");
@@ -436,11 +435,11 @@ export async function getMemberProfileDataServerAction(
         sales,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("getMemberProfileDataServerAction Error:", error);
     return {
       success: false,
-      message: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РїСЂРѕС„РёР»Р°.",
+      message: error instanceof Error ? error.message : "Грешка при извличане на профила.",
     };
   }
 }

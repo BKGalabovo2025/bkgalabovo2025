@@ -1,4 +1,4 @@
-import DashboardClient from "./DashboardClient";
+import DashboardClient, { DashboardData } from "./DashboardClient";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,8 +78,9 @@ export default async function DashboardPage() {
 
   // Pre-fetch the dashboard data on the server — errors are handled gracefully
   const result = await getDashboardDataServerAction(activeBranch);
-  const initialData = result.success ? (result as any).data : null;
-  const errorMessage = !result.success ? (result as any).error : null;
+  const res = result as { success: boolean; data?: DashboardData; error?: string };
+  const initialData = res.success && res.data ? res.data : null;
+  const errorMessage = !res.success ? res.error : null;
 
   if (errorMessage === "Unauthorized") {
     const { redirect } = await import("next/navigation");

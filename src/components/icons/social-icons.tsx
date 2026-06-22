@@ -1,6 +1,6 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
+ 
 /**
  * Simple inline SVG social media icons for use where lucide-react
  * does not provide brand icons.

@@ -1,11 +1,11 @@
-﻿import * as admin from "firebase-admin";
+import * as admin from "firebase-admin";
 
 let adminDb: admin.firestore.Firestore;
 let adminAuth: admin.auth.Auth;
 let adminStorage: admin.storage.Storage;
 
 
-function _tryInitWithServiceAccount(resolvedAdmin: any, serviceAccountJson: string): boolean {
+function _tryInitWithServiceAccount(resolvedAdmin: typeof admin, serviceAccountJson: string): boolean {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
     if (serviceAccount.private_key) {
@@ -23,7 +23,7 @@ function _tryInitWithServiceAccount(resolvedAdmin: any, serviceAccountJson: stri
   }
 }
 
-function _tryInitWithEnvVars(resolvedAdmin: any): boolean {
+function _tryInitWithEnvVars(resolvedAdmin: typeof admin): boolean {
   if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
     const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     resolvedAdmin.initializeApp({
@@ -40,7 +40,7 @@ function _tryInitWithEnvVars(resolvedAdmin: any): boolean {
   return false;
 }
 
-function _tryInitWithGoogleCreds(resolvedAdmin: any, googleCreds: string | undefined): boolean {
+function _tryInitWithGoogleCreds(resolvedAdmin: typeof admin, googleCreds: string | undefined): boolean {
   if (googleCreds) {
     resolvedAdmin.initializeApp({
       credential: resolvedAdmin.credential.applicationDefault(),
@@ -61,7 +61,7 @@ function initializeFirebaseAdmin() {
 
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const googleCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const resolvedAdmin: any = (admin as any).default || admin;
+  const resolvedAdmin: typeof admin = (admin as unknown as { default?: typeof admin }).default || admin;
 
   try {
     let initialized = false;

@@ -9,10 +9,10 @@ import { generateFinancialReportAction } from "@/lib/actions/reports";
 
 export const dynamic = "force-dynamic";
 
-const convertTimestamps = (val: any): any => {
+const convertTimestamps = (val: unknown): unknown => {
   if (!val) return val;
-  if (typeof val.toDate === "function") {
-    return val.toDate().toISOString();
+  if (typeof (val as { toDate?: unknown }).toDate === "function") {
+    return (val as admin.firestore.Timestamp).toDate().toISOString();
   }
   if (val instanceof admin.firestore.Timestamp) {
     return val.toDate().toISOString();
@@ -21,9 +21,9 @@ const convertTimestamps = (val: any): any => {
     return val.map(convertTimestamps);
   }
   if (typeof val === "object") {
-    const copy: any = {};
+    const copy: Record<string, unknown> = {};
     for (const key of Object.keys(val)) {
-      copy[key] = convertTimestamps(val[key]);
+      copy[key] = convertTimestamps((val as Record<string, unknown>)[key]);
     }
     return copy;
   }
@@ -39,7 +39,7 @@ function snapToData<T>(
 
   return {
     id: doc.id,
-    ...convertTimestamps(data),
+    ...(convertTimestamps(data) as Record<string, unknown>),
   } as T;
 }
 

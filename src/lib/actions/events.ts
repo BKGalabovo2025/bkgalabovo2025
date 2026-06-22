@@ -1,4 +1,4 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable sonarjs/cognitive-complexity */
 "use server";
 
@@ -8,7 +8,7 @@ import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Attendee } from "@/types";
 
-async function _findMatchingSaleForAttendee(db: any, attendee: any, monthLabel: string, monthKey: string) {
+async function _findMatchingSaleForAttendee(db: import("firebase-admin/firestore").Firestore, attendee: Attendee, monthLabel: string, monthKey: string) {
   const salesRef = db.collection("sales");
   let matchedSale = null;
 

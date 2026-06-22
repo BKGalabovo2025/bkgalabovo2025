@@ -53,6 +53,20 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
   return phoneType === "personal" ? "Личен" : "На родител";
 };
 
+// ── Status Helpers ─────────────────────────────────────────────────────────────
+
+function getFinancialStatusColor(isOverdue: boolean, hasLastPayment: boolean): string {
+  if (isOverdue) return "text-rose-600 dark:text-rose-400";
+  if (!hasLastPayment) return "text-zinc-500";
+  return "text-emerald-600 dark:text-emerald-400";
+}
+
+function getFinancialStatusLabel(isOverdue: boolean, hasLastPayment: boolean): string {
+  if (isOverdue) return "Дължи такса";
+  if (!hasLastPayment) return "Няма продажби";
+  return "Платено";
+}
+
 export const MemberDetailsCard = ({
   member,
   familyMembers,
@@ -250,10 +264,10 @@ export const MemberDetailsCard = ({
                     <span
                       className={cn(
                         "text-sm font-semibold tracking-wide",
-                        isOverdue ? "text-rose-600 dark:text-rose-400" : !lastPayment ? "text-zinc-500" : "text-emerald-600 dark:text-emerald-400"
+                        getFinancialStatusColor(isOverdue, !!lastPayment)
                       )}
                     >
-                      {isOverdue ? "Дължи такса" : !lastPayment ? "Няма продажби" : "Платено"}
+                      {getFinancialStatusLabel(isOverdue, !!lastPayment)}
                     </span>
                     {lastPayment && (
                       <>

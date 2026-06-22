@@ -35,7 +35,7 @@ interface MemberSalesHistoryTableRowProps {
   handleDeleteSale: (saleId: string) => void;
 }
 
-export function getBadgeClass(variant: string) {
+function getBadgeClass(variant: string) {
   if (variant === "default") return "bg-emerald-500 text-white";
   if (variant === "secondary") return "bg-amber-500 text-white";
   return "bg-zinc-100 text-zinc-400 border-zinc-100";

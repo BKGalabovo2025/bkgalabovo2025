@@ -9,8 +9,22 @@ import {
   getTrainingServiceSalesAction,
 } from "@/lib/actions/training-services-server";
 
+export interface TrainingEvent {
+  id: string;
+  createdAt: string | Date;
+  timestamp: string | Date;
+  serviceName: string;
+  type: string;
+  userName: string;
+  oldPrice?: number;
+  newPrice?: number;
+  clientName?: string;
+  action?: string;
+  changes?: string;
+}
+
 export function useTrainingServices() {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<TrainingEvent[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +41,7 @@ export function useTrainingServices() {
       ]);
 
       if (eventsRes.success && eventsRes.data) {
-        setEvents(eventsRes.data.filter((e: any) => e !== null));
+        setEvents(eventsRes.data.filter((e: unknown) => e !== null) as TrainingEvent[]);
       } else {
         throw new Error(eventsRes.error || "Failed to fetch events");
       }
@@ -37,10 +51,11 @@ export function useTrainingServices() {
       } else {
         throw new Error(salesRes.error || "Failed to fetch sales");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching training services data:", err);
-      setError(err.message || "Грешка при зареждане на данни");
-      toast.error("Грешка при зареждане на данни");
+      const message = err instanceof Error ? err.message : "Грешка при зареждане на данни";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

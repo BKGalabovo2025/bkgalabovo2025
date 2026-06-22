@@ -23,8 +23,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { MemberFormValues } from "./member-form";
+
 interface MemberFormStep3Props {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
   selectedMemberType: string;
 }

@@ -74,7 +74,7 @@ export const GeneralWizardStep1 = () => {
           status: "active",
           siteId: activeBranch || "bkgalabovo",
           registrationDate: new Date().toISOString(),
-        } as any;
+        } as unknown as Member;
 
         setMembers((prev) => [newGuestObj, ...prev]);
         setSelectedMember(newGuestObj);

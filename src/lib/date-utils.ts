@@ -8,7 +8,7 @@ export type DateInput = Date | string | number;
  * Standard date format for the application.
  * Example: "5 май 2026 г."
  */
-export const formatDateDisplay = (date: DateInput) => {
+const formatDateDisplay = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "d MMMM yyyy 'г.'", { locale: bg });
@@ -71,7 +71,7 @@ export const toISOStringOrUndefined = (date: unknown): string | undefined => {
  * Month and year display.
  * Example: "Май 2026"
  */
-export const formatMonthYear = (date: DateInput) => {
+const formatMonthYear = (date: DateInput) => {
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "MMMM yyyy", { locale: bg });

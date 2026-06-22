@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { getDb } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, DocumentSnapshot } from "firebase/firestore";
 import { ClubService } from "@/types";
 
-const docToClubService = (doc: any): ClubService => ({
+const docToClubService = (doc: DocumentSnapshot): ClubService => ({
   id: doc.id,
   ...doc.data(),
 }) as ClubService;

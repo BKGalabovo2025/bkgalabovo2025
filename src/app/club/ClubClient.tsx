@@ -45,7 +45,12 @@ export default function ClubClient({
   schedule,
   hallImages = [],
 }: {
-  schedule: any[];
+  schedule: {
+    id: string;
+    title: string;
+    startTime: string | Date;
+    endTime: string | Date;
+  }[];
   hallImages?: string[];
 }) {
   const [activeImage, setActiveImage] = useState(0);

@@ -197,37 +197,37 @@ export const MemberSalesHistory = ({
     }
   };
 
-  return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
-            История на продажбите
-          </h2>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-            Списък с всички регистрирани плащания и услуги.
-          </p>
-        </div>
-      </div>
-
-      {loading ? (
+  const renderContent = () => {
+    if (loading) {
+      return (
         <div className="flex justify-center py-20">
           <Loader2
             className="h-8 w-8 animate-spin text-zinc-200"
             strokeWidth={1.5}
           />
         </div>
-      ) : error ? (
+      );
+    }
+
+    if (error) {
+      return (
         <div className="p-10 text-center bg-rose-50 rounded-4xl border border-rose-100 text-rose-500 text-sm font-light">
           Грешка: {error}
         </div>
-      ) : sales.length === 0 ? (
+      );
+    }
+
+    if (sales.length === 0) {
+      return (
         <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
             Няма регистрирани продажби.
           </p>
         </div>
-      ) : (
+      );
+    }
+
+    return (
         <div className="space-y-6">
           {sortedYears.map((year) => {
             const yearSales = salesByYear[year];
@@ -384,7 +384,23 @@ export const MemberSalesHistory = ({
             );
           })}
         </div>
-      )}
-    </div>
-  );
+      );
+    };
+
+    return (
+      <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
+              История на продажбите
+            </h2>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+              Списък с всички регистрирани плащания и услуги.
+            </p>
+          </div>
+        </div>
+
+        {renderContent()}
+      </div>
+    );
 };

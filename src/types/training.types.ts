@@ -27,6 +27,6 @@ export interface TrainingSession {
 
   rpeScores?: Record<string, number>; // memberId -> 1-10
 
-  createdAt?: any;
+  createdAt?: string | Date | { toDate: () => Date };
   createdBy?: { uid: string; email: string; name?: string };
 }

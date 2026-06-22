@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { deleteSaleAction } from "@/lib/actions/sales";
 import { formatPrice } from "@/lib/currency";
+import { Sale, Member } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -48,8 +49,8 @@ import { BentoCard } from "@/components/ui/bento-card";
 import { cn } from "@/lib/utils";
 
 interface SalesClientProps {
-  initialSales: any[];
-  initialMembers: any[];
+  initialSales: Sale[];
+  initialMembers: Member[];
   showPageHeader?: boolean;
 }
 
@@ -61,7 +62,7 @@ export default function SalesClient({
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const [sales, setSales] = useState<any[]>(initialSales);
+  const [sales, setSales] = useState<Sale[]>(initialSales);
   const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 

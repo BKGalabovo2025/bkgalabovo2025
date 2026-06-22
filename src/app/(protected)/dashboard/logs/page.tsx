@@ -3,6 +3,15 @@ import { AlertTriangle, Clock, Bug, TerminalSquare } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+interface SystemLog {
+  id: string;
+  message?: string;
+  timestamp: string | number | Date;
+  path?: string;
+  context?: string;
+  stack?: string;
+}
+
 export default async function SystemLogsPage() {
   const db = getAdminDb();
 
@@ -16,7 +25,7 @@ export default async function SystemLogsPage() {
   const logs = logsSnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
-  })) as any[];
+  })) as SystemLog[];
 
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-8">
