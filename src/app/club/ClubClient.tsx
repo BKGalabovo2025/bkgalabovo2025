@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   CalendarDays,
   ArrowRight,
+  Clock,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -85,6 +86,45 @@ export default function ClubClient({
       (prev) => (prev - 1 + hallImages.length) % hallImages.length
     );
   };
+
+  // Group events by date label
+  const groupedEvents = schedule.reduce(
+    (acc, event) => {
+      const date = new Date(event.startTime);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      let label: string;
+      if (date >= today && date < tomorrow) {
+        label = "Днес";
+      } else if (
+        date >= tomorrow &&
+        date < new Date(tomorrow.getTime() + 86400000)
+      ) {
+        label = "Утре";
+      } else {
+        label = date.toLocaleDateString("bg-BG", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        // Capitalize first letter
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+
+      if (!acc[label]) acc[label] = [];
+      acc[label].push(event);
+      return acc;
+    },
+    {} as Record<string, typeof schedule>
+  );
+
+  const groups = Object.entries(groupedEvents);
+  const isSpecialLabel = (label: string) =>
+    label === "Днес" || label === "Утре";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
@@ -285,49 +325,105 @@ export default function ClubClient({
 
           <div className="bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
             {schedule.length > 0 ? (
-              <div className="space-y-4">
-                {/* Dynamically list schedule */}
-                {schedule.map((slot) => (
-                  <div
-                    key={slot.id}
-                    className={`flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-4 ${slot.isCancelled ? "opacity-60 grayscale" : ""}`}
+              <div className="space-y-10">
+                {groups.map(([dateLabel, events], groupIdx) => (
+                  <motion.div
+                    key={dateLabel}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
                   >
-                    <div className="mb-2 sm:mb-0">
-                      <div className="flex items-center gap-3">
-                        <p className={`text-white font-medium ${slot.isCancelled ? "line-through text-zinc-500" : ""}`}>{slot.title}</p>
-                        {slot.isCancelled && (
-                          <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
-                            Отменена
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-zinc-300 mt-1">
-                        {new Date(slot.startTime).toLocaleDateString("bg-BG")}
-                        &nbsp;|&nbsp;
-                        {new Date(slot.startTime).toLocaleTimeString("bg-BG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        до{" "}
-                        {new Date(slot.endTime).toLocaleTimeString("bg-BG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    {slot.isCancelled ? (
-                      <div className="text-rose-500 text-sm font-medium">
-                        {/* Empty for now as requested */}
-                      </div>
-                    ) : (
-                      <Link
-                        href="#contacts"
-                        className="text-blue-400 text-sm hover:underline"
+                    {/* Date Header */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <span
+                        className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
+                          isSpecialLabel(dateLabel)
+                            ? "bg-blue-600/20 text-blue-300 border border-blue-600/40"
+                            : "text-zinc-400"
+                        }`}
                       >
-                        Запиши се
-                      </Link>
-                    )}
-                  </div>
+                        {dateLabel}
+                      </span>
+                      <div className="flex-1 h-px bg-zinc-800" />
+                    </div>
+
+                    {/* Events for this date */}
+                    <div className="space-y-3">
+                      {events.map((event, i) => {
+                        const start = new Date(event.startTime);
+                        const end = new Date(event.endTime);
+                        const startStr = start.toLocaleTimeString("bg-BG", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                        const endStr = end.toLocaleTimeString("bg-BG", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+
+                        return (
+                          <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              duration: 0.3,
+                              delay: groupIdx * 0.05 + i * 0.04,
+                            }}
+                            className={`group border rounded-2xl px-6 py-5 flex items-center justify-between gap-4 transition-all duration-300 ${
+                              event.isCancelled
+                                ? "bg-black/40 border-rose-900/30 opacity-80"
+                                : "bg-black/70 border-zinc-800 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
+                            }`}
+                          >
+                            {/* Left side: colored bar + info */}
+                            <div className="flex items-center gap-5">
+                              <div className={`w-1 h-12 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"}`} />
+                              <div>
+                                <div className="flex items-center gap-3">
+                                  <p className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}>
+                                    {event.title}
+                                  </p>
+                                  {event.isCancelled && (
+                                    <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
+                                      Отменена
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                                  <span className="flex items-center gap-1.5 text-zinc-300 text-sm">
+                                    <Clock size={13} className="text-blue-400" />
+                                    {startStr} – {endStr}
+                                  </span>
+                                  <span className="flex items-center gap-1.5 text-zinc-400 text-sm">
+                                    <MapPin size={13} className="text-blue-400" />
+                                    Спортна зала „Енергетик&quot;
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right side: CTA or Cancelled State */}
+                            {event.isCancelled ? (
+                              <div className="flex items-center gap-2 text-rose-500 shrink-0 text-sm font-medium">
+                              </div>
+                            ) : (
+                              <Link
+                                href="#contacts"
+                                className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors shrink-0 group-hover:gap-2"
+                              >
+                                Запиши се
+                                <ChevronRight
+                                  size={15}
+                                  className="transition-transform group-hover:translate-x-0.5"
+                                />
+                              </Link>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
