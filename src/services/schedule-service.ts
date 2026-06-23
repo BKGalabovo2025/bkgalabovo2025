@@ -1,4 +1,4 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 import {
   getDocs,
   query,
@@ -51,6 +51,7 @@ export const docToScheduleEvent = (
     attendeeMemberIds: Array.isArray(data.attendeeMemberIds)
       ? data.attendeeMemberIds
       : [],
+    isCancelled: !!data.isCancelled,
   };
 };
 
