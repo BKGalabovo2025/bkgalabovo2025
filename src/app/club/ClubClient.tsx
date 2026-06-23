@@ -16,6 +16,9 @@ import {
   CalendarDays,
   ArrowRight,
   Clock,
+  Printer,
+  Info,
+  ChevronDown,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -23,6 +26,17 @@ import {
   FacebookIcon,
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatEventDateRange } from "@/lib/date-utils";
+
+type EventSlot = {
+  id: string;
+  title: string;
+  startTime: string | Date;
+  endTime: string | Date;
+  isCancelled?: boolean;
+  description?: string;
+  location?: string;
+};
 
 const activities = [
   {
@@ -46,13 +60,7 @@ export default function ClubClient({
   schedule,
   hallImages = [],
 }: {
-  schedule: {
-    id: string;
-    title: string;
-    startTime: string | Date;
-    endTime: string | Date;
-    isCancelled?: boolean;
-  }[];
+  schedule: EventSlot[];
   hallImages?: string[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -125,6 +133,139 @@ export default function ClubClient({
   const groups = Object.entries(groupedEvents);
   const isSpecialLabel = (label: string) =>
     label === "Днес" || label === "Утре";
+
+  const EventCard = ({ event, groupIdx, i }: { event: EventSlot; groupIdx: number; i: number }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    const handlePrint = () => {
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) return;
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Принтиране на събитие - ${event.title}</title>
+            <style>
+              body { font-family: sans-serif; padding: 2rem; color: #333; }
+              h1 { color: #000; }
+              .meta { color: #666; margin-bottom: 2rem; }
+              .desc { white-space: pre-wrap; line-height: 1.6; }
+            </style>
+          </head>
+          <body>
+            <h1>${event.title}</h1>
+            <div class="meta">
+              <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
+              <p><strong>Локация:</strong> ${event.location || "Спортна зала „Енергетик\""}</p>
+            </div>
+            <div class="desc">${event.description || "Няма допълнителна информация."}</div>
+            <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    };
+
+    const displayTime = formatEventDateRange(event.startTime, event.endTime);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: groupIdx * 0.05 + i * 0.04 }}
+        className={`group border rounded-2xl overflow-hidden transition-all duration-300 ${
+          event.isCancelled
+            ? "bg-black/40 border-rose-900/30 opacity-80"
+            : "bg-black/70 border-zinc-800 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
+        }`}
+      >
+        <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Left side */}
+          <div className="flex items-start gap-5">
+            <div className={`w-1 h-12 mt-1 sm:mt-0 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"}`} />
+            <div>
+              <div className="flex items-center gap-3">
+                <p className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}>
+                  {event.title}
+                </p>
+                {event.isCancelled && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
+                    Отменена
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-4 mt-2">
+                <span className="flex items-center gap-1.5 text-zinc-300 text-[13px]">
+                  <Clock size={14} className="text-blue-400" />
+                  {displayTime}
+                </span>
+                <span className="flex items-center gap-1.5 text-zinc-400 text-[13px]">
+                  <MapPin size={14} className="text-blue-400" />
+                  {event.location || "Спортна зала „Енергетик\""}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5 mt-4 sm:mt-0 ml-6 sm:ml-0">
+            <button
+              onClick={handlePrint}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors p-2"
+              title="Принтирай"
+            >
+              <Printer size={18} />
+            </button>
+
+            {event.description && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-1.5 text-blue-400/80 hover:text-blue-300 text-[13px] font-medium transition-colors"
+              >
+                <Info size={16} />
+                Бележка
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+                />
+              </button>
+            )}
+
+            {!event.isCancelled && (
+              <Link
+                href="/club#contacts"
+                className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors group-hover:gap-2 ml-2"
+              >
+                Запиши се
+                <ChevronRight
+                  size={15}
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {expanded && event.description && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="px-6 pb-5 pt-2 ml-6 sm:ml-10">
+                <div className="p-4 rounded-xl bg-blue-900/10 border border-blue-900/20">
+                  <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                    {event.description}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
@@ -349,79 +490,9 @@ export default function ClubClient({
 
                     {/* Events for this date */}
                     <div className="space-y-3">
-                      {events.map((event, i) => {
-                        const start = new Date(event.startTime);
-                        const end = new Date(event.endTime);
-                        const startStr = start.toLocaleTimeString("bg-BG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        });
-                        const endStr = end.toLocaleTimeString("bg-BG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        });
-
-                        return (
-                          <motion.div
-                            key={event.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{
-                              duration: 0.3,
-                              delay: groupIdx * 0.05 + i * 0.04,
-                            }}
-                            className={`group border rounded-2xl px-6 py-5 flex items-center justify-between gap-4 transition-all duration-300 ${
-                              event.isCancelled
-                                ? "bg-black/40 border-rose-900/30 opacity-80"
-                                : "bg-black/70 border-zinc-800 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
-                            }`}
-                          >
-                            {/* Left side: colored bar + info */}
-                            <div className="flex items-center gap-5">
-                              <div className={`w-1 h-12 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"}`} />
-                              <div>
-                                <div className="flex items-center gap-3">
-                                  <p className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}>
-                                    {event.title}
-                                  </p>
-                                  {event.isCancelled && (
-                                    <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
-                                      Отменена
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-3 mt-1.5">
-                                  <span className="flex items-center gap-1.5 text-zinc-300 text-sm">
-                                    <Clock size={13} className="text-blue-400" />
-                                    {startStr} – {endStr}
-                                  </span>
-                                  <span className="flex items-center gap-1.5 text-zinc-400 text-sm">
-                                    <MapPin size={13} className="text-blue-400" />
-                                    Спортна зала „Енергетик&quot;
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Right side: CTA or Cancelled State */}
-                            {event.isCancelled ? (
-                              <div className="flex items-center gap-2 text-rose-500 shrink-0 text-sm font-medium">
-                              </div>
-                            ) : (
-                              <Link
-                                href="#contacts"
-                                className="flex items-center gap-1.5 text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors shrink-0 group-hover:gap-2"
-                              >
-                                Запиши се
-                                <ChevronRight
-                                  size={15}
-                                  className="transition-transform group-hover:translate-x-0.5"
-                                />
-                              </Link>
-                            )}
-                          </motion.div>
-                        );
-                      })}
+                      {events.map((event, i) => (
+                        <EventCard key={event.id} event={event} groupIdx={groupIdx} i={i} />
+                      ))}
                     </div>
                   </motion.div>
                 ))}

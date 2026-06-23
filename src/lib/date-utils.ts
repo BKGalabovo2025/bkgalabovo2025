@@ -89,3 +89,31 @@ export const formatTimeRange = (
 
   return `${format(s, "dd MMM yyyy, HH:mm", { locale: bg })} ч. - ${format(e, "dd MMM yyyy, HH:mm", { locale: bg })} ч.`;
 };
+
+/**
+ * Formats event date range for UI display.
+ * Same day: "23.06.2026 (вт) | 16:00 — 17:30"
+ * Multi-day: "27.06.2026 (сб) 09:30 — 28.06.2026 (нд) 16:30"
+ */
+export const formatEventDateRange = (
+  start: DateInput,
+  end: DateInput
+) => {
+  const s = new Date(start);
+  const e = new Date(end);
+
+  if (!isValid(s) || !isValid(e)) return "Невалиден интервал";
+
+  const isSameDay = format(s, "yyyyMMdd") === format(e, "yyyyMMdd");
+
+  if (isSameDay) {
+    const dateStr = format(s, "dd.MM.yyyy (EE)", { locale: bg });
+    const timeStrS = format(s, "HH:mm");
+    const timeStrE = format(e, "HH:mm");
+    return `${dateStr} | ${timeStrS} — ${timeStrE}`;
+  }
+
+  const startStr = format(s, "dd.MM.yyyy (EE) HH:mm", { locale: bg });
+  const endStr = format(e, "dd.MM.yyyy (EE) HH:mm", { locale: bg });
+  return `${startStr} — ${endStr}`;
+};

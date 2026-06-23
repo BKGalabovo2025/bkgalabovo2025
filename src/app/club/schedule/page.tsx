@@ -53,6 +53,8 @@ export default async function SchedulePage() {
       startTime: startDateStr,
       endTime: endDateStr,
       isCancelled: !!data.isCancelled,
+      description: data.description || "",
+      location: data.location || "Спортна зала „Енергетик\"",
     };
   });
 

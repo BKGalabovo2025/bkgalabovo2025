@@ -60,6 +60,8 @@ export default async function ClubMainPage() {
       startTime: startDateStr,
       endTime: endDateStr,
       isCancelled: !!data.isCancelled,
+      description: data.description || "",
+      location: data.location || "Спортна зала „Енергетик\"",
     };
   });
 

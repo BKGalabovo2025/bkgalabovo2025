@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatFullName, getInitials } from "@/lib/utils";
+import { formatEventDateRange } from "@/lib/date-utils";
 
 interface EventListItemProps {
   event: ScheduleEvent;
@@ -68,36 +69,8 @@ export const EventListItem = React.memo<EventListItemProps>(
       const d = new Date(event.startDate);
       const de = new Date(event.endDate);
 
-      const isSameDay = d.toDateString() === de.toDateString();
-
-      const day = d.getDate().toString().padStart(2, "0");
-      const month = (d.getMonth() + 1).toString().padStart(2, "0");
-      const year = d.getFullYear();
-      const dayOfWeek = d.toLocaleDateString("bg-BG", { weekday: "short" });
-
-      const timeStart = d.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const timeEnd = de.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      let fullDate = `${day}.${month}.${year} (${dayOfWeek})`;
-      if (!isSameDay) {
-        const dayEnd = de.getDate().toString().padStart(2, "0");
-        const monthEnd = (de.getMonth() + 1).toString().padStart(2, "0");
-        const yearEnd = de.getFullYear();
-        const dayOfWeekEnd = de.toLocaleDateString("bg-BG", {
-          weekday: "short",
-        });
-        fullDate = `${fullDate} — ${dayEnd}.${monthEnd}.${yearEnd} (${dayOfWeekEnd})`;
-      }
-
       return {
-        full: fullDate,
-        timeRange: `${timeStart} — ${timeEnd}`,
+        displayStr: formatEventDateRange(event.startDate, event.endDate),
         isCurrent: new Date() >= d && new Date() <= de,
       };
     }, [event.startDate, event.endDate]);
@@ -195,11 +168,7 @@ export const EventListItem = React.memo<EventListItemProps>(
               <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium text-zinc-600 dark:text-zinc-400 tracking-wider">
                 <div className="flex items-center gap-2">
                   <CalendarIcon size={14} strokeWidth={1.5} />
-                  <span>{formattedDates.full}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock size={14} strokeWidth={1.5} />
-                  <span>{formattedDates.timeRange}</span>
+                  <span>{formattedDates.displayStr}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Tag size={14} strokeWidth={1.5} />
