@@ -7,8 +7,10 @@ import {
   Clock,
   MapPin,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface EventSlot {
   id: string;
@@ -63,6 +65,31 @@ export default function ScheduleClient({ schedule }: Props) {
   const grouped = groupByDate(schedule);
   const groups = Object.entries(grouped);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: "График - БК Гълъбово",
+      text: "Вижте предстоящите тренировки и събития на Бадминтон клуб Гълъбово.",
+      url: window.location.href,
+    };
+
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare(shareData)
+    ) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Връзката е копирана!", {
+        description: "Можете да я поставите и споделите навсякъде.",
+      });
+    }
+  };
+
   // Detect "Днес" / "Утре" for badge
   const isSpecialLabel = (label: string) =>
     label === "Днес" || label === "Утре";
@@ -92,20 +119,30 @@ export default function ScheduleClient({ schedule }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="mb-12 flex items-center gap-5"
-          >
-            <div className="h-16 w-16 bg-black border border-blue-800/50 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)]">
-              <CalendarIcon size={30} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-1">
-                График
-              </p>
-              <h1 className="text-4xl font-black tracking-tight">
-                Предстоящи Тренировки и Събития
-              </h1>
-              <p className="text-zinc-400 text-sm mt-1">
-                Вижте всички предстоящи тренировки и събития на клуба.
-              </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full">
+              <div className="flex items-center gap-5">
+                <div className="h-16 w-16 bg-black border border-blue-800/50 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)] shrink-0">
+                  <CalendarIcon size={30} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-1">
+                    График
+                  </p>
+                  <h1 className="text-4xl font-black tracking-tight">
+                    Предстоящи Тренировки
+                  </h1>
+                  <p className="text-zinc-400 text-sm mt-1">
+                    Вижте всички предстоящи събития на клуба.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleShare}
+                className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-xl border border-blue-800/30 hover:border-blue-500/50 font-semibold text-sm transition-all"
+              >
+                <Share2 size={16} />
+                Сподели Графика
+              </button>
             </div>
           </motion.div>
 
