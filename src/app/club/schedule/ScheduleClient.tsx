@@ -118,7 +118,8 @@ export default function ScheduleClient({ schedule }: Props) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-12 flex items-center gap-5"
+            className="mb-12 w-full"
+          >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full">
               <div className="flex items-center gap-5">
                 <div className="h-16 w-16 bg-black border border-blue-800/50 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)] shrink-0">
