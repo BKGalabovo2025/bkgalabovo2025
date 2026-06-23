@@ -219,15 +219,20 @@ export const useEvents = () => {
       let originalUpcoming: ScheduleEvent[] = [];
       let originalPast: ScheduleEvent[] = [];
 
-      const optimisticPayload = {
+      const optimisticPayload: Partial<ScheduleEvent> = {
         ...eventData,
-        startDate: toISOStringOrUndefined(
-          eventData.startDate as Date | Timestamp | string | undefined
-        ),
-        endDate: toISOStringOrUndefined(
-          eventData.endDate as Date | Timestamp | string | undefined
-        ),
       };
+
+      if ("startDate" in eventData) {
+        optimisticPayload.startDate = toISOStringOrUndefined(
+          eventData.startDate as Date | Timestamp | string | undefined
+        );
+      }
+      if ("endDate" in eventData) {
+        optimisticPayload.endDate = toISOStringOrUndefined(
+          eventData.endDate as Date | Timestamp | string | undefined
+        );
+      }
 
       const updater = (currentEvents: ScheduleEvent[]) =>
         currentEvents.map((e) =>
