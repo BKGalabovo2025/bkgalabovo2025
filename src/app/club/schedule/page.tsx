@@ -4,6 +4,7 @@ import ScheduleClient from "./ScheduleClient";
 
 export const metadata: Metadata = {
   title: "Пълен Календар | БК Гълъбово",
+  description: "Разширен месечен график на Бадминтон клуб Гълъбово.",
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes

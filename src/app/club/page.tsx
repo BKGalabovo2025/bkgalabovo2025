@@ -6,7 +6,7 @@ import ClubClient from "./ClubClient";
 
 export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
-  description:
+  description: "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство. Град Гълъбово.",
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes

@@ -6,6 +6,7 @@ import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 
 export const metadata: Metadata = {
   title: "Каталог | БК Гълъбово",
+  description: "Разгледайте нашите тренировки, услуги и продукти.",
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
