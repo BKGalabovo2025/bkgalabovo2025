@@ -89,7 +89,7 @@ const CourtRentalReceipt = ({
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
-      }) + " г.";
+      });
 
     const timeRange =
       start.toLocaleTimeString("bg-BG", {
@@ -121,7 +121,7 @@ const CourtRentalReceipt = ({
               </h2>
               <p className="text-[9px] font-bold">
                 № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
-                {issueDate} г.
+                {issueDate}
               </p>
               <p className="text-[9px] font-bold uppercase text-zinc-500">
                 {label}
@@ -246,7 +246,7 @@ const StandardReceipt = ({
             </h2>
             <p className="text-[10px] font-bold uppercase text-[#475569]">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
-              {issueDate} г.
+              {issueDate}
             </p>
             <p className="text-[10px] font-bold uppercase mt-1 text-[#64748b]">
               {label}
@@ -293,7 +293,7 @@ const StandardReceipt = ({
               Детайли за плащане
             </p>
             <p className="font-bold text-[#0f172a]">
-              Дата на плащане: {paymentDate} г.
+              Дата на плащане: {paymentDate}
             </p>
 
             <p className="font-bold text-[#0f172a] mt-0.5">
@@ -347,6 +347,11 @@ const StandardReceipt = ({
                   <tr key={index} className="border-b border-black font-medium">
                     <td className="p-2 border-r border-black font-bold">
                       {item.name || "(Липсва име)"}
+                      {sale?.targetMonthLabels && sale.targetMonthLabels.length > 0 && (
+                        <span className="ml-1 text-[9px] text-[#475569] font-semibold">
+                          ({sale.targetMonthLabels.join(", ")})
+                        </span>
+                      )}
 
                       {service?.name && (
                         <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
