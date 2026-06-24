@@ -108,6 +108,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Тренировъчен Планировчик и Тестове
+    match /exercises/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
+    match /planner_sessions/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
+    match /beep_test_results/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
+
     // Всичко останало е забранено по подразбиране
     match /{document=**} {
       allow read, write: if false;
