@@ -1,14 +1,12 @@
 import {
   getDocs,
-  doc,
-  getDoc,
   query,
   serverTimestamp,
   orderBy,
   deleteDoc,
+  doc,
   CollectionReference,
   addDoc,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -34,7 +32,10 @@ export const getAssessmentsByMemberId = async (
 };
 
 export const addAssessment = async (
-  assessmentData: Omit<MemberAssessment, "id" | "createdAt" | "updatedAt" | "siteId">
+  assessmentData: Omit<
+    MemberAssessment,
+    "id" | "createdAt" | "updatedAt" | "siteId"
+  >
 ): Promise<string> => {
   const dataToAdd = {
     ...assessmentData,
@@ -44,7 +45,9 @@ export const addAssessment = async (
   };
 
   const docRef = await addDoc(
-    getMemberAssessmentsCollection() as CollectionReference<Omit<MemberAssessment, "id">>,
+    getMemberAssessmentsCollection() as CollectionReference<
+      Omit<MemberAssessment, "id">
+    >,
     dataToAdd
   );
   return docRef.id;
