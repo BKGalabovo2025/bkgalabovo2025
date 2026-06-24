@@ -15,7 +15,7 @@ const SHUTTLES_PER_LEVEL = [
   16,
 ];
 
-// Plays a short beep sound using the Web Audio API
+// Plays a loud, piercing beep sound using the Web Audio API
 const playBeep = (type: "normal" | "levelUp" = "normal") => {
   try {
     const AudioContextClass =
@@ -31,29 +31,36 @@ const playBeep = (type: "normal" | "levelUp" = "normal") => {
     gainNode.connect(ctx.destination);
 
     if (type === "normal") {
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      // Square wave is much louder and more piercing than sine wave
+      osc.type = "square";
+      // 1000 Hz is the standard frequency for the beep test
+      osc.frequency.setValueAtTime(1000, ctx.currentTime);
+
+      // Full volume
       gainNode.gain.setValueAtTime(1, ctx.currentTime);
-      osc.start();
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.00001,
-        ctx.currentTime + 0.5
-      );
+      osc.start(ctx.currentTime);
+
+      // Keep it loud for 0.4 seconds, then sharply fade out in 0.1s to avoid clicking
+      gainNode.gain.setValueAtTime(1, ctx.currentTime + 0.4);
+      gainNode.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
       osc.stop(ctx.currentTime + 0.5);
     } else {
-      // Level Up triple beep
+      // Level Up beep: Long and intense, changing pitch
       osc.type = "square";
       osc.frequency.setValueAtTime(1000, ctx.currentTime);
-      gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
-      osc.start();
+      gainNode.gain.setValueAtTime(1, ctx.currentTime);
+      osc.start(ctx.currentTime);
 
-      // We will just do a longer higher pitch for level up for simplicity
-      osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.2);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.00001,
-        ctx.currentTime + 1.0
-      );
-      osc.stop(ctx.currentTime + 1.0);
+      // Pitch jumps to signify Level Up
+      osc.frequency.setValueAtTime(1300, ctx.currentTime + 0.3);
+      osc.frequency.setValueAtTime(1600, ctx.currentTime + 0.6);
+
+      // Play for 1.0 second, then fade out
+      gainNode.gain.setValueAtTime(1, ctx.currentTime + 1.0);
+      gainNode.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+
+      osc.stop(ctx.currentTime + 1.2);
     }
   } catch (e) {
     console.error("Audio API error", e);
