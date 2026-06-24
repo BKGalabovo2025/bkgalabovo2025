@@ -164,6 +164,15 @@
         { "fieldPath": "date", "order": "DESCENDING" },
         { "fieldPath": "__name__", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "member_assessments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "memberId", "order": "ASCENDING" },
+        { "fieldPath": "siteId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
     }
   ]
 }

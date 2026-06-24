@@ -26,6 +26,26 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     if (score === "Лош") return "bg-red-100 text-red-700";
     return "bg-blue-100 text-blue-700";
   };
+
+  const getBeepTestReport = (entry: BeepTestResult) => {
+    const vo2 = entry.vo2max;
+    let text = `VO2 Max (${vo2} ml/kg/min) е индикатор за аеробния капацитет. В бадминтона той отговаря за бързото възстановяване между тежките разигравания. `;
+
+    if (entry.score === "Елитен състезател") {
+      text +=
+        "Този резултат показва изключителна издръжливост. Състезателят може да поддържа интензивно темпо (Smash & Net) продължително време без спад във фокуса.";
+    } else if (entry.score === "Отличен") {
+      text +=
+        "Много силна аеробна база. Позволява стабилна игра в 3-геймови мачове и бързо изчистване на лактата в паузите.";
+    } else if (entry.score === "Добър" || entry.score === "Среден") {
+      text +=
+        "Добра основа, но при тежки турнири (много мачове в един ден) умората ще се натрупа. Препоръчват се специфични интервални тренировки на корта.";
+    } else {
+      text +=
+        "Критично нисък капацитет. Умората бързо ще влоши работата с крака (сплит степ) и точността на ударите. Нужна е спешна работа за обща издръжливост.";
+    }
+    return text;
+  };
   const { activeBranch } = useAppStore();
   const [assessments, setAssessments] = useState<MemberAssessment[]>([]);
   const [beepResults, setBeepResults] = useState<BeepTestResult[]>([]);
@@ -148,33 +168,53 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-6 border-t border-zinc-100 pt-4 space-y-3">
+          <div className="mt-6 border-t border-zinc-100 pt-4 space-y-4">
             {[...beepResults].reverse().map((entry) => (
               <div
                 key={entry.id}
-                className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm bg-indigo-50/30 px-4 py-3 rounded-xl gap-2"
+                className="flex flex-col bg-indigo-50/30 rounded-xl overflow-hidden border border-indigo-100/50"
               >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-zinc-900 text-base">
-                      Ниво {entry.level}:{entry.shuttle}
-                    </span>
-                    <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(entry.score)}`}
-                    >
-                      {entry.score}
-                    </span>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm px-5 py-4 gap-2">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="font-black text-zinc-900 text-lg">
+                        Ниво {entry.level}:{entry.shuttle}
+                      </span>
+                      <span
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(entry.score)}`}
+                      >
+                        {entry.score}
+                      </span>
+                    </div>
+                    <div className="text-zinc-600 font-medium text-sm">
+                      VO2 Max:{" "}
+                      <span className="text-indigo-600 font-black">
+                        {entry.vo2max} ml/kg/min
+                      </span>{" "}
+                      <span className="text-zinc-400 mx-1">•</span>{" "}
+                      {entry.period}
+                    </div>
                   </div>
-                  <div className="text-zinc-500 font-medium">
-                    VO2 Max:{" "}
-                    <span className="text-indigo-600 font-bold">
-                      {entry.vo2max} ml/kg/min
-                    </span>{" "}
-                    • {entry.period}
+                  <div className="text-zinc-500 font-bold text-xs sm:text-right bg-white/60 px-3 py-1.5 rounded-lg">
+                    {format(new Date(entry.date), "dd MMMM yyyy", {
+                      locale: bg,
+                    })}
                   </div>
                 </div>
-                <div className="text-zinc-500 text-xs sm:text-right">
-                  {format(new Date(entry.date), "dd MMMM yyyy", { locale: bg })}
+
+                {/* AI / Coach Report Section */}
+                <div className="bg-white/60 px-5 py-3 border-t border-indigo-100/50 flex gap-3 items-start">
+                  <div className="mt-0.5 text-indigo-400">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
+                      Треньорски Анализ
+                    </span>
+                    <p className="text-sm text-zinc-600 leading-relaxed">
+                      {getBeepTestReport(entry)}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}

@@ -23,6 +23,8 @@ export interface WakeLockSentinel {
   release(): Promise<void>;
 }
 
+export type VisualPhase = "idle" | "split_step" | "shot" | "center";
+
 export type TrainerState =
   | "idle"
   | "countdown"
@@ -162,6 +164,7 @@ type TriggerNextActionRefs = {
   deceptionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
   centerTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
   actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  setVisualPhase: (phase: VisualPhase) => void;
 };
 
 function _handleAgilityTestAction(
@@ -215,6 +218,7 @@ function _scheduleAudioAndPhases(
   const recoveryDelay = splitStepDelay + strokeDuration;
 
   // Phase 1: SPLIT STEP
+  refs.setVisualPhase("split_step");
   if (!currentSettings.visualOnly) {
     // We play split step audio, unless it's the very first action (startSet beep acts as it)
     if (!isFirst) {
@@ -247,6 +251,7 @@ function _scheduleAudioAndPhases(
       }
 
       setActiveZone(fakeResolved.zone);
+      refs.setVisualPhase("shot");
 
       // Rapidly switch to real zone
       setTimeout(
@@ -263,6 +268,7 @@ function _scheduleAudioAndPhases(
       );
     } else {
       setActiveZone(zoneToActivate);
+      refs.setVisualPhase("shot");
       if (!currentSettings.visualOnly) {
         const realSeq = [audioPath];
         if (secondAudioPath) realSeq.push(secondAudioPath);
@@ -275,6 +281,7 @@ function _scheduleAudioAndPhases(
   centerTimeoutRef.current = setTimeout(() => {
     if (stateRef.current === "working") {
       setActiveZone(null); // Clear the zone highlight
+      refs.setVisualPhase("center");
       if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
         playAudio(AUDIO_PATHS.common.center);
       }
@@ -478,6 +485,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [currentSet, setCurrentSet] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
+  const [visualPhase, setVisualPhase] = useState<VisualPhase>("idle");
 
   const [currentPlayersState, setCurrentPlayersState] = useState<
     ShadowPlayer[]
@@ -562,6 +570,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
     if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
     if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
+    setVisualPhase("idle");
     releaseWakeLock();
   }, []);
 
@@ -589,6 +598,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     deceptionTimeoutRef,
     centerTimeoutRef,
     actionTimeoutRef,
+    setVisualPhase,
   };
 
   const triggerNextAction = useCallback(() => {
@@ -812,7 +822,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     currentSet,
     timeRemaining,
     activeZone,
+    visualPhase,
     currentRotationPlayers: currentPlayersState,
+
     agilityActionsDone,
     actualElapsedMs,
     startTraining,

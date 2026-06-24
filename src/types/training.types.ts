@@ -16,6 +16,7 @@ export interface TrainingSession {
   date: string; // ISO string
   memberIds: string[];
   durationMs: number;
+  notes?: string;
 
   // Specific to Shadow Training
   shadowDetails?: {

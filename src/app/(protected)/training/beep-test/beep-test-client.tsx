@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAppStore } from "@/store/use-app-store";
 import { getAllMembers } from "@/services/member-service";
 import { beepTestService } from "@/services/beep-test-service";
@@ -92,17 +92,20 @@ export default function BeepTestClient() {
     }
   };
 
-  const filteredMembers = members.filter((m) => {
-    const ageGroup = m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "Adults";
-    const genderMatch = selectedGender === "all" || m.gender === selectedGender;
-    const ageMatch =
-      selectedAgeGroup === "all" || ageGroup === selectedAgeGroup;
-    return genderMatch && ageMatch;
-  });
+  const filteredMembers = useMemo(() => {
+    return members.filter((m) => {
+      const ageGroup = m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "Adults";
+      const genderMatch =
+        selectedGender === "all" || m.gender === selectedGender;
+      const ageMatch =
+        selectedAgeGroup === "all" || ageGroup === selectedAgeGroup;
+      return genderMatch && ageMatch;
+    });
+  }, [members, selectedAgeGroup, selectedGender]);
 
   useEffect(() => {
     setSelectedParticipantIds(filteredMembers.map((m) => m.id));
-  }, [selectedAgeGroup, selectedGender, members.length]);
+  }, [filteredMembers]);
 
   const toggleParticipant = (id: string) => {
     setSelectedParticipantIds((prev) =>
