@@ -68,6 +68,9 @@ export default function BeepTestClient() {
   const [selectedGender, setSelectedGender] = useState<string>("all");
   const [isTestStarted, setIsTestStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<
+    string[]
+  >([]);
 
   // Active Participants
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -89,23 +92,35 @@ export default function BeepTestClient() {
     }
   };
 
-  const handleSetupTest = () => {
-    // Filter members based on selection
-    const filtered = members.filter((m) => {
-      const ageGroup = m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "Adults";
-      const genderMatch =
-        selectedGender === "all" || m.gender === selectedGender;
-      const ageMatch =
-        selectedAgeGroup === "all" || ageGroup === selectedAgeGroup;
-      return genderMatch && ageMatch;
-    });
+  const filteredMembers = members.filter((m) => {
+    const ageGroup = m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "Adults";
+    const genderMatch = selectedGender === "all" || m.gender === selectedGender;
+    const ageMatch =
+      selectedAgeGroup === "all" || ageGroup === selectedAgeGroup;
+    return genderMatch && ageMatch;
+  });
 
-    if (filtered.length === 0) {
-      toast.error("Няма намерени състезатели с тези филтри");
+  useEffect(() => {
+    setSelectedParticipantIds(filteredMembers.map((m) => m.id));
+  }, [selectedAgeGroup, selectedGender, members.length]);
+
+  const toggleParticipant = (id: string) => {
+    setSelectedParticipantIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  };
+
+  const handleSetupTest = () => {
+    if (selectedParticipantIds.length === 0) {
+      toast.error("Моля, изберете поне един състезател");
       return;
     }
 
-    const initialParticipants: Participant[] = filtered.map((m) => ({
+    const finalParticipants = members.filter((m) =>
+      selectedParticipantIds.includes(m.id)
+    );
+
+    const initialParticipants: Participant[] = finalParticipants.map((m) => ({
       ...m,
       testAgeGroup: m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "Adults",
       hasDroppedOut: false,
@@ -280,11 +295,45 @@ export default function BeepTestClient() {
               </div>
             </div>
 
+            {filteredMembers.length > 0 && (
+              <div className="space-y-3 pt-4 border-t border-zinc-100">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-bold text-zinc-700">
+                    Избрани участници ({selectedParticipantIds.length})
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setSelectedParticipantIds(
+                        filteredMembers.map((m) => m.id)
+                      )
+                    }
+                    className="text-indigo-600"
+                  >
+                    Маркирай всички
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
+                  {filteredMembers.map((m) => (
+                    <div
+                      key={m.id}
+                      onClick={() => toggleParticipant(m.id)}
+                      className={`cursor-pointer p-3 rounded-xl border text-sm transition-all ${selectedParticipantIds.includes(m.id) ? "border-indigo-600 bg-indigo-50 text-indigo-900 font-bold shadow-sm" : "border-zinc-200 text-zinc-500 hover:border-indigo-300 bg-white"}`}
+                    >
+                      {m.firstName} {m.lastName}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={handleSetupTest}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg mt-4"
+              disabled={selectedParticipantIds.length === 0}
             >
-              Подготви групата
+              Старт на Теста
             </Button>
           </CardContent>
         </Card>
