@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
 import { AssessmentAgeGroup, BadmintonTest } from "@/types/assessment.types";
 import { Button } from "@/components/ui/button";
-import { Printer, ClipboardList, Target, Info } from "lucide-react";
+import { Printer, ClipboardList, Target } from "lucide-react";
 import ConductTestDialog from "./ConductTestDialog";
 
 const ageGroups: AssessmentAgeGroup[] = ["U9", "U11", "U13", "U15", "U17", "U19", "Мъже и Жени"];

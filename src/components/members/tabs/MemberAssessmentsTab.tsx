@@ -12,7 +12,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
@@ -109,7 +108,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
-                    formatter={(value: number, name: string, props: any) => [props.payload.scoreDisplay, "Резултат"]}
+                    formatter={(_value: any, _name: any, props: any) => [props.payload.scoreDisplay, "Резултат"]}
                     labelFormatter={(label) => `Дата: ${label}`}
                   />
                 </LineChart>
