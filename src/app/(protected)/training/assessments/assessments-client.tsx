@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
 import { AssessmentAgeGroup, BadmintonTest } from "@/types/assessment.types";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Printer, ClipboardList, Target } from "lucide-react";
 import ConductTestDialog from "./conduct-test-dialog";
 
@@ -21,13 +22,26 @@ export default function AssessmentsClient() {
   const [selectedTest, setSelectedTest] = useState<BadmintonTest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const [printFilter, setPrintFilter] = useState<string | "all">("all");
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setPrintFilter("all");
+    };
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => window.removeEventListener("afterprint", handleAfterPrint);
+  }, []);
+
   const handleConductTest = (test: BadmintonTest) => {
     setSelectedTest(test);
     setIsDialogOpen(true);
   };
 
-  const handlePrintBlank = () => {
-    window.print();
+  const handlePrint = (filter: string | "all") => {
+    setPrintFilter(filter);
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   return (
@@ -68,12 +82,12 @@ export default function AssessmentsClient() {
             </p>
           </div>
           <Button
-            onClick={handlePrintBlank}
+            onClick={() => handlePrint("all")}
             variant="outline"
-            className="rounded-xl border-zinc-200"
+            className="rounded-xl border-zinc-200 font-bold text-zinc-700"
           >
             <Printer className="w-4 h-4 mr-2" />
-            Принтирай бланки
+            Принтирай ВСИЧКИ
           </Button>
         </div>
 
@@ -91,8 +105,15 @@ export default function AssessmentsClient() {
             );
             if (groupTests.length === 0) return null;
 
+            let groupPrintClass = "print:hidden";
+            if (printFilter === "all") {
+              groupPrintClass = "page-break-after-always";
+            } else if (groupTests.some((t) => t.id === printFilter)) {
+              groupPrintClass = "";
+            }
+
             return (
-              <div key={group} className="mb-10 page-break-after-always">
+              <div key={group} className={cn("mb-10", groupPrintClass)}>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-lg font-black tracking-widest uppercase">
                     {group}
@@ -104,7 +125,12 @@ export default function AssessmentsClient() {
                   {groupTests.map((test: BadmintonTest) => (
                     <div
                       key={test.id}
-                      className="border border-zinc-200 rounded-xl p-5 bg-white shadow-sm flex flex-col justify-between"
+                      className={cn(
+                        "border border-zinc-200 rounded-xl p-5 bg-white shadow-sm flex flex-col justify-between",
+                        printFilter !== "all" &&
+                          printFilter !== test.id &&
+                          "print:hidden"
+                      )}
                     >
                       <div>
                         <div className="flex justify-between items-start mb-2">
@@ -143,7 +169,15 @@ export default function AssessmentsClient() {
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-end no-print">
+                      <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-end gap-2 no-print">
+                        <Button
+                          onClick={() => handlePrint(test.id)}
+                          variant="ghost"
+                          className="w-full sm:w-auto text-zinc-500 hover:text-zinc-800"
+                        >
+                          <Printer className="w-4 h-4 mr-2" />
+                          Принтирай
+                        </Button>
                         <Button
                           onClick={() => handleConductTest(test)}
                           className="w-full sm:w-auto bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold"
