@@ -25,19 +25,50 @@ import { MemberAssessmentsTab } from "./tabs/MemberAssessmentsTab";
 const MemberSalesHistory = dynamic(
   () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
   {
-    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на история...</div>,
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на история...
+      </div>
+    ),
   }
 );
 const MemberAttendanceHistory = dynamic(
-  () => import("./MemberAttendanceHistory").then((mod) => mod.MemberAttendanceHistory),
+  () =>
+    import("./MemberAttendanceHistory").then(
+      (mod) => mod.MemberAttendanceHistory
+    ),
   {
-    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на присъствия...</div>,
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на присъствия...
+      </div>
+    ),
   }
 );
 const MemberTrainingsHistory = dynamic(
-  () => import("./MemberTrainingsHistory").then((mod) => mod.MemberTrainingsHistory),
+  () =>
+    import("./MemberTrainingsHistory").then(
+      (mod) => mod.MemberTrainingsHistory
+    ),
   {
-    loading: () => <div className="p-8 text-center animate-pulse text-slate-400">Зареждане на тренировки...</div>,
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на тренировки...
+      </div>
+    ),
+  }
+);
+const MemberTrainingVolumeTab = dynamic(
+  () =>
+    import("./tabs/MemberTrainingVolumeTab").then(
+      (mod) => mod.MemberTrainingVolumeTab
+    ),
+  {
+    loading: () => (
+      <div className="p-8 text-center animate-pulse text-slate-400">
+        Зареждане на тренировъчен обем...
+      </div>
+    ),
   }
 );
 
@@ -56,13 +87,19 @@ const formatPhoneType = (phoneType: string | null | undefined) => {
 
 // ── Status Helpers ─────────────────────────────────────────────────────────────
 
-function getFinancialStatusColor(isOverdue: boolean, hasLastPayment: boolean): string {
+function getFinancialStatusColor(
+  isOverdue: boolean,
+  hasLastPayment: boolean
+): string {
   if (isOverdue) return "text-rose-600 dark:text-rose-400";
   if (!hasLastPayment) return "text-zinc-500";
   return "text-emerald-600 dark:text-emerald-400";
 }
 
-function getFinancialStatusLabel(isOverdue: boolean, hasLastPayment: boolean): string {
+function getFinancialStatusLabel(
+  isOverdue: boolean,
+  hasLastPayment: boolean
+): string {
   if (isOverdue) return "Дължи такса";
   if (!hasLastPayment) return "Няма продажби";
   return "Платено";
@@ -89,12 +126,20 @@ export const MemberDetailsCard = ({
     ? new Date(member.registrationDate).toLocaleDateString("bg-BG")
     : null;
 
-  const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(member, familyMembers, sales);
+  const { isOverdue, reason: overdueReason } = checkIsMemberOverdue(
+    member,
+    familyMembers,
+    sales
+  );
 
   const latestSaleDate = (() => {
-    const completedSales = sales.filter((s) => s.memberId === member.id && s.isPaid && s.status === "completed");
+    const completedSales = sales.filter(
+      (s) => s.memberId === member.id && s.isPaid && s.status === "completed"
+    );
     if (completedSales.length === 0) return null;
-    completedSales.sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
+    completedSales.sort(
+      (a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+    );
     return new Date(completedSales[0].saleDate);
   })();
 
@@ -177,7 +222,9 @@ export const MemberDetailsCard = ({
       const path = `avatars/${member.id}_${Date.now()}`;
       const downloadUrl = await uploadFile(path, file);
 
-      const result = await updateMemberAction(member.id, idToken, { avatarUrl: downloadUrl });
+      const result = await updateMemberAction(member.id, idToken, {
+        avatarUrl: downloadUrl,
+      });
 
       if (result.success) {
         toast.success("Снимката е обновена успешно");
@@ -220,7 +267,11 @@ export const MemberDetailsCard = ({
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 text-center md:text-left">
             <div className="relative group">
               <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
-                <AvatarImage src={member.avatarUrl ?? undefined} alt={fullName} className="object-cover animate-in fade-in duration-500" />
+                <AvatarImage
+                  src={member.avatarUrl ?? undefined}
+                  alt={fullName}
+                  className="object-cover animate-in fade-in duration-500"
+                />
                 <AvatarFallback className="text-4xl font-semibold text-zinc-400 dark:text-zinc-500 bg-zinc-100/50 dark:bg-zinc-900 flex items-center justify-center">
                   {getInitials(fullName)}
                 </AvatarFallback>
@@ -230,25 +281,42 @@ export const MemberDetailsCard = ({
                 disabled={isUploading}
                 className="absolute inset-2 flex items-center justify-center bg-zinc-950/20 backdrop-blur-sm text-white rounded-5xl opacity-0 group-hover:opacity-100 transition-all disabled:opacity-100"
               >
-                {isUploading ? <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} /> : <Camera size={32} strokeWidth={1.5} />}
+                {isUploading ? (
+                  <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} />
+                ) : (
+                  <Camera size={32} strokeWidth={1.5} />
+                )}
               </button>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
             </div>
 
             <div className="flex-1 space-y-3 sm:space-y-4 mb-2 sm:mb-4">
-              <h2 className="text-3xl sm:text-5xl font-light text-zinc-950 tracking-tighter">{fullName}</h2>
+              <h2 className="text-3xl sm:text-5xl font-light text-zinc-950 tracking-tighter">
+                {fullName}
+              </h2>
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <Badge
                   variant="outline"
                   className={cn(
                     "rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2",
-                    member.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
+                    member.status === "active"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                      : "bg-rose-50 text-rose-700 border-rose-100"
                   )}
                 >
                   {member.status === "active" ? "Активен" : "Неактивен"}
                 </Badge>
                 {ageGroup && (
-                  <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 border-zinc-100 text-zinc-400">
+                  <Badge
+                    variant="outline"
+                    className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest2 border-zinc-100 text-zinc-400"
+                  >
                     {ageGroup}
                   </Badge>
                 )}
@@ -279,7 +347,11 @@ export const MemberDetailsCard = ({
                       </>
                     )}
                   </div>
-                  {overdueReason && <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">{overdueReason}</p>}
+                  {overdueReason && (
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 font-normal">
+                      {overdueReason}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -318,7 +390,13 @@ export const MemberDetailsCard = ({
               value="trainings"
               className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
             >
-              Тренировки
+              Shadow Тренировки
+            </TabsTrigger>
+            <TabsTrigger
+              value="volume"
+              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Тренировъчен обем
             </TabsTrigger>
             <TabsTrigger
               value="assessments"
@@ -358,6 +436,10 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="trainings" className="focus-visible:outline-none">
           <MemberTrainingsHistory memberId={member.id} />
+        </TabsContent>
+
+        <TabsContent value="volume" className="focus-visible:outline-none">
+          <MemberTrainingVolumeTab memberId={member.id} />
         </TabsContent>
 
         <TabsContent value="assessments" className="focus-visible:outline-none">
