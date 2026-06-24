@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 import Link from "next/link";
 import Image from "next/image";
@@ -31,6 +28,8 @@ import {
   PanelLeft,
   Zap,
   Target,
+  Dumbbell,
+  CalendarRange,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -250,6 +249,42 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <li className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   Тренировъчен процес
                 </li>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/training/planner")}
+                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  >
+                    <Link
+                      href="/training/planner"
+                      className="flex items-center gap-3 w-full"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <CalendarRange size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">
+                        Универсален Планировчик
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/training/exercises")}
+                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  >
+                    <Link
+                      href="/training/exercises"
+                      className="flex items-center gap-3 w-full"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Dumbbell size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">База с Упражнения</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
