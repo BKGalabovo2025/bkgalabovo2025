@@ -1,0 +1,267 @@
+import { Exercise } from "@/types/planner.types";
+
+export const TACTICAL_EXERCISES: Omit<
+  Exercise,
+  "id" | "siteId" | "createdAt" | "updatedAt"
+>[] = [
+  {
+    name: "Двойки: Ротация от защита в атака (Rotations)",
+    description:
+      "Когато двойката е в защита (side-by-side) и единият вдигне късо перо (lift/clear), партньорът му излиза напред към мрежата, а той минава отзад (front-back), завършвайки ротацията.",
+    category: "tactical",
+    source: "BWF Doubles Specific",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера, корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+rotations+defense+to+attack",
+  },
+  {
+    name: "Двойки: Front-Back (Атакуваща формация)",
+    description:
+      "Единият играч е плътно на мрежата за net kill, а другият е отзад и изпълнява само smashes и drops. Противниците само се защитават.",
+    category: "tactical",
+    source: "Badminton Europe",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+front+and+back+attack",
+  },
+  {
+    name: "Смесени двойки: Позициониране на жената",
+    description:
+      "Жената стои на 'Т' линията и покрива мрежата. Мъжът покрива цялата задна част. Тренира се бързо преминаване на жената към мрежата след неин сервис.",
+    category: "tactical",
+    source: "BWF Level 3",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 25,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+mixed+doubles+positioning+woman",
+  },
+  {
+    name: "Сингъл: Изолиране на бекхенда (Pin down the backhand)",
+    description:
+      "Играч А е задължен да играе 80% от ударите си към бекхенд ъгъла на Играч Б (clear, drop, smash), за да предизвика слаб отговор.",
+    category: "tactical",
+    source: "Национални методики",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+singles+tactics+backhand",
+  },
+  {
+    name: "Сингъл: Изграждане на атаката (Clear-Drop-Smash)",
+    description:
+      "Класическа тактическа схема. Играе се 1 Clear, 1 Drop, и когато противникът вдигне неудобно перо (Lift), се завършва със Smash.",
+    category: "tactical",
+    source: "BWF Level 2",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+singles+build+attack",
+  },
+  {
+    name: "Двойки: Drive Battle в предната част",
+    description:
+      "И четиримата играчи са в предната част на корта. Играят се само бързи, плоски удари (Drives). Който вдигне перото нагоре, губи.",
+    category: "tactical",
+    source: "Badminton Asia",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+drive+battle",
+  },
+  {
+    name: "Сингъл: 2 срещу 1 (Симулация на умора)",
+    description:
+      "Един играч на цял корт срещу двама противници. Двамата разпределят перото агресивно, за да изморят и тестват тактическата издръжливост на сам играч.",
+    category: "tactical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+2+vs+1+singles+drill",
+  },
+  {
+    name: "Сервис-Ретурн (Първите 3 удара)",
+    description:
+      "Фокус върху най-важната част от двойките: Сервис (1) -> Ретурн (2) -> Трети удар на сервиращия (3). След третия удар разиграването спира.",
+    category: "tactical",
+    source: "BWF Doubles Specific",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Много пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+serve+return+3rd+shot",
+  },
+  {
+    name: "Двойки: Защита Side-by-Side с контраатака",
+    description:
+      "Двамата са в защита. Треньорът забива. Играчите трябва да блокират късо (към мрежата) и веднага да се придвижат напред (ротация в атака).",
+    category: "tactical",
+    source: "Badminton Europe",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Кош с пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+defense+counter+attack",
+  },
+  {
+    name: "Сингъл: Изтегляне в четирите ъгъла (4 Corners Drill)",
+    description:
+      "Треньорът подава пера стриктно в 4-те крайни ъгъла на корта. Играчът се учи да се връща в центъра и да пази баланс.",
+    category: "tactical",
+    source: "BWF Level 1",
+    location: ["indoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+singles+4+corners+drill",
+  },
+  {
+    name: "Cross-court Defense (Защита по диагонал)",
+    description:
+      "Противникът забива права, а защитникът винаги връща по диагонал (cross-court block). Обърква противника и го извежда от позиция.",
+    category: "tactical",
+    source: "Национални методики",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+cross+court+defense+block",
+  },
+  {
+    name: "Смесени двойки: Мъжът в защита сам",
+    description:
+      "Жената стои на мрежата клекнала (или само я пази). Мъжът трябва сам да защитава цялата задна част на корта от смашове на противника.",
+    category: "tactical",
+    source: "BWF Level 3",
+    location: ["indoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+mixed+doubles+men+defense",
+  },
+  {
+    name: "Сингъл: Отваряне на корта с Drop-Clear",
+    description:
+      "Играе се Drop по правата, последвано от бърз атакуващ Clear по диагонала. Създава огромно разстояние, което противникът трябва да покрие.",
+    category: "tactical",
+    source: "Badminton Asia",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+singles+drop+clear+tactics",
+  },
+  {
+    name: "Атака към тялото (Smash to Body)",
+    description:
+      "Вместо забиване по линиите, се забива директно в дясното рамо (гърдите) на противника. Много трудно за защита, защото блокира движението на ракетата.",
+    category: "tactical",
+    source: "Спортна физиология",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+smash+to+body+tactics",
+  },
+  {
+    name: "Двойки: Смяна на посоката (Change of Pace)",
+    description:
+      "Разиграване с много бързи Drives. Внезапно един от играчите играе много мек Drop. Тренира изненадата и ритъма.",
+    category: "tactical",
+    source: "Badminton Europe",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+change+of+pace",
+  },
+  {
+    name: "Half-Court Singles (Сингъл на половин корт)",
+    description:
+      "Двамата играчи играят само в лявата или дясната половина. Тренира контрол по правата и издръжливост.",
+    category: "tactical",
+    source: "BWF Shuttle Time",
+    location: ["indoor"],
+    ageGroups: ["U9", "U11", "U13", "U15"],
+    durationMinutes: 15,
+    equipment: "Корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+half+court+singles+drill",
+  },
+  {
+    name: "Net Play Battle (Спининг на мрежата)",
+    description:
+      "И двамата играчи стоят само на мрежата (пред сервис линията). Целта е да завъртят перото (spinning net shot) така, че противникът да го вдигне.",
+    category: "tactical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+net+play+spinning+drill",
+  },
+  {
+    name: "Смесени двойки: Push and Rush",
+    description:
+      "Жената отговаря на сервис с бързо бутане (push) в тялото на мъжа отсреща и веднага връхлита (rush) на мрежата за завършващ удар.",
+    category: "tactical",
+    source: "BWF Doubles Specific",
+    location: ["indoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+mixed+doubles+push+and+rush",
+  },
+  {
+    name: "Отваряне на форхенда",
+    description:
+      "Изпълнява се дълъг бекхенд clear, за да се принуди противника да отиде в крайно ляво, отваряйки целия му форхенд ъгъл за атака.",
+    category: "tactical",
+    source: "Национални методики",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+singles+tactics+open+forehand",
+  },
+  {
+    name: "Двойки: No Clears Rule",
+    description:
+      "Свободна игра на двойки, но е ЗАБРАНЕНО да се играе Clear (вдигане високо назад). Позволени са само Drives, Drops, Smashes и Net shots. Форсира атакуваща игра.",
+    category: "tactical",
+    source: "Badminton Europe",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пера",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+doubles+no+clears+drill",
+  },
+];

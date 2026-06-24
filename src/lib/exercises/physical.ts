@@ -1,0 +1,657 @@
+import { Exercise } from "@/types/planner.types";
+
+export const PHYSICAL_EXERCISES: Omit<
+  Exercise,
+  "id" | "siteId" | "createdAt" | "updatedAt"
+>[] = [
+  {
+    name: "Илинойс тест за бързина (Illinois Agility)",
+    description:
+      "Бързо бягане със смяна на посоката около 4 конуса. Класически тест за експлозивност и пъргавина.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["outdoor", "indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Конуси, хронометър",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+illinois+agility+test",
+  },
+  {
+    name: "BWF Beep Test",
+    description:
+      "Многостепенен фитнес тест (совалково бягане на 20м) за измерване на аеробна издръжливост.",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Аудио запис, 20 метра разстояние",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+beep+test+20m",
+  },
+  {
+    name: "Планк (Core Endurance)",
+    description:
+      "Статично задържане в планк позиция за укрепване на ядрото (core strength). Важно за превенция на контузии.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+core+plank+workout",
+  },
+  {
+    name: "Медицинска топка - хвърляне от гърди",
+    description:
+      "Експлозивно хвърляне на медицинска топка към стена или партньор за развиване на сила в горната част на тялото.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Медицинска топка (1-3 кг)",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=medicine+ball+chest+pass+badminton",
+  },
+  {
+    name: "Медицинска топка - ротационни хвърляния",
+    description:
+      "Хвърляне на медицинска топка със завъртане на трупа. Ключово за силата при форхенд и бекхенд ударите.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Медицинска топка (1-5 кг)",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+medicine+ball+rotation",
+  },
+  {
+    name: "Български клек (Bulgarian Split Squats)",
+    description:
+      "Едностранен клек с повдигнат заден крак. Перфектно за развитие на сила в квадрицепсите и глутеуса, нужни за нападателни скокове.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Пейка/кутия, евентуално тежести",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=bulgarian+split+squat+badminton",
+  },
+  {
+    name: "Shadow Badminton (Ghosting) с тежест",
+    description:
+      "Изпълнение на стандартни движения по корта с тренировъчна жилетка (2-5кг) или по-тежка ракета. Развива специфична издръжливост.",
+    category: "physical",
+    source: "BWF Level 3",
+    location: ["indoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Жилетка с тежести, корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+weighted+shadow+footwork",
+  },
+  {
+    name: "Совалково бягане 10x5 метра",
+    description:
+      "Спринт между две линии на разстояние 5 метра, докосване на земята. Развива експлозивен старт и спиране.",
+    category: "physical",
+    source: "BWF Shuttle Time",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Конуси, хронометър",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+shuttle+run+agility",
+  },
+  {
+    name: "Скачане на въже (Double Unders)",
+    description:
+      "Сложно скачане на въже, при което въжето минава два пъти под краката при един скок. Изгражда еластичност на прасците и бързина на краката.",
+    category: "physical",
+    source: "Badminton Asia",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Въже за скачане",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+jump+rope+double+unders",
+  },
+  {
+    name: "Лицеви опори с пляскане (Plyo Push-ups)",
+    description:
+      "Експлозивни лицеви опори с отделяне на ръцете от земята. Тренират скоростна сила за мощни удари от задна линия.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+plyometric+push+ups",
+  },
+  {
+    name: "Box Jumps (Скокове върху кутия)",
+    description:
+      "Скачане с два крака върху висока кутия и внимателно слизане. Изключително важно за вертикалния отскок (Jump Smash).",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Плиометрична кутия",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+box+jumps+vertical",
+  },
+  {
+    name: "Странични скокове над препятствие (Lateral Hurdle Jumps)",
+    description:
+      "Бързи странични отскоци със събрани крака над малко препятствие. Симулира натоварването при бързи стъпки в защита.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Мини хърдели",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+lateral+jumps",
+  },
+  {
+    name: "Russian Twists (Руски туистове)",
+    description:
+      "Упражнение за коремната преса и косите коремни мускули. Изпълнява се седнал, с ротация на торса от ляво на дясно, често с тежест.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Медицинска топка / Диск",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+core+russian+twists",
+  },
+  {
+    name: "Спринтове с ластици (Resistance Band Sprints)",
+    description:
+      "Спринтиране напред докато партньор създава съпротивление чрез ластик около кръста. Тренира ускорението (acceleration).",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Тренировъчен ластик (Resistance Band)",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+resistance+band+sprint",
+  },
+  {
+    name: "V-Ups (Коремни преси тип 'Ножче')",
+    description:
+      "Едновременно повдигане на краката и торса от лег, докосвайки пръстите на краката. Страхотно за експлозивна сила в коремната област.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+v+ups+core",
+  },
+  {
+    name: "Смяна на посоката по свирка (Reactive Agility)",
+    description:
+      "Играчът прави дребни стъпки на място (tipping) в центъра. При сигнал (свирка или посочване) спринтира към съответния ъгъл.",
+    category: "physical",
+    source: "BWF Level 1",
+    location: ["indoor"],
+    ageGroups: ["U9", "U11", "U13", "U15", "U17", "U19"],
+    durationMinutes: 15,
+    equipment: "Корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+reactive+agility+drills",
+  },
+  {
+    name: "Spider Drill (Паяк - Събиране на пера)",
+    description:
+      "Треньорът поставя 10 пера в ъглите. Играчът трябва да ги събере едно по едно и да ги върне в центъра, използвайки правилни стъпки.",
+    category: "physical",
+    source: "BWF Shuttle Time",
+    location: ["indoor"],
+    ageGroups: ["U9", "U11", "U13", "U15"],
+    durationMinutes: 15,
+    equipment: "Пера, корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+spider+drill+footwork",
+  },
+  {
+    name: "Стълбичка - Ики Шъфъл (Icky Shuffle)",
+    description:
+      "Координационно упражнение на координационна стълбичка. Краката влизат и излизат от квадратчетата в ритъм 1-2-3.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U9", "U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Координационна стълбичка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+agility+ladder+icky+shuffle",
+  },
+  {
+    name: "Мулти-скокове на един крак (Single Leg Hops)",
+    description:
+      "Последователни скокове на един крак напред, трениращи баланса и силата в глезена и прасеца. Превенция на контузии.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Равно трасе",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+single+leg+hops",
+  },
+  {
+    name: "Wall Sits (Седеж до стена)",
+    description:
+      "Изометрично задържане в клек до стена на 90 градуса. Развива локална мускулна издръжливост в бедрата (за дълги разигравания).",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Стена",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+wall+sit+leg+strength",
+  },
+  {
+    name: "Спринт по наклон нагоре (Hill Sprints)",
+    description:
+      "Къси максимални спринтове (20-30м) по наклон нагоре. Развива мощност и заздравява ахилесовото сухожилие.",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 25,
+    equipment: "Хълм/Наклон",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+hill+sprints+conditioning",
+  },
+  {
+    name: "Lunges (Напади с дъмбели)",
+    description:
+      "Редуващи се напади напред с тежести в ръцете. Симулира изпадането в ъглите на корта и укрепва предно бедро.",
+    category: "physical",
+    source: "BWF Level 3",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Дъмбели (2-10 кг)",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+weighted+lunges",
+  },
+  {
+    name: "Плиометрични напади с отскок (Jumping Lunges)",
+    description:
+      "Смяна на краката във въздуха от позиция напад до напад. Много агресивно упражнение за експлозивност в краката.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Собствено тегло",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+jumping+lunges",
+  },
+  {
+    name: "Хвърляне на топка за тенис към стена (Рефлекси)",
+    description:
+      "Треньорът хвърля тенис топка към стената зад играча, играчът трябва да реагира и да я хване след отскока от стената.",
+    category: "physical",
+    source: "Badminton Asia",
+    location: ["indoor"],
+    ageGroups: ["U9", "U11", "U13", "U15"],
+    durationMinutes: 10,
+    equipment: "Тенис топка, стена",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+wall+reaction+ball+drill",
+  },
+  {
+    name: "Supermans (Гръбни преси 'Супермен')",
+    description:
+      "Лег по корем, едновременно повдигане на изпънати ръце и крака. Важно за силата на кръста при Smash.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+superman+back+extension",
+  },
+  {
+    name: "Спринт с парашут",
+    description:
+      "Изпълнява се спринт със закачен мини-парашут за съпротивление. Подпомага бързите влакна и силовата скорост.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["outdoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Спортен парашут",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+speed+parachute+training",
+  },
+  {
+    name: "Dead Bug (Мъртва буболечка)",
+    description:
+      "От лег по гръб, редуващо се спускане на противоположни ръка и крак, без да се отлепя кръста от пода. За стабилно ядро.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+dead+bug+core+exercise",
+  },
+  {
+    name: "Фоумролер (Foam Rolling & Mobility)",
+    description:
+      "Самомасаж и мобилност с фоумролер след тежка тренировка. Разпуска фасцията и помага за възстановяването.",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Foam roller",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+foam+rolling+recovery",
+  },
+  {
+    name: "Burpees (Бърпита)",
+    description:
+      "Комбинирано упражнение: клек, лицева опора, клек, скок. Изтощително кардио за максимална издръжливост.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Собствено тегло",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+burpees+stamina",
+  },
+  {
+    name: "Обиколки на стадион (Endurance Run)",
+    description:
+      "Бягане на дълги разстояния (напр. 3000-5000м) в монотонно темпо. Изгражда базовата аеробна основа.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 30,
+    equipment: "Стадион / Парк",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+aerobic+base+running",
+  },
+  {
+    name: "Тяга (Deadlift) с щанга",
+    description:
+      "Основно силово упражнение за цялата задна верига (прасци, бедра, глутеус, гръб). Само за напреднали състезатели с правилна техника.",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Щанга, тежести",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+deadlift+strength+training",
+  },
+  {
+    name: "Кръгове на ръцете с тежести (Shoulder Endurance)",
+    description:
+      "Малки кръгови движения с ръце встрани, държейки много леки тежести (0.5кг). Предпазва раменната става от контузии.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Бутилки с вода / Леки дъмбели",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+shoulder+rotator+cuff+exercises",
+  },
+  {
+    name: "Скачане над пейка (Bench Hops)",
+    description:
+      "Хващане на ръбовете на пейката с ръце и експлозивно прескачане на краката от едната към другата страна.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Пейка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+bench+hops+agility",
+  },
+  {
+    name: "T-Test за бързина",
+    description:
+      "Бягане във формата на буквата Т: спринт напред, странични стъпки наляво, надясно, връщане в центъра и бягане назад.",
+    category: "physical",
+    source: "BWF Level 3",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "4 Конуса, хронометър",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+t+test+agility",
+  },
+  {
+    name: "Mountain Climbers (Планински катерач)",
+    description:
+      "От лицева опора бързо и експлозивно придвижване на коленете към гърдите. Комбинира ядро и кардио.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+mountain+climbers",
+  },
+  {
+    name: "Разтягане на таза (Hip Mobility)",
+    description:
+      "Динамични и статични упражнения за отваряне на таза (Pigeon pose, 90/90). Предотвратява разтежения при големи напади.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Постелка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+hip+mobility+stretches",
+  },
+  {
+    name: "Knees to Chest (Скок с прибиране на коленете)",
+    description:
+      "Отскок максимално високо нагоре, прибирайки двете колене към гърдите. Тренира мощта на краката.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Собствено тегло",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+tuck+jumps",
+  },
+  {
+    name: "Разгъване на китка с тежест (Wrist Curls)",
+    description:
+      "Сгъване и разгъване на китката с малка тежест, опряна на коляното. Засилва предмишницата за мощна защита и net-kill.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["indoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Дъмбел (1-3 кг)",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+wrist+forearm+exercises",
+  },
+  {
+    name: "Wall Ball Toss (Хвърляне на топка в стена)",
+    description:
+      "Клек с медицинска топка и експлозивното ѝ хвърляне високо на стената. Използва кинетичната верига от краката до ръцете.",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Медицинска топка, стена",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+wall+balls+power",
+  },
+  {
+    name: "Farmers Walk (Фермерска разходка)",
+    description:
+      "Ходене с тежки дъмбели в двете ръце. Изгражда здрав хват, стабилно ядро и сила в раменете.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Тежки дъмбели/пудовки",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+farmers+walk+grip+strength",
+  },
+  {
+    name: "Shadow Movement с ластик (Bungee Cord)",
+    description:
+      "Играчът е вързан с бънджи ластик за стълб зад корта. Прави стъпки напред и се връща със съпротивление.",
+    category: "physical",
+    source: "Badminton Asia",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Бънджи въже, корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+bungee+resistance+footwork",
+  },
+  {
+    name: "Nordic Hamstring Curls (Нордик сгъвания)",
+    description:
+      "Партньор държи глезените, докато играчът бавно се спуска напред от колене. Най-доброто упражнение срещу контузии на задно бедро.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Постелка, партньор",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+nordic+hamstring+curl",
+  },
+  {
+    name: "Скачане на въже (High Knees)",
+    description:
+      "Скачане на въже с високо повдигане на коленете към гърдите. Изисква бързина и много въздух.",
+    category: "physical",
+    source: "BWF Shuttle Time",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Въже за скачане",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+jump+rope+high+knees",
+  },
+  {
+    name: "Изометричен хват с кърпа (Towel Grip)",
+    description:
+      "Хващане на дебела кърпа и стискане максимално силно за 30 секунди. Увеличава издръжливостта на предмишницата за мачове от 3 гейма.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Кърпа",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+towel+grip+strength",
+  },
+  {
+    name: "Дълги скокове от място (Broad Jumps)",
+    description:
+      "Скок напред с два крака от място за максимално разстояние. Измерва и тренира хоризонтална експлозивна сила.",
+    category: "physical",
+    source: "BWF Level 2 Physical",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Метър за измерване",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+broad+jumps+power",
+  },
+  {
+    name: "Suicide Sprints (Совалки с докосване на линии)",
+    description:
+      "Спринт до сервизна линия - връщане, спринт до мрежата - връщане, спринт до края на корта - връщане. Убийствено кардио.",
+    category: "physical",
+    source: "Национални методики",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Корт",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+suicide+drills+sprints",
+  },
+  {
+    name: "L-Sit (Гимнастически седеж)",
+    description:
+      "Задържане на тялото във въздуха на ръце, докато краката са изпънати напред (под формата на Г). Брутално натоварване за ядрото.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Успоредка или 2 кутии",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+gymnastics+core+L+sit",
+  },
+  {
+    name: "Вдигане на щанга от лег (Bench Press)",
+    description:
+      "Базово силово упражнение за гърдите, раменете и трицепса. Прави се в основен период (off-season).",
+    category: "physical",
+    source: "BWF High Performance",
+    location: ["indoor"],
+    ageGroups: ["U19", "Мъже и Жени"],
+    durationMinutes: 20,
+    equipment: "Щанга, лежанка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+bench+press+strength",
+  },
+  {
+    name: "Стълбичка - Вън, Вътре (In-Out Shuffle)",
+    description:
+      "Двата крака влизат в стълбичката, след което излизат встрани. Супер за бързата смяна на посоката в бадминтона.",
+    category: "physical",
+    source: "Badminton Europe",
+    location: ["indoor", "outdoor"],
+    ageGroups: ["U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 10,
+    equipment: "Координационна стълбичка",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+agility+ladder+in+out",
+  },
+  {
+    name: "Интервали на велоергометър (Tabata Bike)",
+    description:
+      "20 секунди максимален спринт на колело, 10 секунди почивка. Повтаря се 8 пъти. Изолира краката и щади ставите.",
+    category: "physical",
+    source: "Спортна физиология",
+    location: ["indoor"],
+    ageGroups: ["U15", "U17", "U19", "Мъже и Жени"],
+    durationMinutes: 15,
+    equipment: "Велоергометър",
+    videoUrl:
+      "https://www.youtube.com/results?search_query=badminton+tabata+bike+workout",
+  },
+];
