@@ -214,8 +214,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     );
 
     return (
-      <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 h-full flex flex-col">
-        <Card className="border-none shadow-2xl bg-zinc-950 flex-1 flex flex-col overflow-hidden text-white relative">
+      <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300 w-full flex flex-col">
+        <Card className="border-none shadow-2xl bg-zinc-950 w-full flex flex-col text-white relative">
           {/* Top Rotation Bar */}
           <div className="bg-zinc-900 border-b border-zinc-800 p-4 flex flex-col md:flex-row gap-4 justify-between items-center shrink-0">
             <div className="flex items-center gap-3">
@@ -254,22 +254,22 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
           </div>
 
           {/* Main Dashboard Area */}
-          <CardContent className="p-6 md:p-10 flex-1 flex flex-col md:flex-row gap-10 items-center justify-between">
+          <CardContent className="p-4 md:p-8 flex-1 flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-between">
             {/* Left side: Court */}
-            <div className="flex-1 w-full max-w-[400px] flex items-center justify-center">
+            <div className="flex-1 w-full max-w-[280px] md:max-w-[400px] flex items-center justify-center">
               <CourtVisualizer
                 activeZone={trainer.activeZone}
                 visualPhase={trainer.visualPhase}
-                className="w-full scale-110 origin-center"
+                className="w-full scale-100 md:scale-110 origin-center"
               />
             </div>
 
             {/* Right side: Timer & Controls */}
-            <div className="flex-1 w-full space-y-12 flex flex-col items-center md:items-start text-center md:text-left">
-              <div className="space-y-4">
+            <div className="flex-1 w-full space-y-6 md:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
+              <div className="space-y-2 md:space-y-4">
                 <div className="inline-flex items-center px-4 py-2 bg-zinc-900 rounded-full border border-zinc-800">
                   <span className="w-3 h-3 rounded-full bg-primary animate-pulse mr-3" />
-                  <span className="text-zinc-300 font-bold tracking-widest uppercase">
+                  <span className="text-zinc-300 font-bold tracking-widest uppercase text-sm md:text-base">
                     {trainer.state === "countdown"
                       ? "Приготви се..."
                       : trainer.state === "working"
@@ -282,11 +282,11 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                   </span>
                 </div>
 
-                <div className="text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                <div className="text-8xl md:text-9xl lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
                   {trainer.timeRemaining}
                 </div>
 
-                <p className="text-zinc-400 text-2xl font-medium mt-4">
+                <p className="text-zinc-400 text-xl md:text-2xl font-medium mt-2 md:mt-4">
                   {settings.mode === "agility_test"
                     ? trainer.state === "working"
                       ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
@@ -297,38 +297,41 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-md">
                 {trainer.state === "idle" ? (
                   <Button
                     size="lg"
-                    className="col-span-2 h-24 text-3xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_0_40px_rgba(var(--primary),0.3)]"
+                    className="col-span-2 h-20 md:h-24 text-2xl md:text-3xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_0_40px_rgba(var(--primary),0.3)]"
                     onClick={trainer.startTraining}
                   >
-                    <Play className="mr-4 w-10 h-10" /> СТАРТ
+                    <Play className="mr-3 md:mr-4 w-8 h-8 md:w-10 md:h-10" />{" "}
+                    СТАРТ
                   </Button>
                 ) : (
                   <>
                     {trainer.state === "paused" ? (
                       <Button
                         size="lg"
-                        className="h-24 text-2xl font-black bg-green-600 hover:bg-green-700 rounded-2xl"
+                        className="h-20 md:h-24 text-xl md:text-2xl font-black bg-green-600 hover:bg-green-700 rounded-2xl"
                         onClick={trainer.resumeTraining}
                       >
-                        <Play className="mr-3 w-8 h-8" /> ПРОДЪЛЖИ
+                        <Play className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                        ПРОДЪЛЖИ
                       </Button>
                     ) : (
                       <Button
                         size="lg"
-                        className="h-24 text-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-yellow-950 rounded-2xl"
+                        className="h-20 md:h-24 text-xl md:text-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-yellow-950 rounded-2xl"
                         onClick={trainer.pauseTraining}
                       >
-                        <Pause className="mr-3 w-8 h-8" /> ПАУЗА
+                        <Pause className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                        ПАУЗА
                       </Button>
                     )}
                     <Button
                       size="lg"
                       variant="destructive"
-                      className="h-24 text-2xl font-black rounded-2xl"
+                      className="h-20 md:h-24 text-xl md:text-2xl font-black rounded-2xl"
                       onClick={() => {
                         const confirmExit = confirm(
                           "Сигурни ли сте, че искате да спрете тренировката предсрочно?"
@@ -336,7 +339,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                         if (confirmExit) trainer.stopTraining();
                       }}
                     >
-                      <Square className="mr-3 w-8 h-8" /> СТОП
+                      <Square className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                      СТОП
                     </Button>
                   </>
                 )}
@@ -350,7 +354,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
 
   // SCREEN 1: Setup
   return (
-    <div className="w-full h-full flex flex-col space-y-6 animate-in fade-in duration-300 pb-20">
+    <div className="w-full flex flex-col space-y-4 md:space-y-6 animate-in fade-in duration-300 pb-20">
       <div className="flex items-center gap-3 px-2">
         <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
           <Settings2 className="text-white" size={24} />

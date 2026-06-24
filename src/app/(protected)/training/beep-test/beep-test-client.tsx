@@ -307,14 +307,22 @@ export default function BeepTestClient() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      setSelectedParticipantIds(
-                        filteredMembers.map((m) => m.id)
-                      )
-                    }
+                    onClick={() => {
+                      if (
+                        selectedParticipantIds.length === filteredMembers.length
+                      ) {
+                        setSelectedParticipantIds([]);
+                      } else {
+                        setSelectedParticipantIds(
+                          filteredMembers.map((m) => m.id)
+                        );
+                      }
+                    }}
                     className="text-indigo-600"
                   >
-                    Маркирай всички
+                    {selectedParticipantIds.length === filteredMembers.length
+                      ? "Размаркирай всички"
+                      : "Маркирай всички"}
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
