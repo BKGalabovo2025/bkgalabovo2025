@@ -113,11 +113,19 @@ service cloud.firestore {
       allow read: if request.auth != null; 
       allow write: if isAdmin() && hasValidSiteId(); 
     }
+    match /member_assessments/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
     match /planner_sessions/{docId} { 
       allow read: if request.auth != null; 
       allow write: if isAdmin() && hasValidSiteId(); 
     }
     match /beep_test_results/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
+    match /member_shadow_analytics/{docId} { 
       allow read: if request.auth != null; 
       allow write: if isAdmin() && hasValidSiteId(); 
     }

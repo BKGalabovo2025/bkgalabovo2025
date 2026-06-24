@@ -35,8 +35,11 @@ export interface ShadowSettings {
   mode: "standard" | "ghost_match" | "agility_test";
   preset: string;
   drillMode: "all" | "front_only" | "back_only" | "front_back";
+  cornersMode: "4-corners" | "6-corners";
+  ageGroup: "U9-U11" | "U13-U15" | "U17+";
+  drillPattern: "random" | "fixed-triangle" | "fixed-net-back" | "mixed";
   sets: number;
-  workSec: number; // For agility_test, this will be the Target Actions
+  workSec: number;
   restSec: number;
   paceSec: number;
   deceptionEnabled: boolean;
@@ -44,7 +47,7 @@ export interface ShadowSettings {
   visualOnly: boolean;
   calloutMode: "zones" | "shots" | "mixed" | "zones_and_shots";
   centerCommandEnabled: boolean;
-  activePlayers: ShadowPlayer[]; // The full selected players array
+  activePlayers: ShadowPlayer[];
   courtsAvailable: number;
 }
 
@@ -52,32 +55,56 @@ export interface ShadowSettings {
 
 function _resolveAudioPathsAndZone(
   drillMode: string,
-  calloutMode: string
+  calloutMode: string,
+  cornersMode: "4-corners" | "6-corners" = "6-corners",
+  drillPattern: string = "random",
+  lastZone: ZoneId | null = null
 ) {
-  const zone = getRandomZoneForMode(drillMode as "all" | "front_only" | "back_only" | "front_back") || "frontForehand";
-  let audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.frontForehand;
+  let zone: ZoneId = getRandomZoneForMode(
+    drillMode as "all" | "front_only" | "back_only" | "front_back",
+    cornersMode
+  );
+
+  // Implement Fixed Patterns if not random
+  if (drillPattern === "fixed-net-back" && lastZone) {
+    if (lastZone.startsWith("front")) {
+      // Force back
+      const pool =
+        cornersMode === "4-corners"
+          ? ["backForehand", "backBackhand"]
+          : ["backForehand", "backBackhand", "overhead"];
+      zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
+    } else {
+      // Force front
+      const pool = ["frontForehand", "frontBackhand"];
+      zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
+    }
+  }
+
+  let audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
   let secondAudioPath: string | null = null;
 
   const isShotMode =
-    calloutMode === "shots" ||
-    (calloutMode === "mixed" && Math.random() > 0.5);
+    calloutMode === "shots" || (calloutMode === "mixed" && Math.random() > 0.5);
 
   if (isShotMode) {
     if (zone.startsWith("mid")) {
-      audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.midForehand;
-      secondAudioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+      audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.midForehand;
+      secondAudioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
     } else {
-      audioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+      audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
     }
   } else if (calloutMode === "zones_and_shots") {
-    audioPath = AUDIO_PATHS.zones[zone as ZoneId] || AUDIO_PATHS.zones.frontForehand;
-    secondAudioPath = getRandomShotForZone(zone as ZoneId) || AUDIO_PATHS.shots.defense;
+    audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
+    secondAudioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
   }
 
-  return { zone: zone as ZoneId, audioPath, secondAudioPath };
+  return { zone, audioPath, secondAudioPath };
 }
 
-function _calculateGhostMatchPace(consecutiveFastShotsRef: React.MutableRefObject<number>): number {
+function _calculateGhostMatchPace(
+  consecutiveFastShotsRef: React.MutableRefObject<number>
+): number {
   let pace = 3;
   if (consecutiveFastShotsRef.current >= 3) {
     if (Math.random() > 0.2) {
@@ -104,7 +131,8 @@ function _rotatePlayers(
   playCountsRef: React.MutableRefObject<Record<string, number>>
 ): ShadowPlayer[] {
   const groupSize = currentSettings.courtsAvailable || 1;
-  if (currentSettings.activePlayers.length <= groupSize) return currentPlayersRef.current;
+  if (currentSettings.activePlayers.length <= groupSize)
+    return currentPlayersRef.current;
 
   currentPlayersRef.current.forEach((p) => {
     if (playCountsRef.current[p.id] !== undefined) {
@@ -116,7 +144,10 @@ function _rotatePlayers(
     const cA = playCountsRef.current[a.id] || 0;
     const cB = playCountsRef.current[b.id] || 0;
     if (cA !== cB) return cA - cB;
-    return currentSettings.activePlayers.indexOf(a) - currentSettings.activePlayers.indexOf(b);
+    return (
+      currentSettings.activePlayers.indexOf(a) -
+      currentSettings.activePlayers.indexOf(b)
+    );
   });
 
   return sorted.slice(0, groupSize);
@@ -155,69 +186,105 @@ function _handleAgilityTestAction(
   return false;
 }
 
-function _scheduleAudio(
+function _scheduleAudioAndPhases(
   isFirst: boolean,
   pace: number,
   audioPath: string,
   secondAudioPath: string | null,
-  deceptionEnabled: boolean,
-  deceptionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
-  stateRef: React.MutableRefObject<TrainerState>,
-  drillMode: string,
-  calloutMode: string
-) {
-  if (deceptionEnabled && Math.random() < 0.1) {
-    const fakeResolved = _resolveAudioPathsAndZone(drillMode, calloutMode);
-    const fakeSequence: string[] = [];
-    if (isFirst) fakeSequence.push(AUDIO_PATHS.common.beep);
-    fakeSequence.push(fakeResolved.audioPath);
-    if (fakeResolved.secondAudioPath) fakeSequence.push(fakeResolved.secondAudioPath);
-    playAudioSequence(fakeSequence);
-
-    const deceptionDelay = Math.max(300, Math.min(pace * 1000 * 0.35, 800));
-    deceptionTimeoutRef.current = setTimeout(() => {
-      if (stateRef.current !== "working") return;
-      const realSequence = [audioPath];
-      if (secondAudioPath) realSequence.push(secondAudioPath);
-      playAudioSequence(realSequence);
-    }, deceptionDelay);
-  } else {
-    const sequence: string[] = [];
-    if (isFirst) sequence.push(AUDIO_PATHS.common.beep);
-    sequence.push(audioPath);
-    if (secondAudioPath) sequence.push(secondAudioPath);
-    playAudioSequence(sequence);
-  }
-}
-
-function _scheduleNextAction(
-  pace: number,
-  secondAudioPath: string | null,
-  centerCommandEnabled: boolean,
-  visualOnly: boolean,
-  centerTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
-  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>,
-  stateRef: React.MutableRefObject<TrainerState>,
+  currentSettings: ShadowSettings,
+  refs: TriggerNextActionRefs,
   setActiveZone: (zone: ZoneId | null) => void,
+  zoneToActivate: ZoneId,
   triggerNextAction: () => void
 ) {
-  if (centerCommandEnabled && !visualOnly) {
-    centerTimeoutRef.current = setTimeout(() => {
-      if (stateRef.current === "working") {
+  const { deceptionTimeoutRef, stateRef, centerTimeoutRef, actionTimeoutRef } =
+    refs;
+
+  // Biomechanical Phase Timing based on Age Group
+  const ageGroup = currentSettings.ageGroup;
+  let splitStepDelay = pace * 0.15; // e.g. 0.45s for 3.0s pace
+  let strokeDuration = pace * 0.5; // e.g. 1.50s for 3.0s pace
+
+  if (ageGroup === "U9-U11") {
+    splitStepDelay = Math.max(0.5, pace * 0.15); // Kids need clear split step
+  } else if (ageGroup === "U17+") {
+    splitStepDelay = Math.min(0.25, pace * 0.1); // Lightning fast for adults
+    strokeDuration = pace * 0.45;
+  }
+
+  const recoveryDelay = splitStepDelay + strokeDuration;
+
+  // Phase 1: SPLIT STEP
+  if (!currentSettings.visualOnly) {
+    // We play split step audio, unless it's the very first action (startSet beep acts as it)
+    if (!isFirst) {
+      playAudio(AUDIO_PATHS.common.splitStep);
+    } else {
+      playAudio(AUDIO_PATHS.common.beep);
+    }
+  }
+
+  // Phase 2: STROKE (Zone command & highlight)
+  deceptionTimeoutRef.current = setTimeout(() => {
+    if (stateRef.current !== "working") return;
+
+    // Optional Deception (only for U15+, or if strictly enabled)
+    const canDeceive = currentSettings.deceptionEnabled && Math.random() < 0.15;
+
+    if (canDeceive) {
+      const fakeResolved = _resolveAudioPathsAndZone(
+        currentSettings.drillMode,
+        currentSettings.calloutMode,
+        currentSettings.cornersMode,
+        "random"
+      );
+
+      if (!currentSettings.visualOnly) {
+        const fakeSeq = [fakeResolved.audioPath];
+        if (fakeResolved.secondAudioPath)
+          fakeSeq.push(fakeResolved.secondAudioPath);
+        playAudioSequence(fakeSeq);
+      }
+
+      setActiveZone(fakeResolved.zone);
+
+      // Rapidly switch to real zone
+      setTimeout(
+        () => {
+          if (stateRef.current !== "working") return;
+          setActiveZone(zoneToActivate);
+          if (!currentSettings.visualOnly) {
+            const realSeq = [audioPath];
+            if (secondAudioPath) realSeq.push(secondAudioPath);
+            playAudioSequence(realSeq);
+          }
+        },
+        Math.max(300, splitStepDelay * 1000)
+      );
+    } else {
+      setActiveZone(zoneToActivate);
+      if (!currentSettings.visualOnly) {
+        const realSeq = [audioPath];
+        if (secondAudioPath) realSeq.push(secondAudioPath);
+        playAudioSequence(realSeq);
+      }
+    }
+  }, splitStepDelay * 1000);
+
+  // Phase 3: RECOVERY TO BASE
+  centerTimeoutRef.current = setTimeout(() => {
+    if (stateRef.current === "working") {
+      setActiveZone(null); // Clear the zone highlight
+      if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
         playAudio(AUDIO_PATHS.common.center);
       }
-    }, (pace * 1000) / 2);
-  }
-  const expectedAudioFiles = 1 + (secondAudioPath ? 1 : 0);
-  const approxAudioDuration = expectedAudioFiles * 900;
-  let nextPaceMs = pace * 1000;
-  if (nextPaceMs < approxAudioDuration) {
-    nextPaceMs = approxAudioDuration + 200;
-  }
+    }
+  }, recoveryDelay * 1000);
+
+  // Phase 4: Next Cycle
   actionTimeoutRef.current = setTimeout(() => {
-    setActiveZone(null);
-    actionTimeoutRef.current = setTimeout(triggerNextAction, 300);
-  }, nextPaceMs);
+    triggerNextAction();
+  }, pace * 1000);
 }
 
 type AdvanceStateRefs = {
@@ -265,7 +332,11 @@ function _advanceFromWorking(
     refs.stateRef.current = "finished";
     if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
   } else {
-    const nextPlayers = _rotatePlayers(currentSettings, refs.currentPlayersRef, refs.playCountsRef);
+    const nextPlayers = _rotatePlayers(
+      currentSettings,
+      refs.currentPlayersRef,
+      refs.playCountsRef
+    );
     if (nextPlayers !== refs.currentPlayersRef.current) {
       refs.currentPlayersRef.current = nextPlayers;
       setCurrentPlayersState(nextPlayers);
@@ -287,7 +358,10 @@ function _advanceFromResting(
   refs.stateRef.current = "countdown";
   updateTimeRemaining(10);
   if (!currentSettings.visualOnly) {
-    playAudioSequence([AUDIO_PATHS.common.endRest, AUDIO_PATHS.common.startSet]);
+    playAudioSequence([
+      AUDIO_PATHS.common.endRest,
+      AUDIO_PATHS.common.startSet,
+    ]);
   }
 }
 
@@ -372,13 +446,17 @@ function _handleTick(
 
 // ─── Extracted motivation (pure, no hook deps) ────────────────────────────────
 
-function _speakMotivation(currentPlayers: ShadowPlayer[], motivationEnabled: boolean) {
+function _speakMotivation(
+  currentPlayers: ShadowPlayer[],
+  motivationEnabled: boolean
+) {
   if (!motivationEnabled) return;
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   if (isAudioPlaying()) return;
 
   if (currentPlayers.length > 0) {
-    const randomPlayer = currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
+    const randomPlayer =
+      currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
     if (!randomPlayer?.displayName) return;
     const firstName = randomPlayer.displayName.split(" ")[0] || "играч";
     const phrases = [
@@ -401,7 +479,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
 
-  const [currentPlayersState, setCurrentPlayersState] = useState<ShadowPlayer[]>([]);
+  const [currentPlayersState, setCurrentPlayersState] = useState<
+    ShadowPlayer[]
+  >([]);
   const playCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
   const currentPlayersRef = useRef<ShadowPlayer[]>([]);
@@ -459,7 +539,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
       try {
-        wakeLockRef.current = await (navigator as unknown as { wakeLock: { request(type: string): Promise<WakeLockSentinel> } }).wakeLock.request("screen");
+        wakeLockRef.current = await (
+          navigator as unknown as {
+            wakeLock: { request(type: string): Promise<WakeLockSentinel> };
+          }
+        ).wakeLock.request("screen");
       } catch (err) {
         console.log("Wake Lock error:", err);
       }
@@ -497,8 +581,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, []);
 
   const actionRefs: TriggerNextActionRefs = {
-    stateRef, settingsRef, agilityActionsDoneRef, isFirstActionRef,
-    consecutiveFastShotsRef, deceptionTimeoutRef, centerTimeoutRef, actionTimeoutRef,
+    stateRef,
+    settingsRef,
+    agilityActionsDoneRef,
+    isFirstActionRef,
+    consecutiveFastShotsRef,
+    deceptionTimeoutRef,
+    centerTimeoutRef,
+    actionTimeoutRef,
   };
 
   const triggerNextAction = useCallback(() => {
@@ -511,8 +601,16 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       isFirstActionRef.current = false;
 
       if (currentSettings.mode === "agility_test") {
-        const finished = _handleAgilityTestAction(isFirst, actionRefs, setAgilityActionsDone, cleanup);
-        if (finished) { setState("finished"); return; }
+        const finished = _handleAgilityTestAction(
+          isFirst,
+          actionRefs,
+          setAgilityActionsDone,
+          cleanup
+        );
+        if (finished) {
+          setState("finished");
+          return;
+        }
       }
 
       const pace =
@@ -521,43 +619,52 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           : currentSettings.paceSec;
 
       const { zone, audioPath, secondAudioPath } = _resolveAudioPathsAndZone(
-        currentSettings.drillMode, currentSettings.calloutMode
+        currentSettings.drillMode,
+        currentSettings.calloutMode,
+        currentSettings.cornersMode,
+        currentSettings.drillPattern,
+        activeZone
       );
-      setActiveZone(zone);
 
-      if (!currentSettings.visualOnly) {
-        _scheduleAudio(
-          isFirst, pace, audioPath, secondAudioPath,
-          currentSettings.deceptionEnabled, deceptionTimeoutRef, stateRef,
-          currentSettings.drillMode, currentSettings.calloutMode
-        );
-      }
-
-      _scheduleNextAction(
-        pace, secondAudioPath,
-        currentSettings.centerCommandEnabled, currentSettings.visualOnly,
-        centerTimeoutRef, actionTimeoutRef, stateRef, setActiveZone, triggerNextAction
+      _scheduleAudioAndPhases(
+        isFirst,
+        pace,
+        audioPath,
+        secondAudioPath,
+        currentSettings,
+        actionRefs,
+        setActiveZone,
+        zone,
+        triggerNextAction
       );
     } catch (error) {
       console.error("Error in triggerNextAction", error);
       const pace = settingsRef.current?.paceSec || 3;
       actionTimeoutRef.current = setTimeout(triggerNextAction, pace * 1000);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanup]);
 
   const speakMotivation = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;
-      _speakMotivation(currentPlayersRef.current, !!currentSettings?.motivationEnabled);
+      _speakMotivation(
+        currentPlayersRef.current,
+        !!currentSettings?.motivationEnabled
+      );
     } catch (e) {
       console.error("Speech synthesis error", e);
     }
   }, []);
 
   const advanceStateRefs: AdvanceStateRefs = {
-    stateRef, currentSetRef, timerRef, actionTimeoutRef,
-    isFirstActionRef, currentPlayersRef, playCountsRef,
+    stateRef,
+    currentSetRef,
+    timerRef,
+    actionTimeoutRef,
+    isFirstActionRef,
+    currentPlayersRef,
+    playCountsRef,
   };
 
   const advanceState = useCallback(() => {
@@ -573,23 +680,33 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (phase === "countdown") {
       setState("working");
       _advanceFromCountdown(
-        currentSettings, advanceStateRefs, updateTimeRemaining,
-        setAgilityActionsDone, requestWakeLock, triggerNextAction
+        currentSettings,
+        advanceStateRefs,
+        updateTimeRemaining,
+        setAgilityActionsDone,
+        requestWakeLock,
+        triggerNextAction
       );
     } else if (phase === "working") {
       setActiveZone(null);
       _advanceFromWorking(
-        currentSettings, advanceStateRefs, updateTimeRemaining,
-        setCurrentPlayersState, cleanup
+        currentSettings,
+        advanceStateRefs,
+        updateTimeRemaining,
+        setCurrentPlayersState,
+        cleanup
       );
       setState(advanceStateRefs.stateRef.current);
     } else if (phase === "resting") {
       setState("countdown");
       _advanceFromResting(
-        currentSettings, advanceStateRefs, updateTimeRemaining, setCurrentSet
+        currentSettings,
+        advanceStateRefs,
+        updateTimeRemaining,
+        setCurrentSet
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanup, triggerNextAction, updateTimeRemaining]);
 
   useEffect(() => {

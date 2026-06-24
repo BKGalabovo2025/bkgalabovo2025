@@ -42,23 +42,27 @@ describe("useShadowTrainer Comprehensive Variations", () => {
   // Helper to create settings
   const createSettings = (
     overrides: Partial<ShadowSettings> = {}
-  ): ShadowSettings => ({
-    mode: "standard",
-    preset: "custom",
-    drillMode: "all",
-    sets: 2,
-    workSec: 15,
-    restSec: 5,
-    paceSec: 3,
-    deceptionEnabled: false,
-    motivationEnabled: false,
-    visualOnly: false,
-    calloutMode: "zones",
-    centerCommandEnabled: false,
-    activePlayers: basePlayers,
-    courtsAvailable: 1,
-    ...overrides,
-  });
+  ): ShadowSettings =>
+    ({
+      mode: "standard",
+      preset: "custom",
+      drillMode: "all",
+      sets: 2,
+      workSec: 15,
+      restSec: 5,
+      paceSec: 3,
+      deceptionEnabled: false,
+      motivationEnabled: false,
+      visualOnly: false,
+      calloutMode: "zones",
+      centerCommandEnabled: false,
+      activePlayers: basePlayers,
+      courtsAvailable: 1,
+      cornersMode: "6-corners",
+      ageGroup: "U17+",
+      drillPattern: "mixed",
+      ...overrides,
+    }) as ShadowSettings;
 
   const advanceSeconds = (seconds: number) => {
     for (let i = 0; i < seconds; i++) {

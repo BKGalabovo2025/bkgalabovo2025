@@ -1,6 +1,3 @@
- 
- 
- 
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ShadowWizard } from "../ShadowWizard";
@@ -163,7 +160,12 @@ describe("ShadowWizard Component Flow", () => {
       fireEvent.click(saveBtn);
     });
 
-    expect(window.confirm).toHaveBeenCalled();
+    const finalSaveBtn = screen.getByText("Запази Окончателно");
+    expect(finalSaveBtn).toBeDefined();
+
+    await act(async () => {
+      fireEvent.click(finalSaveBtn);
+    });
 
     expect(window.confirm).toHaveBeenCalled();
 
@@ -201,6 +203,12 @@ describe("ShadowWizard Component Flow", () => {
 
     await act(async () => {
       fireEvent.click(saveBtn);
+    });
+
+    const finalSaveBtn = screen.getByText("Запази Окончателно");
+
+    await act(async () => {
+      fireEvent.click(finalSaveBtn);
     });
 
     // Should NOT trigger the sub-10s warning

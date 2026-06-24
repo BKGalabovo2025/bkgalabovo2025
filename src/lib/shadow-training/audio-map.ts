@@ -1,10 +1,11 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Defines the available audio files and helper functions for Shadow Training
 
 export const AUDIO_PATHS = {
   common: {
     startSet: "/shadow/common/podgotvi_se.mp3",
-    beep: "/shadow/common/lek_podskok.mp3", // Note: will be replaced with synthetic beep in code
+    beep: "/shadow/common/lek_podskok.mp3", // Synthentic or light beep
+    splitStep: "/shadow/common/split_step.mp3", // NEW: Split step command ("Хоп")
     endSet: "/shadow/common/krai.mp3",
     rest: "/shadow/common/pochivka.mp3",
     endRest: "/shadow/common/krai_pochivka.mp3",
@@ -20,23 +21,23 @@ export const AUDIO_PATHS = {
     overhead: "/shadow/zones/overhead_zadna_linia.mp3",
   },
   shots: {
-    clearStraight: "/shadow/shots/iztegliane_po_prava.mp3",
-    clearCross: "/shadow/shots/iztegliane_po_diagonal.mp3",
-    smashStraight: "/shadow/shots/smach_po_prava.mp3",
-    smashCross: "/shadow/shots/smach_po_diagonal.mp3",
-    jumpSmashStraight: "/shadow/shots/smach_s_otskok_po_prava.mp3",
-    jumpSmashCross: "/shadow/shots/smach_s_otskok_po_diagonal.mp3",
-    halfSmashStraight: "/shadow/shots/polusmach_po_prava.mp3",
-    halfSmashCross: "/shadow/shots/polusmach_po_diagonal.mp3",
-    dropStraight: "/shadow/shots/skasiavane_prava.mp3",
-    dropCross: "/shadow/shots/skasiavane_po_diagonal.mp3",
+    clearStraight: "/shadow/shots/klir_prava.mp3",
+    clearCross: "/shadow/shots/klir_diagonal.mp3",
+    smashStraight: "/shadow/shots/smash_prava.mp3",
+    smashCross: "/shadow/shots/smash_diagonal.mp3",
+    jumpSmashStraight: "/shadow/shots/smash_otskok_prava.mp3",
+    jumpSmashCross: "/shadow/shots/smash_otskok_diagonal.mp3",
+    halfSmashStraight: "/shadow/shots/polusmash_prava.mp3",
+    halfSmashCross: "/shadow/shots/polusmash_diagonal.mp3",
+    dropStraight: "/shadow/shots/drop_prava.mp3",
+    dropCross: "/shadow/shots/drop_diagonal.mp3",
     netKill: "/shadow/shots/dobivane.mp3",
-    netStraight: "/shadow/shots/kuso_prava.mp3",
-    netCross: "/shadow/shots/kuso_diagonal.mp3",
-    liftStraight: "/shadow/shots/dulgo_po_prava.mp3", // Only 1 .mp3 extension here
-    liftCross: "/shadow/shots/dulgo_po_diagonal.mp3",
-    driveStraight: "/shadow/shots/plosko_po_prava.mp3",
-    driveCross: "/shadow/shots/plosko_po_diagonal.mp3",
+    netStraight: "/shadow/shots/kus_prava.mp3",
+    netCross: "/shadow/shots/kus_diagonal.mp3",
+    liftStraight: "/shadow/shots/lift_prava.mp3",
+    liftCross: "/shadow/shots/lift_diagonal.mp3",
+    driveStraight: "/shadow/shots/drayv_prava.mp3",
+    driveCross: "/shadow/shots/drayv_diagonal.mp3",
     defense: "/shadow/shots/zashtita.mp3",
   },
 };
@@ -45,13 +46,13 @@ export type ZoneId = keyof typeof AUDIO_PATHS.zones;
 export type ShotId = keyof typeof AUDIO_PATHS.shots;
 
 export const ZONE_NAMES: Record<ZoneId, string> = {
-  frontForehand: "Р¤РѕСЂС…РµРЅРґ РњСЂРµР¶Р°",
-  midForehand: "Р¤РѕСЂС…РµРЅРґ РЎСЂРµРґР°",
-  backForehand: "Р¤РѕСЂС…РµРЅРґ Р—Р°РґРЅР°",
-  frontBackhand: "Р‘РµРєС…РµРЅРґ РњСЂРµР¶Р°",
-  midBackhand: "Р‘РµРєС…РµРЅРґ РЎСЂРµРґР°",
-  backBackhand: "Р‘РµРєС…РµРЅРґ Р—Р°РґРЅР°",
-  overhead: "РћСѓРІСЉСЂС…РµРґ",
+  frontForehand: "Форхенд Мрежа",
+  midForehand: "Форхенд Среда",
+  backForehand: "Форхенд Задна Линия",
+  frontBackhand: "Бекхенд Мрежа",
+  midBackhand: "Бекхенд Среда",
+  backBackhand: "Бекхенд Задна Линия",
+  overhead: "Оувърхед",
 };
 
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
@@ -62,22 +63,26 @@ export function getRandomZone(): ZoneId {
 }
 
 export function getRandomZoneForMode(
-  modeType: "all" | "front_only" | "back_only" | "front_back"
+  modeType: "all" | "front_only" | "back_only" | "front_back",
+  cornersMode: "4-corners" | "6-corners" = "6-corners"
 ): ZoneId {
   let pool = ZONES_ARRAY;
-  if (modeType === "front_only") {
-    pool = ["frontForehand", "frontBackhand"];
-  } else if (modeType === "back_only") {
-    pool = ["backForehand", "backBackhand", "overhead"];
-  } else if (modeType === "front_back") {
-    pool = [
-      "frontForehand",
-      "frontBackhand",
-      "backForehand",
-      "backBackhand",
-      "overhead",
-    ];
+
+  if (cornersMode === "4-corners") {
+    // 4 corners strictly excludes midcourt
+    pool = ["frontForehand", "frontBackhand", "backForehand", "backBackhand"];
   }
+
+  if (modeType === "front_only") {
+    pool = pool.filter((z) => z.startsWith("front"));
+  } else if (modeType === "back_only") {
+    pool = pool.filter((z) => z.startsWith("back") || z === "overhead");
+  } else if (modeType === "front_back") {
+    pool = pool.filter((z) => !z.startsWith("mid"));
+  }
+
+  if (pool.length === 0) pool = ["frontForehand"];
+
   const index = Math.floor(Math.random() * pool.length);
   return pool[index];
 }
@@ -210,7 +215,8 @@ class AudioManager {
   public playSyntheticBeep() {
     if (typeof window === "undefined" || !window.AudioContext) return;
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       const audioCtx = new AudioContextClass();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
@@ -252,8 +258,11 @@ export const shadowAudioManager = getAudioManager();
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
     shadowAudioManager.playOverlay(path);
-  } else if (path === AUDIO_PATHS.common.beep) {
-    shadowAudioManager.playSyntheticBeep();
+  } else if (
+    path === AUDIO_PATHS.common.beep ||
+    path === AUDIO_PATHS.common.splitStep
+  ) {
+    shadowAudioManager.playSyntheticBeep(); // Can be changed to play real splitStep file if provided
   } else {
     shadowAudioManager.playVoice(path);
   }
@@ -356,4 +365,3 @@ export function preloadAudioForSettings(settings: any) {
     fetch(url).catch(() => {});
   });
 }
-

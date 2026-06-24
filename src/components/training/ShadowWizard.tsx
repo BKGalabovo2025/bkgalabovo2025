@@ -30,6 +30,9 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     mode: "standard",
     preset: "custom",
     drillMode: "all",
+    cornersMode: "6-corners",
+    ageGroup: "U13-U15",
+    drillPattern: "random",
     sets: 3,
     workSec: 45,
     restSec: 15,
@@ -42,6 +45,9 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     activePlayers: [], // Empty initially
     courtsAvailable: 1,
   });
+
+  const [showRpeDialog, setShowRpeDialog] = useState(false);
+  const [rpeScores, setRpeScores] = useState<Record<string, number>>({});
 
   const trainer = useShadowTrainer(step === 5 ? settings : null);
 
@@ -78,6 +84,9 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         shadowDetails: {
           mode: settings.mode,
           preset: settings.preset as any,
+          cornersMode: settings.cornersMode,
+          ageGroup: settings.ageGroup,
+          drillPattern: settings.drillPattern,
           setsCompleted: trainer.currentSet,
           totalSets: settings.sets,
           workTimeSec:
@@ -86,6 +95,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               : settings.workSec,
           restTimeSec: settings.restSec,
           deceptionEnabled: settings.deceptionEnabled,
+          rpeScores,
         },
       });
       alert("Тренировката е запазена успешно!");
@@ -108,7 +118,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  onClick={handleSave}
+                  onClick={() => setShowRpeDialog(true)}
                   className="bg-white text-green-900 hover:bg-zinc-200"
                 >
                   <Save className="mr-2 h-5 w-5" />
@@ -130,6 +140,65 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                   Затвори без запис
                 </Button>
               </div>
+
+              {/* RPE Dialog inside Finished state */}
+              {showRpeDialog && (
+                <div className="absolute inset-0 bg-zinc-950/95 z-[60] flex flex-col items-center justify-center p-6 overflow-y-auto">
+                  <h3 className="text-xl font-bold mb-2">
+                    Оценка на умората (RPE)
+                  </h3>
+                  <p className="text-sm text-zinc-400 mb-6 text-center max-w-md">
+                    Оценете натоварването от 1 (много леко) до 10 (максимално
+                    усилие) за всеки играч.
+                  </p>
+
+                  <div className="w-full max-w-md space-y-4 mb-6 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2">
+                    {settings.activePlayers.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg border border-zinc-800"
+                      >
+                        <span className="font-medium text-sm">
+                          {p.displayName}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={rpeScores[p.id] || 5}
+                            onChange={(e) =>
+                              setRpeScores({
+                                ...rpeScores,
+                                [p.id]: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-24 accent-primary"
+                          />
+                          <span className="text-lg font-bold w-6 text-center text-primary">
+                            {rpeScores[p.id] || 5}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowRpeDialog(false)}
+                    >
+                      Назад
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      className="bg-primary text-primary-foreground"
+                    >
+                      Запази Окончателно
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -300,23 +369,86 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
             </div>
 
             <div className="space-y-6 pt-6 pb-6 border-t border-zinc-200 dark:border-zinc-800">
-              <div className="space-y-2">
-                <Label>Движение по корта</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Движение по корта (Зони)</Label>
+                  <div className="grid grid-cols-2 gap-3 mt-1">
+                    {[
+                      { id: "all", title: "Цял корт" },
+                      { id: "front_only", title: "Само мрежа" },
+                      { id: "back_only", title: "Задна линия" },
+                      { id: "front_back", title: "Мрежа и Задна" },
+                    ].map((d) => (
+                      <div
+                        key={d.id}
+                        onClick={() =>
+                          setSettings({ ...settings, drillMode: d.id as any })
+                        }
+                        className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.drillMode === d.id ? "bg-sky-100/70 border-sky-500 text-sky-700 dark:bg-primary/10 dark:border-primary dark:text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+                      >
+                        {d.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Брой Ъгли</Label>
+                  <div className="grid grid-cols-2 gap-3 mt-1">
+                    {[
+                      { id: "4-corners", title: "4 Ъгъла (Без център)" },
+                      { id: "6-corners", title: "6 Ъгъла (Стандарт)" },
+                    ].map((c) => (
+                      <div
+                        key={c.id}
+                        onClick={() =>
+                          setSettings({ ...settings, cornersMode: c.id as any })
+                        }
+                        className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.cornersMode === c.id ? "bg-sky-100/70 border-sky-500 text-sky-700 dark:bg-primary/10 dark:border-primary dark:text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+                      >
+                        {c.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-4">
+                <Label>Възрастова Група (Влияе на тайминга)</Label>
+                <div className="grid grid-cols-3 gap-3 mt-1">
                   {[
-                    { id: "all", title: "Цял корт" },
-                    { id: "front_only", title: "Само мрежа" },
-                    { id: "back_only", title: "Само задна линия" },
-                    { id: "front_back", title: "Мрежа и Задна (без среда)" },
-                  ].map((d) => (
+                    { id: "U9-U11", title: "U9 - U11 (Деца)" },
+                    { id: "U13-U15", title: "U13 - U15 (Юноши)" },
+                    { id: "U17+", title: "U17+ (Мъже/Жени)" },
+                  ].map((a) => (
                     <div
-                      key={d.id}
-                      onClick={() =>
-                        setSettings({ ...settings, drillMode: d.id as any })
-                      }
-                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.drillMode === d.id ? "bg-sky-100/70 border-sky-500 text-sky-700 dark:bg-primary/10 dark:border-primary dark:text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+                      key={a.id}
+                      onClick={() => {
+                        const newSettings = {
+                          ...settings,
+                          ageGroup: a.id as any,
+                        };
+                        // Auto-adjust default work/rest ratio and pace based on age
+                        if (a.id === "U9-U11") {
+                          newSettings.cornersMode = "4-corners";
+                          newSettings.workSec = 30;
+                          newSettings.restSec = 60;
+                          newSettings.paceSec = 4.0;
+                          newSettings.deceptionEnabled = false;
+                        } else if (a.id === "U13-U15") {
+                          newSettings.workSec = 45;
+                          newSettings.restSec = 30;
+                          newSettings.paceSec = 3.0;
+                        } else {
+                          newSettings.workSec = 60;
+                          newSettings.restSec = 30;
+                          newSettings.paceSec = 2.0;
+                        }
+                        setSettings(newSettings);
+                      }}
+                      className={`p-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-colors ${settings.ageGroup === a.id ? "bg-sky-100/70 border-sky-500 text-sky-700 dark:bg-primary/10 dark:border-primary dark:text-primary" : "bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
                     >
-                      {d.title}
+                      {a.title}
                     </div>
                   ))}
                 </div>
@@ -378,6 +510,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                                   {
                                     id: m.id,
                                     displayName: `${m.firstName} ${m.lastName}`,
+                                    ageGroup: m.ageGroup, // Track age group for warnings
                                   },
                                 ],
                               });
@@ -543,6 +676,18 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
                     Понякога аудиото сменя командата в последния момент,
                     тренирайки баланса и рязкото спиране.
                   </p>
+                  {settings.deceptionEnabled &&
+                    settings.activePlayers.some(
+                      (p) =>
+                        (p as any).ageGroup?.includes("U9") ||
+                        (p as any).ageGroup?.includes("U11") ||
+                        (p as any).ageGroup?.includes("U13")
+                    ) && (
+                      <div className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 p-2 rounded">
+                        Внимание: Избрали сте малки деца (под U15). Лъжливите
+                        удари може да нарушат техния ритъм и да ги объркат.
+                      </div>
+                    )}
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -27,6 +27,35 @@ export async function createTrainingSessionAction(
     };
 
     const docRef = await db.collection("trainings").add(docData);
+
+    // Save individual shadow analytics
+    if (data.type === "shadow" && data.shadowDetails) {
+      const batch = db.batch();
+
+      data.memberIds.forEach((memberId) => {
+        const analyticsRef = db.collection("member_shadow_analytics").doc();
+        const rpeScore = data.shadowDetails?.rpeScores?.[memberId] || null;
+
+        batch.set(analyticsRef, {
+          memberId,
+          siteId: data.siteId,
+          trainingId: docRef.id,
+          date: data.date,
+          mode: data.shadowDetails?.mode || "standard",
+          ageGroup: data.shadowDetails?.ageGroup || null,
+          cornersMode: data.shadowDetails?.cornersMode || null,
+          setsCompleted: data.shadowDetails?.setsCompleted || 0,
+          totalSets: data.shadowDetails?.totalSets || 0,
+          workTimeSec: data.shadowDetails?.workTimeSec || 0,
+          restTimeSec: data.shadowDetails?.restTimeSec || 0,
+          paceSec: data.shadowDetails?.paceSec || null,
+          rpeScore: rpeScore,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+    }
 
     revalidatePath("/members");
     revalidatePath("/training");
@@ -152,7 +181,10 @@ export async function deleteTrainingSessionAction(
     revalidatePath("/training");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
+    return {
+      success: true,
+      message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+    };
   } catch (error: any) {
     console.error("Error deleting training:", error);
     return {
@@ -161,4 +193,3 @@ export async function deleteTrainingSessionAction(
     };
   }
 }
-
