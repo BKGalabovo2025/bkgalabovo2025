@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Dumbbell, MapPin, Download, Loader2 } from "lucide-react";
 import ExerciseFormDialog from "./exercise-form-dialog";
+import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
+import { toast } from "sonner";
 
 export default function ExercisesClient() {
   const { activeBranch } = useAppStore();
@@ -37,13 +39,21 @@ export default function ExercisesClient() {
     }
   };
 
+  const missingCount = INITIAL_BWF_EXERCISES.filter(
+    (seed) => !exercises.some((e) => e.name === seed.name)
+  ).length;
+
   const handleInject = async () => {
     setIsInjecting(true);
     try {
-      await plannerService.injectSeedExercises(activeBranch);
+      const added = await plannerService.injectSeedExercises(activeBranch);
+      if (added > 0) {
+        toast.success(`Успешно синхронизирани ${added} нови упражнения`);
+      }
       await loadExercises();
     } catch (error) {
       console.error("Error injecting exercises:", error);
+      toast.error("Възникна грешка при синхронизирането");
     } finally {
       setIsInjecting(false);
     }
@@ -98,6 +108,21 @@ export default function ExercisesClient() {
                 <Download className="w-4 h-4 mr-2" />
               )}
               Инжектирай BWF База
+            </Button>
+          )}
+          {exercises.length > 0 && missingCount > 0 && (
+            <Button
+              onClick={handleInject}
+              disabled={isInjecting}
+              variant="outline"
+              className="rounded-xl border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 font-bold"
+            >
+              {isInjecting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              Нови упражнения (+{missingCount})
             </Button>
           )}
           <Button

@@ -60,18 +60,32 @@ export const plannerService = {
     await deleteDoc(doc(db, EXERCISES_COLLECTION, id));
   },
 
-  async injectSeedExercises(siteId: string): Promise<void> {
+  async injectSeedExercises(siteId: string): Promise<number> {
+    // First, fetch existing to avoid duplicates
+    const existing = await this.getExercises(siteId);
+    const existingNames = new Set(existing.map((e) => e.name));
+
     const batch = writeBatch(db);
+    let addedCount = 0;
+
     INITIAL_BWF_EXERCISES.forEach((ex) => {
-      const docRef = doc(collection(db, EXERCISES_COLLECTION));
-      batch.set(docRef, {
-        ...ex,
-        siteId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      if (!existingNames.has(ex.name)) {
+        const docRef = doc(collection(db, EXERCISES_COLLECTION));
+        batch.set(docRef, {
+          ...ex,
+          siteId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        addedCount++;
+      }
     });
-    await batch.commit();
+
+    if (addedCount > 0) {
+      await batch.commit();
+    }
+
+    return addedCount;
   },
 
   // ================= SESSIONS =================

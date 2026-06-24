@@ -83,7 +83,7 @@ export default function BeepTestClient() {
     setIsLoading(true);
     try {
       const allMembers = await getAllMembers();
-      setMembers(allMembers.filter((m) => m.status === "active"));
+      setMembers(allMembers);
     } catch (error) {
       console.error(error);
       toast.error("Грешка при зареждане на състезателите");
