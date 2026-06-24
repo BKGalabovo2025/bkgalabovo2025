@@ -73,6 +73,33 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoreType: "number",
   },
 
+  {
+    id: "u9_racket_pack_balance",
+    ageGroup: "U9",
+    name: "Баланс на перо (The Racket Pack)",
+    source: "Badminton England",
+    description:
+      "Детето трябва да балансира перо върху кордажа на ракетата си и да премине разстояние от 5 метра без да го изпусне.",
+    equipment: "Ракета, перо, конуси за отбелязване на 5 метра.",
+    scoring: "Време за преминаване. Ако изпусне перото, започва отначало.",
+    focus: "Баланс, фокус, правилен форхенд хват.",
+    scoreUnit: "сек.",
+    scoreType: "time",
+  },
+  {
+    id: "u9_balloon_taps",
+    ageGroup: "U9",
+    name: "Контрол с балон",
+    source: "BWF Shuttle Time",
+    description:
+      "Удряне на балон с ракетата нагоре. Балонът пада по-бавно, което дава време на детето да се позиционира правилно под него.",
+    equipment: "Надут балон, ракета.",
+    scoring: "Брой успешни удари за 1 минута.",
+    focus: "Тайминг, визуално проследяване, позициониране на краката.",
+    scoreUnit: "бр.",
+    scoreType: "number",
+  },
+
   // ================= U11 =================
   {
     id: "u11_backhand_serve",
@@ -140,6 +167,34 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Експлозивна сила на горната част на тялото и коремната преса.",
     scoreUnit: "м.",
     scoreType: "number", // we can parse floats
+  },
+
+  {
+    id: "u11_scissor_jump",
+    ageGroup: "U11",
+    name: "Ножичен отскок (Scissor Jump)",
+    source: "Badminton Denmark",
+    description:
+      "Имитация на ножичен отскок за задна зона (смяна на краката във въздуха), изпълнена на място без ракета.",
+    equipment: "Няма.",
+    scoring: "Оценка от 1 до 10 за правилната биомеханика и ротация на таза.",
+    focus: "Координация на долната част на тялото, подготовка за смеш.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u11_underhand_wall",
+    ageGroup: "U11",
+    name: "Защита до стена (Underhand)",
+    source: "BWF Shuttle Time",
+    description:
+      "Детето стои на 1.5 метра от стената и изпълнява удари отдолу (underhand), поддържайки перото в игра.",
+    equipment: "Гладка стена, ракета, перо.",
+    scoring: "Брой последователни удари.",
+    focus: "Реакция при защита, контрол на силата.",
+    scoreUnit: "бр.",
+    scoreType: "number",
   },
 
   // ================= U13 =================
@@ -215,6 +270,34 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoreType: "number",
   },
 
+  {
+    id: "u13_malaysia_agility",
+    ageGroup: "U13",
+    name: "Малайзийски тест (4 ъгъла)",
+    source: "Badminton Asia",
+    description:
+      "Старт от центъра. Детето тича до 4-те ъгъла (по диагонали), за да вземе 4 пера и да ги върне в центъра едно по едно.",
+    equipment: "4 пера (по 1 във всеки ъгъл), хронометър.",
+    scoring: "Време за събиране на всички 4 пера.",
+    focus: "Експлозивен старт, спиране и бърза смяна на посоката.",
+    scoreUnit: "сек.",
+    scoreType: "time",
+  },
+  {
+    id: "u13_serve_receive",
+    ageGroup: "U13",
+    name: "Атака на къс сервис",
+    source: "Badminton Europe",
+    description:
+      "Треньорът изпълнява къс сервис. Детето стартира от позиция за посрещане и изпълнява агресивен push (бутане) или net kill.",
+    equipment: "Треньор, пера.",
+    scoring: "Успеваемост (от 10 опита). Перото трябва да мине бързо и ниско.",
+    focus: "Реакция при сервис, експлозивна първа стъпка напред.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+
   // ================= U15 =================
   {
     id: "u15_jump_smash",
@@ -282,6 +365,34 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Издръжливост под напрежение, възстановяване на позиция.",
     maxScore: 20,
     scoreUnit: "бр.",
+    scoreType: "number",
+  },
+
+  {
+    id: "u15_plank_core",
+    ageGroup: "U15",
+    name: "Издръжливост: Планк",
+    source: "BWF Level 2 Physical",
+    description:
+      "Класически планк (на лакти). Оценява се базовата издръжливост на коремната и кръстната мускулатура (Core).",
+    equipment: "Постелка, хронометър.",
+    scoring: "Време на задържане (в секунди или минути) с правилна форма.",
+    focus: "Стабилизация на трупа, важна за предотвратяване на контузии.",
+    scoreUnit: "сек.",
+    scoreType: "time",
+  },
+  {
+    id: "u15_attacking_drive_line",
+    ageGroup: "U15",
+    name: "Атакуващ Drive по правата",
+    source: "Badminton Denmark",
+    description:
+      "Треньорът подава плоски пера. Играчът изпълнява силен, плосък удар (drive) по правата, търсейки задната линия.",
+    equipment: "Треньор, пера, маркер на задната линия.",
+    scoring: "От 10 опита, брой пера попаднали в последния 1 метър от корта.",
+    focus: "Контрол на китката, скъсяване на маха, сила от предмишницата.",
+    maxScore: 10,
+    scoreUnit: "т.",
     scoreType: "number",
   },
 
@@ -358,6 +469,35 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoreType: "number",
   },
 
+  {
+    id: "u17_illinois_agility",
+    ageGroup: "U17",
+    name: "Илинойс тест (Agility)",
+    source: "Спортна физиология",
+    description:
+      "Специфичен тест за бързина със смяна на посоката около 4 конуса, подредени в линия на 10 метра разстояние.",
+    equipment: "Конуси, метър, хронометър.",
+    scoring: "Време за завършване на трасето.",
+    focus: "Гъвкавост на глезените, ускорение, децелерация.",
+    scoreUnit: "сек.",
+    scoreType: "time",
+  },
+  {
+    id: "u17_backhand_clear_deep",
+    ageGroup: "U17",
+    name: "Дълбок бекхенд клиър",
+    source: "BWF Level 3",
+    description:
+      "От заден ляв ъгъл (за десничари), играчът трябва да изчисти перото с бекхенд до задната линия на противника.",
+    equipment: "Маркери в задната зона.",
+    scoring:
+      "10 опита. 1 точка ако мине сервис линията, 2 точки ако стигне най-отзад.",
+    focus: "Бекхенд биомеханика, супинация на ръката, тайминг.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+
   // ================= U19 =================
   {
     id: "u19_vertical_jump",
@@ -425,6 +565,35 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Психологическа устойчивост, рутина.",
     maxScore: 10,
     scoreUnit: "т.",
+    scoreType: "number",
+  },
+
+  {
+    id: "u19_net_kill_reaction",
+    ageGroup: "U19",
+    name: "Рефлекс на мрежата (Net Kill)",
+    source: "Badminton Asia",
+    description:
+      "Треньорът стои на мрежата и бързо подава/хвърля пера над филето. Играчът (също на мрежата) трябва мигновено да ги убие (kill).",
+    equipment: "Треньор на кутия или отблизо, много пера.",
+    scoring: "Брой успешни (не в мрежата или в аут) от 20 бързи подавания.",
+    focus: "Супер бърз рефлекс, позиция на ракетата горе, къс хват.",
+    maxScore: 20,
+    scoreUnit: "бр.",
+    scoreType: "number",
+  },
+  {
+    id: "u19_broad_jump",
+    ageGroup: "U19",
+    name: "Скок на дължина от място",
+    source: "Кондиционна подготовка",
+    description:
+      "Състезателят скача максимално напред от място с двата крака едновременно.",
+    equipment: "Рулетка.",
+    scoring: "Разстояние в сантиметри (най-добър от 3 опита).",
+    focus:
+      "Хоризонтална експлозивна мощ (важна за бързо излизане към мрежата).",
+    scoreUnit: "см.",
     scoreType: "number",
   },
 
@@ -496,6 +665,33 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Когнитивна обработка под физически стрес.",
     maxScore: 20,
     scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "adult_yoyo_recovery",
+    ageGroup: "Мъже и Жени",
+    name: "Yo-Yo Intermittent Recovery Test",
+    source: "BWF Elite Testing",
+    description:
+      "Подобен на Beep Test, но включва 10 секунди активна почивка (ходене) между всеки спринт от 2х20 метра. Много близък до спецификата на бадминтон разиграванията.",
+    equipment: "Аудио запис за Yo-Yo test, маркери.",
+    scoring: "Достигнато ниво и брой совалки.",
+    focus:
+      "Анаеробна издръжливост и способност за бързо възстановяване между разигравания.",
+    scoreUnit: "Ниво",
+    scoreType: "number",
+  },
+  {
+    id: "adult_multishuttle_jump_smash",
+    ageGroup: "Мъже и Жени",
+    name: "20 поредни Jump Smash-a",
+    source: "Asian Elite Training",
+    description:
+      "Треньорът подава 20 последователни високи пера. Играчът изпълнява Jump Smash на всяко едно, връщайки се леко след всеки отскок.",
+    equipment: "Кош с пера.",
+    scoring: "Време за завършване или брой грешки.",
+    focus: "Лактатна издръжливост на краката и раменния пояс.",
+    scoreUnit: "бр./сек.",
     scoreType: "number",
   },
 ];
