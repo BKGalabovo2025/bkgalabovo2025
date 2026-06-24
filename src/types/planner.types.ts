@@ -1,4 +1,9 @@
-export type ExerciseCategory = "physical" | "technical" | "tactical" | "mental";
+export type ExerciseCategory =
+  | "physical"
+  | "technical"
+  | "tactical"
+  | "mental"
+  | "warmup";
 export type LocationType = "indoor" | "outdoor" | "both";
 export type TrainingMode = "season" | "camp";
 export type MedicalStatus = "healthy" | "discomfort" | "injured";

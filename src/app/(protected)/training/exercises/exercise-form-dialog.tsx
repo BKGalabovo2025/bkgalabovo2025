@@ -169,6 +169,7 @@ export default function ExerciseFormDialog({
                   <SelectItem value="technical">Техника</SelectItem>
                   <SelectItem value="tactical">Тактика</SelectItem>
                   <SelectItem value="mental">Психология</SelectItem>
+                  <SelectItem value="warmup">Загрявка</SelectItem>
                 </SelectContent>
               </Select>
             </div>
