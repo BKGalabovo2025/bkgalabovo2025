@@ -86,7 +86,6 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
   // Calculate Stats
   let indoorCount = 0;
   let outdoorCount = 0;
-  let campCount = 0;
   let medicalIssues = 0;
 
   const chartData = attendances.map((att) => {
@@ -94,7 +93,6 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
     if (s) {
       if (s.location === "indoor") indoorCount++;
       if (s.location === "outdoor") outdoorCount++;
-      if (s.mode === "camp") campCount++;
     }
     if (att.medicalStatus !== "healthy") medicalIssues++;
 

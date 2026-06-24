@@ -133,7 +133,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const updateAttendance = (
     memberId: string,
     field: keyof SessionAttendance,
-    value: any
+    value: string | number | boolean
   ) => {
     setAttendance((prev) => {
       if (!prev[memberId]) return prev;
