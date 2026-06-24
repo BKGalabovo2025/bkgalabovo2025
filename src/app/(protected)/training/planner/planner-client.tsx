@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, CalendarRange, MapPin, Loader2, Play } from "lucide-react";
+import Link from "next/link";
 import CreateSessionWizard from "./create-session-wizard";
 
 export default function PlannerClient() {
@@ -132,9 +133,14 @@ export default function PlannerClient() {
                       </div>
                     </div>
                     <div className="hidden sm:flex">
-                      <Button className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl">
-                        <Play className="w-4 h-4 mr-2" />
-                        Старт
+                      <Button
+                        asChild
+                        className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl"
+                      >
+                        <Link href={`/training/planner/${session.id}/active`}>
+                          <Play className="w-4 h-4 mr-2" />
+                          Старт
+                        </Link>
                       </Button>
                     </div>
                   </div>
