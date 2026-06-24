@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import React from "react";
@@ -102,21 +99,27 @@ export const EventListItem = React.memo<EventListItemProps>(
     const hiddenAttendeesCount =
       attendeesData.list.length - visibleAttendees.length;
 
+    let cardClasses =
+      "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 hover:border-zinc-200 dark:hover:border-zinc-800";
+    if (event.isCancelled) {
+      cardClasses =
+        "bg-rose-50/30 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30 opacity-80";
+    } else if (formattedDates.isCurrent) {
+      cardClasses =
+        "bg-white dark:bg-zinc-950 border-zinc-950 dark:border-white ring-1 ring-zinc-950 dark:ring-white";
+    }
+
     return (
       <div
-        className={`rounded-4xl shadow-none transition-all duration-500 border group overflow-hidden ${
-          event.isCancelled
-            ? "bg-rose-50/30 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30 opacity-80"
-            : formattedDates.isCurrent
-              ? "bg-white dark:bg-zinc-950 border-zinc-950 dark:border-white ring-1 ring-zinc-950 dark:ring-white"
-              : "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 hover:border-zinc-200 dark:hover:border-zinc-800"
-        }`}
+        className={`rounded-4xl shadow-none transition-all duration-500 border group overflow-hidden ${cardClasses}`}
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
           <div className="flex items-start sm:items-center gap-6 grow w-full">
             <div
               className={`w-1.5 h-14 rounded-full ${
-                event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : color
+                event.isCancelled
+                  ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"
+                  : color
               } opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block`}
             ></div>
             <div className="grow space-y-3">
@@ -152,7 +155,11 @@ export const EventListItem = React.memo<EventListItemProps>(
                 )}
                 {event.isCancelled && (
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30">
-                    <Ban size={12} strokeWidth={2} className="text-rose-600 dark:text-rose-400" />
+                    <Ban
+                      size={12}
+                      strokeWidth={2}
+                      className="text-rose-600 dark:text-rose-400"
+                    />
                     <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest">
                       Отменена
                     </span>
@@ -160,7 +167,9 @@ export const EventListItem = React.memo<EventListItemProps>(
                 )}
               </div>
 
-              <h3 className={`text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight ${event.isCancelled ? "line-through text-zinc-500 dark:text-zinc-500" : ""}`}>
+              <h3
+                className={`text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight ${event.isCancelled ? "line-through text-zinc-500 dark:text-zinc-500" : ""}`}
+              >
                 {event.title}
               </h3>
 
@@ -251,8 +260,14 @@ export const EventListItem = React.memo<EventListItemProps>(
                     variant="ghost"
                     size="icon"
                     className="h-12 w-12 rounded-2xl hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all group/btn"
-                    onClick={() => onToggleCancel(event.id, !!event.isCancelled)}
-                    aria-label={event.isCancelled ? `Възстанови ${event.title}` : `Отмени ${event.title}`}
+                    onClick={() =>
+                      onToggleCancel(event.id, !!event.isCancelled)
+                    }
+                    aria-label={
+                      event.isCancelled
+                        ? `Възстанови ${event.title}`
+                        : `Отмени ${event.title}`
+                    }
                   >
                     {event.isCancelled ? (
                       <RotateCcw

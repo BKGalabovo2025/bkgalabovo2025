@@ -6,7 +6,8 @@ import ClubClient from "./ClubClient";
 
 export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
-  description: "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство. Град Гълъбово.",
+  description:
+    "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство. Град Гълъбово.",
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
@@ -34,7 +35,7 @@ export default async function ClubMainPage() {
     scheduleSnapshot = { docs: [] };
   }
 
-  const scheduleRaw = scheduleSnapshot.docs.map((doc: any) => {
+  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
     const data = doc.data();
 
     // Handle both Timestamp and string representations of date
@@ -61,7 +62,7 @@ export default async function ClubMainPage() {
       endTime: endDateStr,
       isCancelled: !!data.isCancelled,
       description: data.description || "",
-      location: data.location || "Спортна зала „Енергетик\"",
+      location: data.location || 'Спортна зала „Енергетик"',
     };
   });
 

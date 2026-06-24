@@ -28,7 +28,7 @@ export default async function SchedulePage() {
     scheduleSnapshot = { docs: [] };
   }
 
-  const scheduleRaw = scheduleSnapshot.docs.map((doc: any) => {
+  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
     const data = doc.data();
 
     let startDateStr = new Date().toISOString();
@@ -54,7 +54,7 @@ export default async function SchedulePage() {
       endTime: endDateStr,
       isCancelled: !!data.isCancelled,
       description: data.description || "",
-      location: data.location || "Спортна зала „Енергетик\"",
+      location: data.location || 'Спортна зала „Енергетик"',
     };
   });
 
