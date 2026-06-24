@@ -26,10 +26,19 @@ export interface PlannerSession {
   date: string; // ISO string
   mode: TrainingMode;
   location: LocationType;
-  ageGroup: string;
   title: string;
   coachNotes?: string;
-  exercises: Exercise[];
+
+  // Legacy single-group support
+  ageGroup?: string;
+  exercises?: Exercise[];
+
+  // Multi-group calendar support
+  targetGroups?: string[];
+  groupedExercises?: {
+    ageGroup: string;
+    exercises: Exercise[];
+  }[];
   eventId?: string; // Link to public schedule
   status: "planned" | "completed";
   weatherIcon?: string; // e.g., 'sun', 'rain', 'cloud'

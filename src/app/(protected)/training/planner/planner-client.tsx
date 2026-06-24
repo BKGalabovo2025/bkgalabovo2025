@@ -113,12 +113,25 @@ export default function PlannerClient() {
                         >
                           {session.mode === "camp" ? "Лагер" : "Целогодишна"}
                         </Badge>
-                        <Badge
-                          variant="outline"
-                          className="uppercase text-[10px] tracking-wider bg-zinc-100"
-                        >
-                          {session.ageGroup}
-                        </Badge>
+                        {session.targetGroups &&
+                        session.targetGroups.length > 0 ? (
+                          session.targetGroups.map((g, i) => (
+                            <Badge
+                              key={i}
+                              variant="outline"
+                              className="uppercase text-[10px] tracking-wider bg-indigo-50 text-indigo-700 border-indigo-200"
+                            >
+                              {g}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="uppercase text-[10px] tracking-wider bg-zinc-100"
+                          >
+                            {session.ageGroup}
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="text-lg font-bold text-zinc-900 mb-1">
                         {session.title}
@@ -130,7 +143,15 @@ export default function PlannerClient() {
                             ? "В зала"
                             : "На открито"}
                         </div>
-                        <div>{session.exercises.length} упражнения</div>
+                        <div>
+                          {session.groupedExercises &&
+                          session.groupedExercises.length > 0
+                            ? session.groupedExercises.reduce(
+                                (acc, g) => acc + g.exercises.length,
+                                0
+                              ) + " общо упр."
+                            : (session.exercises?.length || 0) + " упражнения"}
+                        </div>
                       </div>
                     </div>
                     <div className="hidden sm:flex">
