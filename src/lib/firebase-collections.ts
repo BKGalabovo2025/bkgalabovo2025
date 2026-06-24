@@ -22,6 +22,7 @@ import {
   BlockedSlot,
 } from "@/types";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
+import { MemberAssessment } from "@/types/assessment.types";
 
 const memberConverter: FirestoreDataConverter<Member> = {
   toFirestore: (member) => {
@@ -155,6 +156,21 @@ const generalServiceConverter: FirestoreDataConverter<GeneralService> = {
       siteId: data.siteId || "bkgalabovo",
       ...data,
     } as unknown as GeneralService;
+  },
+};
+
+const memberAssessmentConverter: FirestoreDataConverter<MemberAssessment> = {
+  toFirestore: (assessment) => {
+    const { ...data } = assessment;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as MemberAssessment;
   },
 };
 
@@ -547,12 +563,22 @@ export const getClientPackagesQuery = (memberId?: string) => {
 };
 
 export const getGeneralServicesQuery = () => {
-  const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo")
-    return query(getGeneralServicesCollection());
   return query(
     getGeneralServicesCollection(),
-    where("siteId", "==", siteConfig.id)
+    where("siteId", "==", getSiteConfig().id)
+  );
+};
+
+// ================= MEMBER ASSESSMENTS =================
+export const getMemberAssessmentsCollection = () =>
+  collection(getDb(), "member_assessments").withConverter(
+    memberAssessmentConverter
+  );
+
+export const getMemberAssessmentsQuery = () => {
+  return query(
+    getMemberAssessmentsCollection(),
+    where("siteId", "==", getSiteConfig().id)
   );
 };
 

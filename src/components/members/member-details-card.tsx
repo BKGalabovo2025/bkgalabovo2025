@@ -20,6 +20,7 @@ import { useRef, useState } from "react";
 
 import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
 import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
+import { MemberAssessmentsTab } from "./tabs/MemberAssessmentsTab";
 
 const MemberSalesHistory = dynamic(
   () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
@@ -319,6 +320,12 @@ export const MemberDetailsCard = ({
             >
               Тренировки
             </TabsTrigger>
+            <TabsTrigger
+              value="assessments"
+              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+            >
+              Оценяване
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -351,6 +358,10 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="trainings" className="focus-visible:outline-none">
           <MemberTrainingsHistory memberId={member.id} />
+        </TabsContent>
+
+        <TabsContent value="assessments" className="focus-visible:outline-none">
+          <MemberAssessmentsTab memberId={member.id} />
         </TabsContent>
       </Tabs>
     </div>
