@@ -17,16 +17,18 @@ export default async function ShadowTrainingPage() {
   try {
     const raw = await getAllMembersServer();
     // Pre-clean data to prevent Next.js serialization errors (e.g. Firebase Timestamps)
-    members = raw.map((m: { id: string; firstName?: string; lastName?: string }) => ({
-      id: m.id,
-      firstName: m.firstName || "",
-      lastName: m.lastName || "",
-      displayName:
-        m.firstName && m.lastName
-          ? `${m.firstName} ${m.lastName}`
-          : "Неизвестен играч",
-    }));
-  } catch (e) {
+    members = raw.map(
+      (m: { id: string; firstName?: string; lastName?: string }) => ({
+        id: m.id,
+        firstName: m.firstName || "",
+        lastName: m.lastName || "",
+        displayName:
+          m.firstName && m.lastName
+            ? `${m.firstName} ${m.lastName}`
+            : "Неизвестен играч",
+      })
+    );
+  } catch (e: unknown) {
     console.error("Error fetching members", e);
   }
 

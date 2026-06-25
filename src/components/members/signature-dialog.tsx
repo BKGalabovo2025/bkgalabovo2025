@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
@@ -196,8 +193,7 @@ export const SignatureDialog = ({
               ref={canvasRef}
               width={560}
               height={200}
-              className="w-full h-[180px] cursor-crosshair touch-none block"
-              style={{ touchAction: "none" }}
+              className="w-full h-[180px] cursor-crosshair touch-none block touch-none"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}

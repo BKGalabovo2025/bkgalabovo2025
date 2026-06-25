@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 "use client";
 
 import { useMemo } from "react";
@@ -80,6 +79,7 @@ export function TournamentBracket({
                   ? "bg-primary"
                   : "bg-amber-400"
             )}
+            // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -87,10 +87,7 @@ export function TournamentBracket({
 
       {/* Round columns — horizontal scroll on small screens */}
       <div className="overflow-x-auto pb-4">
-        <div
-          className="flex gap-6 min-w-max"
-          style={{ alignItems: "flex-start" }}
-        >
+        <div className="flex gap-6 min-w-max items-start">
           {rounds.map(({ round, matches: roundMatches }, colIdx) => (
             <div key={round} className="flex flex-col gap-4 w-72">
               {/* Round header */}

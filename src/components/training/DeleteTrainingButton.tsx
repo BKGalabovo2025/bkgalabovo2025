@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -33,8 +30,11 @@ export function DeleteTrainingButton({ trainingId }: Props) {
       } else {
         toast.error(res.message);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Грешка при изтриване");
+    } catch (error: unknown) {
+      toast.error(
+        (error instanceof Error ? error.message : "Unknown error") ||
+          "Грешка при изтриване"
+      );
     } finally {
       setIsDeleting(false);
     }

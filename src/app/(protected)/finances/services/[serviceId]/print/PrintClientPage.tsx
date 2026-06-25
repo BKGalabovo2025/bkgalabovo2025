@@ -323,6 +323,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
         <div
           ref={printableRef}
           className="bg-white p-8 sm:p-16 printable-area border border-gray-100 shadow-sm"
+          // eslint-disable-next-line react/forbid-dom-props
           style={{
             fontFamily: "Arial, Helvetica, sans-serif",
             wordSpacing: "2px",

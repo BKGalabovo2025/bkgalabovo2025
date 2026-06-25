@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -71,8 +68,10 @@ export function RecoveryReservationsHistory() {
         description: "Резервацията беше изтрита успешно.",
       });
       if (refetch) refetch();
-    } catch (error: any) {
-      toast.error("Грешка", { description: error.message });
+    } catch (error: unknown) {
+      toast.error("Грешка", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsProcessing(null);
     }
@@ -90,8 +89,10 @@ export function RecoveryReservationsHistory() {
         description: "Резервацията е маркирана като платена.",
       });
       if (refetch) refetch();
-    } catch (error: any) {
-      toast.error("Грешка", { description: error.message });
+    } catch (error: unknown) {
+      toast.error("Грешка", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsProcessing(null);
     }

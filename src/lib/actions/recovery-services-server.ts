@@ -40,11 +40,13 @@ export async function getRecoveryServiceHistoryAction(_activeBranch: string) {
       });
 
     return { success: true, data: history };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getRecoveryServiceHistoryAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
     };
   }
 }
@@ -101,11 +103,13 @@ export async function getRecoveryServiceSalesAction(activeBranch: string) {
       );
 
     return { success: true, data: sales };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getRecoveryServiceSalesAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
     };
   }
 }
@@ -158,11 +162,13 @@ export async function getRecoveryReservationsAction(activeBranch: string) {
       });
 
     return { success: true, data: items };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getRecoveryReservationsAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёРё.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёРё.",
     };
   }
 }
@@ -186,11 +192,13 @@ export async function getRecoveryClientPackagesAction(activeBranch: string) {
     });
 
     return { success: true, data: items };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getRecoveryClientPackagesAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїР°РєРµС‚Рё.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїР°РєРµС‚Рё.",
     };
   }
 }
@@ -220,11 +228,13 @@ export async function getRecoveryClientsAction(activeBranch: string) {
       });
 
     return { success: true, data: items };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getRecoveryClientsAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РєР»РёРµРЅС‚Рё.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РєР»РёРµРЅС‚Рё.",
     };
   }
 }
@@ -239,8 +249,11 @@ export async function deleteRecoveryPackageAction(
     const adminDb = getAdminDb();
     await adminDb.collection("client_packages").doc(packageId).delete();
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
@@ -254,8 +267,10 @@ export async function deleteRecoveryClientAction(
     const adminDb = getAdminDb();
     await adminDb.collection("clients").doc(clientId).delete();
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
-

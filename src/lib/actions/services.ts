@@ -10,10 +10,22 @@ import { serverCache } from "@/lib/server-cache";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
-  name: z.string().min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
-  price: z.coerce.number().min(0, "Р¦РµРЅР°С‚Р° С‚СЂСЏР±РІР° РґР° Рµ РїРѕР»РѕР¶РёС‚РµР»РЅРѕ С‡РёСЃР»Рѕ."),
+  name: z
+    .string()
+    .min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
+  price: z.coerce
+    .number()
+    .min(
+      0,
+      "Р¦РµРЅР°С‚Р° С‚СЂСЏР±РІР° РґР° Рµ РїРѕР»РѕР¶РёС‚РµР»РЅРѕ С‡РёСЃР»Рѕ."
+    ),
   currency: z.string().default("EUR"),
-  description: z.string().min(5, "РћРїРёСЃР°РЅРёРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 5 СЃРёРјРІРѕР»Р°."),
+  description: z
+    .string()
+    .min(
+      5,
+      "РћРїРёСЃР°РЅРёРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 5 СЃРёРјРІРѕР»Р°."
+    ),
   type: z.enum([
     "РђР±РѕРЅР°РјРµРЅС‚",
     "Р“РѕРґРёС€РµРЅ Р°Р±РѕРЅР°РјРµРЅС‚",
@@ -45,7 +57,7 @@ export type ServiceState = {
 
 // --- Helper Functions (Private) ---
 
-function _parseFormData(formData: FormData) {
+function parseFormData(formData: FormData) {
   const getStr = (key: string) => {
     const val = formData.get(key);
     return val === null ? undefined : (val as string);
@@ -86,7 +98,7 @@ function _parseFormData(formData: FormData) {
   };
 }
 
-async function _logHistory(
+async function logHistory(
   db: FirebaseFirestore.Firestore,
   serviceId: string,
   userId: string,
@@ -125,7 +137,7 @@ export async function createClubService(
     if (!idToken) throw new Error("Missing ID Token");
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
-    const rawData = _parseFormData(formData);
+    const rawData = parseFormData(formData);
 
     const validatedFields = ServiceSchema.safeParse(rawData);
     if (!validatedFields.success) {
@@ -159,7 +171,7 @@ export async function createClubService(
         },
       });
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       serviceId,
       user.uid,
@@ -179,7 +191,8 @@ export async function createClubService(
     console.error("Server Action Error:", error);
     return {
       success: false,
-      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
+      // eslint-disable-next-line sonarjs/no-nested-conditional
+      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -194,7 +207,7 @@ export async function updateClubService(
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
-    const rawData = _parseFormData(formData);
+    const rawData = parseFormData(formData);
 
     const validatedFields = ServiceSchema.safeParse(rawData);
     if (!validatedFields.success) {
@@ -225,7 +238,7 @@ export async function updateClubService(
         },
       });
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       id,
       user.uid,
@@ -246,7 +259,8 @@ export async function updateClubService(
     console.error("Server Action Error:", error);
     return {
       success: false,
-      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? error.message : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
+      // eslint-disable-next-line sonarjs/no-nested-conditional
+      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
     };
   }
 }
@@ -260,13 +274,16 @@ export async function deleteClubService(idToken: string, id: string) {
     const serviceSnap = await serviceRef.get();
 
     if (!serviceSnap.exists) {
-      return { success: false, message: "РЈСЃР»СѓРіР°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°." };
+      return {
+        success: false,
+        message: "РЈСЃР»СѓРіР°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.",
+      };
     }
 
     const serviceData = serviceSnap.data();
     await serviceRef.delete();
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       id,
       user.uid,
@@ -278,17 +295,25 @@ export async function deleteClubService(idToken: string, id: string) {
     serverCache.invalidate("clubServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/services");
-    return { success: true, message: "РЈСЃР»СѓРіР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
+    return {
+      success: true,
+      message: "РЈСЃР»СѓРіР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+    };
   } catch (error) {
     console.error("Error deleting service:", error);
-    return { success: false, message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ." };
+    return {
+      success: false,
+      message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ.",
+    };
   }
 }
 
 // --- Recovery Session Actions ---
 
 const RecoverySessionSchema = z.object({
-  name: z.string().min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
+  name: z
+    .string()
+    .min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
   description: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   durationMinutes: z.coerce.number().min(1),
@@ -370,7 +395,7 @@ export async function createRecoverySession(
         updatedAt: new Date().toISOString(),
       });
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       sessionId,
       user.uid,
@@ -452,7 +477,8 @@ export async function updateRecoverySession(
       if (Number(oldData.price) !== Number(data.price))
         changes.push(`С†РµРЅР° (${oldData.price} -> ${data.price})`);
       if (oldData.name !== data.name) changes.push(`РёРјРµ`);
-      if (oldData.description !== data.description) changes.push(`РѕРїРёСЃР°РЅРёРµ`);
+      if (oldData.description !== data.description)
+        changes.push(`РѕРїРёСЃР°РЅРёРµ`);
       if (
         Number(oldData.durationMinutes || oldData.duration) !==
         Number(data.durationMinutes)
@@ -466,7 +492,7 @@ export async function updateRecoverySession(
       }
     }
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       id,
       user.uid,
@@ -499,7 +525,7 @@ export async function deleteRecoverySession(idToken: string, id: string) {
 
     await adminDb.collection("sessions").doc(id).delete();
 
-    await _logHistory(
+    await logHistory(
       adminDb,
       id,
       user.uid,
@@ -510,14 +536,26 @@ export async function deleteRecoverySession(idToken: string, id: string) {
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
-    return { success: true, message: "РџСЂРѕС†РµРґСѓСЂР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ." };
+    return {
+      success: true,
+      message: "РџСЂРѕС†РµРґСѓСЂР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+    };
   } catch (error) {
     console.error("Error deleting recovery session:", error);
-    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ." };
+    return {
+      success: false,
+      message: "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ.",
+    };
   }
 }
 
-function _createSaleRecord(batch: any, adminDb: any, saleData: any, user: any, now: string) {
+function createSaleRecord(
+  batch: any,
+  adminDb: any,
+  saleData: any,
+  user: any,
+  now: string
+) {
   const saleRef = adminDb.collection("sales").doc();
   const formattedSaleDate = saleData.saleDate
     ? new Date(saleData.saleDate).toISOString()
@@ -534,7 +572,15 @@ function _createSaleRecord(batch: any, adminDb: any, saleData: any, user: any, n
   return saleRef;
 }
 
-function _createHistoryEvent(batch: any, adminDb: any, saleData: any, serviceName: string, clientName: string | undefined, user: any, saleRef: any) {
+function createHistoryEvent(
+  batch: any,
+  adminDb: any,
+  saleData: any,
+  serviceName: string,
+  clientName: string | undefined,
+  user: any,
+  saleRef: any
+) {
   const serviceId = saleData.items[0]?.productId;
   if (!serviceId) return;
 
@@ -553,7 +599,13 @@ function _createHistoryEvent(batch: any, adminDb: any, saleData: any, serviceNam
   batch.set(eventRef, historyEvent);
 }
 
-async function _updatePaidEventsAttendance(adminDb: any, paidEventIds: string[], targetMemberIds: string[], paymentType: string, saleId: string) {
+async function updatePaidEventsAttendance(
+  adminDb: any,
+  paidEventIds: string[],
+  targetMemberIds: string[],
+  paymentType: string,
+  saleId: string
+) {
   if (paidEventIds.length === 0 || targetMemberIds.length === 0) return;
   const nowIso = new Date().toISOString();
   const chunkSize = 100;
@@ -590,8 +642,7 @@ async function _updatePaidEventsAttendance(adminDb: any, paidEventIds: string[],
   }
 }
 
-
-function _getEventMonthKey(event: any): string | null {
+function getEventMonthKey(event: any): string | null {
   let eventDate: Date;
   if (event.startDate && typeof event.startDate.toDate === "function") {
     eventDate = event.startDate.toDate();
@@ -603,12 +654,12 @@ function _getEventMonthKey(event: any): string | null {
   return `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}`;
 }
 
-async function _syncMonthlyAttendanceForMember(
-  adminDb: any, 
-  memberId: string, 
-  targetMonths: string[], 
-  paymentType: string, 
-  saleId: string, 
+async function syncMonthlyAttendanceForMember(
+  adminDb: any,
+  memberId: string,
+  targetMonths: string[],
+  paymentType: string,
+  saleId: string,
   nowIsoSync: string
 ) {
   const eventsSnap = await adminDb
@@ -621,7 +672,7 @@ async function _syncMonthlyAttendanceForMember(
 
   for (const eventDoc of eventsSnap.docs) {
     const event = eventDoc.data();
-    const eventMonthKey = _getEventMonthKey(event);
+    const eventMonthKey = getEventMonthKey(event);
 
     if (!eventMonthKey || !targetMonths.includes(eventMonthKey)) continue;
 
@@ -630,7 +681,11 @@ async function _syncMonthlyAttendanceForMember(
     if (idx === -1) continue;
 
     const attendee = attendees[idx];
-    if (!attendee.attended || (attendee.paymentStatus === "paid" && attendee.saleId === saleId)) continue;
+    if (
+      !attendee.attended ||
+      (attendee.paymentStatus === "paid" && attendee.saleId === saleId)
+    )
+      continue;
 
     const updatedAttendees = [...attendees];
     updatedAttendees[idx] = {
@@ -654,16 +709,33 @@ async function _syncMonthlyAttendanceForMember(
   }
 }
 
-async function _syncMonthlyAttendance(adminDb: any, targetMonths: string[], targetMemberIds: string[], paymentType: string, saleId: string) {
+async function syncMonthlyAttendance(
+  adminDb: any,
+  targetMonths: string[],
+  targetMemberIds: string[],
+  paymentType: string,
+  saleId: string
+) {
   if (targetMonths.length === 0 || targetMemberIds.length === 0) return;
   const nowIsoSync = new Date().toISOString();
 
   for (const memberId of targetMemberIds) {
-    await _syncMonthlyAttendanceForMember(adminDb, memberId, targetMonths, paymentType, saleId, nowIsoSync);
+    await syncMonthlyAttendanceForMember(
+      adminDb,
+      memberId,
+      targetMonths,
+      paymentType,
+      saleId,
+      nowIsoSync
+    );
   }
 }
 
-async function _updateMembersLastPaymentDate(adminDb: any, saleData: any, targetMemberIds: string[]) {
+async function updateMembersLastPaymentDate(
+  adminDb: any,
+  saleData: any,
+  targetMemberIds: string[]
+) {
   if (!saleData.isPaid) return;
 
   const updateMember = async (id: string) => {
@@ -702,10 +774,18 @@ export async function executeTrainingSaleAction(
     const batch = adminDb.batch();
 
     // 1. РЎСЉР·РґР°РІР°РЅРµ РЅР° Р·Р°РїРёСЃР° Р·Р° РїСЂРѕРґР°Р¶Р±Р°
-    const saleRef = _createSaleRecord(batch, adminDb, saleData, user, now);
+    const saleRef = createSaleRecord(batch, adminDb, saleData, user, now);
 
     // 2. Р—Р°РїРёСЃРІР°РЅРµ РЅР° СЃСЉР±РёС‚РёРµ РІ РёСЃС‚РѕСЂРёСЏС‚Р° РЅР° С‚СЂРµРЅРёСЂРѕРІСЉС‡РЅР°С‚Р° СѓСЃР»СѓРіР°
-    _createHistoryEvent(batch, adminDb, saleData, serviceName, clientName, user, saleRef);
+    createHistoryEvent(
+      batch,
+      adminDb,
+      saleData,
+      serviceName,
+      clientName,
+      user,
+      saleRef
+    );
 
     await batch.commit();
 
@@ -719,15 +799,27 @@ export async function executeTrainingSaleAction(
       saleData.paymentMode === "subscription" ? "subscription" : "individual";
 
     if (saleData.isPaid) {
-      await _updatePaidEventsAttendance(adminDb, paidEventIds, targetMemberIds, paymentType, saleRef.id);
-      
+      await updatePaidEventsAttendance(
+        adminDb,
+        paidEventIds,
+        targetMemberIds,
+        paymentType,
+        saleRef.id
+      );
+
       // 4. AUTO-SYNC: Mark ALL attended events in the covered months as paid
       const targetMonths: string[] = saleData.targetMonths || [];
-      await _syncMonthlyAttendance(adminDb, targetMonths, targetMemberIds, paymentType, saleRef.id);
+      await syncMonthlyAttendance(
+        adminDb,
+        targetMonths,
+        targetMemberIds,
+        paymentType,
+        saleRef.id
+      );
     }
 
     // 5. Update the member's lastPaymentDate if this sale is paid
-    await _updateMembersLastPaymentDate(adminDb, saleData, targetMemberIds);
+    await updateMembersLastPaymentDate(adminDb, saleData, targetMemberIds);
 
     serverCache.invalidatePattern("sales:");
     revalidatePath("/catalogs");
@@ -737,8 +829,13 @@ export async function executeTrainingSaleAction(
     }
 
     return { success: true, saleId: saleRef.id };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error executeTrainingSaleAction:", error);
-    return { success: false, error: error.message || "Р“СЂРµС€РєР° РїСЂРё РїСЂРѕРґР°Р¶Р±Р°." };
+    return {
+      success: false,
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё РїСЂРѕРґР°Р¶Р±Р°.",
+    };
   }
 }

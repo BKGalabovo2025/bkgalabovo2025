@@ -315,7 +315,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         setMembers(previousMembers);
         toast.error(result.message || "Възникна грешка при обновяването");
       }
-    } catch {
+    } catch (e: unknown) {
+      console.error(e);
       setMembers(previousMembers);
       toast.error("Възникна сървърна грешка");
     }
@@ -391,7 +392,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       } else {
         toast.error("Грешка: " + (data.error || "Неуспешна синхронизация"));
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Sync statuses error:", e);
       toast.error("Възникна грешка при синхронизацията.");
     } finally {
@@ -650,11 +651,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         )}
                       >
                         {
-                          ({
+                          {
                             all: "Всички",
                             active: "Активни",
                             inactive: "Неактивни",
-                          })[f]
+                          }[f]
                         }
                       </button>
                     ))}
@@ -684,11 +685,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           )}
                         >
                           {
-                            ({
+                            {
                               all: "Всички",
                               under18: "под 18",
                               "18plus": "18+",
-                            })[a]
+                            }[a]
                           }
                         </button>
                       ))}
@@ -714,11 +715,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           )}
                         >
                           {
-                            ({
+                            {
                               all: "Всички",
                               valid: "Има",
                               missing: "Няма",
-                            })[m]
+                            }[m]
                           }
                         </button>
                       ))}
@@ -744,11 +745,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           )}
                         >
                           {
-                            ({
+                            {
                               all: "Всички",
                               paid: "Платена",
                               due: "Неплатена",
-                            })[p]
+                            }[p]
                           }
                         </button>
                       ))}
@@ -868,119 +869,125 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 <TableBody>
                   {paginatedMembers.length > 0 ? (
                     paginatedMembers.map((member) => {
-                      const ageGrp = member.ageGroup || (member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null);
+                      const ageGrp =
+                        member.ageGroup ||
+                        (member.dateOfBirth
+                          ? getAgeGroup(member.dateOfBirth)
+                          : null);
                       return (
-                      <TableRow
-                        key={member.id}
-                        className={cn(
-                          "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group border-zinc-50 dark:border-zinc-900",
-                          selectedIds.includes(member.id) && "bg-primary/5"
-                        )}
-                      >
-                        <TableCell
-                          className="px-4"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            checked={selectedIds.includes(member.id)}
-                            onCheckedChange={() => toggleSelect(member.id)}
-                            className="rounded-md border-zinc-200"
-                          />
-                        </TableCell>
-                        <TableCell
-                          className="py-4 px-4"
-                          onClick={() => router.push(`/members/${member.id}`)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-[10px] group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300 shrink-0">
-                              {member.firstName[0]}
-                              {member.lastName[0]}
-                            </div>
-                            <div className="font-medium text-[13px] text-zinc-900 dark:text-white group-hover:text-zinc-950 transition-colors truncate">
-                              {member.firstName} {member.lastName}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          className="px-4"
-                          onClick={() => router.push(`/members/${member.id}`)}
-                        >
-                          <div className="flex items-center gap-2 text-zinc-500">
-                            <Mail
-                              className="h-3 w-3 shrink-0 text-zinc-300"
-                              strokeWidth={1.5}
-                            />
-                            <span className="text-[11px] font-light truncate max-w-[150px]">
-                              {member.email || "—"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          className="px-4"
-                          onClick={() => router.push(`/members/${member.id}`)}
-                        >
-                          {ageGrp ? (
-                            <Badge
-                              variant="outline"
-                              className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
-                            >
-                              {ageGrp}
-                            </Badge>
-                          ) : (
-                            <span className="text-zinc-300 text-[11px]">—</span>
+                        <TableRow
+                          key={member.id}
+                          className={cn(
+                            "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group border-zinc-50 dark:border-zinc-900",
+                            selectedIds.includes(member.id) && "bg-primary/5"
                           )}
-                        </TableCell>
-                        <TableCell
-                          className="hidden lg:table-cell px-4"
-                          onClick={() => router.push(`/members/${member.id}`)}
                         >
-                          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                            <Calendar
-                              className="h-3 w-3 text-zinc-300"
-                              strokeWidth={1.5}
+                          <TableCell
+                            className="px-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Checkbox
+                              checked={selectedIds.includes(member.id)}
+                              onCheckedChange={() => toggleSelect(member.id)}
+                              className="rounded-md border-zinc-200"
                             />
-                            <span className="text-[10px] font-medium uppercase tracking-widest">
-                              {new Date(
-                                member.registrationDate
-                              ).toLocaleDateString("bg-BG")}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          className="text-right px-6"
-                          onClick={() => router.push(`/members/${member.id}`)}
-                        >
-                          <Badge
-                            className={cn(
-                              "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
-                              member.status === "active"
-                                ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
+                          </TableCell>
+                          <TableCell
+                            className="py-4 px-4"
+                            onClick={() => router.push(`/members/${member.id}`)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-[10px] group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300 shrink-0">
+                                {member.firstName[0]}
+                                {member.lastName[0]}
+                              </div>
+                              <div className="font-medium text-[13px] text-zinc-900 dark:text-white group-hover:text-zinc-950 transition-colors truncate">
+                                {member.firstName} {member.lastName}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className="px-4"
+                            onClick={() => router.push(`/members/${member.id}`)}
+                          >
+                            <div className="flex items-center gap-2 text-zinc-500">
+                              <Mail
+                                className="h-3 w-3 shrink-0 text-zinc-300"
+                                strokeWidth={1.5}
+                              />
+                              <span className="text-[11px] font-light truncate max-w-[150px]">
+                                {member.email || "—"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className="px-4"
+                            onClick={() => router.push(`/members/${member.id}`)}
+                          >
+                            {ageGrp ? (
+                              <Badge
+                                variant="outline"
+                                className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
+                              >
+                                {ageGrp}
+                              </Badge>
+                            ) : (
+                              <span className="text-zinc-300 text-[11px]">
+                                —
+                              </span>
                             )}
+                          </TableCell>
+                          <TableCell
+                            className="hidden lg:table-cell px-4"
+                            onClick={() => router.push(`/members/${member.id}`)}
                           >
-                            {member.status === "active"
-                              ? "Активен"
-                              : "Неактивен"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="px-4">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) =>
-                              handleDeleteMember(
-                                e,
-                                member.id,
-                                `${member.firstName} ${member.lastName}`
-                              )
-                            }
-                            aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                            className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                            <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                              <Calendar
+                                className="h-3 w-3 text-zinc-300"
+                                strokeWidth={1.5}
+                              />
+                              <span className="text-[10px] font-medium uppercase tracking-widest">
+                                {new Date(
+                                  member.registrationDate
+                                ).toLocaleDateString("bg-BG")}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className="text-right px-6"
+                            onClick={() => router.push(`/members/${member.id}`)}
                           >
-                            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                            <Badge
+                              className={cn(
+                                "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
+                                member.status === "active"
+                                  ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
+                              )}
+                            >
+                              {member.status === "active"
+                                ? "Активен"
+                                : "Неактивен"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-4">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) =>
+                                handleDeleteMember(
+                                  e,
+                                  member.id,
+                                  `${member.firstName} ${member.lastName}`
+                                )
+                              }
+                              aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
+                              className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       );
                     })
                   ) : (

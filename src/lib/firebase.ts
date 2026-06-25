@@ -86,7 +86,7 @@ if (
 
       g._firebaseEmulatorsConnected = true;
       console.log("🚀 Connected to Firebase Emulators");
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn("⚠️ Could not connect to Firebase Emulators:", e);
     }
   }

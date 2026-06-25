@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
@@ -157,6 +155,7 @@ const RecoveryCard = ({
             <div
               key={imgUrl}
               className="h-full relative overflow-hidden"
+              // eslint-disable-next-line react/forbid-dom-props
               style={{ width: `${100 / images.length}%` }}
             >
               <Image
@@ -202,9 +201,7 @@ const RecoveryCard = ({
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeImgIndex === i
-                      ? "bg-white w-4"
-                      : "bg-white/50 w-1.5"
+                    activeImgIndex === i ? "bg-white w-4" : "bg-white/50 w-1.5"
                   }`}
                 />
               ))}

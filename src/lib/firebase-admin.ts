@@ -4,48 +4,71 @@ let adminDb: admin.firestore.Firestore;
 let adminAuth: admin.auth.Auth;
 let adminStorage: admin.storage.Storage;
 
-
-function _tryInitWithServiceAccount(resolvedAdmin: typeof admin, serviceAccountJson: string): boolean {
+function tryInitWithServiceAccount(
+  resolvedAdmin: typeof admin,
+  serviceAccountJson: string
+): boolean {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
     if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+      serviceAccount.private_key = serviceAccount.private_key.replace(
+        /\\n/g,
+        "\n"
+      );
     }
     resolvedAdmin.initializeApp({
       credential: resolvedAdmin.credential.cert(serviceAccount),
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "bkgalabovo2025.firebasestorage.app",
+      storageBucket:
+        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+        "bkgalabovo2025.firebasestorage.app",
     });
-    console.log("Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON.");
+    console.log(
+      "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
+    );
     return true;
   } catch (parseError) {
-    console.warn("WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON.", parseError);
+    console.warn(
+      "WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON.",
+      parseError
+    );
     throw parseError;
   }
 }
 
-function _tryInitWithEnvVars(resolvedAdmin: typeof admin): boolean {
+function tryInitWithEnvVars(resolvedAdmin: typeof admin): boolean {
   if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const projectId =
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     resolvedAdmin.initializeApp({
       credential: resolvedAdmin.credential.cert({
         projectId: projectId,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "bkgalabovo2025.firebasestorage.app",
+      storageBucket:
+        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+        "bkgalabovo2025.firebasestorage.app",
     });
-    console.log("Firebase Admin SDK initialized using individual environment variables.");
+    console.log(
+      "Firebase Admin SDK initialized using individual environment variables."
+    );
     return true;
   }
   return false;
 }
 
-function _tryInitWithGoogleCreds(resolvedAdmin: typeof admin, googleCreds: string | undefined): boolean {
+function tryInitWithGoogleCreds(
+  resolvedAdmin: typeof admin,
+  googleCreds: string | undefined
+): boolean {
   if (googleCreds) {
     resolvedAdmin.initializeApp({
       credential: resolvedAdmin.credential.applicationDefault(),
     });
-    console.log("Firebase Admin SDK initialized using GOOGLE_APPLICATION_CREDENTIALS.");
+    console.log(
+      "Firebase Admin SDK initialized using GOOGLE_APPLICATION_CREDENTIALS."
+    );
     return true;
   }
   return false;
@@ -61,20 +84,26 @@ function initializeFirebaseAdmin() {
 
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const googleCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const resolvedAdmin: typeof admin = (admin as unknown as { default?: typeof admin }).default || admin;
+  const resolvedAdmin: typeof admin =
+    (admin as unknown as { default?: typeof admin }).default || admin;
 
   try {
     let initialized = false;
     if (serviceAccountJson) {
-      initialized = _tryInitWithServiceAccount(resolvedAdmin, serviceAccountJson);
-    } else if (_tryInitWithEnvVars(resolvedAdmin)) {
+      initialized = tryInitWithServiceAccount(
+        resolvedAdmin,
+        serviceAccountJson
+      );
+    } else if (tryInitWithEnvVars(resolvedAdmin)) {
       initialized = true;
-    } else if (_tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
+    } else if (tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
       initialized = true;
     }
 
     if (!initialized) {
-      console.warn("WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail.");
+      console.warn(
+        "WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail."
+      );
       return;
     }
 

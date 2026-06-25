@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -300,8 +298,7 @@ export function DonationReceiptDialog({
         <div className="p-4 sm:p-8 overflow-x-auto bg-zinc-50 dark:bg-zinc-950/50">
           <div
             ref={receiptRef}
-            className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-[10mm] flex flex-col gap-6 printable-area"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-[10mm] flex flex-col gap-6 printable-area font-sans"
           >
             <DocumentCopy
               label="Екземпляр за клиента"

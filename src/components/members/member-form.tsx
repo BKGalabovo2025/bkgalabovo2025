@@ -43,8 +43,13 @@ export const MemberForm = ({
     safeInitialData.dateOfBirth &&
     typeof safeInitialData.dateOfBirth !== "string"
   ) {
-    if (typeof (safeInitialData.dateOfBirth as { toDate?: () => Date })?.toDate === "function") {
-      safeInitialData.dateOfBirth = (safeInitialData.dateOfBirth as { toDate: () => Date })
+    if (
+      typeof (safeInitialData.dateOfBirth as { toDate?: () => Date })
+        ?.toDate === "function"
+    ) {
+      safeInitialData.dateOfBirth = (
+        safeInitialData.dateOfBirth as { toDate: () => Date }
+      )
         .toDate()
         .toISOString()
         .split("T")[0];
@@ -149,6 +154,7 @@ export const MemberForm = ({
         <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded-full mb-8 overflow-hidden">
           <div
             className="bg-zinc-950 dark:bg-zinc-50 h-full transition-all duration-300"
+            // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${(step / totalSteps) * 100}%` }}
           />
         </div>

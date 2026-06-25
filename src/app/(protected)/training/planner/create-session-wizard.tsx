@@ -192,7 +192,7 @@ export default function CreateSessionWizard({
         return { member: m, ageGroup: group, skillLevel: skill };
       });
       setAttendees(mapped);
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
     } finally {
       setIsFetching(false);
@@ -562,7 +562,11 @@ export default function CreateSessionWizard({
                   <Label>Периодизация</Label>
                   <Select
                     value={period}
-                    onValueChange={(v) => setPeriod(v as any)}
+                    onValueChange={(v) =>
+                      setPeriod(
+                        v as "preparation" | "competition" | "transition"
+                      )
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -687,7 +691,10 @@ export default function CreateSessionWizard({
                 </div>
                 <div className="space-y-2">
                   <Label>Режим</Label>
-                  <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+                  <Select
+                    value={mode}
+                    onValueChange={(v) => setMode(v as TrainingMode)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -701,7 +708,7 @@ export default function CreateSessionWizard({
                   <Label>Локация</Label>
                   <Select
                     value={location}
-                    onValueChange={(v) => setLocation(v as any)}
+                    onValueChange={(v) => setLocation(v as LocationType)}
                   >
                     <SelectTrigger>
                       <SelectValue />

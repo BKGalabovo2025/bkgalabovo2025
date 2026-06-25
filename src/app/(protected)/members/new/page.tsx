@@ -40,7 +40,7 @@ const NewMemberPage = () => {
           console.error("Validation errors:", result.errors);
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Failed to create member:", e);
       toast.error("Грешка", {
         description: "Неуспешно свързване със сървъра.",

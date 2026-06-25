@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -44,7 +42,9 @@ export default function PublicCatalogTabs({
   recoveryServices = [],
   allowedTabs = ["trainings", "general", "products", "recovery"],
 }: PublicCatalogTabsProps) {
-  const [activeTab, setActiveTab] = useState<CatalogTab>(allowedTabs[0] || "trainings");
+  const [activeTab, setActiveTab] = useState<CatalogTab>(
+    allowedTabs[0] || "trainings"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -214,13 +214,7 @@ export default function PublicCatalogTabs({
   );
 }
 
-function CatalogCard({
-  item,
-  tab,
-}: {
-  item: any;
-  tab: CatalogTab;
-}) {
+function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   const images = useMemo(() => {
     if (!item.imageUrl) return [];
     return item.imageUrl.split(",").filter(Boolean);
@@ -291,9 +285,12 @@ function CatalogCard({
   };
 
   const getTabIcon = (currentTab: string) => {
-    if (currentTab === "trainings") return <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />;
-    if (currentTab === "general") return <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />;
-    if (currentTab === "recovery") return <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    if (currentTab === "trainings")
+      return <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    if (currentTab === "general")
+      return <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />;
+    if (currentTab === "recovery")
+      return <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />;
     return <ShoppingBag className="h-12 w-12 opacity-35" strokeWidth={1} />;
   };
 
@@ -323,6 +320,7 @@ function CatalogCard({
             <div
               key={imgUrl}
               className="h-full relative overflow-hidden"
+              // eslint-disable-next-line react/forbid-dom-props
               style={{ width: `${100 / images.length}%` }}
             >
               <Image
@@ -370,9 +368,7 @@ function CatalogCard({
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeImgIndex === i
-                      ? "bg-white w-4"
-                      : "bg-white/40 w-1.5"
+                    activeImgIndex === i ? "bg-white w-4" : "bg-white/40 w-1.5"
                   }`}
                 />
               ))}

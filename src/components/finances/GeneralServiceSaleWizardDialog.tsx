@@ -1,10 +1,20 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { GeneralService } from "@/types";
 import { ShoppingBag, ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { GeneralWizardProvider, useGeneralWizard } from "./general-service-wizard/GeneralWizardContext";
+import {
+  GeneralWizardProvider,
+  useGeneralWizard,
+} from "./general-service-wizard/GeneralWizardContext";
 import { GeneralWizardStep1 } from "./general-service-wizard/GeneralWizardStep1";
 import { GeneralWizardStep2 } from "./general-service-wizard/GeneralWizardStep2";
 import { GeneralWizardStep3 } from "./general-service-wizard/GeneralWizardStep3";
@@ -29,7 +39,11 @@ const GeneralServiceSaleWizardContent = () => {
 
   const renderStepDescription = () => {
     if (step < 4) {
-      return <span>Стъпка {step} от 3: Попълнете детайлите за продажба на услугата.</span>;
+      return (
+        <span>
+          Стъпка {step} от 3: Попълнете детайлите за продажба на услугата.
+        </span>
+      );
     }
     if (step === 4) {
       return <span>Регистриране на продажбата...</span>;
@@ -54,6 +68,7 @@ const GeneralServiceSaleWizardContent = () => {
         <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded-full mb-8 overflow-hidden">
           <div
             className="bg-emerald-500 h-full transition-all duration-300"
+            // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
@@ -125,9 +140,14 @@ const GeneralServiceSaleWizardContent = () => {
   );
 };
 
-export const GeneralServiceSaleWizardDialog = (props: GeneralServiceSaleWizardDialogProps) => {
+export const GeneralServiceSaleWizardDialog = (
+  props: GeneralServiceSaleWizardDialogProps
+) => {
   return (
-    <Dialog open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
+    <Dialog
+      open={props.isOpen}
+      onOpenChange={(open) => !open && props.onClose()}
+    >
       <GeneralWizardProvider {...props}>
         <GeneralServiceSaleWizardContent />
       </GeneralWizardProvider>

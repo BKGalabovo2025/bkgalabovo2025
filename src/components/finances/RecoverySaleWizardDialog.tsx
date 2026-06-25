@@ -1,10 +1,20 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClubService as Service } from "@/types";
 import { ShoppingBag, ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { RecoveryWizardProvider, useRecoveryWizard } from "./recovery-wizard/RecoveryWizardContext";
+import {
+  RecoveryWizardProvider,
+  useRecoveryWizard,
+} from "./recovery-wizard/RecoveryWizardContext";
 import { RecoveryWizardStep1 } from "./recovery-wizard/RecoveryWizardStep1";
 import { RecoveryWizardStep2 } from "./recovery-wizard/RecoveryWizardStep2";
 import { RecoveryWizardStep3 } from "./recovery-wizard/RecoveryWizardStep3";
@@ -41,12 +51,24 @@ const RecoverySaleWizardContent = () => {
         <DialogDescription className="font-light text-zinc-500 mt-1">
           {(() => {
             if (step === 5) return <span>Регистриране на продажбата...</span>;
-            if (step > 5) return <span>Продажбата е завършена успешно. Благодарим ви!</span>;
+            if (step > 5)
+              return (
+                <span>Продажбата е завършена успешно. Благодарим ви!</span>
+              );
             const stepName = isGuestSale
-              ? ["Избор на клиент", "Детайли на плащане", "Потвърждение"][step - 1]
-              : ["Избор на клиент", "Присъствия и период", "Начин на плащане", "Потвърждение"][step - 1];
+              ? ["Избор на клиент", "Детайли на плащане", "Потвърждение"][
+                  step - 1
+                ]
+              : [
+                  "Избор на клиент",
+                  "Присъствия и период",
+                  "Начин на плащане",
+                  "Потвърждение",
+                ][step - 1];
             return (
-              <span>Стъпка {displayStep} от {totalSteps}: {stepName}</span>
+              <span>
+                Стъпка {displayStep} от {totalSteps}: {stepName}
+              </span>
             );
           })()}
         </DialogDescription>
@@ -57,6 +79,7 @@ const RecoverySaleWizardContent = () => {
         <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded-full mb-8 overflow-hidden">
           <div
             className="bg-emerald-500 h-full transition-all duration-500"
+            // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${(displayStep / totalSteps) * 100}%` }}
           />
         </div>
@@ -65,8 +88,12 @@ const RecoverySaleWizardContent = () => {
       {/* RENDER CURRENT STEP */}
       {step === 1 && <RecoveryWizardStep1 />}
       {step === 2 && !isGuestSale && <RecoveryWizardStep2 />}
-      {((step === 2 && isGuestSale) || (step === 3 && !isGuestSale)) && <RecoveryWizardStep3 />}
-      {((step >= 3 && isGuestSale) || (step >= 4 && !isGuestSale)) && <RecoveryWizardStep4 />}
+      {((step === 2 && isGuestSale) || (step === 3 && !isGuestSale)) && (
+        <RecoveryWizardStep3 />
+      )}
+      {((step >= 3 && isGuestSale) || (step >= 4 && !isGuestSale)) && (
+        <RecoveryWizardStep4 />
+      )}
 
       {/* DIALOG FOOTER: NAVIGATION BUTTONS */}
       {step < 5 && (
@@ -135,9 +162,14 @@ const RecoverySaleWizardContent = () => {
   );
 };
 
-export const RecoverySaleWizardDialog = (props: RecoverySaleWizardDialogProps) => {
+export const RecoverySaleWizardDialog = (
+  props: RecoverySaleWizardDialogProps
+) => {
   return (
-    <Dialog open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
+    <Dialog
+      open={props.isOpen}
+      onOpenChange={(open) => !open && props.onClose()}
+    >
       <RecoveryWizardProvider {...props}>
         <RecoverySaleWizardContent />
       </RecoveryWizardProvider>

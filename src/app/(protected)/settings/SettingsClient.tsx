@@ -54,7 +54,7 @@ export default function SettingsClient() {
     try {
       const logs = await getAuditLogsAction(50);
       setAuditLogs(logs);
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
     } finally {
       setLoadingLogs(false);

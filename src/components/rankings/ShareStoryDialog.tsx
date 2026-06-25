@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useState, useRef, forwardRef } from "react";
@@ -107,8 +104,7 @@ const StoryContent = forwardRef<HTMLDivElement, { topThree: RankingEntry[] }>(
     return (
       <div
         ref={ref}
-        style={{ width: "1080px", height: "1920px" }}
-        className="bg-white flex flex-col items-center justify-between p-24 relative overflow-hidden"
+        className="w-[1080px] h-[1920px] bg-white flex flex-col items-center justify-between p-24 relative overflow-hidden"
       >
         {/* Background Decorative Elements - Subtle and Airy */}
         <div className="absolute top-0 right-0 w-[1200px] h-[1200px] bg-zinc-50 rounded-full -mr-600 -mt-600" />

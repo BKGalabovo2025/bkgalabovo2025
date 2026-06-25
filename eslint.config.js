@@ -34,10 +34,23 @@ export default tseslint.config(
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         { argsIgnorePattern: "^_" },
       ],
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "react/forbid-dom-props": ["error", { forbid: ["style"] }],
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "function",
+          format: ["camelCase", "PascalCase"],
+        },
+        {
+          selector: "variable",
+          format: ["camelCase", "UPPER_CASE", "PascalCase"],
+          leadingUnderscore: "allow",
+        },
+      ],
       "@next/next/no-html-link-for-pages": "off",
       "react-hooks/incompatible-library": "off",
       "react-hooks/set-state-in-effect": "off",

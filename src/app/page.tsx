@@ -58,12 +58,14 @@ export default function HomePage() {
       {/* Ambient background blobs */}
       <div
         className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] transition-all duration-1000 pointer-events-none"
+        // eslint-disable-next-line react/forbid-dom-props
         style={{
           background: getBlobColor1(hovered),
         }}
       />
       <div
         className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] transition-all duration-1000 pointer-events-none"
+        // eslint-disable-next-line react/forbid-dom-props
         style={{
           background: getBlobColor2(hovered),
         }}

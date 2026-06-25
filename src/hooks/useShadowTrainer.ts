@@ -55,7 +55,7 @@ export interface ShadowSettings {
 
 // ─── Pure helper functions (extracted to reduce cognitive complexity) ─────────
 
-function _resolveAudioPathsAndZone(
+function resolveAudioPathsAndZone(
   drillMode: string,
   calloutMode: string,
   cornersMode: "4-corners" | "6-corners" = "6-corners",
@@ -104,7 +104,7 @@ function _resolveAudioPathsAndZone(
   return { zone, audioPath, secondAudioPath };
 }
 
-function _calculateGhostMatchPace(
+function calculateGhostMatchPace(
   consecutiveFastShotsRef: React.MutableRefObject<number>
 ): number {
   let pace = 3;
@@ -127,7 +127,7 @@ function _calculateGhostMatchPace(
   return pace;
 }
 
-function _rotatePlayers(
+function rotatePlayers(
   currentSettings: ShadowSettings,
   currentPlayersRef: React.MutableRefObject<ShadowPlayer[]>,
   playCountsRef: React.MutableRefObject<Record<string, number>>
@@ -167,7 +167,7 @@ type TriggerNextActionRefs = {
   setVisualPhase: (phase: VisualPhase) => void;
 };
 
-function _handleAgilityTestAction(
+function handleAgilityTestAction(
   isFirst: boolean,
   refs: TriggerNextActionRefs,
   setAgilityActionsDone: (v: number) => void,
@@ -189,7 +189,7 @@ function _handleAgilityTestAction(
   return false;
 }
 
-function _scheduleAudioAndPhases(
+function scheduleAudioAndPhases(
   isFirst: boolean,
   pace: number,
   audioPath: string,
@@ -236,7 +236,7 @@ function _scheduleAudioAndPhases(
     const canDeceive = currentSettings.deceptionEnabled && Math.random() < 0.15;
 
     if (canDeceive) {
-      const fakeResolved = _resolveAudioPathsAndZone(
+      const fakeResolved = resolveAudioPathsAndZone(
         currentSettings.drillMode,
         currentSettings.calloutMode,
         currentSettings.cornersMode,
@@ -304,7 +304,7 @@ type AdvanceStateRefs = {
   playCountsRef: React.MutableRefObject<Record<string, number>>;
 };
 
-function _advanceFromCountdown(
+function advanceFromCountdown(
   currentSettings: ShadowSettings,
   refs: AdvanceStateRefs,
   updateTimeRemaining: (v: number) => void,
@@ -324,7 +324,7 @@ function _advanceFromCountdown(
   refs.actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
 }
 
-function _advanceFromWorking(
+function advanceFromWorking(
   currentSettings: ShadowSettings,
   refs: AdvanceStateRefs,
   updateTimeRemaining: (v: number) => void,
@@ -339,7 +339,7 @@ function _advanceFromWorking(
     refs.stateRef.current = "finished";
     if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
   } else {
-    const nextPlayers = _rotatePlayers(
+    const nextPlayers = rotatePlayers(
       currentSettings,
       refs.currentPlayersRef,
       refs.playCountsRef
@@ -355,7 +355,7 @@ function _advanceFromWorking(
   }
 }
 
-function _advanceFromResting(
+function advanceFromResting(
   currentSettings: ShadowSettings,
   refs: AdvanceStateRefs,
   updateTimeRemaining: (v: number) => void,
@@ -384,7 +384,7 @@ type TickContext = {
   setActualElapsedMs: React.Dispatch<React.SetStateAction<number>>;
 };
 
-function _onSecondTick(ctx: TickContext) {
+function onSecondTick(ctx: TickContext) {
   const {
     expectedTimeRemainingRef,
     stateRef,
@@ -433,7 +433,7 @@ function _onSecondTick(ctx: TickContext) {
   });
 }
 
-function _handleTick(
+function handleTick(
   deltaMs: number,
   accumulatedMsRef: React.MutableRefObject<number>,
   ctx: TickContext
@@ -447,13 +447,13 @@ function _handleTick(
   accumulatedMsRef.current += deltaMs;
   if (accumulatedMsRef.current >= 1000) {
     accumulatedMsRef.current -= 1000;
-    _onSecondTick(ctx);
+    onSecondTick(ctx);
   }
 }
 
 // ─── Extracted motivation (pure, no hook deps) ────────────────────────────────
 
-function _speakMotivation(
+function triggerSpeakMotivation(
   currentPlayers: ShadowPlayer[],
   motivationEnabled: boolean
 ) {
@@ -611,7 +611,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       isFirstActionRef.current = false;
 
       if (currentSettings.mode === "agility_test") {
-        const finished = _handleAgilityTestAction(
+        const finished = handleAgilityTestAction(
           isFirst,
           actionRefs,
           setAgilityActionsDone,
@@ -625,10 +625,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       const pace =
         currentSettings.mode === "ghost_match"
-          ? _calculateGhostMatchPace(consecutiveFastShotsRef)
+          ? calculateGhostMatchPace(consecutiveFastShotsRef)
           : currentSettings.paceSec;
 
-      const { zone, audioPath, secondAudioPath } = _resolveAudioPathsAndZone(
+      const { zone, audioPath, secondAudioPath } = resolveAudioPathsAndZone(
         currentSettings.drillMode,
         currentSettings.calloutMode,
         currentSettings.cornersMode,
@@ -636,7 +636,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         activeZone
       );
 
-      _scheduleAudioAndPhases(
+      scheduleAudioAndPhases(
         isFirst,
         pace,
         audioPath,
@@ -658,12 +658,12 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const speakMotivation = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;
-      _speakMotivation(
+      triggerSpeakMotivation(
         currentPlayersRef.current,
         !!currentSettings?.motivationEnabled
       );
-    } catch (e) {
-      console.error("Speech synthesis error", e);
+    } catch {
+      console.error("Speech synthesis error");
     }
   }, []);
 
@@ -689,7 +689,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     const phase = stateRef.current;
     if (phase === "countdown") {
       setState("working");
-      _advanceFromCountdown(
+      advanceFromCountdown(
         currentSettings,
         advanceStateRefs,
         updateTimeRemaining,
@@ -699,7 +699,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       );
     } else if (phase === "working") {
       setActiveZone(null);
-      _advanceFromWorking(
+      advanceFromWorking(
         currentSettings,
         advanceStateRefs,
         updateTimeRemaining,
@@ -709,7 +709,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       setState(advanceStateRefs.stateRef.current);
     } else if (phase === "resting") {
       setState("countdown");
-      _advanceFromResting(
+      advanceFromResting(
         currentSettings,
         advanceStateRefs,
         updateTimeRemaining,
@@ -742,7 +742,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       const now = Date.now();
       const deltaMs = now - lastTick;
       lastTick = now;
-      _handleTick(deltaMs, accumulatedMsRef, tickCtx);
+      handleTick(deltaMs, accumulatedMsRef, tickCtx);
     }, 100);
 
     timerRef.current = intervalId;

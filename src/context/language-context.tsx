@@ -96,7 +96,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
           setTimeout(() => setLanguage(savedLang), 0);
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn("Failed to read language from localStorage", e);
     }
   }, []);
@@ -111,7 +111,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         window.localStorage.setItem("app_lang", lang);
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn("Failed to save language to localStorage", e);
     }
   };

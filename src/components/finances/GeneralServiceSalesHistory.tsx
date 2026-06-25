@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,7 +15,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, MoreVertical, Edit2, Trash2, Loader2, Receipt, Eye } from "lucide-react";
+import {
+  ShoppingBag,
+  MoreVertical,
+  Edit2,
+  Trash2,
+  Loader2,
+  Receipt,
+  Eye,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,17 +72,24 @@ export function GeneralServiceSalesHistory() {
   };
 
   const handleDeleteSale = async (saleId: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?")) return;
-    
+    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?"))
+      return;
+
     setIsDeleting(saleId);
     try {
       const res = await deleteGeneralServiceSaleAction(saleId);
       if (!res.success) throw new Error(res.error);
-      
-      toast.success("Успех", { description: "Продажбата беше изтрита успешно." });
+
+      toast.success("Успех", {
+        description: "Продажбата беше изтрита успешно.",
+      });
       if (refetch) refetch();
-    } catch (error: any) {
-      toast.error("Грешка", { description: error.message || "Грешка при изтриване." });
+    } catch (error: unknown) {
+      toast.error("Грешка", {
+        description:
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Грешка при изтриване.",
+      });
     } finally {
       setIsDeleting(null);
     }
@@ -89,7 +101,10 @@ export function GeneralServiceSalesHistory() {
     return (
       <div className="p-8 space-y-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-16 rounded-xl bg-zinc-100 dark:bg-zinc-900 animate-pulse" />
+          <div
+            key={i}
+            className="h-16 rounded-xl bg-zinc-100 dark:bg-zinc-900 animate-pulse"
+          />
         ))}
       </div>
     );
@@ -159,7 +174,10 @@ export function GeneralServiceSalesHistory() {
                     <div className="flex flex-col gap-1">
                       {sale.items && sale.items.length > 0 ? (
                         sale.items.map((item, idx) => (
-                          <span key={idx} className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          <span
+                            key={idx}
+                            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                          >
                             {item.name}{" "}
                             <span className="text-xs text-zinc-400 font-normal">
                               x{item.quantity}
@@ -173,7 +191,9 @@ export function GeneralServiceSalesHistory() {
                   </TableCell>
                   <TableCell className="py-4">
                     <span className="text-sm font-light text-zinc-600 dark:text-zinc-400">
-                      {sale.paymentMethod === "Cash" ? "В брой" : (sale.paymentMethod || "В брой")}
+                      {sale.paymentMethod === "Cash"
+                        ? "В брой"
+                        : sale.paymentMethod || "В брой"}
                     </span>
                   </TableCell>
                   <TableCell className="py-4">
@@ -208,16 +228,27 @@ export function GeneralServiceSalesHistory() {
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[160px] rounded-xl">
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-[160px] rounded-xl"
+                      >
                         <DropdownMenuItem
-                          onClick={() => router.push(`/finances/general-services/sales/${sale.id}/receipt`)}
+                          onClick={() =>
+                            router.push(
+                              `/finances/general-services/sales/${sale.id}/receipt`
+                            )
+                          }
                           className="flex items-center gap-2 text-xs font-medium cursor-pointer"
                         >
                           <Receipt className="h-3.5 w-3.5 text-zinc-500" />
                           Касова бележка
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => router.push(`/finances/general-services/sales/${sale.id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/finances/general-services/sales/${sale.id}`
+                            )
+                          }
                           className="flex items-center gap-2 text-xs font-medium cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5 text-zinc-500" />
@@ -246,8 +277,13 @@ export function GeneralServiceSalesHistory() {
           </Table>
         ) : (
           <div className="py-32 flex flex-col items-center justify-center text-center">
-            <ShoppingBag className="h-12 w-12 text-zinc-200 dark:text-zinc-800 mb-4" strokeWidth={1} />
-            <p className="text-zinc-500 text-sm font-light">Няма регистрирани продажби на услуги.</p>
+            <ShoppingBag
+              className="h-12 w-12 text-zinc-200 dark:text-zinc-800 mb-4"
+              strokeWidth={1}
+            />
+            <p className="text-zinc-500 text-sm font-light">
+              Няма регистрирани продажби на услуги.
+            </p>
           </div>
         )}
       </div>

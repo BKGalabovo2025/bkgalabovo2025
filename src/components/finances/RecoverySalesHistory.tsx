@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -104,9 +102,11 @@ export function RecoverySalesHistory() {
         description: "Продажбата беше изтрита успешно.",
       });
       if (refetch) refetch();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Грешка", {
-        description: error.message || "Грешка при изтриване.",
+        description:
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Грешка при изтриване.",
       });
     } finally {
       setIsDeleting(null);

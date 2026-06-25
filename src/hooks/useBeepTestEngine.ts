@@ -62,7 +62,7 @@ const playBeep = (type: "normal" | "levelUp" = "normal") => {
 
       osc.stop(ctx.currentTime + 1.2);
     }
-  } catch (e) {
+  } catch (e: unknown) {
     console.error("Audio API error", e);
   }
 };

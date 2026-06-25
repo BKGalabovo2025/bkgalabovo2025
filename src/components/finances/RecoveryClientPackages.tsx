@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -64,8 +61,10 @@ export function RecoveryClientPackages() {
       if (!res.success) throw new Error(res.error);
       toast.success("Изтрит", { description: "Пакетът беше изтрит успешно." });
       if (refetch) refetch();
-    } catch (error: any) {
-      toast.error("Грешка", { description: error.message });
+    } catch (error: unknown) {
+      toast.error("Грешка", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsProcessing(null);
     }

@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-ignored-exceptions */
 import {
   collection,
   doc,
@@ -193,7 +192,7 @@ export const plannerService = {
 
       // Assuming documents have a 'name' field
       return snapshot.docs.map((doc) => doc.data().name as string);
-    } catch (e) {
+    } catch {
       return [
         "Обща Подготовка",
         "Clear",

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -66,11 +65,13 @@ export async function createTrainingSessionAction(
       id: docRef.id,
       message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ Р·Р°РїР°Р·РµРЅР° СѓСЃРїРµС€РЅРѕ.",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error saving training:", error);
     return {
       success: false,
-      message: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїР°Р·РІР°РЅРµ.",
+      message:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїР°Р·РІР°РЅРµ.",
     };
   }
 }
@@ -100,7 +101,7 @@ export async function getGlobalTrainingSessionsAction(limitCount = 50) {
     });
 
     return { success: true, data: trainings };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching global trainings:", error);
     return { success: false, data: [] };
   }
@@ -134,9 +135,10 @@ export async function getTrainingSessionsForMemberAction(
     });
 
     return { success: true, data: trainings };
-  } catch (error: any) {
-    console.error("Error fetching member trainings:", error?.message || error);
-    return { success: false, data: [], error: error?.message };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching member trainings:", msg);
+    return { success: false, data: [], error: msg };
   }
 }
 
@@ -161,8 +163,11 @@ export async function updateRpeScoresAction(
     revalidatePath("/training");
 
     return { success: true };
-  } catch (error: any) {
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
@@ -185,11 +190,13 @@ export async function deleteTrainingSessionAction(
       success: true,
       message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting training:", error);
     return {
       success: false,
-      message: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ.",
+      message:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ.",
     };
   }
 }

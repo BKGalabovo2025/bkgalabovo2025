@@ -58,11 +58,13 @@ export async function getInventorySalesServerAction(activeBranch: string) {
       success: true,
       data: sales,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getInventorySalesServerAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±РёС‚Рµ.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±РёС‚Рµ.",
     };
   }
 }
@@ -82,13 +84,19 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     const saleSnap = await adminDb.collection("sales").doc(saleId).get();
 
     if (!saleSnap.exists) {
-      return { success: false, error: "РџСЂРѕРґР°Р¶Р±Р°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°." };
+      return {
+        success: false,
+        error: "РџСЂРѕРґР°Р¶Р±Р°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.",
+      };
     }
 
     const sale = snapToData<Sale>(saleSnap);
     if (!sale) {
       console.error("Sale data is incomplete:", sale);
-      return { success: false, error: "РќРµРїСЉР»РЅРё РґР°РЅРЅРё Р·Р° РїСЂРѕРґР°Р¶Р±Р°С‚Р°." };
+      return {
+        success: false,
+        error: "РќРµРїСЉР»РЅРё РґР°РЅРЅРё Р·Р° РїСЂРѕРґР°Р¶Р±Р°С‚Р°.",
+      };
     }
 
     const isGuest = sale.memberId === "GUEST_EXTERNAL";
@@ -187,13 +195,13 @@ export async function getReceiptDetailsServerAction(saleId: string) {
         familyMembers,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getReceiptDetailsServerAction:", error);
     return {
       success: false,
       error:
-        error.message || "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РґРµС‚Р°Р№Р»РёС‚Рµ Р·Р° СЂР°Р·РїРёСЃРєР°С‚Р°.",
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РґРµС‚Р°Р№Р»РёС‚Рµ Р·Р° СЂР°Р·РїРёСЃРєР°С‚Р°.",
     };
   }
 }
-

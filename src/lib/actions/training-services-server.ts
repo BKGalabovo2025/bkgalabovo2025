@@ -40,11 +40,13 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
       });
 
     return { success: true, data: history };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getTrainingServiceHistoryAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
     };
   }
 }
@@ -101,12 +103,13 @@ export async function getTrainingServiceSalesAction(activeBranch: string) {
       );
 
     return { success: true, data: sales };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getTrainingServiceSalesAction:", error);
     return {
       success: false,
-      error: error.message || "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
     };
   }
 }
-

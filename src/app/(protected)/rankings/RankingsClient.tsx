@@ -430,6 +430,7 @@ export default function RankingsClient({
                                     "h-full rounded-full transition-all duration-500",
                                     getWinRateColor(winRate)
                                   )}
+                                  // eslint-disable-next-line react/forbid-dom-props
                                   style={{ width: `${winRate}%` }}
                                 />
                               </div>

@@ -235,7 +235,7 @@ class AudioManager {
 
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.1);
-    } catch (e) {
+    } catch (e: unknown) {
       console.log("Failed to play synthetic beep", e);
     }
   }

@@ -186,6 +186,7 @@ const InformedConsentPage = () => {
                     src={existingSignatureUrl}
                     alt="Електронен подпис"
                     className="h-16 w-auto mx-auto object-contain"
+                    // eslint-disable-next-line react/forbid-dom-props
                     style={{ mixBlendMode: "multiply" }}
                   />
                   <div className="border-b border-slate-400 mt-1" />

@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,7 +54,7 @@ export const EditSaleDialog = ({
 
   const handleUpdate = async () => {
     if (!sale) return;
-    
+
     const amountVal = parseFloat(totalAmount);
     if (isNaN(amountVal) || amountVal < 0) {
       toast.error("Грешка", {
@@ -74,12 +71,16 @@ export const EditSaleDialog = ({
         totalAmount: amountVal,
       });
 
-      toast.success("Успех!", { description: "Продажбата е обновена успешно." });
+      toast.success("Успех!", {
+        description: "Продажбата е обновена успешно.",
+      });
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Грешка", {
-        description: error.message || "Грешка при обновяване на продажбата.",
+        description:
+          (error instanceof Error ? error.message : "Unknown error") ||
+          "Грешка при обновяване на продажбата.",
       });
     } finally {
       setIsProcessing(false);
@@ -93,7 +94,10 @@ export const EditSaleDialog = ({
       <DialogContent className="sm:max-w-[450px] p-8 rounded-3xl bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-xl">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-light text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-emerald-500" strokeWidth={1.5} />
+            <ShoppingBag
+              className="h-5 w-5 text-emerald-500"
+              strokeWidth={1.5}
+            />
             Редакция на продажба
           </DialogTitle>
           <DialogDescription className="font-light text-zinc-400 mt-1">

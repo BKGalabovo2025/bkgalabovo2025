@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/no-ignored-exceptions */
+/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -39,7 +39,9 @@ interface Props {
 const playWhistle = () => {
   try {
     const audioCtx = new (
-      window.AudioContext || (window as any).webkitAudioContext
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext
     )();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
@@ -63,7 +65,7 @@ const playWhistle = () => {
 
     oscillator.start(audioCtx.currentTime);
     oscillator.stop(audioCtx.currentTime + 0.5);
-  } catch (e) {
+  } catch {
     console.log("Audio not supported or interaction required");
   }
 };

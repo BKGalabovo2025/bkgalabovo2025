@@ -1,6 +1,3 @@
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,7 +15,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Edit2, Trash2, Loader2, Receipt, Eye } from "lucide-react";
+import {
+  MoreVertical,
+  Edit2,
+  Trash2,
+  Loader2,
+  Receipt,
+  Eye,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,8 +60,10 @@ const InventorySalesHistory = () => {
           dict[m.id] = `${m.firstName} ${m.lastName}`;
         });
         setMembersMap(dict);
-        
-        const inventorySales = fetchedSales.filter(s => !s.type || s.type === "inventory");
+
+        const inventorySales = fetchedSales.filter(
+          (s) => !s.type || s.type === "inventory"
+        );
         setSales(inventorySales);
       } catch (err) {
         setError("Грешка при зареждане на историята на продажбите.");
@@ -81,7 +87,9 @@ const InventorySalesHistory = () => {
     try {
       setLoading(true);
       const fetchedSales = await getSales();
-      const inventorySales = fetchedSales.filter(s => !s.type || s.type === "inventory");
+      const inventorySales = fetchedSales.filter(
+        (s) => !s.type || s.type === "inventory"
+      );
       setSales(inventorySales);
     } catch (err) {
       console.error(err);
@@ -91,22 +99,27 @@ const InventorySalesHistory = () => {
   };
 
   const handleDeleteSale = async (saleId: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?")) return;
-    
+    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?"))
+      return;
+
     setIsDeleting(saleId);
     try {
       const auth = getAuth();
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("Моля влезте в профила си");
       const idToken = await currentUser.getIdToken();
-      
+
       const res = await deleteSaleAction(saleId, idToken);
       if (!res.success) throw new Error(res.message || "Грешка при изтриване");
-      
-      toast.success("Успех", { description: "Продажбата беше изтрита успешно." });
+
+      toast.success("Успех", {
+        description: "Продажбата беше изтрита успешно.",
+      });
       refetch();
-    } catch (error: any) {
-      toast.error("Грешка", { description: error.message });
+    } catch (error: unknown) {
+      toast.error("Грешка", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsDeleting(null);
     }
@@ -195,7 +208,9 @@ const InventorySalesHistory = () => {
                     </div>
                   </TableCell>
                   <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400 font-light">
-                    {sale.paymentMethod === "Cash" ? "В брой" : (sale.paymentMethod || "В брой")}
+                    {sale.paymentMethod === "Cash"
+                      ? "В брой"
+                      : sale.paymentMethod || "В брой"}
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <Badge
@@ -227,16 +242,23 @@ const InventorySalesHistory = () => {
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[160px] rounded-xl">
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-[160px] rounded-xl"
+                      >
                         <DropdownMenuItem
-                          onClick={() => router.push(`/inventory/sales/${sale.id}/receipt`)}
+                          onClick={() =>
+                            router.push(`/inventory/sales/${sale.id}/receipt`)
+                          }
                           className="flex items-center gap-2 text-xs font-medium cursor-pointer"
                         >
                           <Receipt className="h-3.5 w-3.5 text-zinc-500" />
                           Касова бележка
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => router.push(`/inventory/sales/${sale.id}`)}
+                          onClick={() =>
+                            router.push(`/inventory/sales/${sale.id}`)
+                          }
                           className="flex items-center gap-2 text-xs font-medium cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5 text-zinc-500" />

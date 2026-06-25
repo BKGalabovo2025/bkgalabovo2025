@@ -175,6 +175,7 @@ const SafetyInstructionPage = () => {
                     src={existingSignatureUrl}
                     alt="Подпис на родител"
                     className="h-14 w-auto object-contain"
+                    // eslint-disable-next-line react/forbid-dom-props
                     style={{ mixBlendMode: "multiply" }}
                   />
                 ) : (

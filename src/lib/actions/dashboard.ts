@@ -433,11 +433,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
       },
       TTL_MS
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching dashboard data on server:", error);
     return {
       success: false,
-      error: error.message || "РќРµСѓСЃРїРµС€РЅРѕ РёР·РІР»РёС‡Р°РЅРµ РЅР° РґР°РЅРЅРё",
+      error:
+        (error instanceof Error ? error.message : "Unknown error") ||
+        "РќРµСѓСЃРїРµС€РЅРѕ РёР·РІР»РёС‡Р°РЅРµ РЅР° РґР°РЅРЅРё",
     };
   }
 }
@@ -446,9 +448,11 @@ export async function invalidateDashboardCacheAction() {
   try {
     serverCache.invalidatePattern("dashboard:");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error invalidating dashboard cache:", error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
-
