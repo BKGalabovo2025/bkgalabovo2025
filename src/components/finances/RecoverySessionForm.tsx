@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -47,9 +45,16 @@ export function RecoverySessionForm({
   onCancel,
   errors,
 }: RecoverySessionFormProps) {
-  const [imageUrl, setImageUrl] = useState(
-    (initialData as any)?.imageUrl || ""
-  );
+  const [imageUrl, setImageUrl] = useState(() => {
+    const raw = (initialData as any)?.imageUrl || "";
+    return raw
+      .split(",")
+      .filter(Boolean)
+      .map((img: string) =>
+        img.startsWith("/") && !img.startsWith("/zones") ? `/zones${img}` : img
+      )
+      .join(",");
+  });
   const [imageDisplayMode, setImageDisplayMode] = useState<
     "collage" | "carousel"
   >((initialData as any)?.imageDisplayMode || "collage");
@@ -137,11 +142,17 @@ export function RecoverySessionForm({
 
   const updateResourcesOnZoneCheck = (zone: string) => {
     if (zone === "КРАКА")
-      setResLegs(Math.min(athleteCount, siteInventory?.attachments?.legs || 10));
+      setResLegs(
+        Math.min(athleteCount, siteInventory?.attachments?.legs || 10)
+      );
     if (zone === "РЪЦЕ")
-      setResArms(Math.min(athleteCount, siteInventory?.attachments?.arms || 10));
+      setResArms(
+        Math.min(athleteCount, siteInventory?.attachments?.arms || 10)
+      );
     if (zone === "ТАЗ")
-      setResHips(Math.min(athleteCount, siteInventory?.attachments?.hips || 10));
+      setResHips(
+        Math.min(athleteCount, siteInventory?.attachments?.hips || 10)
+      );
     setResCompressors(Math.min(athleteCount, siteInventory?.compressors || 10));
   };
 
@@ -186,7 +197,8 @@ export function RecoverySessionForm({
   const syncZoneWithResource = (zone: string, count: number) => {
     setZones((prev) => {
       if (count > 0 && !prev.includes(zone)) return [...prev, zone];
-      if (count === 0 && prev.includes(zone)) return prev.filter((z) => z !== zone);
+      if (count === 0 && prev.includes(zone))
+        return prev.filter((z) => z !== zone);
       return prev;
     });
   };

@@ -19,7 +19,7 @@ import {
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 
 const EXERCISES_COLLECTION = "exercises";
-const SESSIONS_COLLECTION = "training_sessions";
+const SESSIONS_COLLECTION = "planner_sessions";
 const ATTENDANCE_COLLECTION = "training_attendance";
 const FOCUS_TAGS_COLLECTION = "focus_tags";
 

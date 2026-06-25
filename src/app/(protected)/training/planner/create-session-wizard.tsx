@@ -549,7 +549,7 @@ export default function CreateSessionWizard({
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
                       {focusOptions.map((f) => (
                         <SelectItem key={f} value={f}>
                           {f}
@@ -587,22 +587,40 @@ export default function CreateSessionWizard({
               </div>
 
               <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-2">
                   <Label>Целева Интензивност (1-5)</Label>
                   <span className="font-black text-indigo-600 bg-indigo-50 px-2 rounded">
                     {targetIntensity}
                   </span>
                 </div>
-                <input
-                  type="range"
-                  value={targetIntensity}
-                  onChange={(e) => setTargetIntensity(parseInt(e.target.value))}
-                  max={5}
-                  min={1}
-                  step={1}
-                  className="w-full accent-indigo-600"
-                />
-                <p className="text-[10px] text-zinc-500">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { val: 1, label: "Много лесна" },
+                    { val: 2, label: "Лесна" },
+                    { val: 3, label: "Средна" },
+                    { val: 4, label: "Трудна" },
+                    { val: 5, label: "Много трудна" },
+                  ].map((lvl) => (
+                    <div
+                      key={lvl.val}
+                      onClick={() => setTargetIntensity(lvl.val)}
+                      className={cn(
+                        "cursor-pointer border rounded-xl p-2 text-center transition-all flex flex-col items-center justify-center min-h-[60px]",
+                        targetIntensity === lvl.val
+                          ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+                          : "bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:border-zinc-300"
+                      )}
+                    >
+                      <span className="text-xs font-bold mb-0.5">
+                        {lvl.val}
+                      </span>
+                      <span className="text-[10px] leading-tight opacity-90">
+                        {lvl.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-2">
                   Системата ще избере упражнения, които отговарят на тази
                   интензивност.
                 </p>
@@ -676,6 +694,9 @@ export default function CreateSessionWizard({
                           {ag}
                         </SelectItem>
                       ))}
+                      <SelectItem value="Смесено (спрямо присъствия)">
+                        Смесено (спрямо присъствия)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -795,31 +816,70 @@ export default function CreateSessionWizard({
                         </p>
                       ) : (
                         group.exercises.map((ex, idx) => (
-                          <div
+                          <details
                             key={ex.id + idx}
-                            className="flex gap-3 bg-white border border-zinc-200 p-3 rounded-lg shadow-sm relative overflow-hidden"
+                            className="group flex flex-col bg-white border border-zinc-200 p-3 rounded-lg shadow-sm relative overflow-hidden"
                           >
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
-                            <div className="bg-indigo-50 text-indigo-700 font-black w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
-                              {idx + 1}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-bold text-zinc-900 text-sm">
-                                {ex.name}
+                            <summary className="flex gap-3 cursor-pointer list-none outline-none [&::-webkit-details-marker]:hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
+                              <div className="bg-indigo-50 text-indigo-700 font-black w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                                {idx + 1}
                               </div>
-                              <div className="text-xs text-zinc-500 mt-0.5 flex flex-wrap gap-2">
-                                <span>{ex.durationMinutes} мин</span>
-                                <span>• {ex.category.toUpperCase()}</span>
-                                {ex.defaultSets && (
-                                  <span className="text-indigo-600 font-medium">
-                                    • {ex.defaultSets} серии x{" "}
-                                    {ex.defaultWorkSec}с /{ex.defaultRestSec}с
-                                    почивка
-                                  </span>
+                              <div className="flex-1 pr-6 relative">
+                                <div className="font-bold text-zinc-900 text-sm">
+                                  {ex.name}
+                                </div>
+                                <div className="text-xs text-zinc-500 mt-0.5 flex flex-wrap gap-2">
+                                  <span>{ex.durationMinutes} мин</span>
+                                  <span>• {ex.category.toUpperCase()}</span>
+                                  {ex.defaultSets && (
+                                    <span className="text-indigo-600 font-medium">
+                                      • {ex.defaultSets} серии x{" "}
+                                      {ex.defaultWorkSec}с /{ex.defaultRestSec}с
+                                      почивка
+                                    </span>
+                                  )}
+                                </div>
+                                <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-open:rotate-90 transition-transform" />
+                              </div>
+                            </summary>
+                            <div className="mt-4 pt-3 border-t border-zinc-100 text-sm text-zinc-600 space-y-2 pl-11">
+                              {ex.description && (
+                                <p>
+                                  <strong>Описание:</strong> {ex.description}
+                                </p>
+                              )}
+                              {ex.coachingPoints &&
+                                ex.coachingPoints.length > 0 && (
+                                  <div>
+                                    <strong className="block mb-1">
+                                      Ключови точки:
+                                    </strong>
+                                    <ul className="list-disc pl-4 space-y-1">
+                                      {ex.coachingPoints.map(
+                                        (cp: string, i: number) => (
+                                          <li key={i}>{cp}</li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
                                 )}
-                              </div>
+                              {ex.focusTags && ex.focusTags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {ex.focusTags.map(
+                                    (tag: string, i: number) => (
+                                      <span
+                                        key={i}
+                                        className="bg-zinc-100 px-2 py-0.5 rounded text-[10px] text-zinc-500"
+                                      >
+                                        {tag}
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          </div>
+                          </details>
                         ))
                       )}
                     </div>

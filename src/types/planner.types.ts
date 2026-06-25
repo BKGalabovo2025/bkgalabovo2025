@@ -25,6 +25,7 @@ export interface Exercise {
   // Pedagogical structure
   phase?: "warmup" | "main-tech" | "main-tact" | "cooldown";
   focusTags?: string[];
+  coachingPoints?: string[];
   intensity?: 1 | 2 | 3 | 4 | 5;
   complexityLevel?: 1 | 2 | 3 | 4 | 5;
   defaultSets?: number;

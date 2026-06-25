@@ -109,7 +109,14 @@ const RecoveryCard = ({
   onDelete: () => void;
 }) => {
   const images = (service as any).imageUrl
-    ? (service as any).imageUrl.split(",").filter(Boolean)
+    ? (service as any).imageUrl
+        .split(",")
+        .filter(Boolean)
+        .map((img: string) =>
+          img.startsWith("/") && !img.startsWith("/zones")
+            ? `/zones${img}`
+            : img
+        )
     : [];
 
   const displayMode = (service as any).imageDisplayMode || "collage";
