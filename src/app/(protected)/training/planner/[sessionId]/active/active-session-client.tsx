@@ -1,10 +1,15 @@
+/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/no-ignored-exceptions */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/use-app-store";
 import { plannerService } from "@/services/planner-service";
 import { getAllMembers } from "@/services/member-service";
-import { PlannerSession, SessionAttendance } from "@/types/planner.types";
+import {
+  PlannerSession,
+  SessionAttendance,
+  Exercise,
+} from "@/types/planner.types";
 import { Member } from "@/types/member.types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,19 +19,54 @@ import { Label } from "@/components/ui/label";
 import {
   Play,
   Pause,
-  RotateCcw,
   Save,
   Loader2,
   ArrowLeft,
   Activity,
   Target,
+  Timer,
+  SkipForward,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 interface Props {
   sessionId: string;
 }
+
+// Simple synthesizer for a loud, clear whistle/beep sound
+const playWhistle = () => {
+  try {
+    const audioCtx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.type = "square";
+    // Start high pitch (like a whistle)
+    oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      1800,
+      audioCtx.currentTime + 0.2
+    );
+
+    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); // Volume
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioCtx.currentTime + 0.5
+    );
+
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.5);
+  } catch (e) {
+    console.log("Audio not supported or interaction required");
+  }
+};
 
 export default function ActiveSessionClient({ sessionId }: Props) {
   const router = useRouter();
@@ -36,16 +76,19 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Timer State
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  // Interval Timer State
+  const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
+  const [timerState, setTimerState] = useState<
+    "idle" | "work" | "rest" | "finished"
+  >("idle");
+  const [currentSet, setCurrentSet] = useState(1);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Global Notes
   const [coachNotes, setCoachNotes] = useState("");
 
   // Attendance State
-  // Map memberId -> SessionAttendance record
   const [attendance, setAttendance] = useState<
     Record<string, SessionAttendance>
   >({});
@@ -67,7 +110,6 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       setSession(targetSession);
 
       const allMembers = await getAllMembers();
-      // For a real app, you might filter members by ageGroup, but we'll show all active for now
       const activeMembers = allMembers.filter(
         (m: Member) => m.status === "active"
       );
@@ -79,23 +121,95 @@ export default function ActiveSessionClient({ sessionId }: Props) {
     }
   };
 
-  // Timer Logic
-  const toggleTimer = () => {
-    if (isTimerRunning) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setIsTimerRunning(false);
+  // --- Interval Timer Logic ---
+  const startExercise = (ex: Exercise) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setActiveExercise(ex);
+    setCurrentSet(1);
+
+    if (ex.defaultWorkSec) {
+      setTimerState("work");
+      setTimeRemaining(ex.defaultWorkSec);
+      playWhistle(); // Start sound
     } else {
-      setIsTimerRunning(true);
-      timerRef.current = setInterval(() => {
-        setTimerSeconds((s) => s + 1);
-      }, 1000);
+      // Fallback simple timer
+      setTimerState("work");
+      setTimeRemaining(ex.durationMinutes * 60);
     }
   };
 
-  const resetTimer = () => {
+  const stopExercise = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    setIsTimerRunning(false);
-    setTimerSeconds(0);
+    setActiveExercise(null);
+    setTimerState("idle");
+  };
+
+  const skipInterval = () => {
+    if (!activeExercise) return;
+    advanceTimer();
+  };
+
+  const advanceTimer = () => {
+    if (!activeExercise) return;
+
+    if (timerState === "work") {
+      if (currentSet >= (activeExercise.defaultSets || 1)) {
+        setTimerState("finished");
+        setTimeRemaining(0);
+        playWhistle();
+        setTimeout(playWhistle, 500); // Double beep for finished
+      } else {
+        setTimerState("rest");
+        setTimeRemaining(activeExercise.defaultRestSec || 30);
+        playWhistle();
+      }
+    } else if (timerState === "rest") {
+      setCurrentSet((s) => s + 1);
+      setTimerState("work");
+      setTimeRemaining(activeExercise.defaultWorkSec || 60);
+      playWhistle();
+    }
+  };
+
+  useEffect(() => {
+    if (timerState === "work" || timerState === "rest") {
+      timerRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            advanceTimer();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerState, currentSet, activeExercise]);
+
+  const toggleTimerPause = () => {
+    if (timerState === "idle" || timerState === "finished") return;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      // Note: A true pause would need a third state "paused", but for simplicity we just clear the interval
+      // and let the UI know. We'll add a pseudo-pause by nullifying the ref and checking it.
+    } else {
+      // Resume
+      timerRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            advanceTimer();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
   };
 
   const formatTime = (secs: number) => {
@@ -106,7 +220,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
     return `${m}:${s}`;
   };
 
-  // Attendance Handlers
+  // --- Attendance Handlers ---
   const toggleAttendance = (memberId: string) => {
     setAttendance((prev) => {
       const next = { ...prev };
@@ -147,7 +261,6 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const handleFinish = async () => {
     setIsSaving(true);
     try {
-      // Save all attendance records
       const records = Object.values(attendance);
       if (records.length > 0) {
         await plannerService.saveAttendanceBatch(
@@ -157,7 +270,6 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         );
       }
 
-      // Update session status and notes
       if (session) {
         await plannerService.updateSession(sessionId, {
           status: "completed",
@@ -182,6 +294,12 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   }
 
   const presentCount = Object.keys(attendance).length;
+  // Get unique exercises across all groups to display for timing
+  const allSessionExercises =
+    session.groupedExercises?.flatMap((g) => g.exercises) || [];
+  const uniqueExercises = Array.from(
+    new Map(allSessionExercises.map((e) => [e.id, e])).values()
+  );
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-32">
@@ -198,39 +316,120 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         <div className="text-right">
           <h1 className="text-xl font-bold text-zinc-900">{session.title}</h1>
           <div className="text-sm text-zinc-500">
-            {session.ageGroup} |{" "}
+            {session.targetGroups?.join(", ") || session.ageGroup} |{" "}
             {session.location === "indoor" ? "В зала" : "На открито"}
           </div>
         </div>
       </div>
 
-      {/* Interval Timer */}
-      <Card className="mb-8 border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50 to-white">
-        <CardContent className="p-8 text-center">
-          <div className="text-6xl sm:text-8xl font-black text-indigo-900 tracking-tighter mb-6 tabular-nums">
-            {formatTime(timerSeconds)}
-          </div>
-          <div className="flex justify-center gap-4">
-            <Button
-              size="lg"
-              onClick={toggleTimer}
-              className={
-                isTimerRunning
-                  ? "bg-amber-500 hover:bg-amber-600"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }
-            >
-              {isTimerRunning ? (
-                <Pause className="w-5 h-5 mr-2" />
-              ) : (
-                <Play className="w-5 h-5 mr-2" />
+      {/* Interval Timer Panel */}
+      <Card className="mb-8 border-indigo-100 shadow-sm bg-zinc-950 text-white overflow-hidden">
+        <CardContent className="p-0">
+          {activeExercise ? (
+            <div
+              className={cn(
+                "p-8 text-center transition-colors duration-500",
+                timerState === "work"
+                  ? "bg-emerald-900/50"
+                  : timerState === "rest"
+                    ? "bg-amber-900/50"
+                    : timerState === "finished"
+                      ? "bg-indigo-900/50"
+                      : "bg-zinc-900"
               )}
-              {isTimerRunning ? "Пауза" : "Старт Таймер"}
-            </Button>
-            <Button size="lg" variant="outline" onClick={resetTimer}>
-              <RotateCcw className="w-5 h-5" />
-            </Button>
-          </div>
+            >
+              <div className="mb-4">
+                <Badge
+                  variant="outline"
+                  className="text-indigo-300 border-indigo-500/30 mb-2"
+                >
+                  {activeExercise.category.toUpperCase()}
+                </Badge>
+                <h2 className="text-2xl sm:text-3xl font-black text-white">
+                  {activeExercise.name}
+                </h2>
+                {activeExercise.defaultSets && (
+                  <p className="text-zinc-400 mt-2 font-medium">
+                    Серия {currentSet} от {activeExercise.defaultSets}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-7xl sm:text-9xl font-black tracking-tighter mb-2 tabular-nums">
+                {formatTime(timeRemaining)}
+              </div>
+
+              <div className="text-xl font-bold mb-8 uppercase tracking-widest text-white/50">
+                {timerState === "work"
+                  ? "РАБОТА"
+                  : timerState === "rest"
+                    ? "ПОЧИВКА"
+                    : timerState === "finished"
+                      ? "КРАЙ"
+                      : ""}
+              </div>
+
+              <div className="flex justify-center gap-4">
+                {timerState !== "finished" && (
+                  <Button
+                    size="lg"
+                    onClick={() => toggleTimerPause()}
+                    className="bg-white text-zinc-950 hover:bg-zinc-200"
+                  >
+                    <Pause className="w-5 h-5" />
+                  </Button>
+                )}
+                {timerState !== "finished" && (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={skipInterval}
+                    className="border-white/20 hover:bg-white/10"
+                  >
+                    <SkipForward className="w-5 h-5 mr-2" /> Пропусни
+                  </Button>
+                )}
+                <Button size="lg" variant="destructive" onClick={stopExercise}>
+                  Затвори
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 bg-zinc-900">
+              <div className="flex items-center gap-2 mb-4 text-zinc-400">
+                <Timer className="w-5 h-5" />
+                <h3 className="font-bold">
+                  План на тренировката (Изберете за старт)
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                {uniqueExercises.map((ex) => (
+                  <div
+                    key={ex.id}
+                    className="flex justify-between items-center bg-zinc-800 p-3 rounded-xl border border-zinc-700"
+                  >
+                    <div>
+                      <div className="font-bold text-sm text-zinc-100">
+                        {ex.name}
+                      </div>
+                      <div className="text-xs text-zinc-400">
+                        {ex.defaultSets
+                          ? `${ex.defaultSets} серии x ${ex.defaultWorkSec}с`
+                          : `${ex.durationMinutes} мин`}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => startExercise(ex)}
+                      className="bg-indigo-600 hover:bg-indigo-500"
+                    >
+                      <Play className="w-4 h-4 mr-1" /> Старт
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

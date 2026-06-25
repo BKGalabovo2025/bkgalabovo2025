@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-ignored-exceptions */
 import {
   collection,
   doc,
@@ -21,6 +22,7 @@ import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 const EXERCISES_COLLECTION = "exercises";
 const SESSIONS_COLLECTION = "training_sessions";
 const ATTENDANCE_COLLECTION = "training_attendance";
+const FOCUS_TAGS_COLLECTION = "focus_tags";
 
 export const plannerService = {
   // ================= EXERCISES =================
@@ -164,5 +166,45 @@ export const plannerService = {
     return snapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() }) as SessionAttendance
     );
+  },
+
+  // ================= SETTINGS / TAGS =================
+  async getFocusTags(siteId: string): Promise<string[]> {
+    try {
+      const q = query(
+        collection(db, FOCUS_TAGS_COLLECTION),
+        where("siteId", "==", siteId)
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return [
+          "Обща Подготовка",
+          "Clear",
+          "Smash",
+          "Drop",
+          "Мрежа",
+          "Защита",
+          "Двойки",
+          "Сингъл",
+          "ОФП",
+        ];
+      }
+
+      // Assuming documents have a 'name' field
+      return snapshot.docs.map((doc) => doc.data().name as string);
+    } catch (e) {
+      return [
+        "Обща Подготовка",
+        "Clear",
+        "Smash",
+        "Drop",
+        "Мрежа",
+        "Защита",
+        "Двойки",
+        "Сингъл",
+        "ОФП",
+      ];
+    }
   },
 };

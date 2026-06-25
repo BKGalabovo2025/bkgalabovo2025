@@ -21,6 +21,16 @@ export interface Exercise {
   equipment: string;
   videoUrl?: string; // YouTube/Instagram link or local path
   imageUrl?: string;
+
+  // Pedagogical structure
+  phase?: "warmup" | "main-tech" | "main-tact" | "cooldown";
+  focusTags?: string[];
+  intensity?: 1 | 2 | 3 | 4 | 5;
+  complexityLevel?: 1 | 2 | 3 | 4 | 5;
+  defaultSets?: number;
+  defaultWorkSec?: number;
+  defaultRestSec?: number;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -40,11 +50,24 @@ export interface PlannerSession {
 
   // Multi-group calendar support
   targetGroups?: string[];
+  structuredTargetGroups?: {
+    ageGroup: string;
+    skillLevel: string;
+  }[];
   groupedExercises?: {
     ageGroup: string;
+    skillLevel?: string;
     exercises: Exercise[];
   }[];
   eventId?: string; // Link to public schedule
+
+  // Methodological tracking
+  focus?: string;
+  period?: "preparation" | "competition" | "transition";
+  pedagogicalAction?: "consolidation" | "progression" | "new";
+  targetIntensity?: number;
+  calculatedIntensity?: number;
+
   status: "planned" | "completed";
   weatherIcon?: string; // e.g., 'sun', 'rain', 'cloud'
   createdAt: string;
