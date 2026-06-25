@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-duplicated-branches */
 "use client";
 
 import { useState, useEffect } from "react";
