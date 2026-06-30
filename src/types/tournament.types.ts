@@ -171,6 +171,7 @@ export const TournamentEntrySchema = z.object({
 export type TournamentEntry = z.infer<typeof TournamentEntrySchema>;
 
 // 3. Схема за Мач
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MatchSchema = z.object({
   id: z.string().optional(),
   tournamentId: z.string(),

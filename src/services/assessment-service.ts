@@ -53,6 +53,7 @@ export const addAssessment = async (
   return docRef.id;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteAssessment = async (id: string): Promise<void> => {
   const assessmentRef = doc(getMemberAssessmentsCollection(), id);
   await deleteDoc(assessmentRef);

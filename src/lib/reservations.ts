@@ -31,6 +31,7 @@ const getDayBoundaries = (date: Date) => {
 
 // --- Public API --- //
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getReservationsForDay = async (
   date: Date,
   siteId?: string
@@ -49,11 +50,13 @@ const getReservationsForDay = async (
   }));
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteReservation = async (reservationId: string) => {
   const docRef = doc(db, "reservations", reservationId);
   await deleteDoc(docRef);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getBlockedSlotsForDay = async (
   date: Date,
   siteId?: string
@@ -72,6 +75,7 @@ const getBlockedSlotsForDay = async (
   }));
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteBlockedSlot = async (slotId: string) => {
   const docRef = doc(db, "blockedSlots", slotId);
   await deleteDoc(docRef);

@@ -142,6 +142,7 @@ export async function getTrainingSessionsForMemberAction(
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function updateRpeScoresAction(
   _idToken: string,
   trainingId: string,

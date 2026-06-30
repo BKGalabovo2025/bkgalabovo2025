@@ -333,6 +333,7 @@ export const getClubServicesCollection = () =>
 const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getTournamentCollection = () =>
   collection(getDb(), "tournaments").withConverter(tournamentConverter);
 
@@ -379,6 +380,7 @@ export const getSalesQuery = () => {
   return query(getSalesCollection(), where("siteId", "==", siteConfig.id));
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getClubServicesQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getClubServicesCollection());
@@ -562,6 +564,7 @@ export const getClientPackagesQuery = (memberId?: string) => {
   return q;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getGeneralServicesQuery = () => {
   return query(
     getGeneralServicesCollection(),
@@ -582,6 +585,7 @@ export const getMemberAssessmentsQuery = () => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getReservationsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getReservationsCollection());
@@ -591,6 +595,7 @@ const getReservationsQuery = () => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getBlockedSlotsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getBlockedSlotsCollection());

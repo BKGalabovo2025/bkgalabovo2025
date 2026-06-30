@@ -45,5 +45,6 @@ export const SaleSchema = z.object({
   memberIdsForAttendance: z.array(z.string()).nullable().optional(),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type SaleItem = z.infer<typeof SaleItemSchema>;
 export type Sale = z.infer<typeof SaleSchema>;

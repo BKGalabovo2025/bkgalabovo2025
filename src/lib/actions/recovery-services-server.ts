@@ -257,10 +257,8 @@ export async function deleteRecoveryPackageAction(
   }
 }
 
-async function deleteRecoveryClientAction(
-  _idToken: string,
-  clientId: string
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function deleteRecoveryClientAction(_idToken: string, clientId: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");

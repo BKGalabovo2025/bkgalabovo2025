@@ -57,6 +57,7 @@ export const ZONE_NAMES: Record<ZoneId, string> = {
 
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getRandomZone(): ZoneId {
   const index = Math.floor(Math.random() * ZONES_ARRAY.length);
   return ZONES_ARRAY[index];

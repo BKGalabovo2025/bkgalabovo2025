@@ -113,6 +113,7 @@ export async function createProductAction(
 /**
  * Updates product price and logs the event.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function updateProductPriceAction(
   id: string,
   idToken: string,

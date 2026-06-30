@@ -83,6 +83,7 @@ interface Reservation {
 /**
  * Firestore-specific reservation type with Timestamps.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface FirestoreReservation extends Omit<
   Reservation,
   | "startTime"

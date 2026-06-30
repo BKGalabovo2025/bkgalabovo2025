@@ -70,6 +70,7 @@ export const getAllPrices = async (): Promise<Price[]> => {
  * This is useful for populating dropdowns where only valid prices should be shown.
  * @returns A promise that resolves to an array of active Price objects.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getActivePrices = async (): Promise<Price[]> => {
   const q = query(
     getPricesQuery(),

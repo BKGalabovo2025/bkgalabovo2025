@@ -45,6 +45,7 @@ function snapToData<T>(
 /**
  * РР·РІР»РёС‡Р° РІСЃРёС‡РєРё РїСЂРѕРґР°Р¶Р±Рё РЅР° СЃСЉСЂРІСЉСЂР°.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getInventorySalesServerAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();

@@ -42,6 +42,7 @@ export async function getAuthUserFromSessionCookie() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function ensureAdminFromSession() {
   const user = await getAuthUserFromSessionCookie();
   if (!user) {

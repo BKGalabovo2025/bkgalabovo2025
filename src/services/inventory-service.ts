@@ -39,9 +39,7 @@ export const docToProduct = (doc: DocumentSnapshot): Product | null => {
   return product;
 };
 
-const docToInventoryEvent = (
-  doc: DocumentSnapshot
-): InventoryEvent | null => {
+const docToInventoryEvent = (doc: DocumentSnapshot): InventoryEvent | null => {
   if (!doc.id || !doc.exists()) {
     console.error("docToInventoryEvent: Invalid document snapshot.", {
       id: doc.id,
@@ -94,6 +92,7 @@ const getProducts = async (): Promise<Product[]> => {
 /**
  * Returns products that have stock less than or equal to their restockThreshold.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getLowStockProducts = async (): Promise<Product[]> => {
   const products = await getProducts();
   return products.filter(

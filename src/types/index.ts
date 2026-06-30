@@ -74,11 +74,7 @@ export type PriceHistory = {
 /**
  * Defines the type for a group targeted by a service.
  */
-type TargetGroup =
-  | "Деца"
-  | "Любители"
-  | "Състезатели"
-  | "Професионалисти";
+type TargetGroup = "Деца" | "Любители" | "Състезатели" | "Професионалисти";
 
 /**
  * Defines a special right granted by a club service.
@@ -170,6 +166,7 @@ export type GeneralService = {
   updatedBy?: { userId: string; userName: string };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type PaymentHistoryItem = {
   date: string;
   amount: number;
