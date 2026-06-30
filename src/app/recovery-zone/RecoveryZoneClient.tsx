@@ -796,7 +796,7 @@ export default function RecoveryZoneClient({
                     href={site.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
                     <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
                       <FacebookIcon size={24} />
@@ -812,7 +812,7 @@ export default function RecoveryZoneClient({
                     href={site.facebookGroup}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
                     <div className="text-zinc-300 group-hover:text-emerald-400 transition-colors">
                       <Users size={24} />
