@@ -76,28 +76,24 @@ export default function HomePage() {
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} className="text-zinc-500" strokeWidth={1.5} />
           <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-500">
-            Sports & Recovery Portal
+            BK Galabovo & Recovery Zone by ZM Portal
           </span>
         </div>
         <div className="text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
-          2025
+          2014 & 2025 до сега . Добре дошли
         </div>
       </header>
 
       {/* Main */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 relative z-10">
         {/* Tagline */}
-        <p className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-600 mb-6">
-          Добре дошли
-        </p>
-        <h1 className="text-5xl md:text-7xl font-light tracking-tight text-white text-center max-w-3xl leading-[1.05] mb-4">
+        <h1 className="text-5xl md:text-7xl font-light tracking-tight text-white text-center max-w-3xl leading-[1.05] mb-4 mt-8">
           Изберете
           <br />
           <span className="text-zinc-500">своя портал</span>
         </h1>
         <p className="text-zinc-600 text-center text-sm max-w-md mb-20">
-          Два проекта, едно управление. Изберете за кой обект искате да научите
-          повече или да влезете.
+          Изберете за кой обект искате да научите повече или да влезете.
         </p>
 
         {/* Cards Grid */}
@@ -193,8 +189,7 @@ export default function HomePage() {
               Администратор
             </h2>
             <p className="text-zinc-600 text-sm leading-relaxed mb-8 flex-1">
-              Вход за управление на двата проекта — членове, финанси, резервации
-              и настройки.
+              Системен вход за администратори и екипа на обектите.
             </p>
             <div className="flex flex-col gap-2">
               <Link
@@ -218,7 +213,7 @@ export default function HomePage() {
           © {new Date().getFullYear()} BK Galabovo & Recovery Zone by ZM
         </span>
         <span className="text-[10px] text-zinc-700 uppercase tracking-widest">
-          Sofia & Galabovo
+          Гълъбово
         </span>
       </footer>
     </div>
