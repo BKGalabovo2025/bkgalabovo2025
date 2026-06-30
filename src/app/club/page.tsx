@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import fs from "fs";
 import path from "path";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { getSiteById } from "@/services/site-service";
 import ClubClient from "./ClubClient";
 
 export const metadata: Metadata = {
@@ -53,6 +54,9 @@ export default async function ClubMainPage() {
     },
   };
   const adminDb = getAdminDb();
+
+  const clubSite = await getSiteById("bkgalabovo");
+  const recoverySite = await getSiteById("recoveryzone");
 
   // Fetch 7 day schedule (events with siteId bkgalabovo)
   const now = new Date();
@@ -136,7 +140,12 @@ export default async function ClubMainPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ClubClient schedule={schedule} hallImages={hallImages} />
+      <ClubClient
+        schedule={schedule}
+        hallImages={hallImages}
+        clubSite={clubSite}
+        recoverySite={recoverySite}
+      />
     </>
   );
 }

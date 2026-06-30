@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import Image from "next/image";
+import { Site } from "@/types/site.types";
+import { SessionsSection } from "@/components/recovery/SessionsSection";
+import { TeamSection } from "@/components/recovery/TeamSection";
 import {
   Trophy,
   Target,
@@ -61,9 +64,13 @@ const activities = [
 export default function ClubClient({
   schedule,
   hallImages = [],
+  clubSite,
+  recoverySite,
 }: {
   schedule: EventSlot[];
   hallImages?: string[];
+  clubSite?: Site | null;
+  recoverySite?: Site | null;
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
@@ -558,71 +565,12 @@ export default function ClubClient({
         </div>
       </section>
 
-      {/* Recovery Zone Integration */}
-      <section className="py-24 px-6 bg-zinc-950 relative">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-linear-to-tr from-emerald-500/20 to-purple-500/20 blur-[80px] rounded-full group-hover:blur-[100px] transition-all duration-700" />
-            <div className="relative aspect-square md:aspect-[4/3] rounded-4xl overflow-hidden border border-white/10 bg-black">
-              <Image
-                src="/1.png"
-                alt="Recovery Zone by ZM"
-                fill
-                className="object-contain p-12 transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <p className="text-emerald-400 font-bold tracking-widest uppercase text-xs mb-2">
-                  Hyperice Normatec 3
-                </p>
-                <h3 className="text-2xl font-bold text-white">
-                  Recovery Zone by ZM
-                </h3>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 inline-block px-3 py-1 bg-emerald-500/10 rounded-full">
-              Възстановяване
-            </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
-              Защото твоето тяло <br />
-              <span className="font-bold text-white">
-                заслужава най-доброто
-              </span>
-            </h2>
-            <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-              Ускори възстановяването след тежка тренировка с най-съвременната
-              система за динамична компресия в нашата зала. Перфектното
-              допълнение към активния спортен режим.
-            </p>
-            <ul className="space-y-4 mb-10">
-              <li className="flex items-center gap-3 text-zinc-300">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" /> 50%
-                отстъпка за членове на клуба
-              </li>
-              <li className="flex items-center gap-3 text-zinc-300">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" /> Лимфен
-                дренаж и намаляване на умората
-              </li>
-              <li className="flex items-center gap-3 text-zinc-300">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" /> Директно
-                в Спортна зала Енергетик
-              </li>
-            </ul>
-            <Link
-              href="/recovery-zone"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-linear-to-r from-emerald-600 to-purple-600 hover:opacity-90 text-white rounded-2xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:-translate-y-1 group"
-            >
-              Научи повече и запази час
-              <ArrowRight
-                size={20}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Recovery Zone Integration (Dynamic) */}
+      <TeamSection
+        therapists={recoverySite?.therapists || []}
+        teamIntro={recoverySite?.teamIntro || ""}
+      />
+      <SessionsSection />
 
       {/* Schedule 7 days */}
       <section id="schedule" className="py-24 px-6 bg-zinc-950 relative">
@@ -810,7 +758,8 @@ export default function ClubClient({
                       Спортна база / Място на тренировките
                     </p>
                     <p className="text-zinc-400 text-sm">
-                      Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41
+                      {clubSite?.address ||
+                        "Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41"}
                     </p>
                   </div>
                 </div>
@@ -823,14 +772,12 @@ export default function ClubClient({
                     <p className="text-white font-medium mb-1">
                       Телефон за връзка
                     </p>
-                    <p className="text-zinc-400 text-sm">
-                      Мира Георгиева – треньор
-                    </p>
+                    <p className="text-zinc-400 text-sm">Официален телефон</p>
                     <a
-                      href="tel:+359899829923"
+                      href={`tel:${clubSite?.phone || "+359899829923"}`}
                       className="text-blue-400 font-bold mt-1 inline-block hover:underline"
                     >
-                      +359 899 82 99 23
+                      {clubSite?.phone || "+359 899 82 99 23"}
                     </a>
                   </div>
                 </div>
@@ -842,10 +789,10 @@ export default function ClubClient({
                   <div>
                     <p className="text-white font-medium mb-1">Имейл</p>
                     <a
-                      href="mailto:bk_galabovo@abv.bg"
+                      href={`mailto:${clubSite?.email || "bk_galabovo@abv.bg"}`}
                       className="text-zinc-400 text-sm hover:text-blue-400 transition-colors"
                     >
-                      bk_galabovo@abv.bg
+                      {clubSite?.email || "bk_galabovo@abv.bg"}
                     </a>
                   </div>
                 </div>
@@ -858,58 +805,75 @@ export default function ClubClient({
                 Последвайте ни в мрежите
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                <a
-                  href="https://www.facebook.com/badmintongalabovo/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-blue-500 transition-colors">
-                    <FacebookIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Facebook Страница
-                  </span>
-                </a>
-                <a
-                  href="https://www.facebook.com/groups/645571089477573/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-400 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-blue-400 transition-colors">
-                    <Users size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Facebook Група
-                  </span>
-                </a>
-                <a
-                  href="https://www.instagram.com/badminton.galabovo/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
-                    <InstagramIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Instagram
-                  </span>
-                </a>
-                <a
-                  href="https://www.youtube.com/@BKGalabovo"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
-                    <YoutubeIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    YouTube
-                  </span>
-                </a>
+                {clubSite?.facebook && (
+                  <a
+                    href={clubSite.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-blue-500 transition-colors">
+                      <FacebookIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Facebook Страница
+                    </span>
+                  </a>
+                )}
+                {clubSite?.facebookGroup && (
+                  <a
+                    href={clubSite.facebookGroup}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-400 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-blue-400 transition-colors">
+                      <Users size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Facebook Група
+                    </span>
+                  </a>
+                )}
+                {clubSite?.instagram && (
+                  <a
+                    href={clubSite.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
+                      <InstagramIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Instagram
+                    </span>
+                  </a>
+                )}
+                {clubSite?.youtube && (
+                  <a
+                    href={clubSite.youtube}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
+                      <YoutubeIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      YouTube
+                    </span>
+                  </a>
+                )}
+
+                {!clubSite?.facebook &&
+                  !clubSite?.facebookGroup &&
+                  !clubSite?.instagram &&
+                  !clubSite?.youtube && (
+                    <p className="text-zinc-500 text-sm col-span-2 text-center py-4">
+                      Очаквайте скоро нашите социални мрежи.
+                    </p>
+                  )}
               </div>
 
               {/* Instagram Feed Widget (Lazy Loaded) */}
