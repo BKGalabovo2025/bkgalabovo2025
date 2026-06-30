@@ -441,20 +441,20 @@ export default function RecoveryZoneClient({
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/80 border border-emerald-500/50 rounded-full text-emerald-400 text-xs font-medium uppercase tracking-widest mb-8 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
             <Trophy size={14} className="animate-pulse" />
-            Основан 2014 г.
+            Професионално Възстановяване
           </div>
           <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl mx-auto leading-[1.05] mb-6 uppercase">
-            Страстта
+            Възстанови
             <br />
-            към{" "}
+            своите{" "}
             <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
-              Бадминтона
+              Сили
             </span>
           </h1>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-            СНЦ „Бадминтон клуб Гълъбово“ — официален бадминтон клуб в град
-            Гълъбово. Тренировки, турнири и приятелска спортна атмосфера за
-            всички.
+            Recovery Zone by ZM — модерен център за лимфен дренаж и спортно
+            възстановяване с оборудване Hyperice Normatec. Погрижете се за
+            тялото си и ускорете възстановяването.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <a
@@ -471,7 +471,7 @@ export default function RecoveryZoneClient({
               href="#schedule"
               className="flex items-center justify-center gap-2 px-8 py-4 bg-black/80 hover:bg-black text-white border border-zinc-800 hover:border-emerald-500 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
             >
-              График и Тренировки
+              Запази Час
             </a>
           </div>
         </motion.div>
@@ -484,22 +484,22 @@ export default function RecoveryZoneClient({
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
-            За Клуба & Мисия
+            За Центъра
           </p>
           <h2 className="text-3xl md:text-5xl font-light tracking-tight mb-8">
-            Развитие и популяризиране на{" "}
-            <span className="font-bold text-white">бадминтона</span> в Гълъбово
+            Новото ниво на{" "}
+            <span className="font-bold text-white">възстановяване</span> в
+            Гълъбово
           </h2>
           <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-            СНЦ „Бадминтон клуб Гълъбово“ е сдружение с нестопанска цел,
-            създадено през 2014 г. Нашата основна цел е да създадем
-            професионална и същевременно приятелска среда за развитие на този
-            динамичен спорт.
+            Recovery Zone by ZM е създаден с една основна цел - да предостави
+            достъп до професионални възстановителни процедури. Независимо дали
+            сте активен спортист, или търсите релакс след тежък работен ден, ние
+            сме тук за вас.
           </p>
           <p className="text-zinc-300 text-md leading-relaxed">
-            Клубът организира регулярни тренировки за всички възрастови групи –
-            деца, юноши, възрастни и ветерани. Гордеем се с нашата общност,
-            която не спира да расте и да постига спортни върхове.
+            Оборудван със системите на Hyperice Normatec 3, центърът предлага
+            високотехнологичен лимфен дренаж за крака, ръце и ханш.
           </p>
         </div>
       </section>
@@ -558,12 +558,11 @@ export default function RecoveryZoneClient({
             Каталог
           </p>
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
-            Нашите Услуги и Тренировки
+            Нашите Услуги
           </h2>
           <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-            Разгледайте пълния списък с предлагани групови и индивидуални
-            тренировки, наеми на кортове, абонаментни карти и спортна
-            екипировка.
+            Разгледайте пълния списък с предлагани възстановителни процедури,
+            сесии за лимфен дренаж и абонаментни карти.
           </p>
           <Link
             href="/recovery-zone/catalog"
@@ -588,9 +587,9 @@ export default function RecoveryZoneClient({
                 График
               </p>
               <h2 className="text-4xl md:text-5xl font-light tracking-tight">
-                Предстоящи Тренировки и Събития
+                График за процедури
               </h2>
-              <p className="text-zinc-300 mt-2">През следващите 7 дни</p>
+              <p className="text-zinc-300 mt-2">Резервирайте своя час онлайн</p>
             </div>
             <Link
               href="#schedule"
@@ -642,7 +641,7 @@ export default function RecoveryZoneClient({
               <div className="text-center py-12 flex flex-col items-center">
                 <CalendarDays size={48} className="text-zinc-800 mb-4" />
                 <p className="text-zinc-300 text-lg">
-                  Няма въведени тренировки за следващите 7 дни.
+                  Няма въведени свободни часове за следващите 7 дни.
                 </p>
                 <p className="text-zinc-600 text-sm mt-2">
                   Очаквайте обновяване на седмичната програма.
@@ -900,7 +899,7 @@ export default function RecoveryZoneClient({
             <Trophy size={14} className="text-white" />
           </div>
           <span className="text-sm font-bold text-zinc-400 uppercase">
-            СНЦ „Бадминтон Клуб Гълъбово“
+            RECOVERY ZONE BY ZM
           </span>
         </div>
         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
