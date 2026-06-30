@@ -6,7 +6,8 @@ import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 
 export const metadata: Metadata = {
   title: "Каталог | Recovery Zone by ZM",
-  description: "Разгледайте нашите възстановителни процедури, услуги и продукти.",
+  description:
+    "Разгледайте нашите възстановителни процедури, услуги и продукти.",
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
@@ -52,8 +53,9 @@ export default async function RecoveryCatalogPage() {
   let recoveryServices: Record<string, unknown>[] = [];
   try {
     const recoverySnapshot = await adminDb.collection("sessions").get();
-    recoveryServices = recoverySnapshot.docs.map((doc) =>
-      serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+    recoveryServices = recoverySnapshot.docs.map(
+      (doc) =>
+        serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
     );
   } catch (error) {
     console.error("Failed to fetch sessions for recovery catalog page:", error);
@@ -88,8 +90,7 @@ export default async function RecoveryCatalogPage() {
               </span>
             </h1>
             <p className="text-zinc-400">
-              Разгледайте нашите възстановителни процедури, тренировки и
-              продукти.
+              Разгледайте пълния списък с нашите възстановителни процедури.
             </p>
           </div>
 

@@ -436,16 +436,16 @@ export default function RecoveryZoneClient({
             тялото си и ускорете възстановяването.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <a
-              href="#contacts"
+            <Link
+              href="/recovery-zone/catalog"
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:shadow-[0_0_30px_rgba(16,185,129,0.9)] hover:-translate-y-1"
             >
-              Стани Член{" "}
+              Разгледай Каталога{" "}
               <ChevronRight
                 size={18}
                 className="group-hover:translate-x-1 transition-transform"
               />
-            </a>
+            </Link>
             <a
               href="#schedule"
               className="flex items-center justify-center gap-2 px-8 py-4 bg-black/80 hover:bg-black text-white border border-zinc-800 hover:border-emerald-500 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
@@ -639,18 +639,18 @@ export default function RecoveryZoneClient({
               База
             </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
-              Къде тренираме
+              Къде се намираме
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-              Разполагаме със съвременна и напълно оборудвана спортна база.{" "}
+              Разполагаме със съвременна и уютна база за спортно възстановяване.{" "}
               <strong className="text-white">Спортна зала „Енергетик“</strong>{" "}
               предлага:
             </p>
             <ul className="space-y-4 mb-12">
               {[
-                "6 изцяло оборудвани корта за бадминтон",
-                "Трибуни за състезатели и зрители",
-                "Модерна конферентна зала",
+                "Специализирана зона за възстановяване",
+                "Hyperice Normatec 3 оборудване",
+                "Уютна и релаксираща обстановка",
                 "Просторни съблекални",
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
