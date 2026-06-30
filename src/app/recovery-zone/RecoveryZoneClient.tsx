@@ -759,10 +759,10 @@ export default function RecoveryZoneClient({
                       Резервации и информация
                     </p>
                     <a
-                      href={`tel:${site.phone || "+359899829923"}`}
+                      href={`tel:${site.phone || "+359899388338"}`}
                       className="text-emerald-400 font-bold mt-1 inline-block hover:underline"
                     >
-                      {site.phone || "+359 899 82 99 23"}
+                      {site.phone || "+359 899 38 83 38"}
                     </a>
                   </div>
                 </div>
@@ -774,10 +774,10 @@ export default function RecoveryZoneClient({
                   <div>
                     <p className="text-white font-medium mb-1">Имейл</p>
                     <a
-                      href={`mailto:${site.email || "bk_galabovo@abv.bg"}`}
+                      href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
                       className="text-zinc-400 text-sm hover:text-emerald-400 transition-colors"
                     >
-                      {site.email || "bk_galabovo@abv.bg"}
+                      {site.email || "recoveryzonebyzm@gmail.com"}
                     </a>
                   </div>
                 </div>
