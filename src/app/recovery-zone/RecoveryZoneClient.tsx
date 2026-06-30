@@ -287,19 +287,18 @@ export default function RecoveryZoneClient({
             </span>
           </div>
 
-          {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
             <a
-              href="#info"
+              href="#about"
               className="hover:text-emerald-400 transition-colors"
             >
-              Информация
+              За центъра
             </a>
             <a
-              href="#activities"
+              href="#pricing"
               className="hover:text-emerald-400 transition-colors"
             >
-              Дейности
+              Процедури
             </a>
             <Link
               href="/recovery-zone/catalog"
@@ -350,18 +349,18 @@ export default function RecoveryZoneClient({
             >
               <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
                 <a
-                  href="#info"
+                  href="#about"
                   onClick={() => setMobileMenuOpen(false)}
                   className="hover:text-emerald-400"
                 >
-                  Информация
+                  За центъра
                 </a>
                 <a
-                  href="#activities"
+                  href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
                   className="hover:text-emerald-400"
                 >
-                  Дейности
+                  Процедури
                 </a>
                 <Link
                   href="/recovery-zone/catalog"
