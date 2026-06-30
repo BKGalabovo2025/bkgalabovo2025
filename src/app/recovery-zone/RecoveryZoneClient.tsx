@@ -151,7 +151,7 @@ export default function RecoveryZoneClient({
             <h1>${event.title}</h1>
             <div class="meta">
               <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
-              <p><strong>Локация:</strong> ${event.location || 'Спортна зала „Енергетик"'}</p>
+              <p><strong>Локация:</strong> ${event.location || "Recovery Zone by ZM"}</p>
             </div>
             <div class="desc">${event.description || "Няма допълнителна информация."}</div>
             <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
@@ -200,7 +200,7 @@ export default function RecoveryZoneClient({
                 </span>
                 <span className="flex items-center gap-1.5 text-zinc-400 text-[13px]">
                   <MapPin size={14} className="text-emerald-400" />
-                  {event.location || 'Спортна зала „Енергетик"'}
+                  {event.location || "Recovery Zone by ZM"}
                 </span>
               </div>
             </div>
@@ -642,7 +642,9 @@ export default function RecoveryZoneClient({
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed mb-8">
               Разполагаме със съвременна и уютна база за спортно възстановяване.{" "}
-              <strong className="text-white">Спортна зала „Енергетик“</strong>{" "}
+              <strong className="text-white">
+                {site.name || "Recovery Zone by ZM"}
+              </strong>{" "}
               предлага:
             </p>
             <ul className="space-y-4 mb-12">
@@ -675,7 +677,7 @@ export default function RecoveryZoneClient({
               >
                 <Image
                   src={hallImages[activeImage]}
-                  alt="Спортна зала Енергетик"
+                  alt="Recovery Zone Center"
                   fill
                   className="object-cover"
                 />
@@ -741,8 +743,7 @@ export default function RecoveryZoneClient({
                       Локация на центъра
                     </p>
                     <p className="text-zinc-400 text-sm">
-                      {site.address ||
-                        "Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41"}
+                      {site.address || "Гр. Гълъбово, Recovery Zone"}
                     </p>
                   </div>
                 </div>
