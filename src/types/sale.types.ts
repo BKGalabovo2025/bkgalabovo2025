@@ -45,5 +45,5 @@ export const SaleSchema = z.object({
   memberIdsForAttendance: z.array(z.string()).nullable().optional(),
 });
 
-export type SaleItem = z.infer<typeof SaleItemSchema>;
+type SaleItem = z.infer<typeof SaleItemSchema>;
 export type Sale = z.infer<typeof SaleSchema>;

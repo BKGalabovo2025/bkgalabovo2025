@@ -278,167 +278,15 @@ export function MemberAttendanceHistory({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {events.map((event) => {
-                        // Find this member's attendee record to get payment info
-                        const attendeeRecord = event.attendees?.find(
-                          (a: import("@/types").Attendee) =>
-                            a.memberId === memberId
-                        );
-                        const payStatus = attendeeRecord?.paymentStatus;
-                        const payType = attendeeRecord?.paymentType;
-                        const payDate = attendeeRecord?.paymentDate;
-                        const saleId = attendeeRecord?.saleId;
-
-                        return (
-                          <div
-                            key={event.id}
-                            onClick={() =>
-                              router.push(`/schedule?eventId=${event.id}`)
-                            }
-                            className="group relative bg-white border border-zinc-100 rounded-3xl p-6 hover:border-zinc-900 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 cursor-pointer"
-                          >
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="space-y-1">
-                                <p className="text-xs font-medium text-zinc-950 group-hover:text-zinc-900 transition-colors">
-                                  {event.title}
-                                </p>
-                                <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
-                                  {format(
-                                    new Date(event.startDate),
-                                    "dd MMMM",
-                                    {
-                                      locale: bg,
-                                    }
-                                  )}
-                                </p>
-                              </div>
-                              <div
-                                className={cn(
-                                  "p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500",
-                                  details.bgColor
-                                )}
-                              >
-                                <details.icon
-                                  className={cn("h-3 w-3", details.color)}
-                                  strokeWidth={2}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Payment Status Badge */}
-                            {event.type !== "competition" && (
-                              <div
-                                className={cn(
-                                  "mb-3",
-                                  payStatus === "paid" &&
-                                    saleId &&
-                                    "cursor-pointer hover:opacity-80 transition-opacity"
-                                )}
-                                title={
-                                  payStatus === "paid" && saleId
-                                    ? "Към разписката"
-                                    : undefined
-                                }
-                                onClick={(e) => {
-                                  if (payStatus === "paid" && saleId) {
-                                    e.stopPropagation();
-                                    router.push(`/sales/${saleId}/receipt`);
-                                  }
-                                }}
-                              >
-                                {payStatus === "paid" &&
-                                  payType === "subscription" && (
-                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
-                                      <CheckCircle2
-                                        className="h-3 w-3 text-emerald-500"
-                                        strokeWidth={2}
-                                      />
-                                      <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
-                                        Платено – Абонамент
-                                      </span>
-                                    </div>
-                                  )}
-                                {payStatus === "paid" &&
-                                  payType === "individual" && (
-                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit">
-                                      <CreditCard
-                                        className="h-3 w-3 text-blue-500"
-                                        strokeWidth={2}
-                                      />
-                                      <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-700">
-                                        Платено – Еднократно
-                                      </span>
-                                    </div>
-                                  )}
-                                {payStatus === "paid" && !payType && (
-                                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
-                                    <CheckCircle2
-                                      className="h-3 w-3 text-emerald-500"
-                                      strokeWidth={2}
-                                    />
-                                    <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
-                                      Платено
-                                    </span>
-                                  </div>
-                                )}
-                                {(payStatus === "unpaid" || !payStatus) && (
-                                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
-                                    <XCircle
-                                      className="h-3 w-3 text-rose-500"
-                                      strokeWidth={2}
-                                    />
-                                    <span className="text-[9px] font-semibold uppercase tracking-widest text-rose-700">
-                                      {payStatus === "unpaid"
-                                        ? "Неплатено (Дълг)"
-                                        : "Неплатено"}
-                                    </span>
-                                  </div>
-                                )}
-                                {payDate && payStatus === "paid" && (
-                                  <div className="flex items-center gap-1 mt-1">
-                                    <Receipt
-                                      className="h-2.5 w-2.5 text-zinc-300"
-                                      strokeWidth={1.5}
-                                    />
-                                    <span className="text-[8px] text-zinc-400 font-light">
-                                      Платено на:{" "}
-                                      {new Date(payDate).toLocaleDateString(
-                                        "bg-BG"
-                                      )}
-                                      {saleId && (
-                                        <span className="ml-1 text-zinc-300">
-                                          #
-                                          {saleId.substring(0, 6).toUpperCase()}
-                                        </span>
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-4 mt-auto pt-4 border-t border-zinc-50">
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="h-3 w-3 text-zinc-300" />
-                                <span className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
-                                  {formatTimeRange(
-                                    event.startDate,
-                                    event.endDate
-                                  )}
-                                </span>
-                              </div>
-                              {event.location && (
-                                <div className="flex items-center gap-1.5 ml-auto">
-                                  <MapPin className="h-3 w-3 text-zinc-300" />
-                                  <span className="text-[10px] font-light text-zinc-400 truncate max-w-[80px]">
-                                    {event.location}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {events.map((event) => (
+                        <MemberAttendanceEventCard
+                          key={event.id}
+                          event={event}
+                          memberId={memberId}
+                          details={details}
+                          router={router}
+                        />
+                      ))}
                     </div>
                   </div>
                 );
@@ -446,6 +294,160 @@ export function MemberAttendanceHistory({
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function MemberAttendanceEventCard({
+  event,
+  memberId,
+  details,
+  router,
+}: {
+  event: ScheduleEvent;
+  memberId: string;
+  details: {
+    translation: string;
+    icon: React.ElementType;
+    color: string;
+    bgColor: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  router: any;
+}) {
+  const attendeeRecord = event.attendees?.find(
+    (a: Attendee) => a.memberId === memberId
+  );
+  const payStatus = attendeeRecord?.paymentStatus;
+  const payType = attendeeRecord?.paymentType;
+  const payDate = attendeeRecord?.paymentDate;
+  const saleId = attendeeRecord?.saleId;
+
+  return (
+    <div
+      onClick={() => router.push(`/schedule?eventId=${event.id}`)}
+      className="group relative bg-white border border-zinc-100 rounded-3xl p-6 hover:border-zinc-900 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 cursor-pointer"
+    >
+      <div className="flex justify-between items-start mb-4">
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-zinc-950 group-hover:text-zinc-900 transition-colors">
+            {event.title}
+          </p>
+          <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
+            {format(new Date(event.startDate), "dd MMMM", { locale: bg })}
+          </p>
+        </div>
+        <div
+          className={cn(
+            "p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500",
+            details.bgColor
+          )}
+        >
+          <details.icon
+            className={cn("h-3 w-3", details.color)}
+            strokeWidth={2}
+          />
+        </div>
+      </div>
+
+      {/* Payment Status Badge */}
+      {event.type !== "competition" && (
+        <div
+          className={cn(
+            "mb-3",
+            payStatus === "paid" &&
+              saleId &&
+              "cursor-pointer hover:opacity-80 transition-opacity"
+          )}
+          title={
+            payStatus === "paid" && saleId ? "Към разписката" : undefined
+          }
+          onClick={(e) => {
+            if (payStatus === "paid" && saleId) {
+              e.stopPropagation();
+              router.push(`/sales/${saleId}/receipt`);
+            }
+          }}
+        >
+          {payStatus === "paid" && payType === "subscription" && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+              <CheckCircle2
+                className="h-3 w-3 text-emerald-500"
+                strokeWidth={2}
+              />
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
+                Платено – Абонамент
+              </span>
+            </div>
+          )}
+          {payStatus === "paid" && payType === "individual" && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit">
+              <CreditCard
+                className="h-3 w-3 text-blue-500"
+                strokeWidth={2}
+              />
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-700">
+                Платено – Еднократно
+              </span>
+            </div>
+          )}
+          {payStatus === "paid" && !payType && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+              <CheckCircle2
+                className="h-3 w-3 text-emerald-500"
+                strokeWidth={2}
+              />
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
+                Платено
+              </span>
+            </div>
+          )}
+          {(payStatus === "unpaid" || !payStatus) && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
+              <XCircle
+                className="h-3 w-3 text-rose-500"
+                strokeWidth={2}
+              />
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-rose-700">
+                {payStatus === "unpaid" ? "Неплатено (Дълг)" : "Неплатено"}
+              </span>
+            </div>
+          )}
+          {payDate && payStatus === "paid" && (
+            <div className="flex items-center gap-1 mt-1">
+              <Receipt
+                className="h-2.5 w-2.5 text-zinc-300"
+                strokeWidth={1.5}
+              />
+              <span className="text-[8px] text-zinc-400 font-light">
+                Платено на: {new Date(payDate).toLocaleDateString("bg-BG")}
+                {saleId && (
+                  <span className="ml-1 text-zinc-300">
+                    #{saleId.substring(0, 6).toUpperCase()}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 mt-auto pt-4 border-t border-zinc-50">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-3 w-3 text-zinc-300" />
+          <span className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
+            {formatTimeRange(event.startDate, event.endDate)}
+          </span>
+        </div>
+        {event.location && (
+          <div className="flex items-center gap-1.5 ml-auto">
+            <MapPin className="h-3 w-3 text-zinc-300" />
+            <span className="text-[10px] font-light text-zinc-400 truncate max-w-[80px]">
+              {event.location}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

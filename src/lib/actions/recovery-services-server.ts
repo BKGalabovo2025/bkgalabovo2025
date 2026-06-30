@@ -257,7 +257,7 @@ export async function deleteRecoveryPackageAction(
   }
 }
 
-export async function deleteRecoveryClientAction(
+async function deleteRecoveryClientAction(
   _idToken: string,
   clientId: string
 ) {

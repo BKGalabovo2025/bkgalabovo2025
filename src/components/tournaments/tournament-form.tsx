@@ -85,6 +85,19 @@ export function TournamentForm({
     }
   };
 
+  const handleCategoryToggle = (
+    itemId: string,
+    currentValues: string[] | undefined,
+    onChange: (vals: string[]) => void,
+    isChecked: boolean
+  ) => {
+    const current = currentValues || [];
+    const next = isChecked
+      ? current.filter((v) => v !== itemId)
+      : [...current, itemId];
+    onChange(next);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 py-4">
@@ -461,24 +474,12 @@ export function TournamentForm({
                             ? "bg-primary/5 border-primary/20 text-primary"
                             : "bg-zinc-50/50 border-zinc-100 text-zinc-500 hover:bg-zinc-50"
                         )}
-                        onClick={() => {
-                          const current = field.value || [];
-                          const next = isChecked
-                            ? current.filter((v) => v !== item.id)
-                            : [...current, item.id];
-                          field.onChange(next);
-                        }}
+                        onClick={() => handleCategoryToggle(item.id, field.value, field.onChange, isChecked)}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={(e) => {
-                            const current = field.value || [];
-                            const next = e.target.checked
-                              ? [...current, item.id]
-                              : current.filter((v) => v !== item.id);
-                            field.onChange(next);
-                          }}
+                          onChange={(e) => handleCategoryToggle(item.id, field.value, field.onChange, !e.target.checked)}
                           onClick={(e) => e.stopPropagation()}
                           className="h-5 w-5 rounded border-zinc-300 cursor-pointer accent-zinc-950"
                         />

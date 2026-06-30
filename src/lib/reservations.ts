@@ -31,7 +31,7 @@ const getDayBoundaries = (date: Date) => {
 
 // --- Public API --- //
 
-export const getReservationsForDay = async (
+const getReservationsForDay = async (
   date: Date,
   siteId?: string
 ): Promise<Reservation[]> => {
@@ -49,12 +49,12 @@ export const getReservationsForDay = async (
   }));
 };
 
-export const deleteReservation = async (reservationId: string) => {
+const deleteReservation = async (reservationId: string) => {
   const docRef = doc(db, "reservations", reservationId);
   await deleteDoc(docRef);
 };
 
-export const getBlockedSlotsForDay = async (
+const getBlockedSlotsForDay = async (
   date: Date,
   siteId?: string
 ): Promise<BlockedSlot[]> => {
@@ -72,7 +72,7 @@ export const getBlockedSlotsForDay = async (
   }));
 };
 
-export const deleteBlockedSlot = async (slotId: string) => {
+const deleteBlockedSlot = async (slotId: string) => {
   const docRef = doc(db, "blockedSlots", slotId);
   await deleteDoc(docRef);
 };

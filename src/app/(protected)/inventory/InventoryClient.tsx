@@ -20,10 +20,12 @@ import {
   PackageX,
 } from "lucide-react";
 import { useInventoryEvents } from "@/hooks/useInventoryEvents";
-import { EditProductDialog } from "@/components/inventory/EditProductDialog";
-import { ProductSaleWizardDialog } from "@/components/inventory/ProductSaleWizardDialog";
-import InventoryHistory from "@/components/inventory/InventoryHistory";
-import InventorySalesHistory from "@/components/inventory/InventorySalesHistory";
+import dynamic from "next/dynamic";
+
+const EditProductDialog = dynamic(() => import("@/components/inventory/EditProductDialog").then(m => m.EditProductDialog), { ssr: false });
+const ProductSaleWizardDialog = dynamic(() => import("@/components/inventory/ProductSaleWizardDialog").then(m => m.ProductSaleWizardDialog), { ssr: false });
+const InventoryHistory = dynamic(() => import("@/components/inventory/InventoryHistory"), { ssr: false });
+const InventorySalesHistory = dynamic(() => import("@/components/inventory/InventorySalesHistory"), { ssr: false });
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

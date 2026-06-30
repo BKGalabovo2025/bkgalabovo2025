@@ -149,6 +149,20 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
 
   const allCourtIds = Array.from({ length: courtCount }, (_, i) => i + 1);
 
+  const handleCourtToggle = (
+    id: number,
+    currentValues: number[],
+    onChange: (vals: number[]) => void
+  ) => {
+    const vals = currentValues || [];
+    const isSelected = vals.includes(id);
+    if (isSelected) {
+      onChange(vals.filter((v: number) => v !== id));
+    } else {
+      onChange([...vals, id]);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -235,16 +249,9 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                             ? "bg-primary/5 border-primary/20 text-primary"
                             : "bg-zinc-50/50 border-zinc-100 text-zinc-400 hover:border-zinc-200"
                         )}
-                        onClick={() => {
-                          const isSelected = field.value?.includes(id);
-                          if (isSelected) {
-                            field.onChange(
-                              field.value.filter((v: number) => v !== id)
-                            );
-                          } else {
-                            field.onChange([...field.value, id]);
-                          }
-                        }}
+                        onClick={() =>
+                          handleCourtToggle(id, field.value, field.onChange)
+                        }
                       >
                         <Checkbox
                           checked={field.value?.includes(id)}

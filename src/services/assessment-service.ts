@@ -53,7 +53,7 @@ export const addAssessment = async (
   return docRef.id;
 };
 
-export const deleteAssessment = async (id: string): Promise<void> => {
+const deleteAssessment = async (id: string): Promise<void> => {
   const assessmentRef = doc(getMemberAssessmentsCollection(), id);
   await deleteDoc(assessmentRef);
 };

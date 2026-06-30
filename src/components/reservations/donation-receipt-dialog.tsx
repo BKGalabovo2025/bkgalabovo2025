@@ -23,6 +23,14 @@ import {
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 
+function getClientDisplayName(reservation: Reservation) {
+  if (reservation.client2Name || reservation.client2Zone) {
+    const client2 = reservation.client2Name || "Клиент 2";
+    return `${reservation.clientName} и ${client2}`;
+  }
+  return reservation.clientName || "";
+}
+
 interface DonationReceiptDialogProps {
   reservation: Reservation;
   children?: React.ReactNode;
@@ -70,9 +78,7 @@ const DocumentCopy = ({
           <p className="text-[11px] leading-relaxed text-justify">
             С настоящия документ се потвърждава постъпило целево дарение от{" "}
             <span className="font-bold uppercase">
-              {reservation.client2Name || reservation.client2Zone
-                ? `${reservation.clientName} и ${reservation.client2Name || "Клиент 2"}`
-                : reservation.clientName}
+              {getClientDisplayName(reservation)}
             </span>{" "}
             (тел.{" "}
             {reservation.client2Phone
@@ -164,9 +170,7 @@ const DocumentCopy = ({
             <div className="h-px bg-black w-full" />
             <p className="text-[8px] font-bold mt-1 uppercase text-center">
               Дарител:{" "}
-              {reservation.client2Name || reservation.client2Zone
-                ? `${reservation.clientName} и ${reservation.client2Name || "Клиент 2"}`
-                : reservation.clientName}
+              {getClientDisplayName(reservation)}
             </p>
           </div>
         </div>

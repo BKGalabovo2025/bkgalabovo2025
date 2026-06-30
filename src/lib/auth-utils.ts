@@ -42,7 +42,7 @@ export async function getAuthUserFromSessionCookie() {
   }
 }
 
-export async function ensureAdminFromSession() {
+async function ensureAdminFromSession() {
   const user = await getAuthUserFromSessionCookie();
   if (!user) {
     throw new Error("Невалидна сесия. Моля, влезте отново.");

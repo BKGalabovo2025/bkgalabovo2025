@@ -219,6 +219,22 @@ export function RecoverySessionForm({
     if (field === "compressors") setResCompressors(value);
   };
 
+  const handleImageToggle = (path: string) => {
+    setImageUrl((prev: string) => {
+      const list = prev ? prev.split(",").filter(Boolean) : [];
+      if (list.includes(path)) {
+        return list.filter((p: string) => p !== path).join(",");
+      } else {
+        return [...list, path].join(",");
+      }
+    });
+  };
+
+  const handleImageRemove = (pathToRemove: string, currentArr: string[]) => {
+    const nextList = currentArr.filter((p: string) => p !== pathToRemove);
+    setImageUrl(nextList.join(","));
+  };
+
   return (
     <form
       action={onSubmit}
@@ -515,20 +531,7 @@ export function RecoverySessionForm({
                   return (
                     <div
                       key={path}
-                      onClick={() => {
-                        setImageUrl((prev: string) => {
-                          const list = prev
-                            ? prev.split(",").filter(Boolean)
-                            : [];
-                          if (list.includes(path)) {
-                            return list
-                              .filter((p: string) => p !== path)
-                              .join(",");
-                          } else {
-                            return [...list, path].join(",");
-                          }
-                        });
-                      }}
+                      onClick={() => handleImageToggle(path)}
                       className={`relative aspect-video rounded-2xl overflow-hidden border-2 cursor-pointer transition-all ${
                         isSelected
                           ? "border-amber-500 shadow-md ring-2 ring-amber-500/20"
@@ -590,12 +593,7 @@ export function RecoverySessionForm({
                               type="button"
                               variant="destructive"
                               size="icon"
-                              onClick={() => {
-                                const nextList = arr.filter(
-                                  (p: string) => p !== path
-                                );
-                                setImageUrl(nextList.join(","));
-                              }}
+                              onClick={() => handleImageRemove(path, arr)}
                               className="h-8 w-8 rounded-full"
                             >
                               <Trash className="h-4 w-4" />

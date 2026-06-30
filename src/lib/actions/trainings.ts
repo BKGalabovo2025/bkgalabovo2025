@@ -142,7 +142,7 @@ export async function getTrainingSessionsForMemberAction(
   }
 }
 
-export async function updateRpeScoresAction(
+async function updateRpeScoresAction(
   _idToken: string,
   trainingId: string,
   scores: Record<string, number>

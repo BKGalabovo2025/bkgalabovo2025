@@ -156,7 +156,7 @@ export default function CreateSessionWizard({
       };
       fetchEvents();
     }
-  }, [open]);
+  }, [open, activeBranch]);
 
   const handleEventSelect = async (eventId: string) => {
     setSelectedEventId(eventId);

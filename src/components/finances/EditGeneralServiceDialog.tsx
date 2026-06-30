@@ -38,6 +38,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+function filterSalesForService(sales: Sale[], serviceId: string) {
+  return sales.filter((s) => s.items?.some((i) => i.productId === serviceId));
+}
+
 interface EditGeneralServiceDialogProps {
   service: GeneralService | null;
   isOpen: boolean;
@@ -87,9 +91,7 @@ export const EditGeneralServiceDialog = ({
           // Fetch sales
           const salesRes = await getGeneralServiceSalesAction(activeBranch);
           if (salesRes.success && salesRes.data) {
-            const filteredSales = salesRes.data.filter((s) =>
-              s.items?.some((i) => i.productId === service.id)
-            );
+            const filteredSales = filterSalesForService(salesRes.data, service.id);
             setSales(filteredSales);
           }
 

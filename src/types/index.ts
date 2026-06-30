@@ -170,7 +170,7 @@ export type GeneralService = {
   updatedBy?: { userId: string; userName: string };
 };
 
-export type PaymentHistoryItem = {
+type PaymentHistoryItem = {
   date: string;
   amount: number;
   paymentId: string;

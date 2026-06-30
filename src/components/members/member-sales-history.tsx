@@ -15,9 +15,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
-
 import { MemberSalesHistoryTableRow } from "./MemberSalesHistoryTableRow";
 import { MemberSalesHistoryMobileCard } from "./MemberSalesHistoryMobileCard";
+
+function getSaleItemsList(sale: import("@/types").Sale) {
+  return sale.items
+    .map((item) => {
+      const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
+      return `${item.name}${qtyStr}`;
+    })
+    .join(", ");
+}
 
 interface MemberSalesHistoryProps {
   memberId: string;
@@ -310,12 +318,7 @@ export const MemberSalesHistory = ({
                               sale.totalAmount
                             );
 
-                            const itemsList = sale.items
-                              .map((item) => {
-                                const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
-                                return `${item.name}${qtyStr}`;
-                              })
-                              .join(", ");
+                            const itemsList = getSaleItemsList(sale);
 
                             const isSubscription = isSubscriptionItem(itemsList);
 
@@ -350,12 +353,7 @@ export const MemberSalesHistory = ({
                           sale.totalAmount
                         );
 
-                        const itemsList = sale.items
-                          .map((item) => {
-                            const qtyStr = item.quantity > 1 ? ` (x${item.quantity})` : "";
-                            return `${item.name}${qtyStr}`;
-                          })
-                          .join(", ");
+                        const itemsList = getSaleItemsList(sale);
 
                         const isSubscription = isSubscriptionItem(itemsList);
 

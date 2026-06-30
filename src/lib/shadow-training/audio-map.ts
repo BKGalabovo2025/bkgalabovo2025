@@ -43,7 +43,7 @@ export const AUDIO_PATHS = {
 };
 
 export type ZoneId = keyof typeof AUDIO_PATHS.zones;
-export type ShotId = keyof typeof AUDIO_PATHS.shots;
+type ShotId = keyof typeof AUDIO_PATHS.shots;
 
 export const ZONE_NAMES: Record<ZoneId, string> = {
   frontForehand: "Форхенд Мрежа",
@@ -57,7 +57,7 @@ export const ZONE_NAMES: Record<ZoneId, string> = {
 
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
 
-export function getRandomZone(): ZoneId {
+function getRandomZone(): ZoneId {
   const index = Math.floor(Math.random() * ZONES_ARRAY.length);
   return ZONES_ARRAY[index];
 }
@@ -280,7 +280,7 @@ export function isAudioPlaying(): boolean {
   return shadowAudioManager.isPlaying();
 }
 
-export const SHOTS_BY_ZONE_GROUP = {
+const SHOTS_BY_ZONE_GROUP = {
   front: [
     "netKill",
     "netStraight",

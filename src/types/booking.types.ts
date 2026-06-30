@@ -83,7 +83,7 @@ interface Reservation {
 /**
  * Firestore-specific reservation type with Timestamps.
  */
-export interface FirestoreReservation extends Omit<
+interface FirestoreReservation extends Omit<
   Reservation,
   | "startTime"
   | "endTime"

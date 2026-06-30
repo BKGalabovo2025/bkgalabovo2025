@@ -7,6 +7,29 @@ import { useReservationDialog } from "./ReservationDialogContext";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/currency";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderZoneWarning(selectedZone: string | undefined, client2Zone: string | undefined, siteInfo: any) {
+  if (selectedZone && client2Zone && selectedZone === client2Zone) {
+    const zoneName = client2Zone;
+    const z = zoneName?.toUpperCase();
+    let key = "hips";
+    if (z === "КРАКА") {
+      key = "legs";
+    } else if (z === "РЪЦЕ") {
+      key = "arms";
+    }
+    const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
+    if (maxQty < 2) {
+      return (
+        <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">
+          Внимание: Разполагате само с {maxQty} приставка за {zoneName.toUpperCase()}. Моля, изберете различна зона за Клиент 2.
+        </p>
+      );
+    }
+  }
+  return null;
+}
+
 export const ReservationStep1Time = () => {
   const {
     form,
@@ -170,27 +193,7 @@ export const ReservationStep1Time = () => {
                           ))}
                         </div>
                         <FormMessage />
-                        {(() => {
-                          if (selectedZone && field2.value && selectedZone === field2.value) {
-                            const zoneName = field2.value;
-                            const z = zoneName?.toUpperCase();
-                            let key = "hips";
-                            if (z === "КРАКА") {
-                              key = "legs";
-                            } else if (z === "РЪЦЕ") {
-                              key = "arms";
-                            }
-                            const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
-                            if (maxQty < 2) {
-                              return (
-                                <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">
-                                  Внимание: Разполагате само с {maxQty} приставка за {zoneName.toUpperCase()}. Моля, изберете различна зона за Клиент 2.
-                                </p>
-                              );
-                            }
-                          }
-                          return null;
-                        })()}
+                        {renderZoneWarning(selectedZone, field2.value, siteInfo)}
                       </FormItem>
                     )}
                   />

@@ -74,8 +74,8 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 
 // Reservations components
-import { AgendaView } from "@/components/reservations/agenda-view";
-import { ReservationHistory } from "@/components/reservations/reservation-history";
+const AgendaView = dynamic(() => import("@/components/reservations/agenda-view").then(m => m.AgendaView), { ssr: false });
+const ReservationHistory = dynamic(() => import("@/components/reservations/reservation-history").then(m => m.ReservationHistory), { ssr: false });
 
 const ReservationDialog = dynamic(
   () =>

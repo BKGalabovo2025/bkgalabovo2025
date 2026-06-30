@@ -28,11 +28,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
-import { EditGeneralServiceDialog } from "./EditGeneralServiceDialog";
-import { GeneralServiceSaleWizardDialog } from "./GeneralServiceSaleWizardDialog";
+import dynamic from "next/dynamic";
+const EditGeneralServiceDialog = dynamic(() => import("./EditGeneralServiceDialog").then(m => m.EditGeneralServiceDialog), { ssr: false });
+const GeneralServiceSaleWizardDialog = dynamic(() => import("./GeneralServiceSaleWizardDialog").then(m => m.GeneralServiceSaleWizardDialog), { ssr: false });
 import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 import { toast } from "sonner";
-import { ReservationDialog } from "@/components/reservations/reservation-dialog";
+const ReservationDialog = dynamic(() => import("@/components/reservations/reservation-dialog").then(m => m.ReservationDialog), { ssr: false });
 
 export function GeneralServiceList() {
   const { services, isLoading, refetch } = useGeneralServices();

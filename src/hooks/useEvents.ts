@@ -327,21 +327,20 @@ export const useEvents = () => {
       let originalPast: ScheduleEvent[] = [];
 
       const attendeeMemberIds = newAttendees.map((a) => a.memberId);
+      const updatedAttendees = newAttendees.map((a) => {
+        const member = members.find((m) => m.id === a.memberId);
+        return {
+          ...a,
+          name: member ? formatFullName(member) : "Unknown",
+        };
+      });
 
       const updater = (currentEvents: ScheduleEvent[]) => {
         return currentEvents.map((e) => {
           if (e.id === eventId) {
-            const updatedAttendees = newAttendees.map((a) => {
-              const member = members.find((m) => m.id === a.memberId);
-              return {
-                ...a,
-                name: member ? formatFullName(member) : "Unknown",
-              };
-            });
             return { ...e, attendees: updatedAttendees, attendeeMemberIds };
-          } else {
-            return e;
           }
+          return e;
         });
       };
 

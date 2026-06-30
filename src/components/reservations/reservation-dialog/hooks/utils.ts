@@ -2,7 +2,7 @@ import { ClubService } from "@/types";
 import { Site } from "@/types/site.types";
 import { ReservationFormValues, PackageDay } from "../ReservationDialogContext";
 
-export interface ZoneAttachments {
+interface ZoneAttachments {
   legs: number;
   arms: number;
   hips: number;

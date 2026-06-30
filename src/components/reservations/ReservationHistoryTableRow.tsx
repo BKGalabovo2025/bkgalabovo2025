@@ -44,7 +44,7 @@ export interface ReservationData {
   createdAt?: string | Date | { toDate: () => Date };
 }
 
-export interface ServiceData {
+interface ServiceData {
   id: string;
   name: string;
 }

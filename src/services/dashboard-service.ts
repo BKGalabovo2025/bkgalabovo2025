@@ -14,7 +14,7 @@ type TotalRevenue = {
  * @param events - An array of events (optional).
  * @returns An object containing calculated dashboard statistics, including 30-day trends.
  */
-export const getDashboardStats = (
+const getDashboardStats = (
   members: Member[],
   sales: Sale[],
   lowStockProducts: Product[],

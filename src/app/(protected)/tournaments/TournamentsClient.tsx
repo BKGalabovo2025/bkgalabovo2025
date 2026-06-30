@@ -3,7 +3,8 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
-import { TournamentForm } from "@/components/tournaments/tournament-form";
+import dynamic from "next/dynamic";
+const TournamentForm = dynamic(() => import("@/components/tournaments/tournament-form").then(m => m.TournamentForm), { ssr: false });
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

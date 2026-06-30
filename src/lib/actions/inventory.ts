@@ -113,7 +113,7 @@ export async function createProductAction(
 /**
  * Updates product price and logs the event.
  */
-export async function updateProductPriceAction(
+async function updateProductPriceAction(
   id: string,
   idToken: string,
   newPrice: number

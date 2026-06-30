@@ -45,7 +45,7 @@ function snapToData<T>(
 /**
  * РР·РІР»РёС‡Р° РІСЃРёС‡РєРё РїСЂРѕРґР°Р¶Р±Рё РЅР° СЃСЉСЂРІСЉСЂР°.
  */
-export async function getInventorySalesServerAction(activeBranch: string) {
+async function getInventorySalesServerAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) {

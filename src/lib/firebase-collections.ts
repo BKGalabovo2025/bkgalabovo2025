@@ -333,7 +333,7 @@ export const getClubServicesCollection = () =>
 const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
-export const getTournamentCollection = () =>
+const getTournamentCollection = () =>
   collection(getDb(), "tournaments").withConverter(tournamentConverter);
 
 export const getTournamentEntriesCollection = () =>
@@ -379,7 +379,7 @@ export const getSalesQuery = () => {
   return query(getSalesCollection(), where("siteId", "==", siteConfig.id));
 };
 
-export const getClubServicesQuery = () => {
+const getClubServicesQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getClubServicesCollection());
   return query(
@@ -562,7 +562,7 @@ export const getClientPackagesQuery = (memberId?: string) => {
   return q;
 };
 
-export const getGeneralServicesQuery = () => {
+const getGeneralServicesQuery = () => {
   return query(
     getGeneralServicesCollection(),
     where("siteId", "==", getSiteConfig().id)
@@ -582,7 +582,7 @@ export const getMemberAssessmentsQuery = () => {
   );
 };
 
-export const getReservationsQuery = () => {
+const getReservationsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getReservationsCollection());
   return query(
@@ -591,7 +591,7 @@ export const getReservationsQuery = () => {
   );
 };
 
-export const getBlockedSlotsQuery = () => {
+const getBlockedSlotsQuery = () => {
   const siteConfig = getSiteConfig();
   if (siteConfig.id === "bkgalabovo") return query(getBlockedSlotsCollection());
   return query(

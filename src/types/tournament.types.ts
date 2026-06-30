@@ -171,7 +171,7 @@ export const TournamentEntrySchema = z.object({
 export type TournamentEntry = z.infer<typeof TournamentEntrySchema>;
 
 // 3. Схема за Мач
-export const MatchSchema = z.object({
+const MatchSchema = z.object({
   id: z.string().optional(),
   tournamentId: z.string(),
   categoryId: CategoryEnum,

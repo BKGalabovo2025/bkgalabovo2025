@@ -94,7 +94,7 @@ const getProducts = async (): Promise<Product[]> => {
 /**
  * Returns products that have stock less than or equal to their restockThreshold.
  */
-export const getLowStockProducts = async (): Promise<Product[]> => {
+const getLowStockProducts = async (): Promise<Product[]> => {
   const products = await getProducts();
   return products.filter(
     (p) =>

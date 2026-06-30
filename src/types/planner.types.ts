@@ -6,7 +6,7 @@ export type ExerciseCategory =
   | "warmup";
 export type LocationType = "indoor" | "outdoor" | "both";
 export type TrainingMode = "season" | "camp";
-export type MedicalStatus = "healthy" | "discomfort" | "injured";
+type MedicalStatus = "healthy" | "discomfort" | "injured";
 
 export interface Exercise {
   id: string;

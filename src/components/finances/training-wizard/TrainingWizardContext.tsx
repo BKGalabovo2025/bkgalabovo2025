@@ -14,9 +14,9 @@ import { executeTrainingSaleAction } from "@/lib/actions/services";
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 
-export type PaymentMode = "subscription" | "individual";
+type PaymentMode = "subscription" | "individual";
 
-export interface MemberAttendanceStats {
+interface MemberAttendanceStats {
   memberId: string;
   firstName: string;
   paidCount: number;

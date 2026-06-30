@@ -8,7 +8,7 @@ import type { DocumentSnapshot } from "firebase/firestore";
 
 type FirestoreDate = { toDate?: () => Date } | Date | string | null | undefined;
 
-export const toISODate = (date: FirestoreDate): string | undefined => {
+const toISODate = (date: FirestoreDate): string | undefined => {
   if (!date) return undefined;
   if (typeof (date as { toDate?: () => Date }).toDate === "function") {
     return (date as { toDate: () => Date }).toDate().toISOString();

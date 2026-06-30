@@ -1,9 +1,9 @@
-export type TrainingType = "shadow" | "physical" | "court";
-export type ShadowMode = "standard" | "ghost_match" | "agility_test";
-export type ShadowPreset = "beginner" | "advanced" | "custom";
-export type ShadowCornersMode = "4-corners" | "6-corners";
-export type ShadowAgeGroup = "U9-U11" | "U13-U15" | "U17+";
-export type ShadowDrillPattern =
+type TrainingType = "shadow" | "physical" | "court";
+type ShadowMode = "standard" | "ghost_match" | "agility_test";
+type ShadowPreset = "beginner" | "advanced" | "custom";
+type ShadowCornersMode = "4-corners" | "6-corners";
+type ShadowAgeGroup = "U9-U11" | "U13-U15" | "U17+";
+type ShadowDrillPattern =
   | "random"
   | "fixed-triangle"
   | "fixed-net-back"
