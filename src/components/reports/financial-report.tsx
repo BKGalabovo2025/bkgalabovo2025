@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -343,86 +343,139 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-zinc-50/50">
-              <TableRow className="border-none hover:bg-transparent h-16">
-                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
-                  Дата
-                </TableHead>
-                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                  Член
-                </TableHead>
-                <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                  Тип
-                </TableHead>
-                <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-8">
-                  Сума
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isPending ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-48 text-center">
-                    <Loader2 className="h-6 w-6 text-zinc-300 animate-spin mx-auto" />
-                  </TableCell>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader className="bg-zinc-50/50">
+                <TableRow className="border-none hover:bg-transparent h-16">
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                    Дата
+                  </TableHead>
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                    Член
+                  </TableHead>
+                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                    Тип
+                  </TableHead>
+                  <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-8">
+                    Сума
+                  </TableHead>
                 </TableRow>
-              ) : data.sales.length > 0 ? (
-                data.sales.map((s) => {
-                  return (
-                    <TableRow
-                      key={s.id}
-                      className="border-zinc-50 group hover:bg-zinc-50/50 transition-colors h-20"
+              </TableHeader>
+              <TableBody>
+                {isPending ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center">
+                      <Loader2 className="h-6 w-6 text-zinc-300 animate-spin mx-auto" />
+                    </TableCell>
+                  </TableRow>
+                ) : data.sales.length > 0 ? (
+                  data.sales.map((s) => {
+                    return (
+                      <TableRow
+                        key={s.id}
+                        className="border-zinc-50 group hover:bg-zinc-50/50 transition-colors h-20"
+                      >
+                        <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
+                          {formatDateShort(s.saleDate)}
+                        </TableCell>
+                        <TableCell className="text-sm font-light text-zinc-600">
+                          {s.memberName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-3 py-1",
+                              "bg-emerald-50 text-emerald-600"
+                            )}
+                          >
+                            Продажба
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8 font-medium text-sm text-zinc-900">
+                          {formatPrice(s.totalAmount)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+                        Няма транзакции за този период
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              {data.sales.length > 0 && !isPending && (
+                <TableFooter className="bg-zinc-50/50 border-none">
+                  <TableRow className="h-20 hover:bg-transparent">
+                    <TableCell
+                      colSpan={3}
+                      className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-4"
                     >
-                      <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
-                        {formatDateShort(s.saleDate)}
-                      </TableCell>
-                      <TableCell className="text-sm font-light text-zinc-600">
-                        {s.memberName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-3 py-1",
-                            "bg-emerald-50 text-emerald-600"
-                          )}
-                        >
-                          Продажба
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8 font-medium text-sm text-zinc-900">
-                        {formatPrice(s.totalAmount)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-48 text-center">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
-                      Няма транзакции за този период
-                    </p>
-                  </TableCell>
-                </TableRow>
+                      Общо за периода
+                    </TableCell>
+                    <TableCell className="text-right pr-8 font-light text-2xl text-zinc-950">
+                      {formatPrice(data.total)}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
               )}
-            </TableBody>
-            {data.sales.length > 0 && !isPending && (
-              <TableFooter className="bg-zinc-50/50 border-none">
-                <TableRow className="h-20 hover:bg-transparent">
-                  <TableCell
-                    colSpan={3}
-                    className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-4"
-                  >
-                    Общо за периода
-                  </TableCell>
-                  <TableCell className="text-right pr-8 font-light text-2xl text-zinc-950">
-                    {formatPrice(data.total)}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
+            </Table>
+          </div>
+
+          <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+            {isPending ? (
+              <div className="h-48 flex items-center justify-center">
+                <Loader2 className="h-6 w-6 text-zinc-300 animate-spin" />
+              </div>
+            ) : data.sales.length > 0 ? (
+              data.sales.map((s) => (
+                <div
+                  key={s.id}
+                  className="p-4 flex flex-col gap-2 bg-white hover:bg-zinc-50/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
+                      {formatDateShort(s.saleDate)}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-2 py-0.5 bg-emerald-50 text-emerald-600"
+                    >
+                      Продажба
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm font-medium text-zinc-900">
+                      {s.memberName}
+                    </span>
+                    <span className="text-sm font-semibold text-zinc-900">
+                      {formatPrice(s.totalAmount)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="h-48 flex items-center justify-center">
+                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                  Няма транзакции за този период
+                </p>
+              </div>
             )}
-          </Table>
+            {data.sales.length > 0 && !isPending && (
+              <div className="p-4 bg-zinc-50/50 flex justify-between items-center mt-auto border-t border-zinc-100">
+                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  Общо за периода
+                </span>
+                <span className="text-xl font-semibold text-zinc-950">
+                  {formatPrice(data.total)}
+                </span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

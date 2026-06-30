@@ -49,7 +49,7 @@ interface ServiceData {
   name: string;
 }
 
-const getReservationTitle = (res: ReservationData) => {
+export const getReservationTitle = (res: ReservationData) => {
   const c1Name = res.clientName;
   const c1Zone = res.selectedZone ? ` (${res.selectedZone})` : "";
   const c1Str = `${c1Name}${c1Zone}`;
@@ -62,7 +62,7 @@ const getReservationTitle = (res: ReservationData) => {
   return c1Str;
 };
 
-const getStatusLabel = (status: string) => {
+export const getStatusLabel = (status: string) => {
   switch (status) {
     case "paid":
       return "Платена";
@@ -83,7 +83,7 @@ const getStatusLabel = (status: string) => {
   }
 };
 
-const getStatusStyles = (status: string) => {
+export const getStatusStyles = (status: string) => {
   switch (status) {
     case "paid":
     case "completed":
@@ -273,5 +273,157 @@ export function ReservationHistoryTableRow({
         </div>
       </TableCell>
     </TableRow>
+  );
+}
+
+export function ReservationHistoryMobileCard({
+  reservation: res,
+  services,
+  isPackageTail,
+  mode,
+  handleMarkAsPaid,
+  handleDeleteReservation,
+  onViewInCalendar,
+}: ReservationHistoryTableRowProps) {
+  const startTime = res.startTime.toDate();
+  const endTime = res.endTime.toDate();
+  const displayPrice = res.totalPrice ?? res.price ?? 0;
+
+  return (
+    <div className="bg-white dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex flex-col gap-4 shadow-sm">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+            {format(startTime, "dd MMM yyyy", { locale: bg })}
+          </span>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
+            <Clock className="h-3 w-3" />
+            {format(startTime, "HH:mm")} - {format(endTime, "HH:mm")}
+          </div>
+        </div>
+        <Badge
+          className={`rounded-lg font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 border-none shadow-none ${getStatusStyles(
+            res.status
+          )}`}
+        >
+          {getStatusLabel(res.status)}
+        </Badge>
+      </div>
+
+      <div className="flex flex-col gap-0.5">
+        <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+          {getReservationTitle(res)}
+        </span>
+        <span className="text-xs font-medium text-zinc-500">
+          {res.client2Phone
+            ? `${res.clientPhone} / ${res.client2Phone}`
+            : res.clientPhone}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        {res.courtId ? (
+          <Badge
+            variant="outline"
+            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
+          >
+            <MapPin className="h-3 w-3 text-primary" />
+            Корт {res.courtId}
+          </Badge>
+        ) : (
+          <Badge
+            variant="outline"
+            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
+          >
+            <Activity className="h-3 w-3 text-emerald-500" />
+            {res.serviceName ||
+              services.find((s) => s.id === res.serviceId)?.name ||
+              "Услуга"}
+          </Badge>
+        )}
+
+        {isPackageTail ? (
+          <span className="text-xs font-bold text-zinc-400 italic">
+            в пакета
+          </span>
+        ) : (
+          <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+            {displayPrice}
+            <span className="text-[10px] text-zinc-400">
+              {res.currency || "EUR"}
+            </span>
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center gap-2">
+          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="h-3 w-3 text-primary" />
+          </div>
+          <span className="text-xs font-medium text-zinc-500 truncate max-w-[120px]">
+            {res.createdBy?.userName || res.teamMemberName || "Система"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-end gap-1">
+          {res.status !== "paid" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+              onClick={() => handleMarkAsPaid(res.id)}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+            </Button>
+          )}
+
+          {res.status === "paid" && !isPackageTail && (
+            <DonationReceiptDialog reservation={res as unknown as Reservation}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+              >
+                <FileText className="w-4 h-4" />
+              </Button>
+            </DonationReceiptDialog>
+          )}
+
+          <ReservationDialog
+            reservation={res as unknown as Reservation}
+            mode={mode}
+            onSave={() => {}}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+            >
+              <Pencil className="w-4 h-4 text-zinc-400" />
+            </Button>
+          </ReservationDialog>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+            onClick={() => handleDeleteReservation(res.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onViewInCalendar(startTime)}
+            className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white transition-all group"
+            title="Виж в календара"
+          >
+            <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

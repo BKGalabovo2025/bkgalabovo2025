@@ -125,7 +125,7 @@ export function RecoverySalesHistory() {
         </p>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar">
+      <div className="flex-1 overflow-auto custom-scrollbar hidden md:block">
         {sales.length > 0 ? (
           <Table>
             <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50 sticky top-0 backdrop-blur-sm">
@@ -269,6 +269,122 @@ export function RecoverySalesHistory() {
           <div className="py-32 flex flex-col items-center justify-center text-center">
             <ShoppingCart
               className="h-12 w-12 text-zinc-200 dark:text-zinc-800 mb-4"
+              strokeWidth={1}
+            />
+            <p className="text-zinc-500 text-sm font-light">
+              Няма намерени продажби.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-auto custom-scrollbar md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+        {sales.length > 0 ? (
+          sales.map((sale) => (
+            <div
+              key={sale.id}
+              className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                    {getClientName(sale)}
+                  </div>
+                  <div className="text-xs text-zinc-500 mt-1">
+                    {format(new Date(sale.saleDate), "dd MMM yyyy, HH:mm", {
+                      locale: bg,
+                    })}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                        disabled={isDeleting === sale.id}
+                      >
+                        {isDeleting === sale.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MoreVertical className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-[160px] rounded-xl"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/sales/${sale.id}/receipt`)}
+                        className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      >
+                        <Receipt className="h-3.5 w-3.5 text-zinc-500" />
+                        Касова бележка
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/sales/${sale.id}`)}
+                        className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                        Детайли
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSaleToEdit(sale)}
+                        className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      >
+                        <Edit2 className="h-3.5 w-3.5 text-zinc-500" />
+                        Редактирай
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteSale(sale.id)}
+                        className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Изтрий
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                {sale.items.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="text-sm text-zinc-600 dark:text-zinc-400"
+                  >
+                    {item.name || "Възстановяване"}{" "}
+                    {item.quantity > 1 ? `(x${item.quantity})` : ""}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                {sale.isPaid ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20 px-2 py-0.5"
+                  >
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> Платено
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-500 dark:border-rose-500/20 px-2 py-0.5"
+                  >
+                    <XCircle className="w-3 h-3 mr-1" /> Неплатено
+                  </Badge>
+                )}
+                <div className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg text-xs">
+                  {formatPrice(sale.totalAmount)}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <ShoppingCart
+              className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
               strokeWidth={1}
             />
             <p className="text-zinc-500 text-sm font-light">

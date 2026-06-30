@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useState } from "react";
@@ -62,28 +59,62 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
         {productsToRestock.length === 0 ? (
           <p>Няма продукти за презареждане.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Продукт</TableHead>
-                <TableHead className="text-center">Текуща наличност</TableHead>
-                <TableHead className="text-center">
-                  Праг за презареждане
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Продукт</TableHead>
+                    <TableHead className="text-center">
+                      Текуща наличност
+                    </TableHead>
+                    <TableHead className="text-center">
+                      Праг за презареждане
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {productsToRestock.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">
+                        {product.name}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {product.stock}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {product.restockThreshold}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="md:hidden flex flex-col gap-3">
               {productsToRestock.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-center">{product.stock}</TableCell>
-                  <TableCell className="text-center">
-                    {product.restockThreshold}
-                  </TableCell>
-                </TableRow>
+                <div
+                  key={product.id}
+                  className="p-4 border border-zinc-100 dark:border-zinc-800 rounded-xl flex flex-col gap-2 bg-zinc-50/50 dark:bg-zinc-900/50"
+                >
+                  <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                    {product.name}
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-500">Наличност:</span>
+                    <span className="font-bold text-rose-600">
+                      {product.stock} бр.
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-500">Праг:</span>
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                      {product.restockThreshold} бр.
+                    </span>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

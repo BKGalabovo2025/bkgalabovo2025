@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 // src/components/reports/attendance-report.tsx
 "use client";
 
@@ -51,9 +50,8 @@ const AttendanceReport = ({
   const [endDate, setEndDate] = useState<Date | undefined>(
     () => new Date(initialEndDate)
   );
-  const [reportData, setReportData] = useState<AttendanceReportItem[]>(
-    initialReportData
-  );
+  const [reportData, setReportData] =
+    useState<AttendanceReportItem[]>(initialReportData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -248,51 +246,86 @@ const AttendanceReport = ({
             </p>
           </div>
         ) : reportData.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-zinc-50/50">
-                <TableRow className="border-none hover:bg-transparent h-16">
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
-                    Член
-                  </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                    Контакти
-                  </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
-                    Брой посещения
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reportData.map((item) => (
-                  <TableRow
-                    key={item.member.id}
-                    className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
-                  >
-                    <TableCell className="px-8">
+          <>
+            <div className="overflow-x-auto hidden md:block">
+              <Table>
+                <TableHeader className="bg-zinc-50/50">
+                  <TableRow className="border-none hover:bg-transparent h-16">
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                      Член
+                    </TableHead>
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                      Контакти
+                    </TableHead>
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+                      Брой посещения
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.map((item) => (
+                    <TableRow
+                      key={item.member.id}
+                      className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
+                    >
+                      <TableCell className="px-8">
+                        <p className="font-medium text-sm text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
+                        <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest mt-1">
+                          {item.member.status}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm font-light text-zinc-600">
+                          {item.member.email || "—"}
+                        </p>
+                        <p className="text-xs font-light text-zinc-400 mt-1">
+                          {item.member.phone || "—"}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <span className="inline-flex items-center justify-center h-10 w-16 rounded-xl bg-zinc-50 text-zinc-900 font-medium text-sm border border-zinc-100">
+                          {item.attendanceCount}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+              {reportData.map((item) => (
+                <div
+                  key={item.member.id}
+                  className="p-6 flex justify-between items-center gap-4"
+                >
+                  <div className="flex flex-col gap-3">
+                    <div>
                       <p className="font-medium text-sm text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
                       <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest mt-1">
                         {item.member.status}
                       </p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm font-light text-zinc-600">
+                    </div>
+                    <div>
+                      <p className="text-xs font-light text-zinc-600">
                         {item.member.email || "—"}
                       </p>
-                      <p className="text-xs font-light text-zinc-400 mt-1">
+                      <p className="text-xs font-light text-zinc-400 mt-0.5">
                         {item.member.phone || "—"}
                       </p>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <span className="inline-flex items-center justify-center h-10 w-16 rounded-xl bg-zinc-50 text-zinc-900 font-medium text-sm border border-zinc-100">
-                        {item.attendanceCount}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 text-right">
+                      Посещения
+                    </span>
+                    <span className="inline-flex items-center justify-center h-10 w-12 rounded-xl bg-zinc-50 text-zinc-900 font-medium text-sm border border-zinc-100">
+                      {item.attendanceCount}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="p-32 text-center">
             <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">

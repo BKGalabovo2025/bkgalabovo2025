@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useState } from "react";
@@ -102,8 +99,8 @@ export function RecoveryHistory() {
         </Select>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar">
-        {filteredEvents.length > 0 ? (
+      <div className="flex-1 overflow-auto custom-scrollbar hidden md:block">
+        {filteredEvents.length > 0 && (
           <Table>
             <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50 sticky top-0 backdrop-blur-sm">
               <TableRow className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-transparent">
@@ -163,10 +160,47 @@ export function RecoveryHistory() {
               ))}
             </TableBody>
           </Table>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-auto custom-scrollbar md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+        {filteredEvents.length > 0 ? (
+          filteredEvents.map((event) => (
+            <div
+              key={event.id}
+              className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                    {getEventIcon(event.type)}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                      {getEventLabel(event.type)}
+                    </div>
+                    <div className="text-xs text-zinc-500 mt-1">
+                      {format(new Date(event.createdAt), "dd MMM yyyy, HH:mm", {
+                        locale: bg,
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    {event.userName}
+                  </span>
+                </div>
+              </div>
+              <div className="text-sm text-zinc-900 dark:text-zinc-100 mt-1 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                {event.serviceName}
+              </div>
+            </div>
+          ))
         ) : (
-          <div className="py-32 flex flex-col items-center justify-center text-center">
+          <div className="py-24 flex flex-col items-center justify-center text-center">
             <History
-              className="h-12 w-12 text-zinc-200 dark:text-zinc-800 mb-4"
+              className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
               strokeWidth={1}
             />
             <p className="text-zinc-500 text-sm font-light">

@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -135,63 +132,117 @@ const InventoryHistory = () => {
           </div>
         )}
         {!loading && !error && (
-          <Table>
-            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
-              <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Дата
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Артикул
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Тип
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Клиент (за продажба)
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
-                  Промяна
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Потребител
-                </TableHead>
-                <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
-                  Бележка
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <TableRow className="hover:bg-transparent border-none">
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Дата
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Артикул
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Тип
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Клиент (за продажба)
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
+                      Промяна
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Потребител
+                    </TableHead>
+                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                      Бележка
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow
+                      key={event.id}
+                      className="border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors"
+                    >
+                      <TableCell className="px-6 py-4 text-[11px] font-medium text-zinc-400">
+                        {formatDateTimeDisplay(event.createdAt)}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-sm font-light text-zinc-900 dark:text-zinc-100">
+                        {event.productName}
+                      </TableCell>
+                      <TableCell className="px-6 py-4">
+                        {getEventTypeLabel(event.type)}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                        {event.type === "sale" ? event.clientName || "-" : "-"}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-right font-medium text-sm">
+                        {renderEventDetails(event)}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
+                        {event.userName}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-xs text-zinc-400 italic font-light">
+                        {event.notes || "--"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
               {events.map((event) => (
-                <TableRow
+                <div
                   key={event.id}
-                  className="border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors"
+                  className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
                 >
-                  <TableCell className="px-6 py-4 text-[11px] font-medium text-zinc-400">
-                    {formatDateTimeDisplay(event.createdAt)}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-sm font-light text-zinc-900 dark:text-zinc-100">
-                    {event.productName}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    {getEventTypeLabel(event.type)}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-xs font-medium text-emerald-600 dark:text-emerald-500">
-                    {event.type === "sale" ? (event.clientName || "-") : "-"}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-right font-medium text-sm">
-                    {renderEventDetails(event)}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
-                    {event.userName}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-xs text-zinc-400 italic font-light">
-                    {event.notes || "--"}
-                  </TableCell>
-                </TableRow>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                        {event.productName}
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-1">
+                        {formatDateTimeDisplay(event.createdAt)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {getEventTypeLabel(event.type)}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex flex-col">
+                      <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+                        Промяна
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {renderEventDetails(event)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end text-right">
+                      <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+                        Потребител
+                      </span>
+                      <span className="text-xs text-zinc-900 dark:text-zinc-100">
+                        {event.userName}
+                      </span>
+                    </div>
+                  </div>
+                  {event.type === "sale" && event.clientName && (
+                    <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                      Клиент: {event.clientName}
+                    </div>
+                  )}
+                  {event.notes && (
+                    <div className="text-xs text-zinc-400 italic">
+                      Забележка: {event.notes}
+                    </div>
+                  )}
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </>
         )}
         {!loading && events.length === 0 && (
           <div className="p-12 text-center text-[11px] uppercase tracking-widest text-zinc-400 font-medium">

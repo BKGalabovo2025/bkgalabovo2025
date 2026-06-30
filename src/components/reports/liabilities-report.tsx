@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 "use client";
 
 import { useState } from "react";
@@ -65,9 +64,8 @@ const LiabilitiesReport = ({
   initialYear,
   initialMonth,
 }: LiabilitiesReportProps) => {
-  const [unpaidMembers, setUnpaidMembers] = useState<Member[]>(
-    initialUnpaidMembers
-  );
+  const [unpaidMembers, setUnpaidMembers] =
+    useState<Member[]>(initialUnpaidMembers);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(true);
 
@@ -221,61 +219,91 @@ const LiabilitiesReport = ({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-zinc-50/50">
-                <TableRow className="border-none hover:bg-transparent h-16">
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
-                    Член
-                  </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                    Контакти
-                  </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
-                    Действие
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {unpaidMembers.map((member) => (
-                  <TableRow
-                    key={member.id}
-                    className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
-                  >
-                    <TableCell className="px-8">
-                      <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
-                      <p className="text-[10px] font-light text-rose-500 uppercase tracking-widest mt-1">
-                        Неплатен абонамент
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-light text-zinc-600 flex items-center gap-2">
-                          <Mail
-                            className="h-3.5 w-3.5 text-zinc-300"
-                            strokeWidth={1.5}
-                          />{" "}
-                          {member.email || "—"}
-                        </span>
-                        <span className="text-xs font-light text-zinc-400">
-                          {member.phone || "—"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-xl text-zinc-600 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
-                      >
-                        Напомняне
-                      </Button>
-                    </TableCell>
+          <>
+            <div className="overflow-x-auto hidden md:block">
+              <Table>
+                <TableHeader className="bg-zinc-50/50">
+                  <TableRow className="border-none hover:bg-transparent h-16">
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                      Член
+                    </TableHead>
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                      Контакти
+                    </TableHead>
+                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+                      Действие
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {unpaidMembers.map((member) => (
+                    <TableRow
+                      key={member.id}
+                      className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
+                    >
+                      <TableCell className="px-8">
+                        <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
+                        <p className="text-[10px] font-light text-rose-500 uppercase tracking-widest mt-1">
+                          Неплатен абонамент
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-sm font-light text-zinc-600 flex items-center gap-2">
+                            <Mail
+                              className="h-3.5 w-3.5 text-zinc-300"
+                              strokeWidth={1.5}
+                            />{" "}
+                            {member.email || "—"}
+                          </span>
+                          <span className="text-xs font-light text-zinc-400">
+                            {member.phone || "—"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-xl text-zinc-600 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
+                        >
+                          Напомняне
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+              {unpaidMembers.map((member) => (
+                <div key={member.id} className="p-6 flex flex-col gap-4">
+                  <div>
+                    <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
+                    <p className="text-[10px] font-medium text-rose-500 uppercase tracking-widest mt-1">
+                      Неплатен абонамент
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1.5 bg-zinc-50 rounded-xl p-3">
+                    <span className="text-xs font-medium text-zinc-600 flex items-center gap-2">
+                      <Mail className="h-3.5 w-3.5 text-zinc-400" />
+                      {member.email || "—"}
+                    </span>
+                    <span className="text-xs font-medium text-zinc-600 flex items-center gap-2">
+                      {member.phone || "—"}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-rose-500 border-rose-200 bg-rose-50 hover:bg-rose-100 uppercase text-[10px] tracking-widest h-10"
+                  >
+                    Напомняне
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </BentoCard>
     </div>

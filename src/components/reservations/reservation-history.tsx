@@ -20,7 +20,10 @@ import {
   markReservationAsPaidAction,
 } from "@/lib/actions/reservations";
 import { getAllRecoveryServices } from "@/services/club-service";
-import { ReservationHistoryTableRow } from "./ReservationHistoryTableRow";
+import {
+  ReservationHistoryTableRow,
+  ReservationHistoryMobileCard,
+} from "./ReservationHistoryTableRow";
 import { ClubService } from "@/types";
 
 interface ReservationHistoryProps {
@@ -106,7 +109,7 @@ export function ReservationHistory({
         </div>
       </div>
 
-      <div className="border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-black/2 bg-white dark:bg-zinc-950">
+      <div className="border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-black/2 bg-white dark:bg-zinc-950 hidden md:block">
         <Table>
           <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
             <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-800">
@@ -170,6 +173,40 @@ export function ReservationHistory({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="md:hidden flex flex-col gap-4">
+        {filteredReservations.length === 0 ? (
+          <div className="h-32 flex items-center justify-center text-center text-zinc-500 font-medium">
+            Няма намерени резервации.
+          </div>
+        ) : (
+          (() => {
+            const seenPackages = new Set<string>();
+            return filteredReservations.map((res) => {
+              const isPackageHead = res.packageGroupId
+                ? !seenPackages.has(res.packageGroupId)
+                : false;
+              if (res.packageGroupId) {
+                seenPackages.add(res.packageGroupId);
+              }
+              const isPackageTail = res.packageGroupId && !isPackageHead;
+
+              return (
+                <ReservationHistoryMobileCard
+                  key={res.id}
+                  reservation={res}
+                  services={services}
+                  isPackageTail={!!isPackageTail}
+                  mode={mode}
+                  handleMarkAsPaid={handleMarkAsPaid}
+                  handleDeleteReservation={handleDeleteReservation}
+                  onViewInCalendar={onViewInCalendar}
+                />
+              );
+            });
+          })()
+        )}
       </div>
     </div>
   );
