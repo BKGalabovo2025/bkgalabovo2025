@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import React from "react";
@@ -19,7 +16,9 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
 
   if (!therapists || therapists.length === 0) return null;
 
-  const displayIntro = teamIntro || "Ние сме активни хора, които вярват в силата на правилното възстановяване.";
+  const displayIntro =
+    teamIntro ||
+    "Ние сме активни хора, които вярват в силата на правилното възстановяване.";
   const shouldTruncate = displayIntro.length > 200;
 
   return (
@@ -42,10 +41,14 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               </span>
             </h2>
             <div className="space-y-6">
-              <div className={cn(
-                "text-zinc-400 text-lg font-light leading-relaxed whitespace-pre-wrap transition-all duration-700",
-                !isExpanded && shouldTruncate ? "max-h-32 overflow-hidden relative" : "max-h-[2000px]"
-              )}>
+              <div
+                className={cn(
+                  "text-zinc-400 text-lg font-light leading-relaxed whitespace-pre-wrap transition-all duration-700",
+                  !isExpanded && shouldTruncate
+                    ? "max-h-32 overflow-hidden relative"
+                    : "max-h-[2000px]"
+                )}
+              >
                 {displayIntro}
                 {!isExpanded && shouldTruncate && (
                   <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-zinc-950 to-transparent pointer-events-none" />
@@ -71,7 +74,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               >
                 <div className="relative w-24 h-24 rounded-3xl overflow-hidden mb-6 border border-white/10 group-hover:border-emerald-500/30 transition-colors">
                   <Image
-                    src={member.image || "/logo.png"}
+                    src={member.image || "/1.png"}
                     alt={member.name}
                     fill
                     sizes="96px"
