@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Script from "next/script";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -70,29 +69,9 @@ export default function RecoveryZoneClient({
   site: Site;
 }) {
   const [activeImage, setActiveImage] = useState(0);
-  const [isWidgetVisible, setIsWidgetVisible] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const widgetRef = useRef<HTMLDivElement>(null);
 
   const hallImages = ["/1.png", "/1.png"]; // Mock for now to prevent errors
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsWidgetVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1, rootMargin: "300px" }
-    );
-
-    if (widgetRef.current) {
-      observer.observe(widgetRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -760,10 +739,11 @@ export default function RecoveryZoneClient({
                   </div>
                   <div>
                     <p className="text-white font-medium mb-1">
-                      Спортна база / Място на тренировките
+                      Локация на центъра
                     </p>
                     <p className="text-zinc-400 text-sm">
-                      Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41
+                      {site.address ||
+                        "Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41"}
                     </p>
                   </div>
                 </div>
@@ -777,13 +757,13 @@ export default function RecoveryZoneClient({
                       Телефон за връзка
                     </p>
                     <p className="text-zinc-400 text-sm">
-                      Мира Георгиева – треньор
+                      Резервации и информация
                     </p>
                     <a
-                      href="tel:+359899829923"
+                      href={`tel:${site.phone || "+359899829923"}`}
                       className="text-emerald-400 font-bold mt-1 inline-block hover:underline"
                     >
-                      +359 899 82 99 23
+                      {site.phone || "+359 899 82 99 23"}
                     </a>
                   </div>
                 </div>
@@ -795,10 +775,10 @@ export default function RecoveryZoneClient({
                   <div>
                     <p className="text-white font-medium mb-1">Имейл</p>
                     <a
-                      href="mailto:bk_galabovo@abv.bg"
+                      href={`mailto:${site.email || "bk_galabovo@abv.bg"}`}
                       className="text-zinc-400 text-sm hover:text-emerald-400 transition-colors"
                     >
-                      bk_galabovo@abv.bg
+                      {site.email || "bk_galabovo@abv.bg"}
                     </a>
                   </div>
                 </div>
@@ -811,80 +791,74 @@ export default function RecoveryZoneClient({
                 Последвайте ни в мрежите
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                <a
-                  href="https://www.facebook.com/badmintongalabovo/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
-                    <FacebookIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Facebook Страница
-                  </span>
-                </a>
-                <a
-                  href="https://www.facebook.com/groups/645571089477573/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-emerald-400 transition-colors">
-                    <Users size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Facebook Група
-                  </span>
-                </a>
-                <a
-                  href="https://www.instagram.com/badminton.galabovo/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
-                    <InstagramIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    Instagram
-                  </span>
-                </a>
-                <a
-                  href="https://www.youtube.com/@BKGalabovo"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                >
-                  <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
-                    <YoutubeIcon size={24} />
-                  </div>
-                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                    YouTube
-                  </span>
-                </a>
-              </div>
+                {site.facebook && (
+                  <a
+                    href={site.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
+                      <FacebookIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Facebook Страница
+                    </span>
+                  </a>
+                )}
 
-              {/* Instagram Feed Widget (Lazy Loaded) */}
-              <div
-                ref={widgetRef}
-                className="mt-8 overflow-hidden rounded-2xl relative w-full min-h-[400px]"
-              >
-                {isWidgetVisible && (
-                  <>
-                    <Script
-                      src="https://elfsightcdn.com/platform.js"
-                      strategy="lazyOnload"
-                    />
-                    <div
-                      className="elfsight-app-38429d6c-a19f-4a06-97e0-33126f15eb84"
-                      data-elfsight-app-lazy
-                    ></div>
-                    <div
-                      className="elfsight-app-026b377a-abc3-4a27-9a45-85779cc6e70e"
-                      data-elfsight-app-lazy
-                    ></div>
-                  </>
+                {site.facebookGroup && (
+                  <a
+                    href={site.facebookGroup}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-emerald-400 transition-colors">
+                      <Users size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Facebook Група
+                    </span>
+                  </a>
+                )}
+
+                {site.instagram && (
+                  <a
+                    href={site.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
+                      <InstagramIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Instagram
+                    </span>
+                  </a>
+                )}
+
+                {site.youtube && (
+                  <a
+                    href={site.youtube}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                  >
+                    <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
+                      <YoutubeIcon size={24} />
+                    </div>
+                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      YouTube
+                    </span>
+                  </a>
+                )}
+
+                {!site.facebook && !site.instagram && !site.youtube && (
+                  <p className="text-zinc-500 text-sm col-span-2 text-center py-4">
+                    Очаквайте скоро нашите социални мрежи.
+                  </p>
                 )}
               </div>
             </div>
