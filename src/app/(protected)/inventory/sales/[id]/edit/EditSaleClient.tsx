@@ -270,7 +270,7 @@ export default function EditSaleClient() {
               </h2>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-zinc-100 dark:border-zinc-900 hover:bg-transparent">
@@ -317,6 +317,38 @@ export default function EditSaleClient() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile View: Product Cards */}
+            <div className="md:hidden grid grid-cols-1 gap-3">
+              {availableProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="p-4 border border-zinc-100 dark:border-zinc-900 rounded-2xl flex items-center justify-between active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors bg-white dark:bg-zinc-950"
+                  onClick={() => addToCart(product)}
+                >
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-bold text-sm text-zinc-900 dark:text-white">
+                      {product.name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-md text-[11px]">
+                        {formatPrice(product.price)}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400">
+                        {product.stock} налични
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 shrink-0 rounded-full hover:bg-primary/10 text-primary transition-all pointer-events-none"
+                  >
+                    <PlusCircle className="h-6 w-6" strokeWidth={1.5} />
+                  </Button>
+                </div>
+              ))}
             </div>
           </BentoCard>
         </div>

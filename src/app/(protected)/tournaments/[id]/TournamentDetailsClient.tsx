@@ -483,51 +483,113 @@ export default function TournamentDetailsClient({
                     <p>Няма записани участници все още.</p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Категория</TableHead>
-                        <TableHead>Участник 1</TableHead>
-                        <TableHead>Участник 2</TableHead>
-                        <TableHead className="text-right">Действия</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <>
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Категория</TableHead>
+                            <TableHead>Участник 1</TableHead>
+                            <TableHead>Участник 2</TableHead>
+                            <TableHead className="text-right">
+                              Действия
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {entries.map((entry) => (
+                            <TableRow key={entry.id}>
+                              <TableCell>
+                                <Badge variant="secondary">
+                                  {getCategoryName(entry.categoryId)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-medium text-zinc-900">
+                                {getPlayerName(
+                                  entry.memberId,
+                                  entry.externalName
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {entry.categoryId === "doubles" ||
+                                entry.categoryId === "mixed" ? (
+                                  getPlayerName(
+                                    entry.partnerMemberId,
+                                    entry.partnerExternalName
+                                  )
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    -
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeleteEntry(entry.id!)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
                       {entries.map((entry) => (
-                        <TableRow key={entry.id}>
-                          <TableCell>
-                            <Badge variant="secondary">
+                        <div
+                          key={entry.id}
+                          className="p-5 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] uppercase tracking-widest px-2 py-0.5 border-none"
+                            >
                               {getCategoryName(entry.categoryId)}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="font-medium text-zinc-900">
-                            {getPlayerName(entry.memberId, entry.externalName)}
-                          </TableCell>
-                          <TableCell>
-                            {entry.categoryId === "doubles" ||
-                            entry.categoryId === "mixed" ? (
-                              getPlayerName(
-                                entry.partnerMemberId,
-                                entry.partnerExternalName
-                              )
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:bg-destructive/10"
+                              className="h-8 w-8 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg shrink-0"
                               onClick={() => handleDeleteEntry(entry.id!)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                          </TableCell>
-                        </TableRow>
+                          </div>
+
+                          <div className="space-y-1 mt-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                              <span className="font-medium text-sm text-zinc-900 dark:text-white">
+                                {getPlayerName(
+                                  entry.memberId,
+                                  entry.externalName
+                                )}
+                              </span>
+                            </div>
+
+                            {(entry.categoryId === "doubles" ||
+                              entry.categoryId === "mixed") && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                                <span className="font-medium text-sm text-zinc-900 dark:text-white">
+                                  {getPlayerName(
+                                    entry.partnerMemberId,
+                                    entry.partnerExternalName
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  </>
                 )}
               </div>
             </BentoCard>
@@ -903,72 +965,143 @@ export default function TournamentDetailsClient({
                   </div>
 
                   <div className="p-8 pt-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-10 text-center">#</TableHead>
-                          <TableHead>Участник</TableHead>
-                          <TableHead className="text-center">
-                            Изиграни
-                          </TableHead>
-                          <TableHead className="text-center text-green-600">
-                            Победи
-                          </TableHead>
-                          <TableHead className="text-center text-destructive">
-                            Загуби
-                          </TableHead>
-                          <TableHead className="text-center">
-                            Т. Разлика
-                          </TableHead>
-                          <TableHead className="text-center font-medium text-zinc-400">
-                            Точки
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {standings.map((s, idx) => (
-                          <TableRow
-                            key={s.entryId}
-                            className={
-                              idx === 0 && s.played > 0
-                                ? "bg-yellow-50 dark:bg-yellow-900/10"
-                                : ""
-                            }
-                          >
-                            <TableCell className="text-center font-medium text-zinc-900">
-                              {getMedalEmoji(idx, s.wins)}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {s.name}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {s.played}
-                            </TableCell>
-                            <TableCell className="text-center text-emerald-600 font-medium">
-                              {s.wins}
-                            </TableCell>
-                            <TableCell className="text-center text-destructive">
-                              {s.losses}
-                            </TableCell>
-                            <TableCell className="text-center font-mono text-sm">
-                              {s.gamesWon}:{s.gamesLost}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Badge
-                                variant={
-                                  idx === 0 && s.played > 0
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className="font-medium shadow-none"
-                              >
-                                {s.points}
-                              </Badge>
-                            </TableCell>
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-10 text-center">
+                              #
+                            </TableHead>
+                            <TableHead>Участник</TableHead>
+                            <TableHead className="text-center">
+                              Изиграни
+                            </TableHead>
+                            <TableHead className="text-center text-green-600">
+                              Победи
+                            </TableHead>
+                            <TableHead className="text-center text-destructive">
+                              Загуби
+                            </TableHead>
+                            <TableHead className="text-center">
+                              Т. Разлика
+                            </TableHead>
+                            <TableHead className="text-center font-medium text-zinc-400">
+                              Точки
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {standings.map((s, idx) => (
+                            <TableRow
+                              key={s.entryId}
+                              className={
+                                idx === 0 && s.played > 0
+                                  ? "bg-yellow-50 dark:bg-yellow-900/10"
+                                  : ""
+                              }
+                            >
+                              <TableCell className="text-center font-medium text-zinc-900">
+                                {getMedalEmoji(idx, s.wins)}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {s.name}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {s.played}
+                              </TableCell>
+                              <TableCell className="text-center text-emerald-600 font-medium">
+                                {s.wins}
+                              </TableCell>
+                              <TableCell className="text-center text-destructive">
+                                {s.losses}
+                              </TableCell>
+                              <TableCell className="text-center font-mono text-sm">
+                                {s.gamesWon}:{s.gamesLost}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge
+                                  variant={
+                                    idx === 0 && s.played > 0
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className="font-medium shadow-none"
+                                >
+                                  {s.points}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile View: Standings Cards */}
+                    <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+                      {standings.map((s, idx) => (
+                        <div
+                          key={s.entryId}
+                          className={`p-5 flex flex-col gap-4 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors ${idx === 0 && s.played > 0 ? "bg-yellow-50/50 dark:bg-yellow-900/5" : ""}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl font-light w-8 text-center shrink-0">
+                                {getMedalEmoji(idx, s.wins)}
+                              </div>
+                              <span className="font-medium text-sm text-zinc-900 dark:text-white">
+                                {s.name}
+                              </span>
+                            </div>
+                            <Badge
+                              variant={
+                                idx === 0 && s.played > 0
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="font-medium shadow-none tabular-nums"
+                            >
+                              {s.points} т.
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-2 pt-3 border-t border-zinc-50 dark:border-zinc-900">
+                            <div className="text-center bg-zinc-50 dark:bg-zinc-800/50 rounded-lg py-2">
+                              <div className="text-[9px] uppercase tracking-widest text-zinc-400 mb-1">
+                                Из.
+                              </div>
+                              <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 tabular-nums">
+                                {s.played}
+                              </div>
+                            </div>
+                            <div className="text-center bg-emerald-50 dark:bg-emerald-950/20 rounded-lg py-2">
+                              <div className="text-[9px] uppercase tracking-widest text-emerald-600/70 mb-1">
+                                Поб.
+                              </div>
+                              <div className="text-xs font-semibold text-emerald-600 tabular-nums">
+                                {s.wins}
+                              </div>
+                            </div>
+                            <div className="text-center bg-rose-50 dark:bg-rose-950/20 rounded-lg py-2">
+                              <div className="text-[9px] uppercase tracking-widest text-rose-500/70 mb-1">
+                                Заг.
+                              </div>
+                              <div className="text-xs font-semibold text-rose-500 tabular-nums">
+                                {s.losses}
+                              </div>
+                            </div>
+                            <div className="text-center bg-zinc-50 dark:bg-zinc-800/50 rounded-lg py-2 flex flex-col items-center justify-center">
+                              <div className="text-[9px] uppercase tracking-widest text-zinc-400 mb-1">
+                                Разл.
+                              </div>
+                              <span className="text-xs font-mono font-semibold text-zinc-700 dark:text-zinc-300 tracking-wider tabular-nums">
+                                {s.gamesWon}:{s.gamesLost}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
                     {catMatches.length === 0 && (
                       <p className="text-center text-sm font-light text-zinc-400 mt-8">
                         Все още няма изиграни мачове в тази категория.

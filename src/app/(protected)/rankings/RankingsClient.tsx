@@ -339,7 +339,7 @@ export default function RankingsClient({
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader className="bg-zinc-50/50">
                   <TableRow className="hover:bg-transparent border-zinc-100 h-14">
@@ -455,6 +455,113 @@ export default function RankingsClient({
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile View: Cards */}
+            <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+              {filteredRankings.length === 0 ? (
+                <div className="h-48 flex items-center justify-center text-center">
+                  <p className="text-[11px] uppercase tracking-widest text-zinc-400">
+                    Няма данни за тази категория
+                  </p>
+                </div>
+              ) : (
+                filteredRankings.map((entry) => {
+                  const winRate =
+                    entry.wins + entry.losses > 0
+                      ? Math.round(
+                          (entry.wins / (entry.wins + entry.losses)) * 100
+                        )
+                      : 0;
+
+                  return (
+                    <div
+                      key={entry.memberId}
+                      className="p-5 flex flex-col gap-4 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl font-light w-8 text-center shrink-0">
+                            {getMedalEmoji(entry.position)}
+                          </div>
+                          <div>
+                            <span className="font-medium text-sm text-zinc-900 dark:text-white">
+                              {entry.memberName}
+                            </span>
+                            {activeTab === "all" &&
+                              entry.categoryBreakdown.length > 0 && (
+                                <div className="flex gap-1 mt-1.5 flex-wrap">
+                                  {entry.categoryBreakdown.map(
+                                    (c: { category: string }) => (
+                                      <Badge
+                                        key={c.category}
+                                        variant="secondary"
+                                        className="text-[8px] px-1.5 py-0 rounded bg-zinc-100 text-zinc-500 border-none font-medium uppercase tracking-widest"
+                                      >
+                                        {c.category}
+                                      </Badge>
+                                    )
+                                  )}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                        <Badge
+                          className={cn(
+                            "font-semibold text-sm px-3 py-1 rounded-full border-none tabular-nums",
+                            getPositionBadgeClasses(entry.position)
+                          )}
+                        >
+                          {entry.totalPoints}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 pt-3 border-t border-zinc-50 dark:border-zinc-900">
+                        <div className="text-center bg-zinc-50 dark:bg-zinc-800/50 rounded-lg py-2">
+                          <div className="text-[9px] uppercase tracking-widest text-zinc-400 mb-1">
+                            Турн.
+                          </div>
+                          <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 tabular-nums">
+                            {entry.tournamentsPlayed}
+                          </div>
+                        </div>
+                        <div className="text-center bg-emerald-50 dark:bg-emerald-950/20 rounded-lg py-2">
+                          <div className="text-[9px] uppercase tracking-widest text-emerald-600/70 mb-1">
+                            Поб.
+                          </div>
+                          <div className="text-xs font-semibold text-emerald-600 tabular-nums">
+                            {entry.wins}
+                          </div>
+                        </div>
+                        <div className="text-center bg-rose-50 dark:bg-rose-950/20 rounded-lg py-2">
+                          <div className="text-[9px] uppercase tracking-widest text-rose-500/70 mb-1">
+                            Заг.
+                          </div>
+                          <div className="text-xs font-semibold text-rose-500 tabular-nums">
+                            {entry.losses}
+                          </div>
+                        </div>
+                        <div className="text-center bg-zinc-50 dark:bg-zinc-800/50 rounded-lg py-2 flex flex-col items-center justify-center">
+                          <div className="text-[9px] uppercase tracking-widest text-zinc-400 mb-1">
+                            Успех
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={cn(
+                                "w-1.5 h-1.5 rounded-full",
+                                getWinRateColor(winRate)
+                              )}
+                            />
+                            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 tabular-nums">
+                              {winRate}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </BentoCard>
 

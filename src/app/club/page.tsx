@@ -8,11 +8,50 @@ export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
   description:
     "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство. Град Гълъбово.",
+  openGraph: {
+    title: "БК Гълъбово | Бадминтон клуб Гълъбово",
+    description:
+      "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство.",
+    url: "https://bkgalabovo2025.vercel.app/club",
+    siteName: "БК Гълъбово",
+    images: [
+      {
+        url: "https://bkgalabovo2025.vercel.app/bk-hero.png",
+        width: 1200,
+        height: 630,
+        alt: "БК Гълъбово",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "БК Гълъбово",
+    description: "Официален сайт на Бадминтон клуб Гълъбово.",
+    images: ["https://bkgalabovo2025.vercel.app/bk-hero.png"],
+  },
 };
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function ClubMainPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: "Бадминтон Клуб Гълъбово",
+    image: "https://bkgalabovo2025.vercel.app/logo.png",
+    "@id": "https://bkgalabovo2025.vercel.app/club",
+    url: "https://bkgalabovo2025.vercel.app/club",
+    telephone: "+359899388338",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Спортна зала „Енергетик“",
+      addressLocality: "Гълъбово",
+      postalCode: "6280",
+      addressCountry: "BG",
+    },
+  };
   const adminDb = getAdminDb();
 
   // Fetch 7 day schedule (events with siteId bkgalabovo)
@@ -91,5 +130,13 @@ export default async function ClubMainPage() {
     hallImages = ["/hall/zala1.webp"];
   }
 
-  return <ClubClient schedule={schedule} hallImages={hallImages} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ClubClient schedule={schedule} hallImages={hallImages} />
+    </>
+  );
 }
