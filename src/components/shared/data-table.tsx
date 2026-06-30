@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 import * as React from "react";
 import {
   ColumnDef,
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
   isLoading: boolean;
   emptyStateMessage: string;
   getCellValue?: (row: TData, columnId: string) => TValue;
+  renderMobileCard?: (row: TData) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +47,7 @@ export function DataTable<TData, TValue>({
   isLoading,
   emptyStateMessage,
   getCellValue,
+  renderMobileCard,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -92,7 +94,12 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="overflow-hidden">
+      <div
+        className={cn(
+          "overflow-hidden",
+          renderMobileCard ? "hidden md:block" : "block"
+        )}
+      >
         <Table>
           <TableHeader className="bg-zinc-50/50 border-b border-zinc-100">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -178,6 +185,37 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
+      {renderMobileCard && (
+        <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+          {isLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
+              <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">
+                Зареждане на данни...
+              </p>
+            </div>
+          ) : table.getRowModel().rows?.length ? (
+            table
+              .getRowModel()
+              .rows.map((row) => (
+                <div key={row.id}>{renderMobileCard(row.original)}</div>
+              ))
+          ) : (
+            <div className="py-12 flex flex-col items-center justify-center gap-2 text-center px-4">
+              <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center border border-zinc-100 mb-2">
+                <Search className="h-5 w-5 text-zinc-300" />
+              </div>
+              <p className="text-zinc-900 font-medium text-sm">
+                {emptyStateMessage}
+              </p>
+              <p className="text-zinc-400 text-xs">
+                Опитайте да потърсите с друго ключово име.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between px-2 pt-4 border-t border-zinc-100">
         <div className="text-[11px] text-zinc-400 uppercase tracking-widest font-medium">

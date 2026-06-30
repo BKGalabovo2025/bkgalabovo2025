@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Service } from "./service.types";
 import { columns } from "./columns";
+import { DataTableRowActions } from "./DataTableRowActions";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,29 @@ export default function ServicesClientPage({
                 filterPlaceholder="Търсене по име на услуга..."
                 isLoading={false}
                 emptyStateMessage="Няма намерени услуги."
+                renderMobileCard={(service: Service) => (
+                  <div className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium text-sm text-zinc-900 dark:text-white">
+                          {service.name}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                          {service.type}{" "}
+                          {service.billingPeriod
+                            ? `• ${service.billingPeriod}`
+                            : ""}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg text-xs">
+                          {service.price} лв.
+                        </div>
+                        <DataTableRowActions service={service} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               />
             </BentoCard>
           )}

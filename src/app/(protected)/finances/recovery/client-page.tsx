@@ -259,6 +259,47 @@ export default function RecoveryClientPage({
                 filterPlaceholder="Търсене по име..."
                 isLoading={false}
                 emptyStateMessage="Няма намерени процедури."
+                renderMobileCard={(service: ClubService) => (
+                  <div className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium text-sm text-zinc-900 dark:text-white">
+                          {service.name}
+                        </div>
+                        <div className="text-[10px] text-zinc-500 uppercase tracking-wider mt-1">
+                          {service.category} • {service.durationMinutes} мин
+                        </div>
+                        {service.zones && service.zones.length > 0 && (
+                          <div className="flex gap-1 flex-wrap mt-2">
+                            {service.zones.map((zone) => (
+                              <span
+                                key={zone}
+                                className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px] font-medium text-zinc-600 dark:text-zinc-400"
+                              >
+                                {zone}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg text-xs shrink-0 whitespace-nowrap">
+                          {formatPrice(service.price)}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-[10px] px-2 text-zinc-500"
+                          onClick={() =>
+                            router.push(`/finances/recovery/${service.id}`)
+                          }
+                        >
+                          Редакция
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               />
             </BentoCard>
           )}
