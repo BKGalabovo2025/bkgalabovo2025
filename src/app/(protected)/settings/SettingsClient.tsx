@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Settings,
@@ -38,7 +39,7 @@ import {
 } from "@/components/icons/social-icons";
 import { toast } from "react-hot-toast";
 import { getAllSites, updateSite } from "@/services/site-service";
-import { Site } from "@/types/site.types";
+import { Site, Therapist } from "@/types/site.types";
 import { getAuditLogsAction } from "@/lib/actions/audit";
 import { AuditLog } from "@/lib/audit-logger";
 
@@ -230,6 +231,47 @@ export default function SettingsClient() {
       const faqs = [...(site.faqs || [])];
       faqs.splice(index, 1);
       return { ...prev, [siteId]: { ...site, faqs } };
+    });
+  };
+
+  const handleTherapistChange = (
+    siteId: string,
+    index: number,
+    field: keyof Therapist,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const therapists = [...(site.therapists || [])];
+      therapists[index] = { ...therapists[index], [field]: value };
+      return { ...prev, [siteId]: { ...site, therapists } };
+    });
+  };
+
+  const addTherapist = (siteId: string) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const therapists = [
+        ...(site.therapists || []),
+        {
+          id: `t_${Date.now()}`,
+          name: "",
+          role: "",
+          bio: "",
+          image: "",
+          isActive: true,
+        },
+      ];
+      return { ...prev, [siteId]: { ...site, therapists } };
+    });
+  };
+
+  const removeTherapist = (siteId: string, index: number) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const therapists = [...(site.therapists || [])];
+      therapists.splice(index, 1);
+      return { ...prev, [siteId]: { ...site, therapists } };
     });
   };
 
@@ -1000,6 +1042,125 @@ export default function SettingsClient() {
                         Активирай
                       </Button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Team (Therapists) Section */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden mt-8">
+                  <div className="flex items-center justify-between p-6 md:p-8 border-b border-zinc-800">
+                    <div>
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Екип
+                      </h3>
+                      <p className="text-zinc-500 text-sm mt-1">
+                        Добавете снимка, име, роля и описание. За снимки можете
+                        да добавите файловете в папка &quot;public/team&quot; и
+                        да напишете &quot;/team/imeto.jpg&quot;
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => addTherapist("recoveryzone")}
+                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Добави Член
+                    </Button>
+                  </div>
+                  <div className="p-6 md:p-8 space-y-6">
+                    {rzData.therapists?.map((therapist, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col gap-4 p-6 bg-black/50 border border-zinc-800/50 rounded-2xl relative"
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={() => removeTherapist("recoveryzone", index)}
+                          className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              Име
+                            </Label>
+                            <Input
+                              value={therapist.name || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Живко Иванов"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              Длъжност / Роля
+                            </Label>
+                            <Input
+                              value={therapist.role || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "role",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Управител"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              Път към снимка
+                            </Label>
+                            <Input
+                              value={therapist.image || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "image",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Напр. /team/jivko.jpg"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-zinc-400 mb-2 block">
+                              Описание (Bio)
+                            </Label>
+                            <Textarea
+                              value={therapist.bio || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "bio",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Живко Иванов отговаря за..."
+                              className={`${inputClassRz} min-h-[100px] resize-y`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(!rzData.therapists || rzData.therapists.length === 0) && (
+                      <p className="text-zinc-500 text-sm font-light">
+                        Няма добавени членове на екипа.
+                      </p>
+                    )}
                   </div>
                 </div>
               </BentoCard>
