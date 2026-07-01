@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   },
 };
 
+import fs from "fs";
+import path from "path";
 import { getAdminDb } from "@/lib/firebase-admin";
 import RecoveryZoneClient from "./RecoveryZoneClient";
 
@@ -56,6 +58,25 @@ export default async function RecoveryZonePage() {
       addressCountry: "BG",
     },
   };
+
+  // Read images from public/recovery-zone
+  let hallImages: string[] = [];
+  try {
+    const dirPath = path.join(process.cwd(), "public", "recovery-zone");
+    if (fs.existsSync(dirPath)) {
+      const files = fs.readdirSync(dirPath);
+      hallImages = files
+        .filter((f) => f.match(/\.(jpg|jpeg|png|webp|gif)$/i))
+        .map((f) => `/recovery-zone/${f}`);
+    }
+  } catch (error) {
+    console.error("Failed to read recovery-zone images:", error);
+  }
+
+  if (hallImages.length === 0) {
+    // Fallback if folder is empty or doesn't exist
+    hallImages = ["/1.png", "/1.png"];
+  }
 
   // Fetch 7 day schedule (events with siteId recoveryzone)
   const now = new Date();
@@ -135,7 +156,11 @@ export default async function RecoveryZonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <RecoveryZoneClient schedule={schedule} site={site} />
+      <RecoveryZoneClient
+        schedule={schedule}
+        site={site}
+        hallImages={hallImages}
+      />
     </>
   );
 }

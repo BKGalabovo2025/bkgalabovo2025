@@ -28,7 +28,6 @@ import {
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventDateRange } from "@/lib/date-utils";
-import { SessionsSection } from "@/components/recovery/SessionsSection";
 import { TeamSection } from "@/components/recovery/TeamSection";
 
 type EventSlot = {
@@ -65,15 +64,15 @@ const activities = [
 export default function RecoveryZoneClient({
   schedule,
   site,
+  hallImages = [],
 }: {
   schedule: EventSlot[];
   site: Site;
+  hallImages?: string[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const hallImages = ["/1.png", "/1.png"]; // Mock for now to prevent errors
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -478,15 +477,11 @@ export default function RecoveryZoneClient({
             сме тук за вас.
           </p>
           <p className="text-zinc-300 text-md leading-relaxed">
-            Оборудван със системите на Hyperice Normatec 3, центърът предлага
-            високотехнологичен лимфен дренаж за крака, ръце и ханш.
+            Оборудван със системите на Hyperice Normatec 3, Recovery Zone by ZM
+            предлага високотехнологичен лимфен дренаж за крака, ръце и ханш.
           </p>
         </div>
       </section>
-
-      {/* Activities Section */}
-      {/* Dynamic Sessions Component */}
-      <SessionsSection />
 
       {/* Dynamic Team Section */}
       <TeamSection
@@ -577,12 +572,7 @@ export default function RecoveryZoneClient({
       <section className="py-24 px-6 relative bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center text-center">
-            <h2 className="text-3xl md:text-5xl font-light mb-8">
-              Календар & График
-            </h2>
-            <p className="text-zinc-400 max-w-xl mx-auto leading-relaxed">
-              Официален Статус
-            </p>
+            <h2 className="text-3xl md:text-5xl font-light mb-12">Процедури</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {activities.map((act, i) => (
@@ -720,10 +710,9 @@ export default function RecoveryZoneClient({
               База
             </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
-              Къде се намираме
+              На турнирите на НВ Бадминтон
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-              Разполагаме със съвременна и уютна база за спортно възстановяване.{" "}
               <strong className="text-white">
                 {site.name || "Recovery Zone by ZM"}
               </strong>{" "}
@@ -733,10 +722,10 @@ export default function RecoveryZoneClient({
               {(site.benefits && site.benefits.length > 0
                 ? site.benefits
                 : [
-                    "Специализирана зона за възстановяване",
-                    "Hyperice Normatec 3 оборудване",
-                    "Уютна и релаксираща обстановка",
-                    "Просторни съблекални",
+                    "Бързо възстановяване",
+                    "Подобрена циркулация",
+                    "Превенция на контузии",
+                    "Повече енергия",
                   ]
               ).map((item, i) => {
                 const textValue =
