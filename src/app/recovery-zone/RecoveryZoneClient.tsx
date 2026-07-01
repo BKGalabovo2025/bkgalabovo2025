@@ -273,6 +273,110 @@ export default function RecoveryZoneClient({
         </div>
       </section>
 
+      {/* Attachments Section */}
+      <section className="py-24 px-6 bg-black relative border-t border-zinc-900/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-light tracking-tight mb-6">
+              Нашите приставки и тяхното приложение
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Legs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+            >
+              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
+                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+                  <Image
+                    src="/zones/legs.webp"
+                    alt="Приставки за крака"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+              <div className="p-8">
+                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                  КРАКА
+                </h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Обхващат целите крака от стъпалата и глезените до горната част
+                  на бедрата. Изключително ефективни при „тежки крака“ след
+                  продължително стоене, ходене или интензивно тичане.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Pelvis */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+            >
+              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
+                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+                  <Image
+                    src="/zones/pelvis.webp"
+                    alt="Приставка за таз"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+              <div className="p-8">
+                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                  ТАЗ
+                </h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Обхваща долната част на гърба, таза, хълбоците и седалищните
+                  мускули. Идеална за облекчаване на напрежението в кръста от
+                  дълги часове седене и за подобряване на гъвкавостта.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Arms */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+            >
+              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
+                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+                  <Image
+                    src="/zones/arm.png"
+                    alt="Приставки за ръце"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+              <div className="p-8">
+                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                  РЪЦЕ
+                </h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Обхващат зоните от китките до раменете. Изключително полезни
+                  за бадминтонисти, тенисисти, плувци и фитнес трениращи, при
+                  които ръцете са подложени на постоянен стрес, както и за хора,
+                  работещи пред компютър.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Dynamic Team Section */}
       <TeamSection
         therapists={site.therapists || []}
