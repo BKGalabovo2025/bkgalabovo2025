@@ -500,92 +500,6 @@ export default function RecoveryZoneClient({
         </section>
       )}
 
-      {/* Dynamic Team Section */}
-      <TeamSection
-        therapists={site.therapists || []}
-        teamIntro={site.teamIntro || ""}
-      />
-
-      {/* Services Call to Action */}
-      <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-emerald-900/40">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
-        <div className="max-w-4xl mx-auto text-center relative z-10 bg-black/60 p-12 md:p-16 rounded-4xl border border-emerald-500/20 backdrop-blur-xl shadow-2xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 bg-emerald-500/10 inline-block px-3 py-1 rounded-full">
-            Каталог
-          </p>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
-            Нашите Услуги
-          </h2>
-          <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-            Разгледайте пълния списък с предлагани възстановителни процедури,
-            сесии за лимфен дренаж и абонаментни карти.
-          </p>
-          <Link
-            href="/recovery-zone/catalog"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] hover:-translate-y-1 group"
-          >
-            Разгледай нашите услуги
-            <ArrowRight
-              size={20}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </Link>
-        </div>
-      </section>
-
-      {/* Working Hours */}
-      <section id="working-hours" className="py-24 px-6 bg-zinc-950 relative">
-        <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="flex flex-col items-center justify-center text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
-              Работно време
-            </h2>
-          </div>
-
-          <div className="max-w-3xl mx-auto bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
-            {site.schedule ? (
-              <div className="space-y-6">
-                {[
-                  { label: "Понеделник", data: site.schedule.monday },
-                  { label: "Вторник", data: site.schedule.tuesday },
-                  { label: "Сряда", data: site.schedule.wednesday },
-                  { label: "Четвъртък", data: site.schedule.thursday },
-                  { label: "Петък", data: site.schedule.friday },
-                  { label: "Събота", data: site.schedule.saturday },
-                  { label: "Неделя", data: site.schedule.sunday },
-                ].map((day) => (
-                  <div
-                    key={day.label}
-                    className="flex justify-between items-center py-4 border-b border-zinc-800/50 last:border-0"
-                  >
-                    <span className="text-zinc-300 font-medium text-lg">
-                      {day.label}
-                    </span>
-                    <span className="text-zinc-400">
-                      {day.data?.isOpen ? (
-                        `${day.data.open} - ${day.data.close}`
-                      ) : (
-                        <span className="text-emerald-500 font-medium tracking-widest text-sm uppercase">
-                          Почивен ден
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 flex flex-col items-center">
-                <Clock size={48} className="text-zinc-800 mb-4" />
-                <p className="text-zinc-300 text-lg">
-                  Не е въведено работно време.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* Facilities Carousel */}
       <section className="py-24 px-6 bg-black/60 border-y border-zinc-900">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -693,6 +607,92 @@ export default function RecoveryZoneClient({
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dynamic Team Section */}
+      <TeamSection
+        therapists={site.therapists || []}
+        teamIntro={site.teamIntro || ""}
+      />
+
+      {/* Services Call to Action */}
+      <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-emerald-900/40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
+        <div className="max-w-4xl mx-auto text-center relative z-10 bg-black/60 p-12 md:p-16 rounded-4xl border border-emerald-500/20 backdrop-blur-xl shadow-2xl">
+          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 bg-emerald-500/10 inline-block px-3 py-1 rounded-full">
+            Каталог
+          </p>
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
+            Нашите Услуги
+          </h2>
+          <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+            Разгледайте пълния списък с предлагани възстановителни процедури,
+            сесии за лимфен дренаж и абонаментни карти.
+          </p>
+          <Link
+            href="/recovery-zone/catalog"
+            className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] hover:-translate-y-1 group"
+          >
+            Разгледай нашите услуги
+            <ArrowRight
+              size={20}
+              className="group-hover:translate-x-1 transition-transform"
+            />
+          </Link>
+        </div>
+      </section>
+
+      {/* Working Hours */}
+      <section id="working-hours" className="py-24 px-6 bg-zinc-950 relative">
+        <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="flex flex-col items-center justify-center text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              Работно време
+            </h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
+            {site.schedule ? (
+              <div className="space-y-6">
+                {[
+                  { label: "Понеделник", data: site.schedule.monday },
+                  { label: "Вторник", data: site.schedule.tuesday },
+                  { label: "Сряда", data: site.schedule.wednesday },
+                  { label: "Четвъртък", data: site.schedule.thursday },
+                  { label: "Петък", data: site.schedule.friday },
+                  { label: "Събота", data: site.schedule.saturday },
+                  { label: "Неделя", data: site.schedule.sunday },
+                ].map((day) => (
+                  <div
+                    key={day.label}
+                    className="flex justify-between items-center py-4 border-b border-zinc-800/50 last:border-0"
+                  >
+                    <span className="text-zinc-300 font-medium text-lg">
+                      {day.label}
+                    </span>
+                    <span className="text-zinc-400">
+                      {day.data?.isOpen ? (
+                        `${day.data.open} - ${day.data.close}`
+                      ) : (
+                        <span className="text-emerald-500 font-medium tracking-widest text-sm uppercase">
+                          Почивен ден
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 flex flex-col items-center">
+                <Clock size={48} className="text-zinc-800 mb-4" />
+                <p className="text-zinc-300 text-lg">
+                  Не е въведено работно време.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
