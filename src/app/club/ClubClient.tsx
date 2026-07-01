@@ -589,30 +589,40 @@ export default function ClubClient({
       </section>
 
       {/* Services Call to Action */}
-      <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-blue-900/40">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]" />
-        <div className="max-w-4xl mx-auto text-center relative z-10 bg-black/60 p-12 md:p-16 rounded-4xl border border-blue-400/20 backdrop-blur-xl shadow-2xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 bg-blue-400/10 inline-block px-3 py-1 rounded-full">
+      <section className="py-24 px-6 relative">
+        {/* Glow effect */}
+        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
             Каталог
           </p>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-16">
             Нашите Услуги и Тренировки
           </h2>
-          <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-            Разгледайте пълния списък с предлагани групови и индивидуални
-            тренировки, наеми на кортове, абонаменти, спортна екипировка и
-            възстановяване.
-          </p>
-          <Link
-            href="/club/catalog"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:-translate-y-1 group"
-          >
-            Разгледай нашите услуги
-            <ArrowRight
-              size={20}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </Link>
+
+          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-16 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+
+            <div className="relative z-10 flex flex-col items-center">
+              <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto mb-12">
+                Разгледайте пълния списък с предлагани групови и индивидуални
+                тренировки, наеми на кортове, абонаменти, спортна екипировка и
+                възстановяване.
+              </p>
+
+              <Link
+                href="/club/catalog"
+                className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:-translate-y-1 group/btn"
+              >
+                Разгледай нашите услуги
+                <ArrowRight
+                  size={20}
+                  className="group-hover/btn:translate-x-1 transition-transform"
+                />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
