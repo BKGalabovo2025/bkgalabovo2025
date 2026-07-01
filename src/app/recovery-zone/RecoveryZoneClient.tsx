@@ -567,51 +567,6 @@ export default function RecoveryZoneClient({
                 </li>
               ))}
             </ul>
-
-            {site.inventory && (
-              <div className="border-t border-zinc-800/80 pt-8 grid grid-cols-2 gap-4 mb-8">
-                {(site.inventory.compressors ?? 0) > 0 && (
-                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
-                    <p className="text-2xl font-bold text-emerald-400 mb-1">
-                      {site.inventory.compressors}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Компресора
-                    </p>
-                  </div>
-                )}
-                {(site.inventory.attachments?.legs ?? 0) > 0 && (
-                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
-                    <p className="text-2xl font-bold text-emerald-400 mb-1">
-                      {site.inventory.attachments?.legs}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Приставки за крака
-                    </p>
-                  </div>
-                )}
-                {(site.inventory.attachments?.arms ?? 0) > 0 && (
-                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
-                    <p className="text-2xl font-bold text-emerald-400 mb-1">
-                      {site.inventory.attachments?.arms}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Приставки за ръце
-                    </p>
-                  </div>
-                )}
-                {(site.inventory.attachments?.hips ?? 0) > 0 && (
-                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
-                    <p className="text-2xl font-bold text-emerald-400 mb-1">
-                      {site.inventory.attachments?.hips}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
-                      Приставки за таз
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Carousel */}
