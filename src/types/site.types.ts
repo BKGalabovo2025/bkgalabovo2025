@@ -102,11 +102,7 @@ export interface Site {
   };
 
   // Content for public page
-  benefits?: {
-    icon: string;
-    title: string;
-    desc: string;
-  }[];
+  benefits?: string[];
   attachments?: {
     name: string;
     image: string;

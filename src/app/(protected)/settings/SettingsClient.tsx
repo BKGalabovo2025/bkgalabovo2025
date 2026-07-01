@@ -28,6 +28,8 @@ import {
   MapPin,
   Phone,
   Users,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -160,6 +162,75 @@ export default function SettingsClient() {
         [field]: value,
       },
     }));
+  };
+
+  const handleStringArrayChange = (
+    siteId: string,
+    field: "benefits" | "contraindications",
+    index: number,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const arr = [...(site[field] || [])];
+      arr[index] = value;
+      return { ...prev, [siteId]: { ...site, [field]: arr } };
+    });
+  };
+
+  const addStringArrayItem = (
+    siteId: string,
+    field: "benefits" | "contraindications"
+  ) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const arr = [...(site[field] || []), ""];
+      return { ...prev, [siteId]: { ...site, [field]: arr } };
+    });
+  };
+
+  const removeStringArrayItem = (
+    siteId: string,
+    field: "benefits" | "contraindications",
+    index: number
+  ) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const arr = [...(site[field] || [])];
+      arr.splice(index, 1);
+      return { ...prev, [siteId]: { ...site, [field]: arr } };
+    });
+  };
+
+  const handleFaqChange = (
+    siteId: string,
+    index: number,
+    field: "q" | "a",
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const faqs = [...(site.faqs || [])];
+      faqs[index] = { ...faqs[index], [field]: value };
+      return { ...prev, [siteId]: { ...site, faqs } };
+    });
+  };
+
+  const addFaq = (siteId: string) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const faqs = [...(site.faqs || []), { q: "", a: "" }];
+      return { ...prev, [siteId]: { ...site, faqs } };
+    });
+  };
+
+  const removeFaq = (siteId: string, index: number) => {
+    setFormData((prev) => {
+      const site = prev[siteId] || {};
+      const faqs = [...(site.faqs || [])];
+      faqs.splice(index, 1);
+      return { ...prev, [siteId]: { ...site, faqs } };
+    });
   };
 
   const handleSave = async () => {
@@ -1125,6 +1196,207 @@ export default function SettingsClient() {
                         </div>
                       );
                     })}
+                  </div>
+                </BentoCard>
+
+                {/* Benefits / База */}
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <CheckCircle2
+                        className="h-5 w-5 text-[#00f2fe]"
+                        strokeWidth={1.5}
+                      />
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Предимства (Секция &quot;База&quot;)
+                      </h3>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        addStringArrayItem("recoveryzone", "benefits")
+                      }
+                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Добави Предимство
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    {rzData.benefits?.map((item, index) => (
+                      <div key={index} className="flex items-center gap-4">
+                        <Input
+                          value={item}
+                          onChange={(e) =>
+                            handleStringArrayChange(
+                              "recoveryzone",
+                              "benefits",
+                              index,
+                              e.target.value
+                            )
+                          }
+                          placeholder="Напр. Специализирана зона за възстановяване..."
+                          className={inputClassRz}
+                        />
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            removeStringArrayItem(
+                              "recoveryzone",
+                              "benefits",
+                              index
+                            )
+                          }
+                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(!rzData.benefits || rzData.benefits.length === 0) && (
+                      <p className="text-zinc-500 text-sm font-light">
+                        Няма въведени предимства.
+                      </p>
+                    )}
+                  </div>
+                </BentoCard>
+
+                {/* Contraindications */}
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <Shield
+                        className="h-5 w-5 text-red-500"
+                        strokeWidth={1.5}
+                      />
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Противопоказания
+                      </h3>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        addStringArrayItem("recoveryzone", "contraindications")
+                      }
+                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Добави Противопоказание
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    {rzData.contraindications?.map((item, index) => (
+                      <div key={index} className="flex items-center gap-4">
+                        <Input
+                          value={item}
+                          onChange={(e) =>
+                            handleStringArrayChange(
+                              "recoveryzone",
+                              "contraindications",
+                              index,
+                              e.target.value
+                            )
+                          }
+                          placeholder="Напр. Бременност, открити рани..."
+                          className={inputClass}
+                        />
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            removeStringArrayItem(
+                              "recoveryzone",
+                              "contraindications",
+                              index
+                            )
+                          }
+                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(!rzData.contraindications ||
+                      rzData.contraindications.length === 0) && (
+                      <p className="text-zinc-500 text-sm font-light">
+                        Няма въведени противопоказания.
+                      </p>
+                    )}
+                  </div>
+                </BentoCard>
+
+                {/* FAQs */}
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <Settings
+                        className="h-5 w-5 text-primary"
+                        strokeWidth={1.5}
+                      />
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Често задавани въпроси (FAQ)
+                      </h3>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => addFaq("recoveryzone")}
+                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Добави Въпрос
+                    </Button>
+                  </div>
+                  <div className="space-y-8">
+                    {rzData.faqs?.map((faq, index) => (
+                      <div
+                        key={index}
+                        className="relative p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-4"
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={() => removeFaq("recoveryzone", index)}
+                          className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="space-y-3">
+                          <Label className={labelClass}>Въпрос</Label>
+                          <Input
+                            value={faq.q}
+                            onChange={(e) =>
+                              handleFaqChange(
+                                "recoveryzone",
+                                index,
+                                "q",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Напр. Колко често мога да използвам Normatec?"
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label className={labelClass}>Отговор</Label>
+                          <textarea
+                            value={faq.a}
+                            onChange={(e) =>
+                              handleFaqChange(
+                                "recoveryzone",
+                                index,
+                                "a",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Отговор..."
+                            className="w-full rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm font-light p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary min-h-[100px] resize-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {(!rzData.faqs || rzData.faqs.length === 0) && (
+                      <p className="text-zinc-500 text-sm font-light">
+                        Няма въведени въпроси.
+                      </p>
+                    )}
                   </div>
                 </BentoCard>
               </div>

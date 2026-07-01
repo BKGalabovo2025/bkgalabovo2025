@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -70,6 +71,7 @@ export default function RecoveryZoneClient({
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const hallImages = ["/1.png", "/1.png"]; // Mock for now to prevent errors
 
@@ -492,6 +494,86 @@ export default function RecoveryZoneClient({
         teamIntro={site.teamIntro || ""}
       />
 
+      {/* Contraindications */}
+      {site.contraindications && site.contraindications.length > 0 && (
+        <section className="py-24 px-6 bg-black relative border-y border-zinc-900">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-12 w-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+                <AlertTriangle size={24} />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-light">
+                Противопоказания
+              </h2>
+            </div>
+            <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-8 md:p-12">
+              <p className="text-zinc-400 mb-8 leading-relaxed">
+                За вашата безопасност, моля консултирайте се с лекар преди да
+                използвате системите за възстановяване, ако имате някое от
+                следните състояния:
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {site.contraindications.map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-1 shrink-0 h-2 w-2 rounded-full bg-red-500" />
+                    <span className="text-zinc-300 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQs */}
+      {site.faqs && site.faqs.length > 0 && (
+        <section className="py-24 px-6 bg-zinc-950 relative">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
+                Информация
+              </p>
+              <h2 className="text-3xl md:text-5xl font-light">
+                Често задавани въпроси
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {site.faqs.map((faq, i) => (
+                <div
+                  key={i}
+                  className="bg-black border border-zinc-900 rounded-2xl overflow-hidden transition-colors hover:border-emerald-900/50"
+                >
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full px-6 py-5 flex items-center justify-between text-left"
+                  >
+                    <span className="font-medium text-white pr-4">{faq.q}</span>
+                    <ChevronDown
+                      className={`shrink-0 text-emerald-500 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+                      size={20}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {openFaq === i && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-5 pt-1 text-zinc-400 text-sm leading-relaxed border-t border-zinc-900/50 mt-1 whitespace-pre-wrap">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="py-24 px-6 relative bg-zinc-950">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center text-center">
@@ -648,12 +730,15 @@ export default function RecoveryZoneClient({
               предлага:
             </p>
             <ul className="space-y-4 mb-12">
-              {[
-                "Специализирана зона за възстановяване",
-                "Hyperice Normatec 3 оборудване",
-                "Уютна и релаксираща обстановка",
-                "Просторни съблекални",
-              ].map((item, i) => (
+              {(site.benefits && site.benefits.length > 0
+                ? site.benefits
+                : [
+                    "Специализирана зона за възстановяване",
+                    "Hyperice Normatec 3 оборудване",
+                    "Уютна и релаксираща обстановка",
+                    "Просторни съблекални",
+                  ]
+              ).map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
                     <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
