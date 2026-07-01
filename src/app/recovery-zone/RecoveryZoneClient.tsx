@@ -25,7 +25,7 @@ import {
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { TeamSection } from "@/components/recovery/TeamSection";
-import { Activity } from "lucide-react";
+
 import { Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {
@@ -39,11 +39,9 @@ export interface RecoveryServiceData {
 export default function RecoveryZoneClient({
   site,
   hallImages = [],
-  recoveryServices = [],
 }: {
   site: Site;
   hallImages?: string[];
-  recoveryServices?: RecoveryServiceData[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -267,56 +265,6 @@ export default function RecoveryZoneClient({
         therapists={site.therapists || []}
         teamIntro={site.teamIntro || ""}
       />
-
-      <section id="pricing" className="py-24 px-6 relative bg-zinc-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col items-center justify-center text-center">
-            <h2 className="text-3xl md:text-5xl font-light mb-12">Процедури</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {recoveryServices && recoveryServices.length > 0 ? (
-              recoveryServices.map((service, i) => (
-                <motion.div
-                  key={service.id || service.name || i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="group bg-black/80 border border-zinc-800 rounded-3xl p-8 hover:border-emerald-500 hover:bg-black transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative overflow-hidden glassmorphism"
-                >
-                  <div className="absolute inset-0 bg-linear-to-br from-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  {service.imageUrl ? (
-                    <div className="h-14 w-14 rounded-2xl overflow-hidden mb-6 relative z-10 shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.8)] transition-all duration-500 border border-emerald-500/30">
-                      <Image
-                        src={service.imageUrl}
-                        alt={service.name || "Процедура"}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-14 w-14 bg-black border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.8)] relative z-10">
-                      <Activity size={24} />
-                    </div>
-                  )}
-
-                  <h3 className="text-xl font-bold text-white mb-4 relative z-10">
-                    {service.name}
-                  </h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed relative z-10">
-                    {service.description || "Няма описание за тази процедура."}
-                  </p>
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-zinc-400 text-center col-span-3">
-                Няма добавени процедури в момента.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Contraindications */}
       {site.contraindications && site.contraindications.length > 0 && (
