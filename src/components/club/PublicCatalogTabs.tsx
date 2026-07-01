@@ -408,7 +408,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               Цена
             </span>
             <span className="text-xl font-medium tracking-tight text-white">
-              {item.price > 0 ? `${item.price.toFixed(2)} лв.` : "По заявка"}
+              {item.price > 0 ? `${item.price.toFixed(2)} EUR` : "По заявка"}
             </span>
           </div>
 
@@ -457,7 +457,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                   <div className="text-xl font-medium tracking-tight text-blue-400">
                     {item.price > 0
-                      ? `${item.price.toFixed(2)} лв.`
+                      ? `${item.price.toFixed(2)} EUR`
                       : "По заявка"}
                   </div>
                   <a
