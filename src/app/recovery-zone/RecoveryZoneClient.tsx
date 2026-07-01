@@ -79,6 +79,12 @@ export default function RecoveryZoneClient({
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+            <a
+              href="#about"
+              className="hover:text-emerald-400 transition-colors"
+            >
+              За Зоната
+            </a>
             <Link
               href="/recovery-zone/catalog"
               className="hover:text-emerald-400 transition-colors"
@@ -139,6 +145,13 @@ export default function RecoveryZoneClient({
               className="md:hidden overflow-hidden bg-black/95 backdrop-blur-xl border-t border-emerald-900/30 mt-4 -mx-6 px-6"
             >
               <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
+                <a
+                  href="#about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-emerald-400"
+                >
+                  За Зоната
+                </a>
                 <Link
                   href="/recovery-zone/catalog"
                   onClick={() => setMobileMenuOpen(false)}
@@ -188,7 +201,10 @@ export default function RecoveryZoneClient({
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16">
+      <section
+        id="about"
+        className="relative min-h-screen flex items-center justify-center pt-16"
+      >
         <div className="absolute inset-0">
           {/* Dark gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-b from-black/60 via-zinc-950/80 to-zinc-950" />
