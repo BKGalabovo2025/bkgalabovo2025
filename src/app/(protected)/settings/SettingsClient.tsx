@@ -1068,6 +1068,23 @@ export default function SettingsClient() {
                     </Button>
                   </div>
                   <div className="p-6 md:p-8 space-y-6">
+                    <div className="mb-6">
+                      <Label className="text-zinc-400 mb-2 block">
+                        Въведение към екипа (Team Intro)
+                      </Label>
+                      <Textarea
+                        value={rzData.teamIntro || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "teamIntro",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Кратко описание на екипа..."
+                        className="min-h-[100px] resize-y h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                      />
+                    </div>
                     {rzData.therapists?.map((therapist, index) => (
                       <div
                         key={index}
@@ -1171,6 +1188,126 @@ export default function SettingsClient() {
               className="m-0 focus-visible:outline-none"
             >
               <div className="grid grid-cols-1 gap-6">
+                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Activity
+                      className="h-5 w-5 text-[#00f2fe]"
+                      strokeWidth={1.5}
+                    />
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                      Обща информация за зоната
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="md:col-span-2 space-y-3">
+                      <Label className={labelClass}>Общо Описание</Label>
+                      <Textarea
+                        value={rzData.description || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Възстанови своите Сили..."
+                        className={`${inputClassRz} min-h-[120px] resize-y`}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Телефон</Label>
+                      <Input
+                        value={rzData.phone || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "phone",
+                            e.target.value
+                          )
+                        }
+                        placeholder="+359 89 938 8338"
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Имейл</Label>
+                      <Input
+                        value={rzData.email || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "email",
+                            e.target.value
+                          )
+                        }
+                        placeholder="office@recovery.bg"
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-3">
+                      <Label className={labelClass}>Адрес</Label>
+                      <Input
+                        value={rzData.address || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "address",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Спортна зала „Енергетик“, Гълъбово"
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Facebook Линк</Label>
+                      <Input
+                        value={rzData.facebook || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "facebook",
+                            e.target.value
+                          )
+                        }
+                        placeholder="https://facebook.com/..."
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>Instagram Линк</Label>
+                      <Input
+                        value={rzData.instagram || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "instagram",
+                            e.target.value
+                          )
+                        }
+                        placeholder="https://instagram.com/..."
+                        className={inputClassRz}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className={labelClass}>YouTube Линк</Label>
+                      <Input
+                        value={rzData.youtube || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "youtube",
+                            e.target.value
+                          )
+                        }
+                        placeholder="https://youtube.com/..."
+                        className={inputClassRz}
+                      />
+                    </div>
+                  </div>
+                </BentoCard>
+
                 <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                   <div className="flex items-center gap-4 mb-6">
                     <Activity

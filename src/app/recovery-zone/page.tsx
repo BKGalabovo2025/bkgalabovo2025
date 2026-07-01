@@ -34,22 +34,64 @@ export const metadata: Metadata = {
 
 import fs from "fs";
 import path from "path";
+import { getAdminDb } from "@/lib/firebase-admin";
 import RecoveryZoneClient from "./RecoveryZoneClient";
+
+function serializeDoc(data: unknown): unknown {
+  if (!data) return data;
+  if (Array.isArray(data)) {
+    return data.map(serializeDoc);
+  }
+  if (typeof data === "object") {
+    const copy = { ...data } as Record<string, unknown>;
+    for (const key of Object.keys(copy)) {
+      const val = copy[key];
+      if (
+        val &&
+        typeof val === "object" &&
+        "toDate" in val &&
+        typeof (val as { toDate?: () => Date }).toDate === "function"
+      ) {
+        copy[key] = (val as { toDate: () => Date }).toDate().toISOString();
+      } else if (val && typeof val === "object" && "_seconds" in val) {
+        copy[key] = new Date(
+          (val as { _seconds: number })._seconds * 1000
+        ).toISOString();
+      } else {
+        copy[key] = serializeDoc(val);
+      }
+    }
+    return copy;
+  }
+  return data;
+}
 
 export default async function RecoveryZonePage() {
   const site = await getSiteById("recoveryzone");
+  const adminDb = getAdminDb();
+
+  let recoveryServices: Record<string, unknown>[] = [];
+  try {
+    const recoverySnapshot = await adminDb.collection("sessions").get();
+    recoveryServices = recoverySnapshot.docs.map(
+      (doc) =>
+        serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+    );
+  } catch (error) {
+    console.error("Failed to fetch sessions for recovery zone page:", error);
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
-    name: "Recovery Zone by ZM",
+    name: site?.name || "Recovery Zone by ZM",
     image: "https://bkgalabovo2025.vercel.app/1.png",
     "@id": "https://bkgalabovo2025.vercel.app/recovery-zone",
     url: "https://bkgalabovo2025.vercel.app/recovery-zone",
     telephone: site?.phone || "+359899388338",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Спортна зала „Енергетик“",
+      streetAddress: site?.address || "Спортна зала „Енергетик“",
       addressLocality: "Гълъбово",
       postalCode: "6280",
       addressCountry: "BG",
@@ -94,7 +136,11 @@ export default async function RecoveryZonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <RecoveryZoneClient site={site} hallImages={hallImages} />
+      <RecoveryZoneClient
+        site={site}
+        hallImages={hallImages}
+        recoveryServices={recoveryServices}
+      />
     </>
   );
 }

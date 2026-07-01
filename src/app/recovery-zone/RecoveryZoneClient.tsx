@@ -25,33 +25,25 @@ import {
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { TeamSection } from "@/components/recovery/TeamSection";
-import { Zap, HeartPulse, Activity } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Site } from "@/types/site.types";
 
-const activities = [
-  {
-    icon: Zap,
-    title: "Динамична компресия",
-    desc: "Hyperice Normatec 3 използва динамична въздушна компресия за създаване на възстановяващ масаж, който подобрява кръвообращението и ускорява възстановяването.",
-  },
-  {
-    icon: HeartPulse,
-    title: "Лимфен дренаж",
-    desc: "Специализираната технология помага за ефективното извеждане на токсините и млечната киселина от мускулите след интензивно натоварване.",
-  },
-  {
-    icon: Activity,
-    title: "Спортно възстановяване",
-    desc: "Намалява болката и сковаността в мускулите, възстановява обхвата на движение и ви подготвя за следващата тренировка.",
-  },
-];
+export interface RecoveryServiceData {
+  id?: string;
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  [key: string]: unknown;
+}
 
 export default function RecoveryZoneClient({
   site,
   hallImages = [],
+  recoveryServices = [],
 }: {
   site: Site;
   hallImages?: string[];
+  recoveryServices?: RecoveryServiceData[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -229,10 +221,9 @@ export default function RecoveryZoneClient({
               Сили
             </span>
           </h1>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-            Recovery Zone by ZM — модерен център за лимфен дренаж и спортно
-            възстановяване с оборудване Hyperice Normatec. Погрижете се за
-            тялото си и ускорете възстановяването.
+          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed whitespace-pre-wrap">
+            {site.description ||
+              "Recovery Zone by ZM — модерен център за лимфен дренаж и спортно възстановяване с оборудване Hyperice Normatec. Погрижете се за тялото си и ускорете възстановяването."}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <Link
@@ -374,27 +365,46 @@ export default function RecoveryZoneClient({
             <h2 className="text-3xl md:text-5xl font-light mb-12">Процедури</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {activities.map((act, i) => (
-              <motion.div
-                key={act.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group bg-black/80 border border-zinc-800 rounded-3xl p-8 hover:border-emerald-500 hover:bg-black transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative overflow-hidden glassmorphism"
-              >
-                <div className="absolute inset-0 bg-linear-to-br from-blue-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="h-14 w-14 bg-black border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.8)] relative z-10">
-                  <act.icon size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4 relative z-10">
-                  {act.title}
-                </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed relative z-10">
-                  {act.desc}
-                </p>
-              </motion.div>
-            ))}
+            {recoveryServices && recoveryServices.length > 0 ? (
+              recoveryServices.map((service, i) => (
+                <motion.div
+                  key={service.id || service.name || i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="group bg-black/80 border border-zinc-800 rounded-3xl p-8 hover:border-emerald-500 hover:bg-black transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)] relative overflow-hidden glassmorphism"
+                >
+                  <div className="absolute inset-0 bg-linear-to-br from-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {service.imageUrl ? (
+                    <div className="h-14 w-14 rounded-2xl overflow-hidden mb-6 relative z-10 shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.8)] transition-all duration-500 border border-emerald-500/30">
+                      <Image
+                        src={service.imageUrl}
+                        alt={service.name || "Процедура"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-14 w-14 bg-black border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.8)] relative z-10">
+                      <Activity size={24} />
+                    </div>
+                  )}
+
+                  <h3 className="text-xl font-bold text-white mb-4 relative z-10">
+                    {service.name}
+                  </h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed relative z-10">
+                    {service.description || "Няма описание за тази процедура."}
+                  </p>
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-zinc-400 text-center col-span-3">
+                Няма добавени процедури в момента.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -487,7 +497,7 @@ export default function RecoveryZoneClient({
               База
             </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
-              На турнирите на НВ Бадминтон
+              Къде се намираме?
             </h2>
             <p className="text-zinc-400 text-lg leading-relaxed mb-8">
               <strong className="text-white">
@@ -495,7 +505,7 @@ export default function RecoveryZoneClient({
               </strong>{" "}
               предлага:
             </p>
-            <ul className="space-y-4 mb-12">
+            <ul className="space-y-4 mb-8">
               {(site.benefits && site.benefits.length > 0
                 ? site.benefits
                 : [
@@ -521,6 +531,51 @@ export default function RecoveryZoneClient({
                 );
               })}
             </ul>
+
+            {site.inventory && (
+              <div className="border-t border-zinc-800/80 pt-8 grid grid-cols-2 gap-4 mb-8">
+                {(site.inventory.compressors ?? 0) > 0 && (
+                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
+                    <p className="text-2xl font-bold text-emerald-400 mb-1">
+                      {site.inventory.compressors}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      Компресора
+                    </p>
+                  </div>
+                )}
+                {(site.inventory.attachments?.legs ?? 0) > 0 && (
+                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
+                    <p className="text-2xl font-bold text-emerald-400 mb-1">
+                      {site.inventory.attachments?.legs}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      Приставки за крака
+                    </p>
+                  </div>
+                )}
+                {(site.inventory.attachments?.arms ?? 0) > 0 && (
+                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
+                    <p className="text-2xl font-bold text-emerald-400 mb-1">
+                      {site.inventory.attachments?.arms}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      Приставки за ръце
+                    </p>
+                  </div>
+                )}
+                {(site.inventory.attachments?.hips ?? 0) > 0 && (
+                  <div className="bg-black/50 p-4 rounded-xl border border-zinc-800/80">
+                    <p className="text-2xl font-bold text-emerald-400 mb-1">
+                      {site.inventory.attachments?.hips}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      Приставки за таз
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Carousel */}
