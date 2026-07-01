@@ -449,11 +449,7 @@ export default function ClubClient({
               Бадминтона
             </span>
           </h1>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-            СНЦ „Бадминтон клуб Гълъбово“ — официален бадминтон клуб в град
-            Гълъбово. Тренировки, турнири и приятелска спортна атмосфера за
-            всички.
-          </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <a
               href="#contacts"
