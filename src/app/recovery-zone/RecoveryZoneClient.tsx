@@ -46,6 +46,7 @@ export default function RecoveryZoneClient({
   const [activeImage, setActiveImage] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isHeroExpanded, setIsHeroExpanded] = useState(false);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -206,10 +207,75 @@ export default function RecoveryZoneClient({
               Сили
             </span>
           </h1>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-12 leading-relaxed whitespace-pre-wrap">
-            {site.description ||
-              "Recovery Zone by ZM — модерен център за лимфен дренаж и спортно възстановяване с оборудване Hyperice Normatec. Погрижете се за тялото си и ускорете възстановяването."}
-          </p>
+          <div className="text-zinc-400 text-lg max-w-3xl mx-auto mb-12 leading-relaxed text-left md:text-center">
+            <h3 className="text-2xl text-white font-medium mb-4">
+              Новото ниво на възстановяване в Гълъбово
+            </h3>
+            <p className="mb-4">
+              Recovery Zone by ZM е създаден с една основна цел - да предостави
+              достъп до професионални възстановителни процедури. Независимо дали
+              сте активен спортист, или търсите релакс след тежък работен ден,
+              ние сме тук за вас.
+            </p>
+            <AnimatePresence>
+              {isHeroExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <p className="mb-4">
+                    Оборудван със системите на Hyperice Normatec 3, Recovery
+                    Zone by ZM предлага високотехнологичен лимфен дренаж за
+                    крака, ръце и ханш.
+                  </p>
+                  <p className="mb-4">
+                    В ZM RECOVERY ZONE използваме лидера в динамичната въздушна
+                    компресия – системата Normatec 3 от Hyperice. Тя използва
+                    патентованата технология Pulse, която чрез ритмично
+                    притискане имитира естествената работа на мускулите. Това
+                    ускорява движението на течностите и помага на тялото да се
+                    изчисти от токсините значително по-бързо от обикновения
+                    престой. Основни ползи:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 mb-4 text-left inline-block max-w-2xl mx-auto">
+                    <li>
+                      <strong className="text-white">
+                        Ускорен лимфен дренаж:
+                      </strong>{" "}
+                      Подпомага естествения процес на тялото за изхвърляне на
+                      метаболитни отпадъци и токсини.
+                    </li>
+                    <li>
+                      <strong className="text-white">
+                        Подобрена циркулация:
+                      </strong>{" "}
+                      Стимулира кръвния поток, което доставя повече кислород и
+                      хранителни вещества до мускулите.
+                    </li>
+                    <li>
+                      <strong className="text-white">
+                        Превенция на контузии:
+                      </strong>{" "}
+                      Поддържа еластичността на меките тъкани и намалява
+                      сковаността.
+                    </li>
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <button
+              onClick={() => setIsHeroExpanded(!isHeroExpanded)}
+              className="text-emerald-400 font-bold uppercase tracking-widest text-sm hover:text-white transition-colors flex items-center gap-2 mx-auto mt-4"
+            >
+              {isHeroExpanded ? "Скрий информацията" : "Прочети повече"}
+              <ChevronDown
+                className={`transition-transform duration-300 ${isHeroExpanded ? "rotate-180" : ""}`}
+                size={16}
+              />
+            </button>
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <Link
               href="/recovery-zone/catalog"
