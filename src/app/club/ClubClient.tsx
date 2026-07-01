@@ -795,7 +795,7 @@ export default function ClubClient({
                     <p className="text-white font-medium mb-1">Имейл</p>
                     <a
                       href={`mailto:${clubSite?.email || "bk_galabovo@abv.bg"}`}
-                      className="text-zinc-400 text-sm hover:text-blue-400 transition-colors"
+                      className="text-zinc-400 text-sm hover:text-blue-400 transition-colors break-all"
                     >
                       {clubSite?.email || "bk_galabovo@abv.bg"}
                     </a>
@@ -804,7 +804,7 @@ export default function ClubClient({
               </div>
             </div>
 
-            <div className="bg-black/80 border border-zinc-800 rounded-3xl p-10 flex flex-col justify-center relative overflow-hidden glassmorphism">
+            <div className="bg-black/80 border border-zinc-800 rounded-3xl p-6 md:p-10 flex flex-col justify-center relative overflow-hidden glassmorphism">
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none" />
               <h3 className="text-2xl font-light text-white mb-8 relative z-10">
                 Последвайте ни в мрежите

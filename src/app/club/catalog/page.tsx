@@ -46,11 +46,15 @@ export default async function CatalogPage() {
   const safeFetch = async (collectionName: string) => {
     try {
       const snap = await adminDb.collection(collectionName).get();
-      return snap.docs.map((doc) =>
-        serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+      return snap.docs.map(
+        (doc) =>
+          serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
       );
     } catch (error) {
-      console.error(`Failed to fetch ${collectionName} for catalog page:`, error);
+      console.error(
+        `Failed to fetch ${collectionName} for catalog page:`,
+        error
+      );
       return [];
     }
   };
@@ -90,21 +94,25 @@ export default async function CatalogPage() {
         {/* Spacer */}
       </nav>
 
-      {/* Main Content */}
-      <main className="pt-24 px-6 pb-32">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12">
-            <h1 className="text-4xl font-light tracking-tight mb-4">
-              Клубни{" "}
-              <span className="text-blue-400 drop-shadow-[0_0_12px_rgba(30,58,138,0.4)]">
-                Каталози
-              </span>
-            </h1>
-            <p className="text-zinc-400">
-              Тук ще намерите всички наши тренировки, клубни услуги и продукти.
-            </p>
-          </div>
+      {/* Hero / Header */}
+      <div className="relative pt-32 pb-20 px-6 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="relative z-10 max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-light tracking-tight mb-6">
+            Клубни{" "}
+            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
+              Каталози
+            </span>
+          </h1>
+          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            Тук ще намерите всички наши тренировки, клубни услуги и продукти.
+          </p>
+        </div>
+      </div>
 
+      {/* Main Content */}
+      <main className="px-6 pb-32 relative z-10">
+        <div className="max-w-6xl mx-auto">
           <div className="bg-black/80 border border-blue-400/20 rounded-3xl p-6 md:p-10 glassmorphism">
             <PublicCatalogTabs
               trainings={services}
