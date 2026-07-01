@@ -76,7 +76,7 @@ const DocumentRow = ({
       : "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800";
 
   return (
-    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-6">
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-4 sm:gap-6">
       <div className="flex items-center gap-4 sm:gap-6 w-full">
         <div
           className={cn(
@@ -104,7 +104,10 @@ const DocumentRow = ({
           className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
           onClick={onPrint}
         >
-          <Printer className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={1.5} />
+          <Printer
+            className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+            strokeWidth={1.5}
+          />
           Печат
         </Button>
         <Button
@@ -125,60 +128,132 @@ const DocumentRow = ({
 // ── Status text helpers ───────────────────────────────────────────────────────
 
 function completedText(label: string, date: string | null): React.ReactNode {
-  return <span className="text-emerald-600 font-medium">{label} {date}</span>;
+  return (
+    <span className="text-emerald-600 font-medium">
+      {label} {date}
+    </span>
+  );
 }
 
 function printedText(label: string, date: string | null): React.ReactNode {
-  return <span>{label} {date}</span>;
+  return (
+    <span>
+      {label} {date}
+    </span>
+  );
 }
 
 type StatusResult = string | React.ReactNode;
 
-function getMembershipStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasMembershipApplication) return completedText("Предадена на", fmt(member.membershipApplicationHandedAt));
-  if (member.membershipApplicationPrintedAt) return printedText("Разпечатана на", fmt(member.membershipApplicationPrintedAt));
+function getMembershipStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasMembershipApplication)
+    return completedText(
+      "Предадена на",
+      fmt(member.membershipApplicationHandedAt)
+    );
+  if (member.membershipApplicationPrintedAt)
+    return printedText(
+      "Разпечатана на",
+      fmt(member.membershipApplicationPrintedAt)
+    );
   return "Основен документ за приемане в клуба.";
 }
 
-function getTerminationStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasTerminationRequest) return completedText("Предадена на", fmt(member.terminationRequestHandedAt));
-  if (member.terminationRequestPrintedAt) return printedText("Разпечатана на", fmt(member.terminationRequestPrintedAt));
+function getTerminationStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasTerminationRequest)
+    return completedText(
+      "Предадена на",
+      fmt(member.terminationRequestHandedAt)
+    );
+  if (member.terminationRequestPrintedAt)
+    return printedText(
+      "Разпечатана на",
+      fmt(member.terminationRequestPrintedAt)
+    );
   return "Документ за прекратяване на членство.";
 }
 
-function getInternalRulesStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasInternalRules) return completedText("Приет на", fmt(member.internalRulesHandedAt));
-  if (member.internalRulesPrintedAt) return printedText("Разпечатан на", fmt(member.internalRulesPrintedAt));
+function getInternalRulesStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasInternalRules)
+    return completedText("Приет на", fmt(member.internalRulesHandedAt));
+  if (member.internalRulesPrintedAt)
+    return printedText("Разпечатан на", fmt(member.internalRulesPrintedAt));
   return "Правила за работа и етика в клуба.";
 }
 
-function getDeclarationStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasSignedDeclaration) return completedText("Предадена на", fmt(member.signedDeclarationHandedAt));
-  if (member.signedDeclarationPrintedAt) return printedText("Разпечатана на", fmt(member.signedDeclarationPrintedAt));
+function getDeclarationStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasSignedDeclaration)
+    return completedText("Предадена на", fmt(member.signedDeclarationHandedAt));
+  if (member.signedDeclarationPrintedAt)
+    return printedText(
+      "Разпечатана на",
+      fmt(member.signedDeclarationPrintedAt)
+    );
   return "Липсва декларация!";
 }
 
-function getTravelStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasTravelDeclaration) return completedText("Предадено на", fmt(member.travelDeclarationHandedAt));
-  if (member.travelDeclarationPrintedAt) return printedText("Разпечатано на", fmt(member.travelDeclarationPrintedAt));
+function getTravelStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasTravelDeclaration)
+    return completedText("Предадено на", fmt(member.travelDeclarationHandedAt));
+  if (member.travelDeclarationPrintedAt)
+    return printedText(
+      "Разпечатано на",
+      fmt(member.travelDeclarationPrintedAt)
+    );
   return "Съгласие за транспорт и спортни събития.";
 }
 
-function getSafetyStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasSafetyInstruction) return completedText("Предаден на", fmt(member.safetyInstructionHandedAt));
-  if (member.safetyInstructionPrintedAt) return printedText("Разпечатан на", fmt(member.safetyInstructionPrintedAt));
+function getSafetyStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasSafetyInstruction)
+    return completedText("Предаден на", fmt(member.safetyInstructionHandedAt));
+  if (member.safetyInstructionPrintedAt)
+    return printedText("Разпечатан на", fmt(member.safetyInstructionPrintedAt));
   return "Правила за пътуване и състезания.";
 }
 
-function getLicenseStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.isLicensed) return completedText("Активна от", fmt(member.isLicensedHandedAt));
-  if (member.isLicensedPrintedAt) return printedText("Разпечатана на", fmt(member.isLicensedPrintedAt));
+function getLicenseStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.isLicensed)
+    return completedText("Активна от", fmt(member.isLicensedHandedAt));
+  if (member.isLicensedPrintedAt)
+    return printedText("Разпечатана на", fmt(member.isLicensedPrintedAt));
   return "Няма активна картотека.";
 }
 
-function getMedicalStatus(member: Member, fmt: (d: string | null | undefined) => string | null): StatusResult {
-  if (member.hasMedicalCertificate) return completedText("Предадено на", fmt(member.medicalCertificateHandedAt));
-  if (member.medicalCertificatePrintedAt) return printedText("Разпечатано на", fmt(member.medicalCertificatePrintedAt));
+function getMedicalStatus(
+  member: Member,
+  fmt: (d: string | null | undefined) => string | null
+): StatusResult {
+  if (member.hasMedicalCertificate)
+    return completedText(
+      "Предадено на",
+      fmt(member.medicalCertificateHandedAt)
+    );
+  if (member.medicalCertificatePrintedAt)
+    return printedText(
+      "Разпечатано на",
+      fmt(member.medicalCertificatePrintedAt)
+    );
   return "Липсва медицинско свидетелство!";
 }
 
@@ -208,15 +283,21 @@ export const MemberDocumentsTab = ({
 
   return (
     <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-4 sm:space-y-6">
-
       <DocumentRow
         icon={FileText}
         isCompleted={!!member.hasMembershipApplication}
         title="Молба за членство"
         statusText={membershipStatus}
         submitLabel="Отбележи предадена"
-        onPrint={() => openPrint(`/members/${member.id}/membership-application`, "membershipApplication")}
-        onToggle={() => toggle("membershipApplication", !!member.hasMembershipApplication)}
+        onPrint={() =>
+          openPrint(
+            `/members/${member.id}/membership-application`,
+            "membershipApplication"
+          )
+        }
+        onToggle={() =>
+          toggle("membershipApplication", !!member.hasMembershipApplication)
+        }
       />
 
       <DocumentRow
@@ -225,8 +306,15 @@ export const MemberDocumentsTab = ({
         title="Молба за прекратяване"
         statusText={terminationStatus}
         submitLabel="Отбележи предадена"
-        onPrint={() => openPrint(`/members/${member.id}/termination-request`, "terminationRequest")}
-        onToggle={() => toggle("terminationRequest", !!member.hasTerminationRequest)}
+        onPrint={() =>
+          openPrint(
+            `/members/${member.id}/termination-request`,
+            "terminationRequest"
+          )
+        }
+        onToggle={() =>
+          toggle("terminationRequest", !!member.hasTerminationRequest)
+        }
       />
 
       <DocumentRow
@@ -235,7 +323,9 @@ export const MemberDocumentsTab = ({
         title="Вътрешен правилник"
         statusText={internalRulesStatus}
         submitLabel="Отбележи приет"
-        onPrint={() => openPrint(`/members/${member.id}/internal-rules`, "internalRules")}
+        onPrint={() =>
+          openPrint(`/members/${member.id}/internal-rules`, "internalRules")
+        }
         onToggle={() => toggle("internalRules", !!member.hasInternalRules)}
       />
 
@@ -246,8 +336,12 @@ export const MemberDocumentsTab = ({
         title="Декларация за информирано съгласие"
         statusText={declarationStatus}
         submitLabel="Отбележи предадена"
-        onPrint={() => openPrint(`/members/${member.id}/declaration`, "signedDeclaration")}
-        onToggle={() => toggle("signedDeclaration", !!member.hasSignedDeclaration)}
+        onPrint={() =>
+          openPrint(`/members/${member.id}/declaration`, "signedDeclaration")
+        }
+        onToggle={() =>
+          toggle("signedDeclaration", !!member.hasSignedDeclaration)
+        }
       />
 
       <DocumentRow
@@ -256,8 +350,15 @@ export const MemberDocumentsTab = ({
         title="Съгласие за участие и пътуване"
         statusText={travelStatus}
         submitLabel="Отбележи предадено"
-        onPrint={() => openPrint(`/members/${member.id}/participation-travel`, "travelDeclaration")}
-        onToggle={() => toggle("travelDeclaration", !!member.hasTravelDeclaration)}
+        onPrint={() =>
+          openPrint(
+            `/members/${member.id}/participation-travel`,
+            "travelDeclaration"
+          )
+        }
+        onToggle={() =>
+          toggle("travelDeclaration", !!member.hasTravelDeclaration)
+        }
       />
 
       <DocumentRow
@@ -266,8 +367,15 @@ export const MemberDocumentsTab = ({
         title="Инструктаж за безопасност"
         statusText={safetyStatus}
         submitLabel="Отбележи предаден"
-        onPrint={() => openPrint(`/members/${member.id}/safety-instruction`, "safetyInstruction")}
-        onToggle={() => toggle("safetyInstruction", !!member.hasSafetyInstruction)}
+        onPrint={() =>
+          openPrint(
+            `/members/${member.id}/safety-instruction`,
+            "safetyInstruction"
+          )
+        }
+        onToggle={() =>
+          toggle("safetyInstruction", !!member.hasSafetyInstruction)
+        }
       />
 
       <DocumentRow
@@ -276,7 +384,9 @@ export const MemberDocumentsTab = ({
         title="Картотека към БФБ"
         statusText={licenseStatus}
         submitLabel="Активирай"
-        onPrint={() => openPrint(`/members/${member.id}/athlete-card`, "isLicensed")}
+        onPrint={() =>
+          openPrint(`/members/${member.id}/athlete-card`, "isLicensed")
+        }
         onToggle={() => toggle("isLicensed", !!member.isLicensed)}
       />
 
@@ -287,10 +397,16 @@ export const MemberDocumentsTab = ({
         statusText={medicalStatus}
         submitLabel="Отбележи предадено"
         pendingVariant="danger"
-        onPrint={() => openPrint(`/members/${member.id}/medical-certificate`, "medicalCertificate")}
-        onToggle={() => toggle("medicalCertificate", !!member.hasMedicalCertificate)}
+        onPrint={() =>
+          openPrint(
+            `/members/${member.id}/medical-certificate`,
+            "medicalCertificate"
+          )
+        }
+        onToggle={() =>
+          toggle("medicalCertificate", !!member.hasMedicalCertificate)
+        }
       />
-
     </div>
   );
 };

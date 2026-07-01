@@ -1,5 +1,6 @@
 /**
  * Represents the physical assets and equipment available at a site.
+ * @public
  */
 export interface SiteInventory {
   courts?: number;
@@ -34,6 +35,9 @@ interface DaySchedule {
   isOpen: boolean;
 }
 
+/**
+ * @public
+ */
 export interface SiteSchedule {
   monday: DaySchedule;
   tuesday: DaySchedule;

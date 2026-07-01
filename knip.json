@@ -1,24 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx", "scripts/**/*.ts"],
-  "ignore": [
-    "src/components/data-table/data-table-content.tsx",
-    "src/components/data-table/data-table-pagination.tsx",
-    "src/components/data-table/data-table-toolbar.tsx",
-    "src/components/ui/carousel.tsx",
-    "src/components/ui/popover.tsx",
-    "src/components/recovery/SessionsSection.tsx"
-  ],
-  "ignoreDependencies": [
-    "tsconfig-paths",
-    "eslint-config-prettier",
-    "lint-staged",
-    "@radix-ui/react-popover",
-    "embla-carousel-react",
-    "firebase-tools"
-  ],
-  "ignoreBinaries": ["lint-staged"],
   "next": {
-    "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]
+    "entry": [
+      "src/app/api/**/*.ts",
+      "src/app/**/*.tsx",
+      "src/components/recovery/SessionsSection.tsx"
+    ]
   }
 }

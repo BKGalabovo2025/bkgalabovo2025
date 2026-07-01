@@ -10,7 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { getAgeGroup, getValidAvatarUrl, getInitials, formatFullName } from "@/lib/utils";
+import {
+  getAgeGroup,
+  getValidAvatarUrl,
+  getInitials,
+  formatFullName,
+} from "@/lib/utils";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
@@ -198,7 +203,6 @@ export const MemberDetailsCard = ({
     }
   };
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
@@ -301,46 +305,46 @@ export const MemberDetailsCard = ({
 
       <Tabs defaultValue="personal" className="w-full">
         <div className="relative group">
-          <TabsList className="w-full h-auto bg-zinc-50/50 border border-zinc-100 p-1 rounded-2xl sm:rounded-3xl mb-8 flex flex-nowrap overflow-x-auto no-scrollbar justify-start md:justify-center gap-1 scroll-smooth">
+          <TabsList className="w-full h-auto bg-zinc-50/50 border border-zinc-100 p-1.5 rounded-2xl mb-8 flex flex-wrap gap-1">
             <TabsTrigger
               value="personal"
-              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Данни
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Документи
             </TabsTrigger>
             <TabsTrigger
               value="sales"
-              className="flex-none sm:flex-1 min-w-[100px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Финансова история
             </TabsTrigger>
             <TabsTrigger
               value="attendance"
-              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Присъствия
             </TabsTrigger>
             <TabsTrigger
               value="trainings"
-              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
-              Shadow Тренировки
+              Shadow тренировки
             </TabsTrigger>
             <TabsTrigger
               value="volume"
-              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Тренировъчен обем
             </TabsTrigger>
             <TabsTrigger
               value="assessments"
-              className="flex-none sm:flex-1 min-w-[110px] sm:min-w-0 h-10 sm:h-12 rounded-lg sm:rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] sm:text-[11px] font-medium uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-950 px-4 sm:px-0"
+              className="flex-none h-9 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border border-transparent data-[state=active]:border-zinc-100 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 px-4 whitespace-nowrap transition-all"
             >
               Оценяване
             </TabsTrigger>

@@ -10,7 +10,8 @@ import { Member } from "@/types/member.types";
 
 export const metadata: Metadata = {
   title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
-  description: "Запознайте се с ръководството, треньорите и най-добрите състезатели на Бадминтон Клуб Гълъбово.",
+  description:
+    "Запознайте се с ръководството, треньорите и най-добрите състезатели на Бадминтон Клуб Гълъбово.",
 };
 
 // --- Helper type for Member with Tournaments ---
@@ -24,9 +25,94 @@ const getValidImageSrc = (src: string | undefined | null) => {
   let cleanSrc = src.replace(/\\/g, "/");
   if (cleanSrc.startsWith("public/")) cleanSrc = cleanSrc.substring(6);
   if (cleanSrc.startsWith("/public/")) cleanSrc = cleanSrc.substring(7);
-  if (cleanSrc.startsWith("http://") || cleanSrc.startsWith("https://") || cleanSrc.startsWith("/")) return cleanSrc;
+  if (
+    cleanSrc.startsWith("http://") ||
+    cleanSrc.startsWith("https://") ||
+    cleanSrc.startsWith("/")
+  )
+    return cleanSrc;
   return `/${cleanSrc}`;
 };
+
+type AdminDb = ReturnType<typeof getAdminDb>;
+type PastEvent = {
+  attendeeMemberIds?: string[];
+  title?: string;
+  [key: string]: unknown;
+};
+
+async function processEventsTournaments(
+  pastEventsData: PastEvent[],
+  memberTournamentMap: Map<string, Set<string>>
+) {
+  for (const event of pastEventsData) {
+    if (Array.isArray(event.attendeeMemberIds)) {
+      const eventTitle =
+        typeof event.title === "string" ? event.title : "Състезание";
+      for (const memberId of event.attendeeMemberIds) {
+        if (!memberTournamentMap.has(memberId))
+          memberTournamentMap.set(memberId, new Set());
+        memberTournamentMap.get(memberId)!.add(eventTitle);
+      }
+    }
+  }
+}
+
+async function fetchEntriesData(adminDb: AdminDb) {
+  const tournamentsSnapshot = await adminDb.collection("tournaments").get();
+  const entriesFetches = tournamentsSnapshot.docs.map(async (tournDoc) => {
+    const data = tournDoc.data();
+    const snap = await tournDoc.ref.collection("entries").get();
+    return {
+      title: typeof data.title === "string" ? data.title : "Турнир",
+      docs: snap.docs,
+    };
+  });
+  return Promise.all(entriesFetches);
+}
+
+function addTournamentToMember(
+  memberId: unknown,
+  title: string,
+  map: Map<string, Set<string>>
+) {
+  if (typeof memberId === "string") {
+    if (!map.has(memberId)) map.set(memberId, new Set());
+    map.get(memberId)!.add(title);
+  }
+}
+
+function assignEntriesToMap(
+  allEntriesResults: {
+    title: string;
+    docs: { data: () => Record<string, unknown> }[];
+  }[],
+  memberTournamentMap: Map<string, Set<string>>
+) {
+  for (const { title, docs } of allEntriesResults) {
+    for (const entryDoc of docs) {
+      const entry = entryDoc.data();
+      addTournamentToMember(entry.memberId, title, memberTournamentMap);
+      addTournamentToMember(entry.partnerMemberId, title, memberTournamentMap);
+    }
+  }
+}
+
+async function fetchMemberTournamentsMap(
+  adminDb: AdminDb,
+  pastEventsData: PastEvent[]
+) {
+  const memberTournamentMap = new Map<string, Set<string>>();
+
+  // Add from events
+  await processEventsTournaments(pastEventsData, memberTournamentMap);
+
+  // Add from tournaments collection
+  const allEntriesResults = await fetchEntriesData(adminDb);
+  assignEntriesToMap(allEntriesResults, memberTournamentMap);
+
+  return memberTournamentMap;
+}
 
 export default async function TeamPage() {
   const adminDb = getAdminDb();
@@ -45,17 +131,16 @@ export default async function TeamPage() {
     (doc) => ({ id: doc.id, ...doc.data() }) as Member
   );
 
-  // 3. Fetch all past competitions for the club
+  // 3. Fetch all past competitions from the "events" calendar
   const eventsSnapshot = await adminDb
     .collection("events")
     .where("siteId", "==", "bkgalabovo")
     .where("type", "==", "competition")
     .get();
 
-  const pastCompetitionsData = eventsSnapshot.docs
+  const pastEventsData = eventsSnapshot.docs
     .map((doc) => doc.data())
     .filter((data) => {
-      // Safely parse dates, supporting strings and Timestamps
       let endDateStr = new Date().toISOString();
       if (data.endDate) {
         endDateStr =
@@ -66,16 +151,18 @@ export default async function TeamPage() {
       return new Date(endDateStr) < new Date();
     });
 
-  // 4. Enrich members with tournaments and age groups
-  const enrichedMembers: TeamMember[] = publicMembers.map((m) => {
-    const memberCompetitions = pastCompetitionsData
-      .filter((event) => 
-        Array.isArray(event.attendeeMemberIds) && 
-        event.attendeeMemberIds.includes(m.id)
-      )
-      .map((event) => typeof event.title === "string" ? event.title : "Състезание");
+  // 4. Build map of memberId -> Set of tournament titles
+  const memberTournamentMap = await fetchMemberTournamentsMap(
+    adminDb,
+    pastEventsData
+  );
 
-    const uniqueCompetitions = Array.from(new Set(memberCompetitions));
+  // 5. Enrich members with tournaments and age groups
+  const enrichedMembers: TeamMember[] = publicMembers.map((m) => {
+    const memberTournaments = memberTournamentMap.get(m.id);
+    const uniqueCompetitions = memberTournaments
+      ? Array.from(memberTournaments)
+      : [];
 
     return {
       ...m,
@@ -86,12 +173,15 @@ export default async function TeamPage() {
   });
 
   // 5. Group by age group
-  const groupedMembers = enrichedMembers.reduce((acc, member) => {
-    const group = member.ageGroupDisplay;
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(member);
-    return acc;
-  }, {} as Record<string, TeamMember[]>);
+  const groupedMembers = enrichedMembers.reduce(
+    (acc, member) => {
+      const group = member.ageGroupDisplay;
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(member);
+      return acc;
+    },
+    {} as Record<string, TeamMember[]>
+  );
 
   // Sort age groups logically if needed (e.g., U9, U11, U13...)
   const sortedAgeGroups = Object.keys(groupedMembers).sort((a, b) => {
@@ -147,7 +237,7 @@ export default async function TeamPage() {
                   className="bg-black/40 border border-zinc-800/50 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500"
                 >
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/10 transition-colors duration-700" />
-                  
+
                   <div className="relative z-10 flex flex-col items-center text-center">
                     <div className="w-40 h-40 rounded-full overflow-hidden mb-6 border-2 border-zinc-800 group-hover:border-blue-500/50 transition-colors shadow-2xl relative bg-zinc-900">
                       {coach.image ? (
@@ -185,7 +275,7 @@ export default async function TeamPage() {
       {/* Athletes Section */}
       <section className="py-24 px-6 relative border-t border-zinc-900/50">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex items-center gap-4 mb-20">
             <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
@@ -209,7 +299,7 @@ export default async function TeamPage() {
                     Възрастова група {group}
                     <span className="h-[1px] flex-1 bg-gradient-to-r from-blue-500/50 to-transparent block"></span>
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {groupedMembers[group].map((member) => (
                       <div
@@ -233,42 +323,49 @@ export default async function TeamPage() {
                               <UserIcon size={80} />
                             </div>
                           )}
-                          
+
                           {/* Name Overlay */}
                           <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                             <h4 className="text-xl font-medium text-white mb-1">
                               {member.name}
                             </h4>
                             <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
-                              {member.skillLevel === "advanced" || member.skillLevel === "professional" 
-                                ? "Състезател" 
+                              {member.skillLevel === "advanced" ||
+                              member.skillLevel === "professional"
+                                ? "Състезател"
                                 : "Любител"}
                             </p>
                           </div>
                         </div>
 
                         {/* Athlete Details */}
-                        {member.tournaments && member.tournaments.length > 0 && (
-                          <div className="p-6 bg-zinc-950/50 flex-1 border-t border-zinc-800/50">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-4 flex items-center gap-2">
-                              <MapPin size={12} />
-                              Участия в Турнири
-                            </p>
-                            <ul className="space-y-2">
-                              {member.tournaments.slice(0, 3).map((t, idx) => (
-                                <li key={idx} className="text-sm text-zinc-300 font-light flex items-start gap-2">
-                                  <span className="w-1 h-1 rounded-full bg-blue-500/50 mt-1.5 shrink-0"></span>
-                                  <span className="leading-snug">{t}</span>
-                                </li>
-                              ))}
-                              {member.tournaments.length > 3 && (
-                                <li className="text-xs text-zinc-500 italic mt-2">
-                                  и още {member.tournaments.length - 3}...
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
+                        {member.tournaments &&
+                          member.tournaments.length > 0 && (
+                            <div className="p-6 bg-zinc-950/50 flex-1 border-t border-zinc-800/50">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-4 flex items-center gap-2">
+                                <MapPin size={12} />
+                                Участия в Турнири
+                              </p>
+                              <ul className="space-y-2">
+                                {member.tournaments
+                                  .slice(0, 3)
+                                  .map((t, idx) => (
+                                    <li
+                                      key={idx}
+                                      className="text-sm text-zinc-300 font-light flex items-start gap-2"
+                                    >
+                                      <span className="w-1 h-1 rounded-full bg-blue-500/50 mt-1.5 shrink-0"></span>
+                                      <span className="leading-snug">{t}</span>
+                                    </li>
+                                  ))}
+                                {member.tournaments.length > 3 && (
+                                  <li className="text-xs text-zinc-500 italic mt-2">
+                                    и още {member.tournaments.length - 3}...
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>

@@ -112,8 +112,8 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* BEEP TEST RESULTS CARD */}
       {beepResults.length > 0 && (
-        <div className="bg-white border border-indigo-100 shadow-sm shadow-indigo-100/50 rounded-3xl p-6">
-          <div className="flex justify-between items-start mb-6">
+        <div className="bg-white border border-indigo-100 shadow-sm shadow-indigo-100/50 rounded-3xl p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
             <div>
               <h3 className="text-xl font-black text-indigo-950 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-indigo-600" />
@@ -232,9 +232,9 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
         return (
           <div
             key={testName}
-            className="bg-white border border-zinc-100 rounded-3xl p-6"
+            className="bg-white border border-zinc-100 rounded-3xl p-5 sm:p-6"
           >
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
               <div>
                 <h3 className="text-xl font-bold">{testName}</h3>
                 <p className="text-sm text-zinc-500">Прогрес във времето</p>
