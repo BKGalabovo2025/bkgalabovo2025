@@ -520,42 +520,52 @@ export default function RecoveryZoneClient({
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
-              База
+              Нашите предимства
             </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
-              Къде се намираме?
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-8">
+              Recovery Zone by ZM предлага:
             </h2>
-            <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-              <strong className="text-white">
-                {site.name || "Recovery Zone by ZM"}
-              </strong>{" "}
-              предлага:
-            </p>
-            <ul className="space-y-4 mb-8">
-              {(site.benefits && site.benefits.length > 0
-                ? site.benefits
-                : [
-                    "Бързо възстановяване",
-                    "Подобрена циркулация",
-                    "Превенция на контузии",
-                    "Повече енергия",
-                  ]
-              ).map((item, i) => {
-                const textValue =
-                  typeof item === "string"
-                    ? item
-                    : (item as { title?: string }).title || "";
-                return (
-                  <li key={i} className="flex items-start gap-3">
-                    <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
-                      <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                    </div>
-                    <span className="text-zinc-300 font-medium">
-                      {textValue}
+            <ul className="space-y-6 mb-8">
+              {[
+                {
+                  title: "Световен лидер в технологиите за възстановяване",
+                  desc: "Зоната ни е оборудвана със системата Normatec 3 от Hyperice – признат лидер в динамичната въздушна компресия с патентована технология Pulse.",
+                },
+                {
+                  title: "Безупречна и максимална хигиена",
+                  desc: "За всяка сесия в нашата зона осигуряваме индивидуални еднократни хигиенни подложки за крака, ръце и таз. Това предотвратява директния контакт с маншетите и гарантира 100% защита и безопасност за всеки посетител.",
+                },
+                {
+                  title: "Пълно покритие на зоните за възстановяване",
+                  desc: "Разполагаме с пълен комплект специализирани приставки (за крака, таз и ръце), което позволява цялостно възстановяване – от стъпалата, през ядрото на тялото (долна част на гърба и хълбоци), до раменете.",
+                },
+                {
+                  title: "Персонализиран контрол и комфорт",
+                  desc: "Системата в зоната ни предлага приятен масаж, при който интензивността на въздушната компресия е напълно контролируема според Вашите нужди.",
+                },
+                {
+                  title: "Гъвкавост и бързина на процедурите",
+                  desc: "Зоната предлага възможност както за кратки 15-минутни сесии тип „Загрявка“ за незабавна мускулна активация преди тренировка, така и за следтренировъчни сесии за ускорено изчистване на токсините.",
+                },
+                {
+                  title: "Среда с фокус върху Вашата безопасност",
+                  desc: "Преди всяка сесия предоставяме детайлна информация за безопасност и противопоказания (като ДВТ, сърдечни състояния, бременност и др.), като поставяме Вашето здраве на първо място.",
+                },
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-4">
+                  <div className="mt-1.5 shrink-0 h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
+                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                  </div>
+                  <div>
+                    <span className="text-white font-bold block mb-1">
+                      {item.title}:
                     </span>
-                  </li>
-                );
-              })}
+                    <span className="text-zinc-400 text-sm leading-relaxed">
+                      {item.desc}
+                    </span>
+                  </div>
+                </li>
+              ))}
             </ul>
 
             {site.inventory && (
