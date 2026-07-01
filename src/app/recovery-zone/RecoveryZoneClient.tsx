@@ -641,12 +641,41 @@ export default function RecoveryZoneClient({
               </h2>
               <p className="text-zinc-300 mt-2">Резервирайте своя час онлайн</p>
             </div>
-            <Link
-              href="#schedule"
-              className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-400 transition-colors hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]"
-            >
-              Пълен Календар <ArrowRight size={16} />
-            </Link>
+            <div className="text-right hidden sm:block bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-500 mb-2">
+                Работно време
+              </p>
+              {site.schedule ? (
+                <ul className="text-zinc-400 text-xs space-y-1">
+                  <li className="flex justify-between gap-4">
+                    <span className="text-zinc-500">Пон-Пет:</span>{" "}
+                    <span>
+                      {site.schedule.monday?.isOpen
+                        ? `${site.schedule.monday.open} - ${site.schedule.monday.close}`
+                        : "Почивен ден"}
+                    </span>
+                  </li>
+                  <li className="flex justify-between gap-4">
+                    <span className="text-zinc-500">Събота:</span>{" "}
+                    <span>
+                      {site.schedule.saturday?.isOpen
+                        ? `${site.schedule.saturday.open} - ${site.schedule.saturday.close}`
+                        : "Почивен ден"}
+                    </span>
+                  </li>
+                  <li className="flex justify-between gap-4">
+                    <span className="text-zinc-500">Неделя:</span>{" "}
+                    <span>
+                      {site.schedule.sunday?.isOpen
+                        ? `${site.schedule.sunday.open} - ${site.schedule.sunday.close}`
+                        : "Почивен ден"}
+                    </span>
+                  </li>
+                </ul>
+              ) : (
+                <p className="text-zinc-500 text-xs">Не е въведено</p>
+              )}
+            </div>
           </div>
 
           <div className="bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
