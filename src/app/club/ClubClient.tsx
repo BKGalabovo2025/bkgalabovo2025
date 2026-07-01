@@ -561,8 +561,8 @@ export default function ClubClient({
           </h2>
           <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
             Разгледайте пълния списък с предлагани групови и индивидуални
-            тренировки, наеми на кортове, абонаментни карти и спортна
-            екипировка.
+            тренировки, наеми на кортове, абонаменти, спортна екипировка и
+            възстановяване.
           </p>
           <Link
             href="/club/catalog"
