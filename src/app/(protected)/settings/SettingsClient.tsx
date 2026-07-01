@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -77,7 +77,9 @@ export default function SettingsClient() {
         setFormData(initialFormData);
       } catch (error) {
         console.error("Error fetching settings:", error);
-        toast.error("Грешка при зареждане на настройките.");
+        toast.error(
+          "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РЅР°СЃС‚СЂРѕР№РєРёС‚Рµ."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -285,18 +287,23 @@ export default function SettingsClient() {
 
       await Promise.all(savePromises);
 
-      toast.success("Настройките са запазени успешно!", {
-        style: {
-          borderRadius: "1.5rem",
-          background: "#18181b",
-          color: "#fff",
-          fontWeight: 400,
-          fontSize: "0.875rem",
-        },
-      });
+      toast.success(
+        "РќР°СЃС‚СЂРѕР№РєРёС‚Рµ СЃР° Р·Р°РїР°Р·РµРЅРё СѓСЃРїРµС€РЅРѕ!",
+        {
+          style: {
+            borderRadius: "1.5rem",
+            background: "#18181b",
+            color: "#fff",
+            fontWeight: 400,
+            fontSize: "0.875rem",
+          },
+        }
+      );
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Грешка при запазване на настройките.");
+      toast.error(
+        "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїР°Р·РІР°РЅРµ РЅР° РЅР°СЃС‚СЂРѕР№РєРёС‚Рµ."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -307,7 +314,7 @@ export default function SettingsClient() {
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-zinc-500 font-light uppercase tracking-widest text-xs">
-          Зареждане на настройки...
+          Р—Р°СЂРµР¶РґР°РЅРµ РЅР° РЅР°СЃС‚СЂРѕР№РєРё...
         </p>
       </div>
     );
@@ -326,11 +333,11 @@ export default function SettingsClient() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <PageHeader
-        title="Настройки"
-        description="Управление на системните параметри, сигурността и брандирането на клуба."
+        title="РќР°СЃС‚СЂРѕР№РєРё"
+        description="РЈРїСЂР°РІР»РµРЅРёРµ РЅР° СЃРёСЃС‚РµРјРЅРёС‚Рµ РїР°СЂР°РјРµС‚СЂРё, СЃРёРіСѓСЂРЅРѕСЃС‚С‚Р° Рё Р±СЂР°РЅРґРёСЂР°РЅРµС‚Рѕ РЅР° РєР»СѓР±Р°."
         breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Настройки" },
+          { label: "РќР°С‡Р°Р»Рѕ", href: "/dashboard" },
+          { label: "РќР°СЃС‚СЂРѕР№РєРё" },
         ]}
       >
         <Button
@@ -338,7 +345,9 @@ export default function SettingsClient() {
           disabled={isSaving}
           className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
         >
-          {isSaving ? "Запазване..." : "Запази промените"}
+          {isSaving
+            ? "Р—Р°РїР°Р·РІР°РЅРµ..."
+            : "Р—Р°РїР°Р·Рё РїСЂРѕРјРµРЅРёС‚Рµ"}
           {!isSaving && <Save className="ml-3 h-4 w-4" strokeWidth={1.5} />}
         </Button>
       </PageHeader>
@@ -351,42 +360,44 @@ export default function SettingsClient() {
                 value="general"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
-                <Settings className="mr-4 h-5 w-5" strokeWidth={1.5} /> Общи
+                <Settings className="mr-4 h-5 w-5" strokeWidth={1.5} /> РћР±С‰Рё
               </TabsTrigger>
               <TabsTrigger
                 value="branding"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
                 <Palette className="mr-4 h-5 w-5" strokeWidth={1.5} />{" "}
-                Брандиране
+                Р‘СЂР°РЅРґРёСЂР°РЅРµ
               </TabsTrigger>
               <TabsTrigger
                 value="security"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
-                <Shield className="mr-4 h-5 w-5" strokeWidth={1.5} /> Сигурност
+                <Shield className="mr-4 h-5 w-5" strokeWidth={1.5} />{" "}
+                РЎРёРіСѓСЂРЅРѕСЃС‚
               </TabsTrigger>
               <TabsTrigger
                 value="profile"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
               >
-                <User className="mr-4 h-5 w-5" strokeWidth={1.5} /> Личен Профил
+                <User className="mr-4 h-5 w-5" strokeWidth={1.5} /> Р›РёС‡РµРЅ
+                РџСЂРѕС„РёР»
               </TabsTrigger>
 
               <TabsTrigger
                 value="recovery"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-[#00f2fe]/10 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-[#00f2fe] text-[13px] uppercase tracking-widest"
               >
-                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Зона
-                Възстановяване
+                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Р—РѕРЅР°
+                Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ
               </TabsTrigger>
 
               <TabsTrigger
                 value="audit"
                 className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest mt-8"
               >
-                <Clock className="mr-4 h-5 w-5" strokeWidth={1.5} /> Системна
-                история
+                <Clock className="mr-4 h-5 w-5" strokeWidth={1.5} />{" "}
+                РЎРёСЃС‚РµРјРЅР° РёСЃС‚РѕСЂРёСЏ
               </TabsTrigger>
             </TabsList>
           </div>
@@ -404,12 +415,14 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Информация за Клуба
+                      РРЅС„РѕСЂРјР°С†РёСЏ Р·Р° РљР»СѓР±Р°
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className={labelClass}>Име на клуба</Label>
+                      <Label className={labelClass}>
+                        РРјРµ РЅР° РєР»СѓР±Р°
+                      </Label>
                       <Input
                         value={bkgData.name || ""}
                         onChange={(e) =>
@@ -425,7 +438,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Mail className="inline h-3 w-3 mr-1" />
-                        Официален Имейл
+                        РћС„РёС†РёР°Р»РµРЅ РРјРµР№Р»
                       </Label>
                       <Input
                         value={bkgData.email || ""}
@@ -442,7 +455,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Phone className="inline h-3 w-3 mr-1" />
-                        Телефон за връзка
+                        РўРµР»РµС„РѕРЅ Р·Р° РІСЂСЉР·РєР°
                       </Label>
                       <Input
                         value={bkgData.phone || ""}
@@ -459,7 +472,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Globe className="inline h-3 w-3 mr-1" />
-                        Уебсайт
+                        РЈРµР±СЃР°Р№С‚
                       </Label>
                       <Input
                         value={bkgData.website || ""}
@@ -477,7 +490,7 @@ export default function SettingsClient() {
                     <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>
                         <MapPin className="inline h-3 w-3 mr-1" />
-                        Адрес
+                        РђРґСЂРµСЃ
                       </Label>
                       <Input
                         value={bkgData.address || ""}
@@ -488,14 +501,14 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        placeholder="ул. Александър Стамболийски 41, 6280 Гълъбово, България"
+                        placeholder="СѓР». РђР»РµРєСЃР°РЅРґСЉСЂ РЎС‚Р°РјР±РѕР»РёР№СЃРєРё 41, 6280 Р“СЉР»СЉР±РѕРІРѕ, Р‘СЉР»РіР°СЂРёСЏ"
                         className={inputClass}
                       />
                     </div>
                   </div>
                   <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
                     <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
-                      Социални мрежи
+                      РЎРѕС†РёР°Р»РЅРё РјСЂРµР¶Рё
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
@@ -537,7 +550,7 @@ export default function SettingsClient() {
                       <div className="space-y-3">
                         <Label className={labelClass}>
                           <FacebookIcon className="inline h-3 w-3 mr-1 text-blue-500" />
-                          Facebook Страница
+                          Facebook РЎС‚СЂР°РЅРёС†Р°
                         </Label>
                         <Input
                           value={bkgData.facebook || ""}
@@ -555,7 +568,7 @@ export default function SettingsClient() {
                       <div className="space-y-3">
                         <Label className={labelClass}>
                           <Users className="inline h-3 w-3 mr-1 text-blue-400" />
-                          Facebook Група (Родители и деца)
+                          Facebook Р“СЂСѓРїР° (Р РѕРґРёС‚РµР»Рё Рё РґРµС†Р°)
                         </Label>
                         <Input
                           value={bkgData.facebookGroup || ""}
@@ -581,12 +594,14 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Информация за Зоната
+                      РРЅС„РѕСЂРјР°С†РёСЏ Р·Р° Р—РѕРЅР°С‚Р°
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className={labelClass}>Име на обекта</Label>
+                      <Label className={labelClass}>
+                        РРјРµ РЅР° РѕР±РµРєС‚Р°
+                      </Label>
                       <Input
                         value={rzData.name || ""}
                         onChange={(e) =>
@@ -602,7 +617,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Mail className="inline h-3 w-3 mr-1" />
-                        Официален Имейл
+                        РћС„РёС†РёР°Р»РµРЅ РРјРµР№Р»
                       </Label>
                       <Input
                         value={rzData.email || ""}
@@ -619,7 +634,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Phone className="inline h-3 w-3 mr-1" />
-                        Телефон за връзка
+                        РўРµР»РµС„РѕРЅ Р·Р° РІСЂСЉР·РєР°
                       </Label>
                       <Input
                         value={rzData.phone || ""}
@@ -636,7 +651,7 @@ export default function SettingsClient() {
                     <div className="space-y-3">
                       <Label className={labelClass}>
                         <Globe className="inline h-3 w-3 mr-1" />
-                        Уебсайт
+                        РЈРµР±СЃР°Р№С‚
                       </Label>
                       <Input
                         value={rzData.website || ""}
@@ -653,7 +668,7 @@ export default function SettingsClient() {
                     <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>
                         <MapPin className="inline h-3 w-3 mr-1" />
-                        Адрес
+                        РђРґСЂРµСЃ
                       </Label>
                       <Input
                         value={rzData.address || ""}
@@ -670,7 +685,7 @@ export default function SettingsClient() {
                   </div>
                   <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
                     <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
-                      Социални мрежи
+                      РЎРѕС†РёР°Р»РЅРё РјСЂРµР¶Рё
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
@@ -731,7 +746,7 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                {/* ── Localization + Status ── */}
+                {/* в”Ђв”Ђ Localization + Status в”Ђв”Ђ */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
                     <div className="flex items-center gap-4 mb-2">
@@ -740,18 +755,22 @@ export default function SettingsClient() {
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                        Локализация
+                        Р›РѕРєР°Р»РёР·Р°С†РёСЏ
                       </h3>
                     </div>
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <Label className={labelClass}>Основна Валута</Label>
+                        <Label className={labelClass}>
+                          РћСЃРЅРѕРІРЅР° Р’Р°Р»СѓС‚Р°
+                        </Label>
                         <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
-                          EUR (€)
+                          EUR (в‚¬)
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Label className={labelClass}>Часова Зона</Label>
+                        <Label className={labelClass}>
+                          Р§Р°СЃРѕРІР° Р—РѕРЅР°
+                        </Label>
                         <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
                           UTC+2 (Europe/Sofia)
                         </div>
@@ -763,10 +782,11 @@ export default function SettingsClient() {
                       <CheckCircle2 size={36} strokeWidth={1} />
                     </div>
                     <h4 className="font-light text-xl text-zinc-900 dark:text-white">
-                      Системата е Оптимизирана
+                      РЎРёСЃС‚РµРјР°С‚Р° Рµ РћРїС‚РёРјРёР·РёСЂР°РЅР°
                     </h4>
                     <p className="text-sm text-zinc-400 max-w-[200px] font-light leading-relaxed">
-                      Всички системни параметри са в нормални граници.
+                      Р’СЃРёС‡РєРё СЃРёСЃС‚РµРјРЅРё РїР°СЂР°РјРµС‚СЂРё СЃР° РІ
+                      РЅРѕСЂРјР°Р»РЅРё РіСЂР°РЅРёС†Рё.
                     </p>
                   </BentoCard>
                 </div>
@@ -785,14 +805,15 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Визуална Идентичност - Бадминтон Клуб
+                      Р’РёР·СѓР°Р»РЅР° РРґРµРЅС‚РёС‡РЅРѕСЃС‚ -
+                      Р‘Р°РґРјРёРЅС‚РѕРЅ РљР»СѓР±
                     </h3>
                   </div>
 
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Лого на Клуба
+                        Р›РѕРіРѕ РЅР° РљР»СѓР±Р°
                       </Label>
                       <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
                         <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
@@ -813,10 +834,11 @@ export default function SettingsClient() {
                               className="mr-3 h-4 w-4"
                               strokeWidth={1.5}
                             />{" "}
-                            Промени Лого
+                            РџСЂРѕРјРµРЅРё Р›РѕРіРѕ
                           </Button>
                           <p className="text-[11px] text-zinc-400 uppercase font-light tracking-wide">
-                            Препоръчителен размер: 512x512px (PNG, SVG)
+                            РџСЂРµРїРѕСЂСЉС‡РёС‚РµР»РµРЅ СЂР°Р·РјРµСЂ: 512x512px
+                            (PNG, SVG)
                           </p>
                         </div>
                       </div>
@@ -825,7 +847,7 @@ export default function SettingsClient() {
                     <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-3">
                         <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                          Основен Цвят
+                          РћСЃРЅРѕРІРµРЅ Р¦РІСЏС‚
                         </Label>
                         <div className="flex gap-3">
                           <div className="h-14 w-14 rounded-xl bg-[#00AEEF] border-4 border-white dark:border-zinc-800 shadow-none" />
@@ -844,7 +866,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                          Акцентен Цвят
+                          РђРєС†РµРЅС‚РµРЅ Р¦РІСЏС‚
                         </Label>
                         <div className="flex gap-3">
                           <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
@@ -872,14 +894,14 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Визуална Идентичност - Recovery Zone
+                      Р’РёР·СѓР°Р»РЅР° РРґРµРЅС‚РёС‡РЅРѕСЃС‚ - Recovery Zone
                     </h3>
                   </div>
 
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Лого на Зоната
+                        Р›РѕРіРѕ РЅР° Р—РѕРЅР°С‚Р°
                       </Label>
                       <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
                         <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
@@ -900,10 +922,11 @@ export default function SettingsClient() {
                               className="mr-3 h-4 w-4"
                               strokeWidth={1.5}
                             />{" "}
-                            Промени Лого
+                            РџСЂРѕРјРµРЅРё Р›РѕРіРѕ
                           </Button>
                           <p className="text-[11px] text-zinc-400 uppercase font-light tracking-wide">
-                            Препоръчителен размер: 512x512px (PNG, SVG)
+                            РџСЂРµРїРѕСЂСЉС‡РёС‚РµР»РµРЅ СЂР°Р·РјРµСЂ: 512x512px
+                            (PNG, SVG)
                           </p>
                         </div>
                       </div>
@@ -912,7 +935,7 @@ export default function SettingsClient() {
                     <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-3">
                         <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                          Основен Цвят
+                          РћСЃРЅРѕРІРµРЅ Р¦РІСЏС‚
                         </Label>
                         <div className="flex gap-3">
                           <div className="h-14 w-14 rounded-xl bg-[#00f2fe] border-4 border-white dark:border-zinc-800 shadow-none" />
@@ -931,7 +954,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                          Акцентен Цвят
+                          РђРєС†РµРЅС‚РµРЅ Р¦РІСЏС‚
                         </Label>
                         <div className="flex gap-3">
                           <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
@@ -955,7 +978,7 @@ export default function SettingsClient() {
                 <BentoCard className="md:col-span-4 p-10 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-none flex flex-col justify-between">
                   <div className="space-y-6">
                     <h3 className="font-light text-xl uppercase tracking-widest">
-                      Преглед
+                      РџСЂРµРіР»РµРґ
                     </h3>
                     <div className="p-6 rounded-2xl bg-white/5 dark:bg-zinc-50 border border-white/10 dark:border-zinc-200 space-y-4">
                       <div className="h-2 w-16 bg-primary rounded-full" />
@@ -964,8 +987,10 @@ export default function SettingsClient() {
                     </div>
                   </div>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase font-medium leading-relaxed tracking-wider">
-                    Промените в брандирането ще се отразят веднага на всички
-                    публични страници и генерирани документи.
+                    РџСЂРѕРјРµРЅРёС‚Рµ РІ Р±СЂР°РЅРґРёСЂР°РЅРµС‚Рѕ С‰Рµ СЃРµ
+                    РѕС‚СЂР°Р·СЏС‚ РІРµРґРЅР°РіР° РЅР° РІСЃРёС‡РєРё
+                    РїСѓР±Р»РёС‡РЅРё СЃС‚СЂР°РЅРёС†Рё Рё РіРµРЅРµСЂРёСЂР°РЅРё
+                    РґРѕРєСѓРјРµРЅС‚Рё.
                   </p>
                 </BentoCard>
               </div>
@@ -979,44 +1004,44 @@ export default function SettingsClient() {
                 <div className="flex items-center gap-4">
                   <Lock className="h-5 w-5 text-primary" strokeWidth={1.5} />
                   <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                    Сигурност на Системата
+                    РЎРёРіСѓСЂРЅРѕСЃС‚ РЅР° РЎРёСЃС‚РµРјР°С‚Р°
                   </h3>
                 </div>
 
                 <div className="space-y-10 max-w-2xl">
                   <div className="space-y-6">
                     <h4 className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                      Смяна на Парола (Админ)
+                      РЎРјСЏРЅР° РЅР° РџР°СЂРѕР»Р° (РђРґРјРёРЅ)
                     </h4>
                     <div className="space-y-6">
                       <div className="space-y-3">
                         <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                          Текуща Парола
+                          РўРµРєСѓС‰Р° РџР°СЂРѕР»Р°
                         </Label>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў"
                           className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                            Нова Парола
+                            РќРѕРІР° РџР°СЂРѕР»Р°
                           </Label>
                           <Input
                             type="password"
-                            placeholder="••••••••"
+                            placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў"
                             className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                           />
                         </div>
                         <div className="space-y-3">
                           <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                            Повтори Новата Парола
+                            РџРѕРІС‚РѕСЂРё РќРѕРІР°С‚Р° РџР°СЂРѕР»Р°
                           </Label>
                           <Input
                             type="password"
-                            placeholder="••••••••"
+                            placeholder="вЂўвЂўвЂўвЂўвЂўвЂўвЂўвЂў"
                             className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                           />
                         </div>
@@ -1028,156 +1053,21 @@ export default function SettingsClient() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                       <div>
                         <h4 className="font-light text-lg text-zinc-900 dark:text-white">
-                          Двуфакторна автентикация
+                          Р”РІСѓС„Р°РєС‚РѕСЂРЅР° Р°РІС‚РµРЅС‚РёРєР°С†РёСЏ
                         </h4>
                         <p className="text-sm text-zinc-400 font-light mt-1">
-                          Добавете допълнително ниво на сигурност към вашия
-                          акаунт.
+                          Р”РѕР±Р°РІРµС‚Рµ РґРѕРїСЉР»РЅРёС‚РµР»РЅРѕ РЅРёРІРѕ
+                          РЅР° СЃРёРіСѓСЂРЅРѕСЃС‚ РєСЉРј РІР°С€РёСЏ
+                          Р°РєР°СѓРЅС‚.
                         </p>
                       </div>
                       <Button
                         variant="outline"
                         className="rounded-xl border-zinc-200 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-8 bg-white dark:bg-zinc-900"
                       >
-                        Активирай
+                        РђРєС‚РёРІРёСЂР°Р№
                       </Button>
                     </div>
-                  </div>
-                </div>
-
-                {/* Team (Therapists) Section */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden mt-8">
-                  <div className="flex items-center justify-between p-6 md:p-8 border-b border-zinc-800">
-                    <div>
-                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                        Екип
-                      </h3>
-                      <p className="text-zinc-500 text-sm mt-1">
-                        Добавете снимка, име, роля и описание. За снимки можете
-                        да добавите файловете в папка &quot;public/team&quot; и
-                        да напишете &quot;/team/imeto.jpg&quot;
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => addTherapist("recoveryzone")}
-                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Добави Член
-                    </Button>
-                  </div>
-                  <div className="p-6 md:p-8 space-y-6">
-                    <div className="mb-6">
-                      <Label className="text-zinc-400 mb-2 block">
-                        Въведение към екипа (Team Intro)
-                      </Label>
-                      <Textarea
-                        value={rzData.teamIntro || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "recoveryzone",
-                            "teamIntro",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Кратко описание на екипа..."
-                        className="min-h-[100px] resize-y h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
-                      />
-                    </div>
-                    {rzData.therapists?.map((therapist, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col gap-4 p-6 bg-black/50 border border-zinc-800/50 rounded-2xl relative"
-                      >
-                        <Button
-                          variant="ghost"
-                          onClick={() => removeTherapist("recoveryzone", index)}
-                          className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                          <div>
-                            <Label className="text-zinc-400 mb-2 block">
-                              Име
-                            </Label>
-                            <Input
-                              value={therapist.name || ""}
-                              onChange={(e) =>
-                                handleTherapistChange(
-                                  "recoveryzone",
-                                  index,
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Живко Иванов"
-                              className={inputClassRz}
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-zinc-400 mb-2 block">
-                              Длъжност / Роля
-                            </Label>
-                            <Input
-                              value={therapist.role || ""}
-                              onChange={(e) =>
-                                handleTherapistChange(
-                                  "recoveryzone",
-                                  index,
-                                  "role",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Управител"
-                              className={inputClassRz}
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-zinc-400 mb-2 block">
-                              Път към снимка
-                            </Label>
-                            <Input
-                              value={therapist.image || ""}
-                              onChange={(e) =>
-                                handleTherapistChange(
-                                  "recoveryzone",
-                                  index,
-                                  "image",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Напр. /team/jivko.jpg"
-                              className={inputClassRz}
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <Label className="text-zinc-400 mb-2 block">
-                              Описание (Bio)
-                            </Label>
-                            <Textarea
-                              value={therapist.bio || ""}
-                              onChange={(e) =>
-                                handleTherapistChange(
-                                  "recoveryzone",
-                                  index,
-                                  "bio",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Живко Иванов отговаря за..."
-                              className={`${inputClassRz} min-h-[100px] resize-y`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {(!rzData.therapists || rzData.therapists.length === 0) && (
-                      <p className="text-zinc-500 text-sm font-light">
-                        Няма добавени членове на екипа.
-                      </p>
-                    )}
                   </div>
                 </div>
               </BentoCard>
@@ -1195,13 +1085,15 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Обща информация за зоната
+                      РћР±С‰Р° РёРЅС„РѕСЂРјР°С†РёСЏ Р·Р° Р·РѕРЅР°С‚Р°
                     </h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="md:col-span-2 space-y-3">
-                      <Label className={labelClass}>Общо Описание</Label>
+                      <Label className={labelClass}>
+                        РћР±С‰Рѕ РћРїРёСЃР°РЅРёРµ
+                      </Label>
                       <Textarea
                         value={rzData.description || ""}
                         onChange={(e) =>
@@ -1211,12 +1103,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        placeholder="Възстанови своите Сили..."
+                        placeholder="Р’СЉР·СЃС‚Р°РЅРѕРІРё СЃРІРѕРёС‚Рµ РЎРёР»Рё..."
                         className={`${inputClassRz} min-h-[120px] resize-y`}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Телефон</Label>
+                      <Label className={labelClass}>РўРµР»РµС„РѕРЅ</Label>
                       <Input
                         value={rzData.phone || ""}
                         onChange={(e) =>
@@ -1231,7 +1123,7 @@ export default function SettingsClient() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Имейл</Label>
+                      <Label className={labelClass}>РРјРµР№Р»</Label>
                       <Input
                         value={rzData.email || ""}
                         onChange={(e) =>
@@ -1246,7 +1138,7 @@ export default function SettingsClient() {
                       />
                     </div>
                     <div className="md:col-span-2 space-y-3">
-                      <Label className={labelClass}>Адрес</Label>
+                      <Label className={labelClass}>РђРґСЂРµСЃ</Label>
                       <Input
                         value={rzData.address || ""}
                         onChange={(e) =>
@@ -1256,12 +1148,12 @@ export default function SettingsClient() {
                             e.target.value
                           )
                         }
-                        placeholder="Спортна зала „Енергетик“, Гълъбово"
+                        placeholder="РЎРїРѕСЂС‚РЅР° Р·Р°Р»Р° вЂћР•РЅРµСЂРіРµС‚РёРєвЂњ, Р“СЉР»СЉР±РѕРІРѕ"
                         className={inputClassRz}
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Facebook Линк</Label>
+                      <Label className={labelClass}>Facebook Р›РёРЅРє</Label>
                       <Input
                         value={rzData.facebook || ""}
                         onChange={(e) =>
@@ -1276,7 +1168,7 @@ export default function SettingsClient() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>Instagram Линк</Label>
+                      <Label className={labelClass}>Instagram Р›РёРЅРє</Label>
                       <Input
                         value={rzData.instagram || ""}
                         onChange={(e) =>
@@ -1291,7 +1183,7 @@ export default function SettingsClient() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className={labelClass}>YouTube Линк</Label>
+                      <Label className={labelClass}>YouTube Р›РёРЅРє</Label>
                       <Input
                         value={rzData.youtube || ""}
                         onChange={(e) =>
@@ -1315,13 +1207,15 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Инвентар & Оборудване
+                      РРЅРІРµРЅС‚Р°СЂ & РћР±РѕСЂСѓРґРІР°РЅРµ
                     </h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <Label className={labelClass}>Брой Компресори</Label>
+                      <Label className={labelClass}>
+                        Р‘СЂРѕР№ РљРѕРјРїСЂРµСЃРѕСЂРё
+                      </Label>
                       <Input
                         type="number"
                         min="0"
@@ -1338,7 +1232,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        Приставки &quot;ТАЗ&quot;
+                        РџСЂРёСЃС‚Р°РІРєРё &quot;РўРђР—&quot;
                       </Label>
                       <Input
                         type="number"
@@ -1356,7 +1250,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        Приставки &quot;КРАКА&quot;
+                        РџСЂРёСЃС‚Р°РІРєРё &quot;РљР РђРљРђ&quot;
                       </Label>
                       <Input
                         type="number"
@@ -1374,7 +1268,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        Приставки &quot;РЪЦЕ&quot;
+                        РџСЂРёСЃС‚Р°РІРєРё &quot;Р РЄР¦Р•&quot;
                       </Label>
                       <Input
                         type="number"
@@ -1400,7 +1294,7 @@ export default function SettingsClient() {
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Работно Време
+                      Р Р°Р±РѕС‚РЅРѕ Р’СЂРµРјРµ
                     </h3>
                   </div>
                   <div className="space-y-4">
@@ -1414,13 +1308,13 @@ export default function SettingsClient() {
                       "sunday",
                     ].map((day, i) => {
                       const dayNames = [
-                        "Понеделник",
-                        "Вторник",
-                        "Сряда",
-                        "Четвъртък",
-                        "Петък",
-                        "Събота",
-                        "Неделя",
+                        "РџРѕРЅРµРґРµР»РЅРёРє",
+                        "Р’С‚РѕСЂРЅРёРє",
+                        "РЎСЂСЏРґР°",
+                        "Р§РµС‚РІСЉСЂС‚СЉРє",
+                        "РџРµС‚СЉРє",
+                        "РЎСЉР±РѕС‚Р°",
+                        "РќРµРґРµР»СЏ",
                       ];
                       const sched = rzData.schedule || {};
                       const daySched = (
@@ -1457,7 +1351,9 @@ export default function SettingsClient() {
                               }
                             />
                             <span className="text-[10px] uppercase font-bold text-zinc-400 w-16">
-                              {daySched.isOpen ? "Отворено" : "Затворено"}
+                              {daySched.isOpen
+                                ? "РћС‚РІРѕСЂРµРЅРѕ"
+                                : "Р—Р°С‚РІРѕСЂРµРЅРѕ"}
                             </span>
                           </div>
                           {daySched.isOpen && (
@@ -1497,7 +1393,146 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                {/* Benefits / База */}
+                {/* Team (Therapists) Section */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden mt-8">
+                  <div className="flex items-center justify-between p-6 md:p-8 border-b border-zinc-800">
+                    <div>
+                      <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+                        Р•РєРёРї
+                      </h3>
+                      <p className="text-zinc-500 text-sm mt-1">
+                        Р”РѕР±Р°РІРµС‚Рµ СЃРЅРёРјРєР°, РёРјРµ, СЂРѕР»СЏ Рё
+                        РѕРїРёСЃР°РЅРёРµ. Р—Р° СЃРЅРёРјРєРё РјРѕР¶РµС‚Рµ РґР°
+                        РґРѕР±Р°РІРёС‚Рµ С„Р°Р№Р»РѕРІРµС‚Рµ РІ РїР°РїРєР°
+                        &quot;public/team&quot; Рё РґР° РЅР°РїРёС€РµС‚Рµ
+                        &quot;/team/imeto.jpg&quot;
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => addTherapist("recoveryzone")}
+                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Р”РѕР±Р°РІРё Р§Р»РµРЅ
+                    </Button>
+                  </div>
+                  <div className="p-6 md:p-8 space-y-6">
+                    <div className="mb-6">
+                      <Label className="text-zinc-400 mb-2 block">
+                        Р’СЉРІРµРґРµРЅРёРµ РєСЉРј РµРєРёРїР° (Team Intro)
+                      </Label>
+                      <Textarea
+                        value={rzData.teamIntro || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recoveryzone",
+                            "teamIntro",
+                            e.target.value
+                          )
+                        }
+                        placeholder="РљСЂР°С‚РєРѕ РѕРїРёСЃР°РЅРёРµ РЅР° РµРєРёРїР°..."
+                        className="min-h-[100px] resize-y h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                      />
+                    </div>
+                    {rzData.therapists?.map((therapist, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col gap-4 p-6 bg-black/50 border border-zinc-800/50 rounded-2xl relative"
+                      >
+                        <Button
+                          variant="ghost"
+                          onClick={() => removeTherapist("recoveryzone", index)}
+                          className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              РРјРµ
+                            </Label>
+                            <Input
+                              value={therapist.name || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Р–РёРІРєРѕ РРІР°РЅРѕРІ"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              Р”Р»СЉР¶РЅРѕСЃС‚ / Р РѕР»СЏ
+                            </Label>
+                            <Input
+                              value={therapist.role || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "role",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="РЈРїСЂР°РІРёС‚РµР»"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-zinc-400 mb-2 block">
+                              РџСЉС‚ РєСЉРј СЃРЅРёРјРєР°
+                            </Label>
+                            <Input
+                              value={therapist.image || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "image",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="РќР°РїСЂ. /team/jivko.jpg"
+                              className={inputClassRz}
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-zinc-400 mb-2 block">
+                              РћРїРёСЃР°РЅРёРµ (Bio)
+                            </Label>
+                            <Textarea
+                              value={therapist.bio || ""}
+                              onChange={(e) =>
+                                handleTherapistChange(
+                                  "recoveryzone",
+                                  index,
+                                  "bio",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Р–РёРІРєРѕ РРІР°РЅРѕРІ РѕС‚РіРѕРІР°СЂСЏ Р·Р°..."
+                              className={`${inputClassRz} min-h-[100px] resize-y`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(!rzData.therapists || rzData.therapists.length === 0) && (
+                      <p className="text-zinc-500 text-sm font-light">
+                        РќСЏРјР° РґРѕР±Р°РІРµРЅРё С‡Р»РµРЅРѕРІРµ РЅР°
+                        РµРєРёРїР°.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Benefits / Р‘Р°Р·Р° */}
                 <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
@@ -1506,7 +1541,7 @@ export default function SettingsClient() {
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                        Предимства (Секция &quot;База&quot;)
+                        РџСЂРµРґРёРјСЃС‚РІР° (РЎРµРєС†РёСЏ &quot;Р‘Р°Р·Р°&quot;)
                       </h3>
                     </div>
                     <Button
@@ -1517,7 +1552,7 @@ export default function SettingsClient() {
                       className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Добави Предимство
+                      Р”РѕР±Р°РІРё РџСЂРµРґРёРјСЃС‚РІРѕ
                     </Button>
                   </div>
                   <div className="space-y-4">
@@ -1538,7 +1573,7 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            placeholder="Напр. Специализирана зона за възстановяване..."
+                            placeholder="РќР°РїСЂ. РЎРїРµС†РёР°Р»РёР·РёСЂР°РЅР° Р·РѕРЅР° Р·Р° РІСЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ..."
                             className={inputClassRz}
                           />
                           <Button
@@ -1559,7 +1594,7 @@ export default function SettingsClient() {
                     })}
                     {(!rzData.benefits || rzData.benefits.length === 0) && (
                       <p className="text-zinc-500 text-sm font-light">
-                        Няма въведени предимства.
+                        РќСЏРјР° РІСЉРІРµРґРµРЅРё РїСЂРµРґРёРјСЃС‚РІР°.
                       </p>
                     )}
                   </div>
@@ -1574,7 +1609,7 @@ export default function SettingsClient() {
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                        Противопоказания
+                        РџСЂРѕС‚РёРІРѕРїРѕРєР°Р·Р°РЅРёСЏ
                       </h3>
                     </div>
                     <Button
@@ -1585,7 +1620,7 @@ export default function SettingsClient() {
                       className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Добави Противопоказание
+                      Р”РѕР±Р°РІРё РџСЂРѕС‚РёРІРѕРїРѕРєР°Р·Р°РЅРёРµ
                     </Button>
                   </div>
                   <div className="space-y-4">
@@ -1601,7 +1636,7 @@ export default function SettingsClient() {
                               e.target.value
                             )
                           }
-                          placeholder="Напр. Бременност, открити рани..."
+                          placeholder="РќР°РїСЂ. Р‘СЂРµРјРµРЅРЅРѕСЃС‚, РѕС‚РєСЂРёС‚Рё СЂР°РЅРё..."
                           className={inputClass}
                         />
                         <Button
@@ -1622,7 +1657,8 @@ export default function SettingsClient() {
                     {(!rzData.contraindications ||
                       rzData.contraindications.length === 0) && (
                       <p className="text-zinc-500 text-sm font-light">
-                        Няма въведени противопоказания.
+                        РќСЏРјР° РІСЉРІРµРґРµРЅРё
+                        РїСЂРѕС‚РёРІРѕРїРѕРєР°Р·Р°РЅРёСЏ.
                       </p>
                     )}
                   </div>
@@ -1637,7 +1673,7 @@ export default function SettingsClient() {
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                        Често задавани въпроси (FAQ)
+                        Р§РµСЃС‚Рѕ Р·Р°РґР°РІР°РЅРё РІСЉРїСЂРѕСЃРё (FAQ)
                       </h3>
                     </div>
                     <Button
@@ -1646,7 +1682,7 @@ export default function SettingsClient() {
                       className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Добави Въпрос
+                      Р”РѕР±Р°РІРё Р’СЉРїСЂРѕСЃ
                     </Button>
                   </div>
                   <div className="space-y-8">
@@ -1663,7 +1699,7 @@ export default function SettingsClient() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                         <div className="space-y-3">
-                          <Label className={labelClass}>Въпрос</Label>
+                          <Label className={labelClass}>Р’СЉРїСЂРѕСЃ</Label>
                           <Input
                             value={faq.q}
                             onChange={(e) =>
@@ -1674,12 +1710,12 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            placeholder="Напр. Колко често мога да използвам Normatec?"
+                            placeholder="РќР°РїСЂ. РљРѕР»РєРѕ С‡РµСЃС‚Рѕ РјРѕРіР° РґР° РёР·РїРѕР»Р·РІР°Рј Normatec?"
                             className={inputClass}
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className={labelClass}>Отговор</Label>
+                          <Label className={labelClass}>РћС‚РіРѕРІРѕСЂ</Label>
                           <textarea
                             value={faq.a}
                             onChange={(e) =>
@@ -1690,7 +1726,7 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            placeholder="Отговор..."
+                            placeholder="РћС‚РіРѕРІРѕСЂ..."
                             className="w-full rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm font-light p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary min-h-[100px] resize-none"
                           />
                         </div>
@@ -1698,7 +1734,7 @@ export default function SettingsClient() {
                     ))}
                     {(!rzData.faqs || rzData.faqs.length === 0) && (
                       <p className="text-zinc-500 text-sm font-light">
-                        Няма въведени въпроси.
+                        РќСЏРјР° РІСЉРІРµРґРµРЅРё РІСЉРїСЂРѕСЃРё.
                       </p>
                     )}
                   </div>
@@ -1730,21 +1766,25 @@ export default function SettingsClient() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Администратор
+                      РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ
                     </h3>
                     <p className="text-[11px] text-primary font-medium uppercase tracking-widest mt-1">
-                      Супер Потребител
+                      РЎСѓРїРµСЂ РџРѕС‚СЂРµР±РёС‚РµР»
                     </p>
                   </div>
                   <div className="w-full pt-8 space-y-4 border-t border-zinc-50 dark:border-zinc-900">
                     <div className="flex justify-between text-[11px] font-medium uppercase tracking-widest">
-                      <span className="text-zinc-400">Последен вход</span>
+                      <span className="text-zinc-400">
+                        РџРѕСЃР»РµРґРµРЅ РІС…РѕРґ
+                      </span>
                       <span className="text-zinc-900 dark:text-white font-light">
-                        Днес, 09:12
+                        Р”РЅРµСЃ, 09:12
                       </span>
                     </div>
                     <div className="flex justify-between text-[11px] font-medium uppercase tracking-widest">
-                      <span className="text-zinc-400">Ниво на достъп</span>
+                      <span className="text-zinc-400">
+                        РќРёРІРѕ РЅР° РґРѕСЃС‚СЉРї
+                      </span>
                       <span className="text-primary font-light">
                         Full Access
                       </span>
@@ -1756,13 +1796,13 @@ export default function SettingsClient() {
                   <div className="flex items-center gap-4">
                     <Mail className="h-5 w-5 text-primary" strokeWidth={1.5} />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Лична Информация
+                      Р›РёС‡РЅР° РРЅС„РѕСЂРјР°С†РёСЏ
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Име
+                        РРјРµ
                       </Label>
                       <Input
                         defaultValue="Admin"
@@ -1771,7 +1811,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Фамилия
+                        Р¤Р°РјРёР»РёСЏ
                       </Label>
                       <Input
                         defaultValue="User"
@@ -1780,7 +1820,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3 md:col-span-2">
                       <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
-                        Имейл Адрес
+                        РРјРµР№Р» РђРґСЂРµСЃ
                       </Label>
                       <Input
                         defaultValue="admin@bkgalabovo.com"
@@ -1801,7 +1841,8 @@ export default function SettingsClient() {
                   <div className="flex items-center gap-4">
                     <Clock className="h-5 w-5 text-primary" strokeWidth={1.5} />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Системна История (Одиторски дневник)
+                      РЎРёСЃС‚РµРјРЅР° РСЃС‚РѕСЂРёСЏ (РћРґРёС‚РѕСЂСЃРєРё
+                      РґРЅРµРІРЅРёРє)
                     </h3>
                   </div>
                   <Button
@@ -1815,23 +1856,23 @@ export default function SettingsClient() {
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-2" />
                     )}
-                    Опресни
+                    РћРїСЂРµСЃРЅРё
                   </Button>
                 </div>
 
                 <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
                   <div className="bg-zinc-50 dark:bg-zinc-900 px-6 py-4 grid grid-cols-12 gap-4 text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                    <div className="col-span-3">Дата / Време</div>
-                    <div className="col-span-3">Действие</div>
-                    <div className="col-span-4">Детайли</div>
-                    <div className="col-span-2">Потребител</div>
+                    <div className="col-span-3">Р”Р°С‚Р° / Р’СЂРµРјРµ</div>
+                    <div className="col-span-3">Р”РµР№СЃС‚РІРёРµ</div>
+                    <div className="col-span-4">Р”РµС‚Р°Р№Р»Рё</div>
+                    <div className="col-span-2">РџРѕС‚СЂРµР±РёС‚РµР»</div>
                   </div>
                   <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto">
                     {auditLogs.length === 0 ? (
                       <div className="p-10 text-center text-sm font-light text-zinc-500">
                         {loadingLogs
-                          ? "Зареждане на дневника..."
-                          : "Няма намерени записи в историята."}
+                          ? "Р—Р°СЂРµР¶РґР°РЅРµ РЅР° РґРЅРµРІРЅРёРєР°..."
+                          : "РќСЏРјР° РЅР°РјРµСЂРµРЅРё Р·Р°РїРёСЃРё РІ РёСЃС‚РѕСЂРёСЏС‚Р°."}
                       </div>
                     ) : (
                       auditLogs.map((log) => (
