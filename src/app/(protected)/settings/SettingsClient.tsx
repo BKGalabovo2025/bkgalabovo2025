@@ -1223,36 +1223,42 @@ export default function SettingsClient() {
                     </Button>
                   </div>
                   <div className="space-y-4">
-                    {rzData.benefits?.map((item, index) => (
-                      <div key={index} className="flex items-center gap-4">
-                        <Input
-                          value={item}
-                          onChange={(e) =>
-                            handleStringArrayChange(
-                              "recoveryzone",
-                              "benefits",
-                              index,
-                              e.target.value
-                            )
-                          }
-                          placeholder="Напр. Специализирана зона за възстановяване..."
-                          className={inputClassRz}
-                        />
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            removeStringArrayItem(
-                              "recoveryzone",
-                              "benefits",
-                              index
-                            )
-                          }
-                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                    {rzData.benefits?.map((item, index) => {
+                      const value =
+                        typeof item === "string"
+                          ? item
+                          : (item as { title?: string }).title || "";
+                      return (
+                        <div key={index} className="flex items-center gap-4">
+                          <Input
+                            value={value}
+                            onChange={(e) =>
+                              handleStringArrayChange(
+                                "recoveryzone",
+                                "benefits",
+                                index,
+                                e.target.value
+                              )
+                            }
+                            placeholder="Напр. Специализирана зона за възстановяване..."
+                            className={inputClassRz}
+                          />
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              removeStringArrayItem(
+                                "recoveryzone",
+                                "benefits",
+                                index
+                              )
+                            }
+                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
                     {(!rzData.benefits || rzData.benefits.length === 0) && (
                       <p className="text-zinc-500 text-sm font-light">
                         Няма въведени предимства.

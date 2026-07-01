@@ -738,14 +738,22 @@ export default function RecoveryZoneClient({
                     "Уютна и релаксираща обстановка",
                     "Просторни съблекални",
                   ]
-              ).map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                  </div>
-                  <span className="text-zinc-300 font-medium">{item}</span>
-                </li>
-              ))}
+              ).map((item, i) => {
+                const textValue =
+                  typeof item === "string"
+                    ? item
+                    : (item as { title?: string }).title || "";
+                return (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                    </div>
+                    <span className="text-zinc-300 font-medium">
+                      {textValue}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
