@@ -7,7 +7,7 @@ import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { Sale, Member, ClubService, Family } from "@/types";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 
-// РџРѕРјРѕС‰РЅР° С„СѓРЅРєС†РёСЏ Р·Р° РїСЂРµРѕР±СЂР°Р·СѓРІР°РЅРµ РЅР° Firestore РґРѕРєСѓРјРµРЅС‚Рё СЃ РєРѕРЅРІРµСЂС‚РёСЂР°РЅРµ РЅР° Timestamps РІ ISO РЅРёР·РѕРІРµ
+// Помощна функция за преобразуване на Firestore документи с конвертиране на Timestamps в ISO низове
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
 ): T | null {
@@ -43,14 +43,14 @@ function snapToData<T>(
 }
 
 /**
- * РР·РІР»РёС‡Р° РІСЃРёС‡РєРё РїСЂРѕРґР°Р¶Р±Рё РЅР° СЃСЉСЂРІСЉСЂР°.
+ * �?звлича всички продажби на сървъра.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getInventorySalesServerAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) {
-      throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+      throw new Error("Неоторизиран достъп.");
     }
 
     const sales = await getCachedSalesForBranch(activeBranch);
@@ -65,20 +65,20 @@ async function getInventorySalesServerAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±РёС‚Рµ.",
+        "Грешка при извличане на продажбите.",
     };
   }
 }
 
 /**
- * Р˜Р·РІР»РёС‡Р° РїСЉР»РЅРёС‚Рµ РґРµС‚Р°Р№Р»Рё РїРѕ СЂР°Р·РїРёСЃРєР° РЅР° СЃСЉСЂРІСЉСЂР°.
+ * �?звлича пълните детайли по разписка на сървъра.
  */
 /* eslint-disable sonarjs/cognitive-complexity */
 export async function getReceiptDetailsServerAction(saleId: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) {
-      throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+      throw new Error("Неоторизиран достъп.");
     }
 
     const adminDb = getAdminDb();
@@ -87,7 +87,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     if (!saleSnap.exists) {
       return {
         success: false,
-        error: "РџСЂРѕРґР°Р¶Р±Р°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.",
+        error: "Продажбата не е намерена.",
       };
     }
 
@@ -96,7 +96,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       console.error("Sale data is incomplete:", sale);
       return {
         success: false,
-        error: "РќРµРїСЉР»РЅРё РґР°РЅРЅРё Р·Р° РїСЂРѕРґР°Р¶Р±Р°С‚Р°.",
+        error: "Непълни данни за продажбата.",
       };
     }
 
@@ -104,7 +104,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
     const isWalkIn = !sale.memberId || sale.memberId === "Walk-in Customer";
     const shouldFetchMember = !isGuest && !isWalkIn && sale.memberId;
 
-    // РџР°СЂР°Р»РµР»РЅРѕ РёР·РІР»РёС‡Р°РЅРµ РЅР° РѕСЃРЅРѕРІРЅРёС‚Рµ СЃРІСЉСЂР·Р°РЅРё РґРѕРєСѓРјРµРЅС‚Рё
+    // Паралелно извличане на основните свързани документи
     const memberSnap = shouldFetchMember
       ? await adminDb.collection("members").doc(sale.memberId).get()
       : null;
@@ -116,8 +116,8 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       if (sale.memberId === "GUEST_EXTERNAL") {
         member = {
           id: "GUEST_EXTERNAL",
-          firstName: "Р’СЉРЅС€РµРЅ",
-          lastName: "РіРѕСЃС‚",
+          firstName: "Външен",
+          lastName: "гост",
           email: "",
           phone: "",
           status: "active",
@@ -128,8 +128,8 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       } else {
         member = {
           id: sale.memberId || "Walk-in Customer",
-          firstName: "Р’СЉРЅС€РµРЅ",
-          lastName: "РєР»РёРµРЅС‚",
+          firstName: "Външен",
+          lastName: "клиент",
           email: "",
           phone: "",
           status: "active",
@@ -140,10 +140,10 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       }
     }
 
-    // РР·РІР»РёС‡Р°РЅРµ РЅР° СЃРІСЉСЂР·Р°РЅР° СѓСЃР»СѓРіР° (Р°РєРѕ Рµ РЅРµРѕР±С…РѕРґРёРјРѕ)
+    // �?звличане на свързана услуга (ако е необходимо)
     const service: ClubService | null = null;
 
-    // РР·РІР»РёС‡Р°РЅРµ РЅР° СЃРІСЉСЂР·Р°РЅРѕ Р»РёС†Рµ (СЂРѕРґРёС‚РµР»/РґРµС‚Рµ)
+    // �?звличане на свързано лице (родител/дете)
     let relatedMember: Member | null = null;
     if (member.relatedMemberId) {
       const relatedSnap = await adminDb
@@ -153,7 +153,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       relatedMember = snapToData<Member>(relatedSnap);
     }
 
-    // РР·РІР»РёС‡Р°РЅРµ РЅР° СЃРµРјРµР№СЃС‚РІРѕ Рё РґСЂСѓРіРё С‡Р»РµРЅРѕРІРµ РЅР° СЃРµРјРµР№СЃС‚РІРѕС‚Рѕ
+    // �?звличане на семейство и други членове на семейството
     let family: Family | null = null;
     const familyMembers: Member[] = [];
 
@@ -172,7 +172,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
           (id) => id !== sale.memberId
         );
         if (otherMemberIds.length > 0) {
-          // Р’Р·РёРјР°РјРµ РѕСЃС‚Р°РЅР°Р»РёС‚Рµ С‡Р»РµРЅРѕРІРµ РЅР° СЃРµРјРµР№СЃС‚РІРѕС‚Рѕ
+          // Взимаме останалите членове на семейството
           const otherMembersPromises = otherMemberIds.map((id) =>
             adminDb.collection("members").doc(id).get()
           );
@@ -202,7 +202,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё РёР·РІР»РёС‡Р°РЅРµ РЅР° РґРµС‚Р°Р№Р»РёС‚Рµ Р·Р° СЂР°Р·РїРёСЃРєР°С‚Р°.",
+        "Грешка при извличане на детайлите за разписката.",
     };
   }
 }

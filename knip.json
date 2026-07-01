@@ -6,7 +6,8 @@
     "src/components/data-table/data-table-pagination.tsx",
     "src/components/data-table/data-table-toolbar.tsx",
     "src/components/ui/carousel.tsx",
-    "src/components/ui/popover.tsx"
+    "src/components/ui/popover.tsx",
+    "src/components/recovery/SessionsSection.tsx"
   ],
   "ignoreDependencies": [
     "tsconfig-paths",

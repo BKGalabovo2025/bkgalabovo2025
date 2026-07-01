@@ -73,8 +73,8 @@ async function createSaleForReservation(
 
   const courtId = reservation.courtId;
   const productName = courtId
-    ? `РќР°РµРј РЅР° РљРѕСЂС‚ в„– ${courtId}`
-    : `Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ: ${reservation.serviceName || "РЈСЃР»СѓРіР°"}`;
+    ? `Наем на Корт № ${courtId}`
+    : `Възстановяване: ${reservation.serviceName || "Услуга"}`;
 
   const saleData = {
     siteId: reservation.siteId || "bkgalabovo",
@@ -95,7 +95,7 @@ async function createSaleForReservation(
     totalAmount: totalPrice,
     currency: "EUR",
     paymentMethod: paymentMethod || reservation.paymentMethod || "Cash",
-    clientName: reservation.clientName || "Р’СЉРЅС€РµРЅ РєР»РёРµРЅС‚",
+    clientName: reservation.clientName || "Външен клиент",
     type: "general_service",
     reservationId: reservationId,
     createdAt: FieldValue.serverTimestamp(),
@@ -141,8 +141,8 @@ async function findOrCreateGuestProfile(
   const phone = clientPhone?.trim() || "";
   const email = clientEmail?.trim() || "";
   const nameParts = clientName.trim().split(/\s+/);
-  const firstName = nameParts[0] || "Р’СЉРЅС€РµРЅ";
-  const lastName = nameParts.slice(1).join(" ") || "РљР»РёРµРЅС‚";
+  const firstName = nameParts[0] || "Външен";
+  const lastName = nameParts.slice(1).join(" ") || "Клиент";
   const branchId = siteId || "bkgalabovo";
 
   // 1. Try searching by phone number (if provided and valid)
@@ -238,7 +238,7 @@ export async function createReservationAction(
     if (hasConflict) {
       return {
         success: false,
-        message: "РР·Р±СЂР°РЅРёСЏС‚ РїРµСЂРёРѕРґ СЃРµ Р·Р°СЃС‚СЉРїРІР° СЃСЉСЃ СЃСЉС‰РµСЃС‚РІСѓРІР°С‰Р° СЂРµР·РµСЂРІР°С†РёСЏ.",
+        message: "�?збраният период се застъпва със съществуваща резервация.",
       };
     }
 
@@ -281,22 +281,22 @@ export async function createReservationAction(
           if (usedComp + reqComp > maxComp)
             return {
               success: false,
-              message: `РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РєРѕРјРїСЂРµСЃРѕСЂРё (С‚СЉСЂСЃРµРЅРё ${reqComp}, СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxComp - usedComp)}).`,
+              message: `Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`,
             };
           if (usedLegs + reqLegs > maxLegs)
             return {
               success: false,
-              message: `РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё РљР РђРљРђ (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxLegs - usedLegs)}).`,
+              message: `Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`,
             };
           if (usedArms + reqArms > maxArms)
             return {
               success: false,
-              message: `РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё Р РЄР¦Р• (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxArms - usedArms)}).`,
+              message: `Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`,
             };
           if (usedHips + reqHips > maxHips)
             return {
               success: false,
-              message: `РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё РўРђР— (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxHips - usedHips)}).`,
+              message: `Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`,
             };
         }
       }
@@ -323,7 +323,7 @@ export async function createReservationAction(
     if (hasBlocked) {
       return {
         success: false,
-        message: "РР·Р±СЂР°РЅРёСЏС‚ РїРµСЂРёРѕРґ Рµ Р±Р»РѕРєРёСЂР°РЅ РѕС‚ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ.",
+        message: "�?збраният период е блокиран от администратор.",
       };
     }
 
@@ -386,7 +386,7 @@ export async function createReservationAction(
 
     return {
       success: true,
-      message: "Р РµР·РµСЂРІР°С†РёСЏС‚Р° Рµ СЃСЉР·РґР°РґРµРЅР° СѓСЃРїРµС€РЅРѕ.",
+      message: "Резервацията е създадена успешно.",
       id: reservationId,
     };
   } catch (error: unknown) {
@@ -396,7 +396,7 @@ export async function createReservationAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё СЃСЉР·РґР°РІР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёСЏ.",
+          : "Грешка при създаване на резервация.",
     };
   }
 }
@@ -417,7 +417,7 @@ export async function updateReservationAction(
     const reservationsRef = db.collection("reservations");
     const reservationDoc = await reservationsRef.doc(reservationId).get();
     if (!reservationDoc.exists) {
-      throw new Error("Р РµР·РµСЂРІР°С†РёСЏС‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.");
+      throw new Error("Резервацията не е намерена.");
     }
     const oldReservation = reservationDoc.data()!;
 
@@ -440,7 +440,7 @@ export async function updateReservationAction(
     if (hasConflict) {
       return {
         success: false,
-        message: "РџСЂРѕРјСЏРЅР°С‚Р° СЃРµ Р·Р°СЃС‚СЉРїРІР° СЃСЉСЃ СЃСЉС‰РµСЃС‚РІСѓРІР°С‰Р° СЂРµР·РµСЂРІР°С†РёСЏ.",
+        message: "Промяната се застъпва със съществуваща резервация.",
       };
     }
 
@@ -492,14 +492,14 @@ export async function updateReservationAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "Р РµР·РµСЂРІР°С†РёСЏС‚Р° Рµ Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅР° СѓСЃРїРµС€РЅРѕ." };
+    return { success: true, message: "Резервацията е актуализирана успешно." };
   } catch (error: unknown) {
     return {
       success: false,
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёСЏ.",
+          : "Грешка при актуализиране на резервация.",
     };
   }
 }
@@ -521,14 +521,14 @@ export async function deleteReservationAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "Р РµР·РµСЂРІР°С†РёСЏС‚Р° Рµ РёР·С‚СЂРёС‚Р°." };
+    return { success: true, message: "Резервацията е изтрита." };
   } catch (error: unknown) {
     return {
       success: false,
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёСЏ.",
+          : "Грешка при изтриване на резервация.",
     };
   }
 }
@@ -553,7 +553,7 @@ export async function createBlockedSlotAction(
     });
 
     revalidatePath("/reservations");
-    return { success: true, message: "РџРµСЂРёРѕРґСЉС‚ Рµ Р±Р»РѕРєРёСЂР°РЅ СѓСЃРїРµС€РЅРѕ." };
+    return { success: true, message: "Периодът е блокиран успешно." };
   } catch (error: unknown) {
     console.error("Create Blocked Slot Error:", error);
     return {
@@ -561,7 +561,7 @@ export async function createBlockedSlotAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё Р±Р»РѕРєРёСЂР°РЅРµ РЅР° РїРµСЂРёРѕРґ.",
+          : "Грешка при блокиране на период.",
     };
   }
 }
@@ -592,7 +592,7 @@ export async function updateBlockedSlotAction(
     revalidatePath("/reservations");
     return {
       success: true,
-      message: "Р‘Р»РѕРєРёСЂР°РЅРёСЏС‚ РїРµСЂРёРѕРґ Рµ Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅ СѓСЃРїРµС€РЅРѕ.",
+      message: "Блокираният период е актуализиран успешно.",
     };
   } catch (error: unknown) {
     console.error("Update Blocked Slot Error:", error);
@@ -601,7 +601,7 @@ export async function updateBlockedSlotAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРµ РЅР° Р±Р»РѕРєРёСЂР°РЅ РїРµСЂРёРѕРґ.",
+          : "Грешка при актуализиране на блокиран период.",
     };
   }
 }
@@ -612,7 +612,7 @@ export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
     const db = getAdminDb();
     await db.collection("blockedSlots").doc(slotId).delete();
     revalidatePath("/reservations");
-    return { success: true, message: "Р‘Р»РѕРєРёСЂР°РЅРёСЏС‚ РїРµСЂРёРѕРґ Рµ РёР·С‚СЂРёС‚." };
+    return { success: true, message: "Блокираният период е изтрит." };
   } catch (error: unknown) {
     console.error("Delete Blocked Slot Error:", error);
     return {
@@ -620,7 +620,7 @@ export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ РЅР° Р±Р»РѕРєРёСЂР°РЅ РїРµСЂРёРѕРґ.",
+          : "Грешка при изтриване на блокиран период.",
     };
   }
 }
@@ -638,7 +638,7 @@ export async function markReservationAsPaidAction(
       .doc(reservationId)
       .get();
     if (!reservationDoc.exists) {
-      throw new Error("Р РµР·РµСЂРІР°С†РёСЏС‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.");
+      throw new Error("Резервацията не е намерена.");
     }
     const reservation = reservationDoc.data()!;
 
@@ -695,14 +695,14 @@ export async function markReservationAsPaidAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "Р РµР·РµСЂРІР°С†РёСЏС‚Р° Рµ РјР°СЂРєРёСЂР°РЅР° РєР°С‚Рѕ РїР»Р°С‚РµРЅР°." };
+    return { success: true, message: "Резервацията е маркирана като платена." };
   } catch (error: unknown) {
     return {
       success: false,
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё РјР°СЂРєРёСЂР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёСЏ.",
+          : "Грешка при маркиране на резервация.",
     };
   }
 }
@@ -720,12 +720,12 @@ export async function sendDonationReceiptEmailAction(
       .doc(reservationId)
       .get();
     if (!reservationDoc.exists) {
-      return { success: false, message: "Р РµР·РµСЂРІР°С†РёСЏС‚Р° РЅРµ Р±РµС€Рµ РЅР°РјРµСЂРµРЅР°." };
+      return { success: false, message: "Резервацията не беше намерена." };
     }
 
     const reservation = reservationDoc.data();
     if (!reservation || !reservation.clientEmail) {
-      return { success: false, message: "РљР»РёРµРЅС‚СЉС‚ РЅСЏРјР° РїРѕСЃРѕС‡РµРЅ РёРјРµР№Р» Р°РґСЂРµСЃ." };
+      return { success: false, message: "Клиентът няма посочен имейл адрес." };
     }
 
     const transporter = nodemailer.createTransport({
@@ -749,29 +749,29 @@ export async function sendDonationReceiptEmailAction(
 
     const htmlContent =
       "<html><body>" +
-      "<h1>Р”РѕРєСѓРјРµРЅС‚ Р·Р° Р”Р°СЂРµРЅРёРµ</h1>" +
-      "<p>РЎ РЅР°СЃС‚РѕСЏС‰РёСЏ РґРѕРєСѓРјРµРЅС‚ СЃРµ РїРѕС‚РІСЉСЂР¶РґР°РІР° РїРѕСЃС‚СЉРїРёР»Рѕ С†РµР»РµРІРѕ РґР°СЂРµРЅРёРµ РѕС‚ <strong>" +
+      "<h1>Документ за Дарение</h1>" +
+      "<p>С настоящия документ се потвърждава постъпило целево дарение от <strong>" +
       reservation.clientName +
       "</strong>" +
-      " (С‚РµР». " +
-      (reservation.clientPhone || "РЅРµРїРѕСЃРѕС‡РµРЅ") +
-      ") РІ РїРѕР»Р·Р° РЅР° " +
+      " (тел. " +
+      (reservation.clientPhone || "непосочен") +
+      ") в полза на " +
       clubInfo.name +
       ".</p>" +
       "<table border='1' cellpadding='8' style='border-collapse:collapse;width:100%'>" +
-      "<tr><th>РћРїРёСЃР°РЅРёРµ</th><th>Р”Р°С‚Р°</th><th>РЎСѓРјР°</th></tr>" +
-      "<tr><td>Р¦РµР»РµРІРѕ РґР°СЂРµРЅРёРµ Р·Р° РїРѕР»Р·РІР°РЅРµ РЅР° Р±Р°РґРјРёРЅС‚РѕРЅ РєРѕСЂС‚</td>" +
+      "<tr><th>Описание</th><th>Дата</th><th>Сума</th></tr>" +
+      "<tr><td>Целево дарение за ползване на бадминтон корт</td>" +
       "<td>" +
       formattedDate +
       " " +
       timeRange +
       " (" +
       durationHours +
-      "С‡.)</td>" +
+      "ч.)</td>" +
       "<td>" +
       formatPrice(reservation.totalPrice) +
       "</td></tr>" +
-      "<tr><td colspan='2'><strong>РћР±С‰Р° СЃС‚РѕР№РЅРѕСЃС‚:</strong></td><td>" +
+      "<tr><td colspan='2'><strong>Обща стойност:</strong></td><td>" +
       formatPrice(reservation.totalPrice) +
       "</td></tr>" +
       "</table>" +
@@ -785,11 +785,11 @@ export async function sendDonationReceiptEmailAction(
     await transporter.sendMail({
       from: clubInfo.name + " <" + process.env.EMAIL_USER + ">",
       to: reservation.clientEmail,
-      subject: "Р”РѕРєСѓРјРµРЅС‚ Р·Р° РґР°СЂРµРЅРёРµ - " + clubInfo.name,
+      subject: "Документ за дарение - " + clubInfo.name,
       html: htmlContent,
     });
 
-    return { success: true, message: "РРјРµР№Р»СЉС‚ Рµ РёР·РїСЂР°С‚РµРЅ СѓСЃРїРµС€РЅРѕ." };
+    return { success: true, message: "�?мейлът е изпратен успешно." };
   } catch (error) {
     console.error("Send Email Error:", error);
     return {
@@ -797,7 +797,7 @@ export async function sendDonationReceiptEmailAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё РёР·РїСЂР°С‰Р°РЅРµ РЅР° РёРјРµР№Р».",
+          : "Грешка при изпращане на имейл.",
     };
   }
 }
@@ -813,7 +813,7 @@ export async function createPackageReservationsAction(
     const db = getAdminDb();
 
     if (!reservationsData || reservationsData.length === 0) {
-      throw new Error("РќСЏРјР° РґР°РЅРЅРё Р·Р° СЂРµР·РµСЂРІР°С†РёРё.");
+      throw new Error("Няма данни за резервации.");
     }
 
     const packageGroupId = db.collection("reservations").doc().id;
@@ -867,7 +867,7 @@ export async function createPackageReservationsAction(
 
         if (conflict) {
           throw new Error(
-            `Р”РµРЅ ${i + 1} СЃРµ Р·Р°СЃС‚СЉРїРІР° СЃСЉСЃ СЃСЉС‰РµСЃС‚РІСѓРІР°С‰Р° СЂРµР·РµСЂРІР°С†РёСЏ.`
+            `Ден ${i + 1} се застъпва със съществуваща резервация.`
           );
         }
 
@@ -886,7 +886,7 @@ export async function createPackageReservationsAction(
         });
 
         if (hasBlocked) {
-          throw new Error(`Р”РµРЅ ${i + 1} Рµ Р±Р»РѕРєРёСЂР°РЅ РѕС‚ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ.`);
+          throw new Error(`Ден ${i + 1} е блокиран от администратор.`);
         }
       }
 
@@ -920,19 +920,19 @@ export async function createPackageReservationsAction(
 
         if (usedComp + reqComp > maxComp)
           throw new Error(
-            `Р”РµРЅ ${i + 1}: РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РєРѕРјРїСЂРµСЃРѕСЂРё (С‚СЉСЂСЃРµРЅРё ${reqComp}, СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxComp - usedComp)}).`
+            `Ден ${i + 1}: Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`
           );
         if (usedLegs + reqLegs > maxLegs)
           throw new Error(
-            `Р”РµРЅ ${i + 1}: РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё РљР РђРљРђ (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxLegs - usedLegs)}).`
+            `Ден ${i + 1}: Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`
           );
         if (usedArms + reqArms > maxArms)
           throw new Error(
-            `Р”РµРЅ ${i + 1}: РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё Р РЄР¦Р• (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxArms - usedArms)}).`
+            `Ден ${i + 1}: Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`
           );
         if (usedHips + reqHips > maxHips)
           throw new Error(
-            `Р”РµРЅ ${i + 1}: РќСЏРјР° РґРѕСЃС‚Р°С‚СЉС‡РЅРѕ РїСЂРёСЃС‚Р°РІРєРё РўРђР— (СЃРІРѕР±РѕРґРЅРё ${Math.max(0, maxHips - usedHips)}).`
+            `Ден ${i + 1}: Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`
           );
       }
     }
@@ -987,7 +987,7 @@ export async function createPackageReservationsAction(
       client2Name: firstRes.client2Name || "",
       client2Phone: firstRes.client2Phone || "",
       serviceId: firstRes.serviceId || "",
-      packageName: firstRes.serviceName || "РџР°РєРµС‚",
+      packageName: firstRes.serviceName || "Пакет",
       sessionsTotal: parsedReservations.length,
       sessionsRemaining: parsedReservations.length,
       purchaseDate: Timestamp.now(),
@@ -1024,7 +1024,7 @@ export async function createPackageReservationsAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "РџР°РєРµС‚СЉС‚ Рµ СЃСЉР·РґР°РґРµРЅ СѓСЃРїРµС€РЅРѕ." };
+    return { success: true, message: "Пакетът е създаден успешно." };
   } catch (error: unknown) {
     console.error("Create Package Error:", error);
     return {
@@ -1032,7 +1032,7 @@ export async function createPackageReservationsAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё СЃСЉР·РґР°РІР°РЅРµ РЅР° РїР°РєРµС‚Р°.",
+          : "Грешка при създаване на пакета.",
     };
   }
 }
@@ -1052,7 +1052,7 @@ export async function updatePackageReservationsAction(
       .get();
 
     if (reservationsSnap.empty) {
-      throw new Error("РџР°РєРµС‚СЉС‚ РЅРµ Рµ РЅР°РјРµСЂРµРЅ.");
+      throw new Error("Пакетът не е намерен.");
     }
 
     const firstRes = reservationsSnap.docs[0].data();
@@ -1128,7 +1128,7 @@ export async function updatePackageReservationsAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "РџР°РєРµС‚СЉС‚ Рµ Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅ СѓСЃРїРµС€РЅРѕ." };
+    return { success: true, message: "Пакетът е актуализиран успешно." };
   } catch (error: unknown) {
     console.error("Update Package Error:", error);
     return {
@@ -1136,7 +1136,7 @@ export async function updatePackageReservationsAction(
       message:
         error instanceof Error
           ? error.message
-          : "Р“СЂРµС€РєР° РїСЂРё Р°РєС‚СѓР°Р»РёР·РёСЂР°РЅРµ РЅР° РїР°РєРµС‚Р°.",
+          : "Грешка при актуализиране на пакета.",
     };
   }
 }
@@ -1236,17 +1236,17 @@ export async function checkRecoveryInventoryAction(
     if (usedComp + reqComp > maxComp)
       return {
         success: false,
-        message: "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ , пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ).",
+        message: "���� ���������� ���������� (������� , �������� ).",
       };
     if (usedLegs + reqLegs > maxLegs)
       return {
         success: false,
-        message: "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ).",
+        message: "���� ���������� ��������� ����� (�������� ).",
       };
     if (usedArms + reqArms > maxArms)
       return {
         success: false,
-        message: "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ).",
+        message: "���� ���������� ��������� ���� (�������� ).",
       };
     if (usedHips + reqHips > maxHips)
       return {
@@ -1257,7 +1257,7 @@ export async function checkRecoveryInventoryAction(
     return { success: true };
   } catch (error) {
     console.error("Check recovery inventory error:", error);
-    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё РїСЂРѕРІРµСЂРєР° РЅР° РЅР°Р»РёС‡РЅРѕСЃС‚С‚Р°." };
+    return { success: false, message: "Грешка при проверка на наличността." };
   }
 }
 

@@ -28,7 +28,7 @@ export interface Therapist {
 /**
  * Detailed daily schedule.
  */
-export interface DaySchedule {
+interface DaySchedule {
   open: string; // "HH:mm"
   close: string; // "HH:mm"
   isOpen: boolean;

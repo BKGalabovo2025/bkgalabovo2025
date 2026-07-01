@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 export async function getTrainingServiceHistoryAction(_activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
 
@@ -35,7 +35,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
           ...data,
           createdAt,
           type: data.action || "other",
-          serviceName: data.changes || "РўСЂРµРЅРёСЂРѕРІРєР°",
+          serviceName: data.changes || "Тренировка",
         } as any;
       });
 
@@ -46,7 +46,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
+        "Грешка при зареждане на история.",
     };
   }
 }
@@ -54,7 +54,7 @@ export async function getTrainingServiceHistoryAction(_activeBranch: string) {
 export async function getTrainingServiceSalesAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb
@@ -109,7 +109,7 @@ export async function getTrainingServiceSalesAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
+        "Грешка при зареждане на продажби.",
     };
   }
 }

@@ -41,3 +41,8 @@ export const getAgeGroup = (birthDate: string): string => {
   return "Неопределена";
 };
 
+export const getValidAvatarUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith("http") || url.startsWith("/")) return url;
+  return `/${url}`;
+};

@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { User, Users, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -373,6 +374,59 @@ export function MemberFormStep1({
           </>
         )}
       </div>
+
+      {/* --- ADDED FOR PUBLIC TEAM PAGE --- */}
+      {selectedMemberType === "regular" && (
+        <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+          <FormField
+            name="avatarUrl"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="sm:col-span-1">
+                <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  Снимка за профила (път)
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    placeholder="напр. /team/ivan.jpg"
+                    className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                  />
+                </FormControl>
+                <p className="text-[11px] text-amber-600/80 mt-1.5 leading-relaxed font-medium">
+                  Важно: Името на файла трябва да е на латиница, без интервали (напр. veronika.jpg). Снимката трябва да е предварително качена в папка public/team/.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="showOnPublicTeam"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 h-auto min-h-[44px] sm:min-h-[48px] mt-auto">
+                <div className="space-y-1">
+                  <FormLabel className="text-[11px] font-medium text-zinc-700 block">
+                    Показвай в публичния отбор
+                  </FormLabel>
+                  <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
+                    Ако е избрано, състезателят ще се показва на страница /club/team.
+                  </p>
+                </div>
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+      )}
     </BentoCard>
   );
 }

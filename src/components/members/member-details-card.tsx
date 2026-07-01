@@ -8,16 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Pencil, Camera, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { getAgeGroup, getInitials, formatFullName } from "@/lib/utils";
+import { getAgeGroup, getValidAvatarUrl, getInitials, formatFullName } from "@/lib/utils";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { updateMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
-import { uploadFile } from "@/services/storage-service";
-import { useRef, useState } from "react";
-
 import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
 import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
 import { MemberAssessmentsTab } from "./tabs/MemberAssessmentsTab";
@@ -114,8 +111,6 @@ export const MemberDetailsCard = ({
 }: MemberDetailsCardProps) => {
   const router = useRouter();
   const { idToken } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -203,43 +198,6 @@ export const MemberDetailsCard = ({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !idToken) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Моля, изберете валидно изображение");
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Изображението е твърде голямо (макс. 2MB)");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const path = `avatars/${member.id}_${Date.now()}`;
-      const downloadUrl = await uploadFile(path, file);
-
-      const result = await updateMemberAction(member.id, idToken, {
-        avatarUrl: downloadUrl,
-      });
-
-      if (result.success) {
-        toast.success("Снимката е обновена успешно");
-        if (onRefresh) onRefresh();
-        router.refresh();
-      } else {
-        toast.error("Грешка при обновяване на профила");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Грешка при качване на снимката");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -268,7 +226,7 @@ export const MemberDetailsCard = ({
             <div className="relative group">
               <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-4 sm:border-8 shadow-2xl rounded-5xl sm:rounded-6xl bg-zinc-50 dark:bg-zinc-900 border-white dark:border-zinc-950">
                 <AvatarImage
-                  src={member.avatarUrl ?? undefined}
+                  src={getValidAvatarUrl(member.avatarUrl)}
                   alt={fullName}
                   className="object-cover animate-in fade-in duration-500"
                 />
@@ -276,24 +234,6 @@ export const MemberDetailsCard = ({
                   {getInitials(fullName)}
                 </AvatarFallback>
               </Avatar>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="absolute inset-2 flex items-center justify-center bg-zinc-950/20 backdrop-blur-sm text-white rounded-5xl opacity-0 group-hover:opacity-100 transition-all disabled:opacity-100"
-              >
-                {isUploading ? (
-                  <Loader2 className="animate-spin h-8 w-8" strokeWidth={1.5} />
-                ) : (
-                  <Camera size={32} strokeWidth={1.5} />
-                )}
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
             </div>
 
             <div className="flex-1 space-y-3 sm:space-y-4 mb-2 sm:mb-4">

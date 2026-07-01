@@ -81,6 +81,8 @@ export const MemberForm = ({
       status: "active",
       notes: "",
       healthConditionNotes: "",
+      avatarUrl: "",
+      showOnPublicTeam: false,
       familyId: undefined,
       skillLevel: undefined,
       hasSignedDeclaration: false,

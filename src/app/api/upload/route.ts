@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const storage = getAdminStorage();
     const bucketName =
       process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-      "bkgalabovo2025.firebasestorage.app";
+      "bkgalabovo2025.appspot.com";
     const bucket = storage.bucket(bucketName);
     console.log(`Using bucket: ${bucket.name}`);
     const fileRef = bucket.file(path);
@@ -107,7 +107,7 @@ export async function DELETE(request: NextRequest) {
     const storage = getAdminStorage();
     const bucketName =
       process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-      "bkgalabovo2025.firebasestorage.app";
+      "bkgalabovo2025.appspot.com";
     const bucket = storage.bucket(bucketName);
     console.log(`Deleting from bucket: ${bucket.name}, path: ${path}`);
     const fileRef = bucket.file(path);

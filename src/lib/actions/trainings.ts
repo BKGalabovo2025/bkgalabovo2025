@@ -63,7 +63,7 @@ export async function createTrainingSessionAction(
     return {
       success: true,
       id: docRef.id,
-      message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ Р·Р°РїР°Р·РµРЅР° СѓСЃРїРµС€РЅРѕ.",
+      message: "Тренировката е запазена успешно.",
     };
   } catch (error: unknown) {
     console.error("Error saving training:", error);
@@ -71,7 +71,7 @@ export async function createTrainingSessionAction(
       success: false,
       message:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°РїР°Р·РІР°РЅРµ.",
+        "Грешка при запазване.",
     };
   }
 }
@@ -189,7 +189,7 @@ export async function deleteTrainingSessionAction(
 
     return {
       success: true,
-      message: "РўСЂРµРЅРёСЂРѕРІРєР°С‚Р° Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+      message: "Тренировката е изтрита успешно.",
     };
   } catch (error: unknown) {
     console.error("Error deleting training:", error);
@@ -197,7 +197,7 @@ export async function deleteTrainingSessionAction(
       success: false,
       message:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµ.",
+        "Грешка при изтриване.",
     };
   }
 }

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/layout/page-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -35,7 +36,7 @@ import {
   UserCog,
   UserPlus,
 } from "lucide-react";
-import { cn, getAgeGroup } from "@/lib/utils";
+import { cn, getAgeGroup, getValidAvatarUrl } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
 import {
   bulkUpdateMemberStatusAction,
@@ -897,10 +898,17 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-[10px] group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300 shrink-0">
-                                {member.firstName[0]}
-                                {member.lastName[0]}
-                              </div>
+                              <Avatar className="h-8 w-8 rounded-lg border border-zinc-100 dark:border-zinc-800 shrink-0">
+                                <AvatarImage 
+                                  src={getValidAvatarUrl(member.avatarUrl)} 
+                                  alt={`${member.firstName} ${member.lastName}`} 
+                                  className="object-cover" 
+                                />
+                                <AvatarFallback className="rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-[10px] group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300">
+                                  {member.firstName[0]}
+                                  {member.lastName[0]}
+                                </AvatarFallback>
+                              </Avatar>
                               <div className="font-medium text-[13px] text-zinc-900 dark:text-white group-hover:text-zinc-950 transition-colors truncate">
                                 {member.firstName} {member.lastName}
                               </div>
@@ -1023,10 +1031,17 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-xs">
-                          {member.firstName[0]}
-                          {member.lastName[0]}
-                        </div>
+                        <Avatar className="h-10 w-10 rounded-xl border border-zinc-100 dark:border-zinc-800 shrink-0">
+                          <AvatarImage 
+                            src={getValidAvatarUrl(member.avatarUrl)} 
+                            alt={`${member.firstName} ${member.lastName}`} 
+                            className="object-cover" 
+                          />
+                          <AvatarFallback className="rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-xs">
+                            {member.firstName[0]}
+                            {member.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <div className="font-medium text-sm text-zinc-900 dark:text-white">
                             {member.firstName} {member.lastName}

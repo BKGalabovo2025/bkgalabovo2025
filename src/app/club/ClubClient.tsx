@@ -21,8 +21,6 @@ import {
   Printer,
   Info,
   ChevronDown,
-  Menu,
-  X,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -31,6 +29,8 @@ import {
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventDateRange } from "@/lib/date-utils";
+import { PublicNav } from "@/components/layout/public-nav";
+import { PublicFooter } from "@/components/layout/public-footer";
 
 type EventSlot = {
   id: string;
@@ -76,7 +76,6 @@ export default function ClubClient({
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -294,127 +293,7 @@ export default function ClubClient({
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-blue-400/30">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 relative overflow-hidden rounded-lg bg-white/5 p-1 border border-blue-400/50 shadow-[0_0_10px_rgba(30,58,138,0.5)]">
-              <Image
-                src="/logo.png"
-                alt="Logo"
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-            </div>
-            <span className="font-medium text-sm text-white">БК ГЪЛЪБОВО</span>
-          </div>
-
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
-            <a href="#about" className="hover:text-blue-400 transition-colors">
-              За Клуба
-            </a>
-            <a
-              href="#activities"
-              className="hover:text-blue-400 transition-colors"
-            >
-              Дейности
-            </a>
-            <Link
-              href="/club/catalog"
-              className="hover:text-blue-400 transition-colors"
-            >
-              Услуги
-            </Link>
-            <a
-              href="#schedule"
-              className="hover:text-blue-400 transition-colors"
-            >
-              График
-            </a>
-            <a
-              href="#contacts"
-              className="hover:text-blue-400 transition-colors"
-            >
-              Контакти
-            </a>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-xs font-medium uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
-            >
-              Портал
-            </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden text-white p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Dropdown */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden overflow-hidden bg-black/95 backdrop-blur-xl border-t border-blue-900/30 mt-4 -mx-6 px-6"
-            >
-              <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
-                <a
-                  href="#about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-blue-400"
-                >
-                  За Клуба
-                </a>
-                <a
-                  href="#activities"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-blue-400"
-                >
-                  Дейности
-                </a>
-                <Link
-                  href="/club/catalog"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-blue-400"
-                >
-                  Услуги
-                </Link>
-                <a
-                  href="#schedule"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-blue-400"
-                >
-                  График
-                </a>
-                <a
-                  href="#contacts"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-blue-400"
-                >
-                  Контакти
-                </a>
-                <Link
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-zinc-500 hover:text-white pt-4 border-t border-blue-900/30"
-                >
-                  Обратно към Портала
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+      <PublicNav clubSite={clubSite} />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-16">
@@ -976,19 +855,7 @@ export default function ClubClient({
       </section>
 
       {/* Footer */}
-      <footer className="px-8 py-8 border-t border-zinc-900 bg-black flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-blue-400 rounded-xl flex items-center justify-center">
-            <Trophy size={14} className="text-white" />
-          </div>
-          <span className="text-sm font-bold text-zinc-400 uppercase">
-            СНЦ „Бадминтон Клуб Гълъбово“
-          </span>
-        </div>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-          © {new Date().getFullYear()} Всички права запазени
-        </span>
-      </footer>
+      <PublicFooter clubSite={clubSite} />
     </div>
   );
 }

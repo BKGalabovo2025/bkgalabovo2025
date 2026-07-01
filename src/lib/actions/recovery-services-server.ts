@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 export async function getRecoveryServiceHistoryAction(_activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
 
@@ -35,7 +35,7 @@ export async function getRecoveryServiceHistoryAction(_activeBranch: string) {
           ...data,
           createdAt,
           type: data.action || "other",
-          serviceName: data.changes || "РўСЂРµРЅРёСЂРѕРІРєР°",
+          serviceName: data.changes || "Тренировка",
         } as any;
       });
 
@@ -46,7 +46,7 @@ export async function getRecoveryServiceHistoryAction(_activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РёСЃС‚РѕСЂРёСЏ.",
+        "Грешка при зареждане на история.",
     };
   }
 }
@@ -54,7 +54,7 @@ export async function getRecoveryServiceHistoryAction(_activeBranch: string) {
 export async function getRecoveryServiceSalesAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb
@@ -109,7 +109,7 @@ export async function getRecoveryServiceSalesAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїСЂРѕРґР°Р¶Р±Рё.",
+        "Грешка при зареждане на продажби.",
     };
   }
 }
@@ -139,7 +139,7 @@ const convertTimestamps = (val: any): any => {
 export async function getRecoveryReservationsAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb.collection("reservations");
@@ -168,7 +168,7 @@ export async function getRecoveryReservationsAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° СЂРµР·РµСЂРІР°С†РёРё.",
+        "Грешка при зареждане на резервации.",
     };
   }
 }
@@ -176,7 +176,7 @@ export async function getRecoveryReservationsAction(activeBranch: string) {
 export async function getRecoveryClientPackagesAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb.collection("client_packages");
@@ -198,7 +198,7 @@ export async function getRecoveryClientPackagesAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РїР°РєРµС‚Рё.",
+        "Грешка при зареждане на пакети.",
     };
   }
 }
@@ -206,7 +206,7 @@ export async function getRecoveryClientPackagesAction(activeBranch: string) {
 export async function getRecoveryClientsAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
     let query: admin.firestore.Query = adminDb.collection("clients");
@@ -234,7 +234,7 @@ export async function getRecoveryClientsAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё Р·Р°СЂРµР¶РґР°РЅРµ РЅР° РєР»РёРµРЅС‚Рё.",
+        "Грешка при зареждане на клиенти.",
     };
   }
 }
@@ -245,7 +245,7 @@ export async function deleteRecoveryPackageAction(
 ) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
     const adminDb = getAdminDb();
     await adminDb.collection("client_packages").doc(packageId).delete();
     return { success: true };
@@ -261,7 +261,7 @@ export async function deleteRecoveryPackageAction(
 async function deleteRecoveryClientAction(_idToken: string, clientId: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("РќРµРѕС‚РѕСЂРёР·РёСЂР°РЅ РґРѕСЃС‚СЉРї.");
+    if (!user) throw new Error("Неоторизиран достъп.");
     const adminDb = getAdminDb();
     await adminDb.collection("clients").doc(clientId).delete();
     return { success: true };

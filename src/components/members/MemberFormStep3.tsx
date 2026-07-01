@@ -117,6 +117,9 @@ export function MemberFormStep3({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                    Ако изберете &quot;Напреднало&quot; или &quot;Професионално&quot;, в публичния отбор ще излиза като &quot;Състезател&quot;, иначе &quot;Любител&quot;.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

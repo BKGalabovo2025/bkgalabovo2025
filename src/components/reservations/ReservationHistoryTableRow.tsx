@@ -49,7 +49,7 @@ interface ServiceData {
   name: string;
 }
 
-export const getReservationTitle = (res: ReservationData) => {
+const getReservationTitle = (res: ReservationData) => {
   const c1Name = res.clientName;
   const c1Zone = res.selectedZone ? ` (${res.selectedZone})` : "";
   const c1Str = `${c1Name}${c1Zone}`;
@@ -62,7 +62,7 @@ export const getReservationTitle = (res: ReservationData) => {
   return c1Str;
 };
 
-export const getStatusLabel = (status: string) => {
+const getStatusLabel = (status: string) => {
   switch (status) {
     case "paid":
       return "Платена";
@@ -83,7 +83,7 @@ export const getStatusLabel = (status: string) => {
   }
 };
 
-export const getStatusStyles = (status: string) => {
+const getStatusStyles = (status: string) => {
   switch (status) {
     case "paid":
     case "completed":

@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -12,25 +12,25 @@ import { serverCache } from "@/lib/server-cache";
 const ServiceSchema = z.object({
   name: z
     .string()
-    .min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
+    .min(2, "�?мето трябва да е поне 2 символа."),
   price: z.coerce
     .number()
     .min(
       0,
-      "Р¦РµРЅР°С‚Р° С‚СЂСЏР±РІР° РґР° Рµ РїРѕР»РѕР¶РёС‚РµР»РЅРѕ С‡РёСЃР»Рѕ."
+      "Цената трябва да е положително число."
     ),
   currency: z.string().default("EUR"),
   description: z
     .string()
     .min(
       5,
-      "РћРїРёСЃР°РЅРёРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 5 СЃРёРјРІРѕР»Р°."
+      "Описанието трябва да е поне 5 символа."
     ),
   type: z.enum([
-    "РђР±РѕРЅР°РјРµРЅС‚",
-    "Р“РѕРґРёС€РµРЅ Р°Р±РѕРЅР°РјРµРЅС‚",
-    "Р•РґРЅРѕРєСЂР°С‚РЅРѕ РїР»Р°С‰Р°РЅРµ",
-    "Р§Р»РµРЅСЃРєРё РІРЅРѕСЃ",
+    "Абонамент",
+    "Годишен абонамент",
+    "Еднократно плащане",
+    "Членски внос",
   ]),
   targetGroups: z.array(z.string()).default([]),
   billingPeriod: z.string().optional().nullable(),
@@ -150,7 +150,7 @@ export async function createClubService(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: `Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°: ${errorMsg}`,
+        message: `Грешка във валидацията: ${errorMsg}`,
       };
     }
 
@@ -177,7 +177,7 @@ export async function createClubService(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "create",
-      `РЎСЉР·РґР°РґРµРЅР° СѓСЃР»СѓРіР°: ${data.name}`
+      `Създадена услуга: ${data.name}`
     );
 
     serverCache.invalidate("clubServices");
@@ -185,14 +185,14 @@ export async function createClubService(
     revalidatePath("/finances/services");
     return {
       success: true,
-      message: `РЈСЃР»СѓРіР°С‚Р° '${data.name}' Р±РµС€Рµ СЃСЉР·РґР°РґРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
+      message: `Услугата '${data.name}' беше създадена успешно.`,
     };
   } catch (error: unknown) {
     console.error("Server Action Error:", error);
     return {
       success: false,
       // eslint-disable-next-line sonarjs/no-nested-conditional
-      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
+      message: `Грешка при сървъра: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "Неизвестна грешка"}`,
     };
   }
 }
@@ -220,7 +220,7 @@ export async function updateClubService(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: `Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°: ${errorMsg}`,
+        message: `Грешка във валидацията: ${errorMsg}`,
       };
     }
 
@@ -244,7 +244,7 @@ export async function updateClubService(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "update",
-      `РћР±РЅРѕРІРµРЅР° СѓСЃР»СѓРіР°: ${data.name}`
+      `Обновена услуга: ${data.name}`
     );
 
     serverCache.invalidate("clubServices");
@@ -253,14 +253,14 @@ export async function updateClubService(
     revalidatePath(`/finances/services/${id}`);
     return {
       success: true,
-      message: `РЈСЃР»СѓРіР°С‚Р° '${data.name}' Р±РµС€Рµ РѕР±РЅРѕРІРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
+      message: `Услугата '${data.name}' беше обновена успешно.`,
     };
   } catch (error: unknown) {
     console.error("Server Action Error:", error);
     return {
       success: false,
       // eslint-disable-next-line sonarjs/no-nested-conditional
-      message: `Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "РќРµРёР·РІРµСЃС‚РЅР° РіСЂРµС€РєР°"}`,
+      message: `Грешка при сървъра: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "Неизвестна грешка"}`,
     };
   }
 }
@@ -276,7 +276,7 @@ export async function deleteClubService(idToken: string, id: string) {
     if (!serviceSnap.exists) {
       return {
         success: false,
-        message: "РЈСЃР»СѓРіР°С‚Р° РЅРµ Рµ РЅР°РјРµСЂРµРЅР°.",
+        message: "Услугата не е намерена.",
       };
     }
 
@@ -289,7 +289,7 @@ export async function deleteClubService(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `РР·С‚СЂРёС‚Р° СѓСЃР»СѓРіР°: ${serviceData?.name}`
+      `�?зтрита услуга: ${serviceData?.name}`
     );
 
     serverCache.invalidate("clubServices");
@@ -297,13 +297,13 @@ export async function deleteClubService(idToken: string, id: string) {
     revalidatePath("/finances/services");
     return {
       success: true,
-      message: "РЈСЃР»СѓРіР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+      message: "Услугата беше изтрита успешно.",
     };
   } catch (error) {
     console.error("Error deleting service:", error);
     return {
       success: false,
-      message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ.",
+      message: "Възникна грешка при изтриването.",
     };
   }
 }
@@ -313,7 +313,7 @@ export async function deleteClubService(idToken: string, id: string) {
 const RecoverySessionSchema = z.object({
   name: z
     .string()
-    .min(2, "РРјРµС‚Рѕ С‚СЂСЏР±РІР° РґР° Рµ РїРѕРЅРµ 2 СЃРёРјРІРѕР»Р°."),
+    .min(2, "�?мето трябва да е поне 2 символа."),
   description: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   durationMinutes: z.coerce.number().min(1),
@@ -322,7 +322,7 @@ const RecoverySessionSchema = z.object({
   athleteCount: z.coerce.number().min(1).default(1),
   numberOfDays: z.coerce.number().min(1).default(1),
   proceduresPerDay: z.coerce.number().min(1).default(1),
-  sessionType: z.string().optional().default("Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ"),
+  sessionType: z.string().optional().default("Възстановяване"),
   requiredResources: z.object({
     attachments: z.object({
       arms: z.coerce.number().min(0).default(0),
@@ -376,7 +376,7 @@ export async function createRecoverySession(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°.",
+        message: "Грешка във валидацията.",
       };
     }
 
@@ -401,7 +401,7 @@ export async function createRecoverySession(
       user.uid,
       user.displayName || user.email || "Unknown User",
       "create",
-      `РЎСЉР·РґР°РґРµРЅР° РїСЂРѕС†РµРґСѓСЂР°: ${data.name}`
+      `Създадена процедура: ${data.name}`
     );
 
     serverCache.invalidate("recoveryServices");
@@ -409,11 +409,11 @@ export async function createRecoverySession(
     revalidatePath("/finances/recovery");
     return {
       success: true,
-      message: `РџСЂРѕС†РµРґСѓСЂР°С‚Р° '${data.name}' Р±РµС€Рµ СЃСЉР·РґР°РґРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
+      message: `Процедурата '${data.name}' беше създадена успешно.`,
     };
   } catch (error) {
     console.error("Error creating recovery session:", error);
-    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°." };
+    return { success: false, message: "Грешка при сървъра." };
   }
 }
 
@@ -456,7 +456,7 @@ export async function updateRecoverySession(
       return {
         success: false,
         errors: validatedFields.error.flatten().fieldErrors,
-        message: "Р“СЂРµС€РєР° РІСЉРІ РІР°Р»РёРґР°С†РёСЏС‚Р°.",
+        message: "Грешка във валидацията.",
       };
     }
 
@@ -471,24 +471,24 @@ export async function updateRecoverySession(
       updatedAt: new Date().toISOString(),
     });
 
-    let changesDesc = `РћР±РЅРѕРІРµРЅР° РїСЂРѕС†РµРґСѓСЂР°: ${data.name}`;
+    let changesDesc = `Обновена процедура: ${data.name}`;
     if (oldData) {
       const changes = [];
       if (Number(oldData.price) !== Number(data.price))
-        changes.push(`С†РµРЅР° (${oldData.price} -> ${data.price})`);
-      if (oldData.name !== data.name) changes.push(`РёРјРµ`);
+        changes.push(`цена (${oldData.price} -> ${data.price})`);
+      if (oldData.name !== data.name) changes.push(`име`);
       if (oldData.description !== data.description)
-        changes.push(`РѕРїРёСЃР°РЅРёРµ`);
+        changes.push(`описание`);
       if (
         Number(oldData.durationMinutes || oldData.duration) !==
         Number(data.durationMinutes)
       )
         changes.push(
-          `РІСЂРµРјРµС‚СЂР°РµРЅРµ (${oldData.durationMinutes || oldData.duration} -> ${data.durationMinutes})`
+          `времетраене (${oldData.durationMinutes || oldData.duration} -> ${data.durationMinutes})`
         );
 
       if (changes.length > 0) {
-        changesDesc += ` (РџСЂРѕРјРµРЅРµРЅРё: ${changes.join(", ")})`;
+        changesDesc += ` (Променени: ${changes.join(", ")})`;
       }
     }
 
@@ -507,11 +507,11 @@ export async function updateRecoverySession(
     revalidatePath(`/finances/recovery/${id}`);
     return {
       success: true,
-      message: `РџСЂРѕС†РµРґСѓСЂР°С‚Р° '${data.name}' Р±РµС€Рµ РѕР±РЅРѕРІРµРЅР° СѓСЃРїРµС€РЅРѕ.`,
+      message: `Процедурата '${data.name}' беше обновена успешно.`,
     };
   } catch (error) {
     console.error("Error updating recovery session:", error);
-    return { success: false, message: "Р“СЂРµС€РєР° РїСЂРё СЃСЉСЂРІСЉСЂР°." };
+    return { success: false, message: "Грешка при сървъра." };
   }
 }
 
@@ -531,20 +531,20 @@ export async function deleteRecoverySession(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `РР·С‚СЂРёС‚Р° РїСЂРѕС†РµРґСѓСЂР°: ${serviceName}`
+      `�?зтрита процедура: ${serviceName}`
     );
     serverCache.invalidate("recoveryServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/recovery");
     return {
       success: true,
-      message: "РџСЂРѕС†РµРґСѓСЂР°С‚Р° Р±РµС€Рµ РёР·С‚СЂРёС‚Р° СѓСЃРїРµС€РЅРѕ.",
+      message: "Процедурата беше изтрита успешно.",
     };
   } catch (error) {
     console.error("Error deleting recovery session:", error);
     return {
       success: false,
-      message: "Р“СЂРµС€РєР° РїСЂРё РёР·С‚СЂРёРІР°РЅРµС‚Рѕ.",
+      message: "Грешка при изтриването.",
     };
   }
 }
@@ -592,7 +592,7 @@ function createHistoryEvent(
     userId: user.uid,
     userName: user.displayName || user.email || "Unknown User",
     action: "sale",
-    changes: `РџСЂРѕРґР°Р¶Р±Р° РЅР° '${serviceName}' РєСЉРј ${clientName || "РќРµРёР·РІРµСЃС‚РµРЅ РєР»РёРµРЅС‚"}: ${qty} Р±СЂ. РЅР° СЃС‚РѕР№РЅРѕСЃС‚ ${totalAmt} EUR`,
+    changes: `Продажба на '${serviceName}' към ${clientName || "Неизвестен клиент"}: ${qty} бр. на стойност ${totalAmt} EUR`,
     timestamp: FieldValue.serverTimestamp(),
     relatedSaleId: saleRef.id,
   };
@@ -773,10 +773,10 @@ export async function executeTrainingSaleAction(
 
     const batch = adminDb.batch();
 
-    // 1. РЎСЉР·РґР°РІР°РЅРµ РЅР° Р·Р°РїРёСЃР° Р·Р° РїСЂРѕРґР°Р¶Р±Р°
+    // 1. Създаване на записа за продажба
     const saleRef = createSaleRecord(batch, adminDb, saleData, user, now);
 
-    // 2. Р—Р°РїРёСЃРІР°РЅРµ РЅР° СЃСЉР±РёС‚РёРµ РІ РёСЃС‚РѕСЂРёСЏС‚Р° РЅР° С‚СЂРµРЅРёСЂРѕРІСЉС‡РЅР°С‚Р° СѓСЃР»СѓРіР°
+    // 2. Записване на събитие в историята на тренировъчната услуга
     createHistoryEvent(
       batch,
       adminDb,
@@ -789,7 +789,7 @@ export async function executeTrainingSaleAction(
 
     await batch.commit();
 
-    // 3. РђС‚РѕРјР°СЂРЅРѕ РѕР±РЅРѕРІСЏРІР°РЅРµ РЅР° РїСЂРёСЃСЉСЃС‚РІРёСЏС‚Р° РІ СЃСЉР±РёС‚РёСЏС‚Р° (РїР»Р°С‚РµРЅ СЃС‚Р°С‚СѓСЃ)
+    // 3. Атомарно обновяване на присъствията в събитията (платен статус)
     const paidEventIds: string[] = saleData.paidEventIds || [];
     const targetMemberIds: string[] =
       saleData.memberIdsForAttendance ||
@@ -835,7 +835,7 @@ export async function executeTrainingSaleAction(
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "Р“СЂРµС€РєР° РїСЂРё РїСЂРѕРґР°Р¶Р±Р°.",
+        "Грешка при продажба.",
     };
   }
 }

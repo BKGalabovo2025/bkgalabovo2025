@@ -20,7 +20,7 @@ function tryInitWithServiceAccount(
       credential: resolvedAdmin.credential.cert(serviceAccount),
       storageBucket:
         process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-        "bkgalabovo2025.firebasestorage.app",
+        "bkgalabovo2025.appspot.com",
     });
     console.log(
       "Firebase Admin SDK initialized using FIREBASE_SERVICE_ACCOUNT_JSON."
@@ -48,7 +48,7 @@ function tryInitWithEnvVars(resolvedAdmin: typeof admin): boolean {
       }),
       storageBucket:
         process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-        "bkgalabovo2025.firebasestorage.app",
+        "bkgalabovo2025.appspot.com",
     });
     console.log(
       "Firebase Admin SDK initialized using individual environment variables."
