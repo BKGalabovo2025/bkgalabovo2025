@@ -611,12 +611,6 @@ export default function RecoveryZoneClient({
         </div>
       </section>
 
-      {/* Dynamic Team Section */}
-      <TeamSection
-        therapists={site.therapists || []}
-        teamIntro={site.teamIntro || ""}
-      />
-
       {/* Services Call to Action */}
       <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-emerald-900/40">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
@@ -654,9 +648,9 @@ export default function RecoveryZoneClient({
             </h2>
           </div>
 
-          <div className="max-w-3xl mx-auto bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
+          <div className="max-w-4xl mx-auto">
             {site.schedule ? (
-              <div className="space-y-6">
+              <div className="flex flex-col gap-3">
                 {[
                   { label: "Понеделник", data: site.schedule.monday },
                   { label: "Вторник", data: site.schedule.tuesday },
@@ -668,25 +662,44 @@ export default function RecoveryZoneClient({
                 ].map((day) => (
                   <div
                     key={day.label}
-                    className="flex justify-between items-center py-4 border-b border-zinc-800/50 last:border-0"
+                    className="group flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 md:p-6 rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300"
                   >
-                    <span className="text-zinc-300 font-medium text-lg">
-                      {day.label}
-                    </span>
-                    <span className="text-zinc-400">
+                    <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                      <div
+                        className={`h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-colors ${
+                          day.data?.isOpen
+                            ? "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                            : "bg-white/5 text-zinc-600"
+                        }`}
+                      >
+                        <Clock size={20} />
+                      </div>
+                      <span className="text-zinc-200 font-bold text-lg md:text-xl tracking-wide">
+                        {day.label}
+                      </span>
+                    </div>
+                    <div className="w-full sm:w-auto flex sm:justify-end">
                       {day.data?.isOpen ? (
-                        `${day.data.open} - ${day.data.close}`
+                        <div className="flex items-center gap-2 bg-black/50 px-4 py-2 rounded-xl border border-white/5 group-hover:border-emerald-500/20 transition-colors">
+                          <span className="text-emerald-400 text-lg md:text-xl font-medium">
+                            {day.data.open}
+                          </span>
+                          <span className="text-zinc-600 px-1">-</span>
+                          <span className="text-emerald-400 text-lg md:text-xl font-medium">
+                            {day.data.close}
+                          </span>
+                        </div>
                       ) : (
-                        <span className="text-emerald-500 font-medium tracking-widest text-sm uppercase">
+                        <span className="inline-flex items-center gap-2 bg-white/5 text-zinc-500 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
                           Почивен ден
                         </span>
                       )}
-                    </span>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 flex flex-col items-center">
+              <div className="bg-black/80 border border-zinc-800 rounded-3xl p-12 text-center flex flex-col items-center glassmorphism">
                 <Clock size={48} className="text-zinc-800 mb-4" />
                 <p className="text-zinc-300 text-lg">
                   Не е въведено работно време.
@@ -696,6 +709,12 @@ export default function RecoveryZoneClient({
           </div>
         </div>
       </section>
+
+      {/* Dynamic Team Section */}
+      <TeamSection
+        therapists={site.therapists || []}
+        teamIntro={site.teamIntro || ""}
+      />
 
       {/* Contacts & Social */}
       <section id="contacts" className="py-24 px-6 bg-zinc-950">
