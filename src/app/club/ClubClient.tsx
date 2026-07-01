@@ -540,38 +540,50 @@ export default function ClubClient({
       </section>
 
       {/* Activities Section */}
-      <section id="activities" className="py-24 px-6 bg-black/40 relative">
-        <div className="max-w-6xl mx-auto">
+      <section id="activities" className="py-24 px-6 relative">
+        {/* Glow effect */}
+        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4">
-              Официален Статус
-            </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight">
               Нашите Дейности
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activities.map((act, i) => (
-              <motion.div
-                key={act.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group bg-black/80 border border-zinc-800 rounded-3xl p-8 hover:border-blue-400 hover:bg-black transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_25px_rgba(30,58,138,0.15)] relative overflow-hidden glassmorphism"
-              >
-                <div className="absolute inset-0 bg-linear-to-br from-blue-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="h-14 w-14 bg-black border border-blue-400/30 rounded-2xl flex items-center justify-center text-blue-400 mb-6 group-hover:bg-blue-400 group-hover:text-white transition-all duration-500 shadow-[0_0_10px_rgba(30,58,138,0.2)] group-hover:shadow-[0_0_20px_rgba(30,58,138,0.8)] relative z-10">
-                  <act.icon size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4 relative z-10">
-                  {act.title}
-                </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed relative z-10">
-                  {act.desc}
-                </p>
-              </motion.div>
-            ))}
+
+          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-400/10 transition-colors duration-700" />
+
+            <div className="space-y-12 relative z-10">
+              {activities.map((act, i) => (
+                <motion.div
+                  key={act.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="group/item relative"
+                >
+                  <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+                    <div className="h-14 w-14 shrink-0 bg-zinc-950/80 border border-zinc-800/80 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)] group-hover/item:bg-blue-400 group-hover/item:text-white group-hover/item:border-blue-400 transition-all duration-500">
+                      <act.icon size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-3 tracking-wide">
+                        {act.title}
+                      </h3>
+                      <p className="text-zinc-400 text-lg leading-relaxed">
+                        {act.desc}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Divider except for last item */}
+                  {i !== activities.length - 1 && (
+                    <div className="w-full h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent mt-12" />
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
