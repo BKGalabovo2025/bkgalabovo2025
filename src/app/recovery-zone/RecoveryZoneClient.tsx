@@ -86,12 +86,7 @@ export default function RecoveryZoneClient({
             >
               За центъра
             </a>
-            <a
-              href="#pricing"
-              className="hover:text-emerald-400 transition-colors"
-            >
-              Процедури
-            </a>
+
             <Link
               href="/recovery-zone/catalog"
               className="hover:text-emerald-400 transition-colors"
@@ -147,13 +142,7 @@ export default function RecoveryZoneClient({
                 >
                   За центъра
                 </a>
-                <a
-                  href="#pricing"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Процедури
-                </a>
+
                 <Link
                   href="/recovery-zone/catalog"
                   onClick={() => setMobileMenuOpen(false)}
