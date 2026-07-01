@@ -78,13 +78,6 @@ export default function RecoveryZoneClient({
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
-            <a
-              href="#about"
-              className="hover:text-emerald-400 transition-colors"
-            >
-              За центъра
-            </a>
-
             <Link
               href="/recovery-zone/catalog"
               className="hover:text-emerald-400 transition-colors"
@@ -139,14 +132,6 @@ export default function RecoveryZoneClient({
               className="md:hidden overflow-hidden bg-black/95 backdrop-blur-xl border-t border-emerald-900/30 mt-4 -mx-6 px-6"
             >
               <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
-                <a
-                  href="#about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  За центъра
-                </a>
-
                 <Link
                   href="/recovery-zone/catalog"
                   onClick={() => setMobileMenuOpen(false)}
@@ -244,33 +229,6 @@ export default function RecoveryZoneClient({
             </a>
           </div>
         </motion.div>
-      </section>
-
-      {/* About & Mission */}
-      <section id="about" className="py-24 px-6 bg-zinc-950 relative">
-        {/* Glow effect */}
-        <div className="absolute top-1/2 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
-            За Зоната
-          </p>
-          <h2 className="text-3xl md:text-5xl font-light tracking-tight mb-8">
-            Новото ниво на{" "}
-            <span className="font-bold text-white">възстановяване</span> в
-            Гълъбово
-          </h2>
-          <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-            Recovery Zone by ZM е създаден с една основна цел - да предостави
-            достъп до професионални възстановителни процедури. Независимо дали
-            сте активен спортист, или търсите релакс след тежък работен ден, ние
-            сме тук за вас.
-          </p>
-          <p className="text-zinc-300 text-md leading-relaxed">
-            Оборудван със системите на Hyperice Normatec 3, Recovery Zone by ZM
-            предлага високотехнологичен лимфен дренаж за крака, ръце и ханш.
-          </p>
-        </div>
       </section>
 
       {/* Attachments Section */}
