@@ -56,7 +56,6 @@ export default async function ClubMainPage() {
   const adminDb = getAdminDb();
 
   const clubSite = await getSiteById("bkgalabovo");
-  const recoverySite = await getSiteById("recoveryzone");
 
   // Fetch 7 day schedule (events with siteId bkgalabovo)
   const now = new Date();
@@ -144,7 +143,6 @@ export default async function ClubMainPage() {
         schedule={schedule}
         hallImages={hallImages}
         clubSite={clubSite}
-        recoverySite={recoverySite}
       />
     </>
   );

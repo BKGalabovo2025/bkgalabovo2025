@@ -5,8 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import Image from "next/image";
 import { Site } from "@/types/site.types";
-import { SessionsSection } from "@/components/recovery/SessionsSection";
-import { TeamSection } from "@/components/recovery/TeamSection";
+
 import {
   Trophy,
   Target,
@@ -65,12 +64,10 @@ export default function ClubClient({
   schedule,
   hallImages = [],
   clubSite,
-  recoverySite,
 }: {
   schedule: EventSlot[];
   hallImages?: string[];
   clubSite?: Site | null;
-  recoverySite?: Site | null;
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
@@ -564,13 +561,6 @@ export default function ClubClient({
           </Link>
         </div>
       </section>
-
-      {/* Recovery Zone Integration (Dynamic) */}
-      <TeamSection
-        therapists={recoverySite?.therapists || []}
-        teamIntro={recoverySite?.teamIntro || ""}
-      />
-      <SessionsSection />
 
       {/* Schedule 7 days */}
       <section id="schedule" className="py-24 px-6 bg-zinc-950 relative">
