@@ -34,12 +34,9 @@ export const metadata: Metadata = {
 
 import fs from "fs";
 import path from "path";
-import { getAdminDb } from "@/lib/firebase-admin";
 import RecoveryZoneClient from "./RecoveryZoneClient";
 
 export default async function RecoveryZonePage() {
-  const adminDb = getAdminDb();
-
   const site = await getSiteById("recoveryzone");
 
   const jsonLd = {
@@ -78,65 +75,6 @@ export default async function RecoveryZonePage() {
     hallImages = ["/1.png", "/1.png"];
   }
 
-  // Fetch 7 day schedule (events with siteId recoveryzone)
-  const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOf7Days = new Date(now);
-  endOf7Days.setDate(now.getDate() + 7);
-  endOf7Days.setHours(23, 59, 59, 999);
-
-  let scheduleSnapshot;
-  try {
-    scheduleSnapshot = await adminDb
-      .collection("events")
-      .where("siteId", "==", "recoveryzone")
-      .get();
-  } catch (error) {
-    console.error("Failed to fetch events for recovery zone page:", error);
-    scheduleSnapshot = { docs: [] };
-  }
-
-  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
-    const data = doc.data();
-
-    let startDateStr = new Date().toISOString();
-    if (data.startDate) {
-      startDateStr =
-        typeof data.startDate === "string"
-          ? data.startDate
-          : data.startDate.toDate?.().toISOString() || data.startDate;
-    }
-
-    let endDateStr = new Date().toISOString();
-    if (data.endDate) {
-      endDateStr =
-        typeof data.endDate === "string"
-          ? data.endDate
-          : data.endDate.toDate?.().toISOString() || data.endDate;
-    }
-
-    return {
-      id: doc.id,
-      title: data.title || "Сесия възстановяване",
-      startTime: startDateStr,
-      endTime: endDateStr,
-      isCancelled: !!data.isCancelled,
-      description: data.description || "",
-      location: data.location || 'Спортна зала „Енергетик"',
-    };
-  });
-
-  const schedule = scheduleRaw
-    .filter((event) => {
-      const eventStart = new Date(event.startTime);
-      return eventStart >= startOfDay && eventStart < endOf7Days;
-    })
-    .sort(
-      (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-    );
-
   if (!site) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -156,11 +94,7 @@ export default async function RecoveryZonePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <RecoveryZoneClient
-        schedule={schedule}
-        site={site}
-        hallImages={hallImages}
-      />
+      <RecoveryZoneClient site={site} hallImages={hallImages} />
     </>
   );
 }

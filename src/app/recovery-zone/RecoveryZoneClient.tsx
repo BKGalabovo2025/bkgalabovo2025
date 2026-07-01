@@ -11,11 +11,8 @@ import {
   Mail,
   ChevronRight,
   ChevronLeft,
-  CalendarDays,
   ArrowRight,
   Clock,
-  Printer,
-  Info,
   ChevronDown,
   Menu,
   X,
@@ -27,19 +24,7 @@ import {
   FacebookIcon,
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatEventDateRange } from "@/lib/date-utils";
 import { TeamSection } from "@/components/recovery/TeamSection";
-
-type EventSlot = {
-  id: string;
-  title: string;
-  startTime: string | Date;
-  endTime: string | Date;
-  isCancelled?: boolean;
-  description?: string;
-  location?: string;
-};
-
 import { Zap, HeartPulse, Activity } from "lucide-react";
 import { Site } from "@/types/site.types";
 
@@ -62,11 +47,9 @@ const activities = [
 ];
 
 export default function RecoveryZoneClient({
-  schedule,
   site,
   hallImages = [],
 }: {
-  schedule: EventSlot[];
   site: Site;
   hallImages?: string[];
 }) {
@@ -81,190 +64,6 @@ export default function RecoveryZoneClient({
   const prevImage = () => {
     setActiveImage(
       (prev) => (prev - 1 + hallImages.length) % hallImages.length
-    );
-  };
-
-  // Group events by date label
-  const groupedEvents = schedule.reduce(
-    (acc, event) => {
-      const date = new Date(event.startTime);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-
-      let label: string;
-      if (date >= today && date < tomorrow) {
-        label = "Днес";
-      } else if (
-        date >= tomorrow &&
-        date < new Date(tomorrow.getTime() + 86400000)
-      ) {
-        label = "Утре";
-      } else {
-        label = date.toLocaleDateString("bg-BG", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-        // Capitalize first letter
-        label = label.charAt(0).toUpperCase() + label.slice(1);
-      }
-
-      if (!acc[label]) acc[label] = [];
-      acc[label].push(event);
-      return acc;
-    },
-    {} as Record<string, typeof schedule>
-  );
-
-  const groups = Object.entries(groupedEvents);
-  const isSpecialLabel = (label: string) =>
-    label === "Днес" || label === "Утре";
-
-  const EventCard = ({
-    event,
-    groupIdx,
-    i,
-  }: {
-    event: EventSlot;
-    groupIdx: number;
-    i: number;
-  }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    const handlePrint = () => {
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) return;
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Принтиране на събитие - ${event.title}</title>
-            <style>
-              body { font-family: sans-serif; padding: 2rem; color: #333; }
-              h1 { color: #000; }
-              .meta { color: #666; margin-bottom: 2rem; }
-              .desc { white-space: pre-wrap; line-height: 1.6; }
-            </style>
-          </head>
-          <body>
-            <h1>${event.title}</h1>
-            <div class="meta">
-              <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
-              <p><strong>Локация:</strong> ${event.location || "Recovery Zone by ZM"}</p>
-            </div>
-            <div class="desc">${event.description || "Няма допълнителна информация."}</div>
-            <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    };
-
-    const displayTime = formatEventDateRange(event.startTime, event.endTime);
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: groupIdx * 0.05 + i * 0.04 }}
-        className={`group border rounded-2xl overflow-hidden transition-all duration-300 ${
-          event.isCancelled
-            ? "bg-black/40 border-rose-900/30 opacity-80"
-            : "bg-black/70 border-zinc-800 hover:border-emerald-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
-        }`}
-      >
-        <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left side */}
-          <div className="flex items-start gap-5">
-            <div
-              className={`w-1 h-12 mt-1 sm:mt-0 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"}`}
-            />
-            <div>
-              <div className="flex items-center gap-3">
-                <p
-                  className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}
-                >
-                  {event.title}
-                </p>
-                {event.isCancelled && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
-                    Отменена
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-4 mt-2">
-                <span className="flex items-center gap-1.5 text-zinc-300 text-[13px]">
-                  <Clock size={14} className="text-emerald-400" />
-                  {displayTime}
-                </span>
-                <span className="flex items-center gap-1.5 text-zinc-400 text-[13px]">
-                  <MapPin size={14} className="text-emerald-400" />
-                  {event.location || "Recovery Zone by ZM"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right side */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5 mt-4 sm:mt-0 ml-6 sm:ml-0">
-            <button
-              onClick={handlePrint}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors p-2"
-              title="Принтирай"
-            >
-              <Printer size={18} />
-            </button>
-
-            {event.description && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1.5 text-emerald-400/80 hover:text-emerald-400 text-[13px] font-medium transition-colors"
-              >
-                <Info size={16} />
-                Бележка
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
-                />
-              </button>
-            )}
-
-            {!event.isCancelled && (
-              <Link
-                href="/recovery-zone#contacts"
-                className="flex items-center gap-1.5 text-emerald-400 text-sm font-semibold hover:text-emerald-400 transition-colors group-hover:gap-2 ml-2"
-              >
-                Запиши се
-                <ChevronRight
-                  size={15}
-                  className="transition-transform group-hover:translate-x-0.5"
-                />
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {expanded && event.description && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="px-6 pb-5 pt-2 ml-6 sm:ml-10">
-                <div className="p-4 rounded-xl bg-emerald-900/10 border border-emerald-900/20">
-                  <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {event.description}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
     );
   };
 
@@ -308,10 +107,10 @@ export default function RecoveryZoneClient({
               Услуги
             </Link>
             <a
-              href="#schedule"
+              href="#working-hours"
               className="hover:text-emerald-400 transition-colors"
             >
-              График
+              Работно време
             </a>
             <a
               href="#contacts"
@@ -371,11 +170,11 @@ export default function RecoveryZoneClient({
                   Услуги
                 </Link>
                 <a
-                  href="#schedule"
+                  href="#working-hours"
                   onClick={() => setMobileMenuOpen(false)}
                   className="hover:text-emerald-400"
                 >
-                  График
+                  Работно време
                 </a>
                 <a
                   href="#contacts"
@@ -447,10 +246,10 @@ export default function RecoveryZoneClient({
               />
             </Link>
             <a
-              href="#schedule"
+              href="#working-hours"
               className="flex items-center justify-center gap-2 px-8 py-4 bg-black/80 hover:bg-black text-white border border-zinc-800 hover:border-emerald-500 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
             >
-              Запази Час
+              Работно време
             </a>
           </div>
         </motion.div>
@@ -627,103 +426,52 @@ export default function RecoveryZoneClient({
         </div>
       </section>
 
-      {/* Schedule 7 days */}
-      <section id="schedule" className="py-24 px-6 bg-zinc-950 relative">
+      {/* Working Hours */}
+      <section id="working-hours" className="py-24 px-6 bg-zinc-950 relative">
         <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
         <div className="max-w-6xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4">
-                График
-              </p>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
-                График за процедури
-              </h2>
-              <p className="text-zinc-300 mt-2">Резервирайте своя час онлайн</p>
-            </div>
-            <div className="text-right hidden sm:block bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-500 mb-2">
-                Работно време
-              </p>
-              {site.schedule ? (
-                <ul className="text-zinc-400 text-xs space-y-1">
-                  <li className="flex justify-between gap-4">
-                    <span className="text-zinc-500">Пон-Пет:</span>{" "}
-                    <span>
-                      {site.schedule.monday?.isOpen
-                        ? `${site.schedule.monday.open} - ${site.schedule.monday.close}`
-                        : "Почивен ден"}
-                    </span>
-                  </li>
-                  <li className="flex justify-between gap-4">
-                    <span className="text-zinc-500">Събота:</span>{" "}
-                    <span>
-                      {site.schedule.saturday?.isOpen
-                        ? `${site.schedule.saturday.open} - ${site.schedule.saturday.close}`
-                        : "Почивен ден"}
-                    </span>
-                  </li>
-                  <li className="flex justify-between gap-4">
-                    <span className="text-zinc-500">Неделя:</span>{" "}
-                    <span>
-                      {site.schedule.sunday?.isOpen
-                        ? `${site.schedule.sunday.open} - ${site.schedule.sunday.close}`
-                        : "Почивен ден"}
-                    </span>
-                  </li>
-                </ul>
-              ) : (
-                <p className="text-zinc-500 text-xs">Не е въведено</p>
-              )}
-            </div>
+          <div className="flex flex-col items-center justify-center text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              Работно време
+            </h2>
           </div>
 
-          <div className="bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
-            {schedule.length > 0 ? (
-              <div className="space-y-10">
-                {groups.map(([dateLabel, events], groupIdx) => (
-                  <motion.div
-                    key={dateLabel}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
+          <div className="max-w-3xl mx-auto bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
+            {site.schedule ? (
+              <div className="space-y-6">
+                {[
+                  { label: "Понеделник", data: site.schedule.monday },
+                  { label: "Вторник", data: site.schedule.tuesday },
+                  { label: "Сряда", data: site.schedule.wednesday },
+                  { label: "Четвъртък", data: site.schedule.thursday },
+                  { label: "Петък", data: site.schedule.friday },
+                  { label: "Събота", data: site.schedule.saturday },
+                  { label: "Неделя", data: site.schedule.sunday },
+                ].map((day) => (
+                  <div
+                    key={day.label}
+                    className="flex justify-between items-center py-4 border-b border-zinc-800/50 last:border-0"
                   >
-                    {/* Date Header */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <span
-                        className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
-                          isSpecialLabel(dateLabel)
-                            ? "bg-emerald-600/20 text-emerald-400 border border-blue-600/40"
-                            : "text-zinc-400"
-                        }`}
-                      >
-                        {dateLabel}
-                      </span>
-                      <div className="flex-1 h-px bg-zinc-800" />
-                    </div>
-
-                    {/* Events for this date */}
-                    <div className="space-y-3">
-                      {events.map((event, i) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          groupIdx={groupIdx}
-                          i={i}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
+                    <span className="text-zinc-300 font-medium text-lg">
+                      {day.label}
+                    </span>
+                    <span className="text-zinc-400">
+                      {day.data?.isOpen ? (
+                        `${day.data.open} - ${day.data.close}`
+                      ) : (
+                        <span className="text-emerald-500 font-medium tracking-widest text-sm uppercase">
+                          Почивен ден
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12 flex flex-col items-center">
-                <CalendarDays size={48} className="text-zinc-800 mb-4" />
+                <Clock size={48} className="text-zinc-800 mb-4" />
                 <p className="text-zinc-300 text-lg">
-                  Няма въведени свободни часове за следващите 7 дни.
-                </p>
-                <p className="text-zinc-600 text-sm mt-2">
-                  Очаквайте обновяване на седмичната програма.
+                  Не е въведено работно време.
                 </p>
               </div>
             )}
@@ -790,7 +538,7 @@ export default function RecoveryZoneClient({
                   src={hallImages[activeImage]}
                   alt="Recovery Zone Center"
                   fill
-                  className="object-cover"
+                  className="object-contain bg-zinc-950"
                 />
               </motion.div>
             </AnimatePresence>
