@@ -627,200 +627,218 @@ export default function ClubClient({
       </section>
 
       {/* Schedule 7 days */}
-      <section id="schedule" className="py-24 px-6 bg-zinc-950 relative">
+      <section id="schedule" className="py-24 px-6 relative">
         <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4">
-                График
-              </p>
               <h2 className="text-4xl md:text-5xl font-light tracking-tight">
                 Предстоящи Тренировки и Събития
               </h2>
-              <p className="text-zinc-300 mt-2">През следващите 7 дни</p>
+              <p className="text-zinc-400 mt-4 text-lg">
+                През следващите 7 дни
+              </p>
             </div>
             <Link
               href="/club/schedule"
-              className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-blue-400 hover:text-blue-400 transition-colors hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
+              className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
             >
               Пълен Календар <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="bg-black/80 border border-zinc-800 rounded-3xl p-8 md:p-12 glassmorphism">
-            {schedule.length > 0 ? (
-              <div className="space-y-10">
-                {groups.map(([dateLabel, events], groupIdx) => (
-                  <motion.div
-                    key={dateLabel}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
-                  >
-                    {/* Date Header */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <span
-                        className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
-                          isSpecialLabel(dateLabel)
-                            ? "bg-blue-600/20 text-blue-300 border border-blue-600/40"
-                            : "text-zinc-400"
-                        }`}
-                      >
-                        {dateLabel}
-                      </span>
-                      <div className="flex-1 h-px bg-zinc-800" />
-                    </div>
+          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-400/10 transition-colors duration-700" />
 
-                    {/* Events for this date */}
-                    <div className="space-y-3">
-                      {events.map((event, i) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          groupIdx={groupIdx}
-                          i={i}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 flex flex-col items-center">
-                <CalendarDays size={48} className="text-zinc-800 mb-4" />
-                <p className="text-zinc-300 text-lg">
-                  Няма въведени тренировки за следващите 7 дни.
-                </p>
-                <p className="text-zinc-600 text-sm mt-2">
-                  Очаквайте обновяване на седмичната програма.
-                </p>
-              </div>
-            )}
+            <div className="relative z-10">
+              {schedule.length > 0 ? (
+                <div className="space-y-10">
+                  {groups.map(([dateLabel, events], groupIdx) => (
+                    <motion.div
+                      key={dateLabel}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
+                    >
+                      {/* Date Header */}
+                      <div className="flex items-center gap-4 mb-4">
+                        <span
+                          className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
+                            isSpecialLabel(dateLabel)
+                              ? "bg-blue-600/20 text-blue-300 border border-blue-600/40"
+                              : "text-zinc-400"
+                          }`}
+                        >
+                          {dateLabel}
+                        </span>
+                        <div className="flex-1 h-px bg-zinc-800/50" />
+                      </div>
+
+                      {/* Events for this date */}
+                      <div className="space-y-3">
+                        {events.map((event, i) => (
+                          <EventCard
+                            key={event.id}
+                            event={event}
+                            groupIdx={groupIdx}
+                            i={i}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 flex flex-col items-center">
+                  <CalendarDays size={48} className="text-zinc-700 mb-6" />
+                  <p className="text-zinc-300 text-xl font-light">
+                    Няма въведени тренировки за следващите 7 дни.
+                  </p>
+                  <p className="text-zinc-500 text-md mt-2">
+                    Очаквайте обновяване на седмичната програма.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Facilities Carousel */}
-      <section className="py-24 px-6 bg-black/60 border-y border-zinc-900">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
-              База
-            </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+      <section className="py-24 px-6 relative">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
               Къде тренираме
             </h2>
-            <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-              Разполагаме със съвременна и напълно оборудвана спортна база.{" "}
-              <strong className="text-white">Спортна зала „Енергетик“</strong>{" "}
-              предлага:
-            </p>
-            <ul className="space-y-4 mb-12">
-              {[
-                "6 изцяло оборудвани корта за бадминтон",
-                "Трибуни за състезатели и зрители",
-                "Модерна конферентна зала",
-                "Просторни съблекални",
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-blue-400/20 flex items-center justify-center border border-blue-400/50">
-                    <div className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.8)]" />
-                  </div>
-                  <span className="text-zinc-300 font-medium">{item}</span>
-                </li>
-              ))}
-            </ul>
           </div>
 
-          {/* Carousel */}
-          <div className="relative aspect-video bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl group">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeImage}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={hallImages[activeImage]}
-                  alt="Спортна зала Енергетик"
-                  fill
-                  className="object-cover"
-                />
-              </motion.div>
-            </AnimatePresence>
+          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
 
-            {/* Controls */}
-            <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <button
-                onClick={prevImage}
-                aria-label="Предишна снимка"
-                className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                onClick={nextImage}
-                aria-label="Следваща снимка"
-                className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            <div className="grid grid-cols-1 gap-12 items-center relative z-10">
+              <div className="text-center md:text-left">
+                <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed mb-8">
+                  Разполагаме със съвременна и напълно оборудвана спортна база.{" "}
+                  <strong className="text-white font-medium">
+                    Спортна зала „Енергетик“
+                  </strong>{" "}
+                  предлага:
+                </p>
+                <ul className="space-y-4 mb-12 max-w-lg mx-auto md:mx-0 text-left">
+                  {[
+                    "6 изцяло оборудвани корта за бадминтон",
+                    "Трибуни за състезатели и зрители",
+                    "Модерна конферентна зала",
+                    "Просторни съблекални",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-blue-400/10 flex items-center justify-center border border-blue-400/30">
+                        <div className="h-2 w-2 rounded-full bg-blue-400" />
+                      </div>
+                      <span className="text-zinc-300 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {/* Indicators */}
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
-              {hallImages.map((_, i) => (
-                <button
-                  key={i}
-                  aria-label={`Отиди на снимка ${i + 1}`}
-                  onClick={() => setActiveImage(i)}
-                  className="p-3 touch-manipulation flex items-center justify-center group"
-                >
-                  <div
-                    className={`h-2 transition-all duration-300 rounded-full group-hover:bg-white/60 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/30"}`}
-                  />
-                </button>
-              ))}
+              {/* Carousel inside the card */}
+              <div className="relative aspect-video bg-black/60 rounded-3xl overflow-hidden border border-zinc-800/80 shadow-2xl group/carousel">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeImage}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0"
+                  >
+                    <Image
+                      src={hallImages[activeImage]}
+                      alt="Спортна зала Енергетик"
+                      fill
+                      className="object-cover"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Controls */}
+                <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">
+                  <button
+                    onClick={prevImage}
+                    aria-label="Предишна снимка"
+                    className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    aria-label="Следваща снимка"
+                    className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+
+                {/* Indicators */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                  {hallImages.map((_, i) => (
+                    <button
+                      key={i}
+                      aria-label={`Отиди на снимка ${i + 1}`}
+                      onClick={() => setActiveImage(i)}
+                      className="touch-manipulation group/btn"
+                    >
+                      <div
+                        className={`h-2 transition-all duration-300 rounded-full group-hover/btn:bg-white/80 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/40"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Contacts & Social */}
-      <section id="contacts" className="py-24 px-6 bg-zinc-950">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col gap-16">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4">
-                Свържете се с нас
-              </p>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-8">
-                Контакти и Локация
-              </h2>
+      <section id="contacts" className="py-24 px-6 relative">
+        {/* Glow effect */}
+        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
 
-              <div className="space-y-6 mb-12">
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-10 w-10 bg-blue-400/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
-                    <MapPin size={20} />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+              Свържете се с нас
+            </p>
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              Контакти и Локация
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-12">
+            <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+
+              <div className="space-y-6 relative z-10">
+                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
+                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+                    <MapPin size={24} />
                   </div>
                   <div>
                     <p className="text-white font-medium mb-1">
                       Спортна база / Място на тренировките
                     </p>
-                    <p className="text-zinc-400 text-sm">
+                    <p className="text-zinc-400 text-sm leading-relaxed">
                       {clubSite?.address ||
                         "Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41"}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-10 w-10 bg-blue-400/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
-                    <Phone size={20} />
+                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
+                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+                    <Phone size={24} />
                   </div>
                   <div>
                     <p className="text-white font-medium mb-1">
@@ -829,16 +847,16 @@ export default function ClubClient({
                     <p className="text-zinc-400 text-sm">Официален телефон</p>
                     <a
                       href={`tel:${clubSite?.phone || "+359899829923"}`}
-                      className="text-blue-400 font-bold mt-1 inline-block hover:underline"
+                      className="text-blue-400 font-bold text-lg mt-1 inline-block hover:underline"
                     >
                       {clubSite?.phone || "+359 899 82 99 23"}
                     </a>
                   </div>
                 </div>
 
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-10 w-10 bg-blue-400/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
-                    <Mail size={20} />
+                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
+                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+                    <Mail size={24} />
                   </div>
                   <div>
                     <p className="text-white font-medium mb-1">Имейл</p>
@@ -853,9 +871,9 @@ export default function ClubClient({
               </div>
             </div>
 
-            <div className="bg-black/80 border border-zinc-800 rounded-3xl p-6 md:p-10 flex flex-col justify-center relative overflow-hidden glassmorphism">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none" />
-              <h3 className="text-2xl font-light text-white mb-8 relative z-10">
+            <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+              <h3 className="text-3xl font-light text-white mb-10 relative z-10 text-center">
                 Последвайте ни в мрежите
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
@@ -864,13 +882,13 @@ export default function ClubClient({
                     href={clubSite.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-blue-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] group/social"
                   >
-                    <div className="text-zinc-300 group-hover:text-blue-500 transition-colors">
+                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-blue-500/10 group-hover/social:text-blue-500 transition-colors border border-zinc-800 group-hover/social:border-blue-500/30">
                       <FacebookIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                      Facebook Страница
+                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                      Facebook
                     </span>
                   </a>
                 )}
@@ -879,13 +897,13 @@ export default function ClubClient({
                     href={clubSite.facebookGroup}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-blue-400 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]"
+                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-blue-400 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(96,165,250,0.3)] group/social"
                   >
-                    <div className="text-zinc-300 group-hover:text-blue-400 transition-colors">
+                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-blue-400/10 group-hover/social:text-blue-400 transition-colors border border-zinc-800 group-hover/social:border-blue-400/30">
                       <Users size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
-                      Facebook Група
+                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                      Група
                     </span>
                   </a>
                 )}
@@ -894,12 +912,12 @@ export default function ClubClient({
                     href={clubSite.instagram}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-pink-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] group/social"
                   >
-                    <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
+                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-pink-500/10 group-hover/social:text-pink-500 transition-colors border border-zinc-800 group-hover/social:border-pink-500/30">
                       <InstagramIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
                       Instagram
                     </span>
                   </a>
@@ -909,12 +927,12 @@ export default function ClubClient({
                     href={clubSite.youtube}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-red-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] group/social"
                   >
-                    <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
+                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-red-500/10 group-hover/social:text-red-500 transition-colors border border-zinc-800 group-hover/social:border-red-500/30">
                       <YoutubeIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
                       YouTube
                     </span>
                   </a>
@@ -933,7 +951,7 @@ export default function ClubClient({
               {/* Instagram Feed Widget (Lazy Loaded) */}
               <div
                 ref={widgetRef}
-                className="mt-8 overflow-hidden rounded-2xl relative w-full min-h-[400px]"
+                className="mt-12 overflow-hidden rounded-3xl relative w-full min-h-[400px] bg-zinc-950/50 border border-zinc-800/80 z-10"
               >
                 {isWidgetVisible && (
                   <>
