@@ -406,12 +406,6 @@ export default function RecoveryZoneClient({
         </div>
       </section>
 
-      {/* Dynamic Team Section */}
-      <TeamSection
-        therapists={site.therapists || []}
-        teamIntro={site.teamIntro || ""}
-      />
-
       {/* Information Section */}
       {((site.contraindications && site.contraindications.length > 0) ||
         (site.faqs && site.faqs.length > 0)) && (
@@ -505,6 +499,12 @@ export default function RecoveryZoneClient({
           </div>
         </section>
       )}
+
+      {/* Dynamic Team Section */}
+      <TeamSection
+        therapists={site.therapists || []}
+        teamIntro={site.teamIntro || ""}
+      />
 
       {/* Services Call to Action */}
       <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-emerald-900/40">
