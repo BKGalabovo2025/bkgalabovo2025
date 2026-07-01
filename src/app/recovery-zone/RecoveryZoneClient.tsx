@@ -177,14 +177,6 @@ export default function RecoveryZoneClient({
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-16">
         <div className="absolute inset-0">
-          <Image
-            src="/1.png"
-            alt="Recovery Zone"
-            fill
-            sizes="100vw"
-            className="object-cover opacity-40"
-            priority
-          />
           {/* Dark gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-b from-black/60 via-zinc-950/80 to-zinc-950" />
         </div>
