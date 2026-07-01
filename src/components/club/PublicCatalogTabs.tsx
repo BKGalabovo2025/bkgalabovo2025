@@ -105,56 +105,56 @@ export default function PublicCatalogTabs({
       {/* Search and Navigation Bar */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-zinc-900/50 border border-zinc-800/80 p-4 rounded-3xl backdrop-blur-md">
         {/* Tabs switcher */}
-        <div className="flex items-center p-1 bg-zinc-950/80 border border-zinc-800/50 rounded-2xl w-full md:w-auto overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-2 lg:flex lg:items-center p-1 bg-zinc-950/80 border border-zinc-800/50 rounded-2xl w-full lg:w-auto gap-1">
           {allowedTabs.includes("trainings") && (
             <button
               onClick={() => handleTabChange("trainings")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
                 activeTab === "trainings"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
               }`}
             >
-              <Trophy size={14} />
+              <Trophy size={16} className="sm:w-4 sm:h-4" />
               Тренировки
             </button>
           )}
           {allowedTabs.includes("general") && (
             <button
               onClick={() => handleTabChange("general")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
                 activeTab === "general"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
               }`}
             >
-              <Activity size={14} />
+              <Activity size={16} className="sm:w-4 sm:h-4" />
               Клубни Услуги
             </button>
           )}
           {allowedTabs.includes("products") && (
             <button
               onClick={() => handleTabChange("products")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
                 activeTab === "products"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
               }`}
             >
-              <Package size={14} />
-              Магазин & Наличност
+              <Package size={16} className="sm:w-4 sm:h-4" />
+              Магазин
             </button>
           )}
           {allowedTabs.includes("recovery") && (
             <button
               onClick={() => handleTabChange("recovery")}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 whitespace-nowrap w-full md:w-auto ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
                 activeTab === "recovery"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
               }`}
             >
-              <Zap size={14} />
+              <Zap size={16} className="sm:w-4 sm:h-4" />
               Възстановяване
             </button>
           )}
@@ -327,7 +327,8 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 src={imgUrl}
                 alt={`${item.name} - ${idx + 1}`}
                 fill
-                sizes="(max-w-768px) 100vw, 33vw"
+                priority={true}
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover group-hover:scale-110 transition-transform duration-700"
               />
               {idx > 0 && (
@@ -407,7 +408,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               Цена
             </span>
             <span className="text-xl font-medium tracking-tight text-white">
-              {item.price > 0 ? `${item.price.toFixed(2)} EUR` : "По заявка"}
+              {item.price > 0 ? `${item.price.toFixed(2)} лв.` : "По заявка"}
             </span>
           </div>
 
@@ -453,10 +454,18 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 <DialogTitle className="text-2xl font-bold text-white mb-2 leading-tight">
                   {item.name}
                 </DialogTitle>
-                <div className="text-xl font-medium tracking-tight text-blue-400">
-                  {item.price > 0
-                    ? `${item.price.toFixed(2)} EUR`
-                    : "По заявка"}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                  <div className="text-xl font-medium tracking-tight text-blue-400">
+                    {item.price > 0
+                      ? `${item.price.toFixed(2)} лв.`
+                      : "По заявка"}
+                  </div>
+                  <a
+                    href="/club#contacts"
+                    className="inline-flex items-center justify-center px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+                  >
+                    Запиши се / Заяви
+                  </a>
                 </div>
               </DialogHeader>
             </div>
