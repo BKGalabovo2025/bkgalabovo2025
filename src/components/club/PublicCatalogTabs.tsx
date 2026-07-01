@@ -6,7 +6,6 @@ import {
   Trophy,
   Activity,
   Package,
-  Search,
   ChevronRight,
   ChevronLeft,
   ShoppingBag,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -103,7 +101,7 @@ export default function PublicCatalogTabs({
   return (
     <div className="space-y-8">
       {/* Search and Navigation Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-zinc-900/50 border border-zinc-800/80 p-4 rounded-3xl backdrop-blur-md">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-6 bg-zinc-900/50 border border-zinc-800/80 p-4 rounded-3xl backdrop-blur-md">
         {/* Tabs switcher */}
         <div className="grid grid-cols-2 lg:flex lg:items-center p-1 bg-zinc-950/80 border border-zinc-800/50 rounded-2xl w-full lg:w-auto gap-1">
           {allowedTabs.includes("trainings") && (
@@ -158,17 +156,6 @@ export default function PublicCatalogTabs({
               Възстановяване
             </button>
           )}
-        </div>
-
-        {/* Search Input */}
-        <div className="relative w-full md:w-80 shrink-0">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 h-4 w-4" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Търсене по име..."
-            className="w-full pl-11 pr-4 py-3 bg-zinc-950 border-zinc-800 rounded-2xl text-xs text-white placeholder-zinc-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 h-12 shadow-inner border"
-          />
         </div>
       </div>
 
