@@ -478,58 +478,66 @@ export default function ClubClient({
       {/* About & Mission */}
       <section id="about" className="py-24 px-6 bg-zinc-950 relative">
         {/* Glow effect */}
-        <div className="absolute top-1/2 left-0 w-96 h-96 bg-blue-400/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
 
-        <div className="max-w-6xl mx-auto relative z-10">
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
               За Клуба & Мисия
             </p>
-            <h2 className="text-3xl md:text-5xl font-light tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
               Развитие и популяризиране на{" "}
-              <span className="font-bold text-white">бадминтона</span> в
-              Гълъбово
+              <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
+                бадминтона
+              </span>{" "}
+              в Гълъбово
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* About text */}
-            <div className="space-y-6">
-              <p className="text-zinc-400 text-lg leading-relaxed">
+          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+
+            <div className="space-y-8 text-center md:text-left relative z-10">
+              <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed">
                 СНЦ „Бадминтон клуб Гълъбово“ е сдружение с нестопанска цел,
-                създадено през 2014 г. Нашата основна цел е да създадем
-                професионална и същевременно приятелска среда за развитие на
-                този динамичен спорт.
+                създадено през{" "}
+                <span className="text-white font-medium">2014 г.</span> Нашата
+                основна цел е да създадем професионална и същевременно
+                приятелска среда за развитие на този динамичен спорт.
               </p>
+
+              <div className="w-16 h-px bg-gradient-to-r from-blue-500 to-transparent mx-auto md:mx-0" />
+
               <p className="text-zinc-400 text-lg leading-relaxed">
                 Клубът организира регулярни тренировки за всички възрастови
-                групи – деца, юноши, възрастни и ветерани. Гордеем се с нашата
-                общност, която не спира да расте и да постига спортни върхове.
+                групи –{" "}
+                <span className="text-zinc-200">
+                  деца, юноши, възрастни и ветерани
+                </span>
+                . Гордеем се с нашата общност, която не спира да расте и да
+                постига спортни върхове.
               </p>
             </div>
 
-            {/* Mission Card */}
-            <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/10 border border-blue-500/20 p-8 md:p-10 rounded-3xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/20 transition-colors duration-700" />
-
-              <div className="flex items-center gap-4 mb-6 relative z-10">
-                <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
-                  <Target size={24} />
-                </div>
-                <h3 className="text-2xl font-bold tracking-tight text-white uppercase">
-                  Мисия
-                </h3>
+            <div className="mt-16 pt-12 border-t border-zinc-800/50 relative z-10">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-950 px-4 rounded-full border border-zinc-800/80 p-3 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                <Target className="w-6 h-6 text-blue-400" />
               </div>
 
-              <p className="text-zinc-300 text-md leading-relaxed relative z-10">
-                Извън спортните постижения, нашата най-важна мисия е да държим
-                младото поколение активно и здраво. Чрез бадминтона осигуряваме
-                сигурна среда за децата – далеч от застоялия живот пред
-                телефоните, затлъстяването и пороците на съвременното общество
-                (като алкохол и наркотици). Вярваме, че спортът изгражда
-                физическа дисциплина, възпитава характер, борбеност и екипен
-                дух.
-              </p>
+              <div className="text-center mt-6">
+                <h3 className="text-2xl font-bold tracking-widest text-white uppercase mb-6">
+                  Мисия
+                </h3>
+                <p className="text-zinc-400 text-lg leading-relaxed max-w-3xl mx-auto">
+                  Извън спортните постижения, нашата най-важна мисия е да държим
+                  младото поколение активно и здраво. Чрез бадминтона
+                  осигуряваме сигурна среда за децата – далеч от застоялия живот
+                  пред телефоните, затлъстяването и пороците на съвременното
+                  общество (като алкохол и наркотици). Вярваме, че спортът
+                  изгражда физическа дисциплина, възпитава характер, борбеност и
+                  екипен дух.
+                </p>
+              </div>
             </div>
           </div>
         </div>
