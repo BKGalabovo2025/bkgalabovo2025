@@ -98,6 +98,12 @@ export default function RecoveryZoneClient({
               Информация
             </a>
             <a
+              href="#team"
+              className="hover:text-emerald-400 transition-colors"
+            >
+              Екип
+            </a>
+            <a
               href="#contacts"
               className="hover:text-emerald-400 transition-colors"
             >
@@ -153,6 +159,13 @@ export default function RecoveryZoneClient({
                   className="hover:text-emerald-400"
                 >
                   Информация
+                </a>
+                <a
+                  href="#team"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-emerald-400"
+                >
+                  Екип
                 </a>
                 <a
                   href="#contacts"
