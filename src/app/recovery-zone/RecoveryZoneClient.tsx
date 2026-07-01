@@ -85,6 +85,12 @@ export default function RecoveryZoneClient({
             >
               За Зоната
             </a>
+            <a
+              href="#attachments"
+              className="hover:text-emerald-400 transition-colors"
+            >
+              Приставки
+            </a>
             <Link
               href="/recovery-zone/catalog"
               className="hover:text-emerald-400 transition-colors"
@@ -151,6 +157,13 @@ export default function RecoveryZoneClient({
                   className="hover:text-emerald-400"
                 >
                   За Зоната
+                </a>
+                <a
+                  href="#attachments"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-emerald-400"
+                >
+                  Приставки
                 </a>
                 <Link
                   href="/recovery-zone/catalog"
@@ -319,7 +332,10 @@ export default function RecoveryZoneClient({
       </section>
 
       {/* Attachments Section */}
-      <section className="py-24 px-6 bg-black relative border-t border-zinc-900/50">
+      <section
+        id="attachments"
+        className="py-24 px-6 bg-black relative border-t border-zinc-900/50"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-light tracking-tight mb-6">
