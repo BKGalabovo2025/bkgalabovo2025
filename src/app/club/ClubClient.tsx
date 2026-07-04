@@ -291,7 +291,7 @@ export default function ClubClient({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
+    <main className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
       {/* Nav */}
       <PublicNav clubSite={clubSite} />
 
@@ -332,7 +332,7 @@ export default function ClubClient({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <a
               href="#contacts"
-              className="group flex items-center justify-center gap-2 px-8 py-4 bg-blue-400 hover:bg-blue-600 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(30,58,138,0.6)] hover:shadow-[0_0_30px_rgba(30,58,138,0.9)] hover:-translate-y-1"
+              className="group flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(30,58,138,0.6)] hover:shadow-[0_0_30px_rgba(30,58,138,0.9)] hover:-translate-y-1"
             >
               Стани Член{" "}
               <ChevronRight
@@ -636,6 +636,7 @@ export default function ClubClient({
                       src={hallImages[activeImage]}
                       alt="Спортна зала Енергетик"
                       fill
+                      sizes="(max-width: 896px) 100vw, 896px"
                       className="object-cover"
                     />
                   </motion.div>
@@ -666,10 +667,10 @@ export default function ClubClient({
                       key={i}
                       aria-label={`Отиди на снимка ${i + 1}`}
                       onClick={() => setActiveImage(i)}
-                      className="touch-manipulation group/btn"
+                      className="touch-manipulation group/btn p-3"
                     >
                       <div
-                        className={`h-2 transition-all duration-300 rounded-full group-hover/btn:bg-white/80 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/40"}`}
+                        className={`h-2 transition-all duration-300 rounded-full group-hover/btn:bg-white/90 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/70"}`}
                       />
                     </button>
                   ))}
@@ -821,7 +822,7 @@ export default function ClubClient({
                   !clubSite?.facebookGroup &&
                   !clubSite?.instagram &&
                   !clubSite?.youtube && (
-                    <p className="text-zinc-500 text-sm col-span-2 text-center py-4">
+                    <p className="text-zinc-400 text-sm col-span-2 text-center py-4">
                       Очаквайте скоро нашите социални мрежи.
                     </p>
                   )}
@@ -856,6 +857,6 @@ export default function ClubClient({
 
       {/* Footer */}
       <PublicFooter clubSite={clubSite} />
-    </div>
+    </main>
   );
 }

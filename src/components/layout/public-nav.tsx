@@ -28,22 +28,40 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
-          <Link href="/club#about" className="hover:text-blue-400 transition-colors">
+          <Link
+            href="/club#about"
+            className="hover:text-blue-400 transition-colors"
+          >
             За Клуба
           </Link>
-          <Link href="/club#activities" className="hover:text-blue-400 transition-colors">
+          <Link
+            href="/club#activities"
+            className="hover:text-blue-400 transition-colors"
+          >
             Дейности
           </Link>
-          <Link href="/club/catalog" className="hover:text-blue-400 transition-colors">
+          <Link
+            href="/club/catalog"
+            className="hover:text-blue-400 transition-colors"
+          >
             Услуги
           </Link>
-          <Link href="/club#schedule" className="hover:text-blue-400 transition-colors">
+          <Link
+            href="/club#schedule"
+            className="hover:text-blue-400 transition-colors"
+          >
             График
           </Link>
-          <Link href="/club/team" className="hover:text-blue-400 transition-colors text-blue-400">
+          <Link
+            href="/club/team"
+            className="hover:text-blue-400 transition-colors text-blue-400"
+          >
             Отбор
           </Link>
-          <Link href="/club#contacts" className="hover:text-blue-400 transition-colors">
+          <Link
+            href="/club#contacts"
+            className="hover:text-blue-400 transition-colors"
+          >
             Контакти
           </Link>
         </div>
@@ -61,6 +79,8 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
         <button
           className="md:hidden text-white p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

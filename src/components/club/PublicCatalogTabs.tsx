@@ -162,7 +162,7 @@ export default function PublicCatalogTabs({
       {/* Category Pills */}
       {categories.length > 2 && (
         <div className="flex flex-wrap gap-2 items-center px-1">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mr-2">
+          <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold mr-2">
             Категория:
           </span>
           {categories.map((cat) => (
@@ -189,7 +189,7 @@ export default function PublicCatalogTabs({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-zinc-500 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
+        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
           <ShoppingBag
             className="h-10 w-10 text-zinc-700 mb-3"
             strokeWidth={1.5}
@@ -380,10 +380,10 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
       {/* Product Content Details */}
       <div className="p-6 flex-1 flex flex-col justify-between">
         <div>
-          <h3 className="text-base font-semibold leading-snug text-white group-hover:text-blue-400 transition-colors duration-300 min-h-10 flex items-center">
+          <h2 className="text-base font-semibold leading-snug text-white group-hover:text-blue-400 transition-colors duration-300 min-h-10 flex items-center">
             {item.name}
-          </h3>
-          <p className="text-zinc-500 text-xs font-light leading-relaxed mt-3 line-clamp-3 min-h-14">
+          </h2>
+          <p className="text-zinc-400 text-xs font-light leading-relaxed mt-3 line-clamp-3 min-h-14">
             {item.description || "Няма предоставено описание за този артикул."}
           </p>
         </div>
@@ -391,7 +391,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
         {/* Bottom Pricing & Details bar */}
         <div className="pt-5 border-t border-zinc-800/80 mt-6 flex justify-between items-end">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest">
+            <span className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest">
               Цена
             </span>
             <span className="text-xl font-medium tracking-tight text-white">
