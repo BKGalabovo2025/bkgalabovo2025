@@ -97,6 +97,7 @@ class AudioManager {
   private isPlayingSequence = false;
   private currentPlayId = 0;
   private timeoutId: NodeJS.Timeout | null = null;
+  private pendingCenterPath: string | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -130,6 +131,7 @@ class AudioManager {
     this.audioSequence = [];
     this.sequenceIndex = 0;
     this.currentPlayId++;
+    this.pendingCenterPath = null;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     if (this.voiceAudio) {
@@ -173,11 +175,38 @@ class AudioManager {
               this.isPlayingSequence = false;
             }
           });
-        }, 200); // 200ms pause separates the words clearly but is fast enough for drills
+        }, 200);
       } else {
         this.isPlayingSequence = false;
+        // Play any queued center command that was waiting for the sequence to finish
+        if (this.pendingCenterPath && this.currentPlayId === playId) {
+          const centerPath = this.pendingCenterPath;
+          this.pendingCenterPath = null;
+          setTimeout(() => {
+            if (!this.voiceAudio || this.isPlayingSequence) return;
+            this.currentPlayId++;
+            this.voiceAudio.onended = null;
+            this.voiceAudio.src = centerPath;
+            this.voiceAudio.play().catch(() => {});
+          }, 150);
+        }
       }
     };
+  }
+
+  public queueAfterSequence(path: string) {
+    // If nothing is playing right now, play immediately
+    if (!this.isPlayingSequence && (this.voiceAudio?.paused ?? true)) {
+      this.currentPlayId++;
+      if (this.voiceAudio) {
+        this.voiceAudio.onended = null;
+        this.voiceAudio.src = path;
+        this.voiceAudio.play().catch(() => {});
+      }
+    } else {
+      // Queue it — will be triggered in onended above
+      this.pendingCenterPath = path;
+    }
   }
 
   public playVoice(path: string) {
@@ -258,10 +287,9 @@ export const shadowAudioManager = getAudioManager();
 
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
-    // If the coach is still speaking (e.g., long zone+shot command), don't talk over them with "Center!"
-    if (!shadowAudioManager.isPlaying()) {
-      shadowAudioManager.playOverlay(path);
-    }
+    // Queue the center command to play AFTER the current voice sequence finishes,
+    // so it never interrupts or overlaps with zone/shot callouts.
+    shadowAudioManager.queueAfterSequence(path);
   } else if (
     path === AUDIO_PATHS.common.beep ||
     path === AUDIO_PATHS.common.splitStep
