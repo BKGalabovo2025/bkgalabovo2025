@@ -232,8 +232,8 @@ export function ShadowSetupForm({
             </CardContent>
           </Card>
 
-          {/* Bottom Row: 4 Columns Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Bottom Row: 3 Columns Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Col 1: Logistics & Toggles */}
             <div className="space-y-6">
               <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
@@ -520,70 +520,79 @@ export function ShadowSetupForm({
                 </CardContent>
               </Card>
             </div>
-
-            {/* Col 4: Players List */}
-            <div className="space-y-6">
-              <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
-                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <h2 className="font-bold text-lg flex items-center gap-2">
-                    <Users size={18} className="text-primary" /> Присъстващи
-                    играчи
-                  </h2>
-                </div>
-                <CardContent className="p-5 flex-1 overflow-auto">
-                  <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-1">
-                    {initialMembers.map((m) => {
-                      const isChecked = settings.activePlayers.some(
-                        (p) => p.id === m.id
-                      );
-                      return (
-                        <label
-                          key={m.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border ${isChecked ? "bg-white dark:bg-zinc-800 border-primary/30 shadow-sm" : "bg-transparent border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/50"}`}
-                        >
-                          <Checkbox
-                            checked={isChecked}
-                            onCheckedChange={(checked) => {
-                              if (!checked) {
-                                setSettings({
-                                  ...settings,
-                                  activePlayers: settings.activePlayers.filter(
-                                    (p) => p.id !== m.id
-                                  ),
-                                });
-                              } else {
-                                setSettings({
-                                  ...settings,
-                                  activePlayers: [
-                                    ...settings.activePlayers,
-                                    {
-                                      id: m.id,
-                                      displayName: `${m.firstName} ${m.lastName}`,
-                                    },
-                                  ],
-                                });
-                              }
-                            }}
-                          />
-                          <span
-                            className={`font-semibold ${isChecked ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"}`}
-                          >
-                            {String(m.firstName)} {String(m.lastName)}
-                          </span>
-                        </label>
-                      );
-                    })}
-                    {initialMembers.length === 0 && (
-                      <p className="text-sm text-zinc-500 p-2 text-center mt-4">
-                        Няма намерени играчи
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
+
+        {/* Full-width: Players List */}
+        <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm">
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <Users size={18} className="text-primary" /> Присъстващи играчи
+            </h2>
+            <span className="text-sm text-zinc-500 font-medium">
+              {settings.activePlayers.length} избрани
+            </span>
+          </div>
+          <CardContent className="p-5">
+            {initialMembers.length === 0 ? (
+              <p className="text-sm text-zinc-500 p-4 text-center">
+                Няма намерени играчи
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                {initialMembers.map((m) => {
+                  const isChecked = settings.activePlayers.some(
+                    (p) => p.id === m.id
+                  );
+                  return (
+                    <label
+                      key={m.id}
+                      className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all border ${
+                        isChecked
+                          ? "bg-primary/10 border-primary/40 shadow-sm"
+                          : "bg-transparent border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                      }`}
+                    >
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          if (!checked) {
+                            setSettings({
+                              ...settings,
+                              activePlayers: settings.activePlayers.filter(
+                                (p) => p.id !== m.id
+                              ),
+                            });
+                          } else {
+                            setSettings({
+                              ...settings,
+                              activePlayers: [
+                                ...settings.activePlayers,
+                                {
+                                  id: m.id,
+                                  displayName: `${m.firstName} ${m.lastName}`,
+                                },
+                              ],
+                            });
+                          }
+                        }}
+                      />
+                      <span
+                        className={`font-semibold text-sm leading-tight min-w-0 truncate ${
+                          isChecked
+                            ? "text-primary"
+                            : "text-zinc-600 dark:text-zinc-400"
+                        }`}
+                      >
+                        {String(m.firstName)} {String(m.lastName)}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="pt-6 pb-4 flex justify-center shrink-0 w-full mt-auto">
           <Button
