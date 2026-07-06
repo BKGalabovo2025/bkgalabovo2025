@@ -126,13 +126,15 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
   const [visualPhase, setVisualPhase] = useState<VisualPhase>("idle");
 
-  const [currentPlayersState, setCurrentPlayersState] = useState<ShadowPlayer[]>([]);
+  const [currentPlayersState, setCurrentPlayersState] = useState<
+    ShadowPlayer[]
+  >([]);
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
 
   const playCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
   const currentPlayersRef = useRef<ShadowPlayer[]>([]);
-  
+
   const previousStateRef = useRef<TrainerState>("idle");
 
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,10 +148,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const currentSetRef = useRef(currentSet);
   const agilityActionsDoneRef = useRef(agilityActionsDone);
 
-  useEffect(() => { settingsRef.current = settings; }, [settings]);
-  useEffect(() => { stateRef.current = state; }, [state]);
-  useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
-  useEffect(() => { agilityActionsDoneRef.current = agilityActionsDone; }, [agilityActionsDone]);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+  useEffect(() => {
+    currentSetRef.current = currentSet;
+  }, [currentSet]);
+  useEffect(() => {
+    agilityActionsDoneRef.current = agilityActionsDone;
+  }, [agilityActionsDone]);
 
   const audio = useShadowAudio();
 
@@ -172,7 +182,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
       try {
-        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+        wakeLockRef.current = await (
+          navigator as unknown as {
+            wakeLock: { request(type: string): Promise<WakeLockSentinel> };
+          }
+        ).wakeLock.request("screen");
       } catch (err) {
         console.log("Wake Lock error:", err);
       }
@@ -209,6 +223,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     };
   }, []);
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const triggerNextAction = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;
@@ -229,7 +244,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         if (nextCount >= currentSettings.workSec) {
           setState("finished");
           cleanupActions();
-          if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.endSet);
+          if (!currentSettings.visualOnly)
+            audio.play(AUDIO_PATHS.common.endSet);
           return;
         }
       }
@@ -271,7 +287,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       deceptionTimeoutRef.current = setTimeout(() => {
         if (stateRef.current !== "working") return;
 
-        const canDeceive = currentSettings.deceptionEnabled && Math.random() < 0.15;
+        const canDeceive =
+          currentSettings.deceptionEnabled && Math.random() < 0.15;
 
         if (canDeceive) {
           const fakeResolved = resolveAudioPathsAndZone(
@@ -283,22 +300,26 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
           if (!currentSettings.visualOnly) {
             const fakeSeq = [fakeResolved.audioPath];
-            if (fakeResolved.secondAudioPath) fakeSeq.push(fakeResolved.secondAudioPath);
+            if (fakeResolved.secondAudioPath)
+              fakeSeq.push(fakeResolved.secondAudioPath);
             audio.playSequence(fakeSeq);
           }
           setActiveZone(fakeResolved.zone);
           setVisualPhase("shot");
 
-          setTimeout(() => {
-            if (stateRef.current !== "working") return;
-            setActiveZone(zone);
-            if (!currentSettings.visualOnly) {
-              audio.stop();
-              const realSeq = [audioPath];
-              if (secondAudioPath) realSeq.push(secondAudioPath);
-              audio.playSequence(realSeq);
-            }
-          }, Math.max(300, splitStepDelay * 1000));
+          setTimeout(
+            () => {
+              if (stateRef.current !== "working") return;
+              setActiveZone(zone);
+              if (!currentSettings.visualOnly) {
+                audio.stop();
+                const realSeq = [audioPath];
+                if (secondAudioPath) realSeq.push(secondAudioPath);
+                audio.playSequence(realSeq);
+              }
+            },
+            Math.max(300, splitStepDelay * 1000)
+          );
         } else {
           setActiveZone(zone);
           setVisualPhase("shot");
@@ -315,7 +336,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         if (stateRef.current === "working") {
           setActiveZone(null);
           setVisualPhase("center");
-          if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
+          if (
+            currentSettings.centerCommandEnabled &&
+            !currentSettings.visualOnly
+          ) {
             audio.play(AUDIO_PATHS.common.center);
           }
         }
@@ -325,7 +349,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       actionTimeoutRef.current = setTimeout(() => {
         triggerNextAction();
       }, pace * 1000);
-
     } catch (error) {
       console.error("Error in triggerNextAction", error);
       const pace = settingsRef.current?.paceSec || 3;
@@ -334,15 +357,19 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, [audio, activeZone, cleanupActions]);
 
   const handleMotivationTick = useCallback(() => {
-    audio.triggerMotivation(currentPlayersRef.current, !!settings?.motivationEnabled);
+    audio.triggerMotivation(
+      currentPlayersRef.current,
+      !!settings?.motivationEnabled
+    );
   }, [audio, settings]);
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const advanceState = useCallback(() => {
     const currentSettings = settingsRef.current;
     if (!currentSettings) return;
 
     const phase = stateRef.current;
-    
+
     if (phase === "countdown") {
       setState("working");
       isFirstActionRef.current = true;
@@ -354,17 +381,22 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       setAgilityActionsDone(0);
       requestWakeLock();
       actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
-    } 
-    else if (phase === "working") {
+    } else if (phase === "working") {
       setActiveZone(null);
       cleanupActions();
-      const isLastSet = currentSetRef.current >= currentSettings.sets || currentSettings.mode === "agility_test";
-      
+      const isLastSet =
+        currentSetRef.current >= currentSettings.sets ||
+        currentSettings.mode === "agility_test";
+
       if (isLastSet) {
         setState("finished");
         if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.endSet);
       } else {
-        const nextPlayers = rotatePlayers(currentSettings, currentPlayersRef, playCountsRef);
+        const nextPlayers = rotatePlayers(
+          currentSettings,
+          currentPlayersRef,
+          playCountsRef
+        );
         if (nextPlayers !== currentPlayersRef.current) {
           currentPlayersRef.current = nextPlayers;
           setCurrentPlayersState(nextPlayers);
@@ -374,13 +406,15 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         timer.updateTimeRemaining(currentSettings.restSec);
         if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.rest);
       }
-    } 
-    else if (phase === "resting") {
+    } else if (phase === "resting") {
       setCurrentSet((c) => c + 1);
       setState("countdown");
       timer.updateTimeRemaining(10);
       if (!currentSettings.visualOnly) {
-        audio.playSequence([AUDIO_PATHS.common.endRest, AUDIO_PATHS.common.startSet]);
+        audio.playSequence([
+          AUDIO_PATHS.common.endRest,
+          AUDIO_PATHS.common.startSet,
+        ]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -409,7 +443,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, [settings, audio, timer]);
 
   const pauseTraining = useCallback(() => {
-    if (stateRef.current !== "paused" && stateRef.current !== "idle" && stateRef.current !== "finished") {
+    if (
+      stateRef.current !== "paused" &&
+      stateRef.current !== "idle" &&
+      stateRef.current !== "finished"
+    ) {
       previousStateRef.current = stateRef.current;
     }
     setState("paused");
@@ -435,7 +473,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, [audio, cleanupActions]);
 
   useEffect(() => {
-    if (settings === null && stateRef.current !== "idle" && stateRef.current !== "finished") {
+    if (
+      settings === null &&
+      stateRef.current !== "idle" &&
+      stateRef.current !== "finished"
+    ) {
       stopTraining();
     }
   }, [settings, stopTraining]);

@@ -4,16 +4,49 @@ import { CourtVisualizer } from "../CourtVisualizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Square, Pause, Activity, RotateCcw } from "lucide-react";
-import { ShadowSettings } from "@/hooks/useShadowTrainer";
+import {
+  ShadowSettings,
+  ShadowPlayer,
+  useShadowTrainer,
+} from "@/hooks/useShadowTrainer";
 
-// Note: In real app, import the exact ReturnType of useShadowTrainer, or cast as any for simplicity if types match exactly
 interface ShadowActiveScreenProps {
-  trainer: any; // ReturnType<typeof useShadowTrainer>
+  trainer: ReturnType<typeof useShadowTrainer>;
   settings: ShadowSettings;
 }
 
-export function ShadowActiveScreen({ trainer, settings }: ShadowActiveScreenProps) {
-  const activeIds = trainer.currentRotationPlayers.map((p: any) => p.id);
+function getStateLabel(state: string) {
+  if (state === "countdown") return "Приготви се...";
+  if (state === "working") return "РАБОТА";
+  if (state === "resting") return "ПОЧИВКА";
+  if (state === "paused") return "ПАУЗА";
+  return "ГОТОВНОСТ";
+}
+
+function getSubLabel(
+  mode: string,
+  state: string,
+  agilityActionsDone: number,
+  workSec: number,
+  currentSet: number,
+  sets: number
+) {
+  if (mode === "agility_test") {
+    if (state === "working")
+      return `Движение ${agilityActionsDone} от ${workSec}`;
+    if (state === "countdown") return "Подготовка...";
+    return "";
+  }
+  return `Серия ${currentSet} от ${sets}`;
+}
+
+export function ShadowActiveScreen({
+  trainer,
+  settings,
+}: ShadowActiveScreenProps) {
+  const activeIds = trainer.currentRotationPlayers.map(
+    (p: ShadowPlayer) => p.id
+  );
   const restingPlayers = settings.activePlayers.filter(
     (p) => !activeIds.includes(p.id)
   );
@@ -28,11 +61,16 @@ export function ShadowActiveScreen({ trainer, settings }: ShadowActiveScreenProp
               <Activity size={16} className="text-green-500" /> На Корта:
             </span>
             <div className="flex flex-wrap gap-2">
-              {trainer.currentRotationPlayers.map((p: any, i: number) => (
-                <span key={i} className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-bold">
-                  {p.displayName}
-                </span>
-              ))}
+              {trainer.currentRotationPlayers.map(
+                (p: ShadowPlayer, i: number) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-bold"
+                  >
+                    {p.displayName}
+                  </span>
+                )
+              )}
             </div>
           </div>
 
@@ -42,10 +80,20 @@ export function ShadowActiveScreen({ trainer, settings }: ShadowActiveScreenProp
                 <RotateCcw size={16} /> Почиват/Следват:
               </span>
               <div className="flex flex-wrap gap-2">
-                {restingPlayers.map((p, i) => (
-                  <span key={i} className="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-full font-medium text-sm">
-                    {p.displayName}
-                  </span>
+                {restingPlayers.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-2 md:gap-3 bg-zinc-800/80 p-2 md:p-3 rounded-xl border border-zinc-700/50"
+                  >
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-zinc-700 flex items-center justify-center font-bold text-sm md:text-base">
+                      {p.displayName
+                        ? p.displayName.charAt(0).toUpperCase()
+                        : "?"}
+                    </div>
+                    <span className="font-semibold text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">
+                      {p.displayName}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -64,13 +112,10 @@ export function ShadowActiveScreen({ trainer, settings }: ShadowActiveScreenProp
 
           <div className="flex-1 w-full space-y-6 md:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
             <div className="space-y-2 md:space-y-4">
-              <div className="inline-flex items-center px-4 py-2 bg-zinc-900 rounded-full border border-zinc-800">
-                <span className="w-3 h-3 rounded-full bg-primary animate-pulse mr-3" />
-                <span className="text-zinc-300 font-bold tracking-widest uppercase text-sm md:text-base">
-                  {trainer.state === "countdown" ? "Приготви се..." :
-                   trainer.state === "working" ? "РАБОТА" :
-                   trainer.state === "resting" ? "ПОЧИВКА" :
-                   trainer.state === "paused" ? "ПАУЗА" : "ГОТОВНОСТ"}
+              <div className="flex items-center gap-3">
+                <Activity className="w-8 h-8 text-primary animate-pulse" />
+                <span className="text-3xl md:text-4xl font-black tracking-wider text-primary">
+                  {getStateLabel(trainer.state)}
                 </span>
               </div>
 
@@ -79,34 +124,63 @@ export function ShadowActiveScreen({ trainer, settings }: ShadowActiveScreenProp
               </div>
 
               <p className="text-zinc-400 text-xl md:text-2xl font-medium mt-2 md:mt-4">
-                {settings.mode === "agility_test"
-                  ? trainer.state === "working"
-                    ? `Движение ${trainer.agilityActionsDone} от ${settings.workSec}`
-                    : trainer.state === "countdown" ? "Подготовка..." : ""
-                  : `Серия ${trainer.currentSet} от ${settings.sets}`}
+                {getSubLabel(
+                  settings.mode,
+                  trainer.state,
+                  trainer.agilityActionsDone,
+                  settings.workSec,
+                  trainer.currentSet,
+                  settings.sets
+                )}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-md">
               {trainer.state === "idle" ? (
-                <Button size="lg" className="col-span-2 h-20 md:h-24 text-2xl md:text-3xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_0_40px_rgba(var(--primary),0.3)]" onClick={trainer.startTraining}>
-                  <Play className="mr-3 md:mr-4 w-8 h-8 md:w-10 md:h-10" /> СТАРТ
+                <Button
+                  size="lg"
+                  className="col-span-2 h-20 md:h-24 text-2xl md:text-3xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_0_40px_rgba(var(--primary),0.3)]"
+                  onClick={trainer.startTraining}
+                >
+                  <Play className="mr-3 md:mr-4 w-8 h-8 md:w-10 md:h-10" />{" "}
+                  СТАРТ
                 </Button>
               ) : (
                 <>
                   {trainer.state === "paused" ? (
-                    <Button size="lg" className="h-20 md:h-24 text-xl md:text-2xl font-black bg-green-600 hover:bg-green-700 rounded-2xl" onClick={trainer.resumeTraining}>
-                      <Play className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" /> ПРОДЪЛЖИ
+                    <Button
+                      size="lg"
+                      className="h-20 md:h-24 text-xl md:text-2xl font-black bg-green-600 hover:bg-green-700 rounded-2xl"
+                      onClick={trainer.resumeTraining}
+                    >
+                      <Play className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                      ПРОДЪЛЖИ
                     </Button>
                   ) : (
-                    <Button size="lg" className="h-20 md:h-24 text-xl md:text-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-yellow-950 rounded-2xl" onClick={trainer.pauseTraining}>
-                      <Pause className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" /> ПАУЗА
+                    <Button
+                      size="lg"
+                      className="h-20 md:h-24 text-xl md:text-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-yellow-950 rounded-2xl"
+                      onClick={trainer.pauseTraining}
+                    >
+                      <Pause className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                      ПАУЗА
                     </Button>
                   )}
-                  <Button size="lg" variant="destructive" className="h-20 md:h-24 text-xl md:text-2xl font-black rounded-2xl" onClick={() => {
-                    if (confirm("Сигурни ли сте, че искате да спрете тренировката предсрочно?")) trainer.stopTraining();
-                  }}>
-                    <Square className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" /> СТОП
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    className="h-20 md:h-24 text-xl md:text-2xl font-black rounded-2xl"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          "Сигурни ли сте, че искате да спрете тренировката предсрочно?"
+                        )
+                      )
+                        trainer.stopTraining();
+                    }}
+                  >
+                    <Square className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                    СТОП
                   </Button>
                 </>
               )}

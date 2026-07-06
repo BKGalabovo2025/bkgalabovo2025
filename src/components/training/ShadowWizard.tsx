@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
-import { useShadowTrainer, ShadowSettings } from "@/hooks/useShadowTrainer";
+import {
+  useShadowTrainer,
+  ShadowSettings,
+  ShadowPlayer,
+} from "@/hooks/useShadowTrainer";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
 import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
 
@@ -12,16 +16,18 @@ import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
 import { ShadowSetupForm } from "./shadow/ShadowSetupForm";
 import { ShadowActiveScreen } from "./shadow/ShadowActiveScreen";
 import { ShadowReportForm } from "./shadow/ShadowReportForm";
+import type { TrainingSession } from "@/types/training.types";
 
 interface Props {
-  initialMembers?: any[];
+  initialMembers?: ShadowPlayer[];
 }
 
 export function ShadowWizard({ initialMembers = [] }: Props) {
-  const router = useRouter();
   const { user } = useAuth();
 
-  const [screen, setScreen] = useState<"setup" | "training" | "analytics">("setup");
+  const [screen, setScreen] = useState<"setup" | "training" | "analytics">(
+    "setup"
+  );
   const [settings, setSettings] = useState<ShadowSettings>({
     mode: "standard",
     preset: "custom",
@@ -72,58 +78,65 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
 
     const elapsedSeconds = (trainer.actualElapsedMs || 0) / 1000;
     if (elapsedSeconds < 10) {
-      const confirmSave = confirm(`Внимание: Тренировката е продължила само ${Math.round(elapsedSeconds)} секунди. Сигурни ли сте, че искате да я запишете в историята?`);
+      const confirmSave = confirm(
+        `Внимание: Тренировката е продължила само ${Math.round(elapsedSeconds)} секунди. Сигурни ли сте, че искате да я запишете в историята?`
+      );
       if (!confirmSave) return;
     }
 
     try {
       const token = await user.getIdToken();
-      const rpeScores = settings.activePlayers.reduce((acc, p) => {
-        acc[p.id] = rpeScore;
-        return acc;
-      }, {} as Record<string, number>);
+      const rpeScores = settings.activePlayers.reduce(
+        (acc, p) => {
+          acc[p.id] = rpeScore;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       const payload = {
         siteId: "bkgalabovo",
-        type: "shadow",
+        type: "shadow" as const,
         date: new Date().toISOString(),
         memberIds: settings.activePlayers.map((p) => p.id),
         durationMs: trainer.actualElapsedMs || 0,
         notes: rpeNotes,
         shadowDetails: {
           mode: settings.mode,
-          preset: settings.preset as any,
+          preset: settings.preset,
           cornersMode: settings.cornersMode,
           ageGroup: settings.ageGroup,
           drillPattern: settings.drillPattern,
           setsCompleted: trainer.currentSet,
           totalSets: settings.sets,
-          workTimeSec: settings.mode === "agility_test" ? Math.round(trainer.actualElapsedMs / 1000) : settings.workSec,
+          workTimeSec:
+            settings.mode === "agility_test"
+              ? Math.round(trainer.actualElapsedMs / 1000)
+              : settings.workSec,
           restTimeSec: settings.restSec,
           deceptionEnabled: settings.deceptionEnabled,
           rpeScores,
         },
-      };
+      } as unknown as Omit<TrainingSession, "id" | "createdAt" | "createdBy">;
 
       // 1. Оптимистичен UI - Светкавично нулиране и обратна връзка!
       toast.success("Тренировката е записана успешно!");
-      
+
       // Нулираме данните от последната сесия за всеки случай
       setRpeNotes("");
       setRpeScore(5);
-      
+
       // Нулираме състоянието на таймера и ротацията в хука
       trainer.stopTraining();
-      
+
       // Връщаме потребителя веднага на екрана с настройки
       setScreen("setup");
 
       // 2. Асинхронно запазване (background task) - без await
-      createTrainingSessionAction(token, payload as any).catch((e) => {
+      createTrainingSessionAction(token, payload).catch((e) => {
         console.error("Save training background error:", e);
         toast.error("Възникна грешка при запазване в базата данни.");
       });
-      
     } catch (e: unknown) {
       console.error("Preparation error:", e);
       toast.error("Възникна грешка при подготовката на данните.");
