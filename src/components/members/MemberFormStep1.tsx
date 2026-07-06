@@ -275,8 +275,15 @@ export function MemberFormStep1({
                   let valStr = String(val);
                   if (typeof val === "string") {
                     valStr = val.split("T")[0];
-                  } else if (val && typeof (val as { toDate?: () => Date }).toDate === "function") {
-                    valStr = (val as { toDate: () => Date }).toDate().toISOString().split("T")[0];
+                  } else if (
+                    val &&
+                    typeof (val as { toDate?: () => Date }).toDate ===
+                      "function"
+                  ) {
+                    valStr = (val as { toDate: () => Date })
+                      .toDate()
+                      .toISOString()
+                      .split("T")[0];
                   } else if (val instanceof Date) {
                     valStr = val.toISOString().split("T")[0];
                   }
@@ -371,6 +378,144 @@ export function MemberFormStep1({
                 );
               }}
             />
+            <FormField
+              control={form.control}
+              name="registrationDate"
+              render={({ field }) => {
+                const years = Array.from({ length: 10 }, (_, i) =>
+                  (new Date().getFullYear() - i).toString()
+                );
+                const months = [
+                  { value: "01", label: "Януари" },
+                  { value: "02", label: "Февруари" },
+                  { value: "03", label: "Март" },
+                  { value: "04", label: "Април" },
+                  { value: "05", label: "Май" },
+                  { value: "06", label: "Юни" },
+                  { value: "07", label: "Юли" },
+                  { value: "08", label: "Август" },
+                  { value: "09", label: "Септември" },
+                  { value: "10", label: "Октомври" },
+                  { value: "11", label: "Ноември" },
+                  { value: "12", label: "Декември" },
+                ];
+                const days = Array.from({ length: 31 }, (_, i) =>
+                  (i + 1).toString().padStart(2, "0")
+                );
+
+                let curYear = "";
+                let curMonth = "";
+                let curDay = "";
+
+                if (field.value) {
+                  const val: unknown = field.value;
+                  let valStr = String(val);
+                  if (typeof val === "string") {
+                    valStr = val.split("T")[0];
+                  } else if (
+                    val &&
+                    typeof (val as { toDate?: () => Date }).toDate ===
+                      "function"
+                  ) {
+                    valStr = (val as { toDate: () => Date })
+                      .toDate()
+                      .toISOString()
+                      .split("T")[0];
+                  } else if (val instanceof Date) {
+                    valStr = val.toISOString().split("T")[0];
+                  }
+                  const parts = valStr.split("-");
+                  curYear = parts[0] || "";
+                  curMonth = parts[1] || "";
+                  curDay = parts[2] || "";
+                }
+
+                // eslint-disable-next-line sonarjs/no-identical-functions
+                const updateDate = (y: string, m: string, d: string) => {
+                  if (!y) {
+                    field.onChange(null);
+                    return;
+                  }
+                  let val = y;
+                  if (m) {
+                    val += `-${m}`;
+                    if (d) val += `-${d}`;
+                  }
+                  field.onChange(val);
+                };
+
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
+                      Дата на регистрация (Опц.)
+                    </FormLabel>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Select
+                        onValueChange={(v) => updateDate(v, curMonth, curDay)}
+                        value={curYear || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                            <SelectValue placeholder="Година" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[300px]">
+                          {years.map((y) => (
+                            <SelectItem key={y} value={y}>
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        onValueChange={(v) =>
+                          updateDate(curYear, v === "none" ? "" : v, curDay)
+                        }
+                        value={curMonth || "none"}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                            <SelectValue placeholder="Месец" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Месец</SelectItem>
+                          {months.map((m) => (
+                            <SelectItem key={m.value} value={m.value}>
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        onValueChange={(v) =>
+                          updateDate(curYear, curMonth, v === "none" ? "" : v)
+                        }
+                        value={curDay || "none"}
+                        disabled={!curMonth}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                            <SelectValue placeholder="Ден" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Ден</SelectItem>
+                          {days.map((d) => (
+                            <SelectItem key={d} value={d}>
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
           </>
         )}
       </div>
@@ -395,7 +540,9 @@ export function MemberFormStep1({
                   />
                 </FormControl>
                 <p className="text-[11px] text-amber-600/80 mt-1.5 leading-relaxed font-medium">
-                  Важно: Името на файла трябва да е на латиница, без интервали (напр. veronika.jpg). Снимката трябва да е предварително качена в папка public/team/.
+                  Важно: Името на файла трябва да е на латиница, без интервали
+                  (напр. veronika.jpg). Снимката трябва да е предварително
+                  качена в папка public/team/.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -412,7 +559,8 @@ export function MemberFormStep1({
                     Показвай в публичния отбор
                   </FormLabel>
                   <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
-                    Ако е избрано, състезателят ще се показва на страница /club/team.
+                    Ако е избрано, състезателят ще се показва на страница
+                    /club/team.
                   </p>
                 </div>
                 <FormControl>

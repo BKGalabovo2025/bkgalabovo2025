@@ -152,7 +152,9 @@ export const calculateAgeGroup = (
 
 // Adds a new member to the database, using server-side timestamps.
 export const addMember = async (
-  memberData: Omit<Member, "id" | "name" | "registrationDate" | "updatedAt">
+  memberData: Omit<Member, "id" | "name" | "updatedAt" | "registrationDate"> & {
+    registrationDate?: string;
+  }
 ): Promise<string> => {
   const ageGroup = calculateAgeGroup(memberData.dateOfBirth);
   const name = [
@@ -170,7 +172,9 @@ export const addMember = async (
     dateOfBirth: memberData.dateOfBirth
       ? Timestamp.fromDate(new Date(memberData.dateOfBirth))
       : null,
-    registrationDate: serverTimestamp(),
+    registrationDate: memberData.registrationDate
+      ? Timestamp.fromDate(new Date(memberData.registrationDate))
+      : serverTimestamp(),
     updatedAt: serverTimestamp(),
     siteId: getSiteConfig().id, // Explicitly add siteId if not handled by converter correctly (converter handles it but extra safety)
   };

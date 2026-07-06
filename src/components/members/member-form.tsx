@@ -20,6 +20,8 @@ const MemberFormSchema = MemberSchema.omit({
   name: true,
   registrationDate: true,
   updatedAt: true,
+}).extend({
+  registrationDate: z.string().optional(),
 });
 export type MemberFormValues = z.infer<typeof MemberFormSchema>;
 
@@ -29,6 +31,16 @@ interface MemberFormProps {
   initialData?: Partial<Member>;
 }
 
+const ensureDateString = (val: unknown): string | undefined => {
+  if (!val) return undefined;
+  if (typeof val === "string") return val.split("T")[0];
+  if (typeof (val as { toDate?: () => Date })?.toDate === "function") {
+    return (val as { toDate: () => Date }).toDate().toISOString().split("T")[0];
+  }
+  if (val instanceof Date) return val.toISOString().split("T")[0];
+  return String(val);
+};
+
 export const MemberForm = ({
   onSave,
   onClose,
@@ -37,29 +49,15 @@ export const MemberForm = ({
   const [step, setStep] = useState(1);
   const { activeBranch } = useAppStore();
 
-  // Safely convert dateOfBirth to string for Zod validation
   const safeInitialData = { ...initialData } as Record<string, unknown>;
-  if (
-    safeInitialData.dateOfBirth &&
-    typeof safeInitialData.dateOfBirth !== "string"
-  ) {
-    if (
-      typeof (safeInitialData.dateOfBirth as { toDate?: () => Date })
-        ?.toDate === "function"
-    ) {
-      safeInitialData.dateOfBirth = (
-        safeInitialData.dateOfBirth as { toDate: () => Date }
-      )
-        .toDate()
-        .toISOString()
-        .split("T")[0];
-    } else if (safeInitialData.dateOfBirth instanceof Date) {
-      safeInitialData.dateOfBirth = safeInitialData.dateOfBirth
-        .toISOString()
-        .split("T")[0];
-    } else {
-      safeInitialData.dateOfBirth = String(safeInitialData.dateOfBirth);
-    }
+
+  if (safeInitialData.dateOfBirth) {
+    safeInitialData.dateOfBirth = ensureDateString(safeInitialData.dateOfBirth);
+  }
+  if (safeInitialData.registrationDate) {
+    safeInitialData.registrationDate = ensureDateString(
+      safeInitialData.registrationDate
+    );
   }
 
   const form = useForm<MemberFormValues>({
@@ -71,6 +69,7 @@ export const MemberForm = ({
       lastName: "",
       educationInstitution: "",
       dateOfBirth: undefined,
+      registrationDate: undefined,
       gender: "male",
       phone: "",
       email: "",

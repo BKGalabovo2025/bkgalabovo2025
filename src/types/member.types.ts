@@ -134,4 +134,4 @@ export type Member = z.infer<typeof MemberSchema>;
 export type MemberFormData = Omit<
   Member,
   "id" | "name" | "registrationDate" | "updatedAt"
->;
+> & { registrationDate?: string };
