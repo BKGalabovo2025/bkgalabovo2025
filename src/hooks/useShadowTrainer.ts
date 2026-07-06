@@ -197,6 +197,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     ShadowPlayer[]
   >([]);
   const [agilityActionsDone, setAgilityActionsDone] = useState(0);
+  const [nextActionDelay, setNextActionDelay] = useState<number | null>(null);
 
   const playCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
@@ -272,6 +273,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
     if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
     setVisualPhase("idle");
+    setNextActionDelay(null);
     releaseWakeLock();
   }, []);
 
@@ -325,6 +327,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
               currentSettings.paceSec
             )
           : currentSettings.paceSec;
+
+      setNextActionDelay(pace);
 
       const { zone, audioPath, secondAudioPath } = resolveAudioPathsAndZone(
         currentSettings.drillMode,
@@ -599,6 +603,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     actualElapsedMs,
     currentRotationPlayers: currentPlayersState,
     agilityActionsDone,
+    nextActionDelay,
     startTraining,
     pauseTraining,
     resumeTraining,

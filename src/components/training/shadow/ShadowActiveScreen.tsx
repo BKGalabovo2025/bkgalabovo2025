@@ -208,6 +208,16 @@ export function ShadowActiveScreen({
                   settings.sets
                 )}
               </p>
+
+              {settings.mode === "ghost_match" &&
+                trainer.state === "working" &&
+                trainer.nextActionDelay !== undefined &&
+                trainer.nextActionDelay !== null && (
+                  <div className="text-yellow-400 text-lg md:text-xl font-bold animate-pulse mt-2 flex items-center gap-2">
+                    <Timer size={20} /> Следваща след{" "}
+                    {trainer.nextActionDelay.toFixed(1)}с
+                  </div>
+                )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-md">
