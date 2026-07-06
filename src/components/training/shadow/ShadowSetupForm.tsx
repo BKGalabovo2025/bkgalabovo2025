@@ -47,15 +47,15 @@ function ToggleButton({
       role="switch"
       aria-checked={enabled}
       onClick={onClick}
-      className={`w-full text-left flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+      className={`w-full text-left flex items-center justify-between gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
         enabled
           ? `border-${colorClass}-500 bg-${colorClass}-500/10`
           : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
       }`}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0 flex-1">
         <span
-          className={`font-bold text-sm ${
+          className={`font-bold text-sm leading-tight ${
             enabled
               ? `text-${colorClass}-700 dark:text-${colorClass}-400`
               : "text-zinc-700 dark:text-zinc-300"
@@ -63,7 +63,9 @@ function ToggleButton({
         >
           {label}
         </span>
-        <span className="text-xs text-zinc-500">{desc}</span>
+        <span className="text-xs text-zinc-500 leading-tight mt-0.5">
+          {desc}
+        </span>
       </div>
       <div
         className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${enabled ? bgClass : "bg-zinc-300 dark:bg-zinc-700"}`}
@@ -360,14 +362,16 @@ export function ShadowSetupForm({
                             mode: m.id as ShadowSettings["mode"],
                           })
                         }
-                        className={`w-full text-left px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${
+                        className={`w-full text-left px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex flex-col gap-0.5 ${
                           settings.mode === m.id
                             ? "border-primary bg-primary/10 text-primary"
                             : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                         }`}
                       >
-                        <span className="font-bold">{m.title}</span>
-                        <span className="text-xs opacity-60 font-medium">
+                        <span className="font-bold text-sm leading-tight">
+                          {m.title}
+                        </span>
+                        <span className="text-xs opacity-60 font-medium leading-tight">
                           {m.desc}
                         </span>
                       </button>
@@ -397,7 +401,7 @@ export function ShadowSetupForm({
                                   c.id as ShadowSettings["calloutMode"],
                               })
                             }
-                            className={`text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                            className={`w-full text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all truncate ${
                               settings.calloutMode === c.id
                                 ? "border-primary bg-primary/10 text-primary"
                                 : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
@@ -502,7 +506,7 @@ export function ShadowSetupForm({
                                 p.id as ShadowSettings["drillPattern"],
                             })
                           }
-                          className={`text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                          className={`w-full text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all truncate ${
                             settings.drillPattern === p.id
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
