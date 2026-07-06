@@ -243,6 +243,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         }
         if (nextCount >= currentSettings.workSec) {
           setState("finished");
+          timerRef.current.syncState("finished");
           cleanupActions();
           if (!currentSettings.visualOnly)
             audio.play(AUDIO_PATHS.common.endSet);
@@ -461,6 +462,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setCurrentSet(1);
     timerRef.current.updateTimeRemaining(10);
     setAgilityActionsDone(0);
+    agilityActionsDoneRef.current = 0;
+    consecutiveFastShotsRef.current = 0;
     timerRef.current.setActualElapsedMs(0);
     if (!settings.visualOnly) {
       audio.play(AUDIO_PATHS.common.startSet);

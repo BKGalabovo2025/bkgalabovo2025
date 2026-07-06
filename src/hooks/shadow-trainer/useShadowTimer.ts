@@ -47,6 +47,16 @@ export function useShadowTimer({
     }
   }, []);
 
+  const advanceStateRef = useRef(advanceState);
+  useEffect(() => {
+    advanceStateRef.current = advanceState;
+  }, [advanceState]);
+
+  const onMotivationTickRef = useRef(onMotivationTick);
+  useEffect(() => {
+    onMotivationTickRef.current = onMotivationTick;
+  }, [onMotivationTick]);
+
   useEffect(() => {
     if (state === "idle" || state === "finished" || state === "paused") {
       cleanupTimer();
@@ -80,7 +90,7 @@ export function useShadowTimer({
           nextVal = currentPrev + 1;
         } else {
           if (currentPrev <= 1) {
-            setTimeout(advanceState, 0);
+            setTimeout(() => advanceStateRef.current(), 0);
             nextVal = 0;
           } else {
             nextVal = currentPrev - 1;
@@ -94,7 +104,7 @@ export function useShadowTimer({
           currentSettings?.motivationEnabled;
 
         if (shouldMotivate) {
-          onMotivationTick();
+          onMotivationTickRef.current();
         }
 
         expectedTimeRemainingRef.current = nextVal;
@@ -105,7 +115,7 @@ export function useShadowTimer({
     timerRef.current = intervalId;
 
     return cleanupTimer;
-  }, [state, advanceState, cleanupTimer, onMotivationTick]);
+  }, [state, cleanupTimer]);
 
   return {
     timeRemaining,
