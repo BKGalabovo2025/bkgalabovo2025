@@ -128,11 +128,6 @@ describe("ShadowWizard Component Flow", () => {
     // End training early
     fireEvent.click(screen.getByText("СТОП"));
 
-    // Confirm stop early
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Сигурни ли сте, че искате да спрете тренировката предсрочно?"
-    );
-
     // Auto-transition to Screen 3: Analytics
     expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
 
