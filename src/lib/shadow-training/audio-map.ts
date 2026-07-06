@@ -92,11 +92,16 @@ class AudioManager {
   private voiceAudio: HTMLAudioElement | null = null;
   private overlayAudio: HTMLAudioElement | null = null;
 
+  // Current sequence state
   private audioSequence: string[] = [];
   private sequenceIndex = 0;
   private isPlayingSequence = false;
   private currentPlayId = 0;
   private timeoutId: NodeJS.Timeout | null = null;
+
+  // Next sequence to play once the current one finishes
+  private nextSequence: string[] | null = null;
+  // Center command to play once the current+next sequences finish
   private pendingCenterPath: string | null = null;
 
   constructor() {
@@ -132,6 +137,7 @@ class AudioManager {
     this.sequenceIndex = 0;
     this.currentPlayId++;
     this.pendingCenterPath = null;
+    this.nextSequence = null;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     if (this.voiceAudio) {
@@ -156,6 +162,18 @@ class AudioManager {
     return false;
   }
 
+  private startSequenceInternal(paths: string[], playId: number) {
+    if (!this.voiceAudio || paths.length === 0) return;
+    this.isPlayingSequence = true;
+    this.audioSequence = paths;
+    this.sequenceIndex = 0;
+    this.attachOnEnded(playId);
+    this.voiceAudio.src = paths[0];
+    this.voiceAudio.play().catch(() => {
+      this.isPlayingSequence = false;
+    });
+  }
+
   private attachOnEnded(playId: number) {
     if (!this.voiceAudio) return;
     this.voiceAudio.onended = () => {
@@ -166,23 +184,34 @@ class AudioManager {
         this.sequenceIndex < this.audioSequence.length &&
         this.isPlayingSequence
       ) {
+        // More items in this sequence — continue after 200ms
         this.timeoutId = setTimeout(() => {
           if (this.currentPlayId !== playId || !this.isPlayingSequence) return;
           this.voiceAudio!.src = this.audioSequence[this.sequenceIndex];
           this.voiceAudio!.play().catch((e) => {
             if (e.name !== "AbortError") {
-              console.log("Sequence play error", e);
               this.isPlayingSequence = false;
             }
           });
         }, 200);
       } else {
+        // Current sequence finished
         this.isPlayingSequence = false;
-        // Play any queued center command that was waiting for the sequence to finish
-        if (this.pendingCenterPath && this.currentPlayId === playId) {
+
+        if (this.nextSequence) {
+          // A new sequence was waiting — play it now
+          const seq = this.nextSequence;
+          this.nextSequence = null;
+          this.currentPlayId++;
+          const nextId = this.currentPlayId;
+          this.timeoutId = setTimeout(() => {
+            this.startSequenceInternal(seq, nextId);
+          }, 150);
+        } else if (this.pendingCenterPath) {
+          // No queued sequence — play the center command
           const centerPath = this.pendingCenterPath;
           this.pendingCenterPath = null;
-          setTimeout(() => {
+          this.timeoutId = setTimeout(() => {
             if (!this.voiceAudio || this.isPlayingSequence) return;
             this.currentPlayId++;
             this.voiceAudio.onended = null;
@@ -194,9 +223,25 @@ class AudioManager {
     };
   }
 
+  public playVoiceSequence(paths: string[]) {
+    if (!this.voiceAudio || paths.length === 0) return;
+
+    if (this.isPlaying()) {
+      // Audio still playing — queue this sequence; it will auto-play when done
+      this.nextSequence = paths;
+      // Clear any stale center command — the new sequence takes priority
+      this.pendingCenterPath = null;
+    } else {
+      // Nothing playing — start immediately
+      this.currentPlayId++;
+      if (this.timeoutId) clearTimeout(this.timeoutId);
+      this.startSequenceInternal(paths, this.currentPlayId);
+    }
+  }
+
   public queueAfterSequence(path: string) {
-    // If nothing is playing right now, play immediately
-    if (!this.isPlayingSequence && (this.voiceAudio?.paused ?? true)) {
+    if (!this.isPlaying() && !this.nextSequence) {
+      // Nothing playing right now — play immediately
       this.currentPlayId++;
       if (this.voiceAudio) {
         this.voiceAudio.onended = null;
@@ -204,7 +249,7 @@ class AudioManager {
         this.voiceAudio.play().catch(() => {});
       }
     } else {
-      // Queue it — will be triggered in onended above
+      // Queue after whatever is currently playing/pending
       this.pendingCenterPath = path;
     }
   }
@@ -212,28 +257,14 @@ class AudioManager {
   public playVoice(path: string) {
     if (!this.voiceAudio) return;
     this.isPlayingSequence = false;
+    this.nextSequence = null;
+    this.pendingCenterPath = null;
     this.currentPlayId++;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     this.voiceAudio.onended = null;
     this.voiceAudio.src = path;
     this.voiceAudio.play().catch(() => {});
-  }
-
-  public playVoiceSequence(paths: string[]) {
-    if (!this.voiceAudio || paths.length === 0) return;
-    this.currentPlayId++;
-    if (this.timeoutId) clearTimeout(this.timeoutId);
-
-    this.isPlayingSequence = true;
-    this.audioSequence = paths;
-    this.sequenceIndex = 0;
-
-    this.attachOnEnded(this.currentPlayId);
-    this.voiceAudio.src = paths[0];
-    this.voiceAudio.play().catch(() => {
-      this.isPlayingSequence = false;
-    });
   }
 
   public playOverlay(path: string) {
