@@ -358,53 +358,48 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         else audio.play(AUDIO_PATHS.common.beep);
       }
 
-      // Phase 2: STROKE
-      deceptionTimeoutRef.current = setTimeout(() => {
-        if (stateRef.current !== "working") return;
+      const realSeq = [audioPath];
+      if (secondAudioPath) realSeq.push(secondAudioPath);
+      const canDeceive =
+        currentSettings.deceptionEnabled && Math.random() < 0.15;
 
-        const canDeceive =
-          currentSettings.deceptionEnabled && Math.random() < 0.15;
+      if (canDeceive) {
+        const fakeResolved = resolveAudioPathsAndZone(
+          currentSettings.drillMode,
+          currentSettings.calloutMode,
+          currentSettings.cornersMode,
+          "random"
+        );
 
-        if (canDeceive) {
-          const fakeResolved = resolveAudioPathsAndZone(
-            currentSettings.drillMode,
-            currentSettings.calloutMode,
-            currentSettings.cornersMode,
-            "random"
-          );
+        if (!currentSettings.visualOnly) {
+          const fakeSeq = [fakeResolved.audioPath];
+          if (fakeResolved.secondAudioPath)
+            fakeSeq.push(fakeResolved.secondAudioPath);
+          audio.playSequence(fakeSeq);
+        }
 
-          if (!currentSettings.visualOnly) {
-            const fakeSeq = [fakeResolved.audioPath];
-            if (fakeResolved.secondAudioPath)
-              fakeSeq.push(fakeResolved.secondAudioPath);
-            audio.playSequence(fakeSeq);
-          }
-          setActiveZone(fakeResolved.zone);
-          setVisualPhase("shot");
+        setActiveZone(fakeResolved.zone);
 
-          setTimeout(
-            () => {
-              if (stateRef.current !== "working") return;
-              setActiveZone(zone);
-              if (!currentSettings.visualOnly) {
-                audio.stop();
-                const realSeq = [audioPath];
-                if (secondAudioPath) realSeq.push(secondAudioPath);
-                audio.playSequence(realSeq);
-              }
-            },
-            Math.max(300, splitStepDelay * 1000)
-          );
-        } else {
+        deceptionTimeoutRef.current = setTimeout(() => {
+          if (stateRef.current !== "working") return;
           setActiveZone(zone);
           setVisualPhase("shot");
           if (!currentSettings.visualOnly) {
-            const realSeq = [audioPath];
-            if (secondAudioPath) realSeq.push(secondAudioPath);
+            audio.stop();
             audio.playSequence(realSeq);
           }
+        }, splitStepDelay * 1000);
+      } else {
+        if (!currentSettings.visualOnly) {
+          audio.playSequence(realSeq);
         }
-      }, splitStepDelay * 1000);
+
+        deceptionTimeoutRef.current = setTimeout(() => {
+          if (stateRef.current !== "working") return;
+          setActiveZone(zone);
+          setVisualPhase("shot");
+        }, splitStepDelay * 1000);
+      }
 
       // Phase 3: RECOVERY
       centerTimeoutRef.current = setTimeout(() => {

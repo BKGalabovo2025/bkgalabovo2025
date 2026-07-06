@@ -173,7 +173,7 @@ class AudioManager {
               this.isPlayingSequence = false;
             }
           });
-        }, 500); // 500ms pause is much better for distinct calls like "Front Forehand" ... "Clear"
+        }, 200); // 200ms pause separates the words clearly but is fast enough for drills
       } else {
         this.isPlayingSequence = false;
       }
@@ -258,7 +258,10 @@ export const shadowAudioManager = getAudioManager();
 
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
-    shadowAudioManager.playOverlay(path);
+    // If the coach is still speaking (e.g., long zone+shot command), don't talk over them with "Center!"
+    if (!shadowAudioManager.isPlaying()) {
+      shadowAudioManager.playOverlay(path);
+    }
   } else if (
     path === AUDIO_PATHS.common.beep ||
     path === AUDIO_PATHS.common.splitStep
