@@ -255,14 +255,7 @@ export function ShadowActiveScreen({
                     size="lg"
                     variant="destructive"
                     className="h-20 md:h-24 text-xl md:text-2xl font-black rounded-2xl"
-                    onClick={() => {
-                      if (
-                        confirm(
-                          "Сигурни ли сте, че искате да спрете тренировката предсрочно?"
-                        )
-                      )
-                        trainer.stopTraining();
-                    }}
+                    onClick={() => trainer.stopTraining()}
                   >
                     <Square className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
                     СТОП
