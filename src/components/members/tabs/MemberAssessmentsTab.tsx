@@ -126,7 +126,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
           </div>
 
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={1}
+              minHeight={1}
+            >
               <LineChart
                 data={beepResults.map((r) => ({
                   ...r,
@@ -246,7 +251,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
             {/* CHART */}
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={1}
+                minHeight={1}
+              >
                 <LineChart
                   data={chartData}
                   margin={{ top: 5, right: 20, bottom: 5, left: 0 }}

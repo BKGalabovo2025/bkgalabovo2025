@@ -225,7 +225,7 @@ export function MemberFormStep1({
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
+                    value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
@@ -314,7 +314,7 @@ export function MemberFormStep1({
                     <div className="grid grid-cols-3 gap-2">
                       <Select
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
-                        value={curYear || undefined}
+                        value={curYear || ""}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
@@ -452,7 +452,7 @@ export function MemberFormStep1({
                     <div className="grid grid-cols-3 gap-2">
                       <Select
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
-                        value={curYear || undefined}
+                        value={curYear || ""}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">

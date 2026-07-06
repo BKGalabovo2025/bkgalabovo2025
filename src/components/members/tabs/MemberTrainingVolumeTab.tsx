@@ -162,7 +162,12 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
           <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={1}
+              minHeight={1}
+            >
               <LineChart
                 data={chartData}
                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
