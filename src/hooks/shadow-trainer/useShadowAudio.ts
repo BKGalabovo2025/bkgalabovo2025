@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   playAudio,
   playAudioSequence,
@@ -16,7 +16,8 @@ export function useShadowAudio() {
   const triggerMotivation = useCallback(
     (currentPlayers: ShadowPlayer[], motivationEnabled: boolean) => {
       if (!motivationEnabled) return;
-      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      if (typeof window === "undefined" || !("speechSynthesis" in window))
+        return;
       if (isAudioPlaying()) return;
 
       if (currentPlayers.length > 0) {
@@ -40,11 +41,14 @@ export function useShadowAudio() {
     []
   );
 
-  return {
-    play: playAudio,
-    playSequence: playAudioSequence,
-    stop: stopAudio,
-    unlock,
-    triggerMotivation,
-  };
+  return useMemo(
+    () => ({
+      play: playAudio,
+      playSequence: playAudioSequence,
+      stop: stopAudio,
+      unlock,
+      triggerMotivation,
+    }),
+    [unlock, triggerMotivation]
+  );
 }
