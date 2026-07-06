@@ -68,26 +68,36 @@ function resolveAudioPathsAndZone(
 }
 
 function calculateGhostMatchPace(
-  consecutiveFastShotsRef: React.MutableRefObject<number>
+  consecutiveFastShotsRef: React.MutableRefObject<number>,
+  basePace: number
 ): number {
-  let pace = 3;
   if (consecutiveFastShotsRef.current >= 3) {
     if (Math.random() > 0.2) {
-      pace = Math.random() * 1.0 + 2.5;
+      // Slow shot (clear/lift): 1.0x to 1.3x basePace
       consecutiveFastShotsRef.current = 0;
+      return basePace * (Math.random() * 0.3 + 1.0);
     } else {
-      pace = Math.random() * 1.0 + 1.2;
+      // Fast shot (drive/smash/push): 0.6x to 0.8x basePace
       consecutiveFastShotsRef.current++;
-    }
-  } else {
-    pace = Math.random() * 1.0 + 1.2;
-    if (pace < 2.0) {
-      consecutiveFastShotsRef.current++;
-    } else {
-      consecutiveFastShotsRef.current = 0;
+      return basePace * (Math.random() * 0.2 + 0.6);
     }
   }
-  return pace;
+
+  // Random shot when no consecutive fast shots streak
+  const rand = Math.random();
+  if (rand < 0.4) {
+    // Fast shot: 0.6x to 0.8x basePace
+    consecutiveFastShotsRef.current++;
+    return basePace * (Math.random() * 0.2 + 0.6);
+  } else if (rand < 0.8) {
+    // Normal shot: 0.8x to 1.0x basePace
+    consecutiveFastShotsRef.current = 0;
+    return basePace * (Math.random() * 0.2 + 0.8);
+  } else {
+    // Slow shot: 1.0x to 1.3x basePace
+    consecutiveFastShotsRef.current = 0;
+    return basePace * (Math.random() * 0.3 + 1.0);
+  }
 }
 
 function rotatePlayers(
@@ -253,7 +263,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
       const pace =
         currentSettings.mode === "ghost_match"
-          ? calculateGhostMatchPace(consecutiveFastShotsRef)
+          ? calculateGhostMatchPace(
+              consecutiveFastShotsRef,
+              currentSettings.paceSec
+            )
           : currentSettings.paceSec;
 
       const { zone, audioPath, secondAudioPath } = resolveAudioPathsAndZone(
