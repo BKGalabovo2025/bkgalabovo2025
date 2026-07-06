@@ -8,8 +8,8 @@ describe("CourtVisualizer Component", () => {
       <CourtVisualizer activeZone={null} visualPhase="idle" />
     );
     expect(container.firstChild).toBeDefined();
-    // Verify no zone is rendered with active class (bg-red-500/80)
-    const activeZones = container.querySelectorAll(".bg-red-500\\/80");
+    // Verify no zone is rendered with active class
+    const activeZones = container.querySelectorAll(".fill-red-500\\/30");
     expect(activeZones.length).toBe(0);
   });
 
@@ -17,26 +17,30 @@ describe("CourtVisualizer Component", () => {
     const { container } = render(
       <CourtVisualizer activeZone="frontForehand" visualPhase="shot" />
     );
-    const activeZones = container.querySelectorAll(".bg-red-500\\/80");
+    const activeZones = container.querySelectorAll(".fill-red-500\\/30");
     expect(activeZones.length).toBe(1);
-    expect(activeZones[0].textContent).toContain("Форхенд");
+    // Since it's SVG, text content of the next sibling <text> tag
+    const textNode = activeZones[0].nextElementSibling;
+    expect(textNode?.textContent).toContain("МРЕЖА Д");
   });
 
   it("highlights the backBackhand zone correctly during shot phase", () => {
     const { container } = render(
       <CourtVisualizer activeZone="backBackhand" visualPhase="shot" />
     );
-    const activeZones = container.querySelectorAll(".bg-red-500\\/80");
+    const activeZones = container.querySelectorAll(".fill-red-500\\/30");
     expect(activeZones.length).toBe(1);
-    expect(activeZones[0].textContent).toContain("Бекхенд");
+    const textNode = activeZones[0].nextElementSibling;
+    expect(textNode?.textContent).toContain("ЗАДНА Л");
   });
 
   it("treats overhead as backLeft zone during shot phase", () => {
     const { container } = render(
       <CourtVisualizer activeZone="overhead" visualPhase="shot" />
     );
-    const activeZones = container.querySelectorAll(".bg-red-500\\/80");
+    const activeZones = container.querySelectorAll(".fill-red-500\\/30");
     expect(activeZones.length).toBe(1);
-    expect(activeZones[0].textContent).toContain("Бекхенд");
+    const textNode = activeZones[0].nextElementSibling;
+    expect(textNode?.textContent).toContain("ЗАДНА Л");
   });
 });

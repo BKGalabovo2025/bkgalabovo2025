@@ -2,7 +2,7 @@
 
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 import { cn } from "@/lib/utils";
-import { VisualPhase } from "@/hooks/useShadowTrainer";
+import { VisualPhase } from "@/hooks/shadow-trainer/types";
 
 interface CourtVisualizerProps {
   activeZone?: ZoneId | null;
@@ -15,9 +15,7 @@ export function CourtVisualizer({
   visualPhase = "idle",
   className,
 }: CourtVisualizerProps) {
-  // A generic badminton court SVG layout.
-  // We divide it into 6 logical zones for highlighting.
-
+  // Логика за активната зона
   const isFrontLeft = activeZone === "frontBackhand";
   const isFrontRight = activeZone === "frontForehand";
   const isMidLeft = activeZone === "midBackhand";
@@ -25,120 +23,200 @@ export function CourtVisualizer({
   const isBackLeft = activeZone === "backBackhand" || activeZone === "overhead";
   const isBackRight = activeZone === "backForehand";
 
-  // Zone colors: default is transparent. Active is red during shot phase.
-  const zoneClass = "transition-all duration-200 border border-white/20";
-  const activeClass =
-    visualPhase === "shot"
-      ? "bg-red-500/80 shadow-[0_0_25px] shadow-red-500/60 scale-[1.02] z-10 border-red-400"
-      : "bg-zinc-800/50";
-  const inactiveClass = "bg-zinc-800/30";
+  // Логика за играча (централната точка)
+  const isSplitStep = visualPhase === "split_step";
+  const isCenter = visualPhase === "center";
 
-  let centerDotColor = "bg-emerald-400/30 scale-100 border-zinc-900"; // idle
-  if (visualPhase === "split_step") {
-    centerDotColor =
-      "bg-yellow-400 border-yellow-200 shadow-[0_0_40px_rgba(250,204,21,1)] scale-[1.7] animate-pulse";
-  } else if (visualPhase === "center") {
-    centerDotColor =
-      "bg-green-500 border-green-300 shadow-[0_0_30px_rgba(34,197,94,1)] scale-150";
+  let playerColor = "fill-zinc-500/30";
+  if (isSplitStep) {
+    playerColor =
+      "fill-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,1)] animate-pulse";
+  } else if (isCenter) {
+    playerColor = "fill-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]";
   }
 
   return (
     <div
       className={cn(
-        "relative w-full max-w-[320px] aspect-[1/1.6] mx-auto bg-zinc-950 rounded-xl p-3 border-4 border-zinc-800 shadow-2xl flex flex-col justify-between select-none overflow-hidden",
+        "relative w-full max-w-[320px] mx-auto aspect-[610/1340] bg-[#1a1c23] rounded-xl overflow-hidden border-2 border-zinc-800 shadow-2xl",
         className
       )}
     >
-      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none p-3 overflow-hidden rounded-xl">
-        {/* Net line (Top edge) */}
-        <div className="absolute top-0 left-0 right-0 h-2 bg-zinc-200 shadow-[0_4px_12px_rgba(255,255,255,0.5)] z-20" />
-        {/* Net grid pattern (subtle) */}
-        <div className="absolute top-2 left-0 right-0 h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cGF0aCBkPSJNMCAwTDEwIDEwTTAgMTBMMTAgMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMykiIHN0cm9rZS13aWR0aD0iMC41Ii8+Cjwvc3ZnPg==')] z-20 opacity-50" />
-      </div>
+      <svg
+        viewBox="0 0 610 1340"
+        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {/* ФОН / НАСТИЛКА НА КОРТА */}
+        <rect width="610" height="1340" fill="#18181b" />
 
-      <div className="w-full h-full relative grid grid-cols-2 grid-rows-3 gap-1 z-0 mt-4">
-        {/* Front zones (near net) */}
-        <div
-          className={cn(
-            zoneClass,
-            isFrontLeft ? activeClass : inactiveClass,
-            "rounded-tl-lg relative flex items-start justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider mt-2">
-            Бекхенд Мрежа
-          </span>
-        </div>
-        <div
-          className={cn(
-            zoneClass,
-            isFrontRight ? activeClass : inactiveClass,
-            "rounded-tr-lg relative flex items-start justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider mt-2">
-            Форхенд Мрежа
-          </span>
-        </div>
-
-        {/* Mid zones */}
-        <div
-          className={cn(
-            zoneClass,
-            isMidLeft ? activeClass : inactiveClass,
-            "relative flex items-center justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider">
-            Бекхенд Среда
-          </span>
-        </div>
-        <div
-          className={cn(
-            zoneClass,
-            isMidRight ? activeClass : inactiveClass,
-            "relative flex items-center justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider">
-            Форхенд Среда
-          </span>
-        </div>
-
-        {/* Back zones */}
-        <div
-          className={cn(
-            zoneClass,
-            isBackLeft ? activeClass : inactiveClass,
-            "rounded-bl-lg relative flex items-end justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider mb-2">
-            Оувърхед / Бекхенд
-          </span>
-        </div>
-        <div
-          className={cn(
-            zoneClass,
-            isBackRight ? activeClass : inactiveClass,
-            "rounded-br-lg relative flex items-end justify-center p-3"
-          )}
-        >
-          <span className="text-white/50 font-bold text-xs uppercase tracking-wider mb-2">
-            Форхенд Задна
-          </span>
-        </div>
-      </div>
-
-      {/* Center position dot (Base position) */}
-      <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-30 pointer-events-none">
-        <div
-          className={cn(
-            "w-6 h-6 rounded-full border-2 transition-all duration-300",
-            centerDotColor
-          )}
+        {/* ---------------- ЗОНИ (Долна Половина - Нашата) ---------------- */}
+        <Zone
+          x={0}
+          y={670}
+          w={305}
+          h={198}
+          active={isFrontLeft && visualPhase === "shot"}
+          label="МРЕЖА Л"
+          labelX={24}
+          labelY={710}
+          labelAlign="start"
         />
-      </div>
+        <Zone
+          x={305}
+          y={670}
+          w={305}
+          h={198}
+          active={isFrontRight && visualPhase === "shot"}
+          label="МРЕЖА Д"
+          labelX={586}
+          labelY={710}
+          labelAlign="end"
+        />
+        <Zone
+          x={0}
+          y={868}
+          w={305}
+          h={236}
+          active={isMidLeft && visualPhase === "shot"}
+          label="СРЕДА Л"
+          labelX={24}
+          labelY={910}
+          labelAlign="start"
+        />
+        <Zone
+          x={305}
+          y={868}
+          w={305}
+          h={236}
+          active={isMidRight && visualPhase === "shot"}
+          label="СРЕДА Д"
+          labelX={586}
+          labelY={910}
+          labelAlign="end"
+        />
+        <Zone
+          x={0}
+          y={1104}
+          w={305}
+          h={236}
+          active={isBackLeft && visualPhase === "shot"}
+          label="ЗАДНА Л"
+          labelX={24}
+          labelY={1310}
+          labelAlign="start"
+        />
+        <Zone
+          x={305}
+          y={1104}
+          w={305}
+          h={236}
+          active={isBackRight && visualPhase === "shot"}
+          label="ЗАДНА Д"
+          labelX={586}
+          labelY={1310}
+          labelAlign="end"
+        />
+
+        {/* ---------------- ЛИНИИ НА КОРТА ---------------- */}
+        <g stroke="rgba(255,255,255,0.6)" strokeWidth="4" fill="none">
+          {/* Външни граници (Boundary) */}
+          <rect x="2" y="2" width="606" height="1336" />
+
+          {/* Коридори (Singles side lines) - 0.46м навътре */}
+          <line x1="46" y1="0" x2="46" y2="1340" />
+          <line x1="564" y1="0" x2="564" y2="1340" />
+
+          {/* Задна сервис линия за двойки - 0.76м навътре */}
+          <line x1="2" y1="76" x2="608" y2="76" />
+          <line x1="2" y1="1264" x2="608" y2="1264" />
+
+          {/* Предна сервис линия - 1.98м от мрежата */}
+          <line x1="2" y1="472" x2="608" y2="472" />
+          <line x1="2" y1="868" x2="608" y2="868" />
+
+          {/* Централна линия */}
+          <line x1="305" y1="2" x2="305" y2="472" />
+          <line x1="305" y1="868" x2="305" y2="1338" />
+        </g>
+
+        {/* ---------------- МРЕЖА ---------------- */}
+        {/* Затъмнен фон зад мрежата */}
+        <rect x="0" y="660" width="610" height="20" fill="rgba(0,0,0,0.3)" />
+        <line
+          x1="0"
+          y1="670"
+          x2="610"
+          y2="670"
+          stroke="rgba(255,255,255,0.9)"
+          strokeWidth="6"
+          strokeDasharray="8 8"
+        />
+
+        {/* ---------------- ЦЕНТЪР НА ИГРАЧА ---------------- */}
+        {/* Позиция малко зад Т-то (y=868). Базовата позиция е около y=960 */}
+        <circle
+          cx="305"
+          cy="960"
+          r="24"
+          className={cn("transition-all duration-300", playerColor)}
+        />
+        {/* Бяла точка в центъра */}
+        <circle cx="305" cy="960" r="8" fill="rgba(255,255,255,0.8)" />
+      </svg>
     </div>
+  );
+}
+
+// ---------------- ПОМОЩЕН КОМПОНЕНТ ЗА ЗОНА ----------------
+interface ZoneProps {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  active: boolean;
+  label: string;
+  labelX: number;
+  labelY: number;
+  labelAlign: "start" | "middle" | "end";
+}
+
+function Zone({
+  x,
+  y,
+  w,
+  h,
+  active,
+  label,
+  labelX,
+  labelY,
+  labelAlign,
+}: ZoneProps) {
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        className={cn(
+          "transition-all duration-300",
+          active
+            ? "fill-red-500/30 stroke-red-500 stroke-[3px]"
+            : "fill-transparent"
+        )}
+      />
+      <text
+        x={labelX}
+        y={labelY}
+        fill={active ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.25)"}
+        fontSize="24"
+        fontWeight="600"
+        textAnchor={labelAlign}
+        className="uppercase tracking-widest select-none pointer-events-none transition-colors duration-300"
+      >
+        {label}
+      </text>
+    </g>
   );
 }
