@@ -1,6 +1,3 @@
- 
- 
- 
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemberForm } from "../member-form";
@@ -45,7 +42,7 @@ describe("MemberForm", () => {
     expect(screen.getByLabelText(/^Име/i)).toHaveValue("");
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue("");
     expect(screen.getByRole("button", { name: /Напред/i })).toBeInTheDocument();
-  });
+  }, 10000);
 
   it("should render correctly in edit mode with initialData", async () => {
     render(

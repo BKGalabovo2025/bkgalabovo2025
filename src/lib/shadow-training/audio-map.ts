@@ -173,7 +173,7 @@ class AudioManager {
               this.isPlayingSequence = false;
             }
           });
-        }, 300);
+        }, 500); // 500ms pause is much better for distinct calls like "Front Forehand" ... "Clear"
       } else {
         this.isPlayingSequence = false;
       }
