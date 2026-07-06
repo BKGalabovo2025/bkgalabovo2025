@@ -1,4 +1,3 @@
-
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -9,6 +8,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { MemberSchema } from "@/types/member.types";
 import { serverCache } from "@/lib/server-cache";
 import { Member, Sale, ScheduleEvent } from "@/types";
+import { z } from "zod";
 import * as admin from "firebase-admin";
 
 export type MemberActionState<T = unknown> = {
@@ -35,9 +35,12 @@ export async function createMemberAction(
     const validatedFields = MemberSchema.omit({
       id: true,
       name: true,
-      registrationDate: true,
       updatedAt: true,
-    }).safeParse(memberData);
+    })
+      .extend({
+        registrationDate: z.string().optional(),
+      })
+      .safeParse(memberData);
 
     if (!validatedFields.success) {
       return {
@@ -59,7 +62,9 @@ export async function createMemberAction(
       ...data,
       status: "active",
       name,
-      registrationDate: FieldValue.serverTimestamp(),
+      registrationDate: data.registrationDate
+        ? new Date(data.registrationDate)
+        : FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       createdBy: { uid: user.uid, email: user.email },
     });
@@ -110,9 +115,11 @@ export async function updateMemberAction(
     const validatedFields = MemberSchema.omit({
       id: true,
       name: true,
-      registrationDate: true,
       updatedAt: true,
     })
+      .extend({
+        registrationDate: z.string().optional(),
+      })
       .partial()
       .safeParse(memberData);
 
@@ -138,12 +145,18 @@ export async function updateMemberAction(
 
     const name = [firstName, middleName, lastName].filter(Boolean).join(" ");
 
-    await memberRef.update({
+    const updatePayload: Record<string, unknown> = {
       ...data,
       name,
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: { uid: user.uid, email: user.email },
-    });
+    };
+
+    if (data.registrationDate) {
+      updatePayload.registrationDate = new Date(data.registrationDate);
+    }
+
+    await memberRef.update(updatePayload);
 
     // Handle family changes if familyId is provided in the update
     if (data.familyId !== undefined && data.familyId !== currentData.familyId) {
@@ -325,7 +338,15 @@ interface Family {
  */
 export async function getMemberProfileDataServerAction(
   memberId: string
-): Promise<MemberActionState<{ member: Member; family: Family | null; familyMembers: Member[]; attendances: ScheduleEvent[]; sales: Sale[]; }>> {
+): Promise<
+  MemberActionState<{
+    member: Member;
+    family: Family | null;
+    familyMembers: Member[];
+    attendances: ScheduleEvent[];
+    sales: Sale[];
+  }>
+> {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) throw new Error("Unauthorized");
@@ -439,8 +460,10 @@ export async function getMemberProfileDataServerAction(
     console.error("getMemberProfileDataServerAction Error:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "������ ��� ��������� �� �������.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "������ ��� ��������� �� �������.",
     };
   }
 }
-
