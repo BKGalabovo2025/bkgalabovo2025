@@ -372,6 +372,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
     if (phase === "countdown") {
       setState("working");
+      timer.syncState("working");
       isFirstActionRef.current = true;
       if (currentSettings.mode === "agility_test") {
         timer.updateTimeRemaining(0);
@@ -402,6 +403,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           setCurrentPlayersState(nextPlayers);
         }
         setState("resting");
+        timer.syncState("resting");
         audio.stop();
         timer.updateTimeRemaining(currentSettings.restSec);
         if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.rest);
@@ -409,6 +411,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     } else if (phase === "resting") {
       setCurrentSet((c) => c + 1);
       setState("countdown");
+      timer.syncState("countdown");
       timer.updateTimeRemaining(10);
       if (!currentSettings.visualOnly) {
         audio.playSequence([
@@ -433,6 +436,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     audio.stop();
     requestWakeLock();
     setState("countdown");
+    timer.syncState("countdown");
     setCurrentSet(1);
     timer.updateTimeRemaining(10);
     setAgilityActionsDone(0);
@@ -451,6 +455,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       previousStateRef.current = stateRef.current;
     }
     setState("paused");
+    timer.syncState("paused");
     audio.stop();
     cleanupActions();
   }, [audio, cleanupActions]);
@@ -459,6 +464,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (stateRef.current === "paused") {
       const targetState = previousStateRef.current;
       setState(targetState);
+      timer.syncState(targetState);
       requestWakeLock();
       if (targetState === "working") {
         actionTimeoutRef.current = setTimeout(triggerNextAction, 1000);
@@ -468,6 +474,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
   const stopTraining = useCallback(() => {
     setState("finished");
+    timer.syncState("finished");
     audio.stop();
     cleanupActions();
   }, [audio, cleanupActions]);

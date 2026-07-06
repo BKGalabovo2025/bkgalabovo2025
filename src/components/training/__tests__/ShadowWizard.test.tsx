@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { toast } from "sonner";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ShadowWizard } from "../ShadowWizard";
 import * as trainingsActions from "@/lib/actions/trainings";
@@ -46,6 +47,14 @@ vi.mock("@/lib/actions/trainings", () => ({
   createTrainingSessionAction: vi.fn().mockResolvedValue({ success: true }),
 }));
 
+// Mock sonner toast
+vi.mock("sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}));
+
 // Mock SpeechSynthesis
 if (typeof window !== "undefined") {
   vi.stubGlobal("speechSynthesis", {
@@ -69,9 +78,9 @@ describe("ShadowWizard Component Flow", () => {
         vi.advanceTimersByTime(1000);
       });
     }
-    // flush microtasks
+    // flush setTimeout(advanceState, 0)
     act(() => {
-      vi.advanceTimersByTime(0);
+      vi.advanceTimersByTime(1);
     });
   };
 
@@ -87,9 +96,9 @@ describe("ShadowWizard Component Flow", () => {
     // Screen 1: Setup
     expect(screen.getByText("Интелигентен Настройчик")).toBeDefined();
 
-    // Clicking start without players should alert
+    // Clicking start without players should alert via toast
     fireEvent.click(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i));
-    expect(window.alert).toHaveBeenCalledWith(
+    expect(vi.mocked(toast.error)).toHaveBeenCalledWith(
       "Моля, изберете поне един играч!"
     );
 
@@ -119,7 +128,7 @@ describe("ShadowWizard Component Flow", () => {
     );
 
     // Auto-transition to Screen 3: Analytics
-    expect(screen.getByText("Лагерен Отчет")).toBeDefined();
+    expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
 
     // Click save to database
     fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));
@@ -159,7 +168,7 @@ describe("ShadowWizard Component Flow", () => {
     fireEvent.click(screen.getByText("СТОП"));
 
     // Navigate to Analytics
-    expect(screen.getByText("Лагерен Отчет")).toBeDefined();
+    expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
 
     await act(async () => {
       fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));

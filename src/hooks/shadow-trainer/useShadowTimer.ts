@@ -36,6 +36,10 @@ export function useShadowTimer({
     setTimeRemaining(val);
   }, []);
 
+  const syncState = useCallback((newState: TrainerState) => {
+    stateRef.current = newState;
+  }, []);
+
   const cleanupTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -107,6 +111,7 @@ export function useShadowTimer({
     timeRemaining,
     actualElapsedMs,
     updateTimeRemaining,
+    syncState,
     setActualElapsedMs,
     cleanupTimer,
   };
