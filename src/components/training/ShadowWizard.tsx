@@ -151,6 +151,10 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         rpeNotes={rpeNotes}
         setRpeNotes={setRpeNotes}
         onSave={handleSave}
+        settings={settings}
+        actualElapsedMs={trainer.actualElapsedMs}
+        completedSets={trainer.currentSet}
+        agilityActionsDone={trainer.agilityActionsDone}
       />
     );
   }

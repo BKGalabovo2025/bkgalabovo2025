@@ -6,13 +6,74 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Play, Users, Settings2, RotateCcw } from "lucide-react";
+import {
+  Play,
+  Users,
+  Settings2,
+  RotateCcw,
+  Mic,
+  Target,
+  Zap,
+  Star,
+} from "lucide-react";
 
 interface ShadowSetupFormProps {
   initialMembers: ShadowPlayer[];
   settings: ShadowSettings;
   setSettings: (s: ShadowSettings) => void;
   onStartTraining: () => void;
+}
+
+interface ToggleButtonProps {
+  enabled: boolean;
+  onClick: () => void;
+  label: string;
+  desc: string;
+  colorClass: string;
+  bgClass: string;
+}
+
+function ToggleButton({
+  enabled,
+  onClick,
+  label,
+  desc,
+  colorClass,
+  bgClass,
+}: ToggleButtonProps) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={onClick}
+      className={`w-full text-left flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+        enabled
+          ? `border-${colorClass}-500 bg-${colorClass}-500/10`
+          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+      }`}
+    >
+      <div className="flex flex-col">
+        <span
+          className={`font-bold text-sm ${
+            enabled
+              ? `text-${colorClass}-700 dark:text-${colorClass}-400`
+              : "text-zinc-700 dark:text-zinc-300"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="text-xs text-zinc-500">{desc}</span>
+      </div>
+      <div
+        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${enabled ? bgClass : "bg-zinc-300 dark:bg-zinc-700"}`}
+      >
+        <div
+          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${enabled ? "left-6" : "left-1"}`}
+        />
+      </div>
+    </button>
+  );
 }
 
 export function ShadowSetupForm({
@@ -169,9 +230,9 @@ export function ShadowSetupForm({
             </CardContent>
           </Card>
 
-          {/* Bottom Row: 3 Columns Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Col 1: Logistics */}
+          {/* Bottom Row: 4 Columns Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Col 1: Logistics & Toggles */}
             <div className="space-y-6">
               <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
                 <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
@@ -200,69 +261,64 @@ export function ShadowSetupForm({
 
                   <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                     <Label className="text-zinc-500 text-xs uppercase font-bold">
-                      Експертни Модификатори
+                      Модификатори
                     </Label>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={settings.deceptionEnabled}
+
+                    <ToggleButton
+                      enabled={settings.deceptionEnabled}
                       onClick={() =>
                         setSettings({
                           ...settings,
                           deceptionEnabled: !settings.deceptionEnabled,
                         })
                       }
-                      className={`w-full text-left flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors ${settings.deceptionEnabled ? "border-purple-500 bg-purple-500/10" : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"}`}
-                    >
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-bold ${settings.deceptionEnabled ? "text-purple-700 dark:text-purple-400" : "text-zinc-700 dark:text-zinc-300"}`}
-                        >
-                          Измамни удари (Deception)
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                          Алгоритъм за внезапна смяна
-                        </span>
-                      </div>
-                      <div
-                        className={`w-12 h-6 rounded-full transition-colors relative ${settings.deceptionEnabled ? "bg-purple-500" : "bg-zinc-300 dark:bg-zinc-700"}`}
-                      >
-                        <div
-                          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.deceptionEnabled ? "left-7" : "left-1"}`}
-                        />
-                      </div>
-                    </button>
+                      label="Измамни удари"
+                      desc="Алгоритъм за внезапна смяна"
+                      colorClass="purple"
+                      bgClass="bg-purple-500"
+                    />
 
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={settings.visualOnly}
+                    <ToggleButton
+                      enabled={settings.centerCommandEnabled}
+                      onClick={() =>
+                        setSettings({
+                          ...settings,
+                          centerCommandEnabled: !settings.centerCommandEnabled,
+                        })
+                      }
+                      label="Команда Центре!"
+                      desc="Гласова команда за център"
+                      colorClass="orange"
+                      bgClass="bg-orange-500"
+                    />
+
+                    <ToggleButton
+                      enabled={settings.motivationEnabled}
+                      onClick={() =>
+                        setSettings({
+                          ...settings,
+                          motivationEnabled: !settings.motivationEnabled,
+                        })
+                      }
+                      label="Мотивационни фрази"
+                      desc='"Давай, Иване!" при умора'
+                      colorClass="green"
+                      bgClass="bg-green-500"
+                    />
+
+                    <ToggleButton
+                      enabled={settings.visualOnly}
                       onClick={() =>
                         setSettings({
                           ...settings,
                           visualOnly: !settings.visualOnly,
                         })
                       }
-                      className={`w-full text-left flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-colors ${settings.visualOnly ? "border-blue-500 bg-blue-500/10" : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"}`}
-                    >
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-bold ${settings.visualOnly ? "text-blue-700 dark:text-blue-400" : "text-zinc-700 dark:text-zinc-300"}`}
-                        >
-                          Без звук (Visual Only)
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                          Тренира периферното зрение
-                        </span>
-                      </div>
-                      <div
-                        className={`w-12 h-6 rounded-full transition-colors relative ${settings.visualOnly ? "bg-blue-500" : "bg-zinc-300 dark:bg-zinc-700"}`}
-                      >
-                        <div
-                          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.visualOnly ? "left-7" : "left-1"}`}
-                        />
-                      </div>
-                    </button>
+                      label="Без звук (Visual Only)"
+                      desc="Тренира периферното зрение"
+                      colorClass="blue"
+                      bgClass="bg-blue-500"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -271,10 +327,12 @@ export function ShadowSetupForm({
             {/* Col 2: Mode */}
             <div className="space-y-6">
               <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <h2 className="font-bold text-lg flex items-center gap-2">
+                    <Zap size={18} className="text-primary" /> Режим на игра
+                  </h2>
+                </div>
                 <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
-                  <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
-                    Режим на игра
-                  </Label>
                   <div className="flex flex-col gap-2">
                     {[
                       {
@@ -315,17 +373,60 @@ export function ShadowSetupForm({
                       </button>
                     ))}
                   </div>
+
+                  {/* Callout Mode - only when not visualOnly */}
+                  {!settings.visualOnly && (
+                    <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+                      <Label className="text-zinc-500 text-xs uppercase font-bold flex items-center gap-1">
+                        <Mic size={12} /> Тип на командите
+                      </Label>
+                      <div className="flex flex-col gap-1">
+                        {[
+                          { id: "zones", label: "Само зони" },
+                          { id: "shots", label: "Само удари" },
+                          { id: "mixed", label: "Смесено" },
+                          { id: "zones_and_shots", label: "Зони + Удари" },
+                        ].map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() =>
+                              setSettings({
+                                ...settings,
+                                calloutMode:
+                                  c.id as ShadowSettings["calloutMode"],
+                              })
+                            }
+                            className={`text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                              settings.calloutMode === c.id
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                            }`}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Col 3: Config */}
+            {/* Col 3: Court Config */}
             <div className="space-y-6">
               <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <h2 className="font-bold text-lg flex items-center gap-2">
+                    <Target size={18} className="text-primary" /> Конфигурация
+                    на корта
+                  </h2>
+                </div>
                 <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
+                  {/* Corners mode */}
                   <div className="flex flex-col gap-3">
                     <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
-                      Конфигурация на корта
+                      Ъгли на корта
                     </Label>
                     <div className="flex w-full bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1">
                       <button
@@ -347,99 +448,137 @@ export function ShadowSetupForm({
                     </div>
                   </div>
 
-                  <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider mt-4 block">
-                    Насоченост на зоните
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: "all", title: "Цял корт" },
-                      { id: "front_only", title: "Само мрежа" },
-                      { id: "back_only", title: "Задна линия" },
-                      { id: "front_back", title: "Без среда" },
-                    ].map((z) => (
-                      <button
-                        key={z.id}
-                        onClick={() =>
-                          setSettings({
-                            ...settings,
-                            drillMode: z.id as ShadowSettings["drillMode"],
-                          })
-                        }
-                        className={`px-4 py-2 rounded-full text-sm font-bold border transition-all ${
-                          settings.drillMode === z.id
-                            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-transparent"
-                            : "bg-transparent border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"
-                        }`}
-                      >
-                        {z.title}
-                      </button>
-                    ))}
+                  {/* Drill Mode */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
+                      Насоченост на зоните
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: "all", title: "Цял корт" },
+                        { id: "front_only", title: "Само мрежа" },
+                        { id: "back_only", title: "Задна линия" },
+                        { id: "front_back", title: "Без среда" },
+                      ].map((z) => (
+                        <button
+                          key={z.id}
+                          onClick={() =>
+                            setSettings({
+                              ...settings,
+                              drillMode: z.id as ShadowSettings["drillMode"],
+                            })
+                          }
+                          className={`px-3 py-2 rounded-full text-sm font-bold border transition-all ${
+                            settings.drillMode === z.id
+                              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-transparent"
+                              : "bg-transparent border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"
+                          }`}
+                        >
+                          {z.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Drill Pattern */}
+                  <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider flex items-center gap-1">
+                      <Star size={12} /> Шаблон на движение
+                    </Label>
+                    <div className="flex flex-col gap-1">
+                      {[
+                        { id: "random", label: "Произволен" },
+                        { id: "fixed-triangle", label: "Триъгълник" },
+                        { id: "fixed-net-back", label: "Мрежа ↔ Задна" },
+                        { id: "mixed", label: "Смесен шаблон" },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() =>
+                            setSettings({
+                              ...settings,
+                              drillPattern:
+                                p.id as ShadowSettings["drillPattern"],
+                            })
+                          }
+                          className={`text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                            settings.drillPattern === p.id
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Col 4: Players List */}
+            <div className="space-y-6">
+              <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <h2 className="font-bold text-lg flex items-center gap-2">
+                    <Users size={18} className="text-primary" /> Присъстващи
+                    играчи
+                  </h2>
+                </div>
+                <CardContent className="p-5 flex-1 overflow-auto">
+                  <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-1">
+                    {initialMembers.map((m) => {
+                      const isChecked = settings.activePlayers.some(
+                        (p) => p.id === m.id
+                      );
+                      return (
+                        <label
+                          key={m.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border ${isChecked ? "bg-white dark:bg-zinc-800 border-primary/30 shadow-sm" : "bg-transparent border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/50"}`}
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              if (!checked) {
+                                setSettings({
+                                  ...settings,
+                                  activePlayers: settings.activePlayers.filter(
+                                    (p) => p.id !== m.id
+                                  ),
+                                });
+                              } else {
+                                setSettings({
+                                  ...settings,
+                                  activePlayers: [
+                                    ...settings.activePlayers,
+                                    {
+                                      id: m.id,
+                                      displayName: `${m.firstName} ${m.lastName}`,
+                                    },
+                                  ],
+                                });
+                              }
+                            }}
+                          />
+                          <span
+                            className={`font-semibold ${isChecked ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"}`}
+                          >
+                            {String(m.firstName)} {String(m.lastName)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                    {initialMembers.length === 0 && (
+                      <p className="text-sm text-zinc-500 p-2 text-center mt-4">
+                        Няма намерени играчи
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
-        </div>
-
-        {/* Bottom Row: Players List */}
-        <div className="w-full">
-          <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm">
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-              <h2 className="font-bold text-lg flex items-center gap-2 text-zinc-500 uppercase tracking-wider">
-                Присъстващи играчи
-              </h2>
-            </div>
-            <CardContent className="p-5">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar p-1">
-                {initialMembers.map((m) => {
-                  const isChecked = settings.activePlayers.some(
-                    (p) => p.id === m.id
-                  );
-                  return (
-                    <label
-                      key={m.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border ${isChecked ? "bg-white dark:bg-zinc-800 border-primary/30 shadow-sm" : "bg-transparent border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/50"}`}
-                    >
-                      <Checkbox
-                        checked={isChecked}
-                        onCheckedChange={(checked) => {
-                          if (!checked) {
-                            setSettings({
-                              ...settings,
-                              activePlayers: settings.activePlayers.filter(
-                                (p) => p.id !== m.id
-                              ),
-                            });
-                          } else {
-                            setSettings({
-                              ...settings,
-                              activePlayers: [
-                                ...settings.activePlayers,
-                                {
-                                  id: m.id,
-                                  displayName: `${m.firstName} ${m.lastName}`,
-                                },
-                              ],
-                            });
-                          }
-                        }}
-                      />
-                      <span
-                        className={`font-semibold ${isChecked ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"}`}
-                      >
-                        {String(m.firstName)} {String(m.lastName)}
-                      </span>
-                    </label>
-                  );
-                })}
-                {initialMembers.length === 0 && (
-                  <p className="text-sm text-zinc-500 p-2 text-center mt-4">
-                    Няма намерени играчи
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="pt-6 pb-4 flex justify-center shrink-0 w-full mt-auto">

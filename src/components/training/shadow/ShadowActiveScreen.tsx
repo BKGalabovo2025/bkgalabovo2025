@@ -3,7 +3,16 @@
 import { CourtVisualizer } from "../CourtVisualizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Square, Pause, Activity, RotateCcw } from "lucide-react";
+import {
+  Play,
+  Square,
+  Pause,
+  Activity,
+  RotateCcw,
+  Zap,
+  Timer,
+  Target,
+} from "lucide-react";
 import {
   ShadowSettings,
   ShadowPlayer,
@@ -21,6 +30,14 @@ function getStateLabel(state: string) {
   if (state === "resting") return "ПОЧИВКА";
   if (state === "paused") return "ПАУЗА";
   return "ГОТОВНОСТ";
+}
+
+function getModeLabel(mode: string) {
+  if (mode === "ghost_match")
+    return { label: "Мач на сенки", icon: Zap, color: "text-yellow-400" };
+  if (mode === "agility_test")
+    return { label: "Тест за бързина", icon: Target, color: "text-red-400" };
+  return { label: "Стандартен", icon: Timer, color: "text-blue-400" };
 }
 
 function getSubLabel(
@@ -112,6 +129,20 @@ export function ShadowActiveScreen({
 
           <div className="flex-1 w-full space-y-6 md:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
             <div className="space-y-2 md:space-y-4">
+              {/* Mode badge */}
+              {(() => {
+                const modeInfo = getModeLabel(settings.mode);
+                const ModeIcon = modeInfo.icon;
+                return (
+                  <div
+                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 ${modeInfo.color} text-sm font-bold mb-2`}
+                  >
+                    <ModeIcon size={14} />
+                    {modeInfo.label}
+                  </div>
+                );
+              })()}
+
               <div className="flex items-center gap-3">
                 <Activity className="w-8 h-8 text-primary animate-pulse" />
                 <span className="text-3xl md:text-4xl font-black tracking-wider text-primary">
@@ -119,9 +150,53 @@ export function ShadowActiveScreen({
                 </span>
               </div>
 
-              <div className="text-[6rem] sm:text-8xl md:text-[9rem] lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
-                {trainer.timeRemaining}
-              </div>
+              {/* Main number display */}
+              {settings.mode === "agility_test" &&
+              trainer.state === "working" ? (
+                <div className="space-y-1">
+                  <div className="text-[6rem] sm:text-8xl md:text-[9rem] lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-red-400 to-red-700">
+                    {trainer.agilityActionsDone}
+                  </div>
+                  <p className="text-zinc-400 text-lg font-medium">
+                    движения от {settings.workSec}
+                  </p>
+                  {/* Progress bar */}
+                  {(() => {
+                    const pct = Math.min(
+                      100,
+                      Math.round(
+                        (trainer.agilityActionsDone / settings.workSec) * 100
+                      )
+                    );
+                    // Use Tailwind arbitrary width values won't work dynamically, so we use 10-step buckets
+                    const w = Math.floor(pct / 10) * 10;
+                    const widthMap: Record<number, string> = {
+                      0: "w-0",
+                      10: "w-[10%]",
+                      20: "w-[20%]",
+                      30: "w-[30%]",
+                      40: "w-[40%]",
+                      50: "w-[50%]",
+                      60: "w-[60%]",
+                      70: "w-[70%]",
+                      80: "w-[80%]",
+                      90: "w-[90%]",
+                      100: "w-full",
+                    };
+                    return (
+                      <div className="w-full max-w-xs bg-zinc-800 rounded-full h-3 mt-2">
+                        <div
+                          className={`bg-red-500 h-3 rounded-full transition-all duration-300 ${widthMap[w] ?? "w-0"}`}
+                        />
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="text-[6rem] sm:text-8xl md:text-[9rem] lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                  {trainer.timeRemaining}
+                </div>
+              )}
 
               <p className="text-zinc-400 text-xl md:text-2xl font-medium mt-2 md:mt-4">
                 {getSubLabel(
