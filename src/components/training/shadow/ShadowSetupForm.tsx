@@ -384,12 +384,32 @@ export function ShadowSetupForm({
                       <Label className="text-zinc-500 text-xs uppercase font-bold flex items-center gap-1">
                         <Mic size={12} /> Тип на командите
                       </Label>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1.5">
                         {[
-                          { id: "zones", label: "Само зони" },
-                          { id: "shots", label: "Само удари" },
-                          { id: "mixed", label: "Смесено" },
-                          { id: "zones_and_shots", label: "Зони + Удари" },
+                          {
+                            id: "zones",
+                            label: "Само зони",
+                            icon: "🎯",
+                            desc: '"Форхенд мрежа" – за позиция',
+                          },
+                          {
+                            id: "shots",
+                            label: "Само удари",
+                            icon: "🏸",
+                            desc: '"Клиър права" – за техника',
+                          },
+                          {
+                            id: "mixed",
+                            label: "Смесено",
+                            icon: "🔀",
+                            desc: "50% зона / 50% удар",
+                          },
+                          {
+                            id: "zones_and_shots",
+                            label: "Зони + Удари",
+                            icon: "📢",
+                            desc: "Зона, после удар – пълна инфо",
+                          },
                         ].map((c) => (
                           <button
                             key={c.id}
@@ -401,13 +421,25 @@ export function ShadowSetupForm({
                                   c.id as ShadowSettings["calloutMode"],
                               })
                             }
-                            className={`w-full text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all truncate ${
+                            className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
                               settings.calloutMode === c.id
-                                ? "border-primary bg-primary/10 text-primary"
-                                : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                                ? "border-primary bg-primary/10"
+                                : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                             }`}
                           >
-                            {c.label}
+                            <span
+                              className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
+                                settings.calloutMode === c.id
+                                  ? "text-primary"
+                                  : "text-zinc-700 dark:text-zinc-300"
+                              }`}
+                            >
+                              <span>{c.icon}</span>
+                              {c.label}
+                            </span>
+                            <span className="text-xs text-zinc-500 leading-tight">
+                              {c.desc}
+                            </span>
                           </button>
                         ))}
                       </div>
@@ -489,12 +521,32 @@ export function ShadowSetupForm({
                     <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider flex items-center gap-1">
                       <Star size={12} /> Шаблон на движение
                     </Label>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1.5">
                       {[
-                        { id: "random", label: "Произволен" },
-                        { id: "fixed-triangle", label: "Триъгълник" },
-                        { id: "fixed-net-back", label: "Мрежа ↔ Задна" },
-                        { id: "mixed", label: "Смесен шаблон" },
+                        {
+                          id: "random",
+                          label: "Произволен",
+                          icon: "🎲",
+                          desc: "Всяка зона е случайна – пълен сюрприз",
+                        },
+                        {
+                          id: "fixed-triangle",
+                          label: "Триъгълник",
+                          icon: "🔺",
+                          desc: "Мрежа → Задна → Среда → повтаря",
+                        },
+                        {
+                          id: "fixed-net-back",
+                          label: "Мрежа ↔ Задна",
+                          icon: "↕️",
+                          desc: "Само напред-назад, без среда",
+                        },
+                        {
+                          id: "mixed",
+                          label: "Смесен",
+                          icon: "🔀",
+                          desc: "67% мрежа↔задна + 33% произволен",
+                        },
                       ].map((p) => (
                         <button
                           key={p.id}
@@ -506,13 +558,25 @@ export function ShadowSetupForm({
                                 p.id as ShadowSettings["drillPattern"],
                             })
                           }
-                          className={`w-full text-left px-3 py-2 rounded-lg border text-sm font-semibold transition-all truncate ${
+                          className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
                             settings.drillPattern === p.id
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                              ? "border-primary bg-primary/10"
+                              : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                           }`}
                         >
-                          {p.label}
+                          <span
+                            className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
+                              settings.drillPattern === p.id
+                                ? "text-primary"
+                                : "text-zinc-700 dark:text-zinc-300"
+                            }`}
+                          >
+                            <span>{p.icon}</span>
+                            {p.label}
+                          </span>
+                          <span className="text-xs text-zinc-500 leading-tight">
+                            {p.desc}
+                          </span>
                         </button>
                       ))}
                     </div>

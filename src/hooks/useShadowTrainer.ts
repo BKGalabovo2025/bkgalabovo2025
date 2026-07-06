@@ -21,6 +21,69 @@ export type { ShadowSettings, TrainerState, VisualPhase, ShadowPlayer };
 
 // ─── Pure helper functions ─────────
 
+// ─── Drill pattern zone pickers ─────────────────────────
+
+const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+function getZonePools(cornersMode: "4-corners" | "6-corners") {
+  return {
+    back: (cornersMode === "4-corners"
+      ? ["backForehand", "backBackhand"]
+      : ["backForehand", "backBackhand", "overhead"]) as ZoneId[],
+    net: ["frontForehand", "frontBackhand"] as ZoneId[],
+    mid: ["midForehand", "midBackhand"] as ZoneId[],
+  };
+}
+
+function applyNetBack(
+  lastZone: ZoneId,
+  cornersMode: "4-corners" | "6-corners"
+): ZoneId {
+  const { back, net } = getZonePools(cornersMode);
+  return lastZone.startsWith("front") ? pick(back) : pick(net);
+}
+
+function applyTriangle(
+  lastZone: ZoneId | null,
+  cornersMode: "4-corners" | "6-corners"
+): ZoneId {
+  const { back, net, mid } = getZonePools(cornersMode);
+  if (!lastZone || lastZone.startsWith("front")) return pick(back);
+  if (lastZone.startsWith("back") || lastZone === "overhead") {
+    return Math.random() < 0.5 && cornersMode === "6-corners"
+      ? pick(mid)
+      : pick(net);
+  }
+  return pick(net);
+}
+
+function applyMixed(
+  lastZone: ZoneId,
+  cornersMode: "4-corners" | "6-corners",
+  fallback: ZoneId
+): ZoneId {
+  if (Math.random() < 0.33) return fallback;
+  const { back, net } = getZonePools(cornersMode);
+  if (lastZone.startsWith("front")) return pick(back);
+  if (lastZone.startsWith("back") || lastZone === "overhead") return pick(net);
+  return fallback;
+}
+
+function applyDrillPattern(
+  drillPattern: string,
+  lastZone: ZoneId | null,
+  cornersMode: "4-corners" | "6-corners",
+  randomZone: ZoneId
+): ZoneId {
+  if (drillPattern === "fixed-net-back" && lastZone)
+    return applyNetBack(lastZone, cornersMode);
+  if (drillPattern === "fixed-triangle")
+    return applyTriangle(lastZone, cornersMode);
+  if (drillPattern === "mixed" && lastZone)
+    return applyMixed(lastZone, cornersMode, randomZone);
+  return randomZone;
+}
+
 function resolveAudioPathsAndZone(
   drillMode: string,
   calloutMode: string,
@@ -28,23 +91,17 @@ function resolveAudioPathsAndZone(
   drillPattern: string = "random",
   lastZone: ZoneId | null = null
 ) {
-  let zone: ZoneId = getRandomZoneForMode(
+  const randomZone: ZoneId = getRandomZoneForMode(
     drillMode as "all" | "front_only" | "back_only" | "front_back",
     cornersMode
   );
 
-  if (drillPattern === "fixed-net-back" && lastZone) {
-    if (lastZone.startsWith("front")) {
-      const pool =
-        cornersMode === "4-corners"
-          ? ["backForehand", "backBackhand"]
-          : ["backForehand", "backBackhand", "overhead"];
-      zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
-    } else {
-      const pool = ["frontForehand", "frontBackhand"];
-      zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
-    }
-  }
+  const zone = applyDrillPattern(
+    drillPattern,
+    lastZone,
+    cornersMode,
+    randomZone
+  );
 
   let audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
   let secondAudioPath: string | null = null;
