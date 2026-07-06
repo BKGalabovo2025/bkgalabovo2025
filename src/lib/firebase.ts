@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -54,7 +54,24 @@ const app = (() => {
 })();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = isTestEnv ? ({} as any) : getFirestore(app);
+let db: any;
+
+if (isTestEnv) {
+  db = {} as any;
+} else {
+  try {
+    // Try to initialize with offline persistence
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  } catch (err) {
+    // Fallback if initializeFirestore fails or was already called
+    console.error("Failed to initialize Firestore with persistence. Falling back to default:", err);
+    db = getFirestore(app);
+  }
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const auth = isTestEnv ? ({} as any) : getAuth(app);
 

@@ -6,12 +6,30 @@ import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { TrainingSession } from "@/types/training.types";
 import { serverCache } from "@/lib/server-cache";
+import { z } from "zod";
+
+const ShadowDetailsSchema = z.object({
+  setsCompleted: z.number().min(0, "Completed sets cannot be negative"),
+  totalSets: z.number().min(1, "Total sets must be at least 1"),
+  workTimeSec: z.number().min(0, "Work time cannot be negative"),
+  restTimeSec: z.number().min(0, "Rest time cannot be negative"),
+}).passthrough();
 
 export async function createTrainingSessionAction(
   idToken: string,
   data: Omit<TrainingSession, "id" | "createdAt" | "createdBy">
 ) {
   try {
+    if (data.type === "shadow" && data.shadowDetails) {
+      const parsed = ShadowDetailsSchema.safeParse(data.shadowDetails);
+      if (!parsed.success) {
+        return {
+          success: false,
+          error: "Невалидни данни за тренировката: " + parsed.error.issues[0].message,
+        };
+      }
+    }
+
     const user = await getAuthUser(idToken);
     const db = getAdminDb();
 

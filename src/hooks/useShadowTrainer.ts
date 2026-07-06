@@ -5,55 +5,21 @@ import {
   AUDIO_PATHS,
   ZoneId,
   getRandomZoneForMode,
-  playAudio,
-  playAudioSequence,
-  stopAudio,
-  shadowAudioManager,
   getRandomShotForZone,
-  isAudioPlaying,
 } from "@/lib/shadow-training/audio-map";
+import { useShadowAudio } from "./shadow-trainer/useShadowAudio";
+import { useShadowTimer } from "./shadow-trainer/useShadowTimer";
+import {
+  ShadowSettings,
+  TrainerState,
+  VisualPhase,
+  ShadowPlayer,
+  WakeLockSentinel,
+} from "./shadow-trainer/types";
 
-export interface ShadowPlayer {
-  id: string;
-  displayName?: string;
-  [key: string]: unknown;
-}
+export type { ShadowSettings, TrainerState, VisualPhase, ShadowPlayer };
 
-export interface WakeLockSentinel {
-  release(): Promise<void>;
-}
-
-export type VisualPhase = "idle" | "split_step" | "shot" | "center";
-
-export type TrainerState =
-  | "idle"
-  | "countdown"
-  | "working"
-  | "resting"
-  | "finished"
-  | "paused";
-
-export interface ShadowSettings {
-  mode: "standard" | "ghost_match" | "agility_test";
-  preset: string;
-  drillMode: "all" | "front_only" | "back_only" | "front_back";
-  cornersMode: "4-corners" | "6-corners";
-  ageGroup: "U9-U11" | "U13-U15" | "U17+";
-  drillPattern: "random" | "fixed-triangle" | "fixed-net-back" | "mixed";
-  sets: number;
-  workSec: number;
-  restSec: number;
-  paceSec: number;
-  deceptionEnabled: boolean;
-  motivationEnabled: boolean;
-  visualOnly: boolean;
-  calloutMode: "zones" | "shots" | "mixed" | "zones_and_shots";
-  centerCommandEnabled: boolean;
-  activePlayers: ShadowPlayer[];
-  courtsAvailable: number;
-}
-
-// ─── Pure helper functions (extracted to reduce cognitive complexity) ─────────
+// ─── Pure helper functions ─────────
 
 function resolveAudioPathsAndZone(
   drillMode: string,
@@ -67,17 +33,14 @@ function resolveAudioPathsAndZone(
     cornersMode
   );
 
-  // Implement Fixed Patterns if not random
   if (drillPattern === "fixed-net-back" && lastZone) {
     if (lastZone.startsWith("front")) {
-      // Force back
       const pool =
         cornersMode === "4-corners"
           ? ["backForehand", "backBackhand"]
           : ["backForehand", "backBackhand", "overhead"];
       zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
     } else {
-      // Force front
       const pool = ["frontForehand", "frontBackhand"];
       zone = pool[Math.floor(Math.random() * pool.length)] as ZoneId;
     }
@@ -155,356 +118,23 @@ function rotatePlayers(
   return sorted.slice(0, groupSize);
 }
 
-type TriggerNextActionRefs = {
-  stateRef: React.MutableRefObject<TrainerState>;
-  settingsRef: React.MutableRefObject<ShadowSettings | null>;
-  agilityActionsDoneRef: React.MutableRefObject<number>;
-  isFirstActionRef: React.MutableRefObject<boolean>;
-  consecutiveFastShotsRef: React.MutableRefObject<number>;
-  deceptionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  centerTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  setVisualPhase: (phase: VisualPhase) => void;
-};
-
-function handleAgilityTestAction(
-  isFirst: boolean,
-  refs: TriggerNextActionRefs,
-  setAgilityActionsDone: (v: number) => void,
-  cleanup: () => void
-): boolean {
-  const currentSettings = refs.settingsRef.current!;
-  let nextCount = refs.agilityActionsDoneRef.current;
-  if (!isFirst) {
-    nextCount = nextCount + 1;
-    setAgilityActionsDone(nextCount);
-    refs.agilityActionsDoneRef.current = nextCount;
-  }
-  if (nextCount >= currentSettings.workSec) {
-    refs.stateRef.current = "finished";
-    cleanup();
-    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
-    return true; // signal: finished
-  }
-  return false;
-}
-
-function scheduleAudioAndPhases(
-  isFirst: boolean,
-  pace: number,
-  audioPath: string,
-  secondAudioPath: string | null,
-  currentSettings: ShadowSettings,
-  refs: TriggerNextActionRefs,
-  setActiveZone: (zone: ZoneId | null) => void,
-  zoneToActivate: ZoneId,
-  triggerNextAction: () => void
-) {
-  const { deceptionTimeoutRef, stateRef, centerTimeoutRef, actionTimeoutRef } =
-    refs;
-
-  // Biomechanical Phase Timing based on Age Group
-  const ageGroup = currentSettings.ageGroup;
-  let splitStepDelay = pace * 0.15; // e.g. 0.45s for 3.0s pace
-  let strokeDuration = pace * 0.5; // e.g. 1.50s for 3.0s pace
-
-  if (ageGroup === "U9-U11") {
-    splitStepDelay = Math.max(0.5, pace * 0.15); // Kids need clear split step
-  } else if (ageGroup === "U17+") {
-    splitStepDelay = Math.min(0.25, pace * 0.1); // Lightning fast for adults
-    strokeDuration = pace * 0.45;
-  }
-
-  const recoveryDelay = splitStepDelay + strokeDuration;
-
-  // Phase 1: SPLIT STEP
-  refs.setVisualPhase("split_step");
-  if (!currentSettings.visualOnly) {
-    // We play split step audio, unless it's the very first action (startSet beep acts as it)
-    if (!isFirst) {
-      playAudio(AUDIO_PATHS.common.splitStep);
-    } else {
-      playAudio(AUDIO_PATHS.common.beep);
-    }
-  }
-
-  // Phase 2: STROKE (Zone command & highlight)
-  deceptionTimeoutRef.current = setTimeout(() => {
-    if (stateRef.current !== "working") return;
-
-    // Optional Deception (only for U15+, or if strictly enabled)
-    const canDeceive = currentSettings.deceptionEnabled && Math.random() < 0.15;
-
-    if (canDeceive) {
-      const fakeResolved = resolveAudioPathsAndZone(
-        currentSettings.drillMode,
-        currentSettings.calloutMode,
-        currentSettings.cornersMode,
-        "random"
-      );
-
-      if (!currentSettings.visualOnly) {
-        const fakeSeq = [fakeResolved.audioPath];
-        if (fakeResolved.secondAudioPath)
-          fakeSeq.push(fakeResolved.secondAudioPath);
-        playAudioSequence(fakeSeq);
-      }
-
-      setActiveZone(fakeResolved.zone);
-      refs.setVisualPhase("shot");
-
-      // Rapidly switch to real zone
-      setTimeout(
-        () => {
-          if (stateRef.current !== "working") return;
-          setActiveZone(zoneToActivate);
-          if (!currentSettings.visualOnly) {
-            const realSeq = [audioPath];
-            if (secondAudioPath) realSeq.push(secondAudioPath);
-            playAudioSequence(realSeq);
-          }
-        },
-        Math.max(300, splitStepDelay * 1000)
-      );
-    } else {
-      setActiveZone(zoneToActivate);
-      refs.setVisualPhase("shot");
-      if (!currentSettings.visualOnly) {
-        const realSeq = [audioPath];
-        if (secondAudioPath) realSeq.push(secondAudioPath);
-        playAudioSequence(realSeq);
-      }
-    }
-  }, splitStepDelay * 1000);
-
-  // Phase 3: RECOVERY TO BASE
-  centerTimeoutRef.current = setTimeout(() => {
-    if (stateRef.current === "working") {
-      setActiveZone(null); // Clear the zone highlight
-      refs.setVisualPhase("center");
-      if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
-        playAudio(AUDIO_PATHS.common.center);
-      }
-    }
-  }, recoveryDelay * 1000);
-
-  // Phase 4: Next Cycle
-  actionTimeoutRef.current = setTimeout(() => {
-    triggerNextAction();
-  }, pace * 1000);
-}
-
-type AdvanceStateRefs = {
-  stateRef: React.MutableRefObject<TrainerState>;
-  currentSetRef: React.MutableRefObject<number>;
-  timerRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  actionTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  isFirstActionRef: React.MutableRefObject<boolean>;
-  currentPlayersRef: React.MutableRefObject<ShadowPlayer[]>;
-  playCountsRef: React.MutableRefObject<Record<string, number>>;
-};
-
-function advanceFromCountdown(
-  currentSettings: ShadowSettings,
-  refs: AdvanceStateRefs,
-  updateTimeRemaining: (v: number) => void,
-  setAgilityActionsDone: (v: number) => void,
-  requestWakeLock: () => void,
-  triggerNextAction: () => void
-) {
-  refs.stateRef.current = "working";
-  refs.isFirstActionRef.current = true;
-  if (currentSettings.mode === "agility_test") {
-    updateTimeRemaining(0);
-  } else {
-    updateTimeRemaining(currentSettings.workSec);
-  }
-  setAgilityActionsDone(0);
-  requestWakeLock();
-  refs.actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
-}
-
-function advanceFromWorking(
-  currentSettings: ShadowSettings,
-  refs: AdvanceStateRefs,
-  updateTimeRemaining: (v: number) => void,
-  setCurrentPlayersState: (p: ShadowPlayer[]) => void,
-  cleanup: () => void
-) {
-  cleanup();
-  const isLastSet =
-    refs.currentSetRef.current >= currentSettings.sets ||
-    currentSettings.mode === "agility_test";
-  if (isLastSet) {
-    refs.stateRef.current = "finished";
-    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.endSet);
-  } else {
-    const nextPlayers = rotatePlayers(
-      currentSettings,
-      refs.currentPlayersRef,
-      refs.playCountsRef
-    );
-    if (nextPlayers !== refs.currentPlayersRef.current) {
-      refs.currentPlayersRef.current = nextPlayers;
-      setCurrentPlayersState(nextPlayers);
-    }
-    refs.stateRef.current = "resting";
-    stopAudio();
-    updateTimeRemaining(currentSettings.restSec);
-    if (!currentSettings.visualOnly) playAudio(AUDIO_PATHS.common.rest);
-  }
-}
-
-function advanceFromResting(
-  currentSettings: ShadowSettings,
-  refs: AdvanceStateRefs,
-  updateTimeRemaining: (v: number) => void,
-  setCurrentSet: (fn: (c: number) => number) => void
-) {
-  setCurrentSet((c) => c + 1);
-  refs.stateRef.current = "countdown";
-  updateTimeRemaining(10);
-  if (!currentSettings.visualOnly) {
-    playAudioSequence([
-      AUDIO_PATHS.common.endRest,
-      AUDIO_PATHS.common.startSet,
-    ]);
-  }
-}
-
-// ─── Extracted tick-level logic ───────────────────────────────────────────────
-
-type TickContext = {
-  expectedTimeRemainingRef: React.MutableRefObject<number>;
-  stateRef: React.MutableRefObject<TrainerState>;
-  settingsRef: React.MutableRefObject<ShadowSettings | null>;
-  advanceState: () => void;
-  speakMotivation: () => void;
-  setTimeRemaining: React.Dispatch<React.SetStateAction<number>>;
-  setActualElapsedMs: React.Dispatch<React.SetStateAction<number>>;
-};
-
-function onSecondTick(ctx: TickContext) {
-  const {
-    expectedTimeRemainingRef,
-    stateRef,
-    settingsRef,
-    advanceState,
-    speakMotivation,
-    setTimeRemaining,
-  } = ctx;
-
-  setTimeRemaining((prev) => {
-    const currentPrev =
-      expectedTimeRemainingRef.current !== prev
-        ? expectedTimeRemainingRef.current
-        : prev;
-
-    const currentSettings = settingsRef.current;
-    const isAgilityWorking =
-      stateRef.current === "working" &&
-      currentSettings?.mode === "agility_test";
-
-    if (isAgilityWorking) {
-      const nextVal = currentPrev + 1;
-      expectedTimeRemainingRef.current = nextVal;
-      return nextVal;
-    }
-
-    if (currentPrev <= 1) {
-      setTimeout(advanceState, 0);
-      expectedTimeRemainingRef.current = 0;
-      return 0;
-    }
-
-    const shouldMotivate =
-      stateRef.current === "working" &&
-      currentSettings?.mode !== "agility_test" &&
-      currentPrev === 16 &&
-      currentSettings?.motivationEnabled;
-
-    if (shouldMotivate) {
-      speakMotivation();
-    }
-
-    const nextVal = currentPrev - 1;
-    expectedTimeRemainingRef.current = nextVal;
-    return nextVal;
-  });
-}
-
-function handleTick(
-  deltaMs: number,
-  accumulatedMsRef: React.MutableRefObject<number>,
-  ctx: TickContext
-) {
-  const { stateRef, setActualElapsedMs } = ctx;
-
-  if (stateRef.current === "working" || stateRef.current === "resting") {
-    setActualElapsedMs((prev) => prev + deltaMs);
-  }
-
-  accumulatedMsRef.current += deltaMs;
-  if (accumulatedMsRef.current >= 1000) {
-    accumulatedMsRef.current -= 1000;
-    onSecondTick(ctx);
-  }
-}
-
-// ─── Extracted motivation (pure, no hook deps) ────────────────────────────────
-
-function triggerSpeakMotivation(
-  currentPlayers: ShadowPlayer[],
-  motivationEnabled: boolean
-) {
-  if (!motivationEnabled) return;
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  if (isAudioPlaying()) return;
-
-  if (currentPlayers.length > 0) {
-    const randomPlayer =
-      currentPlayers[Math.floor(Math.random() * currentPlayers.length)];
-    if (!randomPlayer?.displayName) return;
-    const firstName = randomPlayer.displayName.split(" ")[0] || "играч";
-    const phrases = [
-      `Давай, ${firstName}!`,
-      `Още малко, ${firstName}!`,
-      `Дръж стойката, ${firstName}!`,
-    ];
-    const text = phrases[Math.floor(Math.random() * phrases.length)];
-    const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "bg-BG";
-    window.speechSynthesis.speak(msg);
-  }
-}
-
-// ─── The hook ────────────────────────────────────────────────────────────────
+// ─── The Orchestrator Hook ─────────
 
 export function useShadowTrainer(settings: ShadowSettings | null) {
   const [state, setState] = useState<TrainerState>("idle");
   const [currentSet, setCurrentSet] = useState(1);
-  const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
   const [visualPhase, setVisualPhase] = useState<VisualPhase>("idle");
 
-  const [currentPlayersState, setCurrentPlayersState] = useState<
-    ShadowPlayer[]
-  >([]);
+  const [currentPlayersState, setCurrentPlayersState] = useState<ShadowPlayer[]>([]);
+  const [agilityActionsDone, setAgilityActionsDone] = useState(0);
+
   const playCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
   const currentPlayersRef = useRef<ShadowPlayer[]>([]);
-  const [agilityActionsDone, setAgilityActionsDone] = useState(0);
-  const [actualElapsedMs, setActualElapsedMs] = useState(0);
-
-  const expectedTimeRemainingRef = useRef<number>(0);
-  const updateTimeRemaining = useCallback((val: number) => {
-    expectedTimeRemainingRef.current = val;
-    setTimeRemaining(val);
-  }, []);
-
+  
   const previousStateRef = useRef<TrainerState>("idle");
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const deceptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const centerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -512,8 +142,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const isFirstActionRef = useRef(false);
 
   const settingsRef = useRef(settings);
+  const stateRef = useRef(state);
+  const currentSetRef = useRef(currentSet);
+  const agilityActionsDoneRef = useRef(agilityActionsDone);
+
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+  useEffect(() => { stateRef.current = state; }, [state]);
+  useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
+  useEffect(() => { agilityActionsDoneRef.current = agilityActionsDone; }, [agilityActionsDone]);
+
+  const audio = useShadowAudio();
+
   useEffect(() => {
-    settingsRef.current = settings;
     if (settings) {
       const counts = playCountsRef.current;
       settings.activePlayers.forEach((p) => {
@@ -529,29 +169,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     }
   }, [settings]);
 
-  const stateRef = useRef(state);
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
-  const currentSetRef = useRef(currentSet);
-  useEffect(() => {
-    currentSetRef.current = currentSet;
-  }, [currentSet]);
-
-  const agilityActionsDoneRef = useRef(agilityActionsDone);
-  useEffect(() => {
-    agilityActionsDoneRef.current = agilityActionsDone;
-  }, [agilityActionsDone]);
-
   const requestWakeLock = async () => {
     if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
       try {
-        wakeLockRef.current = await (
-          navigator as unknown as {
-            wakeLock: { request(type: string): Promise<WakeLockSentinel> };
-          }
-        ).wakeLock.request("screen");
+        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
       } catch (err) {
         console.log("Wake Lock error:", err);
       }
@@ -565,8 +186,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     }
   };
 
-  const cleanup = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
+  const cleanupActions = useCallback(() => {
     if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
     if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
     if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
@@ -589,18 +209,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     };
   }, []);
 
-  const actionRefs: TriggerNextActionRefs = {
-    stateRef,
-    settingsRef,
-    agilityActionsDoneRef,
-    isFirstActionRef,
-    consecutiveFastShotsRef,
-    deceptionTimeoutRef,
-    centerTimeoutRef,
-    actionTimeoutRef,
-    setVisualPhase,
-  };
-
   const triggerNextAction = useCallback(() => {
     try {
       const currentSettings = settingsRef.current;
@@ -610,15 +218,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       const isFirst = isFirstActionRef.current;
       isFirstActionRef.current = false;
 
+      // Agility Test Logic
       if (currentSettings.mode === "agility_test") {
-        const finished = handleAgilityTestAction(
-          isFirst,
-          actionRefs,
-          setAgilityActionsDone,
-          cleanup
-        );
-        if (finished) {
+        let nextCount = agilityActionsDoneRef.current;
+        if (!isFirst) {
+          nextCount = nextCount + 1;
+          setAgilityActionsDone(nextCount);
+          agilityActionsDoneRef.current = nextCount;
+        }
+        if (nextCount >= currentSettings.workSec) {
           setState("finished");
+          cleanupActions();
+          if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.endSet);
           return;
         }
       }
@@ -636,156 +247,179 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         activeZone
       );
 
-      scheduleAudioAndPhases(
-        isFirst,
-        pace,
-        audioPath,
-        secondAudioPath,
-        currentSettings,
-        actionRefs,
-        setActiveZone,
-        zone,
-        triggerNextAction
-      );
+      // Biomechanical Phase Timing
+      const ageGroup = currentSettings.ageGroup;
+      let splitStepDelay = pace * 0.15;
+      let strokeDuration = pace * 0.5;
+
+      if (ageGroup === "U9-U11") {
+        splitStepDelay = Math.max(0.5, pace * 0.15);
+      } else if (ageGroup === "U17+") {
+        splitStepDelay = Math.min(0.25, pace * 0.1);
+        strokeDuration = pace * 0.45;
+      }
+      const recoveryDelay = splitStepDelay + strokeDuration;
+
+      // Phase 1: SPLIT STEP
+      setVisualPhase("split_step");
+      if (!currentSettings.visualOnly) {
+        if (!isFirst) audio.play(AUDIO_PATHS.common.splitStep);
+        else audio.play(AUDIO_PATHS.common.beep);
+      }
+
+      // Phase 2: STROKE
+      deceptionTimeoutRef.current = setTimeout(() => {
+        if (stateRef.current !== "working") return;
+
+        const canDeceive = currentSettings.deceptionEnabled && Math.random() < 0.15;
+
+        if (canDeceive) {
+          const fakeResolved = resolveAudioPathsAndZone(
+            currentSettings.drillMode,
+            currentSettings.calloutMode,
+            currentSettings.cornersMode,
+            "random"
+          );
+
+          if (!currentSettings.visualOnly) {
+            const fakeSeq = [fakeResolved.audioPath];
+            if (fakeResolved.secondAudioPath) fakeSeq.push(fakeResolved.secondAudioPath);
+            audio.playSequence(fakeSeq);
+          }
+          setActiveZone(fakeResolved.zone);
+          setVisualPhase("shot");
+
+          setTimeout(() => {
+            if (stateRef.current !== "working") return;
+            setActiveZone(zone);
+            if (!currentSettings.visualOnly) {
+              audio.stop();
+              const realSeq = [audioPath];
+              if (secondAudioPath) realSeq.push(secondAudioPath);
+              audio.playSequence(realSeq);
+            }
+          }, Math.max(300, splitStepDelay * 1000));
+        } else {
+          setActiveZone(zone);
+          setVisualPhase("shot");
+          if (!currentSettings.visualOnly) {
+            const realSeq = [audioPath];
+            if (secondAudioPath) realSeq.push(secondAudioPath);
+            audio.playSequence(realSeq);
+          }
+        }
+      }, splitStepDelay * 1000);
+
+      // Phase 3: RECOVERY
+      centerTimeoutRef.current = setTimeout(() => {
+        if (stateRef.current === "working") {
+          setActiveZone(null);
+          setVisualPhase("center");
+          if (currentSettings.centerCommandEnabled && !currentSettings.visualOnly) {
+            audio.play(AUDIO_PATHS.common.center);
+          }
+        }
+      }, recoveryDelay * 1000);
+
+      // Phase 4: Next Cycle
+      actionTimeoutRef.current = setTimeout(() => {
+        triggerNextAction();
+      }, pace * 1000);
+
     } catch (error) {
       console.error("Error in triggerNextAction", error);
       const pace = settingsRef.current?.paceSec || 3;
       actionTimeoutRef.current = setTimeout(triggerNextAction, pace * 1000);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cleanup]);
+  }, [audio, activeZone, cleanupActions]);
 
-  const speakMotivation = useCallback(() => {
-    try {
-      const currentSettings = settingsRef.current;
-      triggerSpeakMotivation(
-        currentPlayersRef.current,
-        !!currentSettings?.motivationEnabled
-      );
-    } catch {
-      console.error("Speech synthesis error");
-    }
-  }, []);
-
-  const advanceStateRefs: AdvanceStateRefs = {
-    stateRef,
-    currentSetRef,
-    timerRef,
-    actionTimeoutRef,
-    isFirstActionRef,
-    currentPlayersRef,
-    playCountsRef,
-  };
+  const handleMotivationTick = useCallback(() => {
+    audio.triggerMotivation(currentPlayersRef.current, !!settings?.motivationEnabled);
+  }, [audio, settings]);
 
   const advanceState = useCallback(() => {
     const currentSettings = settingsRef.current;
     if (!currentSettings) return;
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-
     const phase = stateRef.current;
+    
     if (phase === "countdown") {
       setState("working");
-      advanceFromCountdown(
-        currentSettings,
-        advanceStateRefs,
-        updateTimeRemaining,
-        setAgilityActionsDone,
-        requestWakeLock,
-        triggerNextAction
-      );
-    } else if (phase === "working") {
+      isFirstActionRef.current = true;
+      if (currentSettings.mode === "agility_test") {
+        timer.updateTimeRemaining(0);
+      } else {
+        timer.updateTimeRemaining(currentSettings.workSec);
+      }
+      setAgilityActionsDone(0);
+      requestWakeLock();
+      actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
+    } 
+    else if (phase === "working") {
       setActiveZone(null);
-      advanceFromWorking(
-        currentSettings,
-        advanceStateRefs,
-        updateTimeRemaining,
-        setCurrentPlayersState,
-        cleanup
-      );
-      setState(advanceStateRefs.stateRef.current);
-    } else if (phase === "resting") {
+      cleanupActions();
+      const isLastSet = currentSetRef.current >= currentSettings.sets || currentSettings.mode === "agility_test";
+      
+      if (isLastSet) {
+        setState("finished");
+        if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.endSet);
+      } else {
+        const nextPlayers = rotatePlayers(currentSettings, currentPlayersRef, playCountsRef);
+        if (nextPlayers !== currentPlayersRef.current) {
+          currentPlayersRef.current = nextPlayers;
+          setCurrentPlayersState(nextPlayers);
+        }
+        setState("resting");
+        audio.stop();
+        timer.updateTimeRemaining(currentSettings.restSec);
+        if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.rest);
+      }
+    } 
+    else if (phase === "resting") {
+      setCurrentSet((c) => c + 1);
       setState("countdown");
-      advanceFromResting(
-        currentSettings,
-        advanceStateRefs,
-        updateTimeRemaining,
-        setCurrentSet
-      );
+      timer.updateTimeRemaining(10);
+      if (!currentSettings.visualOnly) {
+        audio.playSequence([AUDIO_PATHS.common.endRest, AUDIO_PATHS.common.startSet]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cleanup, triggerNextAction, updateTimeRemaining]);
+  }, [audio, cleanupActions, triggerNextAction]);
 
-  useEffect(() => {
-    if (state === "idle" || state === "finished" || state === "paused") {
-      if (timerRef.current) clearInterval(timerRef.current);
-      return;
-    }
-
-    const accumulatedMsRef = { current: 0 };
-    let lastTick = Date.now();
-
-    const tickCtx: TickContext = {
-      expectedTimeRemainingRef,
-      stateRef,
-      settingsRef,
-      advanceState,
-      speakMotivation,
-      setTimeRemaining,
-      setActualElapsedMs,
-    };
-
-    const intervalId = setInterval(() => {
-      const now = Date.now();
-      const deltaMs = now - lastTick;
-      lastTick = now;
-      handleTick(deltaMs, accumulatedMsRef, tickCtx);
-    }, 100);
-
-    timerRef.current = intervalId;
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [state, advanceState, speakMotivation]);
+  const timer = useShadowTimer({
+    state,
+    settings,
+    advanceState,
+    onMotivationTick: handleMotivationTick,
+  });
 
   const startTraining = useCallback(() => {
     if (!settings) return;
-    shadowAudioManager.unlock();
-    stopAudio();
+    audio.unlock();
+    audio.stop();
     requestWakeLock();
-    stateRef.current = "countdown";
     setState("countdown");
     setCurrentSet(1);
-    updateTimeRemaining(10);
+    timer.updateTimeRemaining(10);
     setAgilityActionsDone(0);
-    setActualElapsedMs(0);
+    timer.setActualElapsedMs(0);
     if (!settings.visualOnly) {
-      playAudio(AUDIO_PATHS.common.startSet);
+      audio.play(AUDIO_PATHS.common.startSet);
     }
-  }, [settings, updateTimeRemaining]);
+  }, [settings, audio, timer]);
 
   const pauseTraining = useCallback(() => {
-    if (
-      stateRef.current !== "paused" &&
-      stateRef.current !== "idle" &&
-      stateRef.current !== "finished"
-    ) {
+    if (stateRef.current !== "paused" && stateRef.current !== "idle" && stateRef.current !== "finished") {
       previousStateRef.current = stateRef.current;
     }
-    stateRef.current = "paused";
     setState("paused");
-    stopAudio();
-    cleanup();
-  }, [cleanup]);
+    audio.stop();
+    cleanupActions();
+  }, [audio, cleanupActions]);
 
   const resumeTraining = useCallback(() => {
     if (stateRef.current === "paused") {
       const targetState = previousStateRef.current;
-      stateRef.current = targetState;
       setState(targetState);
       requestWakeLock();
       if (targetState === "working") {
@@ -795,38 +429,33 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, [triggerNextAction]);
 
   const stopTraining = useCallback(() => {
-    stateRef.current = "finished";
     setState("finished");
-    stopAudio();
-    cleanup();
-  }, [cleanup]);
+    audio.stop();
+    cleanupActions();
+  }, [audio, cleanupActions]);
 
   useEffect(() => {
-    if (
-      settings === null &&
-      stateRef.current !== "idle" &&
-      stateRef.current !== "finished"
-    ) {
+    if (settings === null && stateRef.current !== "idle" && stateRef.current !== "finished") {
       stopTraining();
     }
   }, [settings, stopTraining]);
 
   useEffect(() => {
     return () => {
-      cleanup();
+      cleanupActions();
+      timer.cleanupTimer();
     };
-  }, [cleanup]);
+  }, [cleanupActions, timer]);
 
   return {
     state,
     currentSet,
-    timeRemaining,
+    timeRemaining: timer.timeRemaining,
     activeZone,
     visualPhase,
     currentRotationPlayers: currentPlayersState,
-
     agilityActionsDone,
-    actualElapsedMs,
+    actualElapsedMs: timer.actualElapsedMs,
     startTraining,
     pauseTraining,
     resumeTraining,

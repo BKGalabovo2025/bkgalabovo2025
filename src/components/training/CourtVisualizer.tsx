@@ -33,13 +33,13 @@ export function CourtVisualizer({
       : "bg-zinc-800/50";
   const inactiveClass = "bg-zinc-800/30";
 
-  let centerDotColor = "bg-emerald-400/30 scale-100"; // idle
+  let centerDotColor = "bg-emerald-400/30 scale-100 border-zinc-900"; // idle
   if (visualPhase === "split_step") {
     centerDotColor =
-      "bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,1)] scale-150";
+      "bg-yellow-400 border-yellow-200 shadow-[0_0_40px_rgba(250,204,21,1)] scale-[1.7] animate-pulse";
   } else if (visualPhase === "center") {
     centerDotColor =
-      "bg-green-500 shadow-[0_0_30px_rgba(34,197,94,1)] scale-150";
+      "bg-green-500 border-green-300 shadow-[0_0_30px_rgba(34,197,94,1)] scale-150";
   }
 
   return (
@@ -134,7 +134,7 @@ export function CourtVisualizer({
       <div className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-30 pointer-events-none">
         <div
           className={cn(
-            "w-6 h-6 rounded-full border-2 border-zinc-900 transition-all duration-300",
+            "w-6 h-6 rounded-full border-2 transition-all duration-300",
             centerDotColor
           )}
         />

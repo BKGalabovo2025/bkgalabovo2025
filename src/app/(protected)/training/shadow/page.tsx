@@ -33,8 +33,8 @@ export default async function ShadowTrainingPage() {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center h-[calc(100vh-65px)] p-4 bg-zinc-50 dark:bg-black overflow-hidden">
-      <div className="w-full max-w-4xl flex flex-col h-full space-y-4">
+    <div className="flex-1 w-full flex flex-col items-center min-h-[calc(100vh-65px)] p-4 bg-zinc-50 dark:bg-black">
+      <div className="w-full max-w-7xl flex flex-col h-full space-y-4">
         <div className="shrink-0">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
             Shadow Training
