@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { toast } from "sonner";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ShadowWizard } from "../ShadowWizard";
@@ -136,12 +142,10 @@ describe("ShadowWizard Component Flow", () => {
     // Should ask for confirmation because elapsed < 10 seconds
     expect(window.confirm).toHaveBeenCalled();
 
-    // Let async state resolve
-    await act(async () => {
-      await Promise.resolve();
+    vi.useRealTimers();
+    await waitFor(() => {
+      expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
     });
-
-    expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
   });
 
   it("saves directly without warning if training was active for more than 10 seconds", async () => {
@@ -170,13 +174,14 @@ describe("ShadowWizard Component Flow", () => {
     // Navigate to Analytics
     expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
 
-    await act(async () => {
-      fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));
-    });
+    fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));
 
     // Should NOT trigger the sub-10s warning
     // However, it does trigger the "stop early" warning when we click STOP
     // Let's verify the createAction was called.
-    expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
+    vi.useRealTimers();
+    await waitFor(() => {
+      expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
+    });
   });
 });
