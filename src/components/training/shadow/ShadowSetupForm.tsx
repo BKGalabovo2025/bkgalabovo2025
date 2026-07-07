@@ -409,12 +409,37 @@ export function ShadowSetupForm({
                     <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
                       Ъгли на корта
                     </Label>
-                    <div className="flex w-full bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1">
+                    <div className="flex w-full bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 gap-1">
+                      <button
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            cornersMode: "2-corners",
+                            // auto-select front_only if current drillMode is incompatible
+                            drillMode:
+                              settings.drillMode === "all" ||
+                              settings.drillMode === "front_back"
+                                ? "front_only"
+                                : settings.drillMode,
+                          })
+                        }
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                          settings.cornersMode === "2-corners"
+                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        2 Ъгъла
+                      </button>
                       <button
                         onClick={() =>
                           setSettings({ ...settings, cornersMode: "4-corners" })
                         }
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${settings.cornersMode === "4-corners" ? "bg-white dark:bg-zinc-800 shadow text-primary" : "text-zinc-500"}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                          settings.cornersMode === "4-corners"
+                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            : "text-zinc-500"
+                        }`}
                       >
                         4 Ъгъла
                       </button>
@@ -422,7 +447,11 @@ export function ShadowSetupForm({
                         onClick={() =>
                           setSettings({ ...settings, cornersMode: "6-corners" })
                         }
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${settings.cornersMode === "6-corners" ? "bg-white dark:bg-zinc-800 shadow text-primary" : "text-zinc-500"}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                          settings.cornersMode === "6-corners"
+                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            : "text-zinc-500"
+                        }`}
                       >
                         6 Ъгъла
                       </button>
@@ -435,12 +464,18 @@ export function ShadowSetupForm({
                       Насоченост на зоните
                     </Label>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        { id: "all", title: "Цял корт" },
-                        { id: "front_only", title: "Само мрежа" },
-                        { id: "back_only", title: "Задна линия" },
-                        { id: "front_back", title: "Без среда" },
-                      ].map((z) => (
+                      {(settings.cornersMode === "2-corners"
+                        ? [
+                            { id: "front_only", title: "Само мрежа" },
+                            { id: "back_only", title: "Задна линия" },
+                          ]
+                        : [
+                            { id: "all", title: "Цял корт" },
+                            { id: "front_only", title: "Само мрежа" },
+                            { id: "back_only", title: "Задна линия" },
+                            { id: "front_back", title: "Без среда" },
+                          ]
+                      ).map((z) => (
                         <button
                           key={z.id}
                           onClick={() =>

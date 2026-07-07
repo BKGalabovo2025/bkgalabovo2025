@@ -25,9 +25,11 @@ export type { ShadowSettings, TrainerState, VisualPhase, ShadowPlayer };
 
 const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-function getZonePools(cornersMode: "4-corners" | "6-corners") {
+type CornersMode = "2-corners" | "4-corners" | "6-corners";
+
+function getZonePools(cornersMode: CornersMode) {
   return {
-    back: (cornersMode === "4-corners"
+    back: (cornersMode !== "6-corners"
       ? ["backForehand", "backBackhand"]
       : ["backForehand", "backBackhand", "overhead"]) as ZoneId[],
     net: ["frontForehand", "frontBackhand"] as ZoneId[],
@@ -35,17 +37,14 @@ function getZonePools(cornersMode: "4-corners" | "6-corners") {
   };
 }
 
-function applyNetBack(
-  lastZone: ZoneId,
-  cornersMode: "4-corners" | "6-corners"
-): ZoneId {
+function applyNetBack(lastZone: ZoneId, cornersMode: CornersMode): ZoneId {
   const { back, net } = getZonePools(cornersMode);
   return lastZone.startsWith("front") ? pick(back) : pick(net);
 }
 
 function applyTriangle(
   lastZone: ZoneId | null,
-  cornersMode: "4-corners" | "6-corners"
+  cornersMode: CornersMode
 ): ZoneId {
   const { back, net, mid } = getZonePools(cornersMode);
   if (!lastZone || lastZone.startsWith("front")) return pick(back);
@@ -59,7 +58,7 @@ function applyTriangle(
 
 function applyMixed(
   lastZone: ZoneId,
-  cornersMode: "4-corners" | "6-corners",
+  cornersMode: CornersMode,
   fallback: ZoneId
 ): ZoneId {
   if (Math.random() < 0.33) return fallback;
@@ -72,7 +71,7 @@ function applyMixed(
 function applyDrillPattern(
   drillPattern: string,
   lastZone: ZoneId | null,
-  cornersMode: "4-corners" | "6-corners",
+  cornersMode: CornersMode,
   randomZone: ZoneId
 ): ZoneId {
   if (drillPattern === "fixed-net-back" && lastZone)
@@ -87,7 +86,7 @@ function applyDrillPattern(
 function resolveAudioPathsAndZone(
   drillMode: string,
   calloutMode: string,
-  cornersMode: "4-corners" | "6-corners" = "6-corners",
+  cornersMode: "2-corners" | "4-corners" | "6-corners" = "6-corners",
   drillPattern: string = "random",
   lastZone: ZoneId | null = null
 ) {

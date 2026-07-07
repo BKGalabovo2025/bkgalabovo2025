@@ -65,11 +65,19 @@ function getRandomZone(): ZoneId {
 
 export function getRandomZoneForMode(
   modeType: "all" | "front_only" | "back_only" | "front_back",
-  cornersMode: "4-corners" | "6-corners" = "6-corners"
+  cornersMode: "2-corners" | "4-corners" | "6-corners" = "6-corners"
 ): ZoneId {
   let pool = ZONES_ARRAY;
 
-  if (cornersMode === "4-corners") {
+  if (cornersMode === "2-corners") {
+    // 2 corners: само мрежата (front) или само задна линия (back) — зависи от drillMode
+    if (modeType === "back_only") {
+      pool = ["backForehand", "backBackhand"];
+    } else {
+      // front_only или всичко → само мрежата
+      pool = ["frontForehand", "frontBackhand"];
+    }
+  } else if (cornersMode === "4-corners") {
     // 4 corners strictly excludes midcourt
     pool = ["frontForehand", "frontBackhand", "backForehand", "backBackhand"];
   }
