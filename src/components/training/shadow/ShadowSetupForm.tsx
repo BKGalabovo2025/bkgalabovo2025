@@ -399,16 +399,10 @@ export function ShadowSetupForm({
                             desc: '"Клиър права" – за техника',
                           },
                           {
-                            id: "mixed",
-                            label: "Смесено",
-                            icon: "🔀",
-                            desc: "50% зона / 50% удар",
-                          },
-                          {
                             id: "zones_and_shots",
                             label: "Зони + Удари",
                             icon: "📢",
-                            desc: "Зона, после удар – пълна инфо",
+                            desc: "Зона, после удар – пълна информация",
                           },
                         ].map((c) => (
                           <button

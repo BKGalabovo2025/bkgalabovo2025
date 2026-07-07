@@ -210,10 +210,9 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       "front_back",
     ];
 
-    const calloutModes: ("zones" | "shots" | "mixed" | "zones_and_shots")[] = [
+    const calloutModes: ("zones" | "shots" | "zones_and_shots")[] = [
       "zones",
       "shots",
-      "mixed",
       "zones_and_shots",
     ];
 

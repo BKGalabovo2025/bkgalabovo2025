@@ -106,20 +106,15 @@ function resolveAudioPathsAndZone(
   let audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
   let secondAudioPath: string | null = null;
 
-  const isShotMode =
-    calloutMode === "shots" || (calloutMode === "mixed" && Math.random() > 0.5);
-
-  if (isShotMode) {
-    if (zone.startsWith("mid")) {
-      audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.midForehand;
-      secondAudioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
-    } else {
-      audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
-    }
+  if (calloutMode === "shots") {
+    // Само удари: само аудиото на удара, без зона
+    audioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
   } else if (calloutMode === "zones_and_shots") {
+    // Зони + Удари: първо зоната, после удара
     audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
     secondAudioPath = getRandomShotForZone(zone) || AUDIO_PATHS.shots.defense;
   }
+  // calloutMode === "zones": само audioPath (зоната) — вече е зададен по-горе
 
   return { zone, audioPath, secondAudioPath };
 }

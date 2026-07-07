@@ -28,7 +28,7 @@ export interface ShadowSettings {
   deceptionEnabled: boolean;
   motivationEnabled: boolean;
   visualOnly: boolean;
-  calloutMode: "zones" | "shots" | "mixed" | "zones_and_shots";
+  calloutMode: "zones" | "shots" | "zones_and_shots";
   centerCommandEnabled: boolean;
   activePlayers: ShadowPlayer[];
   courtsAvailable: number;
