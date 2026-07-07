@@ -50,6 +50,10 @@ import {
   Calendar as CalendarIcon,
   Filter,
   Loader2,
+  MoreVertical,
+  Trash2,
+  Eye,
+  Edit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +62,10 @@ import {
 } from "@/lib/export-utils";
 import { formatDateInput, formatDateShort } from "@/lib/date-utils";
 import { formatPrice } from "@/lib/currency";
+import { useAuth } from "@/context/auth-context";
+import { deleteSaleAction } from "@/lib/actions/sales";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   PieChart,
   Pie,
@@ -76,6 +84,10 @@ interface FinancialReportProps {
 const FinancialReport = ({ initialData }: FinancialReportProps) => {
   const [data, setData] = useState<FinancialReportData>(initialData);
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const { idToken } = useAuth();
+  const router = useRouter();
 
   // Filters
   const [dateFrom, setDateFrom] = useState<Date | undefined>(() => {
@@ -97,6 +109,66 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       setData(result);
     });
   }, [dateFrom, dateTo, paymentType]);
+
+  const handleRowClick = (saleId: string, isPaid: boolean, type?: string) => {
+    if (isPaid) {
+      if (type === "general_service") {
+        router.push(`/finances/general-services/sales/${saleId}/receipt`);
+      } else if (type === "inventory") {
+        router.push(`/inventory/sales/${saleId}/receipt`);
+      } else {
+        router.push(`/sales/${saleId}/receipt`);
+      }
+    } else {
+      router.push(`/sales/${saleId}`);
+    }
+  };
+
+  const handleEdit = (saleId: string, type?: string) => {
+    if (type === "general_service") {
+      router.push(`/finances/general-services/sales/${saleId}/edit`);
+    } else if (type === "inventory") {
+      router.push(`/inventory/sales/${saleId}/edit`);
+    } else {
+      router.push(`/sales/${saleId}/edit`);
+    }
+  };
+
+  const handleDelete = async (saleId: string) => {
+    if (!idToken) return;
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да изтриете тази продажба? Наличностите ще бъдат възстановени."
+      )
+    )
+      return;
+
+    setIsDeleting(saleId);
+    try {
+      const result = await deleteSaleAction(saleId, idToken);
+      if (result.success) {
+        toast.success(result.message || "Продажбата бе изтрита");
+        // refresh data
+        startTransition(async () => {
+          const fromStr = dateFrom ? dateFrom.toISOString() : null;
+          const toStr = dateTo ? dateTo.toISOString() : null;
+          const newResult = await generateFinancialReportAction(
+            fromStr,
+            toStr,
+            paymentType
+          );
+          setData(newResult);
+        });
+      } else {
+        toast.error(result.message || "Грешка при изтриване");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Неочаквана грешка");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   const handleDateChange =
     (setter: (date: Date | undefined) => void) =>
@@ -361,15 +433,16 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                   <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                     Тип
                   </TableHead>
-                  <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-8">
+                  <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                     Сума
                   </TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isPending ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-48 text-center">
+                    <TableCell colSpan={5} className="h-48 text-center">
                       <Loader2 className="h-6 w-6 text-zinc-300 animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
@@ -397,15 +470,64 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             Продажба
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right pr-8 font-medium text-sm text-zinc-900">
+                        <TableCell className="text-right font-medium text-sm text-zinc-900">
                           {formatPrice(s.totalAmount)}
+                        </TableCell>
+                        <TableCell
+                          className="text-right pr-6"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-xl opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                                disabled={isDeleting === s.id}
+                              >
+                                {isDeleting === s.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                                ) : (
+                                  <MoreVertical className="h-4 w-4 text-zinc-400" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="rounded-2xl shadow-xl p-2 w-48 border-zinc-100"
+                            >
+                              <DropdownMenuItem
+                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                                onClick={() =>
+                                  handleRowClick(s.id, s.isPaid, s.type)
+                                }
+                              >
+                                <Eye className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                                Преглед
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                                onClick={() => handleEdit(s.id, s.type)}
+                              >
+                                <Edit className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                                Редакция
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                                onClick={() => handleDelete(s.id)}
+                              >
+                                <Trash2 className="mr-3 h-4 w-4 text-rose-500" />{" "}
+                                Изтрий
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-48 text-center">
+                    <TableCell colSpan={5} className="h-48 text-center">
                       <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
                         Няма транзакции за този период
                       </p>
@@ -422,9 +544,10 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     >
                       Общо за периода
                     </TableCell>
-                    <TableCell className="text-right pr-8 font-light text-2xl text-zinc-950">
+                    <TableCell className="text-right font-light text-2xl text-zinc-950">
                       {formatPrice(data.total)}
                     </TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
                 </TableFooter>
               )}
@@ -457,9 +580,55 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     <span className="text-sm font-medium text-zinc-900">
                       {s.memberName}
                     </span>
-                    <span className="text-sm font-semibold text-zinc-900">
-                      {formatPrice(s.totalAmount)}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-zinc-900">
+                        {formatPrice(s.totalAmount)}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-xl"
+                            disabled={isDeleting === s.id}
+                          >
+                            {isDeleting === s.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                            ) : (
+                              <MoreVertical className="h-4 w-4 text-zinc-400" />
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="rounded-2xl shadow-xl p-2 w-48 border-zinc-100"
+                        >
+                          <DropdownMenuItem
+                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                            onClick={() =>
+                              handleRowClick(s.id, s.isPaid, s.type)
+                            }
+                          >
+                            <Eye className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                            Преглед
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                            onClick={() => handleEdit(s.id, s.type)}
+                          >
+                            <Edit className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                            Редакция
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                            onClick={() => handleDelete(s.id)}
+                          >
+                            <Trash2 className="mr-3 h-4 w-4 text-rose-500" />{" "}
+                            Изтрий
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               ))
