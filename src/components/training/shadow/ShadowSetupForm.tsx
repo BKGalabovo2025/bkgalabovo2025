@@ -267,20 +267,6 @@ export function ShadowSetupForm({
                     </Label>
 
                     <ToggleButton
-                      enabled={settings.deceptionEnabled}
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          deceptionEnabled: !settings.deceptionEnabled,
-                        })
-                      }
-                      label="Измамни удари"
-                      desc="Алгоритъм за внезапна смяна"
-                      colorClass="purple"
-                      bgClass="bg-purple-500"
-                    />
-
-                    <ToggleButton
                       enabled={settings.centerCommandEnabled}
                       onClick={() =>
                         setSettings({
@@ -289,37 +275,9 @@ export function ShadowSetupForm({
                         })
                       }
                       label="Команда Центре!"
-                      desc="Гласова команда за център"
+                      desc="Гласова команда за връщане в центъра"
                       colorClass="orange"
                       bgClass="bg-orange-500"
-                    />
-
-                    <ToggleButton
-                      enabled={settings.motivationEnabled}
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          motivationEnabled: !settings.motivationEnabled,
-                        })
-                      }
-                      label="Мотивационни фрази"
-                      desc='"Давай, Иване!" при умора'
-                      colorClass="green"
-                      bgClass="bg-green-500"
-                    />
-
-                    <ToggleButton
-                      enabled={settings.visualOnly}
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          visualOnly: !settings.visualOnly,
-                        })
-                      }
-                      label="Без звук (Visual Only)"
-                      desc="Тренира периферното зрение"
-                      colorClass="blue"
-                      bgClass="bg-blue-500"
                     />
                   </div>
                 </CardContent>
@@ -341,11 +299,6 @@ export function ShadowSetupForm({
                         id: "standard",
                         title: "Стандартен",
                         desc: "Фиксирано таймиране",
-                      },
-                      {
-                        id: "ghost_match",
-                        title: "Мач на сенки",
-                        desc: "Рандомизирани паузи",
                       },
                       {
                         id: "agility_test",
@@ -378,67 +331,65 @@ export function ShadowSetupForm({
                     ))}
                   </div>
 
-                  {/* Callout Mode - only when not visualOnly */}
-                  {!settings.visualOnly && (
-                    <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
-                      <Label className="text-zinc-500 text-xs uppercase font-bold flex items-center gap-1">
-                        <Mic size={12} /> Тип на командите
-                      </Label>
-                      <div className="flex flex-col gap-1.5">
-                        {[
-                          {
-                            id: "zones",
-                            label: "Само зони",
-                            icon: "🎯",
-                            desc: '"Форхенд мрежа" – за позиция',
-                          },
-                          {
-                            id: "shots",
-                            label: "Само удари",
-                            icon: "🏸",
-                            desc: '"Клиър права" – за техника',
-                          },
-                          {
-                            id: "zones_and_shots",
-                            label: "Зони + Удари",
-                            icon: "📢",
-                            desc: "Зона, после удар – пълна информация",
-                          },
-                        ].map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() =>
-                              setSettings({
-                                ...settings,
-                                calloutMode:
-                                  c.id as ShadowSettings["calloutMode"],
-                              })
-                            }
-                            className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
+                  {/* Callout Mode */}
+                  <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+                    <Label className="text-zinc-500 text-xs uppercase font-bold flex items-center gap-1">
+                      <Mic size={12} /> Тип на командите
+                    </Label>
+                    <div className="flex flex-col gap-1.5">
+                      {[
+                        {
+                          id: "zones",
+                          label: "Само зони",
+                          icon: "🎯",
+                          desc: '"Форхенд мрежа" – за позиция',
+                        },
+                        {
+                          id: "shots",
+                          label: "Само удари",
+                          icon: "🏸",
+                          desc: '"Клиър права" – за техника',
+                        },
+                        {
+                          id: "zones_and_shots",
+                          label: "Зони + Удари",
+                          icon: "📢",
+                          desc: "Зона, после удар – пълна информация",
+                        },
+                      ].map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() =>
+                            setSettings({
+                              ...settings,
+                              calloutMode:
+                                c.id as ShadowSettings["calloutMode"],
+                            })
+                          }
+                          className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
+                            settings.calloutMode === c.id
+                              ? "border-primary bg-primary/10"
+                              : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                          }`}
+                        >
+                          <span
+                            className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
                               settings.calloutMode === c.id
-                                ? "border-primary bg-primary/10"
-                                : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                                ? "text-primary"
+                                : "text-zinc-700 dark:text-zinc-300"
                             }`}
                           >
-                            <span
-                              className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
-                                settings.calloutMode === c.id
-                                  ? "text-primary"
-                                  : "text-zinc-700 dark:text-zinc-300"
-                              }`}
-                            >
-                              <span>{c.icon}</span>
-                              {c.label}
-                            </span>
-                            <span className="text-xs text-zinc-500 leading-tight">
-                              {c.desc}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                            <span>{c.icon}</span>
+                            {c.label}
+                          </span>
+                          <span className="text-xs text-zinc-500 leading-tight">
+                            {c.desc}
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
