@@ -53,8 +53,20 @@ export const addAssessment = async (
   return docRef.id;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const deleteAssessment = async (id: string): Promise<void> => {
+export const getAllAssessments = async (
+  siteId: string
+): Promise<MemberAssessment[]> => {
+  const q = query(getMemberAssessmentsQuery(), where("siteId", "==", siteId));
+
+  const querySnapshot = await getDocs(q);
+  const docs = querySnapshot.docs.map((doc) => doc.data() as MemberAssessment);
+
+  return docs.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+};
+
+export const deleteAssessment = async (id: string): Promise<void> => {
   const assessmentRef = doc(getMemberAssessmentsCollection(), id);
   await deleteDoc(assessmentRef);
 };

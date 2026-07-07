@@ -46,6 +46,37 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     }
     return text;
   };
+  const calculateBeepTestMetrics = (level: number, shuttle: number) => {
+    const shuttlesPerLevel = [
+      0, 7, 8, 8, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15,
+      16, 16,
+    ];
+    let totalDistance = 0;
+    let totalTimeSec = 0;
+
+    for (let l = 1; l < level; l++) {
+      const s = shuttlesPerLevel[l] || 16;
+      totalDistance += s * 20;
+      const speed = 8.0 + l * 0.5;
+      const timePerShuttle = 20 / (speed / 3.6);
+      totalTimeSec += s * timePerShuttle;
+    }
+
+    totalDistance += shuttle * 20;
+    const currentSpeed = 8.0 + level * 0.5;
+    const timePerShuttle = 20 / (currentSpeed / 3.6);
+    totalTimeSec += shuttle * timePerShuttle;
+
+    const m = Math.floor(totalTimeSec / 60);
+    const s = Math.floor(totalTimeSec % 60);
+
+    return {
+      distance: totalDistance,
+      maxSpeed: currentSpeed,
+      timeDisplay: `${m}:${s.toString().padStart(2, "0")}`,
+    };
+  };
+
   const { activeBranch } = useAppStore();
   const [assessments, setAssessments] = useState<MemberAssessment[]>([]);
   const [beepResults, setBeepResults] = useState<BeepTestResult[]>([]);
@@ -174,55 +205,87 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
           </div>
 
           <div className="mt-6 border-t border-zinc-100 pt-4 space-y-4">
-            {[...beepResults].reverse().map((entry) => (
-              <div
-                key={entry.id}
-                className="flex flex-col bg-indigo-50/30 rounded-xl overflow-hidden border border-indigo-100/50"
-              >
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm px-5 py-4 gap-2">
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-black text-zinc-900 text-lg">
-                        Ниво {entry.level}:{entry.shuttle}
-                      </span>
-                      <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(entry.score)}`}
-                      >
-                        {entry.score}
-                      </span>
+            {[...beepResults].reverse().map((entry) => {
+              const metrics = calculateBeepTestMetrics(
+                entry.level,
+                entry.shuttle
+              );
+              return (
+                <div
+                  key={entry.id}
+                  className="flex flex-col bg-indigo-50/30 rounded-xl overflow-hidden border border-indigo-100/50"
+                >
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm px-5 py-4 gap-2">
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="font-black text-zinc-900 text-lg">
+                          Ниво {entry.level}:{entry.shuttle}
+                        </span>
+                        <span
+                          className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(entry.score)}`}
+                        >
+                          {entry.score}
+                        </span>
+                      </div>
+                      <div className="text-zinc-600 font-medium text-sm">
+                        VO2 Max:{" "}
+                        <span className="text-indigo-600 font-black">
+                          {entry.vo2max} ml/kg/min
+                        </span>{" "}
+                        <span className="text-zinc-400 mx-1">•</span>{" "}
+                        {entry.period}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
+                          <span className="text-zinc-500 font-medium">
+                            Разстояние:
+                          </span>
+                          <span className="font-bold text-zinc-900">
+                            {metrics.distance} м
+                          </span>
+                        </div>
+                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
+                          <span className="text-zinc-500 font-medium">
+                            Общо време:
+                          </span>
+                          <span className="font-bold text-zinc-900">
+                            {metrics.timeDisplay} мин
+                          </span>
+                        </div>
+                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
+                          <span className="text-zinc-500 font-medium">
+                            Макс. скорост:
+                          </span>
+                          <span className="font-bold text-zinc-900">
+                            {metrics.maxSpeed.toFixed(1)} км/ч
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-zinc-600 font-medium text-sm">
-                      VO2 Max:{" "}
-                      <span className="text-indigo-600 font-black">
-                        {entry.vo2max} ml/kg/min
-                      </span>{" "}
-                      <span className="text-zinc-400 mx-1">•</span>{" "}
-                      {entry.period}
+                    <div className="text-zinc-500 font-bold text-xs sm:text-right bg-white/60 px-3 py-1.5 rounded-lg shadow-sm">
+                      {format(new Date(entry.date), "dd MMMM yyyy", {
+                        locale: bg,
+                      })}
                     </div>
                   </div>
-                  <div className="text-zinc-500 font-bold text-xs sm:text-right bg-white/60 px-3 py-1.5 rounded-lg">
-                    {format(new Date(entry.date), "dd MMMM yyyy", {
-                      locale: bg,
-                    })}
-                  </div>
-                </div>
 
-                {/* AI / Coach Report Section */}
-                <div className="bg-white/60 px-5 py-3 border-t border-indigo-100/50 flex gap-3 items-start">
-                  <div className="mt-0.5 text-indigo-400">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
-                      Треньорски Анализ
-                    </span>
-                    <p className="text-sm text-zinc-600 leading-relaxed">
-                      {getBeepTestReport(entry)}
-                    </p>
+                  {/* AI / Coach Report Section */}
+                  <div className="bg-white/60 px-5 py-3 border-t border-indigo-100/50 flex gap-3 items-start">
+                    <div className="mt-0.5 text-indigo-400">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
+                        Треньорски Анализ
+                      </span>
+                      <p className="text-sm text-zinc-600 leading-relaxed">
+                        {getBeepTestReport(entry)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

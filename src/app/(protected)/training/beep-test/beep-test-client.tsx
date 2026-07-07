@@ -30,10 +30,16 @@ import {
   RotateCcw,
   Save,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getAgeGroup } from "@/lib/utils";
+import Link from "next/link";
+import { format } from "date-fns";
+import { bg } from "date-fns/locale";
+import { BeepTestResult } from "@/types/beep-test.types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const PERIODS: BeepTestPeriod[] = [
   "Предсезонна подготовка (Август-Септември)",
@@ -51,6 +57,13 @@ interface Participant extends Member {
   finalVO2: number | null;
   finalScore: BadmintonScore | null;
 }
+
+const getScoreColor = (score: string) => {
+  if (score === "Елитен състезател") return "bg-purple-100 text-purple-700";
+  if (score === "Отличен") return "bg-emerald-100 text-emerald-700";
+  if (score === "Лош") return "bg-red-100 text-red-700";
+  return "bg-blue-100 text-blue-700";
+};
 
 export default function BeepTestClient() {
   const router = useRouter();
@@ -75,9 +88,53 @@ export default function BeepTestClient() {
   // Active Participants
   const [participants, setParticipants] = useState<Participant[]>([]);
 
+  // History State
+  const [activeTab, setActiveTab] = useState<"new" | "history">("new");
+  const [history, setHistory] = useState<BeepTestResult[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
   useEffect(() => {
     loadMembers();
   }, [activeBranch]);
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      loadHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, activeBranch]);
+
+  const loadHistory = async () => {
+    setIsHistoryLoading(true);
+    try {
+      const results = await beepTestService.getAllResults(activeBranch);
+      setHistory(results);
+    } catch (error) {
+      console.error(error);
+      toast.error("Грешка при зареждане на историята");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const handleDeleteResult = async (resultId: string) => {
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да изтриете този резултат? Той ще бъде премахнат и от досието на състезателя."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await beepTestService.deleteResult(resultId);
+      setHistory((prev) => prev.filter((r) => r.id !== resultId));
+      toast.success("Резултатът е изтрит успешно.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Възникна грешка при изтриването.");
+    }
+  };
 
   const loadMembers = async () => {
     setIsLoading(true);
@@ -106,6 +163,18 @@ export default function BeepTestClient() {
   useEffect(() => {
     setSelectedParticipantIds(filteredMembers.map((m) => m.id));
   }, [filteredMembers]);
+
+  const groupedHistory = useMemo(() => {
+    return history.reduce(
+      (acc, curr) => {
+        const dateStr = curr.date.split("T")[0]; // Group by simple date YYYY-MM-DD
+        if (!acc[dateStr]) acc[dateStr] = [];
+        acc[dateStr].push(curr);
+        return acc;
+      },
+      {} as Record<string, BeepTestResult[]>
+    );
+  }, [history]);
 
   const toggleParticipant = (id: string) => {
     setSelectedParticipantIds((prev) =>
@@ -227,127 +296,260 @@ export default function BeepTestClient() {
 
   if (!isTestStarted) {
     return (
-      <div className="max-w-2xl mx-auto p-4 sm:p-8">
-        <h1 className="text-3xl font-black tracking-tighter text-zinc-900 mb-6 uppercase">
-          Бийп Тест Аналитика
-        </h1>
+      <div className="max-w-4xl mx-auto p-4 sm:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h1 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase">
+            Бийп Тест Аналитика
+          </h1>
+        </div>
 
-        <Card className="border-zinc-200">
-          <CardContent className="p-6 space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-zinc-700">
-                Период на теста
-              </label>
-              <Select
-                value={selectedPeriod}
-                onValueChange={(v) => setSelectedPeriod(v as BeepTestPeriod)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PERIODS.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "new" | "history")}
+        >
+          <TabsList className="mb-6 h-12 w-full max-w-sm grid grid-cols-2">
+            <TabsTrigger value="new" className="text-sm font-bold h-10">
+              Нов Тест
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-sm font-bold h-10">
+              История
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-zinc-700">
-                  Възрастова група
-                </label>
-                <Select
-                  value={selectedAgeGroup}
-                  onValueChange={setSelectedAgeGroup}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Всички" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Всички възрасти</SelectItem>
-                    <SelectItem value="U9">U9</SelectItem>
-                    <SelectItem value="U11">U11</SelectItem>
-                    <SelectItem value="U13">U13</SelectItem>
-                    <SelectItem value="U15">U15</SelectItem>
-                    <SelectItem value="U17">U17</SelectItem>
-                    <SelectItem value="U19">U19</SelectItem>
-                    <SelectItem value="Adults">Мъже/Жени</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-zinc-700">Пол</label>
-                <Select
-                  value={selectedGender}
-                  onValueChange={setSelectedGender}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Всички" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Всички</SelectItem>
-                    <SelectItem value="male">Момчета / Мъже</SelectItem>
-                    <SelectItem value="female">Момичета / Жени</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {filteredMembers.length > 0 && (
-              <div className="space-y-3 pt-4 border-t border-zinc-100">
-                <div className="flex justify-between items-center">
+          <TabsContent value="new" className="animate-in fade-in duration-300">
+            <Card className="border-zinc-200">
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700">
-                    Избрани участници ({selectedParticipantIds.length})
+                    Период на теста
                   </label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (
-                        selectedParticipantIds.length === filteredMembers.length
-                      ) {
-                        setSelectedParticipantIds([]);
-                      } else {
-                        setSelectedParticipantIds(
-                          filteredMembers.map((m) => m.id)
-                        );
-                      }
-                    }}
-                    className="text-indigo-600"
+                  <Select
+                    value={selectedPeriod}
+                    onValueChange={(v) =>
+                      setSelectedPeriod(v as BeepTestPeriod)
+                    }
                   >
-                    {selectedParticipantIds.length === filteredMembers.length
-                      ? "Размаркирай всички"
-                      : "Маркирай всички"}
-                  </Button>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERIODS.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
-                  {filteredMembers.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => toggleParticipant(m.id)}
-                      className={`cursor-pointer p-3 rounded-xl border text-sm transition-all ${selectedParticipantIds.includes(m.id) ? "border-indigo-600 bg-indigo-50 text-indigo-900 font-bold shadow-sm" : "border-zinc-200 text-zinc-500 hover:border-indigo-300 bg-white"}`}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-zinc-700">
+                      Възрастова група
+                    </label>
+                    <Select
+                      value={selectedAgeGroup}
+                      onValueChange={setSelectedAgeGroup}
                     >
-                      {m.firstName} {m.lastName}
-                    </div>
-                  ))}
+                      <SelectTrigger>
+                        <SelectValue placeholder="Всички" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Всички възрасти</SelectItem>
+                        <SelectItem value="U9">U9</SelectItem>
+                        <SelectItem value="U11">U11</SelectItem>
+                        <SelectItem value="U13">U13</SelectItem>
+                        <SelectItem value="U15">U15</SelectItem>
+                        <SelectItem value="U17">U17</SelectItem>
+                        <SelectItem value="U19">U19</SelectItem>
+                        <SelectItem value="Adults">Мъже/Жени</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-zinc-700">
+                      Пол
+                    </label>
+                    <Select
+                      value={selectedGender}
+                      onValueChange={setSelectedGender}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Всички" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Всички</SelectItem>
+                        <SelectItem value="male">Момчета / Мъже</SelectItem>
+                        <SelectItem value="female">Момичета / Жени</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                {filteredMembers.length > 0 && (
+                  <div className="space-y-3 pt-4 border-t border-zinc-100">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-bold text-zinc-700">
+                        Избрани участници ({selectedParticipantIds.length})
+                      </label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (
+                            selectedParticipantIds.length ===
+                            filteredMembers.length
+                          ) {
+                            setSelectedParticipantIds([]);
+                          } else {
+                            setSelectedParticipantIds(
+                              filteredMembers.map((m) => m.id)
+                            );
+                          }
+                        }}
+                        className="text-indigo-600"
+                      >
+                        {selectedParticipantIds.length ===
+                        filteredMembers.length
+                          ? "Размаркирай всички"
+                          : "Маркирай всички"}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
+                      {filteredMembers.map((m) => (
+                        <div
+                          key={m.id}
+                          onClick={() => toggleParticipant(m.id)}
+                          className={`cursor-pointer p-3 rounded-xl border text-sm transition-all ${selectedParticipantIds.includes(m.id) ? "border-indigo-600 bg-indigo-50 text-indigo-900 font-bold shadow-sm" : "border-zinc-200 text-zinc-500 hover:border-indigo-300 bg-white"}`}
+                        >
+                          {m.firstName} {m.lastName}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSetupTest}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg mt-4"
+                  disabled={selectedParticipantIds.length === 0}
+                >
+                  Старт на Теста
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent
+            value="history"
+            className="animate-in fade-in duration-300 space-y-6"
+          >
+            {isHistoryLoading && (
+              <div className="flex justify-center p-12">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
               </div>
             )}
 
-            <Button
-              onClick={handleSetupTest}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg mt-4"
-              disabled={selectedParticipantIds.length === 0}
-            >
-              Старт на Теста
-            </Button>
-          </CardContent>
-        </Card>
+            {!isHistoryLoading && Object.keys(groupedHistory).length === 0 && (
+              <div className="text-center py-12 bg-white rounded-2xl border border-zinc-200">
+                <p className="text-zinc-500 font-medium">
+                  Няма проведени тестове до момента.
+                </p>
+              </div>
+            )}
+
+            {!isHistoryLoading &&
+              Object.keys(groupedHistory).length > 0 &&
+              Object.entries(groupedHistory).map(([dateStr, results]) => {
+                const dateObj = new Date(dateStr);
+                return (
+                  <Card
+                    key={dateStr}
+                    className="border-zinc-200 overflow-hidden"
+                  >
+                    <div className="bg-zinc-50 px-6 py-4 border-b border-zinc-100 flex justify-between items-center">
+                      <div>
+                        <h3 className="font-bold text-lg text-zinc-900">
+                          {format(dateObj, "dd MMMM yyyy", { locale: bg })}
+                        </h3>
+                        <p className="text-sm text-zinc-500">
+                          {results[0]?.period}
+                        </p>
+                      </div>
+                      <div className="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full">
+                        {results.length} участници
+                      </div>
+                    </div>
+                    <CardContent className="p-0">
+                      <div className="divide-y divide-zinc-100">
+                        {results.map((r) => {
+                          const member = members.find(
+                            (m) => m.id === r.memberId
+                          );
+                          const memberName = member
+                            ? `${member.firstName} ${member.lastName}`
+                            : "Неизвестен";
+                          return (
+                            <div
+                              key={r.id}
+                              className="flex justify-between items-center p-4 sm:px-6 hover:bg-zinc-50 transition-colors group"
+                            >
+                              <Link
+                                href={`/members/${r.memberId}?tab=assessments`}
+                                className="flex-1 flex justify-between items-center pr-4"
+                              >
+                                <div>
+                                  <div className="font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                                    {memberName}
+                                  </div>
+                                  <div className="text-xs text-zinc-500 mt-0.5 font-medium flex items-center gap-2">
+                                    <span>
+                                      Ниво {r.level}:{r.shuttle}
+                                    </span>
+                                    <span className="text-zinc-300">•</span>
+                                    <span className="text-indigo-600 font-bold">
+                                      VO2: {r.vo2max}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <span
+                                    className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(r.score)}`}
+                                  >
+                                    {r.score}
+                                  </span>
+                                  <span className="text-[10px] text-zinc-400 font-medium group-hover:text-indigo-500 transition-colors">
+                                    Към досие &rarr;
+                                  </span>
+                                </div>
+                              </Link>
+
+                              {/* Delete Button */}
+                              <div className="pl-2 border-l border-zinc-100">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteResult(r.id);
+                                  }}
+                                  className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
+                                  title="Изтрий резултата"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
