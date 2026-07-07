@@ -435,11 +435,7 @@ export function ShadowSetupForm({
                           setSettings({
                             ...settings,
                             cornersMode: "4-corners",
-                            drillMode:
-                              settings.drillMode === "front_only" ||
-                              settings.drillMode === "back_only"
-                                ? "all"
-                                : settings.drillMode,
+                            drillMode: "all",
                           })
                         }
                         className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
@@ -479,16 +475,21 @@ export function ShadowSetupForm({
                       Насоченост на зоните
                     </Label>
                     <div className="flex flex-wrap gap-2">
-                      {(settings.cornersMode === "2-corners"
-                        ? [
+                      {(() => {
+                        if (settings.cornersMode === "2-corners") {
+                          return [
                             { id: "front_only", title: "Само мрежа" },
                             { id: "back_only", title: "Задна линия" },
-                          ]
-                        : [
-                            { id: "all", title: "Цял корт" },
-                            { id: "front_back", title: "Без среда" },
-                          ]
-                      ).map((z) => (
+                          ];
+                        }
+                        if (settings.cornersMode === "4-corners") {
+                          return [{ id: "all", title: "Цял корт" }];
+                        }
+                        return [
+                          { id: "all", title: "Цял корт" },
+                          { id: "front_back", title: "Без среда" },
+                        ];
+                      })().map((z) => (
                         <button
                           key={z.id}
                           onClick={() =>
