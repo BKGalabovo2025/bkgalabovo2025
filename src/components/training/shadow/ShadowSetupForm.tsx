@@ -415,7 +415,6 @@ export function ShadowSetupForm({
                           setSettings({
                             ...settings,
                             cornersMode: "2-corners",
-                            // auto-select front_only if current drillMode is incompatible
                             drillMode:
                               settings.drillMode === "all" ||
                               settings.drillMode === "front_back"
@@ -433,7 +432,15 @@ export function ShadowSetupForm({
                       </button>
                       <button
                         onClick={() =>
-                          setSettings({ ...settings, cornersMode: "4-corners" })
+                          setSettings({
+                            ...settings,
+                            cornersMode: "4-corners",
+                            drillMode:
+                              settings.drillMode === "front_only" ||
+                              settings.drillMode === "back_only"
+                                ? "all"
+                                : settings.drillMode,
+                          })
                         }
                         className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
                           settings.cornersMode === "4-corners"
@@ -445,7 +452,15 @@ export function ShadowSetupForm({
                       </button>
                       <button
                         onClick={() =>
-                          setSettings({ ...settings, cornersMode: "6-corners" })
+                          setSettings({
+                            ...settings,
+                            cornersMode: "6-corners",
+                            drillMode:
+                              settings.drillMode === "front_only" ||
+                              settings.drillMode === "back_only"
+                                ? "all"
+                                : settings.drillMode,
+                          })
                         }
                         className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
                           settings.cornersMode === "6-corners"
@@ -471,8 +486,6 @@ export function ShadowSetupForm({
                           ]
                         : [
                             { id: "all", title: "Цял корт" },
-                            { id: "front_only", title: "Само мрежа" },
-                            { id: "back_only", title: "Задна линия" },
                             { id: "front_back", title: "Без среда" },
                           ]
                       ).map((z) => (
