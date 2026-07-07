@@ -45,7 +45,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     calloutMode: "zones",
     centerCommandEnabled: true,
     activePlayers: [],
-    courtsAvailable: 1,
+    courtsAvailable: 6,
   });
 
   const [rpeScore, setRpeScore] = useState<number>(5);
