@@ -37,7 +37,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     drillPattern: "random",
     sets: 3,
     workSec: 45,
-    restSec: 15,
+    restSec: 30,
     paceSec: 3,
     deceptionEnabled: false,
     motivationEnabled: false,
