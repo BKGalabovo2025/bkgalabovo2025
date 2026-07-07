@@ -43,7 +43,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     motivationEnabled: false,
     visualOnly: false,
     calloutMode: "zones",
-    centerCommandEnabled: false,
+    centerCommandEnabled: true,
     activePlayers: [],
     courtsAvailable: 1,
   });
