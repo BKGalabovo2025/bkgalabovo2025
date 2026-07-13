@@ -1,6 +1,12 @@
 "use client";
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -35,7 +41,8 @@ export const ReservationStep3Details = () => {
                 {form.watch("clientName")}
               </h4>
               <p className="text-[9px] text-zinc-400 mt-1 uppercase tracking-wider font-bold">
-                {form.watch("clientPhone")} • {form.watch("clientEmail") || "Няма имейл"}
+                {form.watch("clientPhone")} •{" "}
+                {form.watch("clientEmail") || "Няма имейл"}
               </p>
             </div>
           </div>
@@ -59,7 +66,9 @@ export const ReservationStep3Details = () => {
         <div className="relative space-y-2">
           <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
             <span>Избор от съществуващи членове или гости</span>
-            {membersLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}
+            {membersLoading && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            )}
           </FormLabel>
           <div className="relative">
             <Input
@@ -75,31 +84,44 @@ export const ReservationStep3Details = () => {
             {showMemberDropdown && searchTerm && (
               <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
                 {members
-                  .filter((m) => `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(
+                    (m) =>
+                      m.name
+                        ?.toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                      (m.phone && m.phone.includes(searchTerm))
+                  )
                   .map((m) => (
                     <button
                       key={m.id}
                       type="button"
                       onClick={() => {
-                        form.setValue("clientName", `${m.firstName} ${m.lastName}`);
+                        form.setValue("clientName", m.name || "");
                         form.setValue("clientPhone", m.phone || "");
                         form.setValue("clientEmail", m.email || "");
                         form.setValue("memberId", m.id);
-                        setSearchTerm(`${m.firstName} ${m.lastName}`);
+                        setSearchTerm(m.name || "");
                         setShowMemberDropdown(false);
                       }}
                       className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
                     >
                       <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                        {m.firstName} {m.lastName}
+                        {m.name}
                       </span>
                       <span className="text-[10px] text-zinc-400">
-                        {m.phone || "Няма тел."} {m.isGuest ? "• Гост" : "• Член"}
+                        {m.phone || "Няма тел."}{" "}
+                        {m.isGuest ? "• Гост" : "• Член"}
                       </span>
                     </button>
                   ))}
-                {members.filter((m) => `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                  <div className="p-3 text-center text-zinc-400 text-xs">Няма намерени резултати</div>
+                {members.filter(
+                  (m) =>
+                    m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (m.phone && m.phone.includes(searchTerm))
+                ).length === 0 && (
+                  <div className="p-3 text-center text-zinc-400 text-xs">
+                    Няма намерени резултати
+                  </div>
                 )}
               </div>
             )}
