@@ -472,7 +472,7 @@ export default function SettingsClient() {
             </TabsList>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <TabsContent
               value="general"
               className="m-0 focus-visible:outline-none"
