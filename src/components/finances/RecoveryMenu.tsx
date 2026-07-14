@@ -305,7 +305,7 @@ const RecoveryCard = ({
               </span>
             )}
           </div>
-          <h4 className="text-xl font-medium tracking-tight text-zinc-900 group-hover:text-cyan-600 transition-colors line-clamp-1">
+          <h4 className="text-xl font-medium tracking-tight text-zinc-900 group-hover:text-cyan-600 transition-colors">
             {service.name}
           </h4>
           <p className="text-sm text-zinc-400 font-light leading-relaxed line-clamp-3 min-h-16">
