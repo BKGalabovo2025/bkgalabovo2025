@@ -81,6 +81,36 @@ function getOverdueReminders(
   });
 }
 
+function getUnpaidTrainingReminders(
+  recentTrainings: ScheduleEvent[]
+): Reminder[] {
+  const reminders: Reminder[] = [];
+
+  for (const training of recentTrainings) {
+    if (!training.attendees || training.attendees.length === 0) continue;
+
+    for (const attendee of training.attendees) {
+      // paymentStatus might be undefined in older records, so check explicitly if not "paid"
+      if (attendee.attended && attendee.paymentStatus !== "paid") {
+        reminders.push({
+          id: `unpaid-training-${training.id}-${attendee.memberId}`,
+          title: "Неплатено посещение",
+          description: `${attendee.name} присъства на тренировка на ${new Date(training.startDate).toLocaleDateString("bg-BG")}, но няма отчетено плащане.`,
+          dueDate: new Date().toISOString(),
+          isCompleted: false,
+          type: "warning",
+          memberId: attendee.memberId,
+          memberName: attendee.name,
+          relatedId: training.id,
+          relatedLink: `/schedule`,
+        });
+      }
+    }
+  }
+
+  return reminders;
+}
+
 export async function getDashboardDataServerAction(activeBranch: string) {
   try {
     const user = await getAuthUserFromSessionCookie();
@@ -182,6 +212,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           eventsSnap,
           productsSnap,
           reservationsSnap,
+          recentTrainingsSnap,
         ] = await Promise.all([
           // Last 5 sales for the "Recent Sales" widget
           col("sales").orderBy("saleDate", "desc").limit(5).get(),
@@ -211,6 +242,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             .where("startTime", "<=", adminEndOfDay)
             .limit(100)
             .get(),
+
+          // Recent trainings for unpaid attendance tracking (last 60 days up to today)
+          col("events")
+            .where("startDate", ">=", sixtyDaysAgoStr)
+            .where("startDate", "<=", endStr)
+            .where("type", "==", "training")
+            .get(),
         ]);
 
         // Map documents
@@ -232,6 +270,9 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
         const reservations = reservationsSnap.docs.map((d) =>
           snapToData<any>(d)
+        );
+        const recentTrainings = recentTrainingsSnap.docs.map((d) =>
+          snapToData<ScheduleEvent>(d)
         );
 
         // Sort events by start date
@@ -369,7 +410,11 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         const totalGuests = guestsCount.data().count;
         const totalFamilies = familiesCount.data().count;
         const totalRecovery = recoveryMembersCount.data().count;
-        const totalClubMembers = await col("members").where("isClubMember", "==", true).count().get().then(s => s.data().count);
+        const totalClubMembers = await col("members")
+          .where("isClubMember", "==", true)
+          .count()
+          .get()
+          .then((s) => s.data().count);
 
         const stats = {
           totalMembers: tMem,
@@ -418,7 +463,10 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         };
 
         const revenueChartData = getRevenueTrendData(salesFor6Months);
-        const reminders = getOverdueReminders(activeMembers, unpaidSales);
+        const reminders = [
+          ...getOverdueReminders(activeMembers, unpaidSales),
+          ...getUnpaidTrainingReminders(recentTrainings),
+        ];
 
         return {
           success: true,
