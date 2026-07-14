@@ -86,7 +86,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
   const [isPending, startTransition] = useTransition();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const { idToken } = useAuth();
+  const { idToken, user } = useAuth();
   const router = useRouter();
 
   // Filters
@@ -104,7 +104,8 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       const result = await generateFinancialReportAction(
         fromStr,
         toStr,
-        paymentType
+        paymentType,
+        user?.email || "system"
       );
       setData(result);
     });
@@ -155,7 +156,8 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
           const newResult = await generateFinancialReportAction(
             fromStr,
             toStr,
-            paymentType
+            paymentType,
+            user?.email || "system"
           );
           setData(newResult);
         });
