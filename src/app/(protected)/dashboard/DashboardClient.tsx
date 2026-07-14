@@ -6,7 +6,7 @@ import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { QuickTasks } from "@/components/dashboard/quick-tasks";
+import { DashboardNotifications } from "@/components/dashboard/dashboard-notifications";
 import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
 import {
   Users,
@@ -26,6 +26,7 @@ import {
   getDashboardDataServerAction,
   invalidateDashboardCacheAction,
 } from "@/lib/actions/dashboard";
+import { Reminder } from "@/types";
 
 import { useAppStore } from "@/store/use-app-store";
 
@@ -70,6 +71,7 @@ interface DashboardStats {
 
 export interface DashboardData {
   stats: DashboardStats;
+  reminders?: Reminder[];
 }
 
 interface DashboardClientProps {
@@ -567,7 +569,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
-          <QuickTasks />
+          <DashboardNotifications reminders={initialData?.reminders || []} />
         </div>
         <div className="lg:col-span-3 space-y-8">
           <BirthdayReminder />
