@@ -81,7 +81,9 @@ export function MemberSalesHistoryMobileCard({
           <div className="flex flex-col mt-1">
             <span className="font-semibold text-[10px] text-zinc-900 dark:text-zinc-100">
               {sale.clientName ||
-                familyMember?.firstName ||
+                (familyMember
+                  ? `${familyMember.firstName} ${familyMember.lastName}`.trim()
+                  : null) ||
                 (sale.memberId === memberId ? memberName : null) ||
                 "Външен клиент"}
               {sale.client2Name ? ` & ${sale.client2Name}` : ""}

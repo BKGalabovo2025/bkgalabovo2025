@@ -93,7 +93,9 @@ export function MemberSalesHistoryTableRow({
         <div className="flex flex-col">
           <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 break-words leading-tight">
             {sale.clientName ||
-              familyMember?.firstName ||
+              (familyMember
+                ? `${familyMember.firstName} ${familyMember.lastName}`.trim()
+                : null) ||
               (sale.memberId === memberId ? memberName : null) ||
               "Външен клиент"}
             {sale.client2Name ? ` & ${sale.client2Name}` : ""}
