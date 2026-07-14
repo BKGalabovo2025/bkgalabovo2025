@@ -314,16 +314,26 @@ const RecoveryCard = ({
 
           {/* Zones */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {Array.from(
-              new Set(Array.isArray(service.zones) ? service.zones : [])
-            ).map((zone) => (
-              <span
-                key={zone}
-                className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium"
-              >
-                {zone}
-              </span>
-            ))}
+            {(() => {
+              const uniqueZones = Array.from(
+                new Set(Array.isArray(service.zones) ? service.zones : [])
+              );
+              if (uniqueZones.length === 3) {
+                return (
+                  <span className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium">
+                    Зона по избор ({uniqueZones.join(", ")})
+                  </span>
+                );
+              }
+              return uniqueZones.map((zone) => (
+                <span
+                  key={zone}
+                  className="px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-full text-[10px] uppercase tracking-wider text-cyan-600 font-medium"
+                >
+                  {zone}
+                </span>
+              ));
+            })()}
           </div>
 
           {/* Features */}

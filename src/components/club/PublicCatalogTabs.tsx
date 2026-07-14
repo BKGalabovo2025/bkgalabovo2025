@@ -230,6 +230,16 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
     setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const getZonesDisplayText = () => {
+    if (!item.zones) return null;
+    if (Array.isArray(item.zones)) {
+      if (item.zones.length === 3)
+        return `Зона по избор (${item.zones.join(", ")})`;
+      return `Зони: ${item.zones.join(", ")}`;
+    }
+    return `Зони: ${item.zones}`;
+  };
+
   // Badges logic depending on the item type
   const renderBadges = () => {
     if (tab === "products") {
@@ -418,10 +428,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               )}
               {item.zones && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  Зони:{" "}
-                  {Array.isArray(item.zones)
-                    ? item.zones.join(", ")
-                    : item.zones}
+                  {getZonesDisplayText()}
                 </span>
               )}
             </div>
@@ -526,10 +533,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                       variant="outline"
                       className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
                     >
-                      Зони:{" "}
-                      {Array.isArray(item.zones)
-                        ? item.zones.join(", ")
-                        : item.zones}
+                      {getZonesDisplayText()}
                     </Badge>
                   )}
                 </div>
