@@ -414,7 +414,8 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
           {(item.duration ||
             item.durationMinutes ||
             item.zones ||
-            item.athleteCount) && (
+            item.athleteCount ||
+            (item.numberOfDays || 0) > 1) && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {(item.duration || item.durationMinutes) && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
@@ -423,7 +424,13 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               )}
               {item.athleteCount && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  до {item.athleteCount} души
+                  {item.athleteCount} спортисти
+                </span>
+              )}
+              {(item.numberOfDays || 0) > 1 && (
+                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
+                  {item.numberOfDays} дни / {item.proceduresPerDay || 1}{" "}
+                  процедури на ден
                 </span>
               )}
               {item.zones && (
@@ -509,7 +516,8 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               {(item.duration ||
                 item.durationMinutes ||
                 item.zones ||
-                item.athleteCount) && (
+                item.athleteCount ||
+                (item.numberOfDays || 0) > 1) && (
                 <div className="flex flex-wrap gap-2">
                   {(item.duration || item.durationMinutes) && (
                     <Badge
@@ -525,7 +533,16 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                       variant="outline"
                       className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
                     >
-                      Капацитет: до {item.athleteCount} души
+                      Капацитет: {item.athleteCount} спортисти
+                    </Badge>
+                  )}
+                  {(item.numberOfDays || 0) > 1 && (
+                    <Badge
+                      variant="outline"
+                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                    >
+                      {item.numberOfDays} дни / {item.proceduresPerDay || 1}{" "}
+                      процедури на ден
                     </Badge>
                   )}
                   {item.zones && (
