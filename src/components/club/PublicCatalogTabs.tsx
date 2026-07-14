@@ -10,6 +10,9 @@ import {
   ChevronLeft,
   ShoppingBag,
   Zap,
+  Clock,
+  Users,
+  Calendar,
 } from "lucide-react";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
@@ -411,35 +414,45 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
             {item.description || "Няма предоставено описание за този артикул."}
           </p>
 
-          {(item.duration ||
-            item.durationMinutes ||
-            item.zones ||
-            item.athleteCount ||
-            (item.numberOfDays || 1) >= 1) && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {(item.duration || item.durationMinutes) && (
-                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  {item.duration || item.durationMinutes} мин
-                </span>
-              )}
-              {item.athleteCount && (
-                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  {item.athleteCount} спортисти
-                </span>
-              )}
-              {(item.numberOfDays || 1) >= 1 && (
-                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
+          {/* Zones */}
+          {item.zones && (
+            <div className="flex flex-wrap gap-2 pt-3">
+              {(() => {
+                const zText = getZonesDisplayText();
+                if (!zText) return null;
+                return (
+                  <span className="px-3 py-1 bg-cyan-950/40 border border-cyan-900/50 rounded-full text-[10px] uppercase tracking-wider text-cyan-400 font-medium">
+                    {zText}
+                  </span>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Features */}
+          <div className="space-y-3 pt-4 mt-4 border-t border-zinc-800/50">
+            {(item.duration || item.durationMinutes) && (
+              <div className="flex items-center gap-3 text-xs text-zinc-400">
+                <Clock className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <span>{item.duration || item.durationMinutes} минути</span>
+              </div>
+            )}
+            {item.athleteCount && (
+              <div className="flex items-center gap-3 text-xs text-zinc-400">
+                <Users className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <span>{item.athleteCount} спортисти</span>
+              </div>
+            )}
+            {(item.numberOfDays || 1) >= 1 && (
+              <div className="flex items-center gap-3 text-xs text-zinc-400">
+                <Calendar className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <span>
                   {item.numberOfDays || 1} дни / {item.proceduresPerDay || 1}{" "}
                   процедури на ден
                 </span>
-              )}
-              {item.zones && (
-                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  {getZonesDisplayText()}
-                </span>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Pricing & Details bar */}
