@@ -1596,30 +1596,22 @@ export default function SettingsClient() {
             >
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <BentoCard className="md:col-span-4 p-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 flex flex-col items-center text-center space-y-6">
-                  <div className="relative group cursor-pointer">
-                    <div className="h-40 w-40 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-none overflow-hidden transition-all group-hover:scale-105 relative">
-                      {user?.photoURL ? (
-                        <Image
-                          src={user.photoURL}
-                          alt="Profile"
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <User
-                          size={80}
-                          className="text-zinc-200 dark:text-zinc-700"
-                          strokeWidth={1}
-                        />
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-primary/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
-                      <Camera
-                        className="text-primary"
-                        size={32}
-                        strokeWidth={1.5}
+                  <div className="h-40 w-40 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-none overflow-hidden transition-all group-hover:scale-105 relative">
+                    {user?.photoURL ? (
+                      <Image
+                        src={user.photoURL}
+                        alt="Profile"
+                        fill
+                        className="object-cover"
                       />
-                    </div>
+                    ) : (
+                      <Image
+                        src="/logo.png"
+                        alt="Club Logo"
+                        fill
+                        className="object-contain p-6 opacity-80"
+                      />
+                    )}
                   </div>
                   <div>
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white truncate px-2 w-full max-w-[250px]">
