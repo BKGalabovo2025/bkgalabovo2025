@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
 import { mutate } from "swr";
 import { toast } from "sonner";
 import { format, getYear } from "date-fns";
@@ -61,7 +67,7 @@ interface TrainingWizardContextType {
   setIsGuestSale: React.Dispatch<React.SetStateAction<boolean>>;
   clientTypeTab: "member" | "guest";
   setClientTypeTab: React.Dispatch<React.SetStateAction<"member" | "guest">>;
-  
+
   // Quick guest form state
   showNewGuestForm: boolean;
   setShowNewGuestForm: React.Dispatch<React.SetStateAction<boolean>>;
@@ -75,7 +81,7 @@ interface TrainingWizardContextType {
   setNewGuestEmail: React.Dispatch<React.SetStateAction<string>>;
   isSavingNewGuest: boolean;
   setIsSavingNewGuest: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   filteredMembers: Member[];
   clientDisplayName: string;
   familyMembers: (Member | null)[];
@@ -95,7 +101,7 @@ interface TrainingWizardContextType {
   setSelectedMonthKeys: React.Dispatch<React.SetStateAction<string[]>>;
   selectedEventIds: string[];
   setSelectedEventIds: React.Dispatch<React.SetStateAction<string[]>>;
-  
+
   price: string;
   setPrice: React.Dispatch<React.SetStateAction<string>>;
   paymentMethod: string;
@@ -104,25 +110,31 @@ interface TrainingWizardContextType {
   setIsPaid: React.Dispatch<React.SetStateAction<boolean>>;
   note: string;
   setNote: React.Dispatch<React.SetStateAction<string>>;
-  
+
   totalAmount: number;
   selectedMonthLabels: string[];
+  saleDate: string;
+  setSaleDate: React.Dispatch<React.SetStateAction<string>>;
 
   // Actions
   toggleEventSelection: (eventId: string) => void;
   toggleMonthSelection: (monthKey: string) => void;
   handleExecuteSale: () => Promise<void>;
-  
+
   isProcessing: boolean;
   completedSaleId: string | null;
 }
 
-const TrainingWizardContext = createContext<TrainingWizardContextType | undefined>(undefined);
+const TrainingWizardContext = createContext<
+  TrainingWizardContextType | undefined
+>(undefined);
 
 export const useTrainingWizard = () => {
   const context = useContext(TrainingWizardContext);
   if (!context) {
-    throw new Error("useTrainingWizard must be used within TrainingWizardProvider");
+    throw new Error(
+      "useTrainingWizard must be used within TrainingWizardProvider"
+    );
   }
   return context;
 };
@@ -149,7 +161,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isGuestSale, setIsGuestSale] = useState(false);
 
-  const [clientTypeTab, setClientTypeTab] = useState<"member" | "guest">("member");
+  const [clientTypeTab, setClientTypeTab] = useState<"member" | "guest">(
+    "member"
+  );
   const [showNewGuestForm, setShowNewGuestForm] = useState(false);
   const [newGuestFirstName, setNewGuestFirstName] = useState("");
   const [newGuestLastName, setNewGuestLastName] = useState("");
@@ -162,7 +176,8 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
   const [memberEvents, setMemberEvents] = useState<ScheduleEvent[]>([]);
 
   // Billing config
-  const isSubscriptionService = service.type === "Абонамент" || service.type === "Годишен абонамент";
+  const isSubscriptionService =
+    service.type === "Абонамент" || service.type === "Годишен абонамент";
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("subscription");
   const [selectedMonthKeys, setSelectedMonthKeys] = useState<string[]>([]);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
@@ -172,6 +187,7 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
   const [paymentMethod, setPaymentMethod] = useState("В брой");
   const [isPaid, setIsPaid] = useState(true);
   const [note, setNote] = useState("");
+  const [saleDate, setSaleDate] = useState(new Date().toISOString());
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedSaleId, setCompletedSaleId] = useState<string | null>(null);
@@ -221,7 +237,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
   }, [isOpen, service, isSubscriptionService]);
 
   const isFamilySubscription = useMemo(() => {
-    return isSubscriptionService && service.name.toLowerCase().includes("семеен");
+    return (
+      isSubscriptionService && service.name.toLowerCase().includes("семеен")
+    );
   }, [isSubscriptionService, service.name]);
 
   const familyMembers = useMemo(() => {
@@ -239,7 +257,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
   const clientDisplayName = useMemo(() => {
     if (isGuestSale) return "Външен клиент";
     if (isFamilySubscription && familyMembers.length > 0) {
-      return familyMembers.map((m) => `${m?.firstName} ${m?.lastName}`).join(", ");
+      return familyMembers
+        .map((m) => `${m?.firstName} ${m?.lastName}`)
+        .join(", ");
     }
     return `${selectedMember?.firstName} ${selectedMember?.lastName}`;
   }, [isGuestSale, isFamilySubscription, familyMembers, selectedMember]);
@@ -250,13 +270,17 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
       const fetchAttendance = async () => {
         setAttendanceLoading(true);
         try {
-          const fetchPromises = targetMemberIds.map((id) => getEventsByMemberId(id));
+          const fetchPromises = targetMemberIds.map((id) =>
+            getEventsByMemberId(id)
+          );
           const results = await Promise.all(fetchPromises);
           const events = results.flat();
 
           // Filter to attended-only events for this training type
           const attended = events.filter((e) => {
-            const rec = e.attendees?.find((a: Attendee) => targetMemberIds.includes(a.memberId));
+            const rec = e.attendees?.find((a: Attendee) =>
+              targetMemberIds.includes(a.memberId)
+            );
             return rec?.attended === true;
           });
 
@@ -289,9 +313,10 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
         " " +
         getYear(d);
 
-      const targetAttendees = event.attendees?.filter((a: Attendee) =>
-        targetMemberIds.includes(a.memberId)
-      ) || [];
+      const targetAttendees =
+        event.attendees?.filter((a: Attendee) =>
+          targetMemberIds.includes(a.memberId)
+        ) || [];
 
       if (!groupedMap.has(monthKey)) {
         groupedMap.set(monthKey, {
@@ -310,7 +335,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
 
       for (const att of targetAttendees) {
         if (!entry.memberStats[att.memberId]) {
-          const familyMember = familyMembers.find((m) => m?.id === att.memberId);
+          const familyMember = familyMembers.find(
+            (m) => m?.id === att.memberId
+          );
           entry.memberStats[att.memberId] = {
             memberId: att.memberId,
             firstName: familyMember?.firstName || "Неизвестен",
@@ -329,18 +356,25 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
       }
     }
 
-    return Array.from(groupedMap.values()).sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+    return Array.from(groupedMap.values()).sort((a, b) =>
+      b.monthKey.localeCompare(a.monthKey)
+    );
   }, [memberEvents, targetMemberIds, familyMembers]);
 
   const unpaidEvents = useMemo(() => {
     return memberEvents
       .filter((e) => {
         const hasUnpaidTarget = e.attendees?.some(
-          (a: Attendee) => targetMemberIds.includes(a.memberId) && (!a.paymentStatus || a.paymentStatus === "unpaid")
+          (a: Attendee) =>
+            targetMemberIds.includes(a.memberId) &&
+            (!a.paymentStatus || a.paymentStatus === "unpaid")
         );
         return hasUnpaidTarget;
       })
-      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
   }, [memberEvents, targetMemberIds]);
 
   const filteredMembers = members.filter((m) => {
@@ -352,7 +386,8 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
     if (step === 1) {
       if (!selectedMember && !isGuestSale) {
         toast.error("Избор на клиент", {
-          description: "Моля, изберете член от списъка или продажба на Външен клиент.",
+          description:
+            "Моля, изберете член от списъка или продажба на Външен клиент.",
         });
         return;
       }
@@ -392,20 +427,28 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
 
   const toggleEventSelection = (eventId: string) => {
     setSelectedEventIds((prev) =>
-      prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId]
+      prev.includes(eventId)
+        ? prev.filter((id) => id !== eventId)
+        : [...prev, eventId]
     );
   };
 
   const toggleMonthSelection = (monthKey: string) => {
     setSelectedMonthKeys((prev) =>
-      prev.includes(monthKey) ? prev.filter((k) => k !== monthKey) : [...prev, monthKey]
+      prev.includes(monthKey)
+        ? prev.filter((k) => k !== monthKey)
+        : [...prev, monthKey]
     );
   };
 
-  const unpaidMonths = useMemo(() => monthlyAttendance.filter((m) => m.unpaidCount > 0), [monthlyAttendance]);
+  const unpaidMonths = useMemo(
+    () => monthlyAttendance.filter((m) => m.unpaidCount > 0),
+    [monthlyAttendance]
+  );
 
   const allUnpaidMonthsSelected =
-    unpaidMonths.length > 0 && unpaidMonths.every((m) => selectedMonthKeys.includes(m.monthKey));
+    unpaidMonths.length > 0 &&
+    unpaidMonths.every((m) => selectedMonthKeys.includes(m.monthKey));
 
   const totalAmount = useMemo(() => {
     const base = parseFloat(price) || 0;
@@ -430,7 +473,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
         m.events
           .filter((e) => {
             return e.attendees?.some(
-              (a: Attendee) => targetMemberIds.includes(a.memberId) && (!a.paymentStatus || a.paymentStatus === "unpaid")
+              (a: Attendee) =>
+                targetMemberIds.includes(a.memberId) &&
+                (!a.paymentStatus || a.paymentStatus === "unpaid")
             );
           })
           .map((e) => e.id)
@@ -483,7 +528,7 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
         siteId: activeBranch || "bkgalabovo",
         memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
         clientName: clientName,
-        saleDate: new Date().toISOString(),
+        saleDate: saleDate,
         items: [
           {
             productId: service.id,
@@ -519,7 +564,12 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
 
       const saleData = baseSaleData;
 
-      const result = await executeTrainingSaleAction(idToken, saleData, service.name, clientName);
+      const result = await executeTrainingSaleAction(
+        idToken,
+        saleData,
+        service.name,
+        clientName
+      );
 
       if (result.success && result.saleId) {
         setCompletedSaleId(result.saleId);
@@ -539,7 +589,8 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
       }
     } catch (error: unknown) {
       setStep(4);
-      const message = error instanceof Error ? error.message : "Неизвестна грешка";
+      const message =
+        error instanceof Error ? error.message : "Неизвестна грешка";
       toast.error("Грешка при продажба", {
         description: message,
       });
@@ -561,7 +612,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
     .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
     .map((m) => m.monthLabel);
 
-  const steps = isGuestSale ? ["Клиент", "Плащане", "Преглед"] : ["Клиент", "Присъствия", "Плащане", "Преглед"];
+  const steps = isGuestSale
+    ? ["Клиент", "Плащане", "Преглед"]
+    : ["Клиент", "Присъствия", "Плащане", "Преглед"];
   const totalSteps = steps.length;
   const displayStep = Math.min(step, totalSteps);
 
@@ -623,6 +676,8 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
     setIsPaid,
     note,
     setNote,
+    saleDate,
+    setSaleDate,
     totalAmount,
     selectedMonthLabels,
     toggleEventSelection,
@@ -632,5 +687,9 @@ export const TrainingWizardProvider: React.FC<ProviderProps> = ({
     completedSaleId,
   };
 
-  return <TrainingWizardContext.Provider value={contextValue}>{children}</TrainingWizardContext.Provider>;
+  return (
+    <TrainingWizardContext.Provider value={contextValue}>
+      {children}
+    </TrainingWizardContext.Provider>
+  );
 };
