@@ -102,7 +102,7 @@ function getUnpaidTrainingReminders(
           memberId: attendee.memberId,
           memberName: attendee.name,
           relatedId: training.id,
-          relatedLink: `/schedule`,
+          relatedLink: `/members/${attendee.memberId}`,
         });
       }
     }
