@@ -386,6 +386,21 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
           <p className="text-zinc-400 text-xs font-light leading-relaxed mt-3 line-clamp-3 min-h-14">
             {item.description || "Няма предоставено описание за този артикул."}
           </p>
+
+          {(item.duration || item.durationMinutes || item.zones) && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {(item.duration || item.durationMinutes) && (
+                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
+                  {item.duration || item.durationMinutes} мин
+                </span>
+              )}
+              {item.athleteCount && (
+                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
+                  до {item.athleteCount} души
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bottom Pricing & Details bar */}
@@ -457,7 +472,44 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               </DialogHeader>
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-6">
+              {/* Additional Metadata */}
+              {(item.duration ||
+                item.durationMinutes ||
+                item.zones ||
+                item.athleteCount) && (
+                <div className="flex flex-wrap gap-2">
+                  {(item.duration || item.durationMinutes) && (
+                    <Badge
+                      variant="outline"
+                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                    >
+                      Продължителност: {item.duration || item.durationMinutes}{" "}
+                      мин
+                    </Badge>
+                  )}
+                  {item.athleteCount && (
+                    <Badge
+                      variant="outline"
+                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                    >
+                      Капацитет: до {item.athleteCount} души
+                    </Badge>
+                  )}
+                  {item.zones && (
+                    <Badge
+                      variant="outline"
+                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                    >
+                      Зони:{" "}
+                      {Array.isArray(item.zones)
+                        ? item.zones.join(", ")
+                        : item.zones}
+                    </Badge>
+                  )}
+                </div>
+              )}
+
               <DialogDescription className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
                 {item.description ||
                   "Няма предоставено описание за този артикул."}
