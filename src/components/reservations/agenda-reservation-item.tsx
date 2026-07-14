@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./reservation-dialog";
 import { DonationReceiptDialog } from "./donation-receipt-dialog";
 import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
+import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
 import { PenTool } from "lucide-react";
 
 interface AgendaReservationItemProps {
@@ -256,6 +257,10 @@ function StatusAndActions({
               <PenTool className="w-5 h-5" />
             </Button>
           </DeclarationSignDialog>
+        )}
+
+        {(reservation.declarationsCount ?? 0) > 0 && (
+          <ViewDeclarationButton reservationId={reservation.id} />
         )}
 
         <ReservationDialog

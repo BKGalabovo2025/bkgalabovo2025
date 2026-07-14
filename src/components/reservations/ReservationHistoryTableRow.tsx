@@ -19,6 +19,9 @@ import {
 import { Reservation } from "@/types";
 import { ReservationDialog } from "./reservation-dialog";
 import { DonationReceiptDialog } from "./donation-receipt-dialog";
+import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
+import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
+import { PenTool } from "lucide-react";
 
 export interface ReservationData {
   id: string;
@@ -42,6 +45,7 @@ export interface ReservationData {
   teamMemberName?: string;
   siteId?: string;
   createdAt?: string | Date | { toDate: () => Date };
+  declarationsCount?: number;
 }
 
 interface ServiceData {
@@ -234,6 +238,25 @@ export function ReservationHistoryTableRow({
                 <FileText className="w-4 h-4" />
               </Button>
             </DonationReceiptDialog>
+          )}
+
+          {res.siteId === "recoveryzone" && (
+            <DeclarationSignDialog reservation={res as unknown as Reservation}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                title="Декларация"
+              >
+                <PenTool className="w-4 h-4" />
+              </Button>
+            </DeclarationSignDialog>
+          )}
+
+          {(res.declarationsCount ?? 0) > 0 && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <ViewDeclarationButton reservationId={res.id} />
+            </div>
           )}
 
           <ReservationDialog
