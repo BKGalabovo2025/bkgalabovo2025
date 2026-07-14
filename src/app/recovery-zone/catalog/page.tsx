@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getAdminDb } from "@/lib/firebase-admin";
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
   title: "Каталог | Recovery Zone by ZM",
@@ -41,25 +42,29 @@ function serializeDoc(data: unknown): unknown {
   return data;
 }
 
-export default async function RecoveryCatalogPage() {
-  const adminDb = getAdminDb();
-  // We fetch the same catalogs, but for Recovery Zone we can either show everything or filter for "recoveryzone"
-  // For maximum compatibility with PublicCatalogTabs, we provide all data just like the Club page.
-  // We don't filter out things unless they are explicitly assigned to another site (if siteId exists).
-  // Wait, if it's explicitly assigned to "bkgalabovo", it probably shouldn't be in the recovery zone catalog?
-  // Let's filter out items that have siteId explicitly set to something else, or keep it generic if siteId is missing.
-  // 2) The Recovery Zone catalog page fetches only Recovery Services.
+const getCachedSessions = unstable_cache(
+  async (): Promise<Record<string, unknown>[]> => {
+    const adminDb = getAdminDb();
+    try {
+      const snap = await adminDb.collection("sessions").get();
+      return snap.docs.map(
+        (doc) =>
+          serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+      );
+    } catch (error) {
+      console.error(
+        "Failed to fetch sessions for recovery catalog page:",
+        error
+      );
+      return [];
+    }
+  },
+  ["recovery-sessions"],
+  { revalidate: 300, tags: ["sessions"] }
+);
 
-  let recoveryServices: Record<string, unknown>[] = [];
-  try {
-    const recoverySnapshot = await adminDb.collection("sessions").get();
-    recoveryServices = recoverySnapshot.docs.map(
-      (doc) =>
-        serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
-    );
-  } catch (error) {
-    console.error("Failed to fetch sessions for recovery catalog page:", error);
-  }
+export default async function RecoveryCatalogPage() {
+  const recoveryServices = await getCachedSessions();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">

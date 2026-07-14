@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase";
 import { Site, Therapist } from "@/types/site.types";
+import { unstable_cache } from "next/cache";
 
 const SITES_COLLECTION = "sites";
 
@@ -123,15 +124,27 @@ export const updateSite = async (site: Partial<Site> & { id: string }) => {
   await setDoc(siteRef, site, { merge: true });
 };
 
+const _getAllSitesServer = async (): Promise<Site[]> => {
+  const { getAdminDb } = await import("@/lib/firebase-admin");
+  const adminDb = getAdminDb();
+  try {
+    const snapshot = await adminDb.collection(SITES_COLLECTION).get();
+    if (snapshot.empty) return getDefaultSites();
+    return snapshot.docs.map(docToSite).filter(Boolean) as Site[];
+  } catch {
+    return getDefaultSites();
+  }
+};
+
+const _getCachedAllSitesServer = unstable_cache(
+  _getAllSitesServer,
+  ["all-sites"],
+  { revalidate: 300, tags: ["sites"] }
+);
+
 export const getAllSites = async (): Promise<Site[]> => {
   if (typeof window === "undefined") {
-    const { getAdminDb } = await import("@/lib/firebase-admin");
-    const adminDb = getAdminDb();
-    const snapshot = await adminDb.collection(SITES_COLLECTION).get();
-    if (snapshot.empty) {
-      return getDefaultSites();
-    }
-    return snapshot.docs.map(docToSite).filter(Boolean) as Site[];
+    return _getCachedAllSitesServer();
   }
 
   const db = getDb();
@@ -176,19 +189,33 @@ const getDefaultSites = (): Site[] => [
   },
 ];
 
-export const getSiteById = async (id: string): Promise<Site | null> => {
-  if (typeof window === "undefined") {
-    const { getAdminDb } = await import("@/lib/firebase-admin");
-    const adminDb = getAdminDb();
+const _getSiteByIdServer = async (id: string): Promise<Site | null> => {
+  const { getAdminDb } = await import("@/lib/firebase-admin");
+  const adminDb = getAdminDb();
+  try {
     const docRef = adminDb.collection(SITES_COLLECTION).doc(id);
     const snapshot = await docRef.get();
-
     if (!snapshot.exists) {
-      const all = await getAllSites();
+      const all = await _getAllSitesServer();
       return all.find((s) => s.id === id) || null;
     }
-
     return docToSite(snapshot);
+  } catch {
+    // Fallback to defaults when quota is exhausted or network fails
+    const defaults = getDefaultSites();
+    return defaults.find((s) => s.id === id) || null;
+  }
+};
+
+const _getCachedSiteByIdServer = unstable_cache(
+  _getSiteByIdServer,
+  ["site-by-id"],
+  { revalidate: 300, tags: ["sites"] }
+);
+
+export const getSiteById = async (id: string): Promise<Site | null> => {
+  if (typeof window === "undefined") {
+    return _getCachedSiteByIdServer(id);
   }
 
   const db = getDb();

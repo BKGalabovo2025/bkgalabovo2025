@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getDocs, doc, updateDoc, increment } from "firebase/firestore";
+import { onSnapshot, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ClientPackage } from "@/types";
 import { getClientPackagesQuery } from "@/lib/firebase-collections";
@@ -14,24 +14,26 @@ export function usePackages(memberId?: string) {
   const { activeBranch } = useAppStore();
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        const q = getClientPackagesQuery(memberId);
-        const querySnapshot = await getDocs(q);
-        const packagesData = querySnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
+    const q = getClientPackagesQuery(memberId);
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const packagesData = snapshot.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
         })) as ClientPackage[];
         setPackages(packagesData);
-      } catch (err) {
+        setLoading(false);
+      },
+      (err) => {
         console.error("Error fetching packages:", err);
         setError("Failed to fetch packages.");
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    fetchPackages();
+    return () => unsubscribe();
   }, [activeBranch, memberId]);
 
   const deductSession = async (packageId: string) => {

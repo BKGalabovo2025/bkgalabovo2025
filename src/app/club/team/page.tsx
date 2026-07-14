@@ -117,45 +117,64 @@ async function fetchMemberTournamentsMap(
 export default async function TeamPage() {
   const adminDb = getAdminDb();
 
-  // 1. Fetch site data (for coaches/therapists)
-  const clubSite = await getSiteById("bkgalabovo");
+  // 1. Fetch site data (for coaches/therapists) – safe fallback
+  let clubSite = null;
+  try {
+    clubSite = await getSiteById("bkgalabovo");
+  } catch (err) {
+    console.error("TeamPage: failed to fetch site data:", err);
+  }
 
-  // 2. Fetch all members that are marked to be shown
-  const membersSnapshot = await adminDb
-    .collection("members")
-    .where("siteId", "==", "bkgalabovo")
-    .where("showOnPublicTeam", "==", true)
-    .get();
+  // 2. Fetch all members that are marked to be shown – safe fallback
+  let publicMembers: Member[] = [];
+  try {
+    const membersSnapshot = await adminDb
+      .collection("members")
+      .where("siteId", "==", "bkgalabovo")
+      .where("showOnPublicTeam", "==", true)
+      .get();
+    publicMembers = membersSnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as Member
+    );
+  } catch (err) {
+    console.error("TeamPage: failed to fetch members:", err);
+  }
 
-  const publicMembers = membersSnapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() }) as Member
-  );
+  // 3. Fetch all past competitions from the "events" calendar – safe fallback
+  let pastEventsData: PastEvent[] = [];
+  try {
+    const eventsSnapshot = await adminDb
+      .collection("events")
+      .where("siteId", "==", "bkgalabovo")
+      .where("type", "==", "competition")
+      .get();
 
-  // 3. Fetch all past competitions from the "events" calendar
-  const eventsSnapshot = await adminDb
-    .collection("events")
-    .where("siteId", "==", "bkgalabovo")
-    .where("type", "==", "competition")
-    .get();
+    pastEventsData = eventsSnapshot.docs
+      .map((doc) => doc.data())
+      .filter((data) => {
+        let endDateStr = new Date().toISOString();
+        if (data.endDate) {
+          endDateStr =
+            typeof data.endDate === "string"
+              ? data.endDate
+              : data.endDate.toDate?.().toISOString() || data.endDate;
+        }
+        return new Date(endDateStr) < new Date();
+      });
+  } catch (err) {
+    console.error("TeamPage: failed to fetch events:", err);
+  }
 
-  const pastEventsData = eventsSnapshot.docs
-    .map((doc) => doc.data())
-    .filter((data) => {
-      let endDateStr = new Date().toISOString();
-      if (data.endDate) {
-        endDateStr =
-          typeof data.endDate === "string"
-            ? data.endDate
-            : data.endDate.toDate?.().toISOString() || data.endDate;
-      }
-      return new Date(endDateStr) < new Date();
-    });
-
-  // 4. Build map of memberId -> Set of tournament titles
-  const memberTournamentMap = await fetchMemberTournamentsMap(
-    adminDb,
-    pastEventsData
-  );
+  // 4. Build map of memberId -> Set of tournament titles – safe fallback
+  let memberTournamentMap = new Map<string, Set<string>>();
+  try {
+    memberTournamentMap = await fetchMemberTournamentsMap(
+      adminDb,
+      pastEventsData
+    );
+  } catch (err) {
+    console.error("TeamPage: failed to fetch tournament map:", err);
+  }
 
   // 5. Enrich members with tournaments and age groups
   const enrichedMembers: TeamMember[] = publicMembers.map((m) => {
@@ -172,7 +191,7 @@ export default async function TeamPage() {
     };
   });
 
-  // 5. Group by age group
+  // 6. Group by age group
   const groupedMembers = enrichedMembers.reduce(
     (acc, member) => {
       const group = member.ageGroupDisplay;

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { addDoc, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Member } from "@/types/member.types";
 import {
@@ -17,23 +23,26 @@ export function useMembers() {
   const { activeBranch } = useAppStore();
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const membersQuery = getMembersQuery();
-        const querySnapshot = await getDocs(membersQuery);
-        const membersData = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return { ...data, id: doc.id };
-        });
-        setMembers(membersData as Member[]);
-      } catch {
+    const membersQuery = getMembersQuery();
+
+    const unsubscribe = onSnapshot(
+      membersQuery,
+      (snapshot) => {
+        const membersData = snapshot.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        })) as Member[];
+        setMembers(membersData);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching members:", err);
         setError("Failed to fetch members.");
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    fetchMembers();
+    return () => unsubscribe();
   }, [activeBranch]);
 
   const addMember = async (member: Omit<Member, "id">) => {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getAdminDb } from "@/lib/firebase-admin";
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
   title: "Каталог | БК Гълъбово",
@@ -40,10 +41,9 @@ function serializeDoc(data: unknown): unknown {
   return data;
 }
 
-export default async function CatalogPage() {
-  const adminDb = getAdminDb();
-
-  const safeFetch = async (collectionName: string) => {
+const getCachedCollection = unstable_cache(
+  async (collectionName: string): Promise<Record<string, unknown>[]> => {
+    const adminDb = getAdminDb();
     try {
       const snap = await adminDb.collection(collectionName).get();
       return snap.docs.map(
@@ -57,24 +57,28 @@ export default async function CatalogPage() {
       );
       return [];
     }
-  };
+  },
+  ["catalog-collection"],
+  { revalidate: 300, tags: ["catalog"] }
+);
 
-  const servicesRaw = await safeFetch("clubServices");
+export default async function CatalogPage() {
+  const servicesRaw = await getCachedCollection("clubServices");
   const services = servicesRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const generalRaw = await safeFetch("clubGeneralServices");
+  const generalRaw = await getCachedCollection("clubGeneralServices");
   const generalServices = generalRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const productsRaw = await safeFetch("products");
+  const productsRaw = await getCachedCollection("products");
   const products = productsRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const recoveryServices = await safeFetch("sessions");
+  const recoveryServices = await getCachedCollection("sessions");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">

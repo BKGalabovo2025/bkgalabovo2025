@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAppStore } from "@/store/use-app-store";
 
@@ -19,27 +19,27 @@ export function useFamilies() {
   const { activeBranch } = useAppStore();
 
   useEffect(() => {
-    const fetchFamilies = async () => {
-      try {
-        const familiesRef = collection(db, "families");
-        // Families might not have siteId yet, but we should eventually add it
-        const q = query(familiesRef);
-        const querySnapshot = await getDocs(q);
-        const familiesData = querySnapshot.docs.map((doc) => ({
+    const familiesRef = collection(db, "families");
+    const q = query(familiesRef);
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const familiesData = snapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
         })) as Family[];
-
         setFamilies(familiesData);
-      } catch (err) {
+        setLoading(false);
+      },
+      (err) => {
         console.error("Error fetching families:", err);
         setError("Failed to fetch families.");
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    fetchFamilies();
+    return () => unsubscribe();
   }, [activeBranch]);
 
   return { families, loading, error };
