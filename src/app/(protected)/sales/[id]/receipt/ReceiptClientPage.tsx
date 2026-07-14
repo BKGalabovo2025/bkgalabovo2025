@@ -67,7 +67,7 @@ const getReceiptDates = (sale: Sale | null) => {
   return { paymentDate, issueDate };
 };
 
-const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
+const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const { issueDate } = getReceiptDates(sale);
   const hours = sale?.items?.[0]?.quantity || 1;
   const totalAmount = sale?.totalAmount || 0;
@@ -79,11 +79,12 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const start = sale?.saleDate ? new Date(sale.saleDate) : new Date();
   const end = new Date(start.getTime() + hours * 3600000);
 
-  const formattedDate = start.toLocaleDateString("bg-BG", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const formattedDate =
+    start.toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }) + " г.";
 
   const timeRange =
     start.toLocaleTimeString("bg-BG", {
@@ -98,10 +99,12 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
   const courtId = courtMatch?.[0] || nameMatch?.[0] || "-";
 
+  const isRecovery =
+    sale?.items?.[0]?.productId?.startsWith("recovery_session") ||
+    sale?.siteId === "recoveryzone";
+
   return (
-    <div
-      className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide"
-    >
+    <div className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
@@ -127,12 +130,16 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         {/* Legal statement */}
         <div className="mb-3 text-[10px] leading-relaxed text-justify text-zinc-700">
           С настоящия документ се потвърждава постъпило целево дарение от{" "}
-          <span className="font-bold uppercase text-zinc-900">{clientName}</span>{" "}
+          <span className="font-bold uppercase text-zinc-900">
+            {clientName}
+          </span>{" "}
           {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
           КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат използвани изцяло за
           поддържане на материално-техническата база (МТО) на клуба и неговите
-          уставни цели, включително развитие на детско-юношеската школа по
-          бадминтон.
+          уставни цели,{" "}
+          {isRecovery
+            ? "включително развитие на възстановителния център Recovery zone by ZM."
+            : "включително развитие на детско-юношеската школа по бадминтон."}
         </div>
 
         {/* Table */}
@@ -143,7 +150,9 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
                 <th className="p-1.5 text-left border-r border-zinc-200">
                   Описание на дарението
                 </th>
-                <th className="p-1.5 text-center border-r border-zinc-200">Корт</th>
+                <th className="p-1.5 text-center border-r border-zinc-200">
+                  {isRecovery ? "Услуга" : "Корт"}
+                </th>
                 <th className="p-1.5 text-center border-r border-zinc-200">
                   Дата / Час
                 </th>
@@ -153,11 +162,16 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
             <tbody>
               <tr className="border-b border-zinc-200 font-medium">
                 <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
-                  Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за
-                  ползване на бадминтон корт
+                  Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“{" "}
+                  {isRecovery
+                    ? "от възстановителни процедури от Recovery zone by ZM"
+                    : "за ползване на бадминтон корт"}
                 </td>
                 <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800 font-bold">
-                  {courtId}
+                  {isRecovery
+                    ? sale?.items?.[0]?.name?.replace("Възстановяване: ", "") ||
+                      "Услуга"
+                    : courtId}
                 </td>
                 <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
                   {formattedDate}
@@ -215,15 +229,11 @@ const StandardReceipt = ({
   member,
   relatedMember,
   service,
-  family,
-  familyMembers,
 }: ReceiptCopyProps) => {
   const { paymentDate, issueDate } = getReceiptDates(sale);
 
   return (
-    <div
-      className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide"
-    >
+    <div className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
@@ -248,58 +258,56 @@ const StandardReceipt = ({
 
         {/* Info Block (Получател, Статус, Начин на плащане) */}
         <div className="mb-3 text-[9px] flex justify-between items-start bg-zinc-50 p-2.5 border border-zinc-100 rounded-lg">
-          <div>
-            <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
-              Получател
-            </p>
-            <p className="font-bold uppercase text-xs text-zinc-800">
-              {member ? formatFullName(member) : "(Липсват данни за член)"}
-            </p>
-            {relatedMember && (
-              <p className="text-zinc-600 font-medium">
-                Свързано лице: {formatFullName(relatedMember)}
-              </p>
-            )}
-            {family && (
-              <p className="text-zinc-600 font-bold mt-0.5">
-                Семейство: {family.name || "Без име"}
-              </p>
-            )}
-            {familyMembers && familyMembers.length > 0 && (
-              <p className="text-zinc-500 text-[9px] mt-0.5 italic">
-                Свързани лица: {familyMembers.map(formatFullName).join(", ")}
-              </p>
-            )}
-            <p className="text-zinc-500 mt-1 text-[9px]">
-              {member?.address || "Адрес: (не е посочен)"}
-            </p>
-          </div>
-
-          <div className="text-right text-zinc-600">
-            <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
-              Детайли за плащане
-            </p>
-            <p className="font-bold text-zinc-800">
-              Дата на плащане: {paymentDate}
-            </p>
-
-            <p className="font-bold text-zinc-800 mt-0.5">
-              Начин: {sale?.paymentMethod || "В брой"}
-            </p>
-            <p className="mt-0.5 font-bold">
-              Статус:{" "}
-              <span
-                className={
-                  sale?.isPaid
-                    ? "text-emerald-600"
-                    : "text-rose-600"
-                }
-              >
-                {sale?.isPaid ? "ПЛАТЕНО" : "ОЧАКВА ПЛАЩАНЕ"}
+          <div className="space-y-0.5">
+            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+              Получател на услугата
+            </span>
+            <span className="font-bold text-zinc-800 uppercase text-[10px]">
+              {sale?.clientName || (member ? formatFullName(member) : "N/A")}
+            </span>
+            {(sale?.clientPhone || member?.phone) && (
+              <span className="block text-zinc-500 mt-0.5">
+                {sale?.clientPhone || member?.phone}
               </span>
-            </p>
+            )}
+          </div>
+          <div className="space-y-0.5 text-center">
+            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+              Статус на плащане
+            </span>
+            <span
+              className={`font-bold uppercase text-[10px] ${
+                sale?.isPaid ? "text-emerald-600" : "text-amber-600"
+              }`}
+            >
+              {sale?.isPaid ? "Платено" : "Неплатено"}
+            </span>
+            <span className="block text-zinc-500 mt-0.5">{paymentDate}</span>
+          </div>
+          <div className="space-y-0.5 text-right">
+            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+              Начин на плащане
+            </span>
+            <span className="font-bold text-zinc-800 uppercase text-[10px]">
+              {sale?.paymentMethod || "N/A"}
+            </span>
           </div>
         </div>
+
+        {/* Client 2 (if present) */}
+        {(sale?.client2Name || relatedMember) && (
+          <div className="mb-3 p-2 border border-dashed border-zinc-300 bg-zinc-50/50 text-[9px] rounded-lg">
+            <span className="font-bold uppercase text-zinc-500 tracking-widest mr-1">
+              Втори клиент:
+            </span>
+            <span className="font-bold text-zinc-800">
+              {sale?.client2Name || formatFullName(relatedMember!)}
+            </span>
+            {sale?.client2Phone && (
+              <span className="text-zinc-500 ml-1">({sale.client2Phone})</span>
+            )}
+          </div>
+        )}
 
         {/* Note Block */}
         {sale?.note && (
@@ -307,9 +315,7 @@ const StandardReceipt = ({
             <span className="font-bold uppercase text-zinc-500 tracking-widest mr-1">
               Бележка:
             </span>
-            <span className="italic text-zinc-800">
-              {sale.note}
-            </span>
+            <span className="italic text-zinc-800">{sale.note}</span>
           </div>
         )}
 
@@ -321,7 +327,9 @@ const StandardReceipt = ({
                 <th className="p-1.5 text-left border-r border-zinc-200">
                   Описание на услугата / продукта
                 </th>
-                <th className="p-1.5 text-center border-r border-zinc-200">К-во</th>
+                <th className="p-1.5 text-center border-r border-zinc-200">
+                  К-во
+                </th>
                 <th className="p-1.5 text-right border-r border-zinc-200">
                   Ед. цена
                 </th>
@@ -331,7 +339,10 @@ const StandardReceipt = ({
             <tbody>
               {sale?.items && sale.items.length > 0 ? (
                 sale.items.map((item, index) => (
-                  <tr key={index} className="border-b border-zinc-200 font-medium">
+                  <tr
+                    key={index}
+                    className="border-b border-zinc-200 font-medium"
+                  >
                     <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
                       {item.name || "(Липсва име)"}
                       {sale?.targetMonthLabels &&
@@ -385,7 +396,8 @@ const StandardReceipt = ({
 
         {/* Unified Legal / Accounting Statement */}
         <div className="mt-4 text-[7px] text-zinc-400 text-center border-t border-zinc-100 pt-3">
-          Документът е издаден съгласно чл. 7, ал. 1 от Закона за счетоводството.
+          Документът е издаден съгласно чл. 7, ал. 1 от Закона за
+          счетоводството.
         </div>
 
         {/* Signatures */}
@@ -415,12 +427,14 @@ const StandardReceipt = ({
 };
 
 const ReceiptCopy = (props: ReceiptCopyProps) => {
-  const isCourtRental =
+  const isDonation =
     props.sale?.items?.[0]?.productId?.startsWith("court_rental") ||
-    props.sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+    props.sale?.items?.[0]?.productId?.startsWith("recovery_session") ||
+    props.sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт") ||
+    props.sale?.siteId === "recoveryzone";
 
-  if (isCourtRental) {
-    return <CourtRentalReceipt {...props} />;
+  if (isDonation) {
+    return <DonationReceipt {...props} />;
   }
   return <StandardReceipt {...props} />;
 };
