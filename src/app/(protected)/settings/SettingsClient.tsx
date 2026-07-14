@@ -1662,7 +1662,7 @@ export default function SettingsClient() {
                         Име
                       </Label>
                       <Input
-                        defaultValue={user?.displayName?.split(" ")[0] || ""}
+                        defaultValue="Бадминтон клуб"
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -1671,9 +1671,7 @@ export default function SettingsClient() {
                         Фамилия
                       </Label>
                       <Input
-                        defaultValue={
-                          user?.displayName?.split(" ").slice(1).join(" ") || ""
-                        }
+                        defaultValue="Гълъбово"
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -1682,7 +1680,7 @@ export default function SettingsClient() {
                         Имейл Адрес
                       </Label>
                       <Input
-                        defaultValue={user?.email || ""}
+                        defaultValue="bk_galabovo@abv.bg"
                         disabled
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none opacity-60 cursor-not-allowed"
                       />
