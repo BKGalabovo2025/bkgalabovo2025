@@ -128,7 +128,10 @@ async function createSaleForReservation(
     clientPhone: reservation.clientPhone || "",
     client2Name: reservation.client2Name || "",
     client2Phone: reservation.client2Phone || "",
-    type: "general_service",
+    type:
+      reservation.siteId === "recoveryzone"
+        ? "recovery_service"
+        : "general_service",
     reservationId: reservationId,
     memberIdsForAttendance: reservation.client2Id
       ? [reservation.memberId || "GUEST_EXTERNAL", reservation.client2Id]
