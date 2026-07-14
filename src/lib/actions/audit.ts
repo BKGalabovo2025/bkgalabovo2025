@@ -1,7 +1,7 @@
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import { AuditLog } from "@/lib/audit-logger";
+import { AuditLog, AuditAction, logSystemEvent } from "@/lib/audit-logger";
 
 export async function getAuditLogsAction(
   limitCount: number = 50
@@ -22,4 +22,17 @@ export async function getAuditLogsAction(
     console.error("Failed to fetch audit logs:", error);
     return [];
   }
+}
+
+export async function logAuditAction(
+  action: AuditAction,
+  details: string,
+  userEmail: string
+): Promise<void> {
+  await logSystemEvent(
+    action,
+    details,
+    userEmail === "system" ? "system" : "user",
+    userEmail
+  );
 }

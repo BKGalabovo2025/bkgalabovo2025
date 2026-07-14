@@ -2,7 +2,6 @@
 
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAllMembersServer } from "@/services/member-service.server";
-import { logSystemEvent } from "@/lib/audit-logger";
 import { cookies } from "next/headers";
 import { Sale, Member } from "@/types";
 
@@ -15,19 +14,10 @@ export interface FinancialReportData {
 export async function generateFinancialReportAction(
   startDateStr: string | null,
   endDateStr: string | null,
-  paymentType: string = "all",
-  userEmail: string = "system"
+  paymentType: string = "all"
 ): Promise<FinancialReportData> {
   const cookieStore = await cookies();
   const activeBranch = cookieStore.get("activeBranch")?.value || "bkgalabovo";
-
-  // We log the generation on the server for auditing
-  await logSystemEvent(
-    "export_financial_report",
-    `Генериран финансов отчет за период: ${startDateStr || "Всички"} - ${endDateStr || "Всички"}`,
-    userEmail === "system" ? "system" : "user",
-    userEmail
-  );
 
   const [allSales, allMembers] = await Promise.all([
     getCachedSalesForBranch(activeBranch),

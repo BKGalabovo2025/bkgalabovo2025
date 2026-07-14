@@ -8,6 +8,7 @@ import {
   FinancialReportData,
   generateFinancialReportAction,
 } from "@/lib/actions/reports";
+import { logAuditAction } from "@/lib/actions/audit";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,8 +105,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       const result = await generateFinancialReportAction(
         fromStr,
         toStr,
-        paymentType,
-        user?.email || "system"
+        paymentType
       );
       setData(result);
     });
@@ -156,8 +156,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
           const newResult = await generateFinancialReportAction(
             fromStr,
             toStr,
-            paymentType,
-            user?.email || "system"
+            paymentType
           );
           setData(newResult);
         });
@@ -286,6 +285,11 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     rows: exportData,
                     total: data.total,
                   });
+                  logAuditAction(
+                    "export_financial_report",
+                    `Експортиран финансов отчет (Excel) за период: ${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Всички"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Всички"}`,
+                    user?.email || "system"
+                  );
                 }}
               >
                 <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-600" />{" "}
@@ -307,6 +311,11 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     rows: exportData,
                     total: data.total,
                   });
+                  logAuditAction(
+                    "export_financial_report",
+                    `Експортиран финансов отчет (PDF) за период: ${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Всички"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Всички"}`,
+                    user?.email || "system"
+                  );
                 }}
               >
                 <FileText className="mr-3 h-4 w-4 text-red-500" /> Експорт в PDF
