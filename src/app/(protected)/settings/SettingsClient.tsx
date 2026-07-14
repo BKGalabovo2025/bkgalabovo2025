@@ -63,6 +63,7 @@ export default function SettingsClient() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [formData, setFormData] = useState<{
     [key: string]: Partial<Site>;
   }>({});
@@ -290,6 +291,27 @@ export default function SettingsClient() {
       therapists.splice(index, 1);
       return { ...prev, [siteId]: { ...site, therapists } };
     });
+  };
+
+  const handleResetPassword = async () => {
+    const auth = getFirebaseAuth();
+    if (!auth.currentUser || !auth.currentUser.email) {
+      toast.error("Липсва имейл адрес.");
+      return;
+    }
+    setIsSendingReset(true);
+    try {
+      const { sendPasswordResetEmail } = await import("firebase/auth");
+      await sendPasswordResetEmail(auth, auth.currentUser.email);
+      toast.success(
+        `Линк за възстановяване е изпратен на ${auth.currentUser.email}`
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Възникна грешка при изпращане на линка.");
+    } finally {
+      setIsSendingReset(false);
+    }
   };
 
   const handleSave = async () => {
@@ -1074,6 +1096,17 @@ export default function SettingsClient() {
                             ) : (
                               <Eye className="h-4 w-4" />
                             )}
+                          </Button>
+                        </div>
+                        <div className="flex justify-end mt-1">
+                          <Button
+                            type="button"
+                            variant="link"
+                            onClick={handleResetPassword}
+                            disabled={isSendingReset}
+                            className="text-[11px] text-primary hover:text-primary/80 h-auto p-0 font-light"
+                          >
+                            Забравена текуща парола?
                           </Button>
                         </div>
                       </div>
