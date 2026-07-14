@@ -20,6 +20,7 @@ export const reservationSchema = z.object({
   clientEmail: z.string().email({ message: "Невалиден имейл адрес." }).optional().or(z.literal("")),
   client2Name: z.string().optional(),
   client2Phone: z.string().optional(),
+  client2Id: z.string().optional(),
   courtId: z.number().optional(),
   serviceId: z.string().optional(),
   selectedZone: z.string().optional(),
@@ -185,6 +186,7 @@ export const ReservationDialogProvider = ({
         clientEmail: reservation.clientEmail || "",
         client2Name: reservation.client2Name || "",
         client2Phone: reservation.client2Phone || "",
+        client2Id: (reservation as any).client2Id || "",
         notes: reservation.notes || "",
       });
     } else {
@@ -194,6 +196,7 @@ export const ReservationDialogProvider = ({
         clientEmail: "",
         client2Name: "",
         client2Phone: "",
+        client2Id: "",
         notes: "",
         ...initialData,
       });

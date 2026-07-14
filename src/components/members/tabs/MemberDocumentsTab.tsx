@@ -1,7 +1,10 @@
 "use client";
 
-import React from "react";
-import { Member } from "@/types";
+import React, { useEffect, useState } from "react";
+import { Member, SignedDeclaration } from "@/types";
+import { getSignedDeclarationsQuery } from "@/lib/firebase-collections";
+import { getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getDb } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +18,7 @@ import {
   ClipboardCheck,
   Stethoscope,
   Contact,
+  Trash2,
   LucideIcon,
 } from "lucide-react";
 
@@ -264,6 +268,18 @@ export const MemberDocumentsTab = ({
   formatDocDate,
   updateDocumentStatus,
 }: MemberDocumentsTabProps) => {
+  const [declarations, setDeclarations] = useState<SignedDeclaration[]>([]);
+
+  useEffect(() => {
+    async function fetchDeclarations() {
+      const snapshot = await getDocs(getSignedDeclarationsQuery(member.id));
+      const list = snapshot.docs.map(d => d.data() as SignedDeclaration);
+      list.sort((a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime());
+      setDeclarations(list);
+    }
+    fetchDeclarations();
+  }, [member.id]);
+
   const openPrint = (path: string, field: DocumentField) => {
     updateDocumentStatus(field, "print");
     window.open(path, "_blank");
@@ -271,6 +287,21 @@ export const MemberDocumentsTab = ({
 
   const toggle = (field: DocumentField, isCompleted: boolean) =>
     updateDocumentStatus(field, isCompleted ? "cancel" : "submit");
+
+  const handleDeleteDeclaration = async (id: string) => {
+    if (window.confirm("Сигурни ли сте, че искате да изтриете тази декларация?")) {
+      try {
+        await deleteDoc(doc(getDb(), "member_declarations", id));
+        setDeclarations(prev => prev.filter(d => d.id !== id));
+        // Note: Ideally, we should also trigger an update of the member's hasSignedDeclaration status
+        // but that requires updating the reservation or member record which is handled separately.
+        // For now, this cleanly removes it from the list and DB.
+      } catch (error) {
+        console.error("Error deleting declaration:", error);
+        alert("Възникна грешка при изтриването.");
+      }
+    }
+  };
 
   const membershipStatus = getMembershipStatus(member, formatDocDate);
   const terminationStatus = getTerminationStatus(member, formatDocDate);
@@ -407,6 +438,46 @@ export const MemberDocumentsTab = ({
           toggle("medicalCertificate", !!member.hasMedicalCertificate)
         }
       />
+
+      {declarations.length > 0 && (
+        <div className="mt-12 pt-8 border-t border-zinc-100">
+          <h3 className="text-lg font-bold text-zinc-900 mb-6">Подписани Декларации (Recovery Zone)</h3>
+          <div className="space-y-4">
+            {declarations.map((decl) => (
+              <div key={decl.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 bg-zinc-50/50 rounded-2xl border border-zinc-100/50 gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+                    <CheckCircle className="h-5 w-5" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-zinc-900 mb-1">Декларация за информирано съгласие</h4>
+                    <p className="text-xs text-zinc-500">
+                      Подписана на: {new Date(decl.signedAt).toLocaleDateString("bg-BG")} в {new Date(decl.signedAt).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    className="h-10 px-6 rounded-xl border-zinc-200 font-medium text-xs hover:bg-zinc-950 hover:text-white transition-all flex-1 sm:flex-none"
+                    onClick={() => window.open(`/print-declaration/${decl.id}`, "_blank")}
+                  >
+                    <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    Печат
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-10 px-3 rounded-xl border border-transparent text-red-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all shrink-0"
+                    onClick={() => handleDeleteDeclaration(decl.id)}
+                  >
+                    <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

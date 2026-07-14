@@ -74,11 +74,19 @@ export function MemberSalesHistoryMobileCard({
           <h3 className="text-xs font-medium text-zinc-950 line-clamp-2 leading-relaxed">
             {itemsList}
           </h3>
-          {sale.memberId !== memberId && familyMembers && (
-            <div className="text-[9px] text-amber-600 font-medium">
-              За: {familyMember?.firstName || "Семейство"} {familyMember?.lastName || ""}
-            </div>
-          )}
+          <div className="flex flex-col mt-1">
+            <span className="font-semibold text-[10px] text-zinc-900 dark:text-zinc-100">
+              {sale.clientName || familyMember?.firstName || "Външен клиент"}
+              {(sale as any).client2Name ? ` & ${(sale as any).client2Name}` : ""}
+            </span>
+            <span className="text-[9px] text-zinc-400">
+              {sale.note || 
+               ((sale as any).clientPhone && (sale as any).client2Phone
+                 ? `${(sale as any).clientPhone} / ${(sale as any).client2Phone}`
+                 : (sale as any).clientPhone) || 
+               "Няма телефон"}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <Badge

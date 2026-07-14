@@ -100,21 +100,16 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
 
   return (
     <div
-      className="flex flex-col flex-1 border border-black p-4 bg-white relative animate-in fade-in duration-300"
-      // eslint-disable-next-line react/forbid-dom-props
-      style={{
-        fontFamily: "Arial, Helvetica, sans-serif",
-        wordSpacing: "2px",
-      }}
+      className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide"
     >
-      <div className="flex flex-col h-full text-black">
+      <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-black pb-2 mb-2">
+        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
           <div className="space-y-1">
-            <h2 className="text-base font-bold uppercase tracking-tight">
+            <h2 className="text-xs font-bold uppercase tracking-tight text-zinc-900">
               ДОКУМЕНТ ЗА ДАРЕНИЕ
             </h2>
-            <p className="text-[9px] font-bold">
+            <p className="text-[9px] font-bold uppercase text-zinc-500">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
@@ -122,17 +117,17 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
               {label}
             </p>
           </div>
-          <div className="text-right text-[9px] space-y-0.5">
-            <p className="font-bold uppercase">{clubInfo.name}</p>
+          <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
+            <p className="font-bold uppercase text-zinc-700">{clubInfo.name}</p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Legal statement */}
-        <div className="mb-2 text-[10px] leading-relaxed text-justify">
+        <div className="mb-3 text-[10px] leading-relaxed text-justify text-zinc-700">
           С настоящия документ се потвърждава постъпило целево дарение от{" "}
-          <span className="font-bold uppercase">{clientName}</span>{" "}
+          <span className="font-bold uppercase text-zinc-900">{clientName}</span>{" "}
           {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
           КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат използвани изцяло за
           поддържане на материално-техническата база (МТО) на клуба и неговите
@@ -142,45 +137,45 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
 
         {/* Table */}
         <div className="flex-1">
-          <table className="w-full border-collapse border border-black text-[10px]">
+          <table className="w-full border-collapse border border-zinc-200 text-[9px]">
             <thead>
-              <tr className="bg-zinc-100 border-b border-black text-[9px] font-bold uppercase">
-                <th className="p-2 text-left border-r border-black">
+              <tr className="bg-zinc-50 border-b border-zinc-200 text-[8px] font-bold uppercase text-zinc-500">
+                <th className="p-1.5 text-left border-r border-zinc-200">
                   Описание на дарението
                 </th>
-                <th className="p-2 text-center border-r border-black">Корт</th>
-                <th className="p-2 text-center border-r border-black">
+                <th className="p-1.5 text-center border-r border-zinc-200">Корт</th>
+                <th className="p-1.5 text-center border-r border-zinc-200">
                   Дата / Час
                 </th>
-                <th className="p-2 text-right">Сума</th>
+                <th className="p-1.5 text-right">Сума</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-black">
-                <td className="p-2 border-r border-black font-bold">
+              <tr className="border-b border-zinc-200 font-medium">
+                <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
                   Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за
                   ползване на бадминтон корт
                 </td>
-                <td className="p-2 text-center border-r border-black font-bold">
+                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800 font-bold">
                   {courtId}
                 </td>
-                <td className="p-2 text-center border-r border-black">
+                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
                   {formattedDate}
                   <br />
                   {timeRange} ({hours} ч.)
                 </td>
-                <td className="p-2 text-right font-bold">
+                <td className="p-1.5 text-right font-bold text-zinc-800">
                   {formatPrice(totalAmount)}
                 </td>
               </tr>
               <tr>
                 <td
                   colSpan={3}
-                  className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                  className="p-1.5 text-right border-r border-zinc-200 font-bold uppercase text-[8px] text-zinc-400"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-2 text-right font-bold text-xs">
+                <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900">
                   {formatPrice(totalAmount)}
                 </td>
               </tr>
@@ -189,22 +184,22 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         </div>
 
         {/* Signatures */}
-        <div className="mt-2 flex justify-between gap-16">
+        <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               За Клуба: {clubInfo.name}
             </p>
           </div>
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               Дарител: {clientName}
             </p>
           </div>
         </div>
 
-        <div className="mt-2 text-center">
+        <div className="mt-4 text-center">
           <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
@@ -227,70 +222,68 @@ const StandardReceipt = ({
 
   return (
     <div
-      className="flex flex-col flex-1 border border-black p-4 bg-white relative"
-      // eslint-disable-next-line react/forbid-dom-props
-      style={{ fontFamily: "Arial, Helvetica, sans-serif", wordSpacing: "2px" }}
+      className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide"
     >
-      <div className="flex flex-col h-full text-black">
+      <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-black pb-2 mb-2">
+        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
           <div className="space-y-1">
-            <h2 className="text-lg font-bold uppercase tracking-tight">
+            <h2 className="text-xs font-bold uppercase tracking-tight text-zinc-900">
               РАЗПИСКА ЗА ПЛАЩАНЕ
             </h2>
-            <p className="text-[10px] font-bold uppercase text-[#475569]">
+            <p className="text-[9px] font-bold uppercase text-zinc-500">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
-            <p className="text-[10px] font-bold uppercase mt-1 text-[#64748b]">
+            <p className="text-[9px] font-bold uppercase mt-1 text-zinc-500">
               {label}
             </p>
           </div>
-          <div className="text-right text-[10px] space-y-0.5">
-            <p className="font-bold uppercase">{clubInfo.name}</p>
+          <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
+            <p className="font-bold uppercase text-zinc-700">{clubInfo.name}</p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Info Block (Получател, Статус, Начин на плащане) */}
-        <div className="mb-2 text-[10px] flex justify-between items-start bg-[#f8fafc] p-2 border border-[#e2e8f0]">
+        <div className="mb-3 text-[9px] flex justify-between items-start bg-zinc-50 p-2.5 border border-zinc-100 rounded-lg">
           <div>
-            <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-widest mb-1">
+            <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
               Получател
             </p>
-            <p className="font-bold uppercase text-xs text-[#0f172a]">
+            <p className="font-bold uppercase text-xs text-zinc-800">
               {member ? formatFullName(member) : "(Липсват данни за член)"}
             </p>
             {relatedMember && (
-              <p className="text-[#475569] font-medium">
+              <p className="text-zinc-600 font-medium">
                 Свързано лице: {formatFullName(relatedMember)}
               </p>
             )}
             {family && (
-              <p className="text-[#475569] font-bold mt-0.5">
+              <p className="text-zinc-600 font-bold mt-0.5">
                 Семейство: {family.name || "Без име"}
               </p>
             )}
             {familyMembers && familyMembers.length > 0 && (
-              <p className="text-[#64748b] text-[9px] mt-0.5 italic">
+              <p className="text-zinc-500 text-[9px] mt-0.5 italic">
                 Свързани лица: {familyMembers.map(formatFullName).join(", ")}
               </p>
             )}
-            <p className="text-[#64748b] mt-1 text-[9px]">
+            <p className="text-zinc-500 mt-1 text-[9px]">
               {member?.address || "Адрес: (не е посочен)"}
             </p>
           </div>
 
-          <div className="text-right">
-            <p className="text-[9px] text-[#94a3b8] font-bold uppercase tracking-widest mb-1">
+          <div className="text-right text-zinc-600">
+            <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
               Детайли за плащане
             </p>
-            <p className="font-bold text-[#0f172a]">
+            <p className="font-bold text-zinc-800">
               Дата на плащане: {paymentDate}
             </p>
 
-            <p className="font-bold text-[#0f172a] mt-0.5">
+            <p className="font-bold text-zinc-800 mt-0.5">
               Начин: {sale?.paymentMethod || "В брой"}
             </p>
             <p className="mt-0.5 font-bold">
@@ -298,8 +291,8 @@ const StandardReceipt = ({
               <span
                 className={
                   sale?.isPaid
-                    ? "text-[#059669] font-black"
-                    : "text-[#e11d48] font-black"
+                    ? "text-emerald-600"
+                    : "text-rose-600"
                 }
               >
                 {sale?.isPaid ? "ПЛАТЕНО" : "ОЧАКВА ПЛАЩАНЕ"}
@@ -310,11 +303,11 @@ const StandardReceipt = ({
 
         {/* Note Block */}
         {sale?.note && (
-          <div className="mb-2 p-2 bg-[#fffbeb] border border-[#fde68a] text-[10px]">
-            <span className="font-bold uppercase text-[#d97706] tracking-widest mr-2">
+          <div className="mb-3 p-2 border border-dashed border-zinc-300 bg-zinc-50/50 text-[9px] rounded-lg">
+            <span className="font-bold uppercase text-zinc-500 tracking-widest mr-1">
               Бележка:
             </span>
-            <span className="text-[#92400e] italic font-medium">
+            <span className="italic text-zinc-800">
               {sale.note}
             </span>
           </div>
@@ -322,45 +315,45 @@ const StandardReceipt = ({
 
         {/* Content Table */}
         <div className="flex-1">
-          <table className="w-full border-collapse border border-black text-[10px]">
+          <table className="w-full border-collapse border border-zinc-200 text-[9px]">
             <thead>
-              <tr className="bg-[#f1f5f9] border-b border-black text-[9px] font-bold uppercase">
-                <th className="p-2 text-left border-r border-black">
+              <tr className="bg-zinc-50 border-b border-zinc-200 text-[8px] font-bold uppercase text-zinc-500">
+                <th className="p-1.5 text-left border-r border-zinc-200">
                   Описание на услугата / продукта
                 </th>
-                <th className="p-2 text-center border-r border-black">К-во</th>
-                <th className="p-2 text-right border-r border-black">
+                <th className="p-1.5 text-center border-r border-zinc-200">К-во</th>
+                <th className="p-1.5 text-right border-r border-zinc-200">
                   Ед. цена
                 </th>
-                <th className="p-2 text-right">Общо</th>
+                <th className="p-1.5 text-right">Общо</th>
               </tr>
             </thead>
             <tbody>
               {sale?.items && sale.items.length > 0 ? (
                 sale.items.map((item, index) => (
-                  <tr key={index} className="border-b border-black font-medium">
-                    <td className="p-2 border-r border-black font-bold">
+                  <tr key={index} className="border-b border-zinc-200 font-medium">
+                    <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
                       {item.name || "(Липсва име)"}
                       {sale?.targetMonthLabels &&
                         sale.targetMonthLabels.length > 0 && (
-                          <span className="ml-1 text-[9px] text-[#475569] font-semibold">
+                          <span className="ml-1 text-[9px] text-zinc-500 font-normal">
                             ({sale.targetMonthLabels.join(", ")})
                           </span>
                         )}
 
                       {service?.name && (
-                        <span className="block text-[8px] text-[#64748b] font-normal mt-0.5">
+                        <span className="block text-[8px] text-zinc-500 font-normal mt-0.5">
                           {service.name}
                         </span>
                       )}
                     </td>
-                    <td className="p-2 text-center border-r border-black">
+                    <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
                       {item.quantity}
                     </td>
-                    <td className="p-2 text-right border-r border-black">
+                    <td className="p-1.5 text-right border-r border-zinc-200 text-zinc-800">
                       {formatPrice(item.price)}
                     </td>
-                    <td className="p-2 text-right font-bold">
+                    <td className="p-1.5 text-right font-bold text-zinc-800">
                       {formatPrice(item.quantity * item.price)}
                     </td>
                   </tr>
@@ -369,7 +362,7 @@ const StandardReceipt = ({
                 <tr>
                   <td
                     colSpan={4}
-                    className="p-4 text-center text-[#94a3b8] italic"
+                    className="p-4 text-center text-zinc-400 italic"
                   >
                     Няма добавени артикули
                   </td>
@@ -378,11 +371,11 @@ const StandardReceipt = ({
               <tr>
                 <td
                   colSpan={3}
-                  className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                  className="p-1.5 text-right border-r border-zinc-200 font-bold uppercase text-[8px] text-zinc-400"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-2 text-right font-bold text-xs">
+                <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900">
                   {formatPrice(sale?.totalAmount || 0)}
                 </td>
               </tr>
@@ -391,31 +384,28 @@ const StandardReceipt = ({
         </div>
 
         {/* Unified Legal / Accounting Statement */}
-        <div className="mt-2 mb-1 text-center">
-          <p className="text-[8px] text-[#64748b] italic">
-            Документът е издаден от автоматизираната административна система на
-            Бадминтон клуб Гълъбово
-          </p>
+        <div className="mt-4 text-[7px] text-zinc-400 text-center border-t border-zinc-100 pt-3">
+          Документът е издаден съгласно чл. 7, ал. 1 от Закона за счетоводството.
         </div>
 
         {/* Signatures */}
-        <div className="mt-2 flex justify-between gap-16">
+        <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               Доставчик: {clubInfo.name}
             </p>
           </div>
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               Получател: {member ? formatFullName(member) : ""}
             </p>
           </div>
         </div>
 
-        <div className="mt-2 text-center">
-          <p className="text-[7px] text-[#94a3b8] font-bold uppercase tracking-widest">
+        <div className="mt-4 text-center">
+          <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
         </div>

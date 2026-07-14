@@ -31,6 +31,7 @@ import {
   Dumbbell,
   CalendarRange,
   Activity,
+  FileSignature,
 } from "lucide-react";
 
 import { useAuth } from "@/context/auth-context";
@@ -193,6 +194,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/declarations")}
+                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                >
+                  <Link
+                    href="/declarations"
+                    className="flex items-center gap-3 w-full"
+                    onClick={() => isMobile && setOpen(false)}
+                  >
+                    <FileSignature size={18} strokeWidth={1.5} />
+                    <span className="text-[14px]">Декларации</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <SidebarMenuButton

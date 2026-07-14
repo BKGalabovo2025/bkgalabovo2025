@@ -41,6 +41,7 @@ export interface Reservation {
   price?: number;
   finalPrice?: number;
   discountAmount?: number;
+  declarationsCount?: number; // Tracks how many declarations have been signed for this reservation
 
   // Shared Time Fields
   startTime: Timestamp;

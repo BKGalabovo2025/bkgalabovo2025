@@ -23,6 +23,7 @@ import {
 } from "@/types";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 import { MemberAssessment } from "@/types/assessment.types";
+import { DeclarationTemplate, SignedDeclaration } from "@/types";
 
 const memberConverter: FirestoreDataConverter<Member> = {
   toFirestore: (member) => {
@@ -319,6 +320,38 @@ const blockedSlotConverter: FirestoreDataConverter<BlockedSlot> = {
   },
 };
 
+const declarationTemplateConverter: FirestoreDataConverter<DeclarationTemplate> = {
+  toFirestore: (template) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = template;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as DeclarationTemplate;
+  },
+};
+
+const signedDeclarationConverter: FirestoreDataConverter<SignedDeclaration> = {
+  toFirestore: (decl) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = decl;
+    return { ...data, siteId: getSiteConfig().id };
+  },
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      siteId: data.siteId || "bkgalabovo",
+      ...data,
+    } as unknown as SignedDeclaration;
+  },
+};
+
 // --- Collection Getters (Raw) ---
 
 export const getMembersCollection = () =>
@@ -366,12 +399,16 @@ const getReservationsCollection = () =>
 const getBlockedSlotsCollection = () =>
   collection(getDb(), "blockedSlots").withConverter(blockedSlotConverter);
 
+export const getDeclarationTemplatesCollection = () =>
+  collection(getDb(), "declaration_templates").withConverter(declarationTemplateConverter);
+
+export const getSignedDeclarationsCollection = () =>
+  collection(getDb(), "member_declarations").withConverter(signedDeclarationConverter);
+
 // --- Tenant-Aware Query Getters ---
 
 export const getMembersQuery = () => {
-  const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getMembersCollection());
-  return query(getMembersCollection(), where("siteId", "==", siteConfig.id));
+  return query(getMembersCollection());
 };
 
 export const getSalesQuery = () => {
@@ -603,4 +640,21 @@ const getBlockedSlotsQuery = () => {
     getBlockedSlotsCollection(),
     where("siteId", "==", siteConfig.id)
   );
+};
+
+export const getDeclarationTemplatesQuery = () => {
+  const siteConfig = getSiteConfig();
+  if (siteConfig.id === "bkgalabovo") return query(getDeclarationTemplatesCollection());
+  return query(
+    getDeclarationTemplatesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
+};
+
+export const getSignedDeclarationsQuery = (memberId?: string) => {
+  let q = query(getSignedDeclarationsCollection());
+  if (memberId) {
+    q = query(q, where("memberId", "==", memberId));
+  }
+  return q;
 };

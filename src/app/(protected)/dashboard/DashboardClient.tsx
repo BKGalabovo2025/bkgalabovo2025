@@ -215,37 +215,43 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     return (
       <div className="space-y-3">
         <div className="space-y-1 text-zinc-700 dark:text-zinc-300 border-b border-emerald-100 dark:border-emerald-800/50 pb-3">
-          <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Тренировки:</span>
-            <span className="font-bold text-emerald-700 dark:text-emerald-300">
-              {stats?.todayTrainingsCount ?? 0}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Състезания:</span>
-            <span className="font-bold text-rose-600 dark:text-rose-400">
-              {stats?.todayCompetitionsCount ?? 0}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Лагери & Други:</span>
-            <span className="font-bold text-amber-700 dark:text-amber-400">
-              {(stats?.todayCampsCount ?? 0) +
-                (stats?.todayOtherEventsCount ?? 0)}
-            </span>
-          </div>
+          {!isRecoveryZone && (
+            <>
+              <div className="flex items-center justify-between text-[11px] leading-tight">
+                <span className="font-light">Тренировки:</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                  {stats?.todayTrainingsCount ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] leading-tight">
+                <span className="font-light">Състезания:</span>
+                <span className="font-bold text-rose-600 dark:text-rose-400">
+                  {stats?.todayCompetitionsCount ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] leading-tight">
+                <span className="font-light">Лагери & Други:</span>
+                <span className="font-bold text-amber-700 dark:text-amber-400">
+                  {(stats?.todayCampsCount ?? 0) +
+                    (stats?.todayOtherEventsCount ?? 0)}
+                </span>
+              </div>
+            </>
+          )}
           <div className="flex items-center justify-between text-[11px] leading-tight">
             <span className="font-light">Възстановяване:</span>
             <span className="font-bold text-blue-600 dark:text-blue-400">
               {stats?.todayRecoveryCount ?? 0}
             </span>
           </div>
-          <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Кортове:</span>
-            <span className="font-bold text-purple-600 dark:text-purple-400">
-              {stats?.todayCourtCount ?? 0}
-            </span>
-          </div>
+          {!isRecoveryZone && (
+            <div className="flex items-center justify-between text-[11px] leading-tight">
+              <span className="font-light">Кортове:</span>
+              <span className="font-bold text-purple-600 dark:text-purple-400">
+                {stats?.todayCourtCount ?? 0}
+              </span>
+            </div>
+          )}
         </div>
 
         {stats?.todayEventsList && stats.todayEventsList.length > 0 && (
@@ -297,12 +303,14 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     }
     return (
       <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
-        <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Тренировки:</span>
-          <span className="font-bold text-purple-700 dark:text-purple-300">
-            {formatPrice(stats?.revenueTrainings ?? 0)}
-          </span>
-        </div>
+        {!isRecoveryZone && (
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-light">Тренировки:</span>
+            <span className="font-bold text-purple-700 dark:text-purple-300">
+              {formatPrice(stats?.revenueTrainings ?? 0)}
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between text-[11px] leading-tight">
           <span className="font-light">Клубни услуги:</span>
           <span className="font-bold text-teal-800 dark:text-teal-400">
@@ -315,18 +323,22 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             {formatPrice(stats?.revenueRecovery ?? 0)}
           </span>
         </div>
-        <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Кортове:</span>
-          <span className="font-bold text-pink-800 dark:text-pink-400">
-            {formatPrice(stats?.revenueCourts ?? 0)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Магазин / Стоки:</span>
-          <span className="font-bold text-purple-700 dark:text-purple-300">
-            {formatPrice(stats?.revenueShop ?? 0)}
-          </span>
-        </div>
+        {!isRecoveryZone && (
+          <>
+            <div className="flex items-center justify-between text-[11px] leading-tight">
+              <span className="font-light">Кортове:</span>
+              <span className="font-bold text-pink-800 dark:text-pink-400">
+                {formatPrice(stats?.revenueCourts ?? 0)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] leading-tight">
+              <span className="font-light">Магазин / Стоки:</span>
+              <span className="font-bold text-purple-700 dark:text-purple-300">
+                {formatPrice(stats?.revenueShop ?? 0)}
+              </span>
+            </div>
+          </>
+        )}
       </div>
     );
   };
@@ -419,7 +431,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       </PageHeader>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", isRecoveryZone ? "lg:grid-cols-3" : "lg:grid-cols-4")}>
         <BentoCard
           onClick={() => router.push("/members")}
           className="p-6 flex flex-col justify-between border shadow-none bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:border-blue-800/50 rounded-4xl h-full min-h-48 transition-all duration-300 group cursor-pointer relative overflow-hidden hover:bg-blue-100/50 dark:hover:bg-blue-950/20"
@@ -501,53 +513,55 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             {renderRevenueContent()}
           </div>
         </BentoCard>
-        <BentoCard
-          onClick={() => router.push("/catalogs?tab=inventory")}
-          className={cn(
-            "p-6 flex flex-col justify-between border shadow-none rounded-4xl h-full min-h-48 transition-all duration-300 group cursor-pointer relative overflow-hidden",
-            (stats?.lowStockCount || 0) > 0
-              ? "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/10 dark:text-rose-450 dark:border-rose-900/50 hover:bg-rose-100/50 dark:hover:bg-rose-950/20"
-              : "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/10 dark:text-emerald-450 dark:border-emerald-900/50 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/20"
-          )}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div
-              className={cn(
-                "p-2.5 rounded-2xl transition-colors",
-                (stats?.lowStockCount || 0) > 0
-                  ? "bg-rose-100 text-rose-600 dark:bg-rose-900/60 dark:text-rose-300"
-                  : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-300"
-              )}
-            >
-              {(stats?.lowStockCount || 0) > 0 ? (
-                <AlertCircle className="h-5 w-5" strokeWidth={1.5} />
-              ) : (
-                <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
-              )}
-            </div>
-            {(stats?.lowStockCount || 0) > 0 && (
-              <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-100/80 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 shadow-none">
-                {stats?.lowStockCount} изчерпващи се
-              </div>
+        {!isRecoveryZone && (
+          <BentoCard
+            onClick={() => router.push("/catalogs?tab=inventory")}
+            className={cn(
+              "p-6 flex flex-col justify-between border shadow-none rounded-4xl h-full min-h-48 transition-all duration-300 group cursor-pointer relative overflow-hidden",
+              (stats?.lowStockCount || 0) > 0
+                ? "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-950/10 dark:text-rose-450 dark:border-rose-900/50 hover:bg-rose-100/50 dark:hover:bg-rose-950/20"
+                : "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/10 dark:text-emerald-450 dark:border-emerald-900/50 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/20"
             )}
-          </div>
-          <div className="relative z-10 flex-1 flex flex-col justify-end">
-            <div className="flex items-center justify-between mb-2.5">
-              <p
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div
                 className={cn(
-                  "text-[10px] font-bold uppercase tracking-[0.2em]",
+                  "p-2.5 rounded-2xl transition-colors",
                   (stats?.lowStockCount || 0) > 0
-                    ? "text-rose-800 dark:text-rose-300"
-                    : "text-emerald-800 dark:text-emerald-300"
+                    ? "bg-rose-100 text-rose-600 dark:bg-rose-900/60 dark:text-rose-300"
+                    : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-300"
                 )}
               >
-                {t("dash.low_stock")}
-              </p>
-              <ArrowUpRight className="h-4 w-4 opacity-0 -translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0" />
+                {(stats?.lowStockCount || 0) > 0 ? (
+                  <AlertCircle className="h-5 w-5" strokeWidth={1.5} />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+                )}
+              </div>
+              {(stats?.lowStockCount || 0) > 0 && (
+                <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-100/80 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 shadow-none">
+                  {stats?.lowStockCount} изчерпващи се
+                </div>
+              )}
             </div>
-            {renderLowStockContent()}
-          </div>
-        </BentoCard>
+            <div className="relative z-10 flex-1 flex flex-col justify-end">
+              <div className="flex items-center justify-between mb-2.5">
+                <p
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-[0.2em]",
+                    (stats?.lowStockCount || 0) > 0
+                      ? "text-rose-800 dark:text-rose-300"
+                      : "text-emerald-800 dark:text-emerald-300"
+                  )}
+                >
+                  {t("dash.low_stock")}
+                </p>
+                <ArrowUpRight className="h-4 w-4 opacity-0 -translate-x-2 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0" />
+              </div>
+              {renderLowStockContent()}
+            </div>
+          </BentoCard>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

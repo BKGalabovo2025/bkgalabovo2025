@@ -37,6 +37,7 @@ const reservationSchema = z.object({
   client2Name: z.string().optional(),
   client2Phone: z.string().optional(),
   client2Zone: z.string().optional(),
+  client2Id: z.string().optional(),
 });
 
 const blockedSlotSchema = z.object({
@@ -72,9 +73,28 @@ async function createSaleForReservation(
   const unitPrice = totalPrice / quantity;
 
   const courtId = reservation.courtId;
-  const productName = courtId
+  let productName = courtId
     ? `Наем на Корт № ${courtId}`
     : `Възстановяване: ${reservation.serviceName || "Услуга"}`;
+
+  if (!courtId && (reservation.selectedZone || reservation.client2Zone)) {
+    const parts = [];
+    if (reservation.clientName && reservation.selectedZone) {
+      parts.push(`${reservation.clientName} - ${reservation.selectedZone}`);
+    } else if (reservation.selectedZone) {
+      parts.push(reservation.selectedZone);
+    }
+
+    if (reservation.client2Name && reservation.client2Zone) {
+      parts.push(`${reservation.client2Name} - ${reservation.client2Zone}`);
+    } else if (reservation.client2Zone) {
+      parts.push(reservation.client2Zone);
+    }
+    
+    if (parts.length > 0) {
+      productName += ` (${parts.join(" / ")})`;
+    }
+  }
 
   const saleData = {
     siteId: reservation.siteId || "bkgalabovo",
@@ -96,8 +116,14 @@ async function createSaleForReservation(
     currency: "EUR",
     paymentMethod: paymentMethod || reservation.paymentMethod || "Cash",
     clientName: reservation.clientName || "Външен клиент",
+    clientPhone: reservation.clientPhone || "",
+    client2Name: reservation.client2Name || "",
+    client2Phone: reservation.client2Phone || "",
     type: "general_service",
     reservationId: reservationId,
+    memberIdsForAttendance: reservation.client2Id 
+      ? [reservation.memberId || "GUEST_EXTERNAL", reservation.client2Id]
+      : [reservation.memberId || "GUEST_EXTERNAL"],
     createdAt: FieldValue.serverTimestamp(),
     createdBy: { uid: user.uid, email: user.email },
   };
@@ -512,16 +538,63 @@ export async function deleteReservationAction(
     await getAuthUser(idToken);
     const db = getAdminDb();
 
-    await deleteSaleForReservation(db, reservationId);
+    // First fetch the reservation to see if it belongs to a package
+    const resDoc = await db.collection("reservations").doc(reservationId).get();
+    if (!resDoc.exists) {
+      return { success: false, message: "Резервацията не е намерена." };
+    }
 
-    await db.collection("reservations").doc(reservationId).delete();
+    const resData = resDoc.data();
+    const packageGroupId = resData?.packageGroupId;
+
+    let reservationIdsToDelete = [reservationId];
+
+    if (packageGroupId) {
+      // If it's part of a package, delete all reservations in the package
+      const packageRes = await db
+        .collection("reservations")
+        .where("packageGroupId", "==", packageGroupId)
+        .get();
+      
+      reservationIdsToDelete = packageRes.docs.map((doc: any) => doc.id);
+
+      // Delete the client_package document
+      await db.collection("client_packages").doc(packageGroupId).delete();
+    }
+
+    // Process deletions for all affected reservations
+    for (const resId of reservationIdsToDelete) {
+      await deleteSaleForReservation(db, resId);
+
+      // Delete any associated declarations
+      const declarationsSnapshot = await db
+        .collection("member_declarations")
+        .where("reservationId", "==", resId)
+        .get();
+
+      if (!declarationsSnapshot.empty) {
+        const batch = db.batch();
+        declarationsSnapshot.docs.forEach((doc: any) => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+      }
+
+      await db.collection("reservations").doc(resId).delete();
+    }
+
     revalidatePath("/reservations");
 
     // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { success: true, message: "Резервацията е изтрита." };
+    return { 
+      success: true, 
+      message: reservationIdsToDelete.length > 1 
+        ? "Целият пакет резервации беше изтрит." 
+        : "Резервацията е изтрита." 
+    };
   } catch (error: unknown) {
     return {
       success: false,

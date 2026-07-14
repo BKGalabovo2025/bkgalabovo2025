@@ -67,7 +67,7 @@ const getReceiptDates = (sale: Sale | null) => {
   return { paymentDate, issueDate };
 };
 
-const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
+const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const { issueDate } = getReceiptDates(sale);
   const hours = sale?.items?.[0]?.quantity || 1;
   const totalAmount = sale?.totalAmount || 0;
@@ -98,6 +98,10 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const courtMatch = sale?.items?.[0]?.productId?.match(/\d+/);
   const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
   const courtId = courtMatch?.[0] || nameMatch?.[0] || "-";
+
+  const isRecovery =
+    sale?.items?.[0]?.productId?.startsWith("recovery_session") ||
+    sale?.siteId === "recoveryzone";
 
   return (
     <div
@@ -137,8 +141,10 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
           {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
           КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат използвани изцяло за
           поддържане на материално-техническата база (МТО) на клуба и неговите
-          уставни цели, включително развитие на детско-юношеската школа по
-          бадминтон.
+          уставни цели,{" "}
+          {isRecovery
+            ? "включително развитие на възстановителния център Recovery zone by ZM."
+            : "включително развитие на детско-юношеската школа по бадминтон."}
         </div>
 
         {/* Table */}
@@ -149,7 +155,9 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
                 <th className="p-2 text-left border-r border-black">
                   Описание на дарението
                 </th>
-                <th className="p-2 text-center border-r border-black">Корт</th>
+                <th className="p-2 text-center border-r border-black">
+                  {isRecovery ? "Услуга" : "Корт"}
+                </th>
                 <th className="p-2 text-center border-r border-black">
                   Дата / Час
                 </th>
@@ -159,11 +167,15 @@ const CourtRentalReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
             <tbody>
               <tr className="border-b border-black">
                 <td className="p-2 border-r border-black font-bold">
-                  Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ за
-                  ползване на бадминтон корт
+                  Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“{" "}
+                  {isRecovery
+                    ? "от възстановителни процедури от Recovery zone by ZM"
+                    : "за ползване на бадминтон корт"}
                 </td>
                 <td className="p-2 text-center border-r border-black font-bold">
-                  {courtId}
+                  {isRecovery
+                    ? sale?.items?.[0]?.name?.replace("Възстановяване: ", "") || "Услуга"
+                    : courtId}
                 </td>
                 <td className="p-2 text-center border-r border-black">
                   {formattedDate}
@@ -420,12 +432,14 @@ const StandardReceipt = ({
 };
 
 const ReceiptCopy = (props: ReceiptCopyProps) => {
-  const isCourtRental =
+  const isDonation =
     props.sale?.items?.[0]?.productId?.startsWith("court_rental") ||
-    props.sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+    props.sale?.items?.[0]?.productId?.startsWith("recovery_session") ||
+    props.sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт") ||
+    props.sale?.siteId === "recoveryzone";
 
-  if (isCourtRental) {
-    return <CourtRentalReceipt {...props} />;
+  if (isDonation) {
+    return <DonationReceipt {...props} />;
   }
   return <StandardReceipt {...props} />;
 };
@@ -672,7 +686,14 @@ export default function ReceiptClientPage({
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             <ReceiptCopy
-              label="Екземпляр за клиента"
+              label={
+                sale?.items?.[0]?.productId?.startsWith("court_rental") ||
+                sale?.items?.[0]?.productId?.startsWith("recovery_session") ||
+                sale?.items?.[0]?.name?.toLowerCase()?.includes("наем на корт") ||
+                sale?.siteId === "recoveryzone"
+                  ? "Екземпляр за ДАРИТЕЛЯ"
+                  : "Екземпляр за СЪСТЕЗАТЕЛЯ"
+              }
               sale={sale}
               member={member}
               relatedMember={relatedMember}

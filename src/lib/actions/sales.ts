@@ -416,6 +416,55 @@ export async function deleteSaleAction(
       }
     }
 
+    // 5. If this is a general service sale, delete associated reservations and packages
+    if (deletedSaleData.type === "general_service" || deletedSaleData.reservationId) {
+      const reservationId = deletedSaleData.reservationId;
+      
+      const reservationsSnapshot = await adminDb
+        .collection("reservations")
+        .where("saleId", "==", id)
+        .get();
+
+      const packagesSnapshot = await adminDb
+        .collection("client_packages")
+        .where("saleId", "==", id)
+        .get();
+
+      const generalBatch = adminDb.batch();
+      const resIds: string[] = [];
+
+      reservationsSnapshot.docs.forEach((doc: any) => {
+        generalBatch.delete(doc.ref);
+        resIds.push(doc.id);
+      });
+
+      packagesSnapshot.docs.forEach((doc: any) => {
+        generalBatch.delete(doc.ref);
+      });
+
+      if (reservationId && !resIds.includes(reservationId)) {
+        resIds.push(reservationId);
+      }
+      
+      if (resIds.length > 0) {
+        // Find member declarations for these reservations
+        // Chunk into groups of 30 due to Firestore limits
+        for (let i = 0; i < resIds.length; i += 30) {
+          const chunk = resIds.slice(i, i + 30);
+          const declSnapshot = await adminDb
+            .collection("member_declarations")
+            .where("reservationId", "in", chunk)
+            .get();
+          
+          declSnapshot.docs.forEach((doc: any) => {
+            generalBatch.delete(doc.ref);
+          });
+        }
+      }
+
+      await generalBatch.commit();
+    }
+
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");

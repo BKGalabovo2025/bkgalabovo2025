@@ -50,76 +50,76 @@ const DocumentCopy = ({
   const isRecovery = reservation.siteId === "recoveryzone";
 
   return (
-    <div className="flex flex-col flex-1 border border-black p-10 bg-white relative">
-      <div className="flex flex-col h-full text-black">
+    <div
+      className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide"
+    >
+      <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-black pb-4 mb-6">
+        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
           <div className="space-y-1">
-            <h2 className="text-lg font-bold uppercase tracking-tight">
+            <h2 className="text-xs font-bold uppercase tracking-tight text-zinc-900">
               ДОКУМЕНТ ЗА ДАРЕНИЕ
             </h2>
-            <p className="text-[10px] font-bold">
+            <p className="text-[9px] font-bold uppercase text-zinc-500">
               № {reservation.id.substring(0, 8).toUpperCase()} /{" "}
               {new Date().toLocaleDateString("bg-BG")}
             </p>
-            <p className="text-[10px] font-bold uppercase mt-1 text-zinc-500">
+            <p className="text-[9px] font-bold uppercase mt-1 text-zinc-500">
               {label}
             </p>
           </div>
-          <div className="text-right text-[10px] space-y-0.5">
-            <p className="font-bold uppercase">{clubInfo.name}</p>
+          <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
+            <p className="font-bold uppercase text-zinc-700">{clubInfo.name}</p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Unified Legal Statement */}
-        <div className="mb-8">
-          <p className="text-[11px] leading-relaxed text-justify">
-            С настоящия документ се потвърждава постъпило целево дарение от{" "}
-            <span className="font-bold uppercase">
-              {getClientDisplayName(reservation)}
-            </span>{" "}
-            (тел.{" "}
-            {reservation.client2Phone
-              ? `${reservation.clientPhone} / ${reservation.client2Phone}`
-              : reservation.clientPhone || "непосочен"}
-            ) в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще
-            бъдат използвани изцяло за поддържане на материално-техническата
-            база (МТО) на клуба и неговите уставни цели
-            {isRecovery
-              ? ", включително развитие на възстановителния център"
-              : ", включително развитие на детско-юношеската школа по бадминтон"}
-            .
-          </p>
+        <div className="mb-3 text-[10px] leading-relaxed text-justify text-zinc-700">
+          С настоящия документ се потвърждава постъпило целево дарение от{" "}
+          <span className="font-bold uppercase text-zinc-900">
+            {getClientDisplayName(reservation)}
+          </span>{" "}
+          (тел.{" "}
+          {reservation.client2Phone
+            ? `${reservation.clientPhone} / ${reservation.client2Phone}`
+            : reservation.clientPhone || "непосочен"}
+          ) в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще
+          бъдат използвани изцяло за поддържане на материално-техническата
+          база (МТО) на клуба и неговите уставни цели
+          {isRecovery
+            ? ", включително развитие на възстановителния център Recovery zone by ZM"
+            : ", включително развитие на детско-юношеската школа по бадминтон"}
+          .
         </div>
 
         {/* Content Table */}
         <div className="flex-1">
-          <table className="w-full border-collapse border border-black">
+          <table className="w-full border-collapse border border-zinc-200 text-[9px]">
             <thead>
-              <tr className="bg-zinc-100 border-b border-black text-[9px] font-bold uppercase">
-                <th className="p-2 text-left border-r border-black">
+              <tr className="bg-zinc-50 border-b border-zinc-200 text-[8px] font-bold uppercase text-zinc-500">
+                <th className="p-1.5 text-left border-r border-zinc-200">
                   Описание на дарението
                 </th>
-                <th className="p-2 text-center border-r border-black">
+                <th className="p-1.5 text-center border-r border-zinc-200">
                   {isRecovery ? "Услуга" : "Корт"}
                 </th>
-                <th className="p-2 text-center border-r border-black">
+                <th className="p-1.5 text-center border-r border-zinc-200">
                   Дата / Час
                 </th>
-                <th className="p-2 text-right">Сума</th>
+                <th className="p-1.5 text-right">Сума</th>
               </tr>
             </thead>
-            <tbody className="text-[10px]">
-              <tr className="border-b border-black">
-                <td className="p-3 border-r border-black">
+            <tbody>
+              <tr className="border-b border-zinc-200 font-medium">
+                <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
                   Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“
                   {isRecovery
-                    ? " от възстановителни процедури"
+                    ? " от възстановителни процедури (от Recovery zone by ZM)"
                     : " за ползване на бадминтон корт"}
                 </td>
-                <td className="p-3 text-center border-r border-black font-bold">
+                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800 font-bold">
                   {isRecovery
                     ? reservation.serviceName || "Услуга"
                     : reservations
@@ -127,7 +127,7 @@ const DocumentCopy = ({
                         .filter((v, i, a) => a.indexOf(v) === i)
                         .join(", ")}
                 </td>
-                <td className="p-3 text-center border-r border-black">
+                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
                   {reservations.map((r, idx) => {
                     const st = r.startTime.toDate();
                     const et = r.endTime.toDate();
@@ -139,18 +139,18 @@ const DocumentCopy = ({
                     );
                   })}
                 </td>
-                <td className="p-3 text-right font-bold">
+                <td className="p-1.5 text-right font-bold text-zinc-800">
                   {formatPrice(totalPrice)}
                 </td>
               </tr>
               <tr>
                 <td
                   colSpan={3}
-                  className="p-2 text-right border-r border-black font-bold uppercase text-[9px]"
+                  className="p-1.5 text-right border-r border-zinc-200 font-bold uppercase text-[8px] text-zinc-400"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-2 text-right font-bold text-xs">
+                <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900">
                   {formatPrice(totalPrice)}
                 </td>
               </tr>
@@ -159,23 +159,23 @@ const DocumentCopy = ({
         </div>
 
         {/* Signatures */}
-        <div className="mt-12 flex justify-between gap-20">
+        <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               За Клуба: {clubInfo.name}
             </p>
           </div>
           <div className="flex-1">
-            <div className="h-px bg-black w-full" />
-            <p className="text-[8px] font-bold mt-1 uppercase text-center">
+            <div className="h-px bg-zinc-300 w-full" />
+            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
               Дарител:{" "}
               {getClientDisplayName(reservation)}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
           <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
@@ -305,7 +305,7 @@ export function DonationReceiptDialog({
             className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-[10mm] flex flex-col gap-6 printable-area font-sans"
           >
             <DocumentCopy
-              label="Екземпляр за клиента"
+              label="Екземпляр за ДАРИТЕЛЯ"
               reservation={reservation}
               reservations={packageReservations}
               totalPrice={totalPrice}

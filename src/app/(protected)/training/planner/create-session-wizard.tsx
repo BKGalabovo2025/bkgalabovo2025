@@ -244,11 +244,18 @@ export default function CreateSessionWizard({
       }[] = [];
       let missingExercises = false;
 
-      // Methodological Time Distribution: 15% Warmup, 35% Tech, 40% Tact/Games, 10% Cooldown
-      const warmupTime = Math.round(eventDuration * 0.15);
-      const techTime = Math.round(eventDuration * 0.35);
-      const tactTime = Math.round(eventDuration * 0.4);
-      const cooldownTime = Math.round(eventDuration * 0.1);
+      // Methodological Time Distribution
+      let warmupTime = Math.round(eventDuration * 0.15);
+      let techTime = Math.round(eventDuration * 0.35);
+      let tactTime = Math.round(eventDuration * 0.4);
+      let cooldownTime = Math.round(eventDuration * 0.1);
+
+      if (focus === "Обща Подготовка" || period === "preparation") {
+        warmupTime = Math.round(eventDuration * 0.20);
+        techTime = Math.round(eventDuration * 0.70); // Use tech phase to hold main physical exercises
+        tactTime = 0;
+        cooldownTime = Math.round(eventDuration * 0.10);
+      }
 
       for (const group of targetCombinations) {
         const baseFiltered = allExercises.filter(
@@ -258,6 +265,7 @@ export default function CreateSessionWizard({
         );
 
         const selected: Exercise[] = [];
+        const usedIds = new Set<string>();
 
         // Helper to select exercises for a phase
         const selectForPhase = (
@@ -265,12 +273,12 @@ export default function CreateSessionWizard({
           targetPhase: string,
           useFocus: boolean = false
         ) => {
-          let pool = baseFiltered;
+          let pool = baseFiltered.filter((ex) => !usedIds.has(ex.id));
 
           // Apply Focus filtering for main phases
-          if (useFocus && focus !== "Обща Подготовка") {
+          if (useFocus && focus) {
             const focusedPool = pool.filter((ex) =>
-              ex.focusTags?.includes(focus)
+              ex.focusTags?.includes(focus) || (focus === "Обща Подготовка" && ex.focusTags?.includes("ОФП"))
             );
             if (focusedPool.length > 0) pool = focusedPool;
             else missingExercises = true; // Not enough focused exercises
@@ -284,9 +292,13 @@ export default function CreateSessionWizard({
               phasePool = pool.filter(
                 (ex) => ex.category === "warmup" || ex.category === "physical"
               );
-            else if (targetPhase === "main-tech")
-              phasePool = pool.filter((ex) => ex.category === "technical");
-            else if (targetPhase === "main-tact")
+            else if (targetPhase === "main-tech") {
+              if (focus === "Обща Подготовка" || period === "preparation") {
+                phasePool = pool.filter((ex) => ex.category === "physical");
+              } else {
+                phasePool = pool.filter((ex) => ex.category === "technical");
+              }
+            } else if (targetPhase === "main-tact")
               phasePool = pool.filter((ex) => ex.category === "tactical");
             else
               phasePool = pool.filter(
@@ -313,6 +325,7 @@ export default function CreateSessionWizard({
                 ex.defaultRestSec = bwf.restSec;
               }
               selected.push(ex);
+              usedIds.add(ex.id);
               currentDur += ex.durationMinutes;
             }
             if (currentDur >= timeLimit - 5) break;

@@ -17,9 +17,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { User, Users, Activity } from "lucide-react";
+import { User, Users, Activity, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Simple visual checkbox that avoids Radix compose-refs React 19 bug
+function VisualCheckbox({ checked, className }: { checked?: boolean; className?: string }) {
+  return (
+    <div className={cn(
+      "shrink-0 rounded-sm border border-zinc-300 flex items-center justify-center",
+      checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
+      className
+    )}>
+      {checked && <Check className="text-white" strokeWidth={3} style={{ width: "70%", height: "70%" }} />}
+    </div>
+  );
+}
 
 import { MemberFormValues } from "./member-form";
 
@@ -27,39 +39,44 @@ interface MemberFormStep1Props {
   form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
   isRecoveryBranch: boolean;
-  selectedMemberType: string;
 }
 
 export function MemberFormStep1({
   form,
   isActive,
   isRecoveryBranch,
-  selectedMemberType,
 }: MemberFormStep1Props) {
   if (!isActive) return null;
+
+  const isClubMember = form.watch("isClubMember");
+  const isRecoveryMember = form.watch("isRecoveryMember");
+  const isGuest = form.watch("isGuest");
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
 
   return (
     <BentoCard className="p-5 sm:p-8 border-zinc-100 shadow-none rounded-3xl sm:rounded-4xl animate-in fade-in slide-in-from-right-4 duration-300">
       {!isRecoveryBranch && (
         <div className="mb-8 pb-8 border-b border-zinc-100">
           <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 block mb-4">
-            Тип на профила *
+            Роли на профила (може да изберете повече от една) *
           </FormLabel>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <button
-              type="button"
-              onClick={() => form.setValue("memberType", "regular")}
+            <div
+              onClick={() => form.setValue("isClubMember", !isClubMember, { shouldValidate: true })}
               className={cn(
-                "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                selectedMemberType === "regular"
+                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                isClubMember
                   ? "border-zinc-950 bg-zinc-50 dark:border-white dark:bg-zinc-900"
                   : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
               )}
             >
+              <div className="absolute top-3 right-3">
+                <VisualCheckbox checked={isClubMember} />
+              </div>
               <Users
                 className={cn(
                   "h-6 w-6 mb-2",
-                  selectedMemberType === "regular"
+                  isClubMember
                     ? "text-zinc-950 dark:text-white"
                     : "text-zinc-400"
                 )}
@@ -67,7 +84,7 @@ export function MemberFormStep1({
               <span
                 className={cn(
                   "text-xs font-semibold uppercase tracking-wider",
-                  selectedMemberType === "regular"
+                  isClubMember
                     ? "text-zinc-950 dark:text-white"
                     : "text-zinc-500"
                 )}
@@ -77,22 +94,24 @@ export function MemberFormStep1({
               <span className="text-[10px] text-zinc-400 text-center mt-1">
                 Пълно досие с документи
               </span>
-            </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => form.setValue("memberType", "recovery")}
+            <div
+              onClick={() => form.setValue("isRecoveryMember", !isRecoveryMember, { shouldValidate: true })}
               className={cn(
-                "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                selectedMemberType === "recovery"
+                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                isRecoveryMember
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20"
                   : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
               )}
             >
+              <div className="absolute top-3 right-3">
+                <VisualCheckbox checked={isRecoveryMember} />
+              </div>
               <Activity
                 className={cn(
                   "h-6 w-6 mb-2",
-                  selectedMemberType === "recovery"
+                  isRecoveryMember
                     ? "text-emerald-600 dark:text-emerald-400"
                     : "text-zinc-400"
                 )}
@@ -100,7 +119,7 @@ export function MemberFormStep1({
               <span
                 className={cn(
                   "text-xs font-semibold uppercase tracking-wider",
-                  selectedMemberType === "recovery"
+                  isRecoveryMember
                     ? "text-emerald-700 dark:text-emerald-400"
                     : "text-zinc-500"
                 )}
@@ -110,22 +129,24 @@ export function MemberFormStep1({
               <span className="text-[10px] text-zinc-400 text-center mt-1">
                 Досие + Здравен статус
               </span>
-            </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => form.setValue("memberType", "guest")}
+            <div
+              onClick={() => form.setValue("isGuest", !isGuest, { shouldValidate: true })}
               className={cn(
-                "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                selectedMemberType === "guest"
+                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                isGuest
                   ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
                   : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
               )}
             >
+              <div className="absolute top-3 right-3">
+                <VisualCheckbox checked={isGuest} />
+              </div>
               <User
                 className={cn(
                   "h-6 w-6 mb-2",
-                  selectedMemberType === "guest"
+                  isGuest
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-zinc-400"
                 )}
@@ -133,7 +154,7 @@ export function MemberFormStep1({
               <span
                 className={cn(
                   "text-xs font-semibold uppercase tracking-wider",
-                  selectedMemberType === "guest"
+                  isGuest
                     ? "text-amber-700 dark:text-amber-400"
                     : "text-zinc-500"
                 )}
@@ -143,7 +164,7 @@ export function MemberFormStep1({
               <span className="text-[10px] text-zinc-400 text-center mt-1">
                 Бърз профил (име и телефон)
               </span>
-            </button>
+            </div>
           </div>
         </div>
       )}
@@ -191,7 +212,7 @@ export function MemberFormStep1({
             </FormItem>
           )}
         />
-        {selectedMemberType === "regular" && (
+        {isClubMember && (
           <FormField
             name="middleName"
             control={form.control}
@@ -213,7 +234,7 @@ export function MemberFormStep1({
           />
         )}
 
-        {selectedMemberType !== "guest" && (
+        {!isGuestOnly && (
           <>
             <FormField
               control={form.control}
@@ -227,11 +248,9 @@ export function MemberFormStep1({
                     onValueChange={field.onChange}
                     value={field.value || ""}
                   >
-                    <FormControl>
-                      <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                      <SelectValue placeholder="Изберете пол" />
+                    </SelectTrigger>
                     <SelectContent className="rounded-xl border-zinc-100">
                       <SelectItem value="male">Мъж</SelectItem>
                       <SelectItem value="female">Жена</SelectItem>
@@ -316,11 +335,9 @@ export function MemberFormStep1({
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
                         value={curYear || ""}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Година" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent className="max-h-[300px]">
                           {years.map((y) => (
                             <SelectItem key={y} value={y}>
@@ -336,11 +353,9 @@ export function MemberFormStep1({
                         }
                         value={curMonth || "none"}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Месец" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent>
                           <SelectItem value="none">Месец</SelectItem>
                           {months.map((m) => (
@@ -358,11 +373,9 @@ export function MemberFormStep1({
                         value={curDay || "none"}
                         disabled={!curMonth}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Ден" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent>
                           <SelectItem value="none">Ден</SelectItem>
                           {days.map((d) => (
@@ -454,11 +467,9 @@ export function MemberFormStep1({
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
                         value={curYear || ""}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Година" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent className="max-h-[300px]">
                           {years.map((y) => (
                             <SelectItem key={y} value={y}>
@@ -474,11 +485,9 @@ export function MemberFormStep1({
                         }
                         value={curMonth || "none"}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Месец" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent>
                           <SelectItem value="none">Месец</SelectItem>
                           {months.map((m) => (
@@ -496,11 +505,9 @@ export function MemberFormStep1({
                         value={curDay || "none"}
                         disabled={!curMonth}
                       >
-                        <FormControl>
                           <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
                             <SelectValue placeholder="Ден" />
                           </SelectTrigger>
-                        </FormControl>
                         <SelectContent>
                           <SelectItem value="none">Ден</SelectItem>
                           {days.map((d) => (
@@ -521,7 +528,7 @@ export function MemberFormStep1({
       </div>
 
       {/* --- ADDED FOR PUBLIC TEAM PAGE --- */}
-      {selectedMemberType === "regular" && (
+      {isClubMember && (
         <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
           <FormField
             name="avatarUrl"
@@ -549,30 +556,28 @@ export function MemberFormStep1({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="showOnPublicTeam"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 h-auto min-h-[44px] sm:min-h-[48px] mt-auto">
+          {(() => {
+            const showOnPublicTeam = form.watch("showOnPublicTeam");
+            return (
+              <div
+                className="flex flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 h-auto min-h-[44px] sm:min-h-[48px] mt-auto cursor-pointer"
+                onClick={() => form.setValue("showOnPublicTeam", !showOnPublicTeam, { shouldValidate: true })}
+              >
                 <div className="space-y-1">
-                  <FormLabel className="text-[11px] font-medium text-zinc-700 block">
+                  <p className="text-[11px] font-medium text-zinc-700">
                     Показвай в публичния отбор
-                  </FormLabel>
+                  </p>
                   <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
-                    Ако е избрано, състезателят ще се показва на страница
-                    /club/team.
+                    Ако е избрано, ще се показва на страница /club/team.
                   </p>
                 </div>
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+                <VisualCheckbox
+                  checked={showOnPublicTeam}
+                  className="h-5 w-5 data-checked:bg-emerald-500 pointer-events-none"
+                />
+              </div>
+            );
+          })()}
         </div>
       )}
     </BentoCard>

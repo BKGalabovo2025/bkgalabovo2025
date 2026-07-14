@@ -3,6 +3,10 @@
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
 export { type Reservation, type BlockedSlot } from "./reservation";
+export {
+  type DeclarationTemplate,
+  type SignedDeclaration,
+} from "./declaration.types";
 
 export type Family = {
   id: string;

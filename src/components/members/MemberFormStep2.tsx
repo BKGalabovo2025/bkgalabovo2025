@@ -17,15 +17,18 @@ import { MemberFormValues } from "./member-form";
 interface MemberFormStep2Props {
   form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
-  selectedMemberType: string;
 }
 
 export function MemberFormStep2({
   form,
   isActive,
-  selectedMemberType,
 }: MemberFormStep2Props) {
   if (!isActive) return null;
+
+  const isGuest = form.watch("isGuest");
+  const isClubMember = form.watch("isClubMember");
+  const isRecoveryMember = form.watch("isRecoveryMember");
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
 
   return (
     <BentoCard className="p-5 sm:p-8 border-zinc-100 shadow-none rounded-3xl sm:rounded-4xl animate-in fade-in slide-in-from-right-4 duration-300">
@@ -76,7 +79,7 @@ export function MemberFormStep2({
           )}
         />
 
-        {selectedMemberType !== "guest" && (
+        {!isGuestOnly && (
           <FormField
             name="address"
             control={form.control}
@@ -98,7 +101,7 @@ export function MemberFormStep2({
           />
         )}
 
-        {selectedMemberType !== "guest" && (
+        {!isGuestOnly && (
           <div className="sm:col-span-2 pt-6 border-t border-zinc-100 mt-2">
             <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-4">
               Спешен Контакт

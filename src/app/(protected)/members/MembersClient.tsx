@@ -132,9 +132,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       .filter((member) => {
         // Оставяме само клубните членове
         const isRegular =
-          !member.isGuest &&
-          member.memberType !== "guest" &&
-          member.memberType !== "recovery";
+          member.isClubMember || (!member.isGuest && member.memberType === "regular");
         if (!isRegular) return false;
 
         const matchesSearch =
@@ -266,14 +264,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   }, [filteredMembers, currentPage]);
 
   const stats = useMemo(() => {
-    const regularMembers = members.filter(
-      (m) =>
-        !m.isGuest && m.memberType !== "guest" && m.memberType !== "recovery"
+    // Club members = has isClubMember flag OR old memberType="regular" (and not a guest-only)
+    const clubMembers = members.filter(
+      (m) => m.isClubMember === true || 
+        (m.memberType === "regular" && !m.isGuest)
     );
     return {
-      total: regularMembers.length,
-      active: regularMembers.filter((m) => m.status === "active").length,
-      inactive: regularMembers.filter((m) => m.status === "inactive").length,
+      total: clubMembers.length,
+      active: clubMembers.filter((m) => m.status === "active").length,
+      inactive: clubMembers.filter((m) => m.status === "inactive").length,
     };
   }, [members]);
 
@@ -404,8 +403,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   return (
     <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 px-3 sm:px-6 lg:px-8">
       <PageHeader
-        title="Членове на клуба"
-        description="Управление на профили, членски карти и статуси на спортистите."
+        title={isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
+        description={isRecoveryBranch ? "Управление на профили, здравни досиета и статуси на клиентите." : "Управление на профили, членски карти и статуси на спортистите."}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Членове" },

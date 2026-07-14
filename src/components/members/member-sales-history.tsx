@@ -52,25 +52,27 @@ const formatPaymentMethod = (method?: string) => {
 
 const formatSaleDateCell = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isCourtRental =
+  const isTimeBasedService = 
+    sale.type === "general_service" || 
     sale.items?.[0]?.productId?.startsWith("court_rental") ||
-    sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+    sale.items?.[0]?.productId?.startsWith("recovery_session");
 
-  const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
+  const formattedDate = start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
 
-  if (isCourtRental) {
+  if (isTimeBasedService) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
     const timeRange =
       start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) +
       " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+
     return (
       <>
         <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
           {formattedDate}
         </span>
-        <div className="text-[10px] text-zinc-500 font-semibold mt-0.5 whitespace-nowrap">
+        <div className="text-[10px] text-zinc-400 mt-0.5">
           {timeRange} ({hours} ч.)
         </div>
       </>
@@ -94,13 +96,14 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
 
 const formatSaleDateMobile = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isCourtRental =
+  const isTimeBasedService = 
+    sale.type === "general_service" || 
     sale.items?.[0]?.productId?.startsWith("court_rental") ||
-    sale.items?.[0]?.name?.toLowerCase()?.includes("наем на корт");
+    sale.items?.[0]?.productId?.startsWith("recovery_session");
 
-  const formattedDate = start.toLocaleDateString("bg-BG") + " г.";
+  const formattedDate = start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
 
-  if (isCourtRental) {
+  if (isTimeBasedService) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
     const timeRange =
@@ -295,6 +298,9 @@ export const MemberSalesHistory = ({
                             </TableHead>
                             <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                               Услуга / Продукт
+                            </TableHead>
+                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                              Клиент(и)
                             </TableHead>
                             <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
                               Плащане

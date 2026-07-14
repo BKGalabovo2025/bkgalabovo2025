@@ -128,6 +128,9 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
         const col = (name: string): admin.firestore.Query => {
           const ref = adminDb.collection(name);
+          if (name === "members" || name === "families") {
+            return ref;
+          }
           return siteFilter ? ref.where("siteId", "==", activeBranch) : ref;
         };
 
@@ -164,7 +167,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             .get(),
           col("members").where("isGuest", "==", true).count().get(),
           col("families").count().get(),
-          col("members").where("memberType", "==", "recovery").count().get(),
+          col("members").where("isRecoveryMember", "==", true).count().get(),
         ]);
 
         // в”Ђв”Ђ DOCUMENT QUERIES (only what must be displayed) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
@@ -366,10 +369,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         const totalGuests = guestsCount.data().count;
         const totalFamilies = familiesCount.data().count;
         const totalRecovery = recoveryMembersCount.data().count;
-        const totalClubMembers = Math.max(
-          0,
-          tMem - totalGuests - totalRecovery
-        );
+        const totalClubMembers = await col("members").where("isClubMember", "==", true).count().get().then(s => s.data().count);
 
         const stats = {
           totalMembers: tMem,

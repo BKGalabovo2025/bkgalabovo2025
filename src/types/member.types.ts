@@ -116,6 +116,8 @@ export const MemberSchema = z.object({
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),
   isGuest: z.boolean().optional(),
+  isClubMember: z.boolean().optional(),
+  isRecoveryMember: z.boolean().optional(),
   memberType: z
     .enum(["regular", "guest", "recovery"])
     .catch("regular")

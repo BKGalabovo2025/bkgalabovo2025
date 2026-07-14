@@ -87,6 +87,9 @@ export const MemberForm = ({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
+      isClubMember: (safeInitialData.isClubMember as boolean | undefined) ?? (safeInitialData.memberType === "regular"),
+      isRecoveryMember: (safeInitialData.isRecoveryMember as boolean | undefined) ?? (safeInitialData.memberType === "recovery" || activeBranch === "recoveryzone"),
+      isGuest: (safeInitialData.isGuest as boolean | undefined) ?? (safeInitialData.memberType === "guest"),
       memberType: activeBranch === "recoveryzone" ? "recovery" : "regular",
       ...safeInitialData,
     },
@@ -98,11 +101,15 @@ export const MemberForm = ({
     watch,
   } = form;
 
-  const selectedMemberType = watch("memberType") || "regular";
+  const isClubMember = watch("isClubMember");
+  const isRecoveryMember = watch("isRecoveryMember");
+  const isGuest = watch("isGuest");
   const isRecoveryBranch = activeBranch === "recoveryzone";
 
-  // Calculate total steps based on member type
-  const totalSteps = selectedMemberType === "guest" ? 2 : 3;
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
+  
+  // Calculate total steps
+  const totalSteps = isGuestOnly ? 2 : 3;
 
   const handleNextStep = async () => {
     let isValid = false;
@@ -135,12 +142,15 @@ export const MemberForm = ({
   };
 
   const onSubmit = async (data: MemberFormValues) => {
-    // If guest, ensure we clear out some irrelevant fields just in case
-    if (data.memberType === "guest") {
-      data.isGuest = true;
-    } else {
-      data.isGuest = false;
+    // Determine primary memberType for backward compatibility
+    if (data.isClubMember) {
+      data.memberType = "regular";
+    } else if (data.isRecoveryMember) {
+      data.memberType = "recovery";
+    } else if (data.isGuest) {
+      data.memberType = "guest";
     }
+
     await onSave(data);
   };
 
@@ -148,7 +158,7 @@ export const MemberForm = ({
     <Form {...form}>
       <form
         aria-label="member-form"
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit as any)}
         className="flex flex-col h-full"
       >
         {/* STEP PROGRESS BAR */}
@@ -162,20 +172,17 @@ export const MemberForm = ({
 
         <div className="flex-1 space-y-6 sm:space-y-8 min-h-[400px]">
           <MemberFormStep1
-            form={form}
+            form={form as any}
             isActive={step === 1}
             isRecoveryBranch={isRecoveryBranch}
-            selectedMemberType={selectedMemberType}
           />
           <MemberFormStep2
-            form={form}
+            form={form as any}
             isActive={step === 2}
-            selectedMemberType={selectedMemberType}
           />
           <MemberFormStep3
-            form={form}
+            form={form as any}
             isActive={step === 3}
-            selectedMemberType={selectedMemberType}
           />
         </div>
 

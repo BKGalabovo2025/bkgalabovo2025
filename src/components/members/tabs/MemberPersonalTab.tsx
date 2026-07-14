@@ -31,10 +31,16 @@ interface MemberPersonalTabProps {
 
 // ── Pure label helpers (no nested ternaries) ──────────────────────────────────────
 
-function getMemberTypeLabel(memberType: string | null | undefined): string {
-  if (memberType === "guest") return "Външен / Гост";
-  if (memberType === "recovery") return "Клиент Възстановяване";
-  return "Клубен Член";
+function getMemberTypeLabel(member: { memberType?: string | null; isClubMember?: boolean; isRecoveryMember?: boolean; isGuest?: boolean }): string {
+  const roles: string[] = [];
+  if (member.isClubMember) roles.push("Клубен член");
+  if (member.isRecoveryMember) roles.push("Член на зоната");
+  if (member.isGuest) roles.push("Външен / Гост");
+  if (roles.length > 0) return roles.join(" + ");
+  // Fallback to old memberType
+  if (member.memberType === "guest") return "Външен / Гост";
+  if (member.memberType === "recovery") return "Клиент Възстановяване";
+  return "Клубен член";
 }
 
 function getGenderLabel(gender: string | null | undefined): string | null {
@@ -111,7 +117,7 @@ export const MemberPersonalTab = ({
   return (
     <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
-        <InfoRow icon={Contact} label="Тип клиент" value={getMemberTypeLabel(member.memberType)} />
+        <InfoRow icon={Contact} label="Тип клиент" value={getMemberTypeLabel(member)} />
         <InfoRow icon={Mail} label="Имейл" value={member.email} />
         <InfoRow icon={Phone} label="Телефон" value={member.phone} />
         <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />

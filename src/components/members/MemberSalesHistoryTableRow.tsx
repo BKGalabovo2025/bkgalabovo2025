@@ -65,9 +65,9 @@ export function MemberSalesHistoryTableRow({
       onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
       className="cursor-pointer border-zinc-50 hover:bg-zinc-50/50 transition-all group"
     >
-      <TableCell className="py-4 pl-5">{formatSaleDateCell(sale)}</TableCell>
+      <TableCell className="py-4 pl-5 whitespace-nowrap">{formatSaleDateCell(sale)}</TableCell>
       <TableCell className="py-4 max-w-[300px]">
-        <div className="text-xs font-medium text-zinc-900 truncate" title={itemsList}>
+        <div className="text-xs font-medium text-zinc-900 break-words leading-tight" title={itemsList}>
           {itemsList}
         </div>
         {isSubscription && (
@@ -81,6 +81,21 @@ export function MemberSalesHistoryTableRow({
             {familyMember?.lastName || ""}
           </div>
         )}
+      </TableCell>
+      <TableCell className="py-4">
+        <div className="flex flex-col">
+          <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 break-words leading-tight">
+            {sale.clientName || familyMember?.firstName || "Външен клиент"}
+            {(sale as any).client2Name ? ` & ${(sale as any).client2Name}` : ""}
+          </span>
+          <span className="text-[10px] text-zinc-400">
+            {sale.note || 
+             ((sale as any).clientPhone && (sale as any).client2Phone
+               ? `${(sale as any).clientPhone} / ${(sale as any).client2Phone}`
+               : (sale as any).clientPhone) || 
+             "Няма телефон"}
+          </span>
+        </div>
       </TableCell>
       <TableCell className="py-4">
         <span className="text-sm font-light text-zinc-600 dark:text-zinc-400">
@@ -102,7 +117,7 @@ export function MemberSalesHistoryTableRow({
         {formatPrice(sale.totalAmount)}
       </TableCell>
       <TableCell className="text-right pr-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

@@ -23,7 +23,7 @@ export function RecoveryClientsList({
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const recoveryClients = members.filter((m) => m.memberType === "recovery");
+  const recoveryClients = members.filter((m) => m.isRecoveryMember || m.memberType === "recovery");
 
   const handleDeleteMember = async (
     e: React.MouseEvent,
@@ -75,9 +75,9 @@ export function RecoveryClientsList({
               Относно Клиенти Възстановяване
             </p>
             <p className="text-xs font-light text-zinc-500 leading-relaxed">
-              Това са клиенти, които посещават само Зоната за Възстановяване. Те
-              имат специално досие със здравна информация и история на
-              процедурите.
+              Това са клиенти, които имат профил във Възстановителната зона. 
+              Те могат да бъдат и външни лица, и клубни членове. Тук се съхранява 
+              тяхното досие със здравна информация и история на процедурите.
             </p>
           </div>
         </BentoCard>
