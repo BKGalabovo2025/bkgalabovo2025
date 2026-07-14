@@ -2198,31 +2198,59 @@ export default function SettingsClient() {
                   </div>
                   <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto">
                     {auditLogs.length === 0 ? (
-                      <div className="p-10 text-center text-sm font-light text-zinc-500">
-                        {loadingLogs
-                          ? "Зареждане на дневника..."
-                          : "Няма намерени записи в историята."}
+                      <div className="p-12 flex flex-col items-center justify-center text-center">
+                        <Activity
+                          className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
+                          strokeWidth={1}
+                        />
+                        <span className="text-sm font-light text-zinc-500">
+                          {loadingLogs
+                            ? "Зареждане на дневника..."
+                            : "Няма намерени записи в историята."}
+                        </span>
                       </div>
                     ) : (
-                      auditLogs.map((log) => (
-                        <div
-                          key={log.id}
-                          className="px-6 py-4 grid grid-cols-12 gap-4 text-sm font-light hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
-                        >
-                          <div className="col-span-3 text-zinc-500">
-                            {new Date(log.timestamp).toLocaleString("bg-BG")}
+                      auditLogs.map((log) => {
+                        const dateStr = new Date(log.timestamp).toLocaleString(
+                          "bg-BG"
+                        );
+                        const [datePart, timePart] = dateStr.includes(", ")
+                          ? dateStr.split(", ")
+                          : [dateStr, ""];
+                        return (
+                          <div
+                            key={log.id}
+                            className="px-6 py-5 grid grid-cols-12 gap-6 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50 transition-all items-center group cursor-default"
+                          >
+                            <div className="col-span-3 flex flex-col gap-0.5">
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {datePart}
+                              </span>
+                              {timePart && (
+                                <span className="text-xs font-light text-zinc-500 group-hover:text-primary transition-colors">
+                                  {timePart}
+                                </span>
+                              )}
+                            </div>
+                            <div className="col-span-3">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-wider">
+                                {log.action}
+                              </span>
+                            </div>
+                            <div className="col-span-4 text-zinc-600 dark:text-zinc-400 font-light text-sm leading-relaxed">
+                              {log.details}
+                            </div>
+                            <div className="col-span-2 flex items-center gap-2 text-zinc-500 text-xs truncate">
+                              <div className="h-7 w-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                                <User className="h-3.5 w-3.5 text-zinc-400" />
+                              </div>
+                              <span className="truncate">
+                                {log.userEmail.split("@")[0]}
+                              </span>
+                            </div>
                           </div>
-                          <div className="col-span-3 text-zinc-900 dark:text-zinc-100">
-                            {log.action}
-                          </div>
-                          <div className="col-span-4 text-zinc-600 dark:text-zinc-400">
-                            {log.details}
-                          </div>
-                          <div className="col-span-2 text-zinc-500 truncate">
-                            {log.userEmail}
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </div>
