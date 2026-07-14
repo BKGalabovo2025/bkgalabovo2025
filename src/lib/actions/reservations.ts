@@ -48,6 +48,36 @@ const blockedSlotSchema = z.object({
   siteId: z.string(),
 });
 
+function getProductNameForReservation(
+  courtId: number | undefined,
+  reservation: any
+): string {
+  let productName = courtId
+    ? `Наем на Корт № ${courtId}`
+    : `Възстановяване: ${reservation.serviceName || "Услуга"}`;
+
+  if (!courtId && (reservation.selectedZone || reservation.client2Zone)) {
+    const parts = [];
+    if (reservation.clientName && reservation.selectedZone) {
+      parts.push(`${reservation.clientName} - ${reservation.selectedZone}`);
+    } else if (reservation.selectedZone) {
+      parts.push(reservation.selectedZone);
+    }
+
+    if (reservation.client2Name && reservation.client2Zone) {
+      parts.push(`${reservation.client2Name} - ${reservation.client2Zone}`);
+    } else if (reservation.client2Zone) {
+      parts.push(reservation.client2Zone);
+    }
+
+    if (parts.length > 0) {
+      productName += ` (${parts.join(" / ")})`;
+    }
+  }
+
+  return productName;
+}
+
 async function createSaleForReservation(
   db: any,
   user: any,
@@ -73,28 +103,7 @@ async function createSaleForReservation(
   const unitPrice = totalPrice / quantity;
 
   const courtId = reservation.courtId;
-  let productName = courtId
-    ? `Наем на Корт № ${courtId}`
-    : `Възстановяване: ${reservation.serviceName || "Услуга"}`;
-
-  if (!courtId && (reservation.selectedZone || reservation.client2Zone)) {
-    const parts = [];
-    if (reservation.clientName && reservation.selectedZone) {
-      parts.push(`${reservation.clientName} - ${reservation.selectedZone}`);
-    } else if (reservation.selectedZone) {
-      parts.push(reservation.selectedZone);
-    }
-
-    if (reservation.client2Name && reservation.client2Zone) {
-      parts.push(`${reservation.client2Name} - ${reservation.client2Zone}`);
-    } else if (reservation.client2Zone) {
-      parts.push(reservation.client2Zone);
-    }
-    
-    if (parts.length > 0) {
-      productName += ` (${parts.join(" / ")})`;
-    }
-  }
+  const productName = getProductNameForReservation(courtId, reservation);
 
   const saleData = {
     siteId: reservation.siteId || "bkgalabovo",
@@ -121,7 +130,7 @@ async function createSaleForReservation(
     client2Phone: reservation.client2Phone || "",
     type: "general_service",
     reservationId: reservationId,
-    memberIdsForAttendance: reservation.client2Id 
+    memberIdsForAttendance: reservation.client2Id
       ? [reservation.memberId || "GUEST_EXTERNAL", reservation.client2Id]
       : [reservation.memberId || "GUEST_EXTERNAL"],
     createdAt: FieldValue.serverTimestamp(),
@@ -231,7 +240,110 @@ async function findOrCreateGuestProfile(
   return newMemberRef.id;
 }
 
-/* eslint-disable sonarjs/cognitive-complexity */
+async function checkReservationConflicts(
+  db: any,
+  validated: any,
+  startTime: any,
+  endTime: any
+): Promise<string | null> {
+  if (!validated.courtId) return null;
+  const reservationsRef = db.collection("reservations");
+  const conflictingRes = await reservationsRef
+    .where("siteId", "==", validated.siteId)
+    .where("courtId", "==", validated.courtId)
+    .where("startTime", "<", endTime)
+    .get();
+
+  const hasConflict = conflictingRes.docs.some((doc: any) => {
+    const res = doc.data();
+    return res.endTime > startTime;
+  });
+
+  return hasConflict
+    ? "Избраният период се застъпва със съществуваща резервация."
+    : null;
+}
+
+async function checkRecoveryInventory(
+  db: any,
+  validated: any,
+  startTime: any,
+  endTime: any
+): Promise<string | null> {
+  if (validated.siteId !== "recoveryzone" || !validated.usedResources)
+    return null;
+  const siteDoc = await db.collection("sites").doc("recoveryzone").get();
+  if (!siteDoc.exists) return null;
+  const siteInfo = siteDoc.data() || {};
+  if (!siteInfo.inventory) return null;
+
+  const maxComp = siteInfo.inventory.compressors || 0;
+  const maxLegs = siteInfo.inventory.attachments?.legs || 0;
+  const maxArms = siteInfo.inventory.attachments?.arms || 0;
+  const maxHips = siteInfo.inventory.attachments?.hips || 0;
+
+  const overlappingRes = await db
+    .collection("reservations")
+    .where("siteId", "==", "recoveryzone")
+    .where("startTime", "<", endTime)
+    .get();
+
+  let usedComp = 0,
+    usedLegs = 0,
+    usedArms = 0,
+    usedHips = 0;
+
+  overlappingRes.docs.forEach((doc: any) => {
+    const res = doc.data();
+    if (res.endTime > startTime && res.usedResources) {
+      usedComp += res.usedResources.compressors || 0;
+      usedLegs += res.usedResources.attachments?.legs || 0;
+      usedArms += res.usedResources.attachments?.arms || 0;
+      usedHips += res.usedResources.attachments?.hips || 0;
+    }
+  });
+
+  const reqComp = validated.usedResources.compressors || 0;
+  const reqLegs = validated.usedResources.attachments?.legs || 0;
+  const reqArms = validated.usedResources.attachments?.arms || 0;
+  const reqHips = validated.usedResources.attachments?.hips || 0;
+
+  if (usedComp + reqComp > maxComp)
+    return `Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`;
+  if (usedLegs + reqLegs > maxLegs)
+    return `Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`;
+  if (usedArms + reqArms > maxArms)
+    return `Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`;
+  if (usedHips + reqHips > maxHips)
+    return `Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`;
+
+  return null;
+}
+
+async function checkBlockedSlots(
+  db: any,
+  validated: any,
+  startTime: any,
+  endTime: any
+): Promise<string | null> {
+  if (!validated.courtId) return null;
+  const blockedSlots = await db
+    .collection("blockedSlots")
+    .where("siteId", "==", validated.siteId)
+    .where("startTime", "<", endTime)
+    .get();
+
+  const hasBlocked = blockedSlots.docs.some((doc: any) => {
+    const slot = doc.data();
+    const overlapsTime = slot.endTime > startTime;
+    const appliesToCourt =
+      slot.courtIds.length === 0 || slot.courtIds.includes(validated.courtId);
+    return overlapsTime && appliesToCourt;
+  });
+
+  return hasBlocked ? "Избраният период е блокиран от администратор." : null;
+}
+
 export async function createReservationAction(
   idToken: string,
   data: Record<string, unknown>
@@ -244,115 +356,31 @@ export async function createReservationAction(
     const startTime = Timestamp.fromDate(new Date(validated.startTime));
     const endTime = Timestamp.fromDate(new Date(validated.endTime));
 
-    // Conflict check - Reservations
+    const conflictError = await checkReservationConflicts(
+      db,
+      validated,
+      startTime,
+      endTime
+    );
+    if (conflictError) return { success: false, message: conflictError };
+
+    const inventoryError = await checkRecoveryInventory(
+      db,
+      validated,
+      startTime,
+      endTime
+    );
+    if (inventoryError) return { success: false, message: inventoryError };
+
+    const blockedError = await checkBlockedSlots(
+      db,
+      validated,
+      startTime,
+      endTime
+    );
+    if (blockedError) return { success: false, message: blockedError };
+
     const reservationsRef = db.collection("reservations");
-    let hasConflict = false;
-
-    if (validated.courtId) {
-      const conflictingRes = await reservationsRef
-        .where("siteId", "==", validated.siteId)
-        .where("courtId", "==", validated.courtId)
-        .where("startTime", "<", endTime)
-        .get();
-
-      hasConflict = conflictingRes.docs.some((doc: any) => {
-        const res = doc.data();
-        return res.endTime > startTime;
-      });
-    }
-
-    if (hasConflict) {
-      return {
-        success: false,
-        message: "�?збраният период се застъпва със съществуваща резервация.",
-      };
-    }
-
-    // Inventory check for Recovery Zone
-    if (validated.siteId === "recoveryzone" && validated.usedResources) {
-      const siteDoc = await db.collection("sites").doc("recoveryzone").get();
-      if (siteDoc.exists) {
-        const siteInfo = siteDoc.data() || {};
-        if (siteInfo.inventory) {
-          const maxComp = siteInfo.inventory.compressors || 0;
-          const maxLegs = siteInfo.inventory.attachments?.legs || 0;
-          const maxArms = siteInfo.inventory.attachments?.arms || 0;
-          const maxHips = siteInfo.inventory.attachments?.hips || 0;
-
-          const overlappingRes = await reservationsRef
-            .where("siteId", "==", "recoveryzone")
-            .where("startTime", "<", endTime)
-            .get();
-
-          let usedComp = 0;
-          let usedLegs = 0;
-          let usedArms = 0;
-          let usedHips = 0;
-
-          overlappingRes.docs.forEach((doc: any) => {
-            const res = doc.data();
-            if (res.endTime > startTime && res.usedResources) {
-              usedComp += res.usedResources.compressors || 0;
-              usedLegs += res.usedResources.attachments?.legs || 0;
-              usedArms += res.usedResources.attachments?.arms || 0;
-              usedHips += res.usedResources.attachments?.hips || 0;
-            }
-          });
-
-          const reqComp = validated.usedResources.compressors || 0;
-          const reqLegs = validated.usedResources.attachments?.legs || 0;
-          const reqArms = validated.usedResources.attachments?.arms || 0;
-          const reqHips = validated.usedResources.attachments?.hips || 0;
-
-          if (usedComp + reqComp > maxComp)
-            return {
-              success: false,
-              message: `Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`,
-            };
-          if (usedLegs + reqLegs > maxLegs)
-            return {
-              success: false,
-              message: `Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`,
-            };
-          if (usedArms + reqArms > maxArms)
-            return {
-              success: false,
-              message: `Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`,
-            };
-          if (usedHips + reqHips > maxHips)
-            return {
-              success: false,
-              message: `Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`,
-            };
-        }
-      }
-    }
-
-    // Conflict check - Blocked Slots
-    let hasBlocked = false;
-    if (validated.courtId) {
-      const blockedRef = db.collection("blockedSlots");
-      const blockedSlots = await blockedRef
-        .where("siteId", "==", validated.siteId)
-        .where("startTime", "<", endTime)
-        .get();
-      hasBlocked = blockedSlots.docs.some((doc: any) => {
-        const slot = doc.data();
-        const overlapsTime = slot.endTime > startTime;
-        const appliesToCourt =
-          slot.courtIds.length === 0 ||
-          slot.courtIds.includes(validated.courtId!);
-        return overlapsTime && appliesToCourt;
-      });
-    }
-
-    if (hasBlocked) {
-      return {
-        success: false,
-        message: "�?збраният период е блокиран от администратор.",
-      };
-    }
-
     let finalMemberId = validated.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
       finalMemberId = await findOrCreateGuestProfile(
@@ -555,7 +583,7 @@ export async function deleteReservationAction(
         .collection("reservations")
         .where("packageGroupId", "==", packageGroupId)
         .get();
-      
+
       reservationIdsToDelete = packageRes.docs.map((doc: any) => doc.id);
 
       // Delete the client_package document
@@ -589,11 +617,12 @@ export async function deleteReservationAction(
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
-    return { 
-      success: true, 
-      message: reservationIdsToDelete.length > 1 
-        ? "Целият пакет резервации беше изтрит." 
-        : "Резервацията е изтрита." 
+    return {
+      success: true,
+      message:
+        reservationIdsToDelete.length > 1
+          ? "Целият пакет резервации беше изтрит."
+          : "Резервацията е изтрита.",
     };
   } catch (error: unknown) {
     return {
@@ -1333,4 +1362,3 @@ export async function checkRecoveryInventoryAction(
     return { success: false, message: "Грешка при проверка на наличността." };
   }
 }
-

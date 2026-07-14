@@ -51,11 +51,14 @@ export interface Reservation {
 
   // Client Info
   clientId?: string;
+  memberId?: string;
   clientName: string;
   clientPhone: string;
   clientEmail?: string;
   client2Name?: string;
   client2Phone?: string;
+  client2Id?: string;
+  paymentMethod?: string;
 
   // Shared State
   status: ReservationStatus;

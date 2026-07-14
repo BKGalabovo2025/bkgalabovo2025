@@ -26,6 +26,9 @@ export const SaleSchema = z.object({
   paymentMethod: z.string().optional(),
   note: z.string().optional(),
   clientName: z.string().optional(),
+  clientPhone: z.string().optional(),
+  client2Name: z.string().optional(),
+  client2Phone: z.string().optional(),
   createdAt: z
     .string()
     .datetime({ message: "Invalid creation date format" })

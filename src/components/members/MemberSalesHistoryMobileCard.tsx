@@ -37,8 +37,10 @@ function getSaleTypeText(type?: string, isSubscription?: boolean) {
 }
 
 function getMobileBadgeClass(variant: string) {
-  if (variant === "default") return "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10";
-  if (variant === "secondary") return "bg-amber-500 text-white shadow-lg shadow-amber-500/10";
+  if (variant === "default")
+    return "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10";
+  if (variant === "secondary")
+    return "bg-amber-500 text-white shadow-lg shadow-amber-500/10";
   return "bg-zinc-100 text-zinc-400 border-zinc-100";
 }
 
@@ -77,18 +79,21 @@ export function MemberSalesHistoryMobileCard({
           <div className="flex flex-col mt-1">
             <span className="font-semibold text-[10px] text-zinc-900 dark:text-zinc-100">
               {sale.clientName || familyMember?.firstName || "Външен клиент"}
-              {(sale as any).client2Name ? ` & ${(sale as any).client2Name}` : ""}
+              {sale.client2Name ? ` & ${sale.client2Name}` : ""}
             </span>
             <span className="text-[9px] text-zinc-400">
-              {sale.note || 
-               ((sale as any).clientPhone && (sale as any).client2Phone
-                 ? `${(sale as any).clientPhone} / ${(sale as any).client2Phone}`
-                 : (sale as any).clientPhone) || 
-               "Няма телефон"}
+              {sale.note ||
+                (sale.clientPhone && sale.client2Phone
+                  ? `${sale.clientPhone} / ${sale.client2Phone}`
+                  : sale.clientPhone) ||
+                "Няма телефон"}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Badge
             variant={statusDetails.variant}
             className={cn(

@@ -87,9 +87,16 @@ export const MemberForm = ({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
-      isClubMember: (safeInitialData.isClubMember as boolean | undefined) ?? (safeInitialData.memberType === "regular"),
-      isRecoveryMember: (safeInitialData.isRecoveryMember as boolean | undefined) ?? (safeInitialData.memberType === "recovery" || activeBranch === "recoveryzone"),
-      isGuest: (safeInitialData.isGuest as boolean | undefined) ?? (safeInitialData.memberType === "guest"),
+      isClubMember:
+        (safeInitialData.isClubMember as boolean | undefined) ??
+        safeInitialData.memberType === "regular",
+      isRecoveryMember:
+        (safeInitialData.isRecoveryMember as boolean | undefined) ??
+        (safeInitialData.memberType === "recovery" ||
+          activeBranch === "recoveryzone"),
+      isGuest:
+        (safeInitialData.isGuest as boolean | undefined) ??
+        safeInitialData.memberType === "guest",
       memberType: activeBranch === "recoveryzone" ? "recovery" : "regular",
       ...safeInitialData,
     },
@@ -107,7 +114,7 @@ export const MemberForm = ({
   const isRecoveryBranch = activeBranch === "recoveryzone";
 
   const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
-  
+
   // Calculate total steps
   const totalSteps = isGuestOnly ? 2 : 3;
 
@@ -158,7 +165,7 @@ export const MemberForm = ({
     <Form {...form}>
       <form
         aria-label="member-form"
-        onSubmit={form.handleSubmit(onSubmit as any)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col h-full"
       >
         {/* STEP PROGRESS BAR */}
@@ -172,18 +179,12 @@ export const MemberForm = ({
 
         <div className="flex-1 space-y-6 sm:space-y-8 min-h-[400px]">
           <MemberFormStep1
-            form={form as any}
+            form={form}
             isActive={step === 1}
             isRecoveryBranch={isRecoveryBranch}
           />
-          <MemberFormStep2
-            form={form as any}
-            isActive={step === 2}
-          />
-          <MemberFormStep3
-            form={form as any}
-            isActive={step === 3}
-          />
+          <MemberFormStep2 form={form} isActive={step === 2} />
+          <MemberFormStep3 form={form} isActive={step === 3} />
         </div>
 
         {/* НАВИГАЦИОННИ БУТОНИ */}
