@@ -31,6 +31,7 @@ interface MemberSalesHistoryProps {
   memberId: string;
   memberIds?: string[];
   familyMembers?: import("@/types").Member[];
+  memberName?: string;
 }
 
 const isSubscriptionItem = (name: string): boolean => {
@@ -52,18 +53,22 @@ const formatPaymentMethod = (method?: string) => {
 
 const formatSaleDateCell = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isTimeBasedService = 
-    sale.type === "general_service" || 
+  const isTimeBasedService =
+    sale.type === "general_service" ||
     sale.items?.[0]?.productId?.startsWith("court_rental") ||
     sale.items?.[0]?.productId?.startsWith("recovery_session");
 
-  const formattedDate = start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
+  const formattedDate =
+    start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
 
   if (isTimeBasedService) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
     const timeRange =
-      start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) +
+      start.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }) +
       " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
@@ -96,18 +101,22 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
 
 const formatSaleDateMobile = (sale: import("@/types").Sale) => {
   const start = new Date(sale.saleDate);
-  const isTimeBasedService = 
-    sale.type === "general_service" || 
+  const isTimeBasedService =
+    sale.type === "general_service" ||
     sale.items?.[0]?.productId?.startsWith("court_rental") ||
     sale.items?.[0]?.productId?.startsWith("recovery_session");
 
-  const formattedDate = start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
+  const formattedDate =
+    start.toLocaleDateString("bg-BG").replace(" г.", "") + " г.";
 
   if (isTimeBasedService) {
     const hours = sale.items?.[0]?.quantity || 1;
     const end = new Date(start.getTime() + hours * 3600000);
     const timeRange =
-      start.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }) +
+      start.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }) +
       " - " +
       end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
     return `${formattedDate} ${timeRange} (${hours} ч.)`;
@@ -146,6 +155,7 @@ export const MemberSalesHistory = ({
   memberId,
   memberIds,
   familyMembers,
+  memberName,
 }: MemberSalesHistoryProps) => {
   const router = useRouter();
   const { sales, loading, error, markAsPaid, markAsUnpaid, deleteSale } =
@@ -239,172 +249,174 @@ export const MemberSalesHistory = ({
     }
 
     return (
-        <div className="space-y-6">
-          {sortedYears.map((year) => {
-            const yearSales = salesByYear[year];
-            const isExpanded =
-              collapsedYears[year] === undefined
-                ? year === sortedYears[0]
-                : !collapsedYears[year];
-            const yearTotal = yearSales.reduce(
-              (acc, sale) => acc + sale.totalAmount,
-              0
-            );
+      <div className="space-y-6">
+        {sortedYears.map((year) => {
+          const yearSales = salesByYear[year];
+          const isExpanded =
+            collapsedYears[year] === undefined
+              ? year === sortedYears[0]
+              : !collapsedYears[year];
+          const yearTotal = yearSales.reduce(
+            (acc, sale) => acc + sale.totalAmount,
+            0
+          );
 
-            return (
-              <div
-                key={year}
-                className="border border-zinc-100 rounded-3xl overflow-hidden bg-zinc-50/20 transition-all"
+          return (
+            <div
+              key={year}
+              className="border border-zinc-100 rounded-3xl overflow-hidden bg-zinc-50/20 transition-all"
+            >
+              <button
+                type="button"
+                onClick={() => toggleYear(year)}
+                className="w-full flex items-center justify-between p-5 sm:p-6 bg-zinc-50/50 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100"
               >
-                <button
-                  type="button"
-                  onClick={() => toggleYear(year)}
-                  className="w-full flex items-center justify-between p-5 sm:p-6 bg-zinc-50/50 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100"
-                >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <span className="text-lg sm:text-xl font-light text-zinc-950 tracking-tight">
-                      {year} г.
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className="rounded-full px-2.5 py-0.5 text-[8px] sm:text-[9px] font-medium text-zinc-400 border-zinc-200 uppercase tracking-widest"
-                    >
-                      {yearSales.length}{" "}
-                      {yearSales.length === 1 ? "запис" : "записа"}
-                    </Badge>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <span className="text-lg sm:text-xl font-light text-zinc-950 tracking-tight">
+                    {year} г.
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full px-2.5 py-0.5 text-[8px] sm:text-[9px] font-medium text-zinc-400 border-zinc-200 uppercase tracking-widest"
+                  >
+                    {yearSales.length}{" "}
+                    {yearSales.length === 1 ? "запис" : "записа"}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <span className="text-xs sm:text-sm font-medium text-zinc-950">
+                    Общо: {formatPrice(yearTotal)}
+                  </span>
+                  <MoreHorizontal
+                    className={cn(
+                      "h-4 w-4 text-zinc-400 transition-transform duration-300",
+                      isExpanded && "rotate-90 text-zinc-950"
+                    )}
+                  />
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="p-3 sm:p-6 bg-white animate-in slide-in-from-top-1 duration-200 space-y-4">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-100">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-zinc-50/50 border-zinc-100 hover:bg-zinc-50/50">
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 pl-5">
+                            Дата
+                          </TableHead>
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                            Услуга / Продукт
+                          </TableHead>
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                            Клиент(и)
+                          </TableHead>
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                            Плащане
+                          </TableHead>
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                            Статус
+                          </TableHead>
+                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right">
+                            Обща сума
+                          </TableHead>
+                          <TableHead className="h-10 w-[60px]">
+                            <span className="sr-only">Действия</span>
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {yearSales.map((sale) => {
+                          const statusDetails = getStatusDetails(
+                            sale.status,
+                            sale.isPaid,
+                            sale.totalAmount
+                          );
+
+                          const itemsList = getSaleItemsList(sale);
+
+                          const isSubscription = isSubscriptionItem(itemsList);
+
+                          return (
+                            <MemberSalesHistoryTableRow
+                              key={sale.id}
+                              sale={sale}
+                              memberId={memberId}
+                              memberName={memberName}
+                              familyMembers={familyMembers}
+                              statusDetails={statusDetails}
+                              itemsList={itemsList}
+                              isSubscription={isSubscription}
+                              formatSaleDateCell={formatSaleDateCell}
+                              formatPaymentMethod={formatPaymentMethod}
+                              handleRowClick={handleRowClick}
+                              handleMarkAsPaid={handleMarkAsPaid}
+                              handleMarkAsUnpaid={handleMarkAsUnpaid}
+                              handleDeleteSale={handleDeleteSale}
+                            />
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <span className="text-xs sm:text-sm font-medium text-zinc-950">
-                      Общо: {formatPrice(yearTotal)}
-                    </span>
-                    <MoreHorizontal
-                      className={cn(
-                        "h-4 w-4 text-zinc-400 transition-transform duration-300",
-                        isExpanded && "rotate-90 text-zinc-950"
-                      )}
-                    />
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-3">
+                    {yearSales.map((sale) => {
+                      const statusDetails = getStatusDetails(
+                        sale.status,
+                        sale.isPaid,
+                        sale.totalAmount
+                      );
+
+                      const itemsList = getSaleItemsList(sale);
+
+                      const isSubscription = isSubscriptionItem(itemsList);
+
+                      return (
+                        <MemberSalesHistoryMobileCard
+                          key={sale.id}
+                          sale={sale}
+                          memberId={memberId}
+                          memberName={memberName}
+                          familyMembers={familyMembers}
+                          statusDetails={statusDetails}
+                          itemsList={itemsList}
+                          isSubscription={isSubscription}
+                          formatSaleDateMobile={formatSaleDateMobile}
+                          formatPaymentMethod={formatPaymentMethod}
+                          handleRowClick={handleRowClick}
+                          handleMarkAsPaid={handleMarkAsPaid}
+                          handleMarkAsUnpaid={handleMarkAsUnpaid}
+                          handleDeleteSale={handleDeleteSale}
+                        />
+                      );
+                    })}
                   </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="p-3 sm:p-6 bg-white animate-in slide-in-from-top-1 duration-200 space-y-4">
-                    {/* Desktop Table View */}
-                    <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-100">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-zinc-50/50 border-zinc-100 hover:bg-zinc-50/50">
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 pl-5">
-                              Дата
-                            </TableHead>
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                              Услуга / Продукт
-                            </TableHead>
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                              Клиент(и)
-                            </TableHead>
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                              Плащане
-                            </TableHead>
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                              Статус
-                            </TableHead>
-                            <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right">
-                              Обща сума
-                            </TableHead>
-                            <TableHead className="h-10 w-[60px]">
-                              <span className="sr-only">Действия</span>
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {yearSales.map((sale) => {
-                            const statusDetails = getStatusDetails(
-                              sale.status,
-                              sale.isPaid,
-                              sale.totalAmount
-                            );
-
-                            const itemsList = getSaleItemsList(sale);
-
-                            const isSubscription = isSubscriptionItem(itemsList);
-
-                            return (
-                              <MemberSalesHistoryTableRow
-                                key={sale.id}
-                                sale={sale}
-                                memberId={memberId}
-                                familyMembers={familyMembers}
-                                statusDetails={statusDetails}
-                                itemsList={itemsList}
-                                isSubscription={isSubscription}
-                                formatSaleDateCell={formatSaleDateCell}
-                                formatPaymentMethod={formatPaymentMethod}
-                                handleRowClick={handleRowClick}
-                                handleMarkAsPaid={handleMarkAsPaid}
-                                handleMarkAsUnpaid={handleMarkAsUnpaid}
-                                handleDeleteSale={handleDeleteSale}
-                              />
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    {/* Mobile Card View */}
-                    <div className="md:hidden space-y-3">
-                      {yearSales.map((sale) => {
-                        const statusDetails = getStatusDetails(
-                          sale.status,
-                          sale.isPaid,
-                          sale.totalAmount
-                        );
-
-                        const itemsList = getSaleItemsList(sale);
-
-                        const isSubscription = isSubscriptionItem(itemsList);
-
-                        return (
-                          <MemberSalesHistoryMobileCard
-                            key={sale.id}
-                            sale={sale}
-                            memberId={memberId}
-                            familyMembers={familyMembers}
-                            statusDetails={statusDetails}
-                            itemsList={itemsList}
-                            isSubscription={isSubscription}
-                            formatSaleDateMobile={formatSaleDateMobile}
-                            formatPaymentMethod={formatPaymentMethod}
-                            handleRowClick={handleRowClick}
-                            handleMarkAsPaid={handleMarkAsPaid}
-                            handleMarkAsUnpaid={handleMarkAsUnpaid}
-                            handleDeleteSale={handleDeleteSale}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      );
-    };
-
-    return (
-      <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
-              История на продажбите
-            </h2>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-              Списък с всички регистрирани плащания и услуги.
-            </p>
-          </div>
-        </div>
-
-        {renderContent()}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
+  };
+
+  return (
+    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
+            История на продажбите
+          </h2>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+            Списък с всички регистрирани плащания и услуги.
+          </p>
+        </div>
+      </div>
+
+      {renderContent()}
+    </div>
+  );
 };

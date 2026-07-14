@@ -23,6 +23,7 @@ export interface StatusDetails {
 interface MemberSalesHistoryTableRowProps {
   sale: Sale;
   memberId: string;
+  memberName?: string;
   familyMembers?: import("@/types").Member[];
   statusDetails: StatusDetails;
   itemsList: string;
@@ -44,6 +45,7 @@ function getBadgeClass(variant: string) {
 export function MemberSalesHistoryTableRow({
   sale,
   memberId,
+  memberName,
   familyMembers,
   statusDetails,
   itemsList,
@@ -90,7 +92,10 @@ export function MemberSalesHistoryTableRow({
       <TableCell className="py-4">
         <div className="flex flex-col">
           <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 break-words leading-tight">
-            {sale.clientName || familyMember?.firstName || "Външен клиент"}
+            {sale.clientName ||
+              familyMember?.firstName ||
+              (sale.memberId === memberId ? memberName : null) ||
+              "Външен клиент"}
             {sale.client2Name ? ` & ${sale.client2Name}` : ""}
           </span>
           <span className="text-[10px] text-zinc-400">

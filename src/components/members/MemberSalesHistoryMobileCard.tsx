@@ -18,6 +18,7 @@ import { StatusDetails } from "./MemberSalesHistoryTableRow";
 interface MemberSalesHistoryMobileCardProps {
   sale: Sale;
   memberId: string;
+  memberName?: string;
   familyMembers?: import("@/types").Member[];
   statusDetails: StatusDetails;
   itemsList: string;
@@ -47,6 +48,7 @@ function getMobileBadgeClass(variant: string) {
 export function MemberSalesHistoryMobileCard({
   sale,
   memberId,
+  memberName,
   familyMembers,
   statusDetails,
   itemsList,
@@ -78,7 +80,10 @@ export function MemberSalesHistoryMobileCard({
           </h3>
           <div className="flex flex-col mt-1">
             <span className="font-semibold text-[10px] text-zinc-900 dark:text-zinc-100">
-              {sale.clientName || familyMember?.firstName || "Външен клиент"}
+              {sale.clientName ||
+                familyMember?.firstName ||
+                (sale.memberId === memberId ? memberName : null) ||
+                "Външен клиент"}
               {sale.client2Name ? ` & ${sale.client2Name}` : ""}
             </span>
             <span className="text-[9px] text-zinc-400">
