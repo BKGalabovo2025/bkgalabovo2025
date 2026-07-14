@@ -2189,69 +2189,93 @@ export default function SettingsClient() {
                   </Button>
                 </div>
 
-                <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                  <div className="bg-zinc-50 dark:bg-zinc-900 px-6 py-4 grid grid-cols-12 gap-4 text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-                    <div className="col-span-3">Дата / Време</div>
-                    <div className="col-span-3">Действие</div>
-                    <div className="col-span-4">Детайли</div>
-                    <div className="col-span-2">Потребител</div>
-                  </div>
-                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto">
-                    {auditLogs.length === 0 ? (
-                      <div className="p-12 flex flex-col items-center justify-center text-center">
-                        <Activity
-                          className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
-                          strokeWidth={1}
-                        />
-                        <span className="text-sm font-light text-zinc-500">
-                          {loadingLogs
-                            ? "Зареждане на дневника..."
-                            : "Няма намерени записи в историята."}
-                        </span>
-                      </div>
-                    ) : (
-                      auditLogs.map((log) => {
-                        const dateStr = new Date(log.timestamp).toLocaleString(
-                          "bg-BG"
-                        );
-                        const [datePart, timePart] = dateStr.includes(", ")
-                          ? dateStr.split(", ")
-                          : [dateStr, ""];
-                        return (
-                          <div
-                            key={log.id}
-                            className="px-6 py-5 grid grid-cols-12 gap-6 hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50 transition-all items-center group cursor-default"
-                          >
-                            <div className="col-span-3 flex flex-col gap-0.5">
-                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {datePart}
-                              </span>
-                              {timePart && (
-                                <span className="text-xs font-light text-zinc-500 group-hover:text-primary transition-colors">
-                                  {timePart}
+                <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden flex flex-col">
+                  <div className="overflow-x-auto w-full max-h-[600px] overflow-y-auto relative">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
+                      <thead className="bg-zinc-50/95 dark:bg-zinc-900/95 backdrop-blur-md text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 sticky top-0 z-10 border-b border-zinc-100 dark:border-zinc-800 shadow-sm">
+                        <tr>
+                          <th className="px-6 py-4 font-medium w-[20%]">
+                            Дата / Време
+                          </th>
+                          <th className="px-6 py-4 font-medium w-[20%]">
+                            Действие
+                          </th>
+                          <th className="px-6 py-4 font-medium w-[45%]">
+                            Детайли
+                          </th>
+                          <th className="px-6 py-4 font-medium w-[15%]">
+                            Потребител
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
+                        {auditLogs.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="p-16 text-center">
+                              <div className="flex flex-col items-center justify-center">
+                                <Activity
+                                  className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
+                                  strokeWidth={1}
+                                />
+                                <span className="text-sm font-light text-zinc-500">
+                                  {loadingLogs
+                                    ? "Зареждане на дневника..."
+                                    : "Няма намерени записи в историята."}
                                 </span>
-                              )}
-                            </div>
-                            <div className="col-span-3">
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-wider">
-                                {log.action}
-                              </span>
-                            </div>
-                            <div className="col-span-4 text-zinc-600 dark:text-zinc-400 font-light text-sm leading-relaxed">
-                              {log.details}
-                            </div>
-                            <div className="col-span-2 flex items-center gap-2 text-zinc-500 text-xs truncate">
-                              <div className="h-7 w-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-                                <User className="h-3.5 w-3.5 text-zinc-400" />
                               </div>
-                              <span className="truncate">
-                                {log.userEmail.split("@")[0]}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
+                            </td>
+                          </tr>
+                        ) : (
+                          auditLogs.map((log) => {
+                            const dateStr = new Date(
+                              log.timestamp
+                            ).toLocaleString("bg-BG");
+                            const [datePart, timePart] = dateStr.includes(", ")
+                              ? dateStr.split(", ")
+                              : [dateStr, ""];
+                            return (
+                              <tr
+                                key={log.id}
+                                className="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50 transition-all group"
+                              >
+                                <td className="px-6 py-5 align-top">
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                                      {datePart}
+                                    </span>
+                                    {timePart && (
+                                      <span className="text-xs font-light text-zinc-500 group-hover:text-primary transition-colors whitespace-nowrap">
+                                        {timePart}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-5 align-top">
+                                  <span className="inline-block px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-wider break-words max-w-full leading-relaxed">
+                                    {log.action.replace(/_/g, " ")}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-5 align-top text-zinc-600 dark:text-zinc-400 font-light text-sm leading-relaxed">
+                                  <div className="break-words max-w-full">
+                                    {log.details}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-5 align-top">
+                                  <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                                    <div className="h-7 w-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                                      <User className="h-3.5 w-3.5 text-zinc-400" />
+                                    </div>
+                                    <span className="truncate max-w-[120px]">
+                                      {log.userEmail.split("@")[0]}
+                                    </span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </BentoCard>
