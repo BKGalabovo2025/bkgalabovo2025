@@ -351,6 +351,12 @@ const StandardReceipt = ({
                             ({sale.targetMonthLabels.join(", ")})
                           </span>
                         )}
+                      {sale?.targetEventDates &&
+                        sale.targetEventDates.length > 0 && (
+                          <span className="ml-1 text-[9px] text-zinc-500 font-normal">
+                            (Дата: {sale.targetEventDates.join(", ")})
+                          </span>
+                        )}
 
                       {service?.name && (
                         <span className="block text-[8px] text-zinc-500 font-normal mt-0.5">
