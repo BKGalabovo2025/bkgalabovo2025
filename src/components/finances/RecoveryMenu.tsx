@@ -355,12 +355,12 @@ const RecoveryCard = ({
               <Users className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
               <span>{service.athleteCount} спортисти</span>
             </div>
-            {(service.numberOfDays || 0) > 1 && (
+            {(service.numberOfDays || 1) >= 1 && (
               <div className="flex items-center gap-3 text-xs text-zinc-500">
                 <Calendar className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
                 <span>
-                  {service.numberOfDays} дни / {service.proceduresPerDay}{" "}
-                  процедури на ден
+                  {service.numberOfDays || 1} дни /{" "}
+                  {service.proceduresPerDay || 1} процедури на ден
                 </span>
               </div>
             )}

@@ -415,7 +415,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
             item.durationMinutes ||
             item.zones ||
             item.athleteCount ||
-            (item.numberOfDays || 0) > 1) && (
+            (item.numberOfDays || 1) >= 1) && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {(item.duration || item.durationMinutes) && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
@@ -427,9 +427,9 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                   {item.athleteCount} спортисти
                 </span>
               )}
-              {(item.numberOfDays || 0) > 1 && (
+              {(item.numberOfDays || 1) >= 1 && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
-                  {item.numberOfDays} дни / {item.proceduresPerDay || 1}{" "}
+                  {item.numberOfDays || 1} дни / {item.proceduresPerDay || 1}{" "}
                   процедури на ден
                 </span>
               )}
@@ -517,7 +517,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 item.durationMinutes ||
                 item.zones ||
                 item.athleteCount ||
-                (item.numberOfDays || 0) > 1) && (
+                (item.numberOfDays || 1) >= 1) && (
                 <div className="flex flex-wrap gap-2">
                   {(item.duration || item.durationMinutes) && (
                     <Badge
@@ -536,13 +536,13 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                       Капацитет: {item.athleteCount} спортисти
                     </Badge>
                   )}
-                  {(item.numberOfDays || 0) > 1 && (
+                  {(item.numberOfDays || 1) >= 1 && (
                     <Badge
                       variant="outline"
                       className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
                     >
-                      {item.numberOfDays} дни / {item.proceduresPerDay || 1}{" "}
-                      процедури на ден
+                      {item.numberOfDays || 1} дни /{" "}
+                      {item.proceduresPerDay || 1} процедури на ден
                     </Badge>
                   )}
                   {item.zones && (
