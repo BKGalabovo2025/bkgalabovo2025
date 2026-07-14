@@ -1680,7 +1680,7 @@ export default function SettingsClient() {
                         Имейл Адрес
                       </Label>
                       <Input
-                        defaultValue="bk_galabovo@abv.bg"
+                        defaultValue={user?.email || ""}
                         disabled
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none opacity-60 cursor-not-allowed"
                       />
