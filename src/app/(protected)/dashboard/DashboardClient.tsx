@@ -7,7 +7,6 @@ import { useLanguage } from "@/context/language-context";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { QuickTasks } from "@/components/dashboard/quick-tasks";
-import { AttendanceReminder } from "@/components/dashboard/AttendanceReminder";
 import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
 import {
   Users,
@@ -71,7 +70,6 @@ interface DashboardStats {
 
 export interface DashboardData {
   stats: DashboardStats;
-  todayTrainings: Record<string, unknown>[];
 }
 
 interface DashboardClientProps {
@@ -84,9 +82,8 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const { t, language } = useLanguage();
   const { activeBranch } = useAppStore();
 
-  const [stats, setStats] = useState<DashboardStats | null>(initialData?.stats || null);
-  const [todayTrainings, setTodayTrainings] = useState<Record<string, unknown>[]>(
-    initialData?.todayTrainings || []
+  const [stats, setStats] = useState<DashboardStats | null>(
+    initialData?.stats || null
   );
   const loading = false;
   const [refreshing, setRefreshing] = useState(false);
@@ -115,7 +112,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         if (result.success && "data" in result) {
           const data = result.data as DashboardData;
           setStats(data.stats);
-          setTodayTrainings(data.todayTrainings);
           setQuotaExhausted(false);
         } else {
           checkQuotaError(("error" in result ? result.error : "") as string);
@@ -266,10 +262,10 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                     {event.title}
                   </span>
                   <span className="font-light text-zinc-500 dark:text-zinc-400">
-                    {new Date(event.startDate).toLocaleTimeString(
-                      "bg-BG",
-                      { hour: "2-digit", minute: "2-digit" }
-                    )}
+                    {new Date(event.startDate).toLocaleTimeString("bg-BG", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
                 <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded text-emerald-700 dark:text-emerald-300 font-medium whitespace-nowrap">
@@ -431,7 +427,12 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       </PageHeader>
 
       {/* Main Stats Grid */}
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-6", isRecoveryZone ? "lg:grid-cols-3" : "lg:grid-cols-4")}>
+      <div
+        className={cn(
+          "grid grid-cols-1 md:grid-cols-2 gap-6",
+          isRecoveryZone ? "lg:grid-cols-3" : "lg:grid-cols-4"
+        )}
+      >
         <BentoCard
           onClick={() => router.push("/members")}
           className="p-6 flex flex-col justify-between border shadow-none bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:border-blue-800/50 rounded-4xl h-full min-h-48 transition-all duration-300 group cursor-pointer relative overflow-hidden hover:bg-blue-100/50 dark:hover:bg-blue-950/20"
@@ -570,7 +571,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
         <div className="lg:col-span-3 space-y-8">
           <BirthdayReminder />
-          <AttendanceReminder initialEvents={todayTrainings} />
         </div>
       </div>
     </div>
