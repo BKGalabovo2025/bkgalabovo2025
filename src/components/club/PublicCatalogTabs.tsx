@@ -380,6 +380,20 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
       {/* Product Content Details */}
       <div className="p-6 flex-1 flex flex-col justify-between">
         <div>
+          {(item.category || item.sessionType) && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {item.category && (
+                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-800/50 px-2 py-0.5 rounded-md">
+                  {item.category}
+                </span>
+              )}
+              {item.sessionType && (
+                <span className="text-[9px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-900/30 px-2 py-0.5 rounded-md">
+                  {item.sessionType}
+                </span>
+              )}
+            </div>
+          )}
           <h2 className="text-base font-semibold leading-snug text-white group-hover:text-blue-400 transition-colors duration-300 min-h-10 flex items-center">
             {item.name}
           </h2>
@@ -387,7 +401,10 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
             {item.description || "Няма предоставено описание за този артикул."}
           </p>
 
-          {(item.duration || item.durationMinutes || item.zones) && (
+          {(item.duration ||
+            item.durationMinutes ||
+            item.zones ||
+            item.athleteCount) && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {(item.duration || item.durationMinutes) && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
@@ -397,6 +414,14 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               {item.athleteCount && (
                 <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
                   до {item.athleteCount} души
+                </span>
+              )}
+              {item.zones && (
+                <span className="text-[10px] bg-zinc-800/50 text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-700/50">
+                  Зони:{" "}
+                  {Array.isArray(item.zones)
+                    ? item.zones.join(", ")
+                    : item.zones}
                 </span>
               )}
             </div>
@@ -507,6 +532,41 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                         : item.zones}
                     </Badge>
                   )}
+                </div>
+              )}
+
+              {/* Resources */}
+              {item.requiredResources && (
+                <div className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800/50 mt-4">
+                  <h4 className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold mb-3">
+                    Ресурси
+                  </h4>
+                  <div className="flex flex-wrap gap-4">
+                    {(item.requiredResources.compressors ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        {item.requiredResources.compressors} компресора
+                      </div>
+                    )}
+                    {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        {item.requiredResources.attachments?.arms} РЪЦЕ
+                      </div>
+                    )}
+                    {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        {item.requiredResources.attachments?.legs} КРАКА
+                      </div>
+                    )}
+                    {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                        {item.requiredResources.attachments?.hips} ТАЗ
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
