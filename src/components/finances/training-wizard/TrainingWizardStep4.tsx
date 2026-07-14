@@ -273,9 +273,20 @@ export const TrainingWizardStep4 = () => {
               )}
             {paymentMode === "individual" && selectedEventIds.length > 0 && (
               <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
-                <span className="text-zinc-500">Брой тренировки</span>
+                <span className="text-zinc-500">Тренировки</span>
                 <span className="font-bold text-blue-600">
                   {selectedEventIds.length} тренировки
+                  {(() => {
+                    const dates = selectedEventIds
+                      .map((id) => {
+                        const ev = memberEvents.find((e) => e.id === id);
+                        return ev
+                          ? new Date(ev.startDate).toLocaleDateString("bg-BG")
+                          : "";
+                      })
+                      .filter(Boolean);
+                    return dates.length > 0 ? ` (${dates.join(", ")})` : "";
+                  })()}
                 </span>
               </div>
             )}
