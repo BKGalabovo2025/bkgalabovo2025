@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,6 +33,8 @@ import {
   Users,
   Plus,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -43,11 +46,23 @@ import { getAllSites, updateSite } from "@/services/site-service";
 import { Site, Therapist } from "@/types/site.types";
 import { getAuditLogsAction } from "@/lib/actions/audit";
 import { AuditLog } from "@/lib/audit-logger";
+import { getFirebaseAuth } from "@/lib/firebase";
+import {
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 
 export default function SettingsClient() {
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [formData, setFormData] = useState<{
     [key: string]: Partial<Site>;
   }>({});
@@ -280,6 +295,41 @@ export default function SettingsClient() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      if (currentPassword || newPassword || repeatPassword) {
+        if (!currentPassword) {
+          toast.error("Моля, въведете текущата си парола!");
+          setIsSaving(false);
+          return;
+        }
+        if (newPassword !== repeatPassword) {
+          toast.error("Новите пароли не съвпадат!");
+          setIsSaving(false);
+          return;
+        }
+        const auth = getFirebaseAuth();
+        if (auth.currentUser && auth.currentUser.email) {
+          try {
+            const credential = EmailAuthProvider.credential(
+              auth.currentUser.email,
+              currentPassword
+            );
+            await reauthenticateWithCredential(auth.currentUser, credential);
+            await updatePassword(auth.currentUser, newPassword);
+            toast.success("Паролата е променена успешно!");
+            setCurrentPassword("");
+            setNewPassword("");
+            setRepeatPassword("");
+          } catch (error) {
+            console.error(error);
+            toast.error(
+              "Грешка: Невалидна текуща парола или сесията е изтекла."
+            );
+            setIsSaving(false);
+            return;
+          }
+        }
+      }
+
       // Save each site's settings
       const savePromises = Object.entries(formData).map(([id, data]) =>
         updateSite({ ...data, id })
@@ -1002,54 +1052,93 @@ export default function SettingsClient() {
                         <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                           Текуща Парола
                         </Label>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showCurrentPassword ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setShowCurrentPassword(!showCurrentPassword)
+                            }
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                          >
+                            {showCurrentPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                             Нова Парола
                           </Label>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
-                          />
+                          <div className="relative">
+                            <Input
+                              type={showNewPassword ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setShowNewPassword(!showNewPassword)
+                              }
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                         <div className="space-y-3">
                           <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                             Повтори Новата Парола
                           </Label>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
-                          />
+                          <div className="relative">
+                            <Input
+                              type={showRepeatPassword ? "text" : "password"}
+                              value={repeatPassword}
+                              onChange={(e) =>
+                                setRepeatPassword(e.target.value)
+                              }
+                              placeholder="••••••••"
+                              className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setShowRepeatPassword(!showRepeatPassword)
+                              }
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                            >
+                              {showRepeatPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-10 border-t border-zinc-50 dark:border-zinc-900">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                      <div>
-                        <h4 className="font-light text-lg text-zinc-900 dark:text-white">
-                          Двуфакторна автентикация
-                        </h4>
-                        <p className="text-sm text-zinc-400 font-light mt-1">
-                          Добавете допълнително ниво на сигурност към вашия
-                          акаунт.
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="rounded-xl border-zinc-200 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-8 bg-white dark:bg-zinc-900"
-                      >
-                        Активирай
-                      </Button>
                     </div>
                   </div>
                 </div>
