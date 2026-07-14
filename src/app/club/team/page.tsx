@@ -7,6 +7,7 @@ import { PublicNav } from "@/components/layout/public-nav";
 import { PublicFooter } from "@/components/layout/public-footer";
 import { Trophy, Medal, MapPin, User as UserIcon } from "lucide-react";
 import { Member } from "@/types/member.types";
+import { unstable_cache } from "next/cache";
 
 export const metadata: Metadata = {
   title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
@@ -34,7 +35,6 @@ const getValidImageSrc = (src: string | undefined | null) => {
   return `/${cleanSrc}`;
 };
 
-type AdminDb = ReturnType<typeof getAdminDb>;
 type PastEvent = {
   attendeeMemberIds?: string[];
   title?: string;
@@ -58,17 +58,56 @@ async function processEventsTournaments(
   }
 }
 
-async function fetchEntriesData(adminDb: AdminDb) {
-  const tournamentsSnapshot = await adminDb.collection("tournaments").get();
-  const entriesFetches = tournamentsSnapshot.docs.map(async (tournDoc) => {
-    const data = tournDoc.data();
-    const snap = await tournDoc.ref.collection("entries").get();
-    return {
-      title: typeof data.title === "string" ? data.title : "Турнир",
-      docs: snap.docs,
-    };
-  });
-  return Promise.all(entriesFetches);
+type TournamentEntryResult = {
+  title: string;
+  docs: { data: () => Record<string, unknown> }[];
+};
+
+const _fetchEntriesDataRaw = async (): Promise<
+  { title: string; members: string[]; partnerMembers: string[] }[]
+> => {
+  const adminDb = getAdminDb();
+  try {
+    const tournamentsSnapshot = await adminDb.collection("tournaments").get();
+    const entriesFetches = tournamentsSnapshot.docs.map(async (tournDoc) => {
+      const data = tournDoc.data();
+      const snap = await tournDoc.ref.collection("entries").get();
+      return {
+        title: typeof data.title === "string" ? data.title : "Турнир",
+        members: snap.docs
+          .map((d) => d.data().memberId as string)
+          .filter(Boolean),
+        partnerMembers: snap.docs
+          .map((d) => d.data().partnerMemberId as string)
+          .filter(Boolean),
+      };
+    });
+    return Promise.all(entriesFetches);
+  } catch (err) {
+    console.error("TeamPage: failed to fetch tournament entries:", err);
+    return [];
+  }
+};
+
+const fetchCachedTournamentEntries = unstable_cache(
+  _fetchEntriesDataRaw,
+  ["team-tournament-entries"],
+  { revalidate: 300, tags: ["tournaments"] }
+);
+
+async function fetchEntriesData(): Promise<TournamentEntryResult[]> {
+  const cached = await fetchCachedTournamentEntries();
+  return cached.map((entry) => ({
+    title: entry.title,
+    docs: [
+      ...entry.members.map((m) => ({
+        data: () => ({ memberId: m, partnerMemberId: undefined }),
+      })),
+      ...entry.partnerMembers.map((p) => ({
+        data: () => ({ memberId: undefined, partnerMemberId: p }),
+      })),
+    ],
+  }));
 }
 
 function addTournamentToMember(
@@ -98,17 +137,14 @@ function assignEntriesToMap(
   }
 }
 
-async function fetchMemberTournamentsMap(
-  adminDb: AdminDb,
-  pastEventsData: PastEvent[]
-) {
+async function fetchMemberTournamentsMap(pastEventsData: PastEvent[]) {
   const memberTournamentMap = new Map<string, Set<string>>();
 
   // Add from events
   await processEventsTournaments(pastEventsData, memberTournamentMap);
 
-  // Add from tournaments collection
-  const allEntriesResults = await fetchEntriesData(adminDb);
+  // Add from tournaments collection (cached)
+  const allEntriesResults = await fetchEntriesData();
   assignEntriesToMap(allEntriesResults, memberTournamentMap);
 
   return memberTournamentMap;
@@ -168,10 +204,7 @@ export default async function TeamPage() {
   // 4. Build map of memberId -> Set of tournament titles – safe fallback
   let memberTournamentMap = new Map<string, Set<string>>();
   try {
-    memberTournamentMap = await fetchMemberTournamentsMap(
-      adminDb,
-      pastEventsData
-    );
+    memberTournamentMap = await fetchMemberTournamentsMap(pastEventsData);
   } catch (err) {
     console.error("TeamPage: failed to fetch tournament map:", err);
   }
