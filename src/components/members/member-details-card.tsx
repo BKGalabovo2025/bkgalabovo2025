@@ -371,7 +371,11 @@ export const MemberDetailsCard = ({
         </TabsContent>
 
         <TabsContent value="sales" className="focus-visible:outline-none">
-          <MemberSalesHistory memberId={member.id} memberName={fullName} />
+          <MemberSalesHistory
+            memberId={member.id}
+            memberName={fullName}
+            familyMembers={familyMembers}
+          />
         </TabsContent>
 
         <TabsContent value="attendance" className="focus-visible:outline-none">
