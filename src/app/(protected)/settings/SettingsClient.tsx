@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useAuth } from "@/context/auth-context";
 import { BentoCard } from "@/components/ui/bento-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ import { getAuditLogsAction } from "@/lib/actions/audit";
 import { AuditLog } from "@/lib/audit-logger";
 
 export default function SettingsClient() {
+  const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<{
@@ -1595,12 +1597,21 @@ export default function SettingsClient() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <BentoCard className="md:col-span-4 p-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 flex flex-col items-center text-center space-y-6">
                   <div className="relative group cursor-pointer">
-                    <div className="h-40 w-40 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-none overflow-hidden transition-all group-hover:scale-105">
-                      <User
-                        size={80}
-                        className="text-zinc-200 dark:text-zinc-700"
-                        strokeWidth={1}
-                      />
+                    <div className="h-40 w-40 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-none overflow-hidden transition-all group-hover:scale-105 relative">
+                      {user?.photoURL ? (
+                        <Image
+                          src={user.photoURL}
+                          alt="Profile"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <User
+                          size={80}
+                          className="text-zinc-200 dark:text-zinc-700"
+                          strokeWidth={1}
+                        />
+                      )}
                     </div>
                     <div className="absolute inset-0 bg-primary/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
                       <Camera
@@ -1611,24 +1622,36 @@ export default function SettingsClient() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
-                      Администратор
+                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white truncate px-2 w-full max-w-[250px]">
+                      {user?.displayName ||
+                        user?.email?.split("@")[0] ||
+                        "Администратор"}
                     </h3>
                     <p className="text-[11px] text-primary font-medium uppercase tracking-widest mt-1">
                       Супер Потребител
                     </p>
                   </div>
-                  <div className="w-full pt-8 space-y-4 border-t border-zinc-50 dark:border-zinc-900">
-                    <div className="flex justify-between text-[11px] font-medium uppercase tracking-widest">
+                  <div className="w-full pt-8 space-y-6 border-t border-zinc-50 dark:border-zinc-900">
+                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest">
                       <span className="text-zinc-400">Последен вход</span>
-                      <span className="text-zinc-900 dark:text-white font-light">
-                        Днес, 09:12
+                      <span className="text-zinc-900 dark:text-white font-bold text-[13px] tracking-normal">
+                        {user?.metadata?.lastSignInTime
+                          ? new Date(
+                              user.metadata.lastSignInTime
+                            ).toLocaleString("bg-BG", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Неизвестно"}
                       </span>
                     </div>
-                    <div className="flex justify-between text-[11px] font-medium uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest">
                       <span className="text-zinc-400">Ниво на достъп</span>
-                      <span className="text-primary font-light">
-                        Full Access
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold text-[12px] tracking-wider">
+                        FULL ACCESS
                       </span>
                     </div>
                   </div>
@@ -1647,7 +1670,7 @@ export default function SettingsClient() {
                         Име
                       </Label>
                       <Input
-                        defaultValue="Admin"
+                        defaultValue={user?.displayName?.split(" ")[0] || ""}
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -1656,7 +1679,9 @@ export default function SettingsClient() {
                         Фамилия
                       </Label>
                       <Input
-                        defaultValue="User"
+                        defaultValue={
+                          user?.displayName?.split(" ").slice(1).join(" ") || ""
+                        }
                         className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
                       />
                     </div>
@@ -1665,8 +1690,9 @@ export default function SettingsClient() {
                         Имейл Адрес
                       </Label>
                       <Input
-                        defaultValue="admin@bkgalabovo.com"
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        defaultValue={user?.email || ""}
+                        disabled
+                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none opacity-60 cursor-not-allowed"
                       />
                     </div>
                   </div>
