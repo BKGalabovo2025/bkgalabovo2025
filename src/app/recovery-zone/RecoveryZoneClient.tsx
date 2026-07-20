@@ -363,7 +363,7 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
                   КРАКА
                 </h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
@@ -393,7 +393,7 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
                   ТАЗ
                 </h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
@@ -423,7 +423,7 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold text-white mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
                   РЪЦЕ
                 </h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
