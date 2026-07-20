@@ -1,21 +1,16 @@
- 
- 
- 
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Text,
-  Section,
-  Row,
-  Column,
-  Hr,
-} from "react-email";
 import * as React from "react";
+import { Text, Section, Row, Column, Hr } from "react-email";
+import {
+  EmailLayoutShared,
+  paragraph,
+  detailsContainer,
+  detailsRow,
+  detailsLabelCol,
+  detailsValueCol,
+  detailsLabel,
+  detailsValue,
+  divider,
+} from "./EmailLayoutShared";
 
 export interface DonationReceiptEmailProps {
   clientName: string;
@@ -29,9 +24,7 @@ export interface DonationReceiptEmailProps {
   isRecoveryZone?: boolean;
 }
 
-export const DonationReceiptEmail: React.FC<
-  DonationReceiptEmailProps
-> = ({
+export const DonationReceiptEmail: React.FC<DonationReceiptEmailProps> = ({
   clientName,
   clientPhone,
   donationText,
@@ -42,251 +35,66 @@ export const DonationReceiptEmail: React.FC<
   baseUrl = "https://bkgalabovo2025.vercel.app/club",
   isRecoveryZone = false,
 }) => {
-  const brandColor = isRecoveryZone ? "#065f46" : "#1e3a8a"; // Emerald/Green vs Blue
-  const brandGradient = isRecoveryZone 
-    ? "linear-gradient(135deg, #065f46 0%, #064e3b 100%)" 
-    : "linear-gradient(135deg, #1e3a8a 0%, #172554 100%)";
-  const brandTitle = isRecoveryZone ? "RECOVERY ZONE BY ZM" : "БАДМИНТОН КЛУБ ГЪЛЪБОВО";
-  const brandName = isRecoveryZone ? 'Възстановителен център "Recovery Zone"' : 'СНЦ "Бадминтон Клуб Гълъбово"';
-  const brandEmail = isRecoveryZone ? "recoveryzonebyzm@gmail.com" : "bk_galabovo@abv.bg";
-  const brandUrl = isRecoveryZone ? "https://bkgalabovo2025.vercel.app/recovery-zone" : baseUrl;
-  
-  const headerStyle = { ...header, background: brandGradient, borderBottom: `3px solid ${isRecoveryZone ? '#10b981' : '#3b82f6'}` };
-  const buttonStyle = { 
-    ...button, 
-    background: brandGradient,
-    boxShadow: `0 4px 6px -1px ${isRecoveryZone ? 'rgba(6, 95, 70, 0.2)' : 'rgba(30, 58, 138, 0.2)'}, 0 2px 4px -2px ${isRecoveryZone ? 'rgba(6, 95, 70, 0.2)' : 'rgba(30, 58, 138, 0.2)'}`
-  };
-  const footerLinkStyle = { ...footerLink, color: brandColor };
   return (
-    <Html>
-      <Head />
-      <Preview>Документ за Дарение - {brandName}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          {/* Header */}
-          <Section style={headerStyle}>
-            <Text style={headerTitle}>{brandTitle}</Text>
-          </Section>
+    <EmailLayoutShared
+      previewText={`Документ за Дарение - ${
+        isRecoveryZone
+          ? 'Възстановителен център "Recovery Zone"'
+          : 'СНЦ "Бадминтон Клуб Гълъбово"'
+      }`}
+      headingText="Документ за Дарение"
+      isRecoveryZone={isRecoveryZone}
+      baseUrl={baseUrl}
+    >
+      <Text style={paragraph}>
+        Здравейте, <strong>{clientName}</strong>,
+      </Text>
+      <Text style={paragraph}>
+        С настоящия документ се потвърждава постъпило целево дарение от{" "}
+        <strong>{clientName}</strong> (тел. {clientPhone || "непосочен"}) в
+        полза на СНЦ &quot;Бадминтон клуб Гълъбово&quot;.
+      </Text>
 
-          {/* Main Content */}
-          <Section style={content}>
-            <Heading style={heading}>Документ за Дарение</Heading>
-            
-            <Text style={paragraph}>Здравейте, <strong>{clientName}</strong>,</Text>
-            <Text style={paragraph}>
-              С настоящия документ се потвърждава постъпило целево дарение от <strong>{clientName}</strong> (тел. {clientPhone || "непосочен"}) в полза на СНЦ &quot;Бадминтон клуб Гълъбово&quot;.
+      {/* Details Box */}
+      <Section style={detailsContainer}>
+        <Row style={detailsRow}>
+          <Column style={detailsLabelCol}>
+            <Text style={detailsLabel}>ОПИСАНИЕ НА ДАРЕНИЕТО</Text>
+          </Column>
+          <Column style={detailsValueCol}>
+            <Text style={detailsValue}>{donationText}</Text>
+          </Column>
+        </Row>
+        <Hr style={divider} />
+        <Row style={detailsRow}>
+          <Column style={detailsLabelCol}>
+            <Text style={detailsLabel}>
+              {serviceOrCourtLabel.toUpperCase()}
             </Text>
-
-            {/* Details Box */}
-            <Section style={detailsContainer}>
-              <Row style={detailsRow}>
-                <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>ОПИСАНИЕ НА ДАРЕНИЕТО</Text>
-                </Column>
-                <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{donationText}</Text>
-                </Column>
-              </Row>
-              <Hr style={divider} />
-              <Row style={detailsRow}>
-                <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>{serviceOrCourtLabel.toUpperCase()}</Text>
-                </Column>
-                <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{serviceOrCourtValue}</Text>
-                </Column>
-              </Row>
-              <Hr style={divider} />
-              <Row style={detailsRow}>
-                <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>ДАТА / ЧАС</Text>
-                </Column>
-                <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{dateRange}</Text>
-                </Column>
-              </Row>
-              <Hr style={divider} />
-              <Row style={detailsRow}>
-                <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>ОБЩА СТОЙНОСТ</Text>
-                </Column>
-                <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{totalPrice}</Text>
-                </Column>
-              </Row>
-            </Section>
-
-            <Section style={buttonContainer}>
-              <Link href={brandUrl} style={buttonStyle}>
-                Към уебсайта
-              </Link>
-            </Section>
-          </Section>
-
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerTextStrong}>{isRecoveryZone ? "Recovery zone by ZM" : brandName}</Text>
-            {!isRecoveryZone && (
-              <Text style={footerText}>Спортна зала &quot;Енергетик&quot;, град Гълъбово</Text>
-            )}
-            <Text style={footerText}>
-              <Link href={`mailto:${brandEmail}`} style={footerLinkStyle}>
-                {brandEmail}
-              </Link>
-              {" "} | {" "}
-              <Link href="tel:+359899829923" style={footerLinkStyle}>
-                +359 899 82 99 23
-              </Link>
-            </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+          </Column>
+          <Column style={detailsValueCol}>
+            <Text style={detailsValue}>{serviceOrCourtValue}</Text>
+          </Column>
+        </Row>
+        <Hr style={divider} />
+        <Row style={detailsRow}>
+          <Column style={detailsLabelCol}>
+            <Text style={detailsLabel}>ДАТА / ЧАС</Text>
+          </Column>
+          <Column style={detailsValueCol}>
+            <Text style={detailsValue}>{dateRange}</Text>
+          </Column>
+        </Row>
+        <Hr style={divider} />
+        <Row style={detailsRow}>
+          <Column style={detailsLabelCol}>
+            <Text style={detailsLabel}>ОБЩА СТОЙНОСТ</Text>
+          </Column>
+          <Column style={detailsValueCol}>
+            <Text style={detailsValue}>{totalPrice}</Text>
+          </Column>
+        </Row>
+      </Section>
+    </EmailLayoutShared>
   );
-};
-
-// Styles
-const main = {
-  backgroundColor: "#f3f4f6", // very light gray
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  padding: "40px 0",
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  width: "600px",
-  border: "1px solid #e2e8f0",
-  borderRadius: "12px",
-  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)",
-  overflow: "hidden", // ensures header rounds with container
-};
-
-const header = {
-  background: "linear-gradient(135deg, #1e3a8a 0%, #172554 100%)", // Rich, deep corporate blue gradient
-  padding: "36px 40px",
-  textAlign: "center" as const,
-  borderBottom: "3px solid #3b82f6", // Slight accent line
-};
-
-const headerTitle = {
-  color: "#ffffff",
-  fontSize: "20px",
-  fontWeight: "700",
-  letterSpacing: "3px",
-  margin: "0",
-  textShadow: "0 2px 4px rgba(0,0,0,0.15)",
-};
-
-const content = {
-  padding: "45px 40px",
-};
-
-const heading = {
-  fontSize: "22px",
-  fontWeight: "700",
-  color: "#0f172a",
-  marginTop: "0",
-  marginBottom: "20px",
-  letterSpacing: "-0.3px",
-};
-
-const paragraph = {
-  fontSize: "15px",
-  lineHeight: "1.7",
-  color: "#334155",
-  margin: "0 0 16px 0",
-};
-
-const detailsContainer = {
-  backgroundColor: "#ffffff",
-  border: "1px solid #e2e8f0",
-  borderRadius: "10px",
-  padding: "24px",
-  margin: "32px 0",
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02)",
-  backgroundImage: "linear-gradient(to bottom, #ffffff, #f8fafc)",
-};
-
-const detailsRow = {
-  width: "100%",
-};
-
-const detailsLabelCol = {
-  width: "40%",
-  padding: "10px 0",
-};
-
-const detailsValueCol = {
-  width: "60%",
-  padding: "10px 0",
-};
-
-const detailsLabel = {
-  fontSize: "11px",
-  fontWeight: "700",
-  color: "#64748b",
-  letterSpacing: "1.2px",
-  margin: "0",
-};
-
-const detailsValue = {
-  fontSize: "15px",
-  fontWeight: "600",
-  color: "#0f172a",
-  margin: "0",
-};
-
-const divider = {
-  borderColor: "#e2e8f0",
-  margin: "4px 0",
-};
-
-const buttonContainer = {
-  marginTop: "45px",
-  marginBottom: "20px",
-  textAlign: "center" as const,
-};
-
-const button = {
-  background: "linear-gradient(to bottom, #1e3a8a, #172554)",
-  color: "#ffffff",
-  fontSize: "15px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "15px 36px",
-  borderRadius: "8px",
-  boxShadow: "0 4px 6px -1px rgba(30, 58, 138, 0.2), 0 2px 4px -2px rgba(30, 58, 138, 0.2)",
-  letterSpacing: "0.5px",
-};
-
-const footer = {
-  backgroundColor: "#f8fafc",
-  borderTop: "1px solid #e2e8f0",
-  padding: "35px 40px",
-  textAlign: "center" as const,
-};
-
-const footerTextStrong = {
-  fontSize: "14px",
-  fontWeight: "700",
-  color: "#334155",
-  margin: "0 0 6px 0",
-  letterSpacing: "0.5px",
-};
-
-const footerText = {
-  fontSize: "13px",
-  color: "#64748b",
-  margin: "0 0 10px 0",
-};
-
-const footerLink = {
-  color: "#2563eb",
-  textDecoration: "none",
-  fontWeight: "500",
 };
