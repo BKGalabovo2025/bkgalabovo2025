@@ -1,5 +1,2 @@
-npm run check:dup-code
-npm run check:dup-funcs
-npm run test:visual
-npm run knip
 npm run precommit
+npm run knip

@@ -29,6 +29,7 @@
     "test:e2e": "playwright test",
     "test:visual": "playwright test visual.spec.ts",
     "check-all": "npm run typecheck && npm run lint && npm run check:circular && npm run check:deps && npm run check:dup-code && npm run check:dup-funcs && npm run test && npm run test:visual",
+    "check-fast": "npm run typecheck && npm run lint && npm run test",
     "test": "vitest run",
     "security-check": "npm audit",
     "prepare": "husky",
