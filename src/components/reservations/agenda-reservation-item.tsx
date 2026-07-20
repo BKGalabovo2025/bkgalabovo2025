@@ -191,7 +191,8 @@ function StatusAndActions({
   onDelete,
 }: AgendaReservationItemProps) {
   const neededDeclarations = reservation.client2Name ? 2 : 1;
-  const missingDeclarations = neededDeclarations - (reservation.declarationsCount || 0);
+  const missingDeclarations =
+    neededDeclarations - (reservation.declarationsCount || 0);
 
   const { user } = useAuth();
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -206,11 +207,17 @@ function StatusAndActions({
     setIsSendingEmail(true);
     try {
       const date = reservation.startTime.toDate().toLocaleDateString("bg-BG");
-      const start = reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
-      const end = reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
-      
+      const start = reservation.startTime
+        .toDate()
+        .toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+      const end = reservation.endTime
+        .toDate()
+        .toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+
       const isRecoveryZone = effectiveBranch === "recoveryzone";
-      const loc = isRecoveryZone ? (reservation.serviceName || "Възстановителна процедура") : `Корт ${reservation.courtId}`;
+      const loc = isRecoveryZone
+        ? reservation.serviceName || "Възстановителна процедура"
+        : `Корт ${reservation.courtId}`;
       const name = reservation.clientName || "";
       const text = `Здравейте, ${name}!\n\nУспешно запазихте час на ${date} от ${start} до ${end} за ${loc}.\nОчакваме Ви!`;
 
@@ -219,7 +226,7 @@ function StatusAndActions({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           to: reservation.clientEmail,
@@ -231,7 +238,7 @@ function StatusAndActions({
             startTime: reservation.startTime.toDate().toISOString(),
             endTime: reservation.endTime.toDate().toISOString(),
             courtId: loc,
-            isRecoveryZone: isRecoveryZone
+            isRecoveryZone: isRecoveryZone,
           },
         }),
       });
@@ -264,6 +271,41 @@ function StatusAndActions({
       setIsSendingEmail(false);
     }
   };
+
+  const startTimeDate = reservation.startTime.toDate();
+  const endTimeDate = reservation.endTime.toDate();
+  const dateStr = startTimeDate.toLocaleDateString("bg-BG");
+  const startTimeStr = startTimeDate.toLocaleTimeString("bg-BG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const endTimeStr = endTimeDate.toLocaleTimeString("bg-BG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const serviceTypeStr =
+    effectiveBranch === "recoveryzone"
+      ? "Възстановителна процедура"
+      : "Корт " + reservation.courtId;
+  const messageText =
+    "Здравейте, " +
+    (reservation.clientName || "") +
+    "!\n\nУспешно запазихте час на " +
+    dateStr +
+    " от " +
+    startTimeStr +
+    " до " +
+    endTimeStr +
+    " за " +
+    serviceTypeStr +
+    ".\nОчакваме Ви!";
+
+  const rawPhone = (reservation.clientPhone || "").replace(/[^0-9+]/g, "");
+  const phoneStr = rawPhone.startsWith("0")
+    ? "+359" + rawPhone.slice(1)
+    : rawPhone;
+  const waLink =
+    "https://wa.me/" + phoneStr + "?text=" + encodeURIComponent(messageText);
 
   return (
     <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-6 w-full 2xl:w-auto shrink-0 pt-4 2xl:pt-0 border-t 2xl:border-t-0 border-zinc-100 dark:border-zinc-900 mt-2 2xl:mt-0">
@@ -319,41 +361,50 @@ function StatusAndActions({
                 <Send className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 border-zinc-100 dark:border-zinc-800">
-            <DropdownMenuItem asChild className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 text-zinc-700 dark:text-zinc-300 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 focus:text-emerald-600 dark:focus:text-emerald-400 transition-colors">
-              <a 
-                href={`https://wa.me/${(reservation.clientPhone || "").replace(/[^0-9+]/g, '').startsWith('0') ? '+359' + (reservation.clientPhone || "").replace(/[^0-9+]/g, '').slice(1) : (reservation.clientPhone || "").replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(`Здравейте, ${reservation.clientName || ""}!\n\nУспешно запазихте час на ${reservation.startTime.toDate().toLocaleDateString("bg-BG")} от ${reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} до ${reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} за ${effectiveBranch === "recoveryzone" ? "Възстановителна процедура" : `Корт ${reservation.courtId}`}.\nОчакваме Ви!`)}`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+            <DropdownMenuContent
+              align="end"
+              className="w-48 rounded-2xl p-2 border-zinc-100 dark:border-zinc-800"
+            >
+              <DropdownMenuItem
+                asChild
+                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 text-zinc-700 dark:text-zinc-300 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 focus:text-emerald-600 dark:focus:text-emerald-400 transition-colors"
               >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-              </a>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem 
-              className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-blue-50 dark:focus:bg-blue-950/30 focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
-              onClick={sendSystemEmail}
-              disabled={isSendingEmail}
-            >
-              {isSendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-              {isSendingEmail ? "Изпращане..." : "Имейл (системно)"}
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem 
-              className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:text-amber-600 dark:focus:text-amber-400 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                const text = `Здравейте, ${reservation.clientName || ""}!\n\nУспешно запазихте час на ${reservation.startTime.toDate().toLocaleDateString("bg-BG")} от ${reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} до ${reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} за ${effectiveBranch === "recoveryzone" ? "Възстановителна процедура" : `Корт ${reservation.courtId}`}.\nОчакваме Ви!`;
-                navigator.clipboard.writeText(text);
-                toast.success("Текстът е копиран в клипборда!");
-              }}
-            >
-              <Copy className="w-4 h-4" />
-              Копирай текста
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </a>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-blue-50 dark:focus:bg-blue-950/30 focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
+                onClick={sendSystemEmail}
+                disabled={isSendingEmail}
+              >
+                {isSendingEmail ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Mail className="w-4 h-4" />
+                )}
+                {isSendingEmail ? "Изпращане..." : "Имейл (системно)"}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:text-amber-600 dark:focus:text-amber-400 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(messageText);
+                  toast.success("Текстът е копиран в клипборда!");
+                }}
+              >
+                <Copy className="w-4 h-4" />
+                Копирай текста
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
 

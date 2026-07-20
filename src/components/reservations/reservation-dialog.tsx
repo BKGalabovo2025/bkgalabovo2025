@@ -3,13 +3,33 @@
 import React from "react";
 import * as z from "zod";
 import { Form } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronRight, ChevronLeft, CalendarRange, Calendar, User, ClipboardCheck, CheckCircle2, Activity } from "lucide-react";
+import {
+  Loader2,
+  ChevronRight,
+  ChevronLeft,
+  CalendarRange,
+  Calendar,
+  User,
+  ClipboardCheck,
+  CheckCircle2,
+  Activity,
+} from "lucide-react";
 import { Reservation } from "@/types";
 import { cn } from "@/lib/utils";
 
-import { ReservationDialogProvider, useReservationDialog, reservationSchema } from "./reservation-dialog/ReservationDialogContext";
+import {
+  ReservationDialogProvider,
+  useReservationDialog,
+  reservationSchema,
+} from "./reservation-dialog/ReservationDialogContext";
 import { ReservationStep1Time } from "./reservation-dialog/ReservationStep1Time";
 import { ReservationStep2Package } from "./reservation-dialog/ReservationStep2Package";
 import { ReservationStep3Details } from "./reservation-dialog/ReservationStep3Details";
@@ -19,7 +39,9 @@ interface ReservationDialogContentProps {
   children: React.ReactNode;
 }
 
-const ReservationDialogContent = ({ children }: ReservationDialogContentProps) => {
+const ReservationDialogContent = ({
+  children,
+}: ReservationDialogContentProps) => {
   const {
     isOpen,
     handleOpenChange,
@@ -43,6 +65,15 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
     { id: "review", label: "Преглед", icon: ClipboardCheck },
   ];
 
+  let title = "Резервация на Корт";
+  if (isEditMode) title = "Редактиране";
+  else if (isRecoveryZone) title = "Резервация на Процедура";
+
+  let description = "Създаване на нова резервация на корт и добавяне в графика";
+  if (isEditMode) description = "Актуализиране на съществуваща резервация";
+  else if (isRecoveryZone)
+    description = "Запазване на час за възстановителна зона";
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -52,20 +83,18 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
           <div className="flex items-center justify-between mb-8">
             <div>
               <DialogTitle className="text-2xl font-black text-zinc-950 dark:text-white tracking-tighter uppercase italic">
-                {isEditMode 
-                  ? "Редактиране" 
-                  : (isRecoveryZone ? "Резервация на Процедура" : "Резервация на Корт")}
+                {title}
               </DialogTitle>
               <DialogDescription className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                {isEditMode 
-                  ? "Актуализиране на съществуваща резервация" 
-                  : (isRecoveryZone ? "Запазване на час за възстановителна зона" : "Създаване на нова резервация на корт и добавяне в графика")}
+                {description}
               </DialogDescription>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
               {currentStep === "time" && <CalendarRange className="w-6 h-6" />}
               {currentStep === "details" && <User className="w-6 h-6" />}
-              {currentStep === "review" && <ClipboardCheck className="w-6 h-6" />}
+              {currentStep === "review" && (
+                <ClipboardCheck className="w-6 h-6" />
+              )}
             </div>
           </div>
 
@@ -82,24 +111,33 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
                       className={cn(
                         "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500",
                         (() => {
-                          if (isActive) return "bg-primary text-white shadow-lg shadow-primary/20 scale-110";
+                          if (isActive)
+                            return "bg-primary text-white shadow-lg shadow-primary/20 scale-110";
                           if (isPast) return "bg-emerald-500 text-white";
                           return "bg-zinc-200 dark:bg-zinc-800 text-zinc-400";
                         })()
                       )}
                     >
-                      {isPast ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                      {isPast ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <Icon className="w-4 h-4" />
+                      )}
                     </div>
                     <span
                       className={cn(
                         "text-[9px] font-black uppercase tracking-widest hidden sm:block",
-                        isActive ? "text-zinc-900 dark:text-white" : "text-zinc-400"
+                        isActive
+                          ? "text-zinc-900 dark:text-white"
+                          : "text-zinc-400"
                       )}
                     >
                       {step.label}
                     </span>
                   </div>
-                  {idx < steps.length - 1 && <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800 mx-2" />}
+                  {idx < steps.length - 1 && (
+                    <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800 mx-2" />
+                  )}
                 </React.Fragment>
               );
             })}
@@ -128,10 +166,20 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => (currentStep === "time" ? handleOpenChange(false) : handleBack())}
+                  onClick={() =>
+                    currentStep === "time"
+                      ? handleOpenChange(false)
+                      : handleBack()
+                  }
                   className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
                 >
-                  {currentStep === "time" ? "Отказ" : <><ChevronLeft className="w-4 h-4 mr-2" /> Назад</>}
+                  {currentStep === "time" ? (
+                    "Отказ"
+                  ) : (
+                    <>
+                      <ChevronLeft className="w-4 h-4 mr-2" /> Назад
+                    </>
+                  )}
                 </Button>
 
                 <Button
@@ -146,12 +194,25 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
                 >
                   {(() => {
                     if (isSaving) {
-                      return <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Запис...</>;
+                      return (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                          Запис...
+                        </>
+                      );
                     }
                     if (currentStep === "review") {
-                      return <><CheckCircle2 className="w-4 h-4 mr-2" /> Потвърди</>;
+                      return (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" /> Потвърди
+                        </>
+                      );
                     }
-                    return <>Напред <ChevronRight className="w-4 h-4 ml-2" /></>;
+                    return (
+                      <>
+                        Напред <ChevronRight className="w-4 h-4 ml-2" />
+                      </>
+                    );
                   })()}
                 </Button>
               </div>
@@ -181,9 +242,7 @@ export const ReservationDialog: React.FC<ReservationDialogProps> = (props) => {
 
   return (
     <ReservationDialogProvider {...props}>
-      <ReservationDialogContent>
-        {props.children}
-      </ReservationDialogContent>
+      <ReservationDialogContent>{props.children}</ReservationDialogContent>
     </ReservationDialogProvider>
   );
 };
