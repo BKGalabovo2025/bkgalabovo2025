@@ -1,0 +1,19 @@
+{
+  "threshold": 12,
+  "reporters": ["console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/tests/**",
+    "**/e2e/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "components/ui/**",
+    "scratch/**",
+    "scripts/**"
+  ],
+  "format": ["javascript", "typescript", "jsx", "tsx"],
+  "absolute": true
+}

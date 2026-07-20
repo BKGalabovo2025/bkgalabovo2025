@@ -1,1 +1,3 @@
+npm run check:dup-code
+npm run check:dup-funcs
 npm run precommit
