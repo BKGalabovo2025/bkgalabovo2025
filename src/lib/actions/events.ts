@@ -147,7 +147,7 @@ export async function updateAttendeesAction(
           }
         } catch (err) {
           console.error(
-            `Error checking sales for member ${attendee.memberId}:`,
+            "Error checking sales for member %s:", attendee.memberId,
             err
           );
         }

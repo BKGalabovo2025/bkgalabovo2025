@@ -86,7 +86,7 @@ async function importData() {
         if (count % 10 === 0)
           console.log(`  Progress: ${count}/${docEntries.length}`);
       } catch (error) {
-        console.error(`  Error importing doc ${docId}:`, error);
+        console.error("  Error importing doc %s:", docId, error);
       }
     }
     console.log(`  Finished ${collectionName}: ${count} docs imported.`);

@@ -63,7 +63,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
       createdAt: createdAt.toISOString(),
     };
   } catch (error) {
-    console.error(`Error parsing sale ${doc.id}`, error);
+    console.error("Error parsing sale %s", doc.id, error);
     return null;
   }
 };

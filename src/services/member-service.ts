@@ -66,7 +66,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     return MemberSchema.parse(dataToParse);
   } catch (error) {
     console.warn(
-      `Validation failed for ID ${docSnap.id}. Data:`,
+      "Validation failed for ID %s. Data:", docSnap.id,
       dataToParse,
       error
     );

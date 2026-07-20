@@ -79,8 +79,8 @@ async function run() {
   execSync("npm run build", { stdio: "inherit" });
 
   console.log("\n--- Step 2: Starting server on port 3001 ---");
-  const server = spawn("npx", ["next", "start", "-p", "3001"], {
-    shell: true,
+  const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
+  const server = spawn(npxCmd, ["next", "start", "-p", "3001"], {
     stdio: "inherit",
   });
 
@@ -107,7 +107,7 @@ async function run() {
       );
       console.log(`✅ Report saved to: ${outputPath}`);
     } catch (err) {
-      console.error(`❌ Failed to audit ${page.name}:`, err.message);
+      console.error("❌ Failed to audit %s:", page.name, err.message);
     }
   }
 

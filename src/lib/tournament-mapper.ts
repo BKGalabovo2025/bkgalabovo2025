@@ -36,7 +36,7 @@ export function mapDocToTournament(docSnapshot: DocumentSnapshot): Tournament {
       updatedAt: toISODate(data.updatedAt),
     });
   } catch (error) {
-    console.warn(`Validation failed for tournament ${docSnapshot.id}:`, error);
+    console.warn("Validation failed for tournament %s:", docSnapshot.id, error);
     // Fallback to raw data with ID if validation fails (to avoid breaking the whole list)
     return { ...data, id: docSnapshot.id } as Tournament;
   }

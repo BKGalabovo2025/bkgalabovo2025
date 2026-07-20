@@ -114,7 +114,7 @@ export default function HistoryClientPage({
             setIsLoading(false);
           }
         } catch (err) {
-          console.error(`Error on attempt ${attempt}:`, err);
+          console.error("Error on attempt %s:", attempt, err);
           setError(
             (err as Error).message ||
               "Възникна грешка при зареждането на данните."

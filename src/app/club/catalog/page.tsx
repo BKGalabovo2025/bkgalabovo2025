@@ -52,7 +52,7 @@ const getCachedCollection = unstable_cache(
       );
     } catch (error) {
       console.error(
-        `Failed to fetch ${collectionName} for catalog page:`,
+        "Failed to fetch %s for catalog page:", collectionName,
         error
       );
       return [];

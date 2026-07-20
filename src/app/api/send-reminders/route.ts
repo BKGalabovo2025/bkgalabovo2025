@@ -104,12 +104,12 @@ export async function POST(request: Request) {
       } catch (emailError) {
         if (emailError instanceof Error) {
           console.error(
-            `FAILURE: Failed to dispatch email for ${memberName}. Reason:`,
+            "FAILURE: Failed to dispatch email for %s. Reason:", memberName,
             emailError.message
           );
         } else {
           console.error(
-            `FAILURE: An unknown error occurred while dispatching email for ${memberName}.`
+            "FAILURE: An unknown error occurred while dispatching email for %s.", memberName
           );
         }
         failedCount++;
