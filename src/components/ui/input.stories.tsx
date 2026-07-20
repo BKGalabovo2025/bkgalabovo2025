@@ -1,24 +1,24 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Input } from './input';
+import type { Meta, StoryObj } from "@storybook/nextjs";
+import { Input } from "./input";
 
 const meta = {
-  title: 'UI/Input',
+  title: "UI/Input",
   component: Input,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     type: {
-      control: 'select',
-      options: ['text', 'password', 'email', 'number', 'date', 'file'],
-      description: 'The type of the input field',
+      control: "select",
+      options: ["text", "password", "email", "number", "date", "file"],
+      description: "The type of the input field",
     },
     placeholder: {
-      control: 'text',
+      control: "text",
     },
     disabled: {
-      control: 'boolean',
+      control: "boolean",
     },
   },
 } satisfies Meta<typeof Input>;
@@ -28,35 +28,35 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    type: 'text',
-    placeholder: 'Enter text here...',
+    type: "text",
+    placeholder: "Enter text here...",
   },
 };
 
 export const Email: Story = {
   args: {
-    type: 'email',
-    placeholder: 'admin@bkgalabovo.com',
+    type: "email",
+    placeholder: "admin@bkgalabovo.com",
   },
 };
 
 export const Password: Story = {
   args: {
-    type: 'password',
-    placeholder: '••••••••',
+    type: "password",
+    placeholder: "••••••••",
   },
 };
 
 export const FileUpload: Story = {
   args: {
-    type: 'file',
+    type: "file",
   },
 };
 
 export const Disabled: Story = {
   args: {
-    type: 'text',
-    placeholder: 'Not allowed',
+    type: "text",
+    placeholder: "Not allowed",
     disabled: true,
   },
 };

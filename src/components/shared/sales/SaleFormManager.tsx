@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { mutate } from "swr";
-import { useAuth } from "@/context/auth-context";
 
 import { getAllMembers } from "@/services/member-service";
 import { useProducts } from "@/hooks/useProducts";
@@ -83,8 +81,10 @@ export function SaleFormManager({
   const [membersLoading, setMembersLoading] = useState(true);
 
   const [cart, setCart] = useState<SaleItem[]>(initialCart);
-  const [selectedMemberId, setSelectedMemberId] = useState<string>(initialMemberId);
-  const [paymentStatus, setPaymentStatus] = useState<Sale["status"]>(initialStatus);
+  const [selectedMemberId, setSelectedMemberId] =
+    useState<string>(initialMemberId);
+  const [paymentStatus, setPaymentStatus] =
+    useState<Sale["status"]>(initialStatus);
 
   useEffect(() => {
     setCart(initialCart);
@@ -115,8 +115,12 @@ export function SaleFormManager({
     if (!product) return;
 
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.productId === product.id);
-      const originalItem = initialSale?.items.find((item) => item.productId === product.id);
+      const existingItem = prevCart.find(
+        (item) => item.productId === product.id
+      );
+      const originalItem = initialSale?.items.find(
+        (item) => item.productId === product.id
+      );
       const originalQuantity = originalItem?.quantity || 0;
       const stock = (product.stock || 0) + originalQuantity;
 
@@ -127,7 +131,9 @@ export function SaleFormManager({
           return prevCart;
         }
         return prevCart.map((item) =>
-          item.productId === product.id ? { ...item, quantity: newQuantity } : item
+          item.productId === product.id
+            ? { ...item, quantity: newQuantity }
+            : item
         );
       } else {
         if (stock < 1) {
@@ -153,7 +159,9 @@ export function SaleFormManager({
 
   const updateQuantity = (productId: string, quantity: number) => {
     const productInCart = allProducts.find((p) => p.id === productId);
-    const originalItem = initialSale?.items.find((item) => item.productId === productId);
+    const originalItem = initialSale?.items.find(
+      (item) => item.productId === productId
+    );
     const originalQuantity = originalItem?.quantity || 0;
     const stock = (productInCart?.stock || 0) + originalQuantity;
 
@@ -187,7 +195,9 @@ export function SaleFormManager({
     return allProducts.filter((p) => {
       const itemInCart = cart.find((item) => item.productId === p.id);
       const cartQuantity = itemInCart?.quantity || 0;
-      const originalItem = initialSale?.items.find((item) => item.productId === p.id);
+      const originalItem = initialSale?.items.find(
+        (item) => item.productId === p.id
+      );
       const originalQuantity = originalItem?.quantity || 0;
       const currentStock = (p.stock || 0) + originalQuantity;
       return currentStock - cartQuantity > 0;
@@ -206,7 +216,11 @@ export function SaleFormManager({
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
-      <PageHeader title={title} description={description} breadcrumbs={breadcrumbs}>
+      <PageHeader
+        title={title}
+        description={description}
+        breadcrumbs={breadcrumbs}
+      >
         <Button
           variant="outline"
           onClick={() => router.push(cancelUrl)}
@@ -232,9 +246,15 @@ export function SaleFormManager({
               <Table>
                 <TableHeader>
                   <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-900">
-                    <TableHead className="font-bold text-zinc-400">Продукт</TableHead>
-                    <TableHead className="text-right font-bold text-zinc-400">Цена</TableHead>
-                    <TableHead className="text-right font-bold text-zinc-400">Наличност</TableHead>
+                    <TableHead className="font-bold text-zinc-400">
+                      Продукт
+                    </TableHead>
+                    <TableHead className="text-right font-bold text-zinc-400">
+                      Цена
+                    </TableHead>
+                    <TableHead className="text-right font-bold text-zinc-400">
+                      Наличност
+                    </TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -335,7 +355,10 @@ export function SaleFormManager({
                   Клиент
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+                  <Select
+                    value={selectedMemberId}
+                    onValueChange={setSelectedMemberId}
+                  >
                     <SelectTrigger className="h-11 rounded-xl border border-zinc-100 bg-zinc-50 text-zinc-900 shadow-none focus:ring-1 focus:ring-primary/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       <div className="flex items-center gap-2 overflow-hidden">
                         <UserPlus className="size-4 shrink-0 text-slate-400" />
@@ -370,15 +393,22 @@ export function SaleFormManager({
                       className="group flex items-center justify-between rounded-xl border border-transparent bg-slate-50/30 p-2 transition-all hover:border-slate-100"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold">{item.name}</p>
-                        <p className="text-xs text-slate-400">{formatPrice(item.price)}</p>
+                        <p className="truncate text-sm font-bold">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {formatPrice(item.price)}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
                           value={item.quantity}
                           onChange={(e) =>
-                            updateQuantity(item.productId, parseInt(e.target.value) || 0)
+                            updateQuantity(
+                              item.productId,
+                              parseInt(e.target.value) || 0
+                            )
                           }
                           className="h-8 w-12 rounded-lg border-none bg-white px-1 text-center text-sm font-bold shadow-sm"
                         />
@@ -405,7 +435,9 @@ export function SaleFormManager({
                   </Label>
                   <RadioGroup
                     value={paymentStatus}
-                    onValueChange={(value) => setPaymentStatus(value as Sale["status"])}
+                    onValueChange={(value) =>
+                      setPaymentStatus(value as Sale["status"])
+                    }
                     className="grid grid-cols-2 gap-2"
                   >
                     <Label
@@ -416,7 +448,11 @@ export function SaleFormManager({
                           : "border-slate-50 bg-slate-50/50 text-slate-500 hover:border-slate-200"
                       }`}
                     >
-                      <RadioGroupItem value="completed" id="r-paid" className="sr-only" />
+                      <RadioGroupItem
+                        value="completed"
+                        id="r-paid"
+                        className="sr-only"
+                      />
                       <span className="text-xs font-bold">Платено</span>
                     </Label>
                     <Label
@@ -427,7 +463,11 @@ export function SaleFormManager({
                           : "border-slate-50 bg-slate-50/50 text-slate-500 hover:border-slate-200"
                       }`}
                     >
-                      <RadioGroupItem value="pending" id="r-deferred" className="sr-only" />
+                      <RadioGroupItem
+                        value="pending"
+                        id="r-deferred"
+                        className="sr-only"
+                      />
                       <span className="text-xs font-bold">Отложено</span>
                     </Label>
                   </RadioGroup>
@@ -435,7 +475,9 @@ export function SaleFormManager({
 
                 <div className="flex items-center justify-between rounded-2xl bg-slate-900 p-4 text-white shadow-lg">
                   <span className="font-bold opacity-60">Общо:</span>
-                  <span className="text-xl font-black">{formatPrice(totalAmount)}</span>
+                  <span className="text-xl font-black">
+                    {formatPrice(totalAmount)}
+                  </span>
                 </div>
 
                 <Button
@@ -443,7 +485,11 @@ export function SaleFormManager({
                   className="hover:scale-1.02 h-12 w-full rounded-2xl text-base font-bold shadow-xl shadow-primary/20 transition-all active:scale-95"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? <Loader2 className="mr-2 size-5 animate-spin" /> : submitText}
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                  ) : (
+                    submitText
+                  )}
                 </Button>
               </div>
             )}

@@ -141,6 +141,7 @@ export const useServiceSaleWizard = () => {
 };
 
 interface ProviderProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   service: any;
   serviceType: "recovery_service" | "training_service";
   isOpen: boolean;
@@ -405,7 +406,8 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
       }
       if (paymentMode === "individual" && selectedEventIds.length === 0) {
         toast.error("Избор на процедури/тренировки", {
-          description: "Моля, изберете поне една процедура/тренировка за плащане.",
+          description:
+            "Моля, изберете поне една процедура/тренировка за плащане.",
         });
         return;
       }

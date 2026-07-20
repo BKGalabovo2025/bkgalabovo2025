@@ -30,17 +30,11 @@ export const fetchMemberById = async (id: string): Promise<Member | null> => {
  * Fetches all members from Firestore, sorted by lastName.
  */
 export const fetchAllMembers = async (): Promise<Member[]> => {
-  const q = query(
-    getMembersQuery(),
-    orderBy("lastName", "asc"),
-    limit(1000)
-  );
+  const q = query(getMembersQuery(), orderBy("lastName", "asc"), limit(1000));
 
   const querySnapshot = await getDocs(q);
 
-  return querySnapshot.docs
-    .map(docToMember)
-    .filter(Boolean) as Member[];
+  return querySnapshot.docs.map(docToMember).filter(Boolean) as Member[];
 };
 
 /**
@@ -78,6 +72,7 @@ export const deleteMemberDocument = async (id: string): Promise<void> => {
 /**
  * Helper to get raw member data (e.g. for avatar check before update)
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchRawMemberData = async (id: string): Promise<any | null> => {
   const memberRef = doc(getMembersCollection(), id);
   const docSnap = await getDoc(memberRef);
