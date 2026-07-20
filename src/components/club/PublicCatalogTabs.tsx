@@ -229,7 +229,15 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
       return [];
     }
-    return item.imageUrl.split(",").filter(Boolean);
+    return item.imageUrl.split(",").filter(Boolean).map((url: string) => {
+      let validUrl = url;
+      if (validUrl.includes("\\public\\")) {
+        validUrl = "/" + validUrl.split("\\public\\")[1].replace(/\\/g, "/");
+      } else if (validUrl.includes("/public/")) {
+        validUrl = "/" + validUrl.split("/public/")[1];
+      }
+      return validUrl;
+    }).filter((url: string) => url.startsWith("/") || url.startsWith("http") || url.startsWith("data:"));
   }, [item.imageUrl, item.name, item.zones]);
 
   const displayMode = item.imageDisplayMode || "collage";
