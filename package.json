@@ -143,6 +143,9 @@
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
+    ],
+    "*.css": [
+      "stylelint --fix"
     ]
   }
 }
