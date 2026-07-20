@@ -332,6 +332,7 @@ export function ServiceForm({
                             alt={img.name}
                             fill
                             sizes="120px"
+                            priority
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-black/30 flex items-end p-2">
@@ -383,6 +384,7 @@ export function ServiceForm({
                               alt={`Preview ${index + 1}`}
                               fill
                               sizes="150px"
+                              priority
                               className="object-cover"
                             />
                             <div className="absolute top-2 left-2 bg-zinc-950/80 backdrop-blur-sm text-white rounded-md px-1.5 py-0.5 text-[9px] font-bold flex items-center justify-center">

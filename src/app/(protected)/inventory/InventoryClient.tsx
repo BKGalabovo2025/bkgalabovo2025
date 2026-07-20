@@ -156,9 +156,22 @@ const ProductList = () => {
                   className="group overflow-hidden transition-all duration-500 flex flex-col border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl hover:shadow-xl hover:shadow-zinc-100/20 dark:hover:shadow-none"
                 >
                   <div className="relative h-64 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-50 dark:border-zinc-800">
-                    {product.imageUrl ? (
+                    {product.imageUrl &&
+                    (product.imageUrl.startsWith("/") ||
+                      product.imageUrl.startsWith("http") ||
+                      product.imageUrl.startsWith("data:") ||
+                      product.imageUrl.includes("\\public\\") ||
+                      product.imageUrl.includes("/public/")) ? (
                       <Image
-                        src={product.imageUrl}
+                        src={(() => {
+                          let url = product.imageUrl!;
+                          if (url.includes("\\public\\")) {
+                            url = "/" + url.split("\\public\\")[1].replace(/\\/g, "/");
+                          } else if (url.includes("/public/")) {
+                            url = "/" + url.split("/public/")[1];
+                          }
+                          return url;
+                        })()}
                         alt={product.name}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
