@@ -29,6 +29,7 @@ import {
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventDateRange } from "@/lib/date-utils";
+import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 import { PublicNav } from "@/components/layout/public-nav";
 import { PublicFooter } from "@/components/layout/public-footer";
 
@@ -144,163 +145,6 @@ export default function ClubClient({
   const groups = Object.entries(groupedEvents);
   const isSpecialLabel = (label: string) =>
     label === "Днес" || label === "Утре";
-
-  const EventCard = ({
-    event,
-    groupIdx,
-    i,
-  }: {
-    event: EventSlot;
-    groupIdx: number;
-    i: number;
-  }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    const handlePrint = () => {
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) return;
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Принтиране на събитие - ${event.title}</title>
-            <style>
-              body { font-family: sans-serif; padding: 2rem; color: #333; }
-              h1 { color: #000; }
-              .meta { color: #666; margin-bottom: 2rem; }
-              .desc { white-space: pre-wrap; line-height: 1.6; }
-            </style>
-          </head>
-          <body>
-            <h1>${event.title}</h1>
-            <div class="meta">
-              <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
-              <p><strong>Локация:</strong> ${event.location || 'Спортна зала „Енергетик"'}</p>
-            </div>
-            <div class="desc">${event.description || "Няма допълнителна информация."}</div>
-            <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    };
-
-    const displayTime = formatEventDateRange(event.startTime, event.endTime);
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: groupIdx * 0.05 + i * 0.04 }}
-        className={`group border rounded-2xl overflow-hidden transition-all duration-300 ${
-          event.isCancelled
-            ? "bg-black/40 border-rose-900/30 opacity-80"
-            : "bg-black/70 border-zinc-800 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
-        }`}
-      >
-        <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left side */}
-          <div className="flex items-start gap-5">
-            <div
-              className={`w-1 h-12 mt-1 sm:mt-0 rounded-full shrink-0 ${event.isCancelled ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"}`}
-            />
-            <div>
-              <div className="flex items-center gap-3">
-                <p
-                  className={`text-white font-bold text-base tracking-tight ${event.isCancelled ? "line-through text-zinc-400" : ""}`}
-                >
-                  {event.title}
-                </p>
-                {event.isCancelled && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded-md border border-rose-500/30">
-                    Отменена
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-4 mt-2">
-                <span className="flex items-center gap-1.5 text-zinc-300 text-[13px]">
-                  <Clock size={14} className="text-blue-400" />
-                  {displayTime}
-                </span>
-                <span className="flex items-center gap-1.5 text-zinc-400 text-[13px]">
-                  <MapPin size={14} className="text-blue-400" />
-                  {event.location || 'Спортна зала „Енергетик"'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right side */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5 mt-4 sm:mt-0 ml-6 sm:ml-0">
-            <button
-              onClick={handlePrint}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors p-2"
-              title="Принтирай"
-            >
-              <Printer size={18} />
-            </button>
-
-            {event.description && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1.5 text-blue-400/80 hover:text-blue-300 text-[13px] font-medium transition-colors"
-              >
-                <Info size={16} />
-                Бележка
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
-                />
-              </button>
-            )}
-
-            {!event.isCancelled && (
-              <a
-                href={`https://wa.me/359899829923?text=${encodeURIComponent(
-                  `Здравейте, интересувам се да се запиша за: ${event.title}. Моля, свържете се с мен.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-green-400 text-sm font-semibold hover:text-green-300 transition-colors group-hover:gap-2 ml-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-3.5 h-3.5"
-                >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                Запиши се
-                <ChevronRight
-                  size={15}
-                  className="transition-transform group-hover:translate-x-0.5"
-                />
-              </a>
-            )}
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {expanded && event.description && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="px-6 pb-5 pt-2 ml-6 sm:ml-10">
-                <div className="p-4 rounded-xl bg-blue-900/10 border border-blue-900/20">
-                  <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {event.description}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  };
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
@@ -567,15 +411,16 @@ export default function ClubClient({
 
                       {/* Events for this date */}
                       <div className="space-y-3">
-                        {events.map((event, i) => (
-                          <EventCard
-                            key={event.id}
-                            event={event}
-                            groupIdx={groupIdx}
-                            i={i}
-                          />
-                        ))}
-                      </div>
+                    {events.map((event, i) => (
+                      <PublicEventCard
+                        key={event.id}
+                        event={event as any}
+                        groupIdx={groupIdx}
+                        i={i}
+                        showAdminLinks={false}
+                      />
+                    ))}
+                  </div>
                     </motion.div>
                   ))}
                 </div>
