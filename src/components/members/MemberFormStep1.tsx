@@ -21,19 +21,33 @@ import { User, Users, Activity, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Simple visual checkbox that avoids Radix compose-refs React 19 bug
-function VisualCheckbox({ checked, className }: { checked?: boolean; className?: string }) {
+function VisualCheckbox({
+  checked,
+  className,
+}: {
+  checked?: boolean;
+  className?: string;
+}) {
   return (
-    <div className={cn(
-      "shrink-0 rounded-sm border border-zinc-300 flex items-center justify-center",
-      checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
-      className
-    )}>
-      {checked && <Check className="text-white" strokeWidth={3} style={{ width: "70%", height: "70%" }} />}
+    <div
+      className={cn(
+        "shrink-0 rounded-sm border border-zinc-300 flex items-center justify-center",
+        checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
+        className
+      )}
+    >
+      {checked && (
+        <Check
+          className="text-white"
+          strokeWidth={3}
+          style={{ width: "70%", height: "70%" }}
+        />
+      )}
     </div>
   );
 }
 
-import { MemberFormValues } from "./member-form";
+import { MemberFormValues } from "./member-form-types";
 
 interface MemberFormStep1Props {
   form: UseFormReturn<MemberFormValues>;
@@ -62,7 +76,11 @@ export function MemberFormStep1({
           </FormLabel>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div
-              onClick={() => form.setValue("isClubMember", !isClubMember, { shouldValidate: true })}
+              onClick={() =>
+                form.setValue("isClubMember", !isClubMember, {
+                  shouldValidate: true,
+                })
+              }
               className={cn(
                 "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
                 isClubMember
@@ -97,7 +115,11 @@ export function MemberFormStep1({
             </div>
 
             <div
-              onClick={() => form.setValue("isRecoveryMember", !isRecoveryMember, { shouldValidate: true })}
+              onClick={() =>
+                form.setValue("isRecoveryMember", !isRecoveryMember, {
+                  shouldValidate: true,
+                })
+              }
               className={cn(
                 "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
                 isRecoveryMember
@@ -132,7 +154,9 @@ export function MemberFormStep1({
             </div>
 
             <div
-              onClick={() => form.setValue("isGuest", !isGuest, { shouldValidate: true })}
+              onClick={() =>
+                form.setValue("isGuest", !isGuest, { shouldValidate: true })
+              }
               className={cn(
                 "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
                 isGuest
@@ -335,9 +359,9 @@ export function MemberFormStep1({
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
                         value={curYear || ""}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Година" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Година" />
+                        </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {years.map((y) => (
                             <SelectItem key={y} value={y}>
@@ -353,9 +377,9 @@ export function MemberFormStep1({
                         }
                         value={curMonth || "none"}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Месец" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Месец" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Месец</SelectItem>
                           {months.map((m) => (
@@ -373,9 +397,9 @@ export function MemberFormStep1({
                         value={curDay || "none"}
                         disabled={!curMonth}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Ден" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Ден" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Ден</SelectItem>
                           {days.map((d) => (
@@ -467,9 +491,9 @@ export function MemberFormStep1({
                         onValueChange={(v) => updateDate(v, curMonth, curDay)}
                         value={curYear || ""}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Година" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Година" />
+                        </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
                           {years.map((y) => (
                             <SelectItem key={y} value={y}>
@@ -485,9 +509,9 @@ export function MemberFormStep1({
                         }
                         value={curMonth || "none"}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Месец" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Месец" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Месец</SelectItem>
                           {months.map((m) => (
@@ -505,9 +529,9 @@ export function MemberFormStep1({
                         value={curDay || "none"}
                         disabled={!curMonth}
                       >
-                          <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                            <SelectValue placeholder="Ден" />
-                          </SelectTrigger>
+                        <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                          <SelectValue placeholder="Ден" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Ден</SelectItem>
                           {days.map((d) => (
@@ -561,7 +585,11 @@ export function MemberFormStep1({
             return (
               <div
                 className="flex flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 h-auto min-h-[44px] sm:min-h-[48px] mt-auto cursor-pointer"
-                onClick={() => form.setValue("showOnPublicTeam", !showOnPublicTeam, { shouldValidate: true })}
+                onClick={() =>
+                  form.setValue("showOnPublicTeam", !showOnPublicTeam, {
+                    shouldValidate: true,
+                  })
+                }
               >
                 <div className="space-y-1">
                   <p className="text-[11px] font-medium text-zinc-700">

@@ -3,7 +3,11 @@ import { toast } from "sonner";
 import { UseFormReturn } from "react-hook-form";
 import { ClubService } from "@/types";
 import { Site } from "@/types/site.types";
-import { ReservationFormValues, Step, PackageDay } from "../ReservationDialogContext";
+import {
+  ReservationFormValues,
+  Step,
+  PackageDay,
+} from "../reservation-dialog-types";
 import {
   detectPackageInfo,
   buildZoneResources,
@@ -20,7 +24,7 @@ export function useReservationNavigation(
   siteInfo: Site | null,
   isRecoveryZone: boolean,
   isTwoClients: boolean,
-  ignoreWorkingHoursWarning: boolean,
+  ignoreWorkingHoursWarning: boolean
 ) {
   const [currentStep, setCurrentStep] = useState<Step>("time");
   const [packageDays, setPackageDays] = useState<PackageDay[]>([]);
@@ -31,7 +35,7 @@ export function useReservationNavigation(
 
   const buildTimeStepFields = (
     isPackage: boolean,
-    selectedService: ClubService | undefined,
+    selectedService: ClubService | undefined
   ): Array<keyof ReservationFormValues> => {
     const fields: Array<keyof ReservationFormValues> = [];
     if (!isPackage) fields.push("startTime", "endTime");
@@ -39,7 +43,11 @@ export function useReservationNavigation(
       fields.push("courtId");
     } else {
       fields.push("serviceId");
-      if (selectedService && (selectedService.zones?.length || 0) > 1 && !isPackage) {
+      if (
+        selectedService &&
+        (selectedService.zones?.length || 0) > 1 &&
+        !isPackage
+      ) {
         fields.push("selectedZone");
       }
     }
@@ -51,7 +59,7 @@ export function useReservationNavigation(
 
     const resources = buildZoneResources(
       watchedValues.selectedZone,
-      isTwoClients ? watchedValues.client2Zone : undefined,
+      isTwoClients ? watchedValues.client2Zone : undefined
     );
     if (!resources) return true;
 
@@ -59,7 +67,7 @@ export function useReservationNavigation(
       "recoveryzone",
       toUtcIso(watchedValues.startTime),
       toUtcIso(watchedValues.endTime),
-      { compressors: resources.compressors, attachments: resources.attachments },
+      { compressors: resources.compressors, attachments: resources.attachments }
     );
     if (!inventoryCheck.success) {
       toast.error(inventoryCheck.message);
@@ -71,7 +79,7 @@ export function useReservationNavigation(
   const navigateAfterTimeStep = (
     isPackage: boolean,
     daysCount: number,
-    selectedService: ClubService | undefined,
+    selectedService: ClubService | undefined
   ) => {
     if (!isPackage || daysCount <= 1) {
       setCurrentStep("details");
@@ -79,18 +87,32 @@ export function useReservationNavigation(
     }
     const baseStart = watchedValues.startTime || new Date();
     const fallbackDuration = (selectedService?.durationMinutes || 60) * 60000;
-    const baseEnd = watchedValues.endTime || new Date(baseStart.getTime() + fallbackDuration);
-    setPackageDays(buildPackageDays(daysCount, baseStart, baseEnd, watchedValues.selectedZone, watchedValues.client2Zone));
+    const baseEnd =
+      watchedValues.endTime || new Date(baseStart.getTime() + fallbackDuration);
+    setPackageDays(
+      buildPackageDays(
+        daysCount,
+        baseStart,
+        baseEnd,
+        watchedValues.selectedZone,
+        watchedValues.client2Zone
+      )
+    );
     setCurrentStep("packageDays");
   };
 
   const handleNextTimeStep = async (): Promise<boolean> => {
-    const selectedService = services.find((s) => s.id === watchedValues.serviceId);
+    const selectedService = services.find(
+      (s) => s.id === watchedValues.serviceId
+    );
     const { isPackage, daysCount } = detectPackageInfo(selectedService);
 
-    const isValid = await form.trigger(buildTimeStepFields(isPackage, selectedService));
+    const isValid = await form.trigger(
+      buildTimeStepFields(isPackage, selectedService)
+    );
     if (!isValid) {
-      if (form.formState.errors.endTime) toast.error("Крайният час е невалиден.");
+      if (form.formState.errors.endTime)
+        toast.error("Крайният час е невалиден.");
       else toast.error("Моля, попълнете всички задължителни полета.");
       return false;
     }
@@ -112,10 +134,12 @@ export function useReservationNavigation(
     return true;
   };
 
-  const checkInventoryForPackageDay = async (p: PackageDay): Promise<boolean> => {
+  const checkInventoryForPackageDay = async (
+    p: PackageDay
+  ): Promise<boolean> => {
     const resources = buildZoneResources(
       p.client1Zone,
-      isTwoClients ? p.client2Zone : undefined,
+      isTwoClients ? p.client2Zone : undefined
     );
 
     if (!p.client1Zone) {
@@ -133,7 +157,7 @@ export function useReservationNavigation(
       "recoveryzone",
       toUtcIso(p.startTime),
       toUtcIso(p.endTime),
-      { compressors: resources.compressors, attachments: resources.attachments },
+      { compressors: resources.compressors, attachments: resources.attachments }
     );
     if (!inventoryCheck.success) {
       toast.error(`Ден ${p.dayIndex + 1}: ${inventoryCheck.message}`);
@@ -162,14 +186,20 @@ export function useReservationNavigation(
   };
 
   const handleNextDetailsStep = async (): Promise<boolean> => {
-    const triggers: Array<keyof ReservationFormValues> = ["clientName", "clientPhone", "clientEmail"];
+    const triggers: Array<keyof ReservationFormValues> = [
+      "clientName",
+      "clientPhone",
+      "clientEmail",
+    ];
     if (isTwoClients) triggers.push("client2Name", "client2Phone");
 
     const isValid = await form.trigger(triggers);
 
     const client2Name = form.getValues("client2Name");
     if (isTwoClients && (!client2Name || client2Name.length < 2)) {
-      form.setError("client2Name", { message: "Името е задължително за пакети за двама." });
+      form.setError("client2Name", {
+        message: "Името е задължително за пакети за двама.",
+      });
       return false;
     }
 
@@ -184,7 +214,8 @@ export function useReservationNavigation(
   };
 
   const handleBack = () => {
-    if (currentStep === "details") setCurrentStep(packageDays.length > 0 ? "packageDays" : "time");
+    if (currentStep === "details")
+      setCurrentStep(packageDays.length > 0 ? "packageDays" : "time");
     else if (currentStep === "review") setCurrentStep("details");
     else if (currentStep === "packageDays") setCurrentStep("time");
   };

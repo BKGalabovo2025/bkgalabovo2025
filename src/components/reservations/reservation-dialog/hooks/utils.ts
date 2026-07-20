@@ -1,6 +1,6 @@
 import { ClubService } from "@/types";
 import { Site } from "@/types/site.types";
-import { ReservationFormValues, PackageDay } from "../ReservationDialogContext";
+import { ReservationFormValues, PackageDay } from "../reservation-dialog-types";
 
 interface ZoneAttachments {
   legs: number;
@@ -13,15 +13,22 @@ export interface RequiredResources {
   attachments: ZoneAttachments;
 }
 
-export function detectPackageInfo(selectedService: ClubService | undefined): { isPackage: boolean; daysCount: number } {
+export function detectPackageInfo(selectedService: ClubService | undefined): {
+  isPackage: boolean;
+  daysCount: number;
+} {
   if (!selectedService?.name) return { isPackage: false, daysCount: 1 };
   const nameL = selectedService.name.toLowerCase();
   if (nameL.includes("2 дни")) return { isPackage: true, daysCount: 2 };
-  if (nameL.includes("3 дни") || nameL.includes("тридневен")) return { isPackage: true, daysCount: 3 };
+  if (nameL.includes("3 дни") || nameL.includes("тридневен"))
+    return { isPackage: true, daysCount: 3 };
   return { isPackage: false, daysCount: 1 };
 }
 
-export function buildZoneResources(zone1: string | undefined, zone2: string | undefined): RequiredResources | null {
+export function buildZoneResources(
+  zone1: string | undefined,
+  zone2: string | undefined
+): RequiredResources | null {
   let reqComp = 0;
   const reqAtts: ZoneAttachments = { legs: 0, arms: 0, hips: 0 };
 
@@ -43,9 +50,14 @@ export function buildZoneResources(zone1: string | undefined, zone2: string | un
   return { compressors: reqComp, attachments: reqAtts };
 }
 
-function buildZoneResourcesFromZoneName(zone1: string | undefined, zone2: string | undefined): RequiredResources | null {
+function buildZoneResourcesFromZoneName(
+  zone1: string | undefined,
+  zone2: string | undefined
+): RequiredResources | null {
   let reqComp = 0;
-  let reqLegs = 0, reqArms = 0, reqHips = 0;
+  let reqLegs = 0,
+    reqArms = 0,
+    reqHips = 0;
 
   if (zone1) {
     reqComp++;
@@ -60,15 +72,22 @@ function buildZoneResourcesFromZoneName(zone1: string | undefined, zone2: string
     else if (zone2 === "Таз") reqHips++;
   }
   if (reqComp === 0) return null;
-  return { compressors: reqComp, attachments: { legs: reqLegs, arms: reqArms, hips: reqHips } };
+  return {
+    compressors: reqComp,
+    attachments: { legs: reqLegs, arms: reqArms, hips: reqHips },
+  };
 }
 
 export function toUtcIso(date: Date): string {
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+  return new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  ).toISOString();
 }
 
 function cleanPayload(obj: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  );
 }
 
 export function buildPackageDays(
@@ -76,7 +95,7 @@ export function buildPackageDays(
   baseStart: Date,
   baseEnd: Date,
   selectedZone: string | undefined,
-  client2Zone: string | undefined,
+  client2Zone: string | undefined
 ): PackageDay[] {
   const days: PackageDay[] = [];
   for (let i = 0; i < daysCount; i++) {
@@ -96,15 +115,30 @@ export function buildPackageDays(
   return days;
 }
 
-export function checkWorkingHoursLogic(date: Date, siteInfo: Site | null): string | null {
+export function checkWorkingHoursLogic(
+  date: Date,
+  siteInfo: Site | null
+): string | null {
   if (!siteInfo?.schedule) return null;
-  const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const dayNames = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
   const day = dayNames[date.getDay()];
   const daySchedule = siteInfo.schedule[day as keyof typeof siteInfo.schedule];
 
-  if (!daySchedule?.isOpen) return "Този ден е отбелязан като неработен за обекта.";
+  if (!daySchedule?.isOpen)
+    return "Този ден е отбелязан като неработен за обекта.";
 
-  const timeStr = date.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+  const timeStr = date.toLocaleTimeString("bg-BG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   if (timeStr < daySchedule.open || timeStr > daySchedule.close) {
     return `Избраният час е извън работното време (${daySchedule.open} - ${daySchedule.close}).`;
   }
@@ -115,7 +149,7 @@ export function buildFinalResources(
   isRecovery: boolean,
   service: ClubService | undefined,
   zone1: string | undefined,
-  zone2: string | undefined,
+  zone2: string | undefined
 ) {
   if (!isRecovery) return service?.requiredResources;
   const res = buildZoneResourcesFromZoneName(zone1, zone2);
@@ -132,7 +166,7 @@ export function buildBasePayload(
   endIso: string | undefined,
   finalResources: unknown,
   zone1: string | undefined,
-  zone2: string | undefined,
+  zone2: string | undefined
 ) {
   return cleanPayload({
     ...values,

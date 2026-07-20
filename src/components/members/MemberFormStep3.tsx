@@ -23,29 +23,40 @@ import { FileText, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Simple visual checkbox that avoids Radix compose-refs React 19 bug
-function VisualCheckbox({ checked, className }: { checked?: boolean; className?: string }) {
+function VisualCheckbox({
+  checked,
+  className,
+}: {
+  checked?: boolean;
+  className?: string;
+}) {
   return (
-    <div className={cn(
-      "shrink-0 rounded-md border border-zinc-300 flex items-center justify-center",
-      checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
-      className
-    )}>
-      {checked && <Check className="text-white" strokeWidth={3} style={{ width: "70%", height: "70%" }} />}
+    <div
+      className={cn(
+        "shrink-0 rounded-md border border-zinc-300 flex items-center justify-center",
+        checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
+        className
+      )}
+    >
+      {checked && (
+        <Check
+          className="text-white"
+          strokeWidth={3}
+          style={{ width: "70%", height: "70%" }}
+        />
+      )}
     </div>
   );
 }
 
-import { MemberFormValues } from "./member-form";
+import { MemberFormValues } from "./member-form-types";
 
 interface MemberFormStep3Props {
   form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
 }
 
-export function MemberFormStep3({
-  form,
-  isActive,
-}: MemberFormStep3Props) {
+export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
   if (!isActive) return null;
 
   const isGuest = form.watch("isGuest");
@@ -119,9 +130,9 @@ export function MemberFormStep3({
                     onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
                   >
-                      <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                        <SelectValue placeholder="Избери ниво" />
-                      </SelectTrigger>
+                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                      <SelectValue placeholder="Избери ниво" />
+                    </SelectTrigger>
                     <SelectContent className="rounded-xl border-zinc-100">
                       <SelectItem value="beginner">Начално</SelectItem>
                       <SelectItem value="intermediate">Средно</SelectItem>
@@ -132,7 +143,9 @@ export function MemberFormStep3({
                     </SelectContent>
                   </Select>
                   <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
-                    Ако изберете &quot;Напреднало&quot; или &quot;Професионално&quot;, в публичния отбор ще излиза като &quot;Състезател&quot;, иначе &quot;Любител&quot;.
+                    Ако изберете &quot;Напреднало&quot; или
+                    &quot;Професионално&quot;, в публичния отбор ще излиза като
+                    &quot;Състезател&quot;, иначе &quot;Любител&quot;.
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -149,13 +162,10 @@ export function MemberFormStep3({
               <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Статус
               </FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                  <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent className="rounded-xl border-zinc-100">
                   <SelectItem value="active">Активен</SelectItem>
                   <SelectItem value="inactive">Неактивен</SelectItem>
@@ -166,54 +176,80 @@ export function MemberFormStep3({
           )}
         />
 
-        {isClubMember && (() => {
-          const hasSignedDeclaration = form.watch("hasSignedDeclaration");
-          const hasMedicalCertificate = form.watch("hasMedicalCertificate");
-          const isLicensed = form.watch("isLicensed");
-          return (
-            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 pt-6 border-t border-zinc-100 mt-2">
-              <div
-                className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
-                onClick={() => form.setValue("hasSignedDeclaration", !hasSignedDeclaration, { shouldValidate: true })}
-              >
-                <VisualCheckbox
-                  checked={hasSignedDeclaration}
-                  className="h-5 w-5"
-                />
-                <div className="space-y-1 leading-none">
-                  <p className="text-sm font-medium text-zinc-950">Декларация</p>
-                  <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">Подписана декларация</p>
+        {isClubMember &&
+          (() => {
+            const hasSignedDeclaration = form.watch("hasSignedDeclaration");
+            const hasMedicalCertificate = form.watch("hasMedicalCertificate");
+            const isLicensed = form.watch("isLicensed");
+            return (
+              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 pt-6 border-t border-zinc-100 mt-2">
+                <div
+                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  onClick={() =>
+                    form.setValue(
+                      "hasSignedDeclaration",
+                      !hasSignedDeclaration,
+                      { shouldValidate: true }
+                    )
+                  }
+                >
+                  <VisualCheckbox
+                    checked={hasSignedDeclaration}
+                    className="h-5 w-5"
+                  />
+                  <div className="space-y-1 leading-none">
+                    <p className="text-sm font-medium text-zinc-950">
+                      Декларация
+                    </p>
+                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                      Подписана декларация
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  onClick={() =>
+                    form.setValue(
+                      "hasMedicalCertificate",
+                      !hasMedicalCertificate,
+                      { shouldValidate: true }
+                    )
+                  }
+                >
+                  <VisualCheckbox
+                    checked={hasMedicalCertificate}
+                    className="h-5 w-5"
+                  />
+                  <div className="space-y-1 leading-none">
+                    <p className="text-sm font-medium text-zinc-950">
+                      Медицинско
+                    </p>
+                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                      Предадено за годината
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  onClick={() =>
+                    form.setValue("isLicensed", !isLicensed, {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <VisualCheckbox checked={isLicensed} className="h-5 w-5" />
+                  <div className="space-y-1 leading-none">
+                    <p className="text-sm font-medium text-zinc-950">
+                      Картотека
+                    </p>
+                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                      Картотекиран в БФБ
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div
-                className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
-                onClick={() => form.setValue("hasMedicalCertificate", !hasMedicalCertificate, { shouldValidate: true })}
-              >
-                <VisualCheckbox
-                  checked={hasMedicalCertificate}
-                  className="h-5 w-5"
-                />
-                <div className="space-y-1 leading-none">
-                  <p className="text-sm font-medium text-zinc-950">Медицинско</p>
-                  <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">Предадено за годината</p>
-                </div>
-              </div>
-              <div
-                className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
-                onClick={() => form.setValue("isLicensed", !isLicensed, { shouldValidate: true })}
-              >
-                <VisualCheckbox
-                  checked={isLicensed}
-                  className="h-5 w-5"
-                />
-                <div className="space-y-1 leading-none">
-                  <p className="text-sm font-medium text-zinc-950">Картотека</p>
-                  <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">Картотекиран в БФБ</p>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
         {(isRecoveryMember || isClubMember) && (
           <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-6 border-t border-zinc-100 mt-2">
@@ -245,11 +281,7 @@ export function MemberFormStep3({
               name="notes"
               control={form.control}
               render={({ field }) => (
-                <FormItem
-                  className={cn(
-                    !isRecoveryMember && "sm:col-span-2"
-                  )}
-                >
+                <FormItem className={cn(!isRecoveryMember && "sm:col-span-2")}>
                   <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                     Общи Бележки
                   </FormLabel>

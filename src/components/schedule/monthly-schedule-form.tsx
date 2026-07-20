@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
@@ -14,33 +13,11 @@ import { MonthlyScheduleStep1 } from "./MonthlyScheduleStep1";
 import { MonthlyScheduleStep2 } from "./MonthlyScheduleStep2";
 import { MonthlyScheduleStep3 } from "./MonthlyScheduleStep3";
 
-const daysOfWeek = [
-  { id: "mon", label: "Пн", value: 1 },
-  { id: "tue", label: "Вт", value: 2 },
-  { id: "wed", label: "Ср", value: 3 },
-  { id: "thu", label: "Чт", value: 4 },
-  { id: "fri", label: "Пт", value: 5 },
-  { id: "sat", label: "Сб", value: 6 },
-  { id: "sun", label: "Нд", value: 0 },
-];
-
-const monthlyScheduleSchema = z
-  .object({
-    title: z.string().min(1, "Моля, въведете заглавие."),
-    type: z.enum(["training", "competition", "camp", "event", "other"]),
-    month: z.string().min(1, "Моля, изберете месец."),
-    days: z.array(z.number()).min(1, "Моля, изберете поне един ден."),
-    startTime: z.string().min(1, "Моля, въведете начален час."),
-    endTime: z.string().min(1, "Моля, въведете краен час."),
-    location: z.string().min(1, "Моля, въведете локация."),
-  })
-  .refine((data) => data.startTime < data.endTime, {
-    message: "Крайният час трябва да е след началния.",
-    path: ["endTime"],
-  });
-
-export type MonthlyScheduleFormData = z.infer<typeof monthlyScheduleSchema>;
-
+import {
+  daysOfWeek,
+  monthlyScheduleSchema,
+  MonthlyScheduleFormData,
+} from "./monthly-schedule-types";
 interface MonthlyScheduleFormProps {
   onSave: (data: MonthlyScheduleFormData) => void;
   isSaving?: boolean;
@@ -150,21 +127,21 @@ export default function MonthlyScheduleForm({
           }}
           className="space-y-8 flex-1"
         >
-          <MonthlyScheduleStep1 
-            form={form} 
-            isActive={step === 1} 
-            onKeyDown={handleInputKeyDown} 
+          <MonthlyScheduleStep1
+            form={form}
+            isActive={step === 1}
+            onKeyDown={handleInputKeyDown}
           />
-          
-          <MonthlyScheduleStep2 
-            form={form} 
-            isActive={step === 2} 
+
+          <MonthlyScheduleStep2
+            form={form}
+            isActive={step === 2}
             onKeyDown={handleInputKeyDown}
             daysOfWeek={daysOfWeek}
           />
-          
-          <MonthlyScheduleStep3 
-            isActive={step === 3} 
+
+          <MonthlyScheduleStep3
+            isActive={step === 3}
             currentValues={currentValues}
             daysOfWeek={daysOfWeek}
           />

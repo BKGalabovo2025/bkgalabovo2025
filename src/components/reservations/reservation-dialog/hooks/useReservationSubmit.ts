@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ClubService, Reservation } from "@/types";
-import { ReservationFormValues, PackageDay } from "../ReservationDialogContext";
+import { ReservationFormValues, PackageDay } from "../reservation-dialog-types";
 import { buildFinalResources, buildBasePayload } from "./utils";
 import {
   createReservationAction,

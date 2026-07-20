@@ -28,8 +28,8 @@ import { cn } from "@/lib/utils";
 import {
   ReservationDialogProvider,
   useReservationDialog,
-  reservationSchema,
 } from "./reservation-dialog/ReservationDialogContext";
+import { reservationSchema } from "./reservation-dialog/reservation-dialog-types";
 import { ReservationStep1Time } from "./reservation-dialog/ReservationStep1Time";
 import { ReservationStep2Package } from "./reservation-dialog/ReservationStep2Package";
 import { ReservationStep3Details } from "./reservation-dialog/ReservationStep3Details";

@@ -2,7 +2,7 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MonthlyScheduleFormData } from "./monthly-schedule-form";
+import { MonthlyScheduleFormData } from "./monthly-schedule-types";
 
 interface DayOfWeek {
   id: string;
@@ -36,7 +36,9 @@ export function MonthlyScheduleStep3({
       <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 space-y-4 border border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-3 text-emerald-500 mb-4">
           <CheckCircle2 className="h-6 w-6" />
-          <h3 className="font-medium text-sm">Всичко е готово за генериране!</h3>
+          <h3 className="font-medium text-sm">
+            Всичко е готово за генериране!
+          </h3>
         </div>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2 text-xs">

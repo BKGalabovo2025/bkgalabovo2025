@@ -12,17 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Phone } from "lucide-react";
 
-import { MemberFormValues } from "./member-form";
+import { MemberFormValues } from "./member-form-types";
 
 interface MemberFormStep2Props {
   form: UseFormReturn<MemberFormValues>;
   isActive: boolean;
 }
 
-export function MemberFormStep2({
-  form,
-  isActive,
-}: MemberFormStep2Props) {
+export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
   if (!isActive) return null;
 
   const isGuest = form.watch("isGuest");
