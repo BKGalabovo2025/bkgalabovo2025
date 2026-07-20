@@ -46,7 +46,36 @@ export function useReservationData(isOpen: boolean, isRecoveryZone: boolean) {
       getGeneralServicesServerAction(activeBranch)
         .then((res) => {
           if (res.success && res.data) {
-            const courtService = res.data.find((s) =>
+            // Filter services that represent Court rentals or passes
+            const courtServices = res.data.filter((s) => 
+               s.name?.toLowerCase()?.trim()?.includes("наем") || 
+               s.name?.toLowerCase()?.trim()?.includes("корт")
+            );
+            
+            const mappedServices: ClubService[] = courtServices.map((s) => ({
+              ...s,
+              type: "Еднократно плащане",
+              billingPeriod: null,
+              targetGroups: [],
+              isCoachLed: false,
+              durationMinutes: 60,
+              requiresBooking: true,
+              minMembers: 1,
+              maxMembers: 4,
+              specialRights: [],
+              cancellationPolicy: {
+                isAllowed: true,
+                noticePeriodDays: 1,
+                feeType: "none",
+                feeValue: 0,
+                description: "",
+                longTermSicknessDiscount: 0,
+              },
+            } as unknown as ClubService));
+
+            setServices(mappedServices);
+            
+            const courtService = courtServices.find((s) =>
               s.name?.toLowerCase()?.trim()?.includes("наем на корт")
             );
             if (courtService?.price) {

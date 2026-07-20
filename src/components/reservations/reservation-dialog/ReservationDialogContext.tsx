@@ -37,6 +37,7 @@ export const reservationSchema = z.object({
   paymentMethod: z.string().optional(),
   status: z.string().optional(),
   notes: z.string().optional(),
+  sendConfirmation: z.boolean().optional(),
 });
 
 export type ReservationFormValues = z.infer<typeof reservationSchema>;
@@ -205,6 +206,7 @@ export const ReservationDialogProvider = ({
         client2Phone: "",
         client2Id: "",
         notes: "",
+        startTime: new Date(),
         ...initialData,
       });
     }

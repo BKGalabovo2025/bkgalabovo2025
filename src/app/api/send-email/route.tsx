@@ -15,13 +15,18 @@ import {
   DeactivatedEmail,
   DeactivatedEmailProps,
 } from "@/components/emails/deactivated-email";
+import {
+  MarketingEmail,
+  MarketingEmailProps,
+} from "@/components/emails/marketing-email";
+import { ensureAdmin } from "@/lib/auth-utils";
 
 // Define the data types for each email template
 type EmailTemplateData = {
   reminder: ReminderEmailProps;
-  reservationConfirmation: ReservationConfirmationEmailProps;
+  reservationConfirmation: ReservationConfirmationEmailProps & { isRecoveryZone?: boolean };
   deactivated: DeactivatedEmailProps;
-  // Add other templates here...
+  marketing: MarketingEmailProps;
 };
 
 // A mapping of template names to their components and text generators
@@ -38,7 +43,7 @@ const templates = {
   reservationConfirmation: {
     component: ReservationConfirmationEmail,
     getText: (data: ReservationConfirmationEmailProps) => {
-      const { clientName, startTime, endTime, courtId } = data;
+      const { clientName, startTime, endTime, courtId, isRecoveryZone } = data;
       // Important: Re-create Date objects if they are passed as strings
       const formattedStartTime = new Date(startTime).toLocaleString("bg-BG", {
         dateStyle: "full",
@@ -47,6 +52,10 @@ const templates = {
       const formattedEndTime = new Date(endTime).toLocaleString("bg-BG", {
         timeStyle: "short",
       });
+      
+      if (isRecoveryZone) {
+        return `Здравейте, ${clientName}. Вашата резервация във възстановителния център е потвърдена. Детайли: ${courtId}, от ${formattedStartTime} до ${formattedEndTime} ч.`;
+      }
       return `Здравейте, ${clientName}. Вашата резервация в бадминтон клуб "Гълъбово" е потвърдена. Детайли: Корт ${courtId}, от ${formattedStartTime} до ${formattedEndTime} ч.`;
     },
   },
@@ -59,12 +68,18 @@ const templates = {
       return "Вашето членство в Бадминтон Клуб Гълъбово беше променено на неактивно поради липса на плащане.";
     },
   },
+  marketing: {
+    component: MarketingEmail,
+    getText: (data: MarketingEmailProps) => {
+      return data.messageText || "Съобщение от БК Гълъбово";
+    },
+  },
 };
 
 const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
-  template: z.enum(["reminder", "reservationConfirmation", "deactivated"]),
+  template: z.enum(["reminder", "reservationConfirmation", "deactivated", "marketing"]),
   data: z.record(z.string(), z.any()), // Keep z.any() here for validation flexibility, but we will use the typed data below
 });
 
@@ -87,6 +102,10 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
     const props = data as DeactivatedEmailProps;
     html = await render(<DeactivatedEmail {...props} />);
     text = templates.deactivated.getText(props);
+  } else if (template === "marketing") {
+    const props = data as MarketingEmailProps;
+    html = await render(<MarketingEmail {...props} />);
+    text = templates.marketing.getText(props);
   } else {
     throw new Error(`Unknown email template: ${template}`);
   }
@@ -95,11 +114,15 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
 }
 
 export async function POST(request: Request) {
-  // Authorize (for production)
-  if (process.env.NODE_ENV === "production") {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.warn("[send-email] Unauthorized attempt blocked.");
+  // Authorize (both prod and dev, because it uses email credentials)
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    try {
+      const token = authHeader?.split("Bearer ")[1];
+      if (!token) throw new Error("No token provided");
+      await ensureAdmin(token);
+    } catch (err) {
+      console.warn("[send-email] Unauthorized attempt blocked.", err);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

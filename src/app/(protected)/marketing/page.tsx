@@ -1,17 +1,20 @@
 import { Metadata } from "next";
 import MarketingClient from "./MarketingClient";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
-  title: "Маркетинг | БК Гълъбово",
+  title: "Маркетинг и Комуникация | БК Гълъбово",
   description: "Изпращане на рекламни и информационни съобщения.",
 };
 
 export default function MarketingPage() {
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Маркетинг</h2>
-      </div>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+      <PageHeader 
+        title="Маркетинг и Комуникация" 
+        description="Изпращане на съобщения и известия до членовете чрез WhatsApp и Имейл."
+        breadcrumbs={[{ label: "Начало", href: "/" }, { label: "Комуникация" }]}
+      />
       <MarketingClient />
     </div>
   );

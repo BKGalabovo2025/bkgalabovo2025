@@ -98,7 +98,7 @@ export default function ReservationsClient() {
           <ReservationDialog onSave={handleSave}>
             <Button className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-11 px-6 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all border-none">
               <Plus className="mr-2.5 h-4 w-4" strokeWidth={2.5} /> Нова
-              Резервация
+              Резервация на КОРТ
             </Button>
           </ReservationDialog>
         </div>

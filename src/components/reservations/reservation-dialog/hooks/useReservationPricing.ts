@@ -38,8 +38,10 @@ export function useReservationPricing(
       return selectedService?.price || 0;
     }
     if (watchedValues.startTime && watchedValues.endTime && watchedValues.endTime > watchedValues.startTime) {
+      const selectedService = services.find((s) => s.id === watchedValues.serviceId);
+      const baseRate = selectedService?.price || courtRentalPrice;
       const durationHours = (watchedValues.endTime.getTime() - watchedValues.startTime.getTime()) / (1000 * 60 * 60);
-      return durationHours * courtRentalPrice;
+      return durationHours * baseRate;
     }
     return 0;
   }, [watchedValues.startTime, watchedValues.endTime, watchedValues.serviceId, isRecoveryZone, services, courtRentalPrice]);

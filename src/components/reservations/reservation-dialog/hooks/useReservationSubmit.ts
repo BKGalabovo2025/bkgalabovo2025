@@ -10,6 +10,7 @@ import {
   updatePackageReservationsAction,
 } from "@/lib/actions/reservations";
 import { useAuth } from "@/context/auth-context";
+import { marketingService } from "@/services/marketing-service";
 
 export function useReservationSubmit(
   isRecoveryZone: boolean,
@@ -23,7 +24,7 @@ export function useReservationSubmit(
   setIsOpen: (isOpen: boolean) => void,
 ) {
   const [isSaving, setIsSaving] = useState(false);
-  const { getFreshToken } = useAuth();
+  const { getFreshToken, user } = useAuth();
   const isEditMode = !!reservation;
 
   const submitPackageCreate = async (
@@ -148,6 +149,62 @@ export function useReservationSubmit(
         toast.success(result.message);
         onSave?.();
         setIsOpen(false);
+        
+        if (values.sendConfirmation) {
+          if (!values.clientEmail) {
+            toast.error("Не е посочен имейл адрес за потвърждение.");
+          } else if (!values.startTime || !values.endTime) {
+            toast.error("Липсва време за резервацията.");
+          } else {
+            const loc = isRecoveryZone ? selectedService?.name || "Услуга" : `Корт ${values.courtId}`;
+            const date = values.startTime.toLocaleDateString("bg-BG");
+            const startStr = values.startTime.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+            const endStr = values.endTime.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+            const text = `Здравейте, ${values.clientName}!\n\nУспешно запазихте час на ${date} от ${startStr} до ${endStr} за ${loc}.\nОчакваме Ви!`;
+
+            fetch("/api/send-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                to: values.clientEmail,
+                subject: "Потвърждение за резервация",
+                template: "reservationConfirmation",
+                data: {
+                  clientName: values.clientName,
+                  messageText: text,
+                  startTime: values.startTime.toISOString(),
+                  endTime: values.endTime.toISOString(),
+                  courtId: loc,
+                  isRecoveryZone: isRecoveryZone
+                },
+              }),
+            }).then(async (res) => {
+              if (res.ok) {
+                toast.success("Имейлът с потвърждение е изпратен автоматично!");
+                if (values.memberId && user) {
+                  const logData = {
+                    siteId: activeBranch,
+                    recipientId: values.memberId,
+                    recipientName: values.clientName,
+                    recipientPhone: values.clientEmail,
+                    messageText: `Тема: Потвърждение за резервация\n\n${text}`,
+                    templateUsed: "reservationConfirmation",
+                    sentBy: user.uid
+                  };
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  await marketingService.logMessage(logData as any);
+                }
+              } else {
+                toast.error("Грешка при автоматичното изпращане на имейл.");
+              }
+            }).catch(() => {
+              toast.error("Грешка при автоматичното изпращане на имейл.");
+            });
+          }
+        }
       } else {
         toast.error("Грешка", { description: result?.message });
       }

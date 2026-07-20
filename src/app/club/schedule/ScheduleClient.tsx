@@ -12,6 +12,7 @@ import {
   Printer,
   Info,
   ChevronDown,
+  Mail,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -161,6 +162,15 @@ function EventCard({
           >
             <Printer size={18} />
           </button>
+
+          <Link
+            href={`/marketing?template=reservationConfirmation&date=${new Date(event.startTime).toISOString()}&end=${new Date(event.endTime).toISOString()}&loc=${encodeURIComponent(event.location || "")}`}
+            className="flex items-center gap-1.5 text-zinc-500 hover:text-emerald-400 text-[13px] font-medium transition-colors"
+            title="Изпрати потвърждение (Админ)"
+          >
+            <Mail size={16} />
+            Потвърждение
+          </Link>
 
           {event.description && (
             <button

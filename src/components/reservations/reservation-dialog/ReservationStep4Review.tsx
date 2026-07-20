@@ -33,7 +33,7 @@ export const ReservationStep4Review = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 space-y-4">
+      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl rounded-[2rem] p-6 border border-white/40 dark:border-zinc-800/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] space-y-4">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center font-bold">
@@ -90,7 +90,7 @@ export const ReservationStep4Review = () => {
       </div>
 
       {/* Payment Options */}
-      <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-6 space-y-4">
+      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/40 dark:border-zinc-800/50 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white">
@@ -164,6 +164,43 @@ export const ReservationStep4Review = () => {
         )}
       </div>
 
+      {/* Confirmation Options */}
+      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/40 dark:border-zinc-800/50 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-6">
+        <FormField
+          control={form.control}
+          name="sendConfirmation"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between space-y-0">
+              <div className="space-y-1">
+                <FormLabel className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white cursor-pointer">
+                  Изпрати потвърждение
+                </FormLabel>
+                <p className="text-[10px] text-zinc-400 uppercase tracking-tight font-bold">
+                  Системата автоматично ще изпрати имейл с детайли за резервацията
+                </p>
+              </div>
+              <FormControl>
+                <button
+                  type="button"
+                  onClick={() => field.onChange(!field.value)}
+                  className={cn(
+                    "w-11 h-6 rounded-full p-1 transition-all duration-300 relative focus:outline-none",
+                    field.value ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 absolute top-1",
+                      field.value ? "left-6" : "left-1"
+                    )}
+                  />
+                </button>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+
       {/* Notes */}
       <FormField
         control={form.control}
@@ -176,7 +213,7 @@ export const ReservationStep4Review = () => {
             <FormControl>
               <Textarea
                 placeholder="Допълнителни изисквания или коментари..."
-                className="resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm h-24"
+                className="resize-none rounded-[2rem] border-white/40 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl focus:bg-white focus:ring-0 text-sm h-24 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                 {...field}
               />
             </FormControl>

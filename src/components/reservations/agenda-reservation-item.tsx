@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { marketingService } from "@/services/marketing-service";
 
 import { Reservation } from "@/types/reservation";
 import { ClubService } from "@/types";
@@ -16,11 +19,23 @@ import {
   FileText,
   Pencil,
   Trash2,
+  Send,
+  Mail,
+  MessageCircle,
+  Copy,
+  Loader2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ReservationDialog } from "./reservation-dialog";
 import { DonationReceiptDialog } from "./donation-receipt-dialog";
 import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
+import { toast } from "sonner";
 import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
 import { PenTool } from "lucide-react";
 
@@ -176,8 +191,79 @@ function StatusAndActions({
   onDelete,
 }: AgendaReservationItemProps) {
   const neededDeclarations = reservation.client2Name ? 2 : 1;
-  const missingDeclarations =
-    neededDeclarations - (reservation.declarationsCount || 0);
+  const missingDeclarations = neededDeclarations - (reservation.declarationsCount || 0);
+
+  const { user } = useAuth();
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const sendSystemEmail = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!reservation.clientEmail || !user) {
+      toast.error("Липсва имейл адрес на клиента или не сте влезли.");
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const date = reservation.startTime.toDate().toLocaleDateString("bg-BG");
+      const start = reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+      const end = reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+      
+      const isRecoveryZone = effectiveBranch === "recoveryzone";
+      const loc = isRecoveryZone ? (reservation.serviceName || "Възстановителна процедура") : `Корт ${reservation.courtId}`;
+      const name = reservation.clientName || "";
+      const text = `Здравейте, ${name}!\n\nУспешно запазихте час на ${date} от ${start} до ${end} за ${loc}.\nОчакваме Ви!`;
+
+      const token = await user.getIdToken();
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          to: reservation.clientEmail,
+          subject: "Потвърждение за резервация",
+          template: "reservationConfirmation",
+          data: {
+            clientName: name,
+            messageText: text,
+            startTime: reservation.startTime.toDate().toISOString(),
+            endTime: reservation.endTime.toDate().toISOString(),
+            courtId: loc,
+            isRecoveryZone: isRecoveryZone
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Грешка при изпращане на имейл");
+      }
+
+      // Log to marketing history if memberId exists
+      if (reservation.memberId || reservation.clientId) {
+        const logData = {
+          siteId: effectiveBranch,
+          recipientId: reservation.memberId || reservation.clientId,
+          recipientName: name,
+          recipientPhone: reservation.clientEmail,
+          messageText: `Тема: Потвърждение за резервация\n\n${text}`,
+          templateUsed: "reservationConfirmation",
+          sentBy: user.uid,
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await marketingService.logMessage(logData as any);
+      }
+
+      toast.success("Имейлът е изпратен успешно чрез системата!");
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || "Грешка при изпращане.");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   return (
     <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-6 w-full 2xl:w-auto shrink-0 pt-4 2xl:pt-0 border-t 2xl:border-t-0 border-zinc-100 dark:border-zinc-900 mt-2 2xl:mt-0">
@@ -221,6 +307,56 @@ function StatusAndActions({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-all"
+                title="Изпрати потвърждение"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 border-zinc-100 dark:border-zinc-800">
+            <DropdownMenuItem asChild className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 text-zinc-700 dark:text-zinc-300 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 focus:text-emerald-600 dark:focus:text-emerald-400 transition-colors">
+              <a 
+                href={`https://wa.me/${(reservation.clientPhone || "").replace(/[^0-9+]/g, '').startsWith('0') ? '+359' + (reservation.clientPhone || "").replace(/[^0-9+]/g, '').slice(1) : (reservation.clientPhone || "").replace(/[^0-9+]/g, '')}?text=${encodeURIComponent(`Здравейте, ${reservation.clientName || ""}!\n\nУспешно запазихте час на ${reservation.startTime.toDate().toLocaleDateString("bg-BG")} от ${reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} до ${reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} за ${effectiveBranch === "recoveryzone" ? "Възстановителна процедура" : `Корт ${reservation.courtId}`}.\nОчакваме Ви!`)}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </a>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem 
+              className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-blue-50 dark:focus:bg-blue-950/30 focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
+              onClick={sendSystemEmail}
+              disabled={isSendingEmail}
+            >
+              {isSendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+              {isSendingEmail ? "Изпращане..." : "Имейл (системно)"}
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem 
+              className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:text-amber-600 dark:focus:text-amber-400 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                const text = `Здравейте, ${reservation.clientName || ""}!\n\nУспешно запазихте час на ${reservation.startTime.toDate().toLocaleDateString("bg-BG")} от ${reservation.startTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} до ${reservation.endTime.toDate().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} за ${effectiveBranch === "recoveryzone" ? "Възстановителна процедура" : `Корт ${reservation.courtId}`}.\nОчакваме Ви!`;
+                navigator.clipboard.writeText(text);
+                toast.success("Текстът е копиран в клипборда!");
+              }}
+            >
+              <Copy className="w-4 h-4" />
+              Копирай текста
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         {reservation.status !== "paid" && (
           <Button
             variant="ghost"

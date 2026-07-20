@@ -172,7 +172,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Target size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Маркетинг</span>
+                  <span className="text-[14px]">Маркетинг и Комуникация</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -514,7 +514,7 @@ export default function ScheduleClient() {
           <ReservationDialog mode={mode} onSave={handleSaveReservation}>
             <Button className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all">
               <Plus className="mr-3 h-4 w-4" strokeWidth={2.5} /> Нова
-              Резервация
+              Резервация {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
             </Button>
           </ReservationDialog>
           {!isRecoveryZone && activeBranch === "bkgalabovo" && (

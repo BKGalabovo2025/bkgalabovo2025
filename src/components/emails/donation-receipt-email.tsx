@@ -17,22 +17,28 @@ import {
 } from "react-email";
 import * as React from "react";
 
-export interface ReservationConfirmationEmailProps {
+export interface DonationReceiptEmailProps {
   clientName: string;
-  startTime: string | Date;
-  endTime: string | Date;
-  courtId: string;
+  clientPhone: string;
+  donationText: string;
+  serviceOrCourtLabel: string;
+  serviceOrCourtValue: string;
+  dateRange: string;
+  totalPrice: string;
   baseUrl?: string;
   isRecoveryZone?: boolean;
 }
 
-export const ReservationConfirmationEmail: React.FC<
-  ReservationConfirmationEmailProps
+export const DonationReceiptEmail: React.FC<
+  DonationReceiptEmailProps
 > = ({
   clientName,
-  startTime,
-  endTime,
-  courtId,
+  clientPhone,
+  donationText,
+  serviceOrCourtLabel,
+  serviceOrCourtValue,
+  dateRange,
+  totalPrice,
   baseUrl = "https://bkgalabovo2025.vercel.app/club",
   isRecoveryZone = false,
 }) => {
@@ -52,27 +58,10 @@ export const ReservationConfirmationEmail: React.FC<
     boxShadow: `0 4px 6px -1px ${isRecoveryZone ? 'rgba(6, 95, 70, 0.2)' : 'rgba(30, 58, 138, 0.2)'}, 0 2px 4px -2px ${isRecoveryZone ? 'rgba(6, 95, 70, 0.2)' : 'rgba(30, 58, 138, 0.2)'}`
   };
   const footerLinkStyle = { ...footerLink, color: brandColor };
-  const formattedDate = new Date(startTime).toLocaleDateString("bg-BG", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  
-  const formattedStartTime = new Date(startTime).toLocaleTimeString("bg-BG", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  
-  const formattedEndTime = new Date(endTime).toLocaleTimeString("bg-BG", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
     <Html>
       <Head />
-      <Preview>Вашата резервация е потвърдена - {brandName}</Preview>
+      <Preview>Документ за Дарение - {brandName}</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
@@ -82,50 +71,51 @@ export const ReservationConfirmationEmail: React.FC<
 
           {/* Main Content */}
           <Section style={content}>
-            <Heading style={heading}>Потвърждение на резервация</Heading>
+            <Heading style={heading}>Документ за Дарение</Heading>
             
             <Text style={paragraph}>Здравейте, <strong>{clientName}</strong>,</Text>
             <Text style={paragraph}>
-              Благодарим Ви, че избрахте {isRecoveryZone ? "Recovery zone by ZM" : "нашия клуб"}. Вашата резервация е успешно запазена в системата ни.
-              Моля, прегледайте детайлите по-долу:
+              С настоящия документ се потвърждава постъпило целево дарение от <strong>{clientName}</strong> (тел. {clientPhone || "непосочен"}) в полза на СНЦ &quot;Бадминтон клуб Гълъбово&quot;.
             </Text>
 
             {/* Details Box */}
             <Section style={detailsContainer}>
               <Row style={detailsRow}>
                 <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>УСЛУГА / КОРТ</Text>
+                  <Text style={detailsLabel}>ОПИСАНИЕ НА ДАРЕНИЕТО</Text>
                 </Column>
                 <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{courtId}</Text>
+                  <Text style={detailsValue}>{donationText}</Text>
                 </Column>
               </Row>
               <Hr style={divider} />
               <Row style={detailsRow}>
                 <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>ДАТА</Text>
+                  <Text style={detailsLabel}>{serviceOrCourtLabel.toUpperCase()}</Text>
                 </Column>
                 <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{formattedDate}</Text>
+                  <Text style={detailsValue}>{serviceOrCourtValue}</Text>
                 </Column>
               </Row>
               <Hr style={divider} />
               <Row style={detailsRow}>
                 <Column style={detailsLabelCol}>
-                  <Text style={detailsLabel}>ВРЕМЕТРАЕНЕ</Text>
+                  <Text style={detailsLabel}>ДАТА / ЧАС</Text>
                 </Column>
                 <Column style={detailsValueCol}>
-                  <Text style={detailsValue}>{formattedStartTime} ч. – {formattedEndTime} ч.</Text>
+                  <Text style={detailsValue}>{dateRange}</Text>
+                </Column>
+              </Row>
+              <Hr style={divider} />
+              <Row style={detailsRow}>
+                <Column style={detailsLabelCol}>
+                  <Text style={detailsLabel}>ОБЩА СТОЙНОСТ</Text>
+                </Column>
+                <Column style={detailsValueCol}>
+                  <Text style={detailsValue}>{totalPrice}</Text>
                 </Column>
               </Row>
             </Section>
-
-            <Text style={paragraph}>
-              Ако имате въпроси или се нуждаете от съдействие за промяна на Вашата резервация,
-              екипът ни остава на разположение.
-            </Text>
-            
-            <Text style={paragraph}>Очакваме Ви!</Text>
 
             <Section style={buttonContainer}>
               <Link href={brandUrl} style={buttonStyle}>

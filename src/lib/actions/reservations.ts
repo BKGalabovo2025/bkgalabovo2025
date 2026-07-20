@@ -6,10 +6,13 @@ import { getAuthUser } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import nodemailer from "nodemailer";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
+import nodemailer from "nodemailer";
 import { clubInfo } from "@/config/club";
+import { render } from "@react-email/render";
+import { DonationReceiptEmail } from "@/components/emails/donation-receipt-email";
+import * as React from "react";
 import { formatPrice } from "@/lib/currency";
 import { serverCache } from "@/lib/server-cache";
 
@@ -845,47 +848,31 @@ export async function sendDonationReceiptEmailAction(
 
     const startTime = reservation.startTime.toDate();
     const endTime = reservation.endTime.toDate();
-    const durationHours = Math.ceil(
-      (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60)
-    );
+
     const formattedDate = format(startTime, "dd.MM.yyyy", { locale: bg });
     const timeRange =
       format(startTime, "HH:mm") + " - " + format(endTime, "HH:mm");
+      
+    const isRecovery = reservation.siteId === "recoveryzone";
+    const donationText = isRecovery 
+      ? "Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ от възстановителни процедури (от Recovery zone by ZM)"
+      : "Целево дарение за ползване на бадминтон корт";
+    const serviceName = isRecovery ? (reservation.serviceName || "Услуга") : "";
+    const courtIdText = reservation.courtId ? `Корт ${reservation.courtId}` : "-";
+    const priceText = formatPrice(reservation.totalPrice || reservation.price);
 
-    const htmlContent =
-      "<html><body>" +
-      "<h1>Документ за Дарение</h1>" +
-      "<p>С настоящия документ се потвърждава постъпило целево дарение от <strong>" +
-      reservation.clientName +
-      "</strong>" +
-      " (тел. " +
-      (reservation.clientPhone || "непосочен") +
-      ") в полза на " +
-      clubInfo.name +
-      ".</p>" +
-      "<table border='1' cellpadding='8' style='border-collapse:collapse;width:100%'>" +
-      "<tr><th>Описание</th><th>Дата</th><th>Сума</th></tr>" +
-      "<tr><td>Целево дарение за ползване на бадминтон корт</td>" +
-      "<td>" +
-      formattedDate +
-      " " +
-      timeRange +
-      " (" +
-      durationHours +
-      "ч.)</td>" +
-      "<td>" +
-      formatPrice(reservation.totalPrice) +
-      "</td></tr>" +
-      "<tr><td colspan='2'><strong>Обща стойност:</strong></td><td>" +
-      formatPrice(reservation.totalPrice) +
-      "</td></tr>" +
-      "</table>" +
-      "<p>" +
-      clubInfo.name +
-      " | " +
-      clubInfo.address +
-      "</p>" +
-      "</body></html>";
+    const htmlContent = await render(
+      React.createElement(DonationReceiptEmail, {
+        clientName: reservation.clientName,
+        clientPhone: reservation.clientPhone || "непосочен",
+        donationText: donationText,
+        serviceOrCourtLabel: isRecovery ? "Услуга" : "Корт",
+        serviceOrCourtValue: isRecovery ? serviceName : courtIdText,
+        dateRange: `${formattedDate} ${timeRange}`,
+        totalPrice: priceText,
+        isRecoveryZone: isRecovery,
+      })
+    );
 
     await transporter.sendMail({
       from: clubInfo.name + " <" + process.env.EMAIL_USER + ">",

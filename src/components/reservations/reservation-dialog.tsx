@@ -52,10 +52,14 @@ const ReservationDialogContent = ({ children }: ReservationDialogContentProps) =
           <div className="flex items-center justify-between mb-8">
             <div>
               <DialogTitle className="text-2xl font-black text-zinc-950 dark:text-white tracking-tighter uppercase italic">
-                {isEditMode ? "Редактиране" : "Резервация"}
+                {isEditMode 
+                  ? "Редактиране" 
+                  : (isRecoveryZone ? "Резервация на Процедура" : "Резервация на Корт")}
               </DialogTitle>
               <DialogDescription className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                {isEditMode ? "Актуализиране на съществуваща резервация" : "Създаване на нов график"}
+                {isEditMode 
+                  ? "Актуализиране на съществуваща резервация" 
+                  : (isRecoveryZone ? "Запазване на час за възстановителна зона" : "Създаване на нова резервация на корт и добавяне в графика")}
               </DialogDescription>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
