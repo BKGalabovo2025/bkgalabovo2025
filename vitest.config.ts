@@ -15,7 +15,15 @@ export default defineConfig({
       "bkgalabovo2025",
       "tmp",
       "scratch",
+      // Requires Firebase Emulator — run separately with: npm run test:rules
+      "src/__tests__/firestore.rules.test.ts",
     ],
+    server: {
+      deps: {
+        // Mock server-only so Server Action tests can run in vitest
+        inline: [/server-only/],
+      },
+    },
   },
   resolve: {
     tsconfigPaths: true,

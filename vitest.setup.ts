@@ -1,5 +1,8 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
+
+// Allow Server Actions to be imported in vitest (server-only guard is a no-op in tests)
+vi.mock("server-only", () => ({}));
 import { CollectionReference, DocumentReference } from "firebase/firestore";
 
 vi.mock("next/navigation", () => ({
