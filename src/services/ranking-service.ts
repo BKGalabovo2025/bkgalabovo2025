@@ -1,6 +1,6 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 import { getDocs, query, where } from "firebase/firestore";
-import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
+import { RankingEntry } from "@/types/ranking.types";
 import {
   mapDocToTournament,
   mapDocToEntry,
@@ -13,19 +13,16 @@ import {
   getTournamentMatchesQuery,
 } from "@/lib/firebase-collections";
 
-import {
-  getPlacementPoints,
-  calcTournamentStandings,
-} from "@/lib/ranking-utils";
+import { computeRankingsCore } from "@/lib/ranking-utils";
 
-// в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-// РћСЃРЅРѕРІРЅР° С„СѓРЅРєС†РёСЏ Р·Р° СЂР°РЅРіР»РёСЃС‚Р°
-// в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+// ─────────────────────────────────────────────────────────────────
+// Основна функция за ранглиста
+// ─────────────────────────────────────────────────────────────────
 export async function computeGlobalRankings(dateFilter?: {
   start: Date;
   end: Date;
 }): Promise<RankingEntry[]> {
-  // 1. Р’СЃРёС‡РєРё Р·Р°РІСЉСЂС€РµРЅРё С‚СѓСЂРЅРёСЂРё, РІР»РёР·Р°С‰Рё РІ СЂР°РЅРіР»РёСЃС‚Р°С‚Р°
+  // 1. Всички завършени турнири, влизащи в ранглистата
   const q = query(
     getTournamentsQuery(),
     where("countsForRanking", "==", true),
@@ -35,7 +32,7 @@ export async function computeGlobalRankings(dateFilter?: {
   const tourSnap = await getDocs(q);
   let tournaments = tourSnap.docs.map(mapDocToTournament);
 
-  // Р¤РёР»С‚СЂРёСЂР°РЅРµ РїРѕ РґР°С‚Р°, Р°РєРѕ Рµ Р·Р°РґР°РґРµРЅРѕ
+  // Филтриране по дата, ако е зададено
   if (dateFilter) {
     tournaments = tournaments.filter((t) => {
       const tDate = new Date(t.startDate);
@@ -45,126 +42,19 @@ export async function computeGlobalRankings(dateFilter?: {
 
   if (tournaments.length === 0) return [];
 
-  // 2. Р—Р° РІСЃРµРєРё С‚СѓСЂРЅРёСЂ вЂ“ РІР·РµРјР°РјРµ entries Рё matches
-  const playerMap: Record<string, PlayerRanking> = {};
-
-  for (const tourn of tournaments) {
-    const multiplier = tourn.pointsMultiplier ?? 1;
-
-    // Entries
+  const fetchTournamentData = async (tournamentId: string) => {
     const entriesSnap = await getDocs(
-      query(getTournamentEntriesQuery(), where("tournamentId", "==", tourn.id))
+      query(getTournamentEntriesQuery(), where("tournamentId", "==", tournamentId))
     );
     const entries = entriesSnap.docs.map(mapDocToEntry);
 
-    // Matches
     const matchesSnap = await getDocs(
-      query(getTournamentMatchesQuery(), where("tournamentId", "==", tourn.id))
+      query(getTournamentMatchesQuery(), where("tournamentId", "==", tournamentId))
     );
     const matches = matchesSnap.docs.map(mapDocToMatch);
 
-    // 3. РР·С‡РёСЃР»СЏРІР°РјРµ РїРѕР·РёС†РёРё РїРѕ РєР°С‚РµРіРѕСЂРёСЏ
-    for (const cat of tourn.categories) {
-      const catEntries = entries.filter((e) => e.categoryId === cat);
-      const catMatches = matches.filter((m) => m.categoryId === cat);
+    return { entries, matches };
+  };
 
-      if (catEntries.length === 0) continue;
-
-      const positionMap = calcTournamentStandings(catEntries, catMatches);
-      const catMatchesCompleted = catMatches.filter(
-        (m) => m.status === "completed"
-      );
-
-      catEntries.forEach((entry) => {
-        if (!entry.memberId) return; // РџСЂРѕРїСѓСЃРєР°РјРµ РіРѕСЃС‚Рё
-
-        const position = positionMap[entry.id!] ?? catEntries.length;
-        const rawPoints = getPlacementPoints(position);
-        const finalPoints = Math.round(rawPoints * multiplier);
-
-        // РЎС‚Р°С‚РёСЃС‚РёРєРё РѕС‚ РјР°С‡РѕРІРµС‚Рµ
-        let entryWins = 0;
-        let entryLosses = 0;
-        catMatchesCompleted.forEach((m) => {
-          if (m.player1EntryId === entry.id || m.player2EntryId === entry.id) {
-            if (m.winnerEntryId === entry.id) entryWins++;
-            else entryLosses++;
-          }
-        });
-
-        // Р¤СѓРЅРєС†РёСЏ Р·Р° РґРѕР±Р°РІСЏРЅРµ РЅР° С‚РѕС‡РєРё РЅР° РёРіСЂР°С‡
-        const addPointsToPlayer = (mId: string, name: string) => {
-          if (!playerMap[mId]) {
-            playerMap[mId] = {
-              memberId: mId,
-              memberName: name,
-              totalPoints: 0,
-              tournamentsPlayed: 0,
-              wins: 0,
-              losses: 0,
-              bestPlacement: null,
-              categoryBreakdown: [],
-            };
-          }
-
-          const player = playerMap[mId];
-          player.totalPoints += finalPoints;
-          player.tournamentsPlayed++;
-          player.wins += entryWins;
-          player.losses += entryLosses;
-
-          if (
-            player.bestPlacement === null ||
-            position < player.bestPlacement
-          ) {
-            player.bestPlacement = position;
-          }
-
-          const catLabel =
-            cat === "singles"
-              ? "Р•РґРёРЅРёС‡РЅРѕ"
-              : cat === "doubles"
-                ? "Р”РІРѕР№РєРё"
-                : "РЎРјРµСЃРµРЅРё";
-          const existing = player.categoryBreakdown.find(
-            (c: { category: string; points: number; played: number }) =>
-              c.category === catLabel
-          );
-          if (existing) {
-            existing.points += finalPoints;
-            existing.played++;
-          } else {
-            player.categoryBreakdown.push({
-              category: catLabel,
-              points: finalPoints,
-              played: 1,
-            });
-          }
-        };
-
-        // Р”РѕР±Р°РІСЏРјРµ С‚РѕС‡РєРё РЅР° РїСЉСЂРІРёСЏ РёРіСЂР°С‡
-        if (entry.memberId) {
-          addPointsToPlayer(
-            entry.memberId,
-            entry.externalName || entry.memberId
-          );
-        }
-
-        // Р”РѕР±Р°РІСЏРјРµ С‚РѕС‡РєРё РЅР° РїР°СЂС‚РЅСЊРѕСЂР° (Р°РєРѕ РёРјР° С‚Р°РєСЉРІ)
-        if (entry.partnerMemberId) {
-          addPointsToPlayer(
-            entry.partnerMemberId,
-            entry.partnerExternalName || entry.partnerMemberId
-          );
-        }
-      });
-    }
-  }
-
-  // 4. РЎРѕСЂС‚РёСЂР°РјРµ Рё РґРѕР±Р°РІСЏРјРµ РїРѕР·РёС†РёРё
-  const sorted = Object.values(playerMap).sort(
-    (a, b) => b.totalPoints - a.totalPoints
-  );
-  return sorted.map((p, idx) => ({ ...p, position: idx + 1 }));
+  return computeRankingsCore(tournaments, fetchTournamentData);
 }
-

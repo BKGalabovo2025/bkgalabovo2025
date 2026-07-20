@@ -1,17 +1,14 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
-import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
+import { RankingEntry } from "@/types/ranking.types";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 const ENTRIES_COLLECTION = "tournament_entries";
 const MATCHES_COLLECTION = "tournament_matches";
 
-import {
-  getPlacementPoints,
-  calcTournamentStandings,
-} from "@/lib/ranking-utils";
+import { computeRankingsCore } from "@/lib/ranking-utils";
 
 export async function computeGlobalRankingsServer(dateFilter?: {
   start: Date;
@@ -49,137 +46,34 @@ export async function computeGlobalRankingsServer(dateFilter?: {
 
     if (tournaments.length === 0) return [];
 
-    const playerMap: Record<string, PlayerRanking> = {};
-
-    for (const tourn of tournaments) {
-      const multiplier = tourn.pointsMultiplier ?? 1;
-
-      // Entries
+    const fetchTournamentData = async (tournamentId: string) => {
       const entriesSnap = await db
         .collection(ENTRIES_COLLECTION)
-        .where("tournamentId", "==", tourn.id)
+        .where("tournamentId", "==", tournamentId)
         .get();
       const entries = entriesSnap.docs.map((doc) => ({
         ...(doc.data() as TournamentEntry),
         id: doc.id,
       }));
 
-      // Matches
       const matchesSnap = await db
         .collection(MATCHES_COLLECTION)
-        .where("tournamentId", "==", tourn.id)
+        .where("tournamentId", "==", tournamentId)
         .get();
       const matches = matchesSnap.docs.map((doc) => ({
         ...(doc.data() as Match),
         id: doc.id,
       }));
 
-      for (const cat of tourn.categories) {
-        const catEntries = entries.filter((e) => e.categoryId === cat);
-        const catMatches = matches.filter((m) => m.categoryId === cat);
+      return { entries, matches };
+    };
 
-        if (catEntries.length === 0) continue;
-
-        const positionMap = calcTournamentStandings(catEntries, catMatches);
-        const catMatchesCompleted = catMatches.filter(
-          (m) => m.status === "completed"
-        );
-
-        catEntries.forEach((entry) => {
-          if (!entry.memberId) return;
-
-          const position = positionMap[entry.id!] ?? catEntries.length;
-          const rawPoints = getPlacementPoints(position);
-          const finalPoints = Math.round(rawPoints * multiplier);
-
-          let entryWins = 0;
-          let entryLosses = 0;
-          catMatchesCompleted.forEach((m) => {
-            if (
-              m.player1EntryId === entry.id ||
-              m.player2EntryId === entry.id
-            ) {
-              if (m.winnerEntryId === entry.id) entryWins++;
-              else entryLosses++;
-            }
-          });
-
-          const addPointsToPlayer = (mId: string, name: string) => {
-            if (!playerMap[mId]) {
-              playerMap[mId] = {
-                memberId: mId,
-                memberName: name,
-                totalPoints: 0,
-                tournamentsPlayed: 0,
-                wins: 0,
-                losses: 0,
-                bestPlacement: null,
-                categoryBreakdown: [],
-              };
-            }
-
-            const player = playerMap[mId];
-            player.totalPoints += finalPoints;
-            player.tournamentsPlayed++;
-            player.wins += entryWins;
-            player.losses += entryLosses;
-
-            if (
-              player.bestPlacement === null ||
-              position < player.bestPlacement
-            ) {
-              player.bestPlacement = position;
-            }
-
-            const catLabel =
-              cat === "singles"
-                ? "Р•РґРёРЅРёС‡РЅРѕ"
-                : cat === "doubles"
-                  ? "Р”РІРѕР№РєРё"
-                  : "РЎРјРµСЃРµРЅРё";
-            const existing = player.categoryBreakdown.find(
-              (c) => c.category === catLabel
-            );
-            if (existing) {
-              existing.points += finalPoints;
-              existing.played++;
-            } else {
-              player.categoryBreakdown.push({
-                category: catLabel,
-                points: finalPoints,
-                played: 1,
-              });
-            }
-          };
-
-          if (entry.memberId) {
-            addPointsToPlayer(
-              entry.memberId,
-              entry.externalName || entry.memberId
-            );
-          }
-
-          if (entry.partnerMemberId) {
-            addPointsToPlayer(
-              entry.partnerMemberId,
-              entry.partnerExternalName || entry.partnerMemberId
-            );
-          }
-        });
-      }
-    }
-
-    const sorted = Object.values(playerMap).sort(
-      (a, b) => b.totalPoints - a.totalPoints
-    );
+    const sorted = await computeRankingsCore(tournaments, fetchTournamentData);
 
     // Final serialization for Client Component
-    return serializeFirestoreData(
-      sorted.map((p, idx) => ({ ...p, position: idx + 1 }))
-    ) as RankingEntry[];
+    return serializeFirestoreData(sorted) as RankingEntry[];
   } catch (error) {
     console.error("Error computing rankings on server:", error);
     throw error;
   }
 }
-
