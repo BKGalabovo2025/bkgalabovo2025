@@ -115,14 +115,14 @@ export const EmailLayoutShared: React.FC<EmailLayoutSharedProps> = ({
 };
 
 // --- Shared Styles ---
-export const main = {
+const main = {
   backgroundColor: "#f3f4f6", // very light gray
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   padding: "40px 0",
 };
 
-export const container = {
+const container = {
   backgroundColor: "#ffffff",
   margin: "0 auto",
   width: "600px",
@@ -133,14 +133,14 @@ export const container = {
   overflow: "hidden", // ensures header rounds with container
 };
 
-export const header = {
+const header = {
   background: "linear-gradient(135deg, #1e3a8a 0%, #172554 100%)", // Rich, deep corporate blue gradient
   padding: "36px 40px",
   textAlign: "center" as const,
   borderBottom: "3px solid #3b82f6", // Slight accent line
 };
 
-export const headerTitle = {
+const headerTitle = {
   color: "#ffffff",
   fontSize: "20px",
   fontWeight: "700",
@@ -149,11 +149,11 @@ export const headerTitle = {
   textShadow: "0 2px 4px rgba(0,0,0,0.15)",
 };
 
-export const content = {
+const content = {
   padding: "45px 40px",
 };
 
-export const heading = {
+const heading = {
   fontSize: "22px",
   fontWeight: "700",
   color: "#0f172a",
@@ -214,13 +214,13 @@ export const divider = {
   margin: "4px 0",
 };
 
-export const buttonContainer = {
+const buttonContainer = {
   marginTop: "45px",
   marginBottom: "20px",
   textAlign: "center" as const,
 };
 
-export const button = {
+const button = {
   background: "linear-gradient(to bottom, #1e3a8a, #172554)",
   color: "#ffffff",
   fontSize: "15px",
@@ -235,14 +235,14 @@ export const button = {
   letterSpacing: "0.5px",
 };
 
-export const footer = {
+const footer = {
   backgroundColor: "#f8fafc",
   borderTop: "1px solid #e2e8f0",
   padding: "35px 40px",
   textAlign: "center" as const,
 };
 
-export const footerTextStrong = {
+const footerTextStrong = {
   fontSize: "14px",
   fontWeight: "700",
   color: "#334155",
@@ -250,13 +250,13 @@ export const footerTextStrong = {
   letterSpacing: "0.5px",
 };
 
-export const footerText = {
+const footerText = {
   fontSize: "13px",
   color: "#64748b",
   margin: "0 0 10px 0",
 };
 
-export const footerLink = {
+const footerLink = {
   color: "#2563eb",
   textDecoration: "none",
   fontWeight: "500",

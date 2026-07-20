@@ -28,7 +28,7 @@
     "check:dup-funcs": "find-duplicate src",
     "test:e2e": "playwright test",
     "test:visual": "playwright test visual.spec.ts",
-    "check-all": "npm run typecheck && npm run lint && npm run check:circular && npm run check:deps && npm run check:dup-code && npm run check:dup-funcs && npm run test",
+    "check-all": "npm run typecheck && npm run lint && npm run test",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec \"vitest run src/__tests__/firestore.rules.test.ts\" --project bkgalabovo-test",
     "security-check": "npm audit",

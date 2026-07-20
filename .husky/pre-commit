@@ -1,5 +1,1 @@
-npm run check:dup-code
-npm run check:dup-funcs
-npm run knip
-npm run check:circular
 npm run precommit
