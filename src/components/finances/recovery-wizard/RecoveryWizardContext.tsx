@@ -4,11 +4,11 @@ import React from "react";
 import {
   ServiceSaleWizardProvider,
   useServiceSaleWizard,
-  ServiceSaleWizardContextType
+  ServiceSaleWizardContextType,
 } from "@/components/shared/wizard/ServiceSaleWizardContext";
-import { Service } from "@/app/(protected)/finances/services/service.types";
 
 interface ProviderProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   service: any;
   isOpen: boolean;
   onClose: () => void;
@@ -24,4 +24,5 @@ export const RecoveryWizardProvider: React.FC<ProviderProps> = (props) => {
   );
 };
 
-export const useRecoveryWizard = () => useServiceSaleWizard() as ServiceSaleWizardContextType;
+export const useRecoveryWizard = () =>
+  useServiceSaleWizard() as ServiceSaleWizardContextType;
