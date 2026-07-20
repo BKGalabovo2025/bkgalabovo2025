@@ -206,9 +206,31 @@ export default function PublicCatalogTabs({
 
 function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   const images = useMemo(() => {
-    if (!item.imageUrl) return [];
+    if (!item.imageUrl) {
+      // Default fallback images for specific zones
+      const hasPelvis =
+        item.name?.toLowerCase().includes("таз") ||
+        item.zones?.includes("ТАЗ") ||
+        item.zones === "ТАЗ";
+      const hasArms =
+        item.name?.toLowerCase().includes("ръце") ||
+        item.name?.toLowerCase().includes("ръка") ||
+        item.zones?.includes("РЪЦЕ") ||
+        item.zones === "РЪЦЕ";
+      const hasLegs =
+        item.name?.toLowerCase().includes("крака") ||
+        item.name?.toLowerCase().includes("крак") ||
+        item.zones?.includes("КРАКА") ||
+        item.zones === "КРАКА";
+
+      if (hasPelvis) return ["/zones/pelvis.webp"];
+      if (hasArms) return ["/zones/arm.png"];
+      if (hasLegs) return ["/zones/legs.webp"];
+
+      return [];
+    }
     return item.imageUrl.split(",").filter(Boolean);
-  }, [item.imageUrl]);
+  }, [item.imageUrl, item.name, item.zones]);
 
   const displayMode = item.imageDisplayMode || "collage";
   const [activeImgIndex, setActiveImgIndex] = useState(0);
