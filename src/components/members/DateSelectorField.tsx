@@ -1,4 +1,3 @@
-import { Control } from "react-hook-form";
 import {
   FormField,
   FormItem,
@@ -15,7 +14,8 @@ import {
 import React from "react";
 
 interface DateSelectorFieldProps {
-  control: Control<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control: any;
   name: string;
   label: string;
   yearCount: number;
