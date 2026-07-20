@@ -1,22 +1,14 @@
 "use client";
 
-import { useState } from "react";
+
 import Link from "next/link";
-import {
   ArrowLeft,
   Calendar as CalendarIcon,
-  Clock,
-  MapPin,
   ChevronRight,
   Share2,
-  Printer,
-  Info,
-  ChevronDown,
-  Mail,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { formatEventDateRange } from "@/lib/date-utils";
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 
 interface EventSlot {
@@ -201,6 +193,7 @@ export default function ScheduleClient({ schedule }: Props) {
                     {events.map((event, i) => (
                       <PublicEventCard
                         key={event.id}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         event={event as any}
                         groupIdx={groupIdx}
                         i={i}

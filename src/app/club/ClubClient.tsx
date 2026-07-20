@@ -17,10 +17,6 @@ import {
   ChevronLeft,
   CalendarDays,
   ArrowRight,
-  Clock,
-  Printer,
-  Info,
-  ChevronDown,
 } from "lucide-react";
 import {
   InstagramIcon,
@@ -28,7 +24,7 @@ import {
   FacebookIcon,
 } from "@/components/icons/social-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatEventDateRange } from "@/lib/date-utils";
+
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 import { PublicNav } from "@/components/layout/public-nav";
 import { PublicFooter } from "@/components/layout/public-footer";
@@ -414,6 +410,7 @@ export default function ClubClient({
                     {events.map((event, i) => (
                       <PublicEventCard
                         key={event.id}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         event={event as any}
                         groupIdx={groupIdx}
                         i={i}

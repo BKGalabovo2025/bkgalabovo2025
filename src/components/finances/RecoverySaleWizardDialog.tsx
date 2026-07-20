@@ -30,6 +30,7 @@ const RecoverySaleWizardContent = ({
 
   return (
     <SaleWizardDialogShared
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       wizardState={wizardState as any}
       isOpen={isOpen}
       onClose={onClose}

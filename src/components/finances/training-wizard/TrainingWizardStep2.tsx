@@ -10,6 +10,7 @@ export const TrainingWizardStep2 = () => {
 
   return (
     <WizardStep2Wrapper
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       {...(wizardState as any)}
       eventLabel="тренировки"
     />

@@ -1,6 +1,5 @@
-import { UseFormReturn } from "react-hook-form";
+import { Control } from "react-hook-form";
 import {
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -16,7 +15,7 @@ import {
 import React from "react";
 
 interface DateSelectorFieldProps {
-  control: any;
+  control: Control<any>;
   name: string;
   label: string;
   yearCount: number;
