@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -52,7 +49,6 @@ export const SidebarProvider = React.forwardRef<
     const setOpen = React.useCallback(
       (value: boolean | ((prev: boolean) => boolean)) => {
         const nextValue = typeof value === "function" ? value(open) : value;
-        console.log("Sidebar: setting open to", nextValue);
         if (onOpenChange) {
           onOpenChange(nextValue);
         }

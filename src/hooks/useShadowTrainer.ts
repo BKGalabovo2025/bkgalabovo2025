@@ -250,7 +250,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           }
         ).wakeLock.request("screen");
       } catch (err) {
-        console.log("Wake Lock error:", err);
+        console.warn("Wake Lock error:", err);
       }
     }
   };

@@ -251,10 +251,10 @@ export default function CreateSessionWizard({
       let cooldownTime = Math.round(eventDuration * 0.1);
 
       if (focus === "Обща Подготовка" || period === "preparation") {
-        warmupTime = Math.round(eventDuration * 0.20);
-        techTime = Math.round(eventDuration * 0.70); // Use tech phase to hold main physical exercises
+        warmupTime = Math.round(eventDuration * 0.2);
+        techTime = Math.round(eventDuration * 0.7); // Use tech phase to hold main physical exercises
         tactTime = 0;
-        cooldownTime = Math.round(eventDuration * 0.10);
+        cooldownTime = Math.round(eventDuration * 0.1);
       }
 
       for (const group of targetCombinations) {
@@ -277,8 +277,10 @@ export default function CreateSessionWizard({
 
           // Apply Focus filtering for main phases
           if (useFocus && focus) {
-            const focusedPool = pool.filter((ex) =>
-              ex.focusTags?.includes(focus) || (focus === "Обща Подготовка" && ex.focusTags?.includes("ОФП"))
+            const focusedPool = pool.filter(
+              (ex) =>
+                ex.focusTags?.includes(focus) ||
+                (focus === "Обща Подготовка" && ex.focusTags?.includes("ОФП"))
             );
             if (focusedPool.length > 0) pool = focusedPool;
             else missingExercises = true; // Not enough focused exercises
@@ -398,14 +400,7 @@ export default function CreateSessionWizard({
         status: "planned",
       };
 
-      const newSessionId = await plannerService.addSession(
-        activeBranch,
-        payload
-      );
-
-      if (addToSchedule) {
-        console.log("Adding to public schedule:", newSessionId);
-      }
+      await plannerService.addSession(activeBranch, payload);
 
       onSaveSuccess();
     } catch (error) {
