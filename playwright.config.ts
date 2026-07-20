@@ -31,4 +31,10 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
+  webServer: {
+    command: "npm run build && npm run start -- -p 9001",
+    url: "http://localhost:9001",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
 });
