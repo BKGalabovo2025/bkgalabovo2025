@@ -14,7 +14,7 @@ interface WizardStep4SharedProps {
   step: number;
   isGuestSale: boolean;
   clientDisplayName: string;
-  service: ClubService | null;
+  service: { name: string; [key: string]: unknown } | null;
   paymentMode: "subscription" | "individual";
   selectedMonthKeys: string[];
   selectedMonthLabels: string[];

@@ -20,7 +20,7 @@ export interface SaleWizardState {
   displayStep: number;
   isGuestSale: boolean;
   isProcessing: boolean;
-  service: ClubService | null;
+  service: { name: string; [key: string]: unknown } | null;
   handleClose: () => void;
   handlePrevStep: () => void;
   handleNextStep: () => void;
