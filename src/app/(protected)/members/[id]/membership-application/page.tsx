@@ -2,9 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
-import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
 import { formatFullName } from "@/lib/utils";
+import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
 
 const MembershipApplicationPage = () => {
   const params = useParams();
@@ -19,181 +18,62 @@ const MembershipApplicationPage = () => {
   const today = new Date().toLocaleDateString("bg-BG");
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-12 bg-white min-h-screen">
-      {/* Non-printable header */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
-        <Button
-          variant="outline"
-          onClick={() => router.back()}
-          className="rounded-xl border-slate-200"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
-        </Button>
-        <Button
-          onClick={() => window.print()}
-          className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
-        >
-          <Printer className="mr-2 h-4 w-4" /> Принтирай
-        </Button>
-      </div>
+    <MemberDocumentShell
+      onBack={() => router.back()}
+      documentSubtitle='за членство в СНЦ „Бадминтон клуб Гълъбово" град Гълъбово'
+      fullName={fullName}
+      today={today}
+    >
+      <div className="space-y-4 text-sm">
+        <p className="font-bold">Уважаема госпожо Председател,</p>
 
-      {/* Printable Area */}
-      <div className="print-area text-slate-900 text-justify leading-snug font-serif">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold uppercase tracking-tight mb-1">
-            М О Л Б А
-          </h1>
-          <p className="text-base italic">
-            за членство в СНЦ „Бадминтон клуб Гълъбово” град Гълъбово
+        <p>Моля, да приемете</p>
+
+        <div className="text-center">
+          <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] font-bold text-base inline-block px-8">
+            {fullName}
+          </p>
+          <p className="text-[9px] text-slate-500 italic mt-0.5">
+            (име на детето/члена)
           </p>
         </div>
 
-        <div className="flex justify-end mb-8">
-          <div className="w-1/2 space-y-0.5 text-sm">
-            <p className="font-bold">ДО</p>
-            <p className="font-bold">Председателя на</p>
-            <p className="font-bold">СНЦ „Бадминтон клуб Гълъбово”</p>
-            <p className="font-bold text-sm">град ГЪЛЪБОВО</p>
-          </div>
-        </div>
+        <p>
+          като член на СНЦ „Бадминтон клуб Гълъбово", считано от
+          .................................................. 20........... г.
+        </p>
 
-        <div className="space-y-4 mb-8">
-          <div>
-            <p className="flex items-baseline gap-2 text-sm">
-              <span className="font-bold shrink-0">ОТ:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-[1.2rem]"></span>
-            </p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
-              (трите имена на родителя/настойника, адрес, телефон, e-mail)
-            </p>
-          </div>
-
-          <div>
-            <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] w-full"></p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
-              (трите имена на втория родител/настойник, адрес, телефон, e-mail –
-              ако е приложимо)
-            </p>
-          </div>
-
-          <div>
-            <p className="flex items-baseline gap-2 text-sm">
-              <span className="font-bold shrink-0">ЗА:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-[1.2rem]">
-                <strong>{fullName}</strong>
-              </span>
-            </p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
-              (трите имена на детето/члена, ЕГН, адрес)
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4 text-sm">
-          <p className="font-bold">Уважаема госпожо Председател,</p>
-
-          <p>Моля, да приемете</p>
-
-          <div className="text-center">
-            <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] font-bold text-base inline-block px-8">
-              {fullName}
-            </p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
-              (име на детето/члена)
-            </p>
-          </div>
-
-          <p>
-            като член на СНЦ „Бадминтон клуб Гълъбово”, считано от
-            .................................................. 20........... г.
+        <div className="space-y-2 my-4">
+          <p className="font-bold">
+            Избирам/е следната форма на участие (отбележете с ✔):
           </p>
-
-          <div className="space-y-2 my-4">
-            <p className="font-bold">
-              Избирам/е следната форма на участие (отбележете с ✔):
-            </p>
-            <div className="grid grid-cols-1 gap-1 ml-4 text-xs">
-              <p>☐ Месечен абонамент - едно дете ( 20 EUR / )</p>
-              <p>☐ Месечен абонамент - 2 деца ( 30 EUR / )</p>
-              <p>☐ Месечен абонамент - 2+ деца ( 40 EUR / )</p>
-              <p>☐ Единично посещение ( 3 EUR / )</p>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <p className="flex gap-3">
-              <span className="shrink-0">☐</span>
-              <span>
-                Декларирам, че съм запознат/а с Вътрешния правилник на клуба и
-                се съгласявам с него.
-              </span>
-            </p>
-            <p className="flex gap-3">
-              <span className="shrink-0">☐</span>
-              <span>
-                Запознат/а съм, че при желание за прекратяване на членството е
-                необходимо подаване на „Молба за прекратяване на членство“и
-                връщане на предоставена клубна екипировка (ако има дадена
-                такава).
-              </span>
-            </p>
+          <div className="grid grid-cols-1 gap-1 ml-4 text-xs">
+            <p>☐ Месечен абонамент - едно дете ( 20 EUR / )</p>
+            <p>☐ Месечен абонамент - 2 деца ( 30 EUR / )</p>
+            <p>☐ Месечен абонамент - 2+ деца ( 40 EUR / )</p>
+            <p>☐ Единично посещение ( 3 EUR / )</p>
           </div>
         </div>
 
-        <div className="mt-10 flex justify-between items-end text-sm">
-          <div className="space-y-0.5">
-            <p>Спортна зала „Енергетик“ град Гълъбово</p>
-            <p>Дата: {today} г.</p>
-          </div>
-          <div className="text-right">
-            <p className="mb-6 italic">С уважение:</p>
-            <div className="flex gap-6">
-              <div className="text-center">
-                <p>........................................</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">
-                  1. (подпис на родител/настойник)
-                </p>
-              </div>
-              <div className="text-center">
-                <p>........................................</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">
-                  2. (подпис на родител/настойник)
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 text-sm">
-          <p>Подпис на член (ако е пълнолетен): ……………………………………….</p>
+        <div className="space-y-2 text-xs">
+          <p className="flex gap-3">
+            <span className="shrink-0">☐</span>
+            <span>
+              Декларирам, че съм запознат/а с Вътрешния правилник на клуба и
+              се съгласявам с него.
+            </span>
+          </p>
+          <p className="flex gap-3">
+            <span className="shrink-0">☐</span>
+            <span>
+              Запознат/а съм, че при желание за прекратяване на членството е
+              необходимо подаване на „Молба за прекратяване на членство" и
+              връщане на предоставена клубна екипировка (ако има дадена такава).
+            </span>
+          </p>
         </div>
       </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @media print {
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            padding: 15mm 20mm;
-            font-size: 11pt;
-            line-height: 1.4;
-          }
-          @page {
-            size: A4;
-            margin: 0;
-          }
-        }
-      `,
-        }}
-      />
-    </div>
+    </MemberDocumentShell>
   );
 };
 
