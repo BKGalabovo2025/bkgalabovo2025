@@ -141,6 +141,10 @@ service cloud.firestore {
       allow read: if request.auth != null; 
       allow write: if isAdmin() && hasValidSiteId(); 
     }
+    match /marketing_history/{docId} { 
+      allow read: if request.auth != null; 
+      allow write: if isAdmin() && hasValidSiteId(); 
+    }
 
     // Всичко останало е забранено по подразбиране
     match /{document=**} {
