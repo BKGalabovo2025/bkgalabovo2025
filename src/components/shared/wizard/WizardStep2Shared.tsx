@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/currency";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { ScheduleEvent, Member } from "@/types";
+import { ScheduleEvent, Member, ClubService } from "@/types";
 
 // MonthAttendance is identical in both contexts — define it once here
 export interface MonthAttendanceStat {
@@ -41,7 +41,7 @@ interface SubscriptionProps {
   setSelectedMonthKeys: (keys: string[]) => void;
   allUnpaidMonthsSelected: boolean;
   toggleMonthSelection: (key: string) => void;
-  price: string;
+  price: string | number;
 }
 
 export const WizardStep2Subscription = ({
@@ -192,7 +192,7 @@ export const WizardStep2Subscription = ({
           </div>
           {selectedMonthKeys.length > 1 && (
             <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-              Общо: {formatPrice((parseFloat(price) || 0) * selectedMonthKeys.length)}
+              Общо: {formatPrice(Number(price || 0) * selectedMonthKeys.length)}
             </span>
           )}
         </div>
@@ -294,4 +294,187 @@ export const WizardStep2Individual = ({
       )}
     </div>
   );
-};
+}
+
+export interface WizardStep2WrapperProps {
+  selectedMember: Member;
+  service: ClubService;
+  paymentMode: "subscription" | "individual";
+  setPaymentMode: (mode: "subscription" | "individual") => void;
+  attendanceLoading: boolean;
+  monthlyAttendance: MonthAttendance[];
+  unpaidMonths: MonthAttendance[];
+  selectedMonthKeys: string[];
+  setSelectedMonthKeys: React.Dispatch<React.SetStateAction<string[]>>;
+  allUnpaidMonthsSelected: boolean;
+  toggleMonthSelection: (monthKey: string) => void;
+  price: string | number;
+  unpaidEvents: ScheduleEvent[];
+  selectedEventIds: string[];
+  setSelectedEventIds: React.Dispatch<React.SetStateAction<string[]>>;
+  toggleEventSelection: (eventId: string) => void;
+  eventLabel: string;
+}
+
+export const WizardStep2Wrapper = ({
+  selectedMember,
+  service,
+  paymentMode,
+  setPaymentMode,
+  attendanceLoading,
+  monthlyAttendance,
+  unpaidMonths,
+  selectedMonthKeys,
+  setSelectedMonthKeys,
+  allUnpaidMonthsSelected,
+  toggleMonthSelection,
+  price,
+  unpaidEvents,
+  selectedEventIds,
+  setSelectedEventIds,
+  toggleEventSelection,
+  eventLabel,
+}: WizardStep2WrapperProps) => {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
+        <CalendarDays className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+        <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+          Присъствия и период
+        </h3>
+      </div>
+
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+        <div className="h-6 w-6 rounded-md bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+          {selectedMember.firstName[0]}
+          {selectedMember.lastName[0]}
+        </div>
+        <span className="text-sm font-medium text-emerald-900 dark:text-emerald-300">
+          {selectedMember.firstName} {selectedMember.lastName}
+        </span>
+        <div className="ml-auto rounded-full text-[8px] px-2 py-0 border-none bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          {service.type}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+          Тип плащане
+        </Label>
+        <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setPaymentMode("subscription")}
+            className={cn(
+              "flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5",
+              paymentMode === "subscription"
+                ? "bg-white dark:bg-zinc-800 text-emerald-700 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-700"
+            )}
+          >
+            {/* Hardcoded icon to match <Calendar /> usage */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5"
+            >
+              <path d="M8 2v4"></path>
+              <path d="M16 2v4"></path>
+              <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+              <path d="M3 10h18"></path>
+            </svg>
+            Абонамент (Месец)
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMode("individual")}
+            className={cn(
+              "flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5",
+              paymentMode === "individual"
+                ? "bg-white dark:bg-zinc-800 text-blue-700 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-700"
+            )}
+          >
+            {/* Hardcoded icon to match <CreditCard /> usage */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5"
+            >
+              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+              <line x1="2" x2="22" y1="10" y2="10"></line>
+            </svg>
+            Еднократно
+          </button>
+        </div>
+      </div>
+
+      {(() => {
+        if (attendanceLoading) {
+          return (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              {/* Loader2 */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-7 w-7 animate-spin text-emerald-500 opacity-40"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+              <p className="text-zinc-400 text-xs font-light">
+                Зареждане на присъствията...
+              </p>
+            </div>
+          );
+        }
+
+        if (paymentMode === "subscription") {
+          return (
+            <WizardStep2Subscription
+              selectedMember={selectedMember}
+              monthlyAttendance={monthlyAttendance}
+              unpaidMonths={unpaidMonths}
+              selectedMonthKeys={selectedMonthKeys}
+              setSelectedMonthKeys={setSelectedMonthKeys}
+              allUnpaidMonthsSelected={allUnpaidMonthsSelected}
+              toggleMonthSelection={toggleMonthSelection}
+              price={price}
+            />
+          );
+        }
+
+        return (
+          <WizardStep2Individual
+            selectedMember={selectedMember}
+            unpaidEvents={unpaidEvents}
+            selectedEventIds={selectedEventIds}
+            setSelectedEventIds={setSelectedEventIds}
+            toggleEventSelection={toggleEventSelection}
+            eventLabel={eventLabel}
+          />
+        );
+      })()}
+    </div>
+  );
+};;
