@@ -189,7 +189,7 @@ function EventCard({
               return (
                 <a
                   href={`https://wa.me/359899829923?text=${encodeURIComponent(
-                    `Здравейте, интересувам се да се запиша за: ${event.title} - ${eventDateStr} (${displayTime}). Моля, свържете се с мен.`
+                    `Здравейте, интересувам се да се запиша за: ${event.title} - ${eventDateStr} (${displayTime}) в ${event.location || 'Спортна зала „Енергетик"'}. Моля, свържете се с мен.`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
