@@ -1,96 +1,40 @@
-import {
-  getDocs,
-  doc,
-  getDoc,
-  Timestamp,
-  query,
-  serverTimestamp,
-  DocumentSnapshot,
-  limit,
-  orderBy,
-  deleteDoc,
-  CollectionReference,
-  addDoc,
-  updateDoc,
-} from "firebase/firestore";
-import {
-  getMembersCollection,
-  getMembersQuery,
-} from "@/lib/firebase-collections";
+import { Member } from "@/types/member.types";
 import { getSiteConfig } from "@/config/sites";
-import { Member, MemberSchema } from "@/types/member.types";
+import { Timestamp, serverTimestamp } from "firebase/firestore";
 
-// Converts a Firestore document to a Member object with robust validation.
-export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
-  if (!docSnap.exists()) {
-    console.warn(`docToMember: Document with ID ${docSnap.id} does not exist.`);
-    return null;
-  }
+// Import from new architectural layers
+import { docToMember, calculateAgeGroup } from "@/mappers/member.mapper";
+import {
+  fetchMemberById,
+  fetchAllMembers,
+  createMemberDocument,
+  updateMemberDocument,
+  deleteMemberDocument,
+  fetchRawMemberData,
+} from "@/repositories/member.repository";
 
-  const data = docSnap.data();
-
-  // Helper to gracefully convert Timestamps to ISO strings.
-  const toISODate = (
-    date: { toDate?: () => Date } | Date | string | null | undefined
-  ): string | undefined => {
-    if (!date) return undefined;
-    // Duck-typing check for Firestore Timestamp
-    if (typeof (date as { toDate?: () => Date }).toDate === "function") {
-      return (date as { toDate: () => Date }).toDate().toISOString();
-    }
-    if (date instanceof Date) {
-      return date.toISOString();
-    }
-    return date as string;
-  };
-
-  const name = [data.firstName, data.middleName, data.lastName]
-    .filter(Boolean)
-    .join(" ");
-
-  // Prepare the data for Zod parsing, ensuring derived/converted fields overwrite spread data.
-  const dataToParse = {
-    ...data,
-    id: docSnap.id,
-    name: name,
-    status: data.status || "active",
-    dateOfBirth: toISODate(data.dateOfBirth),
-    registrationDate:
-      toISODate(data.registrationDate) || new Date().toISOString(),
-    updatedAt: toISODate(data.updatedAt),
-    skillLevel: data.skillLevel || null,
-  };
-
-  try {
-    // Use Zod to validate and parse the data.
-    return MemberSchema.parse(dataToParse);
-  } catch (error) {
-    console.warn(
-      "Validation failed for ID %s. Data:", docSnap.id,
-      dataToParse,
-      error
-    );
-    return null;
-  }
-};
-
-// Fetches a single member by their ID.
-export const getMemberById = async (id: string): Promise<Member | null> => {
-  if (!id || id === "undefined") {
-    console.error(`getMemberById was called with an invalid ID: ${id}`);
-    return null;
-  }
-  const memberRef = doc(getMembersCollection(), id);
-  const docSnap = await getDoc(memberRef);
-  return docToMember(docSnap);
-};
+// Re-export for backwards compatibility if any external code relies on them
+export { docToMember, calculateAgeGroup };
 
 let membersCache: Member[] | null = null;
 let lastFetchTime = 0;
 let cachedSiteId: string | null = null;
 const CACHE_DURATION = 60 * 1000; // 1 minute cache
 
-// Fetches all members from the database with a simple in-memory cache.
+/**
+ * Fetches a single member by their ID.
+ */
+export const getMemberById = async (id: string): Promise<Member | null> => {
+  if (!id || id === "undefined") {
+    console.error(`getMemberById was called with an invalid ID: ${id}`);
+    return null;
+  }
+  return fetchMemberById(id);
+};
+
+/**
+ * Fetches all members with a simple in-memory cache.
+ */
 export const getAllMembers = async (
   forceRefetch = false
 ): Promise<Member[]> => {
@@ -107,17 +51,7 @@ export const getAllMembers = async (
     return membersCache;
   }
 
-  const q = query(
-    getMembersQuery(),
-    orderBy("lastName", "asc"),
-    limit(1000) // Increased safety limit for "all" members fetch
-  );
-
-  const querySnapshot = await getDocs(q);
-
-  const members = querySnapshot.docs
-    .map(docToMember)
-    .filter(Boolean) as Member[];
+  const members = await fetchAllMembers();
 
   // Update cache
   membersCache = members;
@@ -127,30 +61,9 @@ export const getAllMembers = async (
   return members;
 };
 
-// Изчисляване на възрастовата група на базата на годината на раждане
-export const calculateAgeGroup = (
-  dateOfBirth?: string | Date | null
-): string | null => {
-  if (!dateOfBirth) return null;
-  const dob = new Date(dateOfBirth as string | Date);
-  if (isNaN(dob.getTime())) return null;
-
-  const birthYear = dob.getFullYear();
-  const currentYear = new Date().getFullYear();
-  const diff = currentYear - birthYear;
-
-  if (diff <= 8) return "U9";
-  if (diff === 9 || diff === 10) return "U11";
-  if (diff === 11 || diff === 12) return "U13";
-  if (diff === 13 || diff === 14) return "U15";
-  if (diff === 15 || diff === 16) return "U17";
-  if (diff === 17 || diff === 18) return "U19";
-  if (diff >= 19) return "Мъже/Жени";
-
-  return null;
-};
-
-// Adds a new member to the database, using server-side timestamps.
+/**
+ * Adds a new member to the database, enforcing business rules and server-side timestamps.
+ */
 export const addMember = async (
   memberData: Omit<Member, "id" | "name" | "updatedAt" | "registrationDate"> & {
     registrationDate?: string;
@@ -176,34 +89,32 @@ export const addMember = async (
       ? Timestamp.fromDate(new Date(memberData.registrationDate))
       : serverTimestamp(),
     updatedAt: serverTimestamp(),
-    siteId: getSiteConfig().id, // Explicitly add siteId if not handled by converter correctly (converter handles it but extra safety)
+    siteId: getSiteConfig().id,
   };
 
-  const docRef = await addDoc(
-    getMembersCollection() as CollectionReference<Omit<Member, "id">>,
-    dataToAdd
-  );
-  return docRef.id;
+  const newId = await createMemberDocument(dataToAdd);
+
+  // Clear cache to reflect new data
+  membersCache = null;
+
+  return newId;
 };
 
-// Updates an existing member in the database, using server-side timestamps.
+/**
+ * Updates an existing member in the database, with side-effect handlers (e.g., avatar cleanup).
+ */
 export const updateMember = async (
   id: string,
   memberData: Partial<Omit<Member, "id" | "name">>
 ): Promise<void> => {
-  const memberRef = doc(getMembersCollection(), id);
-
-  // If a new image is being uploaded, we should ideally clean up the old one
+  // Side effect: Cleanup old avatar if changed
   if (memberData.avatarUrl) {
     try {
-      const oldDoc = await getDoc(memberRef);
-      const oldData = oldDoc.data();
+      const oldData = await fetchRawMemberData(id);
       if (oldData?.avatarUrl && oldData.avatarUrl !== memberData.avatarUrl) {
-        // Only try to delete if it's a Firebase Storage URL we own
         if (oldData.avatarUrl.includes("firebasestorage.googleapis.com")) {
+          // Dynamic import to avoid loading storage SDK unnecessarily
           const { deleteFile } = await import("./storage-service");
-          // Extract path from URL (a bit complex, maybe just log for now or skip if too risky)
-          // For simplicity, we'll assume the path is 'avatars/{id}' as used in our component
           await deleteFile(`avatars/${id}`).catch((err) =>
             console.error("Failed to delete old avatar:", err)
           );
@@ -214,8 +125,9 @@ export const updateMember = async (
     }
   }
 
-  const dataToUpdate: { [key: string]: unknown } = { ...memberData };
+  const dataToUpdate: Record<string, unknown> = { ...memberData };
 
+  // Business logic: recalculate age group if DOB changes
   if ("dateOfBirth" in dataToUpdate) {
     dataToUpdate.ageGroup = calculateAgeGroup(
       dataToUpdate.dateOfBirth as string | Date | null
@@ -231,11 +143,18 @@ export const updateMember = async (
 
   dataToUpdate.updatedAt = serverTimestamp();
 
-  await updateDoc(memberRef, dataToUpdate);
+  await updateMemberDocument(id, dataToUpdate);
+
+  // Clear cache to reflect new data
+  membersCache = null;
 };
 
-// Deletes a member from the database.
+/**
+ * Deletes a member from the database.
+ */
 export const deleteMember = async (id: string): Promise<void> => {
-  const memberRef = doc(getMembersCollection(), id);
-  await deleteDoc(memberRef);
+  await deleteMemberDocument(id);
+  
+  // Clear cache
+  membersCache = null;
 };

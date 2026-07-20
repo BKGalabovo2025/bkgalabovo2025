@@ -1,3 +1,4 @@
+import "server-only";
  
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";

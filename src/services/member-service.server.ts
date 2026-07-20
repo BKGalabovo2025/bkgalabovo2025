@@ -1,3 +1,4 @@
+import "server-only";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Member } from "@/types/member.types";
 import { serializeFirestoreData } from "@/lib/serialize-utils";

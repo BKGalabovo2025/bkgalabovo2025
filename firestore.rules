@@ -6,147 +6,75 @@ service cloud.firestore {
       return request.auth != null && (request.auth.token.admin == true || request.auth.token.email == 'bkgalabovo2014@gmail.com');
     }
 
-    // Проверка за валиден идентификатор на сайта (Multi-tenancy)
+    // Проверка за валиден идентификатор на сайта при създаване/редакция
     function hasValidSiteId() {
       return request.method in ['get', 'list', 'delete'] || 
              (request.resource.data.keys().hasAll(['siteId']) && 
               request.resource.data.siteId in ['bkgalabovo', 'recoveryzone']);
     }
 
-    // Членове - четене от влезли, промяна от админ
-    match /members/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
+    // Проверка дали потребителят има достъп до конкретния сайт според неговия Custom Claim (Multi-tenancy)
+    function hasAccessToSite(siteId) {
+      return request.auth != null && 
+             request.auth.token.allowedSites != null && 
+             siteId in request.auth.token.allowedSites;
     }
 
-    // Продажби и Склад - само за админи
-    match /sales/{docId} { allow read: if isAdmin(); allow write: if isAdmin() && hasValidSiteId(); }
-    match /products/{docId} { allow read: if isAdmin(); allow write: if isAdmin() && hasValidSiteId(); }
-    match /inventoryEvents/{docId} { allow read: if isAdmin(); allow write: if isAdmin() && hasValidSiteId(); }
-    match /inventory/{docId} { allow read: if isAdmin(); allow write: if isAdmin() && hasValidSiteId(); }
+    // 1. Колекции с достъп за четене от логнати потребители и писане от админи със SiteId
+    match /{collection}/{docId} {
+      allow read: if request.auth != null && collection in [
+        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history'
+      ] && hasAccessToSite(resource.data.siteId);
 
-    // Каталози (Услуги, Тренировки, Цени)
-    match /clubServices/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /clubGeneralServices/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /memberSubscriptions/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /prices/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /priceHistory/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    
-    match /finances/{docId} { allow read: if isAdmin(); allow write: if isAdmin() && hasValidSiteId(); }
-    match /settings/{docId} { allow read, write: if isAdmin(); }
-    match /families/{docId} { allow read, write: if isAdmin(); }
-    
-    // Колекции от Recovery Zone
-    match /client_packages/{docId} { allow read, write: if isAdmin() && hasValidSiteId(); }
-    match /clients/{docId} { allow read, write: if isAdmin() && hasValidSiteId(); }
-    match /reviews/{docId} { allow read, write: if isAdmin() && hasValidSiteId(); }
-    match /sessions/{docId} { 
-      allow read: if true; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /config/{docId} { allow read, write: if isAdmin() && hasValidSiteId(); }
+      allow write: if isAdmin() && hasValidSiteId() && collection in [
+        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history'
+      ] && hasAccessToSite(request.resource.data.siteId);
 
-    // График и събития - четене от влезли, промяна от админ
-    match /events/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin() && hasValidSiteId();
+      // 2. Колекции с достъп за четене и писане само от админи със SiteId
+      allow read: if isAdmin() && collection in [
+        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+        'client_packages', 'clients', 'reviews', 'config'
+      ] && hasAccessToSite(resource.data.siteId);
+
+      allow write: if isAdmin() && hasValidSiteId() && collection in [
+        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+        'client_packages', 'clients', 'reviews', 'config'
+      ] && hasAccessToSite(request.resource.data.siteId);
+
+      // 3. Колекции за администратори без изискване за SiteId (глобални)
+      allow read, write: if isAdmin() && collection in ['settings', 'families'];
+
+      // 4. Публично четене, писане от админи със SiteId
+      allow read: if collection in ['sessions', 'tournaments'];
+      allow write: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments'] && hasAccessToSite(request.resource.data.siteId);
+
+      // 5. Публично четене, писане от админи без SiteId
+      allow read: if collection == 'sites';
+      allow write: if isAdmin() && collection == 'sites';
+
+      // 6. Специфични за турнирите (четене от логнати, писане от админи без SiteId)
+      allow read: if request.auth != null && collection in ['tournament_entries', 'tournament_matches'];
+      allow write: if isAdmin() && collection in ['tournament_entries', 'tournament_matches'];
     }
 
-    match /reservations/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin() && hasValidSiteId();
-    }
-
-    match /blockedSlots/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin() && hasValidSiteId();
-    }
-
+    // Изрично позволени под-колекции (wildcard paths), защитаваме ги и тях със siteId
     match /{path=**}/reservations/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin() && hasValidSiteId();
+      allow read: if request.auth != null && hasAccessToSite(resource.data.siteId);
+      allow write: if isAdmin() && hasValidSiteId() && hasAccessToSite(request.resource.data.siteId);
     }
 
     match /{path=**}/blockedSlots/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin() && hasValidSiteId();
+      allow read: if request.auth != null && hasAccessToSite(resource.data.siteId);
+      allow write: if isAdmin() && hasValidSiteId() && hasAccessToSite(request.resource.data.siteId);
     }
 
-    // Публична информация (турнири и сайтове) - достъпна за четене от всички
-    match /tournaments/{docId} {
-      allow read: if true;
-      allow write: if isAdmin() && hasValidSiteId();
-    }
-
-    match /tournament_entries/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
-    }
-
-    match /tournament_matches/{docId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
-    }
-
-    match /sites/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Тренировъчен Планировчик и Тестове
-    match /exercises/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /member_assessments/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /planner_sessions/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /beep_test_results/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /member_shadow_analytics/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /training_attendance/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /focus_tags/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /member_declarations/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-    match /marketing_history/{docId} { 
-      allow read: if request.auth != null; 
-      allow write: if isAdmin() && hasValidSiteId(); 
-    }
-
-    // Всичко останало е забранено по подразбиране
+    // Защита по подразбиране (отказва достъп за всичко останало)
     match /{document=**} {
       allow read, write: if false;
     }

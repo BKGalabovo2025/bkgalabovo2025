@@ -24,15 +24,15 @@ Download and install the required Next.js React packages to `node_modules` to en
 npm install
 ```
 
-## 3. Typecheck Code
+## 3. Run Checks and Tests
 
-Run TypeScript static analysis to verify code quality and identify potential type errors before attempting a full build.
+Run all static analysis (TypeScript typechecking, linting) and tests to verify code quality and identify potential errors before attempting a full build.
 
 ```bash
-npm run typecheck
+npm run check-all
 ```
 
-_(Fallback: If this script is missing from `package.json`, use `npx -y tsc --noEmit` instead.)_
+_(Fallback: If `check-all` script is missing from `package.json`, use `npm run typecheck` or `npx -y tsc --noEmit` instead.)_
 
 ## 4. Build Web Application
 

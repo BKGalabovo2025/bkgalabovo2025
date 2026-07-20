@@ -1,3 +1,4 @@
+import "server-only";
 /* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable sonarjs/cognitive-complexity */
 "use server";

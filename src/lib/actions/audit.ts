@@ -1,4 +1,5 @@
 "use server";
+import "server-only";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { AuditLog, AuditAction, logSystemEvent } from "@/lib/audit-logger";

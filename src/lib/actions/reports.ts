@@ -1,4 +1,5 @@
 "use server";
+import "server-only";
 
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAllMembersServer } from "@/services/member-service.server";

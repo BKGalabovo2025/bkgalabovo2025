@@ -9,6 +9,7 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  extendDefaultRuntimeCaching: true,
   workboxOptions: {
     navigateFallbackDenylist: [
       /^\/dashboard/,
@@ -26,6 +27,32 @@ const withPWA = withPWAInit({
       /^\/reports/,
       /^\/settings/,
       /^\/api/,
+    ],
+    runtimeCaching: [
+      {
+        // Не кешираме Firebase Storage (често се качват големи снимки от галерии)
+        // Пазим максимум 15 скорошни снимки до 7 дни.
+        urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'firebase-storage-cache',
+          expiration: {
+            maxEntries: 15,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          },
+        },
+      },
+      {
+        // Изцяло забраняваме кеширането на API заявки към Firestore 
+        // (защото Firebase SDK има собствена мощна IndexedDB кеш система)
+        urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
+        handler: 'NetworkOnly',
+      },
+      {
+        // Изключваме тежки PDF файлове и видеа от PWA кеша
+        urlPattern: /\.(?:pdf|mp4|webm)$/i,
+        handler: 'NetworkOnly',
+      }
     ],
   },
 });

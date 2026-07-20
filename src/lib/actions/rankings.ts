@@ -1,4 +1,5 @@
 "use server";
+import "server-only";
 
 import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { getAllMembersServer } from "@/services/member-service.server";

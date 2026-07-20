@@ -65,3 +65,5 @@ public/worker-*.js.map
 # nested duplicate folder
 /bkgalabovo2025/
 
+*.msi
+*.log

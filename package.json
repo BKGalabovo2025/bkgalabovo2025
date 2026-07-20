@@ -30,13 +30,16 @@
     "test:visual": "playwright test visual.spec.ts",
     "check-all": "npm run typecheck && npm run lint && npm run check:circular && npm run check:deps && npm run check:dup-code && npm run check:dup-funcs && npm run test",
     "test": "vitest run",
+    "test:rules": "firebase emulators:exec \"vitest run src/__tests__/firestore.rules.test.ts\" --project bkgalabovo-test",
     "security-check": "npm audit",
     "prepare": "husky",
     "precommit": "lint-staged",
     "migrate:bkgalabovo": "tsx scripts/migrate-bkgalabovo-site-id.ts",
     "migrate:recoveryzone": "tsx scripts/import-recovery-zone.ts",
     "deploy:rules": "npx -y firebase-tools@latest deploy --only firestore:rules --project bkgalabovo2025",
-    "deploy:indexes": "npx -y firebase-tools@latest deploy --only firestore:indexes --project bkgalabovo2025"
+    "deploy:indexes": "npx -y firebase-tools@latest deploy --only firestore:indexes --project bkgalabovo2025",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -82,6 +85,7 @@
     "react-is": "^19.2.6",
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.1",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.6.0",
@@ -90,6 +94,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "4.3.0",
     "@testing-library/dom": "^10.4.1",
@@ -108,6 +113,7 @@
     "eslint-plugin-sonarjs": "^4.0.3",
     "eslint-plugin-tailwindcss": "^4.2.0",
     "find-duplicate-js": "^1.7.0",
+    "firebase-tools": "^15.23.0",
     "husky": "^9.1.7",
     "jscpd": "^5.0.12",
     "jsdom": "^29.1.1",
@@ -128,7 +134,19 @@
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "storybook": "10.5.0",
+    "@storybook/nextjs-vite": "10.5.0",
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-vitest": "10.5.0",
+    "@storybook/addon-a11y": "10.5.0",
+    "@storybook/addon-docs": "10.5.0",
+    "@storybook/addon-mcp": "^0.7.0",
+    "vite": "^8.0.0",
+    "eslint-plugin-storybook": "10.5.0",
+    "@vitest/browser-playwright": "4.1.6",
+    "@vitest/coverage-v8": "4.1.6",
+    "playwright": "^1.61.1"
   },
   "overrides": {
     "postcss": "^8.5.14",
