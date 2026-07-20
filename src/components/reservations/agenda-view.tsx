@@ -138,13 +138,13 @@ export function AgendaView({
 
   if (isLoading) {
     return (
-      <div className="p-12 w-full flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-100 w-full items-center justify-center p-12">
         <div className="flex flex-col items-center gap-4">
           <Loader2
-            className="h-10 w-10 animate-spin text-primary/30"
+            className="size-10 animate-spin text-primary/30"
             strokeWidth={1.5}
           />
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">
+          <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-400 uppercase">
             Синхронизиране...
           </p>
         </div>
@@ -154,14 +154,14 @@ export function AgendaView({
 
   if (sortedItems.length === 0) {
     return (
-      <div className="p-20 text-center flex flex-col items-center justify-center">
-        <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-3xl flex items-center justify-center mb-6 border border-zinc-100 dark:border-zinc-800">
-          <Clock className="w-6 h-6 text-zinc-300" strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-center p-20 text-center">
+        <div className="mb-6 flex size-16 items-center justify-center rounded-3xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+          <Clock className="size-6 text-zinc-300" strokeWidth={1.5} />
         </div>
-        <h3 className="text-zinc-900 dark:text-white font-semibold mb-2">
+        <h3 className="mb-2 font-semibold text-zinc-900 dark:text-white">
           Няма планирани събития
         </h3>
-        <p className="text-zinc-400 text-sm max-w-xs mx-auto">
+        <p className="mx-auto max-w-xs text-sm text-zinc-400">
           За избраната дата няма открити резервации или блокирани часове.
         </p>
       </div>
@@ -169,7 +169,7 @@ export function AgendaView({
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-4">
+    <div className="space-y-4 p-4 md:p-8">
       {sortedItems.map((item, index) => {
         if (item.type === "reservation") {
           return (

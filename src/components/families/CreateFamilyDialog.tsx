@@ -52,21 +52,21 @@ export const CreateFamilyDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <BentoCard className="p-6 flex flex-col items-center justify-center space-y-4 border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-3xl shadow-none cursor-pointer hover:border-zinc-300 transition-all group">
-          <div className="p-4 bg-white dark:bg-zinc-800 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-            <PlusCircle className="h-6 w-6 text-zinc-400" />
+        <BentoCard className="group flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 p-6 shadow-none transition-all hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div className="rounded-full bg-white p-4 shadow-sm transition-transform group-hover:scale-110 dark:bg-zinc-800">
+            <PlusCircle className="size-6 text-zinc-400" />
           </div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+          <p className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
             Ново семейство
           </p>
         </BentoCard>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-4xl border-none shadow-2xl">
+      <DialogContent className="rounded-4xl border-none shadow-2xl sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light tracking-tight">
             Ново семейство
           </DialogTitle>
-          <DialogDescription className="text-zinc-500 font-medium">
+          <DialogDescription className="font-medium text-zinc-500">
             Въведете име за новото семейство (напр. &quot;Семейство
             Иванови&quot;).
           </DialogDescription>
@@ -75,7 +75,7 @@ export const CreateFamilyDialog = () => {
           <div className="space-y-2">
             <Label
               htmlFor="name"
-              className="text-[10px] uppercase tracking-widest font-bold text-zinc-400"
+              className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase"
             >
               Име на семейството
             </Label>
@@ -84,17 +84,17 @@ export const CreateFamilyDialog = () => {
               placeholder="Име..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white transition-all"
+              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 transition-all focus:bg-white"
               required
             />
           </div>
           <Button
             type="submit"
             disabled={loading || !name.trim()}
-            className="w-full h-12 rounded-2xl bg-zinc-950 text-white hover:bg-zinc-900 transition-all text-xs uppercase tracking-widest font-bold"
+            className="h-12 w-full rounded-2xl bg-zinc-950 text-xs font-bold tracking-widest text-white uppercase transition-all hover:bg-zinc-900"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
               "Създаване"
             )}

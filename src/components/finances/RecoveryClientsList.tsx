@@ -52,29 +52,29 @@ export function RecoveryClientsList({
   return (
     <div className="space-y-8 animate-in fade-in">
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-        <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
-          <div className="p-3.5 sm:p-4 bg-indigo-500/10 text-indigo-600 rounded-2xl shrink-0">
-            <Activity className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+        <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+          <div className="shrink-0 rounded-2xl bg-indigo-500/10 p-3.5 text-indigo-600 sm:p-4">
+            <Activity className="size-5 sm:size-6" strokeWidth={1.5} />
           </div>
           <div className="space-y-0.5 sm:space-y-1">
-            <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+            <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
               Клиенти на зоната
             </p>
-            <p className="text-2xl sm:text-3xl font-light text-indigo-600">
+            <p className="text-2xl font-light text-indigo-600 sm:text-3xl">
               {recoveryClients.length}
             </p>
           </div>
         </BentoCard>
-        <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2">
-          <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
-            <FileText className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+        <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+          <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
+            <FileText className="size-5 sm:size-6" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+            <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
               Относно Клиенти Възстановяване
             </p>
-            <p className="text-xs font-light text-zinc-500 leading-relaxed">
+            <p className="text-xs leading-relaxed font-light text-zinc-500">
               Това са клиенти, които имат профил във Възстановителната зона. 
               Те могат да бъдат и външни лица, и клубни членове. Тук се съхранява 
               тяхното досие със здравна информация и история на процедурите.
@@ -84,37 +84,37 @@ export function RecoveryClientsList({
       </div>
 
       {/* Cards List */}
-      <div className="border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl sm:rounded-5xl">
-        <div className="p-4 sm:p-6 border-b border-zinc-50 dark:border-zinc-900 flex items-center justify-between">
+      <div className="rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
           <div className="flex items-center gap-3">
-            <Activity className="h-4 w-4 text-indigo-500" strokeWidth={1.5} />
+            <Activity className="size-4 text-indigo-500" strokeWidth={1.5} />
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
               Регистрирани Клиенти
             </h3>
           </div>
           <Button
             onClick={() => router.push("/members/new?type=recovery")}
-            className="rounded-xl font-medium text-[10px] uppercase tracking-widest bg-indigo-500 text-white hover:bg-indigo-600 h-9 px-4 shadow-none"
+            className="h-9 rounded-xl bg-indigo-500 px-4 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-indigo-600"
           >
-            <Plus className="mr-2 h-3.5 w-3.5" /> Нов Клиент
+            <Plus className="mr-2 size-3.5" /> Нов Клиент
           </Button>
         </div>
 
         {recoveryClients.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="h-16 w-16 bg-indigo-50 dark:bg-indigo-950/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Activity className="h-8 w-8 text-indigo-300" strokeWidth={1} />
+            <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/20">
+              <Activity className="size-8 text-indigo-300" strokeWidth={1} />
             </div>
-            <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest mb-3">
+            <p className="mb-3 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Няма регистрирани клиенти
             </p>
-            <p className="max-w-sm mx-auto text-sm font-light text-zinc-400 leading-relaxed">
+            <p className="mx-auto max-w-sm text-sm leading-relaxed font-light text-zinc-400">
               Все още няма добавени клиенти за зоната. Използвайте бутона горе,
               за да създадете първия профил.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6 bg-zinc-50/50 dark:bg-zinc-950/50 rounded-b-4xl sm:rounded-b-5xl">
+          <div className="grid grid-cols-1 gap-4 rounded-b-4xl bg-zinc-50/50 p-4 sm:grid-cols-2 sm:rounded-b-5xl sm:p-6 lg:grid-cols-3 dark:bg-zinc-950/50">
             {recoveryClients
               .sort((a, b) =>
                 `${a.firstName} ${a.lastName}`.localeCompare(
@@ -126,33 +126,33 @@ export function RecoveryClientsList({
                 <div
                   key={client.id}
                   onClick={() => router.push(`/members/${client.id}`)}
-                  className="group cursor-pointer bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-5 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+                  className="group cursor-pointer rounded-3xl border border-zinc-100 bg-white p-5 transition-all duration-300 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="mb-4 flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium text-sm shrink-0 group-hover:bg-indigo-100 transition-colors">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-sm font-medium text-indigo-600 transition-colors group-hover:bg-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-400">
                         {client.firstName[0]}
                         {client.lastName[0]}
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-zinc-900 dark:text-white">
+                        <p className="text-sm font-medium text-zinc-900 dark:text-white">
                           {client.firstName} {client.lastName}
                         </p>
-                        <p className="text-[10px] font-light text-zinc-400 mt-0.5">
+                        <p className="mt-0.5 text-[10px] font-light text-zinc-400">
                           {client.phone || client.email || "Няма контакти"}
                         </p>
                       </div>
                     </div>
-                    <Badge className="rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400 shrink-0">
+                    <Badge className="shrink-0 rounded-full border-none bg-indigo-100 px-2.5 py-0.5 text-[9px] font-semibold tracking-widest text-indigo-700 uppercase shadow-none dark:bg-indigo-950/30 dark:text-indigo-400">
                       Зона
                     </Badge>
                   </div>
-                  <div className="pt-3 border-t border-zinc-50 dark:border-zinc-800/50 flex items-center gap-2 text-zinc-400">
+                  <div className="flex items-center gap-2 border-t border-zinc-50 pt-3 text-zinc-400 dark:border-zinc-800/50">
                     <Calendar
-                      className="h-3 w-3 text-zinc-300"
+                      className="size-3 text-zinc-300"
                       strokeWidth={1.5}
                     />
-                    <span className="text-[9px] font-medium uppercase tracking-widest">
+                    <span className="text-[9px] font-medium tracking-widest uppercase">
                       {new Date(client.registrationDate).toLocaleDateString(
                         "bg-BG"
                       )}
@@ -168,9 +168,9 @@ export function RecoveryClientsList({
                             `${client.firstName} ${client.lastName}`
                           )
                         }
-                        className="h-7 w-7 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                        className="size-7 rounded-lg text-zinc-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
                       >
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <Trash2 className="size-3.5" strokeWidth={1.5} />
                       </Button>
                     </div>
                   </div>

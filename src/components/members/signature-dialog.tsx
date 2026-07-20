@@ -165,27 +165,27 @@ export const SignatureDialog = ({
         if (!v && !isSaving) onClose();
       }}
     >
-      <DialogContent className="max-w-lg w-full rounded-3xl border-zinc-100 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="w-full max-w-lg overflow-hidden rounded-3xl border-zinc-100 p-0 shadow-2xl">
         <DialogHeader className="px-8 pt-8 pb-4">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center">
-              <PenLine className="h-5 w-5 text-white" strokeWidth={1.5} />
+          <div className="mb-1 flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-950">
+              <PenLine className="size-5 text-white" strokeWidth={1.5} />
             </div>
-            <DialogTitle className="text-xl font-light text-zinc-950 tracking-tight">
+            <DialogTitle className="text-xl font-light tracking-tight text-zinc-950">
               {title}
             </DialogTitle>
           </div>
-          <p className="text-sm font-light text-zinc-400 ml-13">
+          <p className="ml-13 text-sm font-light text-zinc-400">
             {description}
           </p>
         </DialogHeader>
 
         {/* Canvas Area */}
         <div className="mx-6 mb-2">
-          <div className="relative rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 overflow-hidden">
+          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50">
             {/* Guiding line */}
-            <div className="absolute bottom-10 left-8 right-8 h-px bg-zinc-200 pointer-events-none" />
-            <p className="absolute bottom-3 left-8 text-[10px] font-medium uppercase tracking-widest text-zinc-300 pointer-events-none select-none">
+            <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200" />
+            <p className="pointer-events-none absolute bottom-3 left-8 text-[10px] font-medium tracking-widest text-zinc-300 uppercase select-none">
               Подпис
             </p>
 
@@ -193,7 +193,7 @@ export const SignatureDialog = ({
               ref={canvasRef}
               width={560}
               height={200}
-              className="w-full h-[180px] cursor-crosshair touch-none block touch-none"
+              className="block h-45 w-full cursor-crosshair touch-none touch-none"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -204,21 +204,21 @@ export const SignatureDialog = ({
             />
           </div>
           {!hasSignature && (
-            <p className="text-center text-xs text-zinc-300 mt-3 font-light">
+            <p className="mt-3 text-center text-xs font-light text-zinc-300">
               Начертайте подписа с мишката или пръст (на мобилен)
             </p>
           )}
         </div>
 
-        <DialogFooter className="px-6 pb-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <DialogFooter className="flex flex-col gap-2 px-6 pb-6 sm:flex-row sm:gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={clearCanvas}
             disabled={!hasSignature || isSaving}
-            className="flex-1 sm:flex-none h-11 rounded-xl border-zinc-200 text-zinc-500 hover:border-rose-200 hover:text-rose-500 hover:bg-rose-50 transition-all font-medium text-[10px] uppercase tracking-widest"
+            className="h-11 flex-1 rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-500 uppercase transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 sm:flex-none"
           >
-            <Trash2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
+            <Trash2 className="mr-2 size-4" strokeWidth={1.5} />
             Изчисти
           </Button>
           <Button
@@ -226,7 +226,7 @@ export const SignatureDialog = ({
             variant="outline"
             onClick={onClose}
             disabled={isSaving}
-            className="flex-1 sm:flex-none h-11 rounded-xl border-zinc-200 text-zinc-500 font-medium text-[10px] uppercase tracking-widest"
+            className="h-11 flex-1 rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-500 uppercase sm:flex-none"
           >
             Отказ
           </Button>
@@ -234,16 +234,16 @@ export const SignatureDialog = ({
             type="button"
             onClick={handleSave}
             disabled={!hasSignature || isSaving}
-            className="flex-1 h-11 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 transition-all font-medium text-[10px] uppercase tracking-widest shadow-none"
+            className="h-11 flex-1 rounded-xl bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
           >
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Запазване...
               </>
             ) : (
               <>
-                <CheckCheck className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                <CheckCheck className="mr-2 size-4" strokeWidth={1.5} />
                 Запази подписа
               </>
             )}

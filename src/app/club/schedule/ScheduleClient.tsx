@@ -106,24 +106,24 @@ export default function ScheduleClient({ schedule }: Props) {
     label === "Днес" || label === "Утре";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans">
+    <div className="min-h-screen bg-zinc-950 font-sans text-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-blue-900/30">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-900/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
         <Link
           href="/club"
-          className="flex items-center gap-2 text-zinc-300 hover:text-blue-400 transition-all text-sm font-medium"
+          className="flex items-center gap-2 text-sm font-medium text-zinc-300 transition-all hover:text-blue-400"
         >
           <ArrowLeft size={16} />
           Назад към клуба
         </Link>
-        <span className="font-bold text-sm text-blue-400 uppercase tracking-widest">
+        <span className="text-sm font-bold tracking-widest text-blue-400 uppercase">
           Календар
         </span>
         <div className="w-24" />
       </nav>
 
-      <main className="pt-28 px-6 pb-32">
-        <div className="max-w-4xl mx-auto">
+      <main className="px-6 pt-28 pb-32">
+        <div className="mx-auto max-w-4xl">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -131,26 +131,26 @@ export default function ScheduleClient({ schedule }: Props) {
             transition={{ duration: 0.6 }}
             className="mb-12 w-full"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full">
+            <div className="flex w-full flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
               <div className="flex items-center gap-5">
-                <div className="h-16 w-16 bg-black border border-blue-800/50 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)] shrink-0">
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-blue-800/50 bg-black text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)]">
                   <CalendarIcon size={30} />
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-1">
+                  <p className="mb-1 text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase">
                     График
                   </p>
                   <h1 className="text-4xl font-black tracking-tight">
                     Предстоящи Тренировки
                   </h1>
-                  <p className="text-zinc-400 text-sm mt-1">
+                  <p className="mt-1 text-sm text-zinc-400">
                     Вижте всички предстоящи събития на клуба.
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleShare}
-                className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-xl border border-blue-800/30 hover:border-blue-500/50 font-semibold text-sm transition-all"
+                className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-800/30 bg-blue-600/10 px-5 py-2.5 text-sm font-semibold text-blue-400 transition-all hover:border-blue-500/50 hover:bg-blue-600/20"
               >
                 <Share2 size={16} />
                 Сподели Графика
@@ -163,10 +163,10 @@ export default function ScheduleClient({ schedule }: Props) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-black/60 border border-zinc-800 rounded-3xl p-16 text-center"
+              className="rounded-3xl border border-zinc-800 bg-black/60 p-16 text-center"
             >
-              <CalendarIcon size={56} className="text-zinc-700 mx-auto mb-6" />
-              <p className="text-2xl font-light text-white mb-2">
+              <CalendarIcon size={56} className="mx-auto mb-6 text-zinc-700" />
+              <p className="mb-2 text-2xl font-light text-white">
                 Няма предстоящи тренировки
               </p>
               <p className="text-zinc-400">
@@ -183,17 +183,17 @@ export default function ScheduleClient({ schedule }: Props) {
                   transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
                 >
                   {/* Date Header */}
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="mb-4 flex items-center gap-4">
                     <span
-                      className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
+                      className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.35em] uppercase ${
                         isSpecialLabel(dateLabel)
-                          ? "bg-blue-600/20 text-blue-300 border border-blue-600/40"
+                          ? "border border-blue-600/40 bg-blue-600/20 text-blue-300"
                           : "text-zinc-400"
                       }`}
                     >
                       {dateLabel}
                     </span>
-                    <div className="flex-1 h-px bg-zinc-800" />
+                    <div className="h-px flex-1 bg-zinc-800" />
                   </div>
 
                   {/* Events for this date */}
@@ -220,12 +220,12 @@ export default function ScheduleClient({ schedule }: Props) {
             transition={{ delay: 0.6 }}
             className="mt-16 text-center"
           >
-            <p className="text-zinc-500 text-sm mb-4">
+            <p className="mb-4 text-sm text-zinc-500">
               Имате въпроси за графика?
             </p>
             <Link
               href="/club#contacts"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-700/40 hover:border-blue-500/60 text-blue-300 hover:text-blue-200 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all"
+              className="inline-flex items-center gap-2 rounded-2xl border border-blue-700/40 bg-blue-600/10 px-8 py-4 text-sm font-bold tracking-widest text-blue-300 uppercase transition-all hover:border-blue-500/60 hover:bg-blue-600/20 hover:text-blue-200"
             >
               Свържете се с нас <ChevronRight size={16} />
             </Link>

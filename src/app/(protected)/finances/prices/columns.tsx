@@ -68,18 +68,18 @@ export const columns = ({
     cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost" className="size-8 p-0">
             <span className="sr-only">Отвори меню</span>
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onEdit(row.original)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Edit className="mr-2 size-4" />
             Редактирай
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onShowHistory(row.original)}>
-            <History className="mr-2 h-4 w-4" />
+            <History className="mr-2 size-4" />
             Виж история
           </DropdownMenuItem>
         </DropdownMenuContent>

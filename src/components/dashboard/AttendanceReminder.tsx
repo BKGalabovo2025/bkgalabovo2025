@@ -51,8 +51,8 @@ export const AttendanceReminder = ({
 
   if (showLoading) {
     return (
-      <BentoCard className="p-8 flex items-center justify-center border border-zinc-100 bg-white shadow-none rounded-4xl h-full">
-        <Loader2 className="h-6 w-6 animate-spin text-zinc-200" />
+      <BentoCard className="flex h-full items-center justify-center rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+        <Loader2 className="size-6 animate-spin text-zinc-200" />
       </BentoCard>
     );
   }
@@ -60,15 +60,15 @@ export const AttendanceReminder = ({
   if (todayTrainings.length === 0) return null;
 
   return (
-    <BentoCard className="p-5 sm:p-8 border border-zinc-100 bg-white shadow-none rounded-4xl flex flex-col gap-6 group hover:border-emerald-100 transition-all duration-500 overflow-hidden relative">
-      <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.06] transition-all duration-700 pointer-events-none transform translate-x-1/4 -translate-y-1/4 group-hover:scale-110">
+    <BentoCard className="group relative flex flex-col gap-6 overflow-hidden rounded-4xl border border-zinc-100 bg-white p-5 shadow-none transition-all duration-500 hover:border-emerald-100 sm:p-8">
+      <div className="opacity-0.03 group-hover:opacity-0.06 pointer-events-none absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 transform p-12 transition-all duration-700 group-hover:scale-110">
         <CalendarCheck2 size={240} strokeWidth={1} />
       </div>
 
       <div>
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 mb-6 flex items-center gap-3">
+        <h3 className="mb-6 flex items-center gap-3 text-[11px] font-medium tracking-[0.2em] text-zinc-600 uppercase dark:text-zinc-400">
           <CalendarCheck2
-            className="h-4 w-4 text-emerald-500"
+            className="size-4 text-emerald-500"
             strokeWidth={1.5}
           />
           Напомняне за присъствия
@@ -78,14 +78,14 @@ export const AttendanceReminder = ({
           {todayTrainings.map((training) => (
             <div
               key={training.id}
-              className="relative z-10 p-4 rounded-2xl border border-zinc-100/80 bg-zinc-50/20 hover:bg-zinc-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="relative z-10 flex flex-col justify-between gap-4 rounded-2xl border border-zinc-100/80 bg-zinc-50/20 p-4 transition-all hover:bg-zinc-50/50 sm:flex-row sm:items-center"
             >
-              <div className="space-y-1 min-w-0 flex-1">
-                <p className="text-sm font-bold text-zinc-900 leading-tight truncate">
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="truncate text-sm leading-tight font-bold text-zinc-900">
                   {training.title}
                 </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 dark:text-zinc-400 font-light flex-wrap">
-                  <span className="text-zinc-700 font-medium">
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-light text-zinc-600 dark:text-zinc-400">
+                  <span className="font-medium text-zinc-700">
                     {new Date(training.startDate).toLocaleTimeString("bg-BG", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -100,11 +100,11 @@ export const AttendanceReminder = ({
               <Button
                 size="sm"
                 onClick={() => router.push(`/schedule?eventId=${training.id}`)}
-                className="w-full sm:w-auto h-8 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-none text-[10px] font-extrabold uppercase tracking-wider shrink-0 px-3 flex items-center justify-center gap-1.5 transition-all group/btn"
+                className="group/btn flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-[10px] font-extrabold tracking-wider text-white uppercase shadow-none transition-all hover:bg-emerald-800 sm:w-auto"
               >
                 <span>Отбележи</span>
                 <ArrowRight
-                  className="h-3 w-3 transform group-hover/btn:translate-x-0.5 transition-all"
+                  className="size-3 transform transition-all group-hover/btn:translate-x-0.5"
                   strokeWidth={2.5}
                 />
               </Button>

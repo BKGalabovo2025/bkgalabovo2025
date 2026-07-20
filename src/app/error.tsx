@@ -31,25 +31,25 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
-      <div className="bg-zinc-900 border border-red-500/20 rounded-3xl p-8 max-w-md w-full flex flex-col items-center">
-        <div className="h-16 w-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-6 text-center">
+      <div className="flex w-full max-w-md flex-col items-center rounded-3xl border border-red-500/20 bg-zinc-900 p-8">
+        <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
           <AlertCircle size={32} />
         </div>
 
-        <h1 className="text-2xl font-semibold text-white mb-3">
+        <h1 className="mb-3 text-2xl font-semibold text-white">
           Възникна технически проблем
         </h1>
 
-        <p className="text-zinc-400 text-sm mb-8">
+        <p className="mb-8 text-sm text-zinc-400">
           Системата е уведомена автоматично. Моля, опитайте да презаредите
           страницата или се върнете в началото.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="flex w-full flex-col gap-3 sm:flex-row">
           <button
             onClick={() => reset()}
-            className="flex-1 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white py-3 px-4 rounded-xl text-sm font-medium transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-800 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
           >
             <RotateCcw size={16} />
             Презареждане
@@ -57,7 +57,7 @@ export default function GlobalError({
 
           <Link
             href="/"
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-xl text-sm font-medium transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
           >
             <Home size={16} />
             Към началото

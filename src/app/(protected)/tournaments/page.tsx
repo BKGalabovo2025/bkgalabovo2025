@@ -29,8 +29,8 @@ export default async function TournamentsPage() {
   return (
     <div className="pb-12">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
-          <p className="text-rose-600 font-medium">{error}</p>
+        <div className="rounded-5xl border border-rose-100 bg-rose-50 p-8 text-center">
+          <p className="font-medium text-rose-600">{error}</p>
         </div>
       ) : (
         <Suspense fallback={<TournamentsLoading />}>
@@ -43,14 +43,14 @@ export default async function TournamentsPage() {
 
 function TournamentsLoading() {
   return (
-    <div className="p-8 space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="space-y-8 p-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Skeleton className="h-32 rounded-3xl" />
         <Skeleton className="h-32 rounded-3xl" />
         <Skeleton className="h-32 rounded-3xl" />
         <Skeleton className="h-32 rounded-3xl" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+      <div className="grid grid-cols-1 gap-6 pt-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Skeleton key={i} className="h-64 w-full rounded-4xl" />
         ))}

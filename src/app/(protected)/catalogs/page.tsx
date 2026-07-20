@@ -71,7 +71,7 @@ export default async function CatalogsPage() {
   ]);
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700 pb-24">
+    <div className="space-y-12 pb-24 duration-700 animate-in fade-in">
       <PageHeader
         title="Клубни Каталози"
         description="Управление на ценоразписи, тренировъчни програми и възстановителни процедури."

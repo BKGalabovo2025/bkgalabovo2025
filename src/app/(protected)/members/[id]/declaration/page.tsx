@@ -66,15 +66,15 @@ const InformedConsentPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white min-h-screen font-serif">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 font-serif md:p-8">
       {/* Non-printable header */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="mb-8 flex items-center justify-between print:hidden">
         <Button
           variant="outline"
           onClick={() => router.back()}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
 
         <div className="flex items-center gap-2">
@@ -82,12 +82,12 @@ const InformedConsentPage = () => {
             variant="outline"
             onClick={() => setSignatureOpen(true)}
             disabled={isSaving}
-            className="rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-950 transition-all font-medium text-[10px] uppercase tracking-widest"
+            className="rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50"
           >
             {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             ) : (
-              <PenLine className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              <PenLine className="mr-2 size-4" strokeWidth={1.5} />
             )}
             {existingSignatureUrl
               ? "Смени подписа"
@@ -95,24 +95,24 @@ const InformedConsentPage = () => {
           </Button>
           <Button
             onClick={() => window.print()}
-            className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
           >
-            <Printer className="mr-2 h-4 w-4" /> Принтирай
+            <Printer className="mr-2 size-4" /> Принтирай
           </Button>
         </div>
       </div>
 
       <div className="print-area text-slate-900">
-        <div className="text-center mb-8">
-          <h1 className="text-xl font-bold uppercase tracking-widest">
+        <div className="mb-8 text-center">
+          <h1 className="text-xl font-bold tracking-widest uppercase">
             ДЕКЛАРАЦИЯ
           </h1>
-          <h2 className="text-base font-bold uppercase mt-1">
+          <h2 className="mt-1 text-base font-bold uppercase">
             За информирано съгласие
           </h2>
         </div>
 
-        <div className="space-y-4 text-[10.5pt] leading-relaxed text-justify">
+        <div className="space-y-4 text-justify text-[10.5pt] leading-relaxed">
           <p>
             Долуподписаният/ата
             ...............................................................................................................................................
@@ -142,7 +142,7 @@ const InformedConsentPage = () => {
 
           <div className="mt-6 space-y-4">
             <p className="font-bold">ДЕКЛАРИРАМ, ЧЕ:</p>
-            <ol className="list-decimal pl-6 space-y-2">
+            <ol className="list-decimal space-y-2 pl-6">
               <li>
                 Запознат/а съм и приемам Правилника за вътрешния ред на
                 „Бадминтон клуб Гълъбово&quot;.
@@ -173,23 +173,23 @@ const InformedConsentPage = () => {
             </ol>
           </div>
 
-          <div className="mt-16 flex justify-between items-end">
+          <div className="mt-16 flex items-end justify-between">
             <div>
               <p>Дата: ........................ г.</p>
               <p>Гр. Гълъбово</p>
             </div>
-            <div className="text-center relative min-w-[200px]">
+            <div className="relative min-w-50 text-center">
               {existingSignatureUrl ? (
                 <div className="relative inline-block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={existingSignatureUrl}
                     alt="Електронен подпис"
-                    className="h-16 w-auto mx-auto object-contain"
+                    className="mx-auto h-16 w-auto object-contain"
                     // eslint-disable-next-line react/forbid-dom-props
                     style={{ mixBlendMode: "multiply" }}
                   />
-                  <div className="border-b border-slate-400 mt-1" />
+                  <div className="mt-1 border-b border-slate-400" />
                 </div>
               ) : (
                 <p>

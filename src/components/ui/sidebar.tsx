@@ -68,7 +68,7 @@ export const SidebarProvider = React.forwardRef<
       <SidebarContext.Provider value={contextValue}>
         <div
           className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
             className
           )}
           ref={ref}
@@ -108,7 +108,7 @@ export const Sidebar = React.forwardRef<
         <>
           {open && (
             <div
-              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm duration-300 animate-in fade-in"
               onClick={() => setOpen(false)}
             />
           )}
@@ -117,10 +117,10 @@ export const Sidebar = React.forwardRef<
             role="dialog"
             aria-modal="true"
             className={cn(
-              "fixed inset-y-0 left-0 z-999 w-[280px] bg-white dark:bg-zinc-950 flex flex-col transition-all duration-300 ease-in-out border-r border-zinc-100 dark:border-zinc-900 shadow-2xl pointer-events-auto overflow-y-auto",
+              "pointer-events-auto fixed inset-y-0 left-0 z-999 flex w-70 flex-col overflow-y-auto border-r border-zinc-100 bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-zinc-900 dark:bg-zinc-950",
               open
-                ? "translate-x-0 opacity-100 visible"
-                : "-translate-x-full opacity-0 invisible",
+                ? "visible translate-x-0 opacity-100"
+                : "invisible -translate-x-full opacity-0",
               className
             )}
             {...props}
@@ -135,7 +135,7 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group peer hidden md:block text-sidebar-foreground border-r border-sidebar-border",
+          "group peer hidden border-r border-sidebar-border text-sidebar-foreground md:block",
           className
         )}
         data-state={open ? "expanded" : "collapsed"}
@@ -236,7 +236,7 @@ export const SidebarMenuButton = React.forwardRef<
       ref={ref}
       data-active={isActive}
       className={cn(
-        "w-full flex items-center gap-2 rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium",
+        "flex w-full items-center gap-2 rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium",
         className
       )}
       {...props}
@@ -271,7 +271,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       aria-label={open ? "Затвори меню" : "Отвори меню"}
       className={cn(
-        "flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white hover:bg-zinc-50 transition-all z-70 relative shadow-sm active:scale-95",
+        "relative z-70 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all hover:bg-zinc-50 active:scale-95",
         className
       )}
       onClick={(e) => {

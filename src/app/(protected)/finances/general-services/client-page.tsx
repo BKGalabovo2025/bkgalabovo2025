@@ -33,11 +33,11 @@ export default function GeneralServicesClientPage({
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700 pb-24">
+    <div className="space-y-12 pb-24 duration-700 animate-in fade-in">
       {!showPageHeader ? (
-        <div className="flex justify-between items-center px-2 flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+            <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
               Клубни Услуги
             </h3>
             <p className="text-[11px] text-zinc-400">
@@ -47,9 +47,9 @@ export default function GeneralServicesClientPage({
           </div>
           <Button
             onClick={handleAdd}
-            className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
           >
-            <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} /> Добави
+            <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} /> Добави
             услуга
           </Button>
         </div>
@@ -65,20 +65,20 @@ export default function GeneralServicesClientPage({
         >
           <Button
             onClick={handleAdd}
-            className="rounded-2xl shadow-xl shadow-zinc-200 bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+            className="h-12 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800"
           >
-            <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+            <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Добави
             услуга
           </Button>
         </PageHeader>
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-64 rounded-5xl bg-zinc-100 animate-pulse"
+              className="h-64 animate-pulse rounded-5xl bg-zinc-100"
             />
           ))}
         </div>

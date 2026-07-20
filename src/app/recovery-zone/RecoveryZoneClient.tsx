@@ -59,12 +59,12 @@ export default function RecoveryZoneClient({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-emerald-500/30">
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-500/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 relative overflow-hidden rounded-lg bg-white/5 p-1 border border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+            <div className="relative size-8 overflow-hidden rounded-lg border border-emerald-500/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
               <Image
                 src="/1.png"
                 alt="Logo"
@@ -73,60 +73,60 @@ export default function RecoveryZoneClient({
                 className="object-contain"
               />
             </div>
-            <span className="font-medium text-sm text-white">
+            <span className="text-sm font-medium text-white">
               RECOVERY ZONE
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+          <div className="hidden items-center gap-8 text-[11px] font-bold tracking-widest text-zinc-400 uppercase md:flex">
             <a
               href="#about"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               За Зоната
             </a>
             <a
               href="#attachments"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Приставки
             </a>
             <Link
               href="/recovery-zone/catalog"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Услуги
             </Link>
             <a
               href="#working-hours"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Работно време
             </a>
             <a
               href="#info"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Информация
             </a>
             <a
               href="#team"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Екип
             </a>
             <a
               href="#contacts"
-              className="hover:text-emerald-400 transition-colors"
+              className="transition-colors hover:text-emerald-400"
             >
               Контакти
             </a>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden items-center gap-4 md:flex">
             <Link
               href="/"
-              className="text-xs font-medium uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
+              className="text-xs font-medium tracking-widest text-zinc-400 uppercase transition-colors hover:text-white"
             >
               Портал
             </Link>
@@ -134,7 +134,7 @@ export default function RecoveryZoneClient({
 
           {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden text-white p-2"
+            className="p-2 text-white md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -148,9 +148,9 @@ export default function RecoveryZoneClient({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="md:hidden overflow-hidden bg-black/95 backdrop-blur-xl border-t border-emerald-900/30 mt-4 -mx-6 px-6"
+              className="-mx-6 mt-4 overflow-hidden border-t border-emerald-900/30 bg-black/95 px-6 backdrop-blur-xl md:hidden"
             >
-              <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
+              <div className="flex flex-col gap-6 py-6 text-sm font-bold tracking-widest text-zinc-300 uppercase">
                 <a
                   href="#about"
                   onClick={() => setMobileMenuOpen(false)}
@@ -203,7 +203,7 @@ export default function RecoveryZoneClient({
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-zinc-500 hover:text-white pt-4 border-t border-emerald-900/30"
+                  className="border-t border-emerald-900/30 pt-4 text-zinc-500 hover:text-white"
                 >
                   Обратно към Портала
                 </Link>
@@ -216,7 +216,7 @@ export default function RecoveryZoneClient({
       {/* Hero Section */}
       <section
         id="about"
-        className="relative min-h-screen flex items-center justify-center pt-16"
+        className="relative flex min-h-screen items-center justify-center pt-16"
       >
         <div className="absolute inset-0">
           {/* Dark gradient overlay */}
@@ -227,13 +227,13 @@ export default function RecoveryZoneClient({
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative z-10 max-w-6xl mx-auto px-6 text-center mt-20"
+          className="relative z-10 mx-auto mt-20 max-w-6xl px-6 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/80 border border-emerald-500/50 rounded-full text-emerald-400 text-xs font-medium uppercase tracking-widest mb-8 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/50 bg-black/80 px-4 py-2 text-xs font-medium tracking-widest text-emerald-400 uppercase shadow-[0_0_15px_rgba(16,185,129,0.3)]">
             <Trophy size={14} className="animate-pulse" />
             Професионално Възстановяване
           </div>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl mx-auto leading-[1.05] mb-6 uppercase">
+          <h1 className="leading-1.05 mx-auto mb-6 max-w-4xl text-5xl font-black tracking-tighter uppercase md:text-8xl">
             Възстанови
             <br />
             своите{" "}
@@ -241,8 +241,8 @@ export default function RecoveryZoneClient({
               Сили
             </span>
           </h1>
-          <div className="text-zinc-400 text-lg max-w-3xl mx-auto mb-12 leading-relaxed text-left md:text-center">
-            <h3 className="text-2xl text-white font-medium mb-4">
+          <div className="mx-auto mb-12 max-w-3xl text-left text-lg leading-relaxed text-zinc-400 md:text-center">
+            <h3 className="mb-4 text-2xl font-medium text-white">
               Новото ниво на възстановяване в Гълъбово
             </h3>
             <p className="mb-4">
@@ -273,7 +273,7 @@ export default function RecoveryZoneClient({
                     изчисти от токсините значително по-бързо от обикновения
                     престой. Основни ползи:
                   </p>
-                  <ul className="list-disc pl-6 space-y-2 mb-4 text-left inline-block max-w-2xl mx-auto">
+                  <ul className="mx-auto mb-4 inline-block max-w-2xl list-disc space-y-2 pl-6 text-left">
                     <li>
                       <strong className="text-white">
                         Ускорен лимфен дренаж:
@@ -301,7 +301,7 @@ export default function RecoveryZoneClient({
             </AnimatePresence>
             <button
               onClick={() => setIsHeroExpanded(!isHeroExpanded)}
-              className="text-emerald-400 font-bold uppercase tracking-widest text-sm hover:text-white transition-colors flex items-center gap-2 mx-auto mt-4"
+              className="mx-auto mt-4 flex items-center gap-2 text-sm font-bold tracking-widest text-emerald-400 uppercase transition-colors hover:text-white"
             >
               {isHeroExpanded ? "Скрий информацията" : "Прочети повече"}
               <ChevronDown
@@ -310,20 +310,20 @@ export default function RecoveryZoneClient({
               />
             </button>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
             <Link
               href="/recovery-zone/catalog"
-              className="group flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:shadow-[0_0_30px_rgba(16,185,129,0.9)] hover:-translate-y-1"
+              className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1 hover:bg-emerald-600 hover:shadow-[0_0_30px_rgba(16,185,129,0.9)]"
             >
               Разгледай Каталога{" "}
               <ChevronRight
                 size={18}
-                className="group-hover:translate-x-1 transition-transform"
+                className="transition-transform group-hover:translate-x-1"
               />
             </Link>
             <a
               href="#working-hours"
-              className="flex items-center justify-center gap-2 px-8 py-4 bg-black/80 hover:bg-black text-white border border-zinc-800 hover:border-emerald-500 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase transition-all hover:-translate-y-1 hover:border-emerald-500 hover:bg-black hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
             >
               Работно време
             </a>
@@ -334,26 +334,26 @@ export default function RecoveryZoneClient({
       {/* Attachments Section */}
       <section
         id="attachments"
-        className="py-24 px-6 bg-black relative border-t border-zinc-900/50"
+        className="relative border-t border-zinc-900/50 bg-black px-6 py-24"
       >
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-light tracking-tight mb-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-6 text-3xl font-light tracking-tight md:text-5xl">
               Нашите приставки и тяхното приложение
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* Legs */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
             >
-              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
-                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
+                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
                   <Image
                     src="/zones/legs.webp"
                     alt="Приставки за крака"
@@ -363,10 +363,10 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
                   КРАКА
                 </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed text-zinc-400">
                   Обхващат целите крака от стъпалата и глезените до горната част
                   на бедрата. Изключително ефективни при „тежки крака“ след
                   продължително стоене, ходене или интензивно натоварване.
@@ -380,10 +380,10 @@ export default function RecoveryZoneClient({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
             >
-              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
-                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
+                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
                   <Image
                     src="/zones/pelvis.webp"
                     alt="Приставка за таз"
@@ -393,10 +393,10 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
                   ТАЗ
                 </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed text-zinc-400">
                   Обхваща долната част на гърба, таза, хълбоците и седалищните
                   мускули. Идеална за облекчаване на напрежението в кръста от
                   дълги часове седене и за подобряване на гъвкавостта.
@@ -410,10 +410,10 @@ export default function RecoveryZoneClient({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-colors group"
+              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
             >
-              <div className="h-64 relative bg-zinc-900/50 w-full overflow-hidden flex items-center justify-center p-6">
-                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
+                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
                   <Image
                     src="/zones/arm.png"
                     alt="Приставки за ръце"
@@ -423,10 +423,10 @@ export default function RecoveryZoneClient({
                 </div>
               </div>
               <div className="p-8">
-                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-emerald-400">
+                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
                   РЪЦЕ
                 </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed text-zinc-400">
                   Обхващат зоните от китките до раменете. Изключително полезни
                   за бадминтонисти, тенисисти, плувци и фитнес трениращи, при
                   които ръцете са подложени на постоянен стрес, както и за хора,
@@ -443,11 +443,11 @@ export default function RecoveryZoneClient({
         (site.faqs && site.faqs.length > 0)) && (
         <section
           id="info"
-          className="py-24 px-6 bg-zinc-950 relative border-y border-zinc-900"
+          className="relative border-y border-zinc-900 bg-zinc-950 px-6 py-24"
         >
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col items-center justify-center text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-16 flex flex-col items-center justify-center text-center">
+              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
                 Информация
               </h2>
             </div>
@@ -456,25 +456,25 @@ export default function RecoveryZoneClient({
               {/* Contraindications */}
               {site.contraindications && site.contraindications.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="h-12 w-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+                  <div className="mb-8 flex items-center gap-4">
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
                       <AlertTriangle size={24} />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-light">
+                    <h3 className="text-2xl font-light md:text-3xl">
                       Противопоказания
                     </h3>
                   </div>
-                  <div className="bg-black border border-zinc-900 rounded-3xl p-8 md:p-12">
-                    <p className="text-zinc-400 mb-8 leading-relaxed">
+                  <div className="rounded-3xl border border-zinc-900 bg-black p-8 md:p-12">
+                    <p className="mb-8 leading-relaxed text-zinc-400">
                       За вашата безопасност, моля консултирайте се с лекар преди
                       да използвате системите за възстановяване, ако имате някое
                       от следните състояния:
                     </p>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {site.contraindications.map((item, i) => (
                         <li key={i} className="flex items-start gap-3">
-                          <div className="mt-1 shrink-0 h-2 w-2 rounded-full bg-red-500" />
-                          <span className="text-zinc-300 text-sm">{item}</span>
+                          <div className="mt-1 size-2 shrink-0 rounded-full bg-red-500" />
+                          <span className="text-sm text-zinc-300">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -486,7 +486,7 @@ export default function RecoveryZoneClient({
               {site.faqs && site.faqs.length > 0 && (
                 <div>
                   <div className="mb-8">
-                    <h3 className="text-2xl md:text-3xl font-light">
+                    <h3 className="text-2xl font-light md:text-3xl">
                       Често задавани въпроси
                     </h3>
                   </div>
@@ -494,13 +494,13 @@ export default function RecoveryZoneClient({
                     {site.faqs.map((faq, i) => (
                       <div
                         key={i}
-                        className="bg-black border border-zinc-900 rounded-2xl overflow-hidden transition-colors hover:border-emerald-900/50"
+                        className="overflow-hidden rounded-2xl border border-zinc-900 bg-black transition-colors hover:border-emerald-900/50"
                       >
                         <button
                           onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                          className="w-full px-6 py-5 flex items-center justify-between text-left"
+                          className="flex w-full items-center justify-between px-6 py-5 text-left"
                         >
-                          <span className="font-medium text-white pr-4">
+                          <span className="pr-4 font-medium text-white">
                             {faq.q}
                           </span>
                           <ChevronDown
@@ -516,7 +516,7 @@ export default function RecoveryZoneClient({
                               exit={{ height: 0, opacity: 0 }}
                               className="overflow-hidden"
                             >
-                              <div className="px-6 pb-5 pt-1 text-zinc-400 text-sm leading-relaxed border-t border-zinc-900/50 mt-1 whitespace-pre-wrap">
+                              <div className="mt-1 border-t border-zinc-900/50 px-6 pt-1 pb-5 text-sm leading-relaxed whitespace-pre-wrap text-zinc-400">
                                 {faq.a}
                               </div>
                             </motion.div>
@@ -533,16 +533,16 @@ export default function RecoveryZoneClient({
       )}
 
       {/* Facilities Carousel */}
-      <section className="py-24 px-6 bg-black/60 border-y border-zinc-900">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="border-y border-zinc-900 bg-black/60 px-6 py-24">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
+            <p className="mb-4 text-[11px] font-bold tracking-[0.4em] text-emerald-400 uppercase drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
               Нашите предимства
             </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-8">
+            <h2 className="mb-8 text-4xl font-light tracking-tight md:text-5xl">
               Recovery Zone by ZM предлага:
             </h2>
-            <ul className="space-y-6 mb-8">
+            <ul className="mb-8 space-y-6">
               {[
                 {
                   title: "Световен лидер в технологиите за възстановяване",
@@ -570,14 +570,14 @@ export default function RecoveryZoneClient({
                 },
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-4">
-                  <div className="mt-1.5 shrink-0 h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50">
-                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                  <div className="mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
+                    <div className="size-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                   </div>
                   <div>
-                    <span className="text-white font-bold block mb-1">
+                    <span className="mb-1 block font-bold text-white">
                       {item.title}:
                     </span>
-                    <span className="text-zinc-400 text-sm leading-relaxed">
+                    <span className="text-sm leading-relaxed text-zinc-400">
                       {item.desc}
                     </span>
                   </div>
@@ -587,7 +587,7 @@ export default function RecoveryZoneClient({
           </div>
 
           {/* Carousel */}
-          <div className="relative aspect-video bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl group">
+          <div className="group relative aspect-video overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage}
@@ -601,40 +601,40 @@ export default function RecoveryZoneClient({
                   src={hallImages[activeImage]}
                   alt="Recovery Zone Center"
                   fill
-                  className="object-contain bg-zinc-950"
+                  className="bg-zinc-950 object-contain"
                 />
               </motion.div>
             </AnimatePresence>
 
             {/* Controls */}
-            <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <button
                 onClick={prevImage}
                 aria-label="Предишна снимка"
-                className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-emerald-400 hover:text-white border border-emerald-500/50 hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                className="flex size-10 items-center justify-center rounded-full border border-emerald-500/50 bg-black/60 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)] backdrop-blur-md transition-all hover:bg-emerald-500 hover:text-white"
               >
                 <ChevronLeft size={20} />
               </button>
               <button
                 onClick={nextImage}
                 aria-label="Следваща снимка"
-                className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-emerald-400 hover:text-white border border-emerald-500/50 hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                className="flex size-10 items-center justify-center rounded-full border border-emerald-500/50 bg-black/60 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)] backdrop-blur-md transition-all hover:bg-emerald-500 hover:text-white"
               >
                 <ChevronRight size={20} />
               </button>
             </div>
 
             {/* Indicators */}
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
+            <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1">
               {hallImages.map((_, i) => (
                 <button
                   key={i}
                   aria-label={`Отиди на снимка ${i + 1}`}
                   onClick={() => setActiveImage(i)}
-                  className="p-3 touch-manipulation flex items-center justify-center group"
+                  className="group flex touch-manipulation items-center justify-center p-3"
                 >
                   <div
-                    className={`h-2 transition-all duration-300 rounded-full group-hover:bg-white/60 ${i === activeImage ? "w-8 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" : "w-2 bg-white/30"}`}
+                    className={`h-2 rounded-full transition-all duration-300 group-hover:bg-white/60 ${i === activeImage ? "w-8 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" : "w-2 bg-white/30"}`}
                   />
                 </button>
               ))}
@@ -644,43 +644,43 @@ export default function RecoveryZoneClient({
       </section>
 
       {/* Services Call to Action */}
-      <section className="py-32 px-6 bg-linear-to-b from-blue-950/20 to-zinc-950 relative overflow-hidden my-12 border-y border-emerald-900/40">
+      <section className="relative my-12 overflow-hidden border-y border-emerald-900/40 bg-linear-to-b from-blue-950/20 to-zinc-950 px-6 py-32">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
-        <div className="max-w-4xl mx-auto text-center relative z-10 bg-black/60 p-12 md:p-16 rounded-4xl border border-emerald-500/20 backdrop-blur-xl shadow-2xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4 bg-emerald-500/10 inline-block px-3 py-1 rounded-full">
+        <div className="relative z-10 mx-auto max-w-4xl rounded-4xl border border-emerald-500/20 bg-black/60 p-12 text-center shadow-2xl backdrop-blur-xl md:p-16">
+          <p className="mb-4 inline-block rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold tracking-[0.4em] text-emerald-400 uppercase">
             Каталог
           </p>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white uppercase">
+          <h2 className="mb-6 text-4xl font-black tracking-tighter text-white uppercase md:text-6xl">
             Нашите Услуги
           </h2>
-          <p className="text-zinc-300 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-zinc-300">
             Разгледайте пълния списък с предлагани възстановителни процедури,
             сесии за лимфен дренаж и абонаментни карти.
           </p>
           <Link
             href="/recovery-zone/catalog"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(5,150,105,0.4)] hover:shadow-[0_0_30px_rgba(5,150,105,0.6)] hover:-translate-y-1 group"
+            className="group inline-flex items-center gap-3 rounded-2xl bg-emerald-600 px-10 py-5 font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(5,150,105,0.4)] transition-all hover:-translate-y-1 hover:bg-emerald-500 hover:shadow-[0_0_30px_rgba(5,150,105,0.6)]"
           >
             Разгледай нашите услуги
             <ArrowRight
               size={20}
-              className="group-hover:translate-x-1 transition-transform"
+              className="transition-transform group-hover:translate-x-1"
             />
           </Link>
         </div>
       </section>
 
       {/* Working Hours */}
-      <section id="working-hours" className="py-24 px-6 bg-zinc-950 relative">
-        <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="flex flex-col items-center justify-center text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+      <section id="working-hours" className="relative bg-zinc-950 px-6 py-24">
+        <div className="pointer-events-none absolute top-1/2 right-0 size-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="relative z-10 mx-auto max-w-6xl">
+          <div className="mb-16 flex flex-col items-center justify-center text-center">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Работно време
             </h2>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="mx-auto max-w-4xl">
             {site.schedule ? (
               <div className="flex flex-col gap-3">
                 {[
@@ -694,35 +694,35 @@ export default function RecoveryZoneClient({
                 ].map((day) => (
                   <div
                     key={day.label}
-                    className="group flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 md:p-6 rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300"
+                    className="group flex flex-col items-start justify-between rounded-2xl border border-white/5 bg-zinc-900/40 p-5 transition-all duration-300 hover:border-emerald-500/30 hover:bg-zinc-900 sm:flex-row sm:items-center md:p-6"
                   >
-                    <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                    <div className="mb-3 flex items-center gap-4 sm:mb-0">
                       <div
-                        className={`h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-colors ${
+                        className={`flex size-10 items-center justify-center rounded-xl transition-colors md:size-12 md:rounded-2xl ${
                           day.data?.isOpen
-                            ? "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                            ? "bg-emerald-500/10 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)] group-hover:bg-emerald-500/20"
                             : "bg-white/5 text-zinc-600"
                         }`}
                       >
                         <Clock size={20} />
                       </div>
-                      <span className="text-zinc-200 font-bold text-lg md:text-xl tracking-wide">
+                      <span className="text-lg font-bold tracking-wide text-zinc-200 md:text-xl">
                         {day.label}
                       </span>
                     </div>
-                    <div className="w-full sm:w-auto flex sm:justify-end">
+                    <div className="flex w-full sm:w-auto sm:justify-end">
                       {day.data?.isOpen ? (
-                        <div className="flex items-center gap-2 bg-black/50 px-4 py-2 rounded-xl border border-white/5 group-hover:border-emerald-500/20 transition-colors">
-                          <span className="text-emerald-400 text-lg md:text-xl font-medium">
+                        <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/50 px-4 py-2 transition-colors group-hover:border-emerald-500/20">
+                          <span className="text-lg font-medium text-emerald-400 md:text-xl">
                             {day.data.open}
                           </span>
-                          <span className="text-zinc-600 px-1">-</span>
-                          <span className="text-emerald-400 text-lg md:text-xl font-medium">
+                          <span className="px-1 text-zinc-600">-</span>
+                          <span className="text-lg font-medium text-emerald-400 md:text-xl">
                             {day.data.close}
                           </span>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-2 bg-white/5 text-zinc-500 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
+                        <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-xs font-bold tracking-widest text-zinc-500 uppercase">
                           Почивен ден
                         </span>
                       )}
@@ -731,9 +731,9 @@ export default function RecoveryZoneClient({
                 ))}
               </div>
             ) : (
-              <div className="bg-black/80 border border-zinc-800 rounded-3xl p-12 text-center flex flex-col items-center glassmorphism">
-                <Clock size={48} className="text-zinc-800 mb-4" />
-                <p className="text-zinc-300 text-lg">
+              <div className="glassmorphism flex flex-col items-center rounded-3xl border border-zinc-800 bg-black/80 p-12 text-center">
+                <Clock size={48} className="mb-4 text-zinc-800" />
+                <p className="text-lg text-zinc-300">
                   Не е въведено работно време.
                 </p>
               </div>
@@ -749,61 +749,61 @@ export default function RecoveryZoneClient({
       />
 
       {/* Contacts & Social */}
-      <section id="contacts" className="py-24 px-6 bg-zinc-950">
-        <div className="max-w-4xl mx-auto">
+      <section id="contacts" className="bg-zinc-950 px-6 py-24">
+        <div className="mx-auto max-w-4xl">
           <div className="flex flex-col gap-16">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-emerald-400 mb-4">
+              <p className="mb-4 text-[11px] font-bold tracking-[0.4em] text-emerald-400 uppercase">
                 Свържете се с нас
               </p>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-8">
+              <h2 className="mb-8 text-4xl font-light tracking-tight md:text-5xl">
                 Контакти и Локация
               </h2>
 
-              <div className="space-y-6 mb-12">
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-emerald-500/50 transition-colors">
-                  <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 shrink-0">
+              <div className="mb-12 space-y-6">
+                <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
                     <MapPin size={20} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">
+                    <p className="mb-1 font-medium text-white">
                       Локация на центъра
                     </p>
-                    <p className="text-zinc-400 text-sm">
+                    <p className="text-sm text-zinc-400">
                       {site.address || "Гр. Гълъбово, Recovery Zone"}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-emerald-500/50 transition-colors">
-                  <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
                     <Phone size={20} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">
+                    <p className="mb-1 font-medium text-white">
                       Телефон за връзка
                     </p>
-                    <p className="text-zinc-400 text-sm">
+                    <p className="text-sm text-zinc-400">
                       Резервации и информация
                     </p>
                     <a
                       href={`tel:${site.phone || "+359899388338"}`}
-                      className="text-emerald-400 font-bold mt-1 inline-block hover:underline"
+                      className="mt-1 inline-block font-bold text-emerald-400 hover:underline"
                     >
                       {site.phone || "+359 899 38 83 38"}
                     </a>
                   </div>
                 </div>
 
-                <div className="bg-black/80 border border-zinc-800 p-6 rounded-2xl flex items-start gap-4 hover:border-emerald-500/50 transition-colors">
-                  <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
                     <Mail size={20} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">Имейл</p>
+                    <p className="mb-1 font-medium text-white">Имейл</p>
                     <a
                       href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
-                      className="text-zinc-400 text-sm hover:text-emerald-400 transition-colors"
+                      className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
                     >
                       {site.email || "recoveryzonebyzm@gmail.com"}
                     </a>
@@ -812,23 +812,23 @@ export default function RecoveryZoneClient({
               </div>
             </div>
 
-            <div className="bg-black/80 border border-zinc-800 rounded-3xl p-10 flex flex-col justify-center relative overflow-hidden glassmorphism">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none" />
-              <h3 className="text-2xl font-light text-white mb-8 relative z-10">
+            <div className="glassmorphism relative flex flex-col justify-center overflow-hidden rounded-3xl border border-zinc-800 bg-black/80 p-10">
+              <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-emerald-500/5 blur-[80px]" />
+              <h3 className="relative z-10 mb-8 text-2xl font-light text-white">
                 Последвайте ни в мрежите
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+              <div className="relative z-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {site.facebook && (
                   <a
                     href={site.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 shadow-none transition-all hover:border-emerald-500 hover:bg-black hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
-                    <div className="text-zinc-300 group-hover:text-emerald-500 transition-colors">
+                    <div className="text-zinc-300 transition-colors group-hover:text-emerald-500">
                       <FacebookIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 transition-colors group-hover:text-white">
                       Facebook Страница
                     </span>
                   </a>
@@ -839,12 +839,12 @@ export default function RecoveryZoneClient({
                     href={site.facebookGroup}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 shadow-none transition-all hover:border-emerald-500 hover:bg-black hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                   >
-                    <div className="text-zinc-300 group-hover:text-emerald-400 transition-colors">
+                    <div className="text-zinc-300 transition-colors group-hover:text-emerald-400">
                       <Users size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 transition-colors group-hover:text-white">
                       Facebook Група
                     </span>
                   </a>
@@ -855,12 +855,12 @@ export default function RecoveryZoneClient({
                     href={site.instagram}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-pink-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                    className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 shadow-none transition-all hover:border-pink-500 hover:bg-black hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]"
                   >
-                    <div className="text-zinc-300 group-hover:text-pink-500 transition-colors">
+                    <div className="text-zinc-300 transition-colors group-hover:text-pink-500">
                       <InstagramIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 transition-colors group-hover:text-white">
                       Instagram
                     </span>
                   </a>
@@ -871,19 +871,19 @@ export default function RecoveryZoneClient({
                     href={site.youtube}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-red-500 hover:bg-black transition-all group shadow-none hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                    className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 shadow-none transition-all hover:border-red-500 hover:bg-black hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
                   >
-                    <div className="text-zinc-300 group-hover:text-red-500 transition-colors">
+                    <div className="text-zinc-300 transition-colors group-hover:text-red-500">
                       <YoutubeIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover:text-white transition-colors">
+                    <span className="font-medium text-zinc-300 transition-colors group-hover:text-white">
                       YouTube
                     </span>
                   </a>
                 )}
 
                 {!site.facebook && !site.instagram && !site.youtube && (
-                  <p className="text-zinc-500 text-sm col-span-2 text-center py-4">
+                  <p className="col-span-2 py-4 text-center text-sm text-zinc-500">
                     Очаквайте скоро нашите социални мрежи.
                   </p>
                 )}
@@ -894,16 +894,16 @@ export default function RecoveryZoneClient({
       </section>
 
       {/* Footer */}
-      <footer className="px-8 py-8 border-t border-zinc-900 bg-black flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="flex flex-col items-center justify-between gap-4 border-t border-zinc-900 bg-black p-8 md:flex-row">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-emerald-500 rounded-xl flex items-center justify-center">
+          <div className="flex size-7 items-center justify-center rounded-xl bg-emerald-500">
             <Trophy size={14} className="text-white" />
           </div>
           <span className="text-sm font-bold text-zinc-400 uppercase">
             RECOVERY ZONE BY ZM
           </span>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+        <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">
           © {new Date().getFullYear()} Всички права запазени
         </span>
       </footer>

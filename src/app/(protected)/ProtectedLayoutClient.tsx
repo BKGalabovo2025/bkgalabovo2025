@@ -34,9 +34,9 @@ function GlobalHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full h-16 border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md flex items-center justify-between px-4 transition-all">
+    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md transition-all dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="flex items-center gap-6">
-        <SidebarTrigger className="h-10 w-10 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-900 shadow-sm transition-all active:scale-95 shrink-0" />
+        <SidebarTrigger className="size-10 shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900" />
 
         <div className="flex items-center gap-3">
           {sites.map((site) => {
@@ -47,20 +47,20 @@ function GlobalHeader() {
                 onClick={() => setActiveBranch(site.id)}
                 aria-label={`${site.title} ${site.subtitle}${isActive ? " — активен" : " — избери"}`}
                 aria-pressed={isActive}
-                className={`group flex items-center gap-2 p-1.5 rounded-xl transition-all duration-300 ${
+                className={`group flex items-center gap-2 rounded-xl p-1.5 transition-all duration-300 ${
                   isActive
-                    ? "bg-white dark:bg-zinc-900 shadow-md ring-1 ring-zinc-200 dark:ring-zinc-800 opacity-100"
-                    : "opacity-60 hover:opacity-100 grayscale-[0.5] hover:grayscale-0"
+                    ? "bg-white opacity-100 shadow-md ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
+                    : "grayscale-0.5 opacity-60 hover:opacity-100 hover:grayscale-0"
                 }`}
               >
                 <div
-                  className={`h-9 w-9 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border transition-all duration-300 ${
+                  className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
                     isActive
                       ? site.activeClasses
-                      : "border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900"
+                      : "border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
                   }`}
                 >
-                  <div className="relative h-6 w-6">
+                  <div className="relative size-6">
                     <Image
                       src={site.logo}
                       alt={site.title}
@@ -72,12 +72,12 @@ function GlobalHeader() {
                 </div>
 
                 {isActive && (
-                  <div className="flex flex-col pr-2 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span className="font-bold text-[10px] tracking-wide text-zinc-900 dark:text-white leading-tight uppercase truncate">
+                  <div className="flex flex-col overflow-hidden pr-2 duration-300 animate-in fade-in slide-in-from-left-2">
+                    <span className="truncate text-[10px] leading-tight font-bold tracking-wide text-zinc-900 uppercase dark:text-white">
                       {site.title}
                     </span>
                     <span
-                      className={`font-medium text-[8px] tracking-wider uppercase truncate ${
+                      className={`truncate text-[8px] font-medium tracking-wider uppercase ${
                         site.id === "bkgalabovo"
                           ? "text-blue-600 dark:text-blue-400"
                           : "text-emerald-600 dark:text-emerald-400"
@@ -122,9 +122,9 @@ export default function ProtectedLayoutClient({
 
   return (
     <SidebarProvider open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-      <div className="flex min-h-screen w-full bg-slate-50/50 dark:bg-zinc-950/50 font-sans">
+      <div className="flex min-h-screen w-full bg-slate-50/50 font-sans dark:bg-zinc-950/50">
         <AppSidebar key={`sidebar-${activeBranch}`} />
-        <SidebarInset className="flex flex-col flex-1 min-w-0 border-l border-gray-100 dark:border-zinc-800 relative bg-slate-50/50 dark:bg-zinc-950/50">
+        <SidebarInset className="relative flex min-w-0 flex-1 flex-col border-l border-gray-100 bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-950/50">
           <Toaster position="bottom-right" />
 
           <a href="#main-content" className="skip-link">
@@ -136,7 +136,7 @@ export default function ProtectedLayoutClient({
           <main id="main-content" className="flex-1 overflow-y-auto">
             <div
               key={`content-${activeBranch}`}
-              className="max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 animate-in fade-in slide-in-from-bottom-2 duration-1000"
+              className="mx-auto max-w-350 p-4 duration-1000 animate-in fade-in slide-in-from-bottom-2 sm:p-6 md:p-8 lg:p-10"
             >
               {children}
             </div>

@@ -134,12 +134,9 @@ export async function computeRankingsCore(
             player.bestPlacement = position;
           }
 
-          const catLabel =
-            cat === "singles"
-              ? "Единично"
-              : cat === "doubles"
-              ? "Двойки"
-              : "Смесени";
+          let catLabel = "Смесени";
+          if (cat === "singles") catLabel = "Единично";
+          else if (cat === "doubles") catLabel = "Двойки";
           const existing = player.categoryBreakdown.find(
             (c) => c.category === catLabel
           );

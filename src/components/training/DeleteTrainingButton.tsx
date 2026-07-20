@@ -44,13 +44,13 @@ export function DeleteTrainingButton({ trainingId }: Props) {
     <Button
       variant="ghost"
       size="icon"
-      className="text-zinc-400 hover:text-rose-500 hover:bg-rose-50"
+      className="text-zinc-400 hover:bg-rose-50 hover:text-rose-500"
       onClick={handleDelete}
       disabled={isDeleting}
       title="Изтрий записа"
       aria-label="Изтрий записа"
     >
-      <Trash2 className="h-4 w-4" />
+      <Trash2 className="size-4" />
     </Button>
   );
 }

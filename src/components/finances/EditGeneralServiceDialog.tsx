@@ -203,9 +203,9 @@ export const EditGeneralServiceDialog = ({
   const renderMovementsContent = () => {
     if (historyLoading) {
       return (
-        <div className="py-20 flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-500 opacity-35" />
-          <p className="text-zinc-400 text-xs font-light">
+        <div className="flex flex-col items-center justify-center space-y-4 py-20">
+          <Loader2 className="size-8 animate-spin text-amber-500 opacity-35" />
+          <p className="text-xs font-light text-zinc-400">
             Зареждане на движения...
           </p>
         </div>
@@ -213,7 +213,7 @@ export const EditGeneralServiceDialog = ({
     }
     if (movements.length === 0) {
       return (
-        <div className="py-20 text-center text-zinc-400 text-xs font-light">
+        <div className="py-20 text-center text-xs font-light text-zinc-400">
           Няма записани движения за тази услуга.
         </div>
       );
@@ -224,14 +224,14 @@ export const EditGeneralServiceDialog = ({
           return (
             <div
               key={move.id}
-              className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
+              className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30"
             >
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-400 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-400">
                   {formatDateTimeDisplay(move.createdAt)}
                 </span>
                 <Badge
-                  className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${getEventBadgeClass(
+                  className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${getEventBadgeClass(
                     move.type
                   )}`}
                 >
@@ -239,14 +239,14 @@ export const EditGeneralServiceDialog = ({
                 </Badge>
               </div>
               {move.oldPrice !== undefined && move.newPrice !== undefined && (
-                <div className="flex justify-between items-center text-[11px] text-zinc-500">
+                <div className="flex items-center justify-between text-[11px] text-zinc-500">
                   <span>Промяна на цена:</span>
                   <span>
                     {formatPrice(move.oldPrice)} &rarr; {formatPrice(move.newPrice)}
                   </span>
                 </div>
               )}
-              <div className="text-[10px] text-zinc-400/80 text-right mt-1">
+              <div className="mt-1 text-right text-[10px] text-zinc-400/80">
                 Оператор: {move.userName}
               </div>
             </div>
@@ -259,9 +259,9 @@ export const EditGeneralServiceDialog = ({
   const renderSalesContent = () => {
     if (historyLoading) {
       return (
-        <div className="py-20 flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-35" />
-          <p className="text-zinc-400 text-xs font-light">
+        <div className="flex flex-col items-center justify-center space-y-4 py-20">
+          <Loader2 className="size-8 animate-spin text-emerald-500 opacity-35" />
+          <p className="text-xs font-light text-zinc-400">
             Зареждане на продажби...
           </p>
         </div>
@@ -269,7 +269,7 @@ export const EditGeneralServiceDialog = ({
     }
     if (sales.length === 0) {
       return (
-        <div className="py-20 text-center text-zinc-400 text-xs font-light">
+        <div className="py-20 text-center text-xs font-light text-zinc-400">
           Няма записани продажби за тази услуга.
         </div>
       );
@@ -287,16 +287,16 @@ export const EditGeneralServiceDialog = ({
           return (
             <div
               key={sale.id}
-              className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs"
+              className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30"
             >
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-400 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-400">
                   {new Date(sale.saleDate).toLocaleDateString(
                     "bg-BG"
                   )}
                 </span>
                 <Badge
-                  className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${
+                  className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${
                     sale.isPaid
                       ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
                       : "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400"
@@ -305,19 +305,19 @@ export const EditGeneralServiceDialog = ({
                   {sale.isPaid ? "Платено" : "Неплатено"}
                 </Badge>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-zinc-500">Клиент:</span>
                 <span className="font-semibold text-zinc-900 dark:text-white">
                   {memberName}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-zinc-500">Брой:</span>
                 <span className="font-medium">
                   {item?.quantity || 1} бр.
                 </span>
               </div>
-              <div className="flex justify-between items-center pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50">
+              <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1 dark:border-zinc-800/50">
                 <span className="text-zinc-500">Сума:</span>
                 <span className="font-bold text-emerald-500">
                   {formatPrice(sale.totalAmount)}
@@ -334,22 +334,22 @@ export const EditGeneralServiceDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[850px] p-8 sm:p-10 rounded-4xl bg-white dark:bg-zinc-950 border-none shadow-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="custom-scrollbar max-h-[90vh] overflow-y-auto rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-[850px] sm:p-10 dark:bg-zinc-950">
         <DialogHeader className="mb-6">
-          <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50 flex items-center gap-3">
-            <Wrench className="h-6 w-6 text-zinc-650" strokeWidth={1.5} />
+          <DialogTitle className="flex items-center gap-3 text-2xl font-light text-zinc-950 dark:text-zinc-50">
+            <Wrench className="text-zinc-650 size-6" strokeWidth={1.5} />
             Редактиране на: {service.name}
           </DialogTitle>
-          <DialogDescription className="font-light text-zinc-400 mt-1">
+          <DialogDescription className="mt-1 font-light text-zinc-400">
             Промяна на информацията за услугата и преглед на историята.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
           {/* LEFT COLUMN: Service Details */}
           <div className="space-y-6">
-            <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-              <Sparkles className="h-4 w-4 text-primary" strokeWidth={2} />
+            <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+              <Sparkles className="size-4 text-primary" strokeWidth={2} />
               <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                 Информация за услугата
               </h3>
@@ -365,7 +365,7 @@ export const EditGeneralServiceDialog = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="напр. Наем на корт"
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-xl"
                   disabled={isProcessing}
                 />
               </div>
@@ -382,7 +382,7 @@ export const EditGeneralServiceDialog = ({
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0.00"
-                    className="rounded-xl h-11"
+                    className="h-11 rounded-xl"
                     disabled={isProcessing}
                   />
                 </div>
@@ -395,7 +395,7 @@ export const EditGeneralServiceDialog = ({
                     onValueChange={(val: any) => setPricingUnit(val)}
                     disabled={isProcessing}
                   >
-                    <SelectTrigger className="rounded-xl h-11 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                    <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <SelectValue placeholder="Избери..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -417,7 +417,7 @@ export const EditGeneralServiceDialog = ({
                     value={performerName}
                     onChange={(e) => setPerformerName(e.target.value)}
                     placeholder="Име на треньор/клуб"
-                    className="rounded-xl h-11"
+                    className="h-11 rounded-xl"
                     disabled={isProcessing}
                   />
                 </div>
@@ -430,7 +430,7 @@ export const EditGeneralServiceDialog = ({
                     onValueChange={(val: any) => setPerformerType(val)}
                     disabled={isProcessing}
                   >
-                    <SelectTrigger className="rounded-xl h-11 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                    <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <SelectValue placeholder="Избери..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -450,7 +450,7 @@ export const EditGeneralServiceDialog = ({
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="Линк към снимка на услугата..."
-                  className="rounded-xl h-11"
+                  className="h-11 rounded-xl"
                   disabled={isProcessing}
                 />
               </div>
@@ -464,7 +464,7 @@ export const EditGeneralServiceDialog = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Допълнителни детайли..."
-                  className="rounded-xl min-h-[80px]"
+                  className="min-h-20 rounded-xl"
                   rows={3}
                   disabled={isProcessing}
                 />
@@ -474,30 +474,30 @@ export const EditGeneralServiceDialog = ({
             <Button
               onClick={handleUpdateInfo}
               disabled={isProcessing}
-              className="w-full rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 h-12 font-medium text-[11px] uppercase tracking-widest transition-all mt-4"
+              className="mt-4 h-12 w-full rounded-xl bg-zinc-950 text-[11px] font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800"
             >
               Запази информацията
             </Button>
           </div>
 
           {/* RIGHT COLUMN: Service History System with Tabs */}
-          <div className="space-y-6 md:border-l md:border-zinc-100 md:dark:border-zinc-900 md:pl-10 flex flex-col h-full min-h-[450px]">
+          <div className="flex h-full min-h-[450px] flex-col space-y-6 md:border-l md:border-zinc-100 md:pl-10 md:dark:border-zinc-900">
             <Tabs
               defaultValue="movements"
               value={activeTab}
               onValueChange={setActiveTab}
-              className="w-full flex-1 flex flex-col"
+              className="flex w-full flex-1 flex-col"
             >
-              <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full border border-zinc-200/40 dark:border-zinc-800/40 mb-6 flex">
+              <TabsList className="mb-6 flex h-11 w-full rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 dark:border-zinc-800/40 dark:bg-zinc-900/50">
                 <TabsTrigger
                   value="movements"
-                  className="flex-1 rounded-xl text-xs font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all py-2"
+                  className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
                   Движения
                 </TabsTrigger>
                 <TabsTrigger
                   value="sales"
-                  className="flex-1 rounded-xl text-xs font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all py-2"
+                  className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
                   Продажби
                 </TabsTrigger>
@@ -505,14 +505,14 @@ export const EditGeneralServiceDialog = ({
 
               <TabsContent
                 value="movements"
-                className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1 mt-0"
+                className="custom-scrollbar mt-0 max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none"
               >
                 {renderMovementsContent()}
               </TabsContent>
 
               <TabsContent
                 value="sales"
-                className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1 mt-0"
+                className="custom-scrollbar mt-0 max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none"
               >
                 {renderSalesContent()}
               </TabsContent>
@@ -520,7 +520,7 @@ export const EditGeneralServiceDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-900 flex justify-end gap-3">
+        <DialogFooter className="mt-8 flex justify-end gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-900">
           <Button
             variant="outline"
             onClick={onClose}

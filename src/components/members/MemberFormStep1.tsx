@@ -31,8 +31,8 @@ function VisualCheckbox({
   return (
     <div
       className={cn(
-        "shrink-0 rounded-sm border border-zinc-300 flex items-center justify-center",
-        checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
+        "flex shrink-0 items-center justify-center rounded-sm border border-zinc-300",
+        checked ? "border-zinc-950 bg-zinc-950" : "bg-white",
         className
       )}
     >
@@ -69,13 +69,13 @@ export function MemberFormStep1({
   const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
 
   return (
-    <BentoCard className="p-5 sm:p-8 border-zinc-100 shadow-none rounded-3xl sm:rounded-4xl animate-in fade-in slide-in-from-right-4 duration-300">
+    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
       {!isRecoveryBranch && (
-        <div className="mb-8 pb-8 border-b border-zinc-100">
-          <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 block mb-4">
+        <div className="mb-8 border-b border-zinc-100 pb-8">
+          <FormLabel className="mb-4 block text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
             Роли на профила (може да изберете повече от една) *
           </FormLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div
               onClick={() =>
                 form.setValue("isClubMember", !isClubMember, {
@@ -83,10 +83,10 @@ export function MemberFormStep1({
                 })
               }
               className={cn(
-                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isClubMember
                   ? "border-zinc-950 bg-zinc-50 dark:border-white dark:bg-zinc-900"
-                  : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -94,7 +94,7 @@ export function MemberFormStep1({
               </div>
               <Users
                 className={cn(
-                  "h-6 w-6 mb-2",
+                  "mb-2 size-6",
                   isClubMember
                     ? "text-zinc-950 dark:text-white"
                     : "text-zinc-400"
@@ -102,7 +102,7 @@ export function MemberFormStep1({
               />
               <span
                 className={cn(
-                  "text-xs font-semibold uppercase tracking-wider",
+                  "text-xs font-semibold tracking-wider uppercase",
                   isClubMember
                     ? "text-zinc-950 dark:text-white"
                     : "text-zinc-500"
@@ -110,7 +110,7 @@ export function MemberFormStep1({
               >
                 Клубен Член
               </span>
-              <span className="text-[10px] text-zinc-400 text-center mt-1">
+              <span className="mt-1 text-center text-[10px] text-zinc-400">
                 Пълно досие с документи
               </span>
             </div>
@@ -122,10 +122,10 @@ export function MemberFormStep1({
                 })
               }
               className={cn(
-                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isRecoveryMember
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20"
-                  : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -133,7 +133,7 @@ export function MemberFormStep1({
               </div>
               <Activity
                 className={cn(
-                  "h-6 w-6 mb-2",
+                  "mb-2 size-6",
                   isRecoveryMember
                     ? "text-emerald-600 dark:text-emerald-400"
                     : "text-zinc-400"
@@ -141,7 +141,7 @@ export function MemberFormStep1({
               />
               <span
                 className={cn(
-                  "text-xs font-semibold uppercase tracking-wider",
+                  "text-xs font-semibold tracking-wider uppercase",
                   isRecoveryMember
                     ? "text-emerald-700 dark:text-emerald-400"
                     : "text-zinc-500"
@@ -149,7 +149,7 @@ export function MemberFormStep1({
               >
                 Възстановяване
               </span>
-              <span className="text-[10px] text-zinc-400 text-center mt-1">
+              <span className="mt-1 text-center text-[10px] text-zinc-400">
                 Досие + Здравен статус
               </span>
             </div>
@@ -159,10 +159,10 @@ export function MemberFormStep1({
                 form.setValue("isGuest", !isGuest, { shouldValidate: true })
               }
               className={cn(
-                "cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all relative",
+                "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isGuest
                   ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
-                  : "border-zinc-100 hover:border-zinc-200 bg-white dark:bg-zinc-950 dark:border-zinc-800"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -170,7 +170,7 @@ export function MemberFormStep1({
               </div>
               <User
                 className={cn(
-                  "h-6 w-6 mb-2",
+                  "mb-2 size-6",
                   isGuest
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-zinc-400"
@@ -178,7 +178,7 @@ export function MemberFormStep1({
               />
               <span
                 className={cn(
-                  "text-xs font-semibold uppercase tracking-wider",
+                  "text-xs font-semibold tracking-wider uppercase",
                   isGuest
                     ? "text-amber-700 dark:text-amber-400"
                     : "text-zinc-500"
@@ -186,7 +186,7 @@ export function MemberFormStep1({
               >
                 Външен / Гост
               </span>
-              <span className="text-[10px] text-zinc-400 text-center mt-1">
+              <span className="mt-1 text-center text-[10px] text-zinc-400">
                 Бърз профил (име и телефон)
               </span>
             </div>
@@ -194,25 +194,25 @@ export function MemberFormStep1({
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-6">
-        <User className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
-        <h3 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+      <div className="mb-6 flex items-center gap-2">
+        <User className="size-4 text-zinc-400" strokeWidth={1.5} />
+        <h3 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
           Стъпка 1: Основна информация
         </h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField
           name="firstName"
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Име *
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                 />
               </FormControl>
               <FormMessage />
@@ -224,13 +224,13 @@ export function MemberFormStep1({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Фамилия *
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                 />
               </FormControl>
               <FormMessage />
@@ -243,14 +243,14 @@ export function MemberFormStep1({
             control={form.control}
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
-                <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                   Презиме
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     value={field.value || ""}
-                    className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                   />
                 </FormControl>
                 <FormMessage />
@@ -266,14 +266,14 @@ export function MemberFormStep1({
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Пол
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value || ""}
                   >
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                       <SelectValue placeholder="Изберете пол" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-zinc-100">
@@ -303,13 +303,13 @@ export function MemberFormStep1({
 
       {/* --- ADDED FOR PUBLIC TEAM PAGE --- */}
       {isClubMember && (
-        <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+        <div className="mt-8 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-8 sm:grid-cols-2 sm:gap-6 dark:border-zinc-800">
           <FormField
             name="avatarUrl"
             control={form.control}
             render={({ field }) => (
               <FormItem className="sm:col-span-1">
-                <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                   Снимка за профила (път)
                 </FormLabel>
                 <FormControl>
@@ -317,10 +317,10 @@ export function MemberFormStep1({
                     {...field}
                     value={field.value || ""}
                     placeholder="напр. /team/ivan.jpg"
-                    className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                   />
                 </FormControl>
-                <p className="text-[11px] text-amber-600/80 mt-1.5 leading-relaxed font-medium">
+                <p className="mt-1.5 text-[11px] leading-relaxed font-medium text-amber-600/80">
                   Важно: Името на файла трябва да е на латиница, без интервали
                   (напр. veronika.jpg). Снимката трябва да е предварително
                   качена в папка public/team/.
@@ -334,7 +334,7 @@ export function MemberFormStep1({
             const showOnPublicTeam = form.watch("showOnPublicTeam");
             return (
               <div
-                className="flex flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 h-auto min-h-[44px] sm:min-h-[48px] mt-auto cursor-pointer"
+                className="mt-auto flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 sm:min-h-12"
                 onClick={() =>
                   form.setValue("showOnPublicTeam", !showOnPublicTeam, {
                     shouldValidate: true,
@@ -345,13 +345,13 @@ export function MemberFormStep1({
                   <p className="text-[11px] font-medium text-zinc-700">
                     Показвай в публичния отбор
                   </p>
-                  <p className="text-[10px] text-zinc-400 font-normal leading-relaxed">
+                  <p className="text-[10px] leading-relaxed font-normal text-zinc-400">
                     Ако е избрано, ще се показва на страница /club/team.
                   </p>
                 </div>
                 <VisualCheckbox
                   checked={showOnPublicTeam}
-                  className="h-5 w-5 data-checked:bg-emerald-500 pointer-events-none"
+                  className="pointer-events-none size-5 data-checked:bg-emerald-500"
                 />
               </div>
             );

@@ -110,20 +110,20 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48">
-        <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
+      <div className="flex h-48 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-zinc-400" />
       </div>
     );
   }
 
   if (assessments.length === 0 && beepResults.length === 0) {
     return (
-      <div className="text-center py-12 bg-zinc-50 border border-zinc-100 rounded-3xl">
-        <TrendingUp className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
+      <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center">
+        <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300" />
         <h3 className="text-lg font-bold text-zinc-700">
           Няма данни от тестове
         </h3>
-        <p className="text-sm text-zinc-500 mt-2">
+        <p className="mt-2 text-sm text-zinc-500">
           Започнете да провеждате тестове от меню &quot;Тренировъчен процес
           -&gt; Тестове&quot;.
         </p>
@@ -142,14 +142,14 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 duration-500 animate-in fade-in">
       {/* BEEP TEST RESULTS CARD */}
       {beepResults.length > 0 && (
-        <div className="bg-white border border-indigo-100 shadow-sm shadow-indigo-100/50 rounded-3xl p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+        <div className="rounded-3xl border border-indigo-100 bg-white p-5 shadow-sm shadow-indigo-100/50 sm:p-6">
+          <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
             <div>
-              <h3 className="text-xl font-black text-indigo-950 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-indigo-600" />
+              <h3 className="flex items-center gap-2 text-xl font-black text-indigo-950">
+                <Activity className="size-5 text-indigo-600" />
                 Бийп Тест (VO2 Max)
               </h3>
               <p className="text-sm text-zinc-500">
@@ -206,7 +206,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-6 border-t border-zinc-100 pt-4 space-y-4">
+          <div className="mt-6 space-y-4 border-t border-zinc-100 pt-4">
             {[...beepResults].reverse().map((entry) => {
               const metrics = calculateBeepTestMetrics(
                 entry.level,
@@ -215,47 +215,47 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
               return (
                 <div
                   key={entry.id}
-                  className="flex flex-col bg-indigo-50/30 rounded-xl overflow-hidden border border-indigo-100/50"
+                  className="flex flex-col overflow-hidden rounded-xl border border-indigo-100/50 bg-indigo-50/30"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm px-5 py-4 gap-2">
+                  <div className="flex flex-col items-start justify-between gap-2 px-5 py-4 text-sm sm:flex-row sm:items-center">
                     <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="font-black text-zinc-900 text-lg">
+                      <div className="mb-1 flex items-center gap-3">
+                        <span className="text-lg font-black text-zinc-900">
                           Ниво {entry.level}:{entry.shuttle}
                         </span>
                         <span
-                          className={`text-xs font-bold px-2 py-0.5 rounded-full ${getScoreColor(entry.score)}`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${getScoreColor(entry.score)}`}
                         >
                           {entry.score}
                         </span>
                       </div>
-                      <div className="text-zinc-600 font-medium text-sm">
+                      <div className="text-sm font-medium text-zinc-600">
                         VO2 Max:{" "}
-                        <span className="text-indigo-600 font-black">
+                        <span className="font-black text-indigo-600">
                           {entry.vo2max} ml/kg/min
                         </span>{" "}
-                        <span className="text-zinc-400 mx-1">•</span>{" "}
+                        <span className="mx-1 text-zinc-400">•</span>{" "}
                         {entry.period}
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
-                          <span className="text-zinc-500 font-medium">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                          <span className="font-medium text-zinc-500">
                             Разстояние:
                           </span>
                           <span className="font-bold text-zinc-900">
                             {metrics.distance} м
                           </span>
                         </div>
-                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
-                          <span className="text-zinc-500 font-medium">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                          <span className="font-medium text-zinc-500">
                             Общо време:
                           </span>
                           <span className="font-bold text-zinc-900">
                             {metrics.timeDisplay} мин
                           </span>
                         </div>
-                        <div className="bg-white/80 px-2 py-1 rounded-md border border-indigo-100/50 flex items-center gap-1.5 shadow-sm">
-                          <span className="text-zinc-500 font-medium">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                          <span className="font-medium text-zinc-500">
                             Макс. скорост:
                           </span>
                           <span className="font-bold text-zinc-900">
@@ -264,7 +264,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-zinc-500 font-bold text-xs sm:text-right bg-white/60 px-3 py-1.5 rounded-lg shadow-sm">
+                    <div className="rounded-lg bg-white/60 px-3 py-1.5 text-xs font-bold text-zinc-500 shadow-sm sm:text-right">
                       {format(new Date(entry.date), "dd MMMM yyyy", {
                         locale: bg,
                       })}
@@ -272,15 +272,15 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   </div>
 
                   {/* AI / Coach Report Section */}
-                  <div className="bg-white/60 px-5 py-3 border-t border-indigo-100/50 flex gap-3 items-start">
+                  <div className="flex items-start gap-3 border-t border-indigo-100/50 bg-white/60 px-5 py-3">
                     <div className="mt-0.5 text-indigo-400">
-                      <Activity className="w-4 h-4" />
+                      <Activity className="size-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
+                      <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase">
                         Треньорски Анализ
                       </span>
-                      <p className="text-sm text-zinc-600 leading-relaxed">
+                      <p className="text-sm leading-relaxed text-zinc-600">
                         {getBeepTestReport(entry)}
                       </p>
                     </div>
@@ -302,14 +302,14 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
         return (
           <div
             key={testName}
-            className="bg-white border border-zinc-100 rounded-3xl p-5 sm:p-6"
+            className="rounded-3xl border border-zinc-100 bg-white p-5 sm:p-6"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
+            <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
               <div>
                 <h3 className="text-xl font-bold">{testName}</h3>
                 <p className="text-sm text-zinc-500">Прогрес във времето</p>
               </div>
-              <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold uppercase">
+              <span className="rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 uppercase">
                 {data[0].ageGroupAtTest}
               </span>
             </div>
@@ -365,7 +365,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </div>
 
             {/* HISTORY LIST */}
-            <div className="mt-6 border-t border-zinc-100 pt-4 space-y-3">
+            <div className="mt-6 space-y-3 border-t border-zinc-100 pt-4">
               {data.reverse().map(
                 (
                   entry // Reverse just for the list to show newest first
@@ -391,9 +391,9 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   return (
                     <div
                       key={entry.id}
-                      className="flex flex-col bg-zinc-50 rounded-xl overflow-hidden"
+                      className="flex flex-col overflow-hidden rounded-xl bg-zinc-50"
                     >
-                      <div className="flex justify-between items-center text-sm px-4 py-3">
+                      <div className="flex items-center justify-between px-4 py-3 text-sm">
                         <div>
                           <span className="font-bold text-zinc-900">
                             {entry.scoreDisplay}
@@ -404,7 +404,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                             </span>
                           )}
                         </div>
-                        <div className="text-zinc-500 text-xs text-right">
+                        <div className="text-right text-xs text-zinc-500">
                           {format(new Date(entry.date), "dd MMMM yyyy", {
                             locale: bg,
                           })}
@@ -414,10 +414,10 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                       </div>
                       {/* Coach Analysis & Recommendations */}
                       {(analysis || recommendation) && (
-                        <div className="bg-indigo-50/50 px-4 py-3 border-t border-indigo-100/50 space-y-2">
+                        <div className="space-y-2 border-t border-indigo-100/50 bg-indigo-50/50 px-4 py-3">
                           {analysis && (
                             <div>
-                              <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
+                              <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase">
                                 Треньорски Анализ
                               </span>
                               <p className="text-sm text-zinc-700">
@@ -427,7 +427,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                           )}
                           {recommendation && (
                             <div>
-                              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide block mb-1 mt-2">
+                              <span className="mt-2 mb-1 block text-xs font-bold tracking-wide text-emerald-800 uppercase">
                                 Препоръка
                               </span>
                               <p className="text-sm text-zinc-700">

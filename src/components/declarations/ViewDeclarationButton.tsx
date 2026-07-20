@@ -63,17 +63,17 @@ export function ViewDeclarationButton({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+              className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
               title="Виж декларация"
             >
-              <Eye className="w-4 h-4 text-emerald-500" />
+              <Eye className="size-4 text-emerald-500" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="rounded-xl border-zinc-100 shadow-xl p-2"
+            className="rounded-xl border-zinc-100 p-2 shadow-xl"
           >
-            <div className="text-xs font-bold uppercase tracking-widest text-zinc-400 px-3 py-2 mb-1">
+            <div className="mb-1 px-3 py-2 text-xs font-bold tracking-widest text-zinc-400 uppercase">
               Избери декларация
             </div>
             {declarations.map((d) => (
@@ -83,9 +83,9 @@ export function ViewDeclarationButton({
                   window.open(`/print-declaration/${d.id}`, "_blank");
                   setOpen(false);
                 }}
-                className="text-sm font-medium cursor-pointer p-3"
+                className="cursor-pointer p-3 text-sm font-medium"
               >
-                <FileText className="w-4 h-4 mr-2 text-zinc-400" />
+                <FileText className="mr-2 size-4 text-zinc-400" />
                 {d.memberName}
               </DropdownMenuItem>
             ))}
@@ -99,7 +99,7 @@ export function ViewDeclarationButton({
     <Button
       variant="ghost"
       size="icon"
-      className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+      className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
       title="Виж декларация"
       onClick={(e) => {
         e.stopPropagation();
@@ -108,9 +108,9 @@ export function ViewDeclarationButton({
       disabled={loading}
     >
       {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+        <Loader2 className="size-4 animate-spin text-emerald-500" />
       ) : (
-        <Eye className="w-4 h-4 text-emerald-500" />
+        <Eye className="size-4 text-emerald-500" />
       )}
     </Button>
   );

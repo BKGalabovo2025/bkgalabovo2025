@@ -24,7 +24,7 @@ function renderZoneWarning(selectedZone: string | undefined, client2Zone: string
     const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
     if (maxQty < 2) {
       return (
-        <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">
+        <p className="mt-2 rounded-lg bg-red-500/10 p-2 text-[11px] font-medium text-red-500">
           Внимание: Разполагате само с {maxQty} приставка за {zoneName.toUpperCase()}. Моля, изберете различна зона за Клиент 2.
         </p>
       );
@@ -61,7 +61,7 @@ export const ReservationStep1Time = () => {
   }, [startTime, duration, isRecoveryZone, form, watchedValues.endTime]);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
       <div className="grid grid-cols-2 gap-4">
         <DateTimePicker control={form.control} name="startTime" label="Начален час" />
         
@@ -69,8 +69,8 @@ export const ReservationStep1Time = () => {
           <DateTimePicker control={form.control} name="endTime" label="Краен час" disabled={true} />
         ) : (
           <FormItem>
-            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-              <Clock className="w-3 h-3" /> Време (Часове)
+            <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+              <Clock className="size-3" /> Време (Часове)
             </FormLabel>
             <Input
               type="number"
@@ -78,7 +78,7 @@ export const ReservationStep1Time = () => {
               step="1"
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-              className="h-14 rounded-2xl border-2 border-zinc-100 dark:border-zinc-800 focus-visible:ring-primary text-center font-bold"
+              className="h-14 rounded-2xl border-2 border-zinc-100 text-center font-bold focus-visible:ring-primary dark:border-zinc-800"
             />
           </FormItem>
         )}
@@ -91,11 +91,11 @@ export const ReservationStep1Time = () => {
             name="serviceId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Activity className="w-3 h-3" /> Изберете Услуга
+                <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                  <Activity className="size-3" /> Изберете Услуга
                 </FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
-                  <SelectTrigger className="h-14 rounded-2xl border-2 border-zinc-100 dark:border-zinc-800 focus:ring-primary bg-white dark:bg-zinc-950">
+                  <SelectTrigger className="h-14 rounded-2xl border-2 border-zinc-100 bg-white focus:ring-primary dark:border-zinc-800 dark:bg-zinc-950">
                     <SelectValue placeholder="Изберете услуга (напр. Наем на корт)..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -116,8 +116,8 @@ export const ReservationStep1Time = () => {
             name="courtId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <MapPin className="w-3 h-3" /> Изберете Корт
+                <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                  <MapPin className="size-3" /> Изберете Корт
                 </FormLabel>
               <div className="grid grid-cols-3 gap-3">
                 {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
@@ -126,13 +126,13 @@ export const ReservationStep1Time = () => {
                     type="button"
                     onClick={() => field.onChange(num)}
                     className={cn(
-                      "relative h-16 rounded-2xl font-bold transition-all border-2 overflow-hidden flex flex-col items-center justify-center gap-1 group",
+                      "group relative flex h-16 flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border-2 font-bold transition-all",
                       field.value === num
-                        ? "bg-gradient-to-br from-primary to-primary/80 border-primary text-white shadow-xl shadow-primary/30 scale-105 ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
-                        : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-primary/50 hover:bg-primary/5"
+                        ? "scale-105 border-primary bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl ring-2 shadow-primary/30 ring-primary/20 ring-offset-2 ring-offset-background"
+                        : "border-zinc-200 bg-white text-zinc-500 hover:border-primary/50 hover:bg-primary/5 dark:border-zinc-800 dark:bg-zinc-950"
                     )}
                   >
-                    <MapPin className={cn("w-4 h-4 transition-transform", field.value === num ? "scale-110" : "group-hover:scale-110 group-hover:text-primary/70")} />
+                    <MapPin className={cn("size-4 transition-transform", field.value === num ? "scale-110" : "group-hover:scale-110 group-hover:text-primary/70")} />
                     <span className="text-xs">Корт {num}</span>
                     
                     {field.value === num && (
@@ -152,13 +152,13 @@ export const ReservationStep1Time = () => {
           name="serviceId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                <Activity className="w-3 h-3" /> Изберете Услуга
+              <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                <Activity className="size-3" /> Изберете Услуга
               </FormLabel>
-              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-100 dark:scrollbar-thumb-zinc-800">
+              <div className="max-h-100 scrollbar-thin scrollbar-thumb-zinc-100 space-y-6 overflow-y-auto pr-2 dark:scrollbar-thumb-zinc-800">
                 {Object.entries(groupedServices).map(([category, catServices]) => (
                   <div key={category} className="space-y-3">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 pl-1">{category}</h3>
+                    <h3 className="pl-1 text-[10px] font-black tracking-[0.2em] text-zinc-400 uppercase">{category}</h3>
                     <div className="space-y-2">
                       {catServices.map((s) => (
                         <button
@@ -171,13 +171,13 @@ export const ReservationStep1Time = () => {
                             }
                           }}
                           className={cn(
-                            "w-full px-5 h-14 rounded-2xl font-bold transition-all border-2 flex items-center justify-between",
+                            "flex h-14 w-full items-center justify-between rounded-2xl border-2 px-5 font-bold transition-all",
                             field.value === s.id
-                              ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
-                              : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                              ? "scale-1.02 border-primary bg-primary text-white shadow-lg shadow-primary/20"
+                              : "border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900"
                           )}
                         >
-                          <span className="text-xs uppercase tracking-tight">{s.name}</span>
+                          <span className="text-xs tracking-tight uppercase">{s.name}</span>
                           <span className="text-[10px] opacity-70">
                             {s.durationMinutes} мин • {formatPrice(s.price)}
                           </span>
@@ -205,10 +205,10 @@ export const ReservationStep1Time = () => {
             if (availableZones.length <= 1) return <div className="hidden" />;
 
             return (
-              <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="space-y-4 duration-300 animate-in slide-in-from-top-2">
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Activity className="w-3 h-3" /> Коя зона ще се ползва? {isTwoClients ? "(КЛИЕНТ 1)" : ""}
+                  <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                    <Activity className="size-3" /> Коя зона ще се ползва? {isTwoClients ? "(КЛИЕНТ 1)" : ""}
                   </FormLabel>
                   <div className="grid grid-cols-3 gap-2">
                     {availableZones.map((zone) => (
@@ -217,10 +217,10 @@ export const ReservationStep1Time = () => {
                         type="button"
                         onClick={() => field.onChange(zone)}
                         className={cn(
-                          "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
+                          "h-12 rounded-xl border-2 text-[10px] font-bold tracking-wider uppercase transition-all",
                           field.value === zone
-                            ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
-                            : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                            ? "border-cyan-600 bg-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                            : "border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900"
                         )}
                       >
                         {zone}
@@ -236,8 +236,8 @@ export const ReservationStep1Time = () => {
                     name="client2Zone"
                     render={({ field: field2 }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                          <Activity className="w-3 h-3" /> Коя зона ще се ползва? (КЛИЕНТ 2)
+                        <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                          <Activity className="size-3" /> Коя зона ще се ползва? (КЛИЕНТ 2)
                         </FormLabel>
                         <div className="grid grid-cols-3 gap-2">
                           {availableZones.map((zone) => (
@@ -246,10 +246,10 @@ export const ReservationStep1Time = () => {
                               type="button"
                               onClick={() => field2.onChange(zone)}
                               className={cn(
-                                "h-12 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border-2",
+                                "h-12 rounded-xl border-2 text-[10px] font-bold tracking-wider uppercase transition-all",
                                 field2.value === zone
-                                  ? "bg-cyan-600 border-cyan-600 text-white shadow-lg shadow-cyan-600/20"
-                                  : "bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                                  ? "border-cyan-600 bg-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                                  : "border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900"
                               )}
                             >
                               {zone}
@@ -271,14 +271,14 @@ export const ReservationStep1Time = () => {
       {/* Bypass Working Hours Checkbox */}
       {/* Bypass Working Hours Warning */}
       {startTime && checkWorkingHours(startTime) && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-2xl mt-6 flex items-center justify-between">
+        <div className="mt-6 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-amber-100 dark:bg-amber-900/40 text-amber-600 rounded-xl">
-               <AlertCircle className="w-4 h-4" />
+             <div className="rounded-xl bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/40">
+               <AlertCircle className="size-4" />
              </div>
              <div>
-               <p className="text-xs font-bold text-amber-700 dark:text-amber-500 uppercase tracking-wide">Извън работно време</p>
-               <p className="text-[10px] text-amber-600/80 dark:text-amber-600 max-w-[200px] sm:max-w-xs">{checkWorkingHours(startTime)}</p>
+               <p className="text-xs font-bold tracking-wide text-amber-700 uppercase dark:text-amber-500">Извън работно време</p>
+               <p className="max-w-50 text-[10px] text-amber-600/80 sm:max-w-xs dark:text-amber-600">{checkWorkingHours(startTime)}</p>
              </div>
           </div>
           
@@ -288,13 +288,13 @@ export const ReservationStep1Time = () => {
             aria-checked={ignoreWorkingHoursWarning}
             onClick={() => setIgnoreWorkingHoursWarning(!ignoreWorkingHoursWarning)}
             className={cn(
-              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
               ignoreWorkingHoursWarning ? "bg-amber-500" : "bg-zinc-200 dark:bg-zinc-800"
             )}
           >
             <span
               className={cn(
-                "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                "pointer-events-none block size-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
                 ignoreWorkingHoursWarning ? "translate-x-5" : "translate-x-0"
               )}
             />

@@ -91,27 +91,27 @@ export const EditSaleDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[450px] p-8 rounded-3xl bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-xl">
+      <DialogContent className="rounded-3xl border border-zinc-100 bg-white p-8 shadow-xl sm:max-w-[450px] dark:border-zinc-900 dark:bg-zinc-950">
         <DialogHeader className="mb-6">
-          <DialogTitle className="text-xl font-light text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl font-light text-zinc-950 dark:text-zinc-50">
             <ShoppingBag
-              className="h-5 w-5 text-emerald-500"
+              className="size-5 text-emerald-500"
               strokeWidth={1.5}
             />
             Редакция на продажба
           </DialogTitle>
-          <DialogDescription className="font-light text-zinc-400 mt-1">
+          <DialogDescription className="mt-1 font-light text-zinc-400">
             Промяна на статуса на плащане и сумата на продажбата.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6">
-          <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Статус на плащане
               </span>
-              <span className="text-xs text-zinc-500 mt-0.5">
+              <span className="mt-0.5 text-xs text-zinc-500">
                 {isPaid ? "Маркирано като платено" : "Маркирано като неплатено"}
               </span>
             </div>
@@ -119,7 +119,7 @@ export const EditSaleDialog = ({
               checked={isPaid}
               onCheckedChange={(checked) => setIsPaid(checked === true)}
               disabled={isProcessing}
-              className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+              className="data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
             />
           </div>
 
@@ -144,15 +144,15 @@ export const EditSaleDialog = ({
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
+            <Label className="flex items-center justify-between text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Обща сума (EUR)
-              <span className="text-[10px] text-zinc-400 font-normal">
+              <span className="text-[10px] font-normal text-zinc-400">
                 По подразбиране: {formatPrice(sale.totalAmount)}
               </span>
             </Label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <CreditCard className="h-4 w-4 text-zinc-400" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <CreditCard className="size-4 text-zinc-400" />
               </div>
               <Input
                 type="number"
@@ -160,13 +160,13 @@ export const EditSaleDialog = ({
                 value={totalAmount}
                 onChange={(e) => setTotalAmount(e.target.value)}
                 disabled={isProcessing}
-                className="pl-10 h-11 rounded-xl"
+                className="h-11 rounded-xl pl-10"
               />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-900 flex justify-end gap-3">
+        <DialogFooter className="mt-8 flex justify-end gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-900">
           <Button
             variant="outline"
             onClick={onClose}
@@ -178,7 +178,7 @@ export const EditSaleDialog = ({
           <Button
             onClick={handleUpdate}
             disabled={isProcessing}
-            className="rounded-xl px-6 bg-zinc-950 text-white hover:bg-zinc-800"
+            className="rounded-xl bg-zinc-950 px-6 text-white hover:bg-zinc-800"
           >
             {isProcessing ? "Запазване..." : "Запази промените"}
           </Button>

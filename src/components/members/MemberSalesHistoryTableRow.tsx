@@ -65,25 +65,25 @@ export function MemberSalesHistoryTableRow({
   return (
     <TableRow
       onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
-      className="cursor-pointer border-zinc-50 hover:bg-zinc-50/50 transition-all group"
+      className="group cursor-pointer border-zinc-50 transition-all hover:bg-zinc-50/50"
     >
       <TableCell className="py-4 pl-5 whitespace-nowrap">
         {formatSaleDateCell(sale)}
       </TableCell>
-      <TableCell className="py-4 max-w-[300px]">
+      <TableCell className="max-w-75 py-4">
         <div
-          className="text-xs font-medium text-zinc-900 break-words leading-tight"
+          className="text-xs leading-tight font-medium break-words text-zinc-900"
           title={itemsList}
         >
           {itemsList}
         </div>
         {isSubscription && (
-          <div className="text-[9px] text-zinc-400 uppercase tracking-widest mt-0.5">
+          <div className="mt-0.5 text-[9px] tracking-widest text-zinc-400 uppercase">
             Услуга
           </div>
         )}
         {sale.memberId !== memberId && familyMembers && (
-          <div className="text-[9px] text-amber-600 font-medium mt-0.5">
+          <div className="mt-0.5 text-[9px] font-medium text-amber-600">
             За: {familyMember?.firstName || "Семейство"}{" "}
             {familyMember?.lastName || ""}
           </div>
@@ -91,7 +91,7 @@ export function MemberSalesHistoryTableRow({
       </TableCell>
       <TableCell className="py-4">
         <div className="flex flex-col">
-          <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 break-words leading-tight">
+          <span className="text-xs leading-tight font-semibold break-words text-zinc-900 dark:text-zinc-100">
             {sale.clientName ||
               (familyMember
                 ? `${familyMember.firstName} ${familyMember.lastName}`.trim()
@@ -118,18 +118,18 @@ export function MemberSalesHistoryTableRow({
         <Badge
           variant={statusDetails.variant}
           className={cn(
-            "rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest border-transparent",
+            "rounded-full border-transparent px-2 py-0.5 text-[8px] font-medium tracking-widest uppercase",
             getBadgeClass(statusDetails.variant)
           )}
         >
           {statusDetails.text}
         </Badge>
       </TableCell>
-      <TableCell className="text-right py-4 font-medium text-xs text-zinc-950">
+      <TableCell className="py-4 text-right text-xs font-medium text-zinc-950">
         {formatPrice(sale.totalAmount)}
       </TableCell>
       <TableCell
-        className="text-right pr-5"
+        className="pr-5 text-right"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-end">
@@ -139,9 +139,9 @@ export function MemberSalesHistoryTableRow({
                 aria-haspopup="true"
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-lg text-zinc-400 hover:text-zinc-950"
+                className="size-7 rounded-lg text-zinc-400 hover:text-zinc-950"
               >
-                <MoreHorizontal className="h-3.5 w-3.5" />
+                <MoreHorizontal className="size-3.5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </DropdownMenuTrigger>
@@ -152,21 +152,21 @@ export function MemberSalesHistoryTableRow({
             >
               <DropdownMenuItem
                 onSelect={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
-                className="text-[10px] font-medium uppercase tracking-widest py-1.5"
+                className="py-1.5 text-[10px] font-medium tracking-widest uppercase"
               >
                 Преглед на квитанция
               </DropdownMenuItem>
               {sale.isPaid ? (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsUnpaid(sale.id)}
-                  className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-rose-500 uppercase hover:bg-rose-50 hover:text-rose-600"
                 >
                   Отмени плащането
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsPaid(sale.id)}
-                  className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-emerald-500 uppercase hover:bg-emerald-50 hover:text-emerald-600"
                 >
                   Маркирай като платено
                 </DropdownMenuItem>
@@ -174,7 +174,7 @@ export function MemberSalesHistoryTableRow({
               <DropdownMenuSeparator className="bg-zinc-100" />
               <DropdownMenuItem
                 onSelect={() => handleDeleteSale(sale.id)}
-                className="text-[10px] font-medium uppercase tracking-widest py-1.5 text-red-500 hover:text-red-600 hover:bg-red-50"
+                className="py-1.5 text-[10px] font-medium tracking-widest text-red-500 uppercase hover:bg-red-50 hover:text-red-600"
               >
                 Изтрий запис
               </DropdownMenuItem>

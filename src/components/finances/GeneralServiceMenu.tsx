@@ -51,16 +51,16 @@ export function GeneralServiceMenu({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
       {services.map((service) => (
         <BentoCard
           key={service.id}
-          className="group relative overflow-hidden bg-white border border-zinc-100 shadow-none hover:border-zinc-300 transition-all duration-500 rounded-5xl p-8 flex flex-col h-full"
+          className="group relative flex h-full flex-col overflow-hidden rounded-5xl border border-zinc-100 bg-white p-8 shadow-none transition-all duration-500 hover:border-zinc-300"
         >
           {/* Header */}
-          <div className="flex justify-between items-start mb-6">
-            <div className="p-3 rounded-2xl bg-zinc-950 text-white shadow-xl shadow-zinc-200">
-              <Wrench className="h-5 w-5" strokeWidth={1.5} />
+          <div className="mb-6 flex items-start justify-between">
+            <div className="rounded-2xl bg-zinc-950 p-3 text-white shadow-xl shadow-zinc-200">
+              <Wrench className="size-5" strokeWidth={1.5} />
             </div>
 
             <DropdownMenu>
@@ -68,39 +68,39 @@ export function GeneralServiceMenu({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="size-8 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                  <MoreHorizontal className="h-4 w-4 text-zinc-400" />
+                  <MoreHorizontal className="size-4 text-zinc-400" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="rounded-2xl border-zinc-100 p-2 min-w-[160px]"
+                className="min-w-40 rounded-2xl border-zinc-100 p-2"
               >
                 <DropdownMenuItem
                   onClick={() => onEdit(service)}
-                  className="rounded-xl gap-2 focus:bg-zinc-50 py-3"
+                  className="gap-2 rounded-xl py-3 focus:bg-zinc-50"
                 >
-                  <Edit className="h-4 w-4 text-zinc-400" /> Редактиране
+                  <Edit className="size-4 text-zinc-400" /> Редактиране
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(service.id, service.name)}
-                  className="rounded-xl gap-2 focus:bg-red-50 text-red-600 py-3"
+                  className="gap-2 rounded-xl py-3 text-red-600 focus:bg-red-50"
                 >
-                  <Trash2 className="h-4 w-4" /> Изтриване
+                  <Trash2 className="size-4" /> Изтриване
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
           {/* Title & Description */}
-          <div className="space-y-2 flex-1">
-            <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1 space-y-2">
+            <div className="mb-1 flex items-center gap-2">
               <span
-                className={`text-[10px] font-medium uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                className={`rounded-md px-2 py-0.5 text-[10px] font-medium tracking-widest uppercase ${
                   service.performerType === "internal"
-                    ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                    : "bg-blue-50 text-blue-600 border border-blue-100"
+                    ? "border border-emerald-100 bg-emerald-50 text-emerald-600"
+                    : "border border-blue-100 bg-blue-50 text-blue-600"
                 }`}
               >
                 {service.performerType === "internal" ? "Клубна" : "Външна"}
@@ -109,21 +109,21 @@ export function GeneralServiceMenu({
             <h4 className="text-xl font-medium tracking-tight text-zinc-900">
               {service.name}
             </h4>
-            <p className="text-sm text-zinc-400 font-light leading-relaxed line-clamp-3">
+            <p className="line-clamp-3 text-sm leading-relaxed font-light text-zinc-400">
               {service.description || "Няма описание за тази услуга."}
             </p>
           </div>
 
           {/* Features */}
-          <div className="space-y-3 mb-8 pt-6 border-t border-zinc-50 mt-6">
+          <div className="mt-6 mb-8 space-y-3 border-t border-zinc-50 pt-6">
             <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <User className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
+              <User className="size-4 text-zinc-300" strokeWidth={1.5} />
               <span className="font-medium text-zinc-700">
                 {service.performerName}
               </span>
             </div>
             <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <Clock className="h-4 w-4 text-zinc-300" strokeWidth={1.5} />
+              <Clock className="size-4 text-zinc-300" strokeWidth={1.5} />
               <span>
                 {service.pricingUnit === "fixed" && "Фиксирана цена"}
                 {service.pricingUnit === "per_hour" && "Цена на час"}
@@ -133,7 +133,7 @@ export function GeneralServiceMenu({
             {service.performerType === "internal" ? (
               <div className="flex items-center gap-3 text-xs text-zinc-500">
                 <ShieldCheck
-                  className="h-4 w-4 text-emerald-400"
+                  className="size-4 text-emerald-400"
                   strokeWidth={1.5}
                 />
                 <span>Гарантирано от клуба</span>
@@ -141,7 +141,7 @@ export function GeneralServiceMenu({
             ) : (
               <div className="flex items-center gap-3 text-xs text-zinc-500">
                 <ExternalLink
-                  className="h-4 w-4 text-blue-400"
+                  className="size-4 text-blue-400"
                   strokeWidth={1.5}
                 />
                 <span>Външен изпълнител</span>
@@ -150,14 +150,14 @@ export function GeneralServiceMenu({
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-1 mt-auto pt-6 border-t border-zinc-50">
+          <div className="mt-auto flex items-baseline gap-1 border-t border-zinc-50 pt-6">
             <span className="text-3xl font-light tracking-tighter text-zinc-950">
               {formatPrice(service.price).replace(" EUR", "")}
             </span>
-            <span className="text-sm font-medium text-zinc-400 uppercase tracking-widest ml-1">
+            <span className="ml-1 text-sm font-medium tracking-widest text-zinc-400 uppercase">
               EUR
             </span>
-            <span className="text-xs text-zinc-300 lowercase ml-2 font-light">
+            <span className="ml-2 text-xs font-light text-zinc-300 lowercase">
               / {{ fixed: "услуга", per_hour: "час", per_session: "сесия" }[service.pricingUnit] || "услуга"}
             </span>
           </div>
@@ -165,8 +165,8 @@ export function GeneralServiceMenu({
       ))}
 
       {services.length === 0 && (
-        <div className="col-span-full flex flex-col items-center justify-center py-24 text-zinc-400 border-2 border-dashed border-zinc-100 rounded-5xl bg-zinc-50/30">
-          <Wrench className="h-12 w-12 text-zinc-200 mb-4" strokeWidth={1} />
+        <div className="col-span-full flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-24 text-zinc-400">
+          <Wrench className="mb-4 size-12 text-zinc-200" strokeWidth={1} />
           <p className="font-light">
             Все още няма добавени услуги в този каталог.
           </p>

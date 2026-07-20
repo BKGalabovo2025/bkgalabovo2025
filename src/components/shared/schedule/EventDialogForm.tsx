@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScheduleEvent, ScheduleEventType } from "@/types";
+import { ScheduleEventType } from "@/types";
 import {
   Loader2,
   ArrowRight,
@@ -221,22 +221,22 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className="sm:max-w-[540px] w-[92vw] rounded-4xl sm:rounded-5xl border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-zinc-950 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+        className="flex max-h-[85vh] w-[92vw] flex-col overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl sm:max-h-[90vh] sm:max-w-135 sm:rounded-5xl dark:bg-zinc-950"
         aria-describedby={descriptionId}
       >
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Header */}
-          <div className="p-6 sm:p-8 pb-4 shrink-0 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 z-10">
+          <div className="z-10 shrink-0 border-b border-zinc-100 bg-white p-6 pb-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
             <DialogHeader>
-              <DialogTitle className="text-xl sm:text-2xl font-light tracking-tight text-zinc-950 dark:text-white flex items-center justify-between">
+              <DialogTitle className="flex items-center justify-between text-xl font-light tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
                 <span>{dialogTitle}</span>
-                <span className="text-xs sm:text-sm font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-900 px-3 py-1 rounded-full">
+                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-400 sm:text-sm dark:bg-zinc-900">
                   Стъпка {step} от 3
                 </span>
               </DialogTitle>
               <DialogDescription
                 id={descriptionId}
-                className="text-zinc-400 font-light mt-1 text-xs sm:text-sm"
+                className="mt-1 text-xs font-light text-zinc-400 sm:text-sm"
               >
                 {step === 1 && "Основна информация за събитието."}
                 {step === 2 && "Кога ще се проведе?"}
@@ -263,12 +263,12 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
           </div>
 
           {/* Form body */}
-          <div className="overflow-y-auto custom-scrollbar flex-1 overscroll-contain relative">
+          <div className="custom-scrollbar relative flex-1 overflow-y-auto overscroll-contain">
             <form
               id={formId}
               onSubmit={handleSubmit}
               onKeyDown={handleKeyDown}
-              className="p-6 sm:p-8 space-y-6"
+              className="space-y-6 p-6 sm:p-8"
             >
               {/* STEP 1: Basic Info */}
               <div
@@ -280,9 +280,9 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-type`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2"
+                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
-                    <MapPin className="h-3 w-3" /> Тип на събитието
+                    <MapPin className="size-3" /> Тип на събитието
                   </label>
                   <Select
                     onValueChange={(value: ScheduleEventType) => setType(value)}
@@ -290,17 +290,17 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                   >
                     <SelectTrigger
                       id={`${idPrefix}-type`}
-                      className="h-12 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                     >
                       <SelectValue placeholder="Изберете тип" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
+                    <SelectContent className="rounded-2xl border-zinc-100 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
                       {Object.entries(eventTypeTranslations).map(
                         ([key, value]) => (
                           <SelectItem
                             key={key}
                             value={key as ScheduleEventType}
-                            className="rounded-xl py-3 cursor-pointer"
+                            className="cursor-pointer rounded-xl py-3"
                           >
                             {value}
                           </SelectItem>
@@ -313,7 +313,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-title`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                    className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
                     Име на събитието / Група
                   </label>
@@ -322,7 +322,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     placeholder="Например: Тренировка - Напреднали"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light focus:ring-zinc-950"
+                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
                     autoFocus={step === 1}
                   />
                 </div>
@@ -330,7 +330,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-location`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1"
+                    className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
                     Място / Корт
                   </label>
@@ -339,7 +339,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     placeholder="Например: Спортна зала 'Енергетик'"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                   />
                 </div>
               </div>
@@ -354,32 +354,32 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-startDate`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2"
+                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
-                    <Calendar className="h-3 w-3" /> Начало
+                    <Calendar className="size-3" /> Начало
                   </label>
                   <Input
                     id={`${idPrefix}-startDate`}
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                     autoFocus={step === 2}
                   />
                 </div>
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-endDate`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2"
+                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
-                    <Calendar className="h-3 w-3" /> Край
+                    <Calendar className="size-3" /> Край
                   </label>
                   <Input
                     id={`${idPrefix}-endDate`}
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 shadow-none font-light"
+                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                   />
                 </div>
               </div>
@@ -394,25 +394,25 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-description`}
-                    className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2"
+                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
-                    <AlignLeft className="h-3 w-3" /> Описание (по желание)
+                    <AlignLeft className="size-3" /> Описание (по желание)
                   </label>
                   <Textarea
                     id={`${idPrefix}-description`}
                     placeholder="Допълнителни бележки, треньори..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[120px] rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 shadow-none font-light resize-none focus:ring-zinc-950"
+                    className="min-h-30 resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
                     autoFocus={step === 3}
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900">
-                  <p className="text-[11px] font-medium text-rose-500 uppercase tracking-widest text-center flex items-center justify-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                <div className="rounded-xl border border-rose-100 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-950/30">
+                  <p className="flex items-center justify-center gap-2 text-center text-[11px] font-medium tracking-widest text-rose-500 uppercase">
+                    <span className="size-1.5 animate-pulse rounded-full bg-rose-500" />
                     {error}
                   </p>
                 </div>
@@ -421,17 +421,17 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="p-6 sm:p-8 pt-4 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-900/20 shrink-0 z-10">
-            <DialogFooter className="flex flex-row justify-between sm:justify-between items-center w-full gap-3 sm:gap-0">
+          <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/30 p-6 pt-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/20">
+            <DialogFooter className="flex w-full flex-row items-center justify-between gap-3 sm:justify-between sm:gap-0">
               {step > 1 ? (
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={handlePrevStep}
                   disabled={isSubmitting}
-                  className="h-12 px-6 rounded-2xl font-medium text-[11px] uppercase tracking-widest hover:bg-white dark:hover:bg-zinc-900 transition-all flex items-center gap-2"
+                  className="flex h-12 items-center gap-2 rounded-2xl px-6 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-white dark:hover:bg-zinc-900"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Назад
+                  <ArrowLeft className="size-4" /> Назад
                 </Button>
               ) : (
                 <Button
@@ -439,7 +439,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                   variant="ghost"
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="h-12 px-6 rounded-2xl font-medium text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-950 transition-all"
+                  className="h-12 rounded-2xl px-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:text-zinc-950"
                 >
                   Отказ
                 </Button>
@@ -452,20 +452,20 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     e.preventDefault();
                     handleNextStep();
                   }}
-                  className="h-12 px-8 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 font-medium text-[11px] uppercase tracking-widest shadow-xl shadow-zinc-950/10 transition-all active:scale-[0.98] flex items-center gap-2"
+                  className="active:scale-0.98 flex h-12 items-center gap-2 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
                 >
-                  Напред <ArrowRight className="h-4 w-4" />
+                  Напред <ArrowRight className="size-4" />
                 </Button>
               ) : (
                 <Button
                   type="submit"
                   form={formId}
                   disabled={isSubmitting}
-                  className="h-12 px-10 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 font-medium text-[11px] uppercase tracking-widest shadow-xl shadow-zinc-950/10 transition-all active:scale-[0.98]"
+                  className="active:scale-0.98 h-12 rounded-2xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <Loader2 className="mr-2 size-4 animate-spin" />{" "}
                       Запазване...
                     </>
                   ) : (

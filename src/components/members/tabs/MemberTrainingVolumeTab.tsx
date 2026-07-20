@@ -63,19 +63,19 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="size-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
   if (attendances.length === 0) {
     return (
-      <div className="text-center py-20 bg-zinc-50 rounded-2xl border border-zinc-200 border-dashed">
-        <Activity className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-zinc-900 mb-2">
+      <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
+        <Activity className="mx-auto mb-4 size-12 text-zinc-300" />
+        <h3 className="mb-2 text-lg font-bold text-zinc-900">
           Няма данни за натоварване
         </h3>
-        <p className="text-zinc-500 max-w-md mx-auto">
+        <p className="mx-auto max-w-md text-zinc-500">
           Този състезател все още няма записани присъствия в Универсалния
           Планировчик.
         </p>
@@ -110,13 +110,13 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card className="border-indigo-100 bg-indigo-50/50">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-black text-indigo-900">
               {attendances.length}
             </div>
-            <div className="text-xs text-indigo-700 font-medium uppercase tracking-wider">
+            <div className="text-xs font-medium tracking-wider text-indigo-700 uppercase">
               Общо Тренировки
             </div>
           </CardContent>
@@ -126,7 +126,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
             <div className="text-2xl font-black text-zinc-900">
               {indoorCount}
             </div>
-            <div className="text-xs text-zinc-500 font-medium uppercase tracking-wider">
+            <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
               В Зала
             </div>
           </CardContent>
@@ -136,7 +136,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
             <div className="text-2xl font-black text-zinc-900">
               {outdoorCount}
             </div>
-            <div className="text-xs text-zinc-500 font-medium uppercase tracking-wider">
+            <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
               На Открито
             </div>
           </CardContent>
@@ -146,17 +146,17 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
             <div className="text-2xl font-black text-rose-900">
               {medicalIssues}
             </div>
-            <div className="text-xs text-rose-700 font-medium uppercase tracking-wider">
+            <div className="text-xs font-medium tracking-wider text-rose-700 uppercase">
               Оплаквания
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-zinc-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-zinc-50 border-b border-zinc-100">
-          <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <Activity className="w-4 h-4 text-indigo-600" />
+      <Card className="overflow-hidden border-zinc-200 shadow-sm">
+        <CardHeader className="border-b border-zinc-100 bg-zinc-50">
+          <CardTitle className="flex items-center gap-2 text-sm font-bold">
+            <Activity className="size-4 text-indigo-600" />
             Мониторинг на Умората (RPE 1-10)
           </CardTitle>
         </CardHeader>
@@ -228,7 +228,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
       </Card>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-zinc-900 px-1">
+        <h3 className="px-1 text-sm font-bold text-zinc-900">
           История на присъствията
         </h3>
         {attendances
@@ -241,10 +241,10 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
             return (
               <div
                 key={att.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-zinc-200 rounded-xl gap-4"
+                className="flex flex-col items-start justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center"
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <span className="text-sm font-bold text-zinc-900">
                       {new Date(att.date).toLocaleDateString("bg-BG")}
                     </span>
@@ -259,7 +259,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     {att.medicalStatus === "discomfort" && (
                       <Badge
                         variant="outline"
-                        className="text-[9px] uppercase bg-amber-50 text-amber-700 border-amber-200"
+                        className="border-amber-200 bg-amber-50 text-[9px] text-amber-700 uppercase"
                       >
                         Болки
                       </Badge>
@@ -267,20 +267,20 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     {att.medicalStatus === "injured" && (
                       <Badge
                         variant="outline"
-                        className="text-[9px] uppercase bg-red-50 text-red-700 border-red-200"
+                        className="border-red-200 bg-red-50 text-[9px] text-red-700 uppercase"
                       >
                         Контузия
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs text-zinc-500 font-medium">
+                  <div className="text-xs font-medium text-zinc-500">
                     {s.title} •{" "}
                     {s.location === "indoor" ? "В зала" : "На открито"}
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="text-center">
-                    <div className="text-xs text-zinc-400 uppercase font-bold tracking-wider mb-0.5">
+                    <div className="mb-0.5 text-xs font-bold tracking-wider text-zinc-400 uppercase">
                       Умора
                     </div>
                     <div
@@ -290,7 +290,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xs text-zinc-400 uppercase font-bold tracking-wider mb-0.5">
+                    <div className="mb-0.5 text-xs font-bold tracking-wider text-zinc-400 uppercase">
                       Старание
                     </div>
                     <div className="text-lg font-black text-emerald-600">

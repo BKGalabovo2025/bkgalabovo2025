@@ -59,7 +59,7 @@ export default function NewRecoverySessionClient({
   }, [state, router]);
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12 duration-700 animate-in fade-in">
       <PageHeader
         title="Нова Процедура"
         description="Добавяне на нова процедура за възстановяване към каталога."

@@ -95,17 +95,17 @@ export const AddProductDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] rounded-4xl p-8 bg-white dark:bg-zinc-950 border-none shadow-xl">
+      <DialogContent className="rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-120 dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
             Добавяне на продукт
           </DialogTitle>
-          <DialogDescription className="font-light text-zinc-400 mt-1">
+          <DialogDescription className="mt-1 font-light text-zinc-400">
             Въведете детайлите за новия продукт в каталога.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4 mt-2">
+        <div className="mt-2 grid gap-4 py-4">
           <div className="grid gap-1.5">
             <Label
               htmlFor="name"
@@ -118,7 +118,7 @@ export const AddProductDialog = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="напр. Тениска BKG"
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -135,7 +135,7 @@ export const AddProductDialog = ({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="напр. Екипировка, Пера"
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -155,7 +155,7 @@ export const AddProductDialog = ({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0.00"
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -172,7 +172,7 @@ export const AddProductDialog = ({
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
                 placeholder="0"
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -191,7 +191,7 @@ export const AddProductDialog = ({
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="Линк към снимка..."
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -208,7 +208,7 @@ export const AddProductDialog = ({
                 value={restockThreshold}
                 onChange={(e) => setRestockThreshold(e.target.value)}
                 placeholder="напр. 5"
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -226,7 +226,7 @@ export const AddProductDialog = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Допълнителни детайли..."
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -237,14 +237,14 @@ export const AddProductDialog = ({
             variant="outline"
             onClick={onClose}
             disabled={isProcessing}
-            className="rounded-xl px-6 h-11"
+            className="h-11 rounded-xl px-6"
           >
             Отказ
           </Button>
           <Button
             onClick={handleAdd}
             disabled={isProcessing}
-            className="rounded-xl px-6 h-11 bg-zinc-950 text-white hover:bg-zinc-800"
+            className="h-11 rounded-xl bg-zinc-950 px-6 text-white hover:bg-zinc-800"
           >
             Добави продукт
           </Button>

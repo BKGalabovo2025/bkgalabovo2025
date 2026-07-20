@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function MarketingPage() {
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
       <PageHeader 
         title="Маркетинг и Комуникация" 
         description="Изпращане на съобщения и известия до членовете чрез WhatsApp и Имейл."

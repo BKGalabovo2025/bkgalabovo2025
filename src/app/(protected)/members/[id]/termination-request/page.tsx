@@ -30,10 +30,10 @@ const TerminationRequestPage = () => {
         <p>Моля, да прекратите членството на</p>
 
         <div className="text-center">
-          <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] font-bold text-base inline-block px-8">
+          <p className="inline-block min-h-[1.2rem] border-b border-dotted border-slate-400 px-8 text-base font-bold">
             {fullName}
           </p>
-          <p className="text-[9px] text-slate-500 italic mt-0.5">
+          <p className="mt-0.5 text-[9px] text-slate-500 italic">
             (име на детето/члена)
           </p>
         </div>
@@ -44,9 +44,9 @@ const TerminationRequestPage = () => {
           20............ г.
         </p>
 
-        <div className="space-y-4 my-6">
+        <div className="my-6 space-y-4">
           <p className="font-bold">Декларирам, че (отбележете с ✔):</p>
-          <div className="space-y-3 ml-4 text-xs">
+          <div className="ml-4 space-y-3 text-xs">
             <p className="flex gap-3">
               <span className="shrink-0">☐</span>
               <span>
@@ -66,9 +66,9 @@ const TerminationRequestPage = () => {
                   ............................................
                 </span>
               </p>
-              <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-4">
                 <span className="shrink-0">☐ Тениски:</span>
-                <p className="flex gap-2 items-center">
+                <p className="flex items-center gap-2">
                   <span>☐ бяла клубна,</span> <span>☐ синя клубна,</span>{" "}
                   <span>☐ друга клубна тениска</span>
                 </p>

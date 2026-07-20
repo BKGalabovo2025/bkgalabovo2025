@@ -113,7 +113,7 @@ const FamilyDetailsPage = () => {
 
   if (loading)
     return (
-      <div className="space-y-8 animate-pulse pb-12">
+      <div className="animate-pulse space-y-8 pb-12">
         <PageHeader
           title="Зареждане..."
           description="Моля изчакайте, докато заредим семейния профил."
@@ -123,9 +123,9 @@ const FamilyDetailsPage = () => {
             { label: "Семейство" },
           ]}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-[300px] w-full rounded-5xl" />
-          <Skeleton className="h-[300px] w-full rounded-5xl" />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Skeleton className="h-75 w-full rounded-5xl" />
+          <Skeleton className="h-75 w-full rounded-5xl" />
         </div>
       </div>
     );
@@ -137,7 +137,7 @@ const FamilyDetailsPage = () => {
           variant="destructive"
           className="rounded-2xl border-none shadow-lg"
         >
-          <AlertTitle className="font-black uppercase tracking-tight">
+          <AlertTitle className="font-black tracking-tight uppercase">
             Грешка
           </AlertTitle>
           <AlertDescription className="font-medium">{error}</AlertDescription>
@@ -149,7 +149,7 @@ const FamilyDetailsPage = () => {
     return (
       <div className="p-8">
         <Alert className="rounded-2xl border-none shadow-lg">
-          <AlertTitle className="font-black uppercase tracking-tight">
+          <AlertTitle className="font-black tracking-tight uppercase">
             Не е намерено семейство
           </AlertTitle>
           <AlertDescription className="font-medium">
@@ -160,7 +160,7 @@ const FamilyDetailsPage = () => {
     );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12 px-4 sm:px-0">
+    <div className="space-y-8 px-4 pb-12 duration-500 animate-in fade-in sm:px-0">
       <PageHeader
         title={family.name || "Семеен профил"}
         description={`Управление на членове и информация за семейство ${
@@ -173,12 +173,12 @@ const FamilyDetailsPage = () => {
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Family Info */}
-        <BentoCard className="lg:col-span-1 p-8 space-y-6 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-5xl shadow-none h-fit">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="p-4 bg-zinc-100 dark:bg-zinc-900 rounded-3xl">
-              <FamilyIcon className="h-12 w-12 text-zinc-500" />
+        <BentoCard className="h-fit space-y-6 rounded-5xl border border-zinc-100 bg-white p-8 shadow-none lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <div className="rounded-3xl bg-zinc-100 p-4 dark:bg-zinc-900">
+              <FamilyIcon className="size-12 text-zinc-500" />
             </div>
             <div className="w-full">
               {isEditingName ? (
@@ -186,7 +186,7 @@ const FamilyDetailsPage = () => {
                   <Input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white transition-all text-center font-bold"
+                    className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-bold transition-all focus:bg-white"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleUpdateName();
@@ -196,49 +196,49 @@ const FamilyDetailsPage = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 rounded-full text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
+                    className="size-8 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
                     onClick={handleUpdateName}
                     disabled={isSavingName}
                   >
                     {isSavingName ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="size-4 animate-spin" />
                     ) : (
-                      <Check className="h-4 w-4" />
+                      <Check className="size-4" />
                     )}
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2 group/title">
+                <div className="group/title flex items-center justify-center gap-2">
                   <h2 className="text-2xl font-bold tracking-tight">
                     {family.name}
                   </h2>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 rounded-full opacity-0 group-hover/title:opacity-100 transition-opacity text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"
+                    className="size-8 rounded-full text-zinc-400 opacity-0 transition-opacity group-hover/title:opacity-100 hover:bg-zinc-100 hover:text-zinc-600"
                     onClick={() => setIsEditingName(true)}
                   >
-                    <Pencil className="h-3.5 w-3.5" />
+                    <Pencil className="size-3.5" />
                   </Button>
                 </div>
               )}
               <Badge
                 variant="outline"
-                className="mt-2 rounded-lg font-medium text-[10px] uppercase tracking-widest px-3 py-1"
+                className="mt-2 rounded-lg px-3 py-1 text-[10px] font-medium tracking-widest uppercase"
               >
                 {members.length} ЧЛЕНА
               </Badge>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-zinc-50 dark:border-zinc-900">
-            <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">
+          <div className="border-t border-zinc-50 pt-6 dark:border-zinc-900">
+            <h3 className="mb-4 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
               Детайли
             </h3>
             <div className="space-y-4 text-sm font-medium">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-zinc-500">ID на семейството</span>
-                <span className="text-zinc-900 dark:text-white font-mono text-[10px]">
+                <span className="font-mono text-[10px] text-zinc-900 dark:text-white">
                   {family.id}
                 </span>
               </div>
@@ -246,20 +246,20 @@ const FamilyDetailsPage = () => {
           </div>
         </BentoCard>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-2">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 dark:text-white">
+        <div className="space-y-6 lg:col-span-2">
+          <div className="flex flex-col items-start justify-between gap-4 px-2 sm:flex-row sm:items-center">
+            <h3 className="text-sm font-bold tracking-widest text-zinc-900 uppercase dark:text-white">
               Членове на семейството
             </h3>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                className="rounded-full gap-2 border-zinc-200 hidden sm:flex h-9 text-[10px] uppercase tracking-widest font-bold"
+                className="hidden h-9 gap-2 rounded-full border-zinc-200 text-[10px] font-bold tracking-widest uppercase sm:flex"
                 onClick={() =>
                   router.push(`/members/new?familyId=${family.id}`)
                 }
               >
-                <PlusCircle className="h-3.5 w-3.5" />
+                <PlusCircle className="size-3.5" />
                 Нов член
               </Button>
               <AddMemberToFamilyDialog
@@ -269,25 +269,25 @@ const FamilyDetailsPage = () => {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {members.map((member) => (
               <BentoCard
                 key={member.id}
-                className="p-6 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all cursor-pointer border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-3xl shadow-none"
+                className="group flex cursor-pointer items-center justify-between rounded-3xl border border-zinc-100 bg-white p-6 shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900"
                 onClick={() => router.push(`/members/${member.id}`)}
               >
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12 rounded-2xl border-2 border-white dark:border-zinc-800 shadow-sm">
+                  <Avatar className="size-12 rounded-2xl border-2 border-white shadow-sm dark:border-zinc-800">
                     <AvatarImage src={member.avatarUrl || undefined} />
-                    <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl">
-                      <User className="h-5 w-5" />
+                    <AvatarFallback className="rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
+                      <User className="size-5" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="font-bold text-zinc-900 dark:text-white">
                       {member.firstName} {member.lastName}
                     </span>
-                    <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       {member.status === "active" ? "Активен" : "Неактивен"}
                     </span>
                   </div>
@@ -296,7 +296,7 @@ const FamilyDetailsPage = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                    className="size-8 rounded-full text-rose-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600"
                     disabled={removingId !== null}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -304,12 +304,12 @@ const FamilyDetailsPage = () => {
                     }}
                   >
                     {removingId === member.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="size-4 animate-spin" />
                     ) : (
-                      <X className="h-4 w-4" />
+                      <X className="size-4" />
                     )}
                   </Button>
-                  <ChevronRight className="h-5 w-5 text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
+                  <ChevronRight className="size-5 text-zinc-300 transition-colors group-hover:text-zinc-900 dark:group-hover:text-white" />
                 </div>
               </BentoCard>
             ))}
@@ -319,10 +319,10 @@ const FamilyDetailsPage = () => {
 
       {/* Family Financial History */}
       <div className="space-y-6 pt-4">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 dark:text-white px-2">
+        <h3 className="px-2 text-sm font-bold tracking-widest text-zinc-900 uppercase dark:text-white">
           Финансова история на семейството
         </h3>
-        <BentoCard className="p-8 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-5xl shadow-none">
+        <BentoCard className="rounded-5xl border border-zinc-100 bg-white p-8 shadow-none dark:border-zinc-900 dark:bg-zinc-950">
           <MemberSalesHistory
             memberId={family.memberIds?.[0] || ""}
             memberIds={family.memberIds || []}

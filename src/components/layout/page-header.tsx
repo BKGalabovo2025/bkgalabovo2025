@@ -28,7 +28,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <div className={cn("space-y-6 mb-12", className)}>
+    <div className={cn("mb-12 space-y-6", className)}>
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
@@ -37,12 +37,12 @@ export function PageHeader({
                 {crumb.href ? (
                   <BreadcrumbLink
                     href={crumb.href}
-                    className="text-zinc-600 dark:text-zinc-400 hover:text-primary transition-colors text-xs uppercase tracking-widest font-medium"
+                    className="text-xs font-medium tracking-widest text-zinc-600 uppercase transition-colors hover:text-primary dark:text-zinc-400"
                   >
                     {crumb.label}
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage className="text-zinc-900 dark:text-white text-xs uppercase tracking-widest font-medium">
+                  <BreadcrumbPage className="text-xs font-medium tracking-widest text-zinc-900 uppercase dark:text-white">
                     {crumb.label}
                   </BreadcrumbPage>
                 )}
@@ -54,13 +54,13 @@ export function PageHeader({
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div className="space-y-2">
           <h1 className="text-4xl font-normal tracking-tight text-zinc-900 dark:text-white">
             {title}
           </h1>
           {description && (
-            <p className="text-zinc-500 dark:text-zinc-400 max-w-2xl font-light leading-relaxed">
+            <p className="max-w-2xl leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           )}

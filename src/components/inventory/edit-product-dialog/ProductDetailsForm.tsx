@@ -21,8 +21,8 @@ export const ProductDetailsForm = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <Sparkles className="h-4 w-4 text-primary" strokeWidth={2} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <Sparkles className="size-4 text-primary" strokeWidth={2} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Информация за продукта</h3>
       </div>
 
@@ -36,7 +36,7 @@ export const ProductDetailsForm = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="напр. Грип Pro's Pro"
-            className="rounded-xl h-11"
+            className="h-11 rounded-xl"
             disabled={isProcessing}
           />
         </div>
@@ -50,7 +50,7 @@ export const ProductDetailsForm = () => {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="напр. Грипове, Пера, Екипировка"
-            className="rounded-xl h-11"
+            className="h-11 rounded-xl"
             disabled={isProcessing}
           />
         </div>
@@ -67,7 +67,7 @@ export const ProductDetailsForm = () => {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -81,7 +81,7 @@ export const ProductDetailsForm = () => {
               value={restockThreshold}
               onChange={(e) => setRestockThreshold(e.target.value)}
               placeholder="напр. 5"
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -96,7 +96,7 @@ export const ProductDetailsForm = () => {
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             placeholder="Линк към снимка на артикула..."
-            className="rounded-xl h-11"
+            className="h-11 rounded-xl"
             disabled={isProcessing}
           />
         </div>
@@ -120,7 +120,7 @@ export const ProductDetailsForm = () => {
       <Button
         onClick={handleUpdateInfo}
         disabled={isProcessing}
-        className="w-full rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 h-12 font-medium text-[11px] uppercase tracking-widest transition-all mt-4"
+        className="mt-4 h-12 w-full rounded-xl bg-zinc-950 text-[11px] font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800"
       >
         Запази информацията
       </Button>

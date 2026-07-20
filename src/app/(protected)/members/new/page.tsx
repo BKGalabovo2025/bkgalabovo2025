@@ -63,7 +63,7 @@ const NewMemberPage = () => {
 
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-4">
+      <h1 className="mb-4 text-2xl font-bold">
         {type === "guest"
           ? "Добавяне на външен клиент (гост)"
           : "Добавяне на нов член"}

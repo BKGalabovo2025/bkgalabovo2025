@@ -31,71 +31,71 @@ export default function FinancesDashboardCharts({
   const { totalRevenue, transactionCount, averageTransactionValue } = data;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 duration-500 animate-in fade-in">
       {/* 1. Бързи финансови карти */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl flex flex-col justify-between h-44 hover:shadow-xl hover:shadow-zinc-100 transition-all duration-300">
-          <div className="flex justify-between items-start">
-            <div className="p-3 bg-emerald-50 rounded-2xl">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <BentoCard className="flex h-44 flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-8 shadow-none transition-all duration-300 hover:shadow-xl hover:shadow-zinc-100">
+          <div className="flex items-start justify-between">
+            <div className="rounded-2xl bg-emerald-50 p-3">
               <CircleDollarSign
-                className="h-6 w-6 text-emerald-600"
+                className="size-6 text-emerald-600"
                 strokeWidth={1.5}
               />
             </div>
-            <div className="flex items-center gap-1 text-emerald-600 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 px-2.5 py-1 rounded-full">
-              <TrendingUp className="h-3 w-3" /> +30 дни
+            <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+              <TrendingUp className="size-3" /> +30 дни
             </div>
           </div>
           <div>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em] font-medium">
+            <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Общ приход
             </p>
-            <p className="text-3xl font-light tracking-tighter text-zinc-950 mt-1">
+            <p className="mt-1 text-3xl font-light tracking-tighter text-zinc-950">
               {formatPrice(totalRevenue)}
             </p>
           </div>
         </BentoCard>
 
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl flex flex-col justify-between h-44 hover:shadow-xl hover:shadow-zinc-100 transition-all duration-300">
-          <div className="flex justify-between items-start">
-            <div className="p-3 bg-indigo-50 rounded-2xl">
+        <BentoCard className="flex h-44 flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-8 shadow-none transition-all duration-300 hover:shadow-xl hover:shadow-zinc-100">
+          <div className="flex items-start justify-between">
+            <div className="rounded-2xl bg-indigo-50 p-3">
               <CreditCard
-                className="h-6 w-6 text-indigo-600"
+                className="size-6 text-indigo-600"
                 strokeWidth={1.5}
               />
             </div>
-            <div className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 px-2.5 py-1 rounded-full">
+            <div className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold tracking-wider text-indigo-600 uppercase">
               Реални плащания
             </div>
           </div>
           <div>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em] font-medium">
+            <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Брой транзакции
             </p>
-            <p className="text-3xl font-light tracking-tighter text-zinc-950 mt-1">
+            <p className="mt-1 text-3xl font-light tracking-tighter text-zinc-950">
               {transactionCount}{" "}
               <span className="text-sm font-normal text-zinc-400">платени</span>
             </p>
           </div>
         </BentoCard>
 
-        <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl flex flex-col justify-between h-44 hover:shadow-xl hover:shadow-zinc-100 transition-all duration-300">
-          <div className="flex justify-between items-start">
-            <div className="p-3 bg-amber-50 rounded-2xl">
+        <BentoCard className="flex h-44 flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-8 shadow-none transition-all duration-300 hover:shadow-xl hover:shadow-zinc-100">
+          <div className="flex items-start justify-between">
+            <div className="rounded-2xl bg-amber-50 p-3">
               <TrendingUp
-                className="h-6 w-6 text-amber-600"
+                className="size-6 text-amber-600"
                 strokeWidth={1.5}
               />
             </div>
-            <div className="text-amber-600 text-[10px] font-bold uppercase tracking-wider bg-amber-50 px-2.5 py-1 rounded-full">
+            <div className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold tracking-wider text-amber-600 uppercase">
               Средно на чек
             </div>
           </div>
           <div>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em] font-medium">
+            <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Средна стойност
             </p>
-            <p className="text-3xl font-light tracking-tighter text-zinc-950 mt-1">
+            <p className="mt-1 text-3xl font-light tracking-tighter text-zinc-950">
               {formatPrice(averageTransactionValue)}
             </p>
           </div>

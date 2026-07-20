@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-conditional */
+ 
 import { getDocs, query, where } from "firebase/firestore";
 import { RankingEntry } from "@/types/ranking.types";
 import {

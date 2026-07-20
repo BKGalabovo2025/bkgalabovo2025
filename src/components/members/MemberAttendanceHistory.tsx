@@ -149,7 +149,7 @@ export function MemberAttendanceHistory({
     return (
       <div className="flex justify-center py-20">
         <Loader2
-          className="h-8 w-8 animate-spin text-zinc-200"
+          className="size-8 animate-spin text-zinc-200"
           strokeWidth={1.5}
         />
       </div>
@@ -158,14 +158,14 @@ export function MemberAttendanceHistory({
 
   if (totalEvents === 0) {
     return (
-      <div className="p-16 text-center bg-white border border-zinc-100 rounded-5xl">
-        <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <CalendarX className="h-8 w-8 text-zinc-200" strokeWidth={1} />
+      <div className="rounded-5xl border border-zinc-100 bg-white p-16 text-center">
+        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-50">
+          <CalendarX className="size-8 text-zinc-200" strokeWidth={1} />
         </div>
-        <h3 className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest3 mb-3">
+        <h3 className="tracking-widest3 mb-3 text-[11px] font-medium text-zinc-400 uppercase">
           Няма регистрирани присъствия
         </h3>
-        <p className="max-w-md mx-auto text-sm font-light text-zinc-400 leading-relaxed">
+        <p className="mx-auto max-w-md text-sm leading-relaxed font-light text-zinc-400">
           Когато този член бъде маркиран като присъствал на събитие, записите ще
           се появят тук.
         </p>
@@ -174,61 +174,61 @@ export function MemberAttendanceHistory({
   }
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-12">
+    <div className="space-y-12 rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="p-6 sm:p-8 bg-zinc-950 rounded-3xl sm:rounded-5xl text-white flex flex-col justify-between h-32 sm:h-40 shadow-xl shadow-zinc-950/10">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex h-32 flex-col justify-between rounded-3xl bg-zinc-950 p-6 text-white shadow-xl shadow-zinc-950/10 sm:h-40 sm:rounded-5xl sm:p-8">
+          <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Общо посещения
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-3xl sm:text-5xl font-light tracking-tighter">
+            <h2 className="text-3xl font-light tracking-tighter sm:text-5xl">
               {totalEvents}
             </h2>
-            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm sm:size-12">
               <Dumbbell
-                className="h-4 w-4 sm:h-5 sm:w-5 text-white"
+                className="size-4 text-white sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8 bg-white border border-zinc-100 rounded-3xl sm:rounded-5xl flex flex-col justify-between h-32 sm:h-40">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-6 sm:h-40 sm:rounded-5xl sm:p-8">
+          <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Последна активност
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-base sm:text-xl font-light text-zinc-950">
+            <h2 className="text-base font-light text-zinc-950 sm:text-xl">
               {attendedEvents.length > 0
                 ? format(new Date(attendedEvents[0].startDate), "dd MMM", {
                     locale: bg,
                   })
                 : "—"}
             </h2>
-            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 sm:size-12">
               <CalendarIcon
-                className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-300"
+                className="size-4 text-zinc-300 sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8 bg-white border border-zinc-100 rounded-3xl sm:rounded-5xl flex flex-col justify-between h-32 sm:h-40 sm:col-span-2 lg:col-span-1">
-          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-6 sm:col-span-2 sm:h-40 sm:rounded-5xl sm:p-8 lg:col-span-1">
+          <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Месечен статус
           </p>
           <div className="flex items-end justify-between">
             <Badge
               variant="outline"
-              className="bg-green-50 text-green-600 border-green-100 rounded-full px-3 py-0.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-widest"
+              className="rounded-full border-green-100 bg-green-50 px-3 py-0.5 text-[9px] font-medium tracking-widest text-green-600 uppercase sm:text-[10px]"
             >
               Активен
             </Badge>
-            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 sm:size-12">
               <Trophy
-                className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-300"
+                className="size-4 text-zinc-300 sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
@@ -239,15 +239,15 @@ export function MemberAttendanceHistory({
       <div className="space-y-16">
         {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
           <div key={monthKey} className="relative">
-            <div className="flex items-center gap-6 mb-8">
-              <h3 className="text-sm font-medium text-zinc-950 uppercase tracking-widest2 shrink-0">
+            <div className="mb-8 flex items-center gap-6">
+              <h3 className="tracking-widest2 shrink-0 text-sm font-medium text-zinc-950 uppercase">
                 {monthData.monthName}{" "}
-                <span className="text-zinc-300 ml-1">{monthData.year}</span>
+                <span className="ml-1 text-zinc-300">{monthData.year}</span>
               </h3>
-              <div className="h-px bg-zinc-100 grow" />
+              <div className="h-px grow bg-zinc-100" />
               <Badge
                 variant="outline"
-                className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest border-zinc-100 text-zinc-400 bg-zinc-50/50"
+                className="rounded-full border-zinc-100 bg-zinc-50/50 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
               >
                 {monthData.total} посещения
               </Badge>
@@ -262,22 +262,22 @@ export function MemberAttendanceHistory({
 
                 return (
                   <div key={type} className="group/section">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className={cn("p-2 rounded-xl", details.bgColor)}>
+                    <div className="mb-6 flex items-center gap-4">
+                      <div className={cn("rounded-xl p-2", details.bgColor)}>
                         <details.icon
-                          className={cn("h-4 w-4", details.color)}
+                          className={cn("size-4", details.color)}
                           strokeWidth={1.5}
                         />
                       </div>
-                      <h4 className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+                      <h4 className="tracking-widest2 text-[10px] font-medium text-zinc-400 uppercase">
                         {details.translation}{" "}
-                        <span className="text-zinc-200 ml-1">
+                        <span className="ml-1 text-zinc-200">
                           / {events.length}
                         </span>
                       </h4>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {events.map((event) => (
                         <MemberAttendanceEventCard
                           key={event.id}
@@ -327,25 +327,25 @@ function MemberAttendanceEventCard({
   return (
     <div
       onClick={() => router.push(`/schedule?eventId=${event.id}`)}
-      className="group relative bg-white border border-zinc-100 rounded-3xl p-6 hover:border-zinc-900 transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-950/5 cursor-pointer"
+      className="group relative cursor-pointer rounded-3xl border border-zinc-100 bg-white p-6 transition-all duration-500 hover:border-zinc-900 hover:shadow-2xl hover:shadow-zinc-950/5"
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-medium text-zinc-950 group-hover:text-zinc-900 transition-colors">
+          <p className="text-xs font-medium text-zinc-950 transition-colors group-hover:text-zinc-900">
             {event.title}
           </p>
-          <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
+          <p className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">
             {format(new Date(event.startDate), "dd MMMM", { locale: bg })}
           </p>
         </div>
         <div
           className={cn(
-            "p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500",
+            "rounded-lg p-1.5 opacity-0 transition-all duration-500 group-hover:opacity-100",
             details.bgColor
           )}
         >
           <details.icon
-            className={cn("h-3 w-3", details.color)}
+            className={cn("size-3", details.color)}
             strokeWidth={2}
           />
         </div>
@@ -358,7 +358,7 @@ function MemberAttendanceEventCard({
             "mb-3",
             payStatus === "paid" &&
               saleId &&
-              "cursor-pointer hover:opacity-80 transition-opacity"
+              "cursor-pointer transition-opacity hover:opacity-80"
           )}
           title={
             payStatus === "paid" && saleId ? "Към разписката" : undefined
@@ -371,56 +371,56 @@ function MemberAttendanceEventCard({
           }}
         >
           {payStatus === "paid" && payType === "subscription" && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
               <CheckCircle2
-                className="h-3 w-3 text-emerald-500"
+                className="size-3 text-emerald-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
+              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 uppercase">
                 Платено – Абонамент
               </span>
             </div>
           )}
           {payStatus === "paid" && payType === "individual" && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1">
               <CreditCard
-                className="h-3 w-3 text-blue-500"
+                className="size-3 text-blue-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-blue-700">
+              <span className="text-[9px] font-semibold tracking-widest text-blue-700 uppercase">
                 Платено – Еднократно
               </span>
             </div>
           )}
           {payStatus === "paid" && !payType && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
               <CheckCircle2
-                className="h-3 w-3 text-emerald-500"
+                className="size-3 text-emerald-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-emerald-700">
+              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 uppercase">
                 Платено
               </span>
             </div>
           )}
           {(payStatus === "unpaid" || !payStatus) && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1">
               <XCircle
-                className="h-3 w-3 text-rose-500"
+                className="size-3 text-rose-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-rose-700">
+              <span className="text-[9px] font-semibold tracking-widest text-rose-700 uppercase">
                 {payStatus === "unpaid" ? "Неплатено (Дълг)" : "Неплатено"}
               </span>
             </div>
           )}
           {payDate && payStatus === "paid" && (
-            <div className="flex items-center gap-1 mt-1">
+            <div className="mt-1 flex items-center gap-1">
               <Receipt
-                className="h-2.5 w-2.5 text-zinc-300"
+                className="size-2.5 text-zinc-300"
                 strokeWidth={1.5}
               />
-              <span className="text-[8px] text-zinc-400 font-light">
+              <span className="text-[8px] font-light text-zinc-400">
                 Платено на: {new Date(payDate).toLocaleDateString("bg-BG")}
                 {saleId && (
                   <span className="ml-1 text-zinc-300">
@@ -433,17 +433,17 @@ function MemberAttendanceEventCard({
         </div>
       )}
 
-      <div className="flex items-center gap-4 mt-auto pt-4 border-t border-zinc-50">
+      <div className="mt-auto flex items-center gap-4 border-t border-zinc-50 pt-4">
         <div className="flex items-center gap-1.5">
-          <Clock className="h-3 w-3 text-zinc-300" />
-          <span className="text-[10px] font-light text-zinc-400 uppercase tracking-widest">
+          <Clock className="size-3 text-zinc-300" />
+          <span className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">
             {formatTimeRange(event.startDate, event.endDate)}
           </span>
         </div>
         {event.location && (
-          <div className="flex items-center gap-1.5 ml-auto">
-            <MapPin className="h-3 w-3 text-zinc-300" />
-            <span className="text-[10px] font-light text-zinc-400 truncate max-w-[80px]">
+          <div className="ml-auto flex items-center gap-1.5">
+            <MapPin className="size-3 text-zinc-300" />
+            <span className="max-w-20 truncate text-[10px] font-light text-zinc-400">
               {event.location}
             </span>
           </div>

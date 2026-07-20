@@ -413,12 +413,12 @@ export default function ScheduleClient() {
   const renderEventsTabContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center py-40 space-y-6">
+        <div className="flex flex-col items-center justify-center space-y-6 py-40">
           <Loader2
-            className="h-12 w-12 animate-spin text-primary opacity-20"
+            className="size-12 animate-spin text-primary opacity-20"
             strokeWidth={1}
           />
-          <p className="text-zinc-400 font-medium uppercase tracking-[0.2em] text-[10px]">
+          <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
             Зареждане на събития...
           </p>
         </div>
@@ -427,15 +427,15 @@ export default function ScheduleClient() {
     
     if (errorObject) {
       return (
-        <div className="text-center py-40 text-rose-500 flex flex-col items-center">
+        <div className="flex flex-col items-center py-40 text-center text-rose-500">
           <AlertTriangle
-            className="h-12 w-12 mb-6 opacity-20"
+            className="mb-6 size-12 opacity-20"
             strokeWidth={1}
           />
-          <p className="font-light text-2xl text-zinc-900 dark:text-white">
+          <p className="text-2xl font-light text-zinc-900 dark:text-white">
             Грешка при зареждане
           </p>
-          <p className="text-zinc-400 text-sm mt-2 font-light">
+          <p className="mt-2 text-sm font-light text-zinc-400">
             {errorObject.message}
           </p>
         </div>
@@ -512,8 +512,8 @@ export default function ScheduleClient() {
       return (
         <div className="flex items-center gap-3">
           <ReservationDialog mode={mode} onSave={handleSaveReservation}>
-            <Button className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all">
-              <Plus className="mr-3 h-4 w-4" strokeWidth={2.5} /> Нова
+            <Button className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90">
+              <Plus className="mr-3 size-4" strokeWidth={2.5} /> Нова
               Резервация {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
             </Button>
           </ReservationDialog>
@@ -524,10 +524,10 @@ export default function ScheduleClient() {
             >
               <Button
                 variant="outline"
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 h-12 px-6 font-medium text-[11px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-none"
+                className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               >
                 <ShieldAlert
-                  className="mr-3 h-4 w-4 text-zinc-400"
+                  className="mr-3 size-4 text-zinc-400"
                   strokeWidth={1.5}
                 />
                 Блокирай
@@ -542,16 +542,16 @@ export default function ScheduleClient() {
           <Button
             variant="outline"
             onClick={() => setMonthlyDialogOpen(true)}
-            className="rounded-xl border-zinc-200 dark:border-zinc-800 h-12 px-6 font-medium text-[11px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-none"
+            className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
           >
-            <Repeat className="mr-3 h-4 w-4" strokeWidth={1.5} /> Шаблонен
+            <Repeat className="mr-3 size-4" strokeWidth={1.5} /> Шаблонен
             график
           </Button>
           <Button
             onClick={() => setCreateDialogOpen(true)}
-            className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
+            className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
           >
-            <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Създай
+            <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Създай
             събитие
           </Button>
         </div>
@@ -560,7 +560,7 @@ export default function ScheduleClient() {
   }, [activeMainTab, isRecoveryZone, activeBranch]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 duration-500 animate-in fade-in">
       <PageHeader
         title={!isRecoveryZone ? "График" : "Резервации & Релакс"}
         description={getPageDescription()}
@@ -574,14 +574,14 @@ export default function ScheduleClient() {
 
       {/* Top-Level Main Tabs (Hidden in Recovery Zone) */}
       {!isRecoveryZone && (
-        <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-8 mb-4">
+        <div className="mb-4 flex gap-8 border-b border-zinc-200 dark:border-zinc-800">
           <button
             onClick={() => setActiveMainTab("events")}
             className={cn(
-              "pb-4 text-xs font-semibold tracking-widest uppercase transition-all border-b-2 relative",
+              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
               activeMainTab === "events"
                 ? "border-primary text-zinc-950 dark:text-white"
-                : "border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             )}
           >
             Тренировки & Събития
@@ -589,10 +589,10 @@ export default function ScheduleClient() {
           <button
             onClick={() => setActiveMainTab("courts")}
             className={cn(
-              "pb-4 text-xs font-semibold tracking-widest uppercase transition-all border-b-2 relative",
+              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
               activeMainTab === "courts"
                 ? "border-primary text-zinc-950 dark:text-white"
-                : "border-transparent text-zinc-400 hover:text-zinc-650"
+                : "hover:text-zinc-650 border-transparent text-zinc-400"
             )}
           >
             Резервация на кортове
@@ -600,10 +600,10 @@ export default function ScheduleClient() {
           <button
             onClick={() => setActiveMainTab("recovery")}
             className={cn(
-              "pb-4 text-xs font-semibold tracking-widest uppercase transition-all border-b-2 relative",
+              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
               activeMainTab === "recovery"
                 ? "border-primary text-zinc-950 dark:text-white"
-                : "border-transparent text-zinc-400 hover:text-zinc-650"
+                : "hover:text-zinc-650 border-transparent text-zinc-400"
             )}
           >
             Резервация за възстановяване
@@ -619,41 +619,41 @@ export default function ScheduleClient() {
           defaultValue="current"
           className="w-full"
         >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-            <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-full md:w-fit border border-zinc-100 dark:border-zinc-800">
+          <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <TabsList className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 p-1 md:w-fit dark:border-zinc-800 dark:bg-zinc-900">
               <TabsTrigger
                 value="current"
-                className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
+                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
               >
                 Текущи
               </TabsTrigger>
               <TabsTrigger
                 value="upcoming"
-                className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
+                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
               >
                 <span className="flex items-center gap-2">
                   Предстоящи
                   {isUpcomingLoading && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="size-1.5 animate-pulse rounded-full bg-primary" />
                   )}
                 </span>
               </TabsTrigger>
               <TabsTrigger
                 value="past"
-                className="rounded-xl px-8 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-primary transition-all py-3"
+                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
               >
                 <span className="flex items-center gap-2">
                   Минали
                   {isPastLoading && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="size-1.5 animate-pulse rounded-full bg-primary" />
                   )}
                 </span>
               </TabsTrigger>
             </TabsList>
 
-            <div className="w-full md:w-[300px] flex items-center gap-3">
-              <div className="h-12 w-12 flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                <Filter className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
+            <div className="flex w-full items-center gap-3 md:w-75">
+              <div className="flex size-12 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
+                <Filter className="size-4 text-zinc-400" strokeWidth={1.5} />
               </div>
               <Select
                 onValueChange={(value) =>
@@ -663,11 +663,11 @@ export default function ScheduleClient() {
               >
                 <SelectTrigger
                   aria-label="Филтрирай по тип събитие"
-                  className="h-12 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-none font-light text-sm focus:ring-primary"
+                  className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                 >
                   <SelectValue placeholder="Филтрирай по тип" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800 shadow-none bg-white dark:bg-zinc-950">
+                <SelectContent className="rounded-xl border-zinc-100 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                   <SelectItem
                     value="all"
                     className="rounded-lg text-sm font-light"
@@ -697,34 +697,34 @@ export default function ScheduleClient() {
         <Tabs
           value={activeReservationTab}
           onValueChange={setActiveReservationTab}
-          className="space-y-6 w-full"
+          className="w-full space-y-6"
         >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-zinc-950 p-3 pr-5 rounded-4xl border border-zinc-100 dark:border-zinc-900 shadow-sm shadow-black/2">
-            <TabsList className="bg-zinc-100/50 dark:bg-zinc-900/50 p-1 rounded-3xl h-14 border border-zinc-200/50 dark:border-zinc-800/50">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-4xl border border-zinc-100 bg-white p-3 pr-5 shadow-sm shadow-black/2 md:flex-row dark:border-zinc-900 dark:bg-zinc-950">
+            <TabsList className="h-14 rounded-3xl border border-zinc-200/50 bg-zinc-100/50 p-1 dark:border-zinc-800/50 dark:bg-zinc-900/50">
               <TabsTrigger
                 value="schedule"
-                className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+                className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="size-4" />
                 Дневен График
               </TabsTrigger>
               <TabsTrigger
                 value="history"
-                className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+                className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
               >
-                <History className="h-4 w-4" />
+                <History className="size-4" />
                 История
               </TabsTrigger>
             </TabsList>
 
             {activeReservationTab === "schedule" && (
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="flex items-center gap-4 border-r border-zinc-100 dark:border-zinc-900 pr-6">
-                  <div className="h-10 w-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary border border-primary/10">
-                    <CalendarIcon className="h-4 w-4" strokeWidth={2} />
+              <div className="flex flex-col items-center gap-6 md:flex-row">
+                <div className="flex items-center gap-4 border-r border-zinc-100 pr-6 dark:border-zinc-900">
+                  <div className="flex size-10 items-center justify-center rounded-xl border border-primary/10 bg-primary/5 text-primary">
+                    <CalendarIcon className="size-4" strokeWidth={2} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-white">
                       {currentDate.toLocaleDateString("bg-BG", {
                         day: "2-digit",
                         month: "long",
@@ -732,7 +732,7 @@ export default function ScheduleClient() {
                       })}
                       {new Date().toDateString() ===
                         currentDate.toDateString() && (
-                        <span className="text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[8px] font-bold tracking-wider text-primary uppercase">
                           Днес
                         </span>
                       )}
@@ -740,19 +740,19 @@ export default function ScheduleClient() {
                   </div>
                 </div>
 
-                <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1 rounded-2xl gap-1 border border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-1 rounded-2xl border border-zinc-100 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={goToPreviousDay}
-                    className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                    className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                   >
-                    <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+                    <ChevronLeft className="size-4" strokeWidth={2} />
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={goToToday}
-                    className="px-6 h-10 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                    className="h-10 rounded-xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                   >
                     Днес
                   </Button>
@@ -760,9 +760,9 @@ export default function ScheduleClient() {
                     variant="ghost"
                     size="icon"
                     onClick={goToNextDay}
-                    className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                    className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                   >
-                    <ChevronRight className="h-4 w-4" strokeWidth={2} />
+                    <ChevronRight className="size-4" strokeWidth={2} />
                   </Button>
                 </div>
               </div>
@@ -770,7 +770,7 @@ export default function ScheduleClient() {
           </div>
 
           <TabsContent value="schedule" className="mt-0 outline-none">
-            <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
+            <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-sm shadow-black/2 dark:border-zinc-900 dark:bg-zinc-950">
               <div className="bg-white dark:bg-zinc-950">
                 <AgendaView
                   key={`${currentDate.toISOString()}-${refreshKey}-${activeMainTab}`}
@@ -826,23 +826,23 @@ export default function ScheduleClient() {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-4xl border-none shadow-none bg-white dark:bg-zinc-950 p-10 max-w-md">
+        <AlertDialogContent className="max-w-md rounded-4xl border-none bg-white p-10 shadow-none dark:bg-zinc-950">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-light text-zinc-900 dark:text-white leading-tight">
+            <AlertDialogTitle className="text-2xl leading-tight font-light text-zinc-900 dark:text-white">
               Наистина ли искате да изтриете това събитие?
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-light text-zinc-400 text-sm mt-4 leading-relaxed">
+            <AlertDialogDescription className="mt-4 text-sm leading-relaxed font-light text-zinc-400">
               Това действие не може да бъде отменено. Записът ще бъде премахнат
               окончателно от базата данни.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-10 gap-3">
-            <AlertDialogCancel className="rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-6 border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            <AlertDialogCancel className="h-12 rounded-xl border-zinc-100 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900">
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none"
+              className="h-12 rounded-xl bg-rose-500 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-rose-600"
             >
               Изтрий
             </AlertDialogAction>
@@ -890,10 +890,10 @@ function EventsList({
 
   if (finalTotalEvents === 0) {
     return (
-      <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10 shadow-none">
-        <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
+      <BentoCard className="flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-40 text-center shadow-none dark:border-zinc-900 dark:bg-zinc-900/10">
+        <div className="mb-10 flex size-32 items-center justify-center rounded-full border border-zinc-100 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
           <CalendarDays
-            className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
+            className="size-12 text-zinc-200 dark:text-zinc-700"
             strokeWidth={1}
           />
         </div>
@@ -902,7 +902,7 @@ function EventsList({
             ? `Няма ${tabTranslations[activeTab]} събития`
             : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
         </h3>
-        <p className="text-zinc-400 mt-4 font-light max-w-sm leading-relaxed">
+        <p className="mt-4 max-w-sm leading-relaxed font-light text-zinc-400">
           Можете да промените филтрите или да създадете ново събитие, за да
           започнете.
         </p>
@@ -916,7 +916,7 @@ function EventsList({
         {Object.entries(grouped).map(([month, monthEvents]) => (
           <div key={month} className="space-y-8">
             <div className="flex items-center gap-6 px-1">
-              <h2 className="text-[11px] font-medium uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 shrink-0">
+              <h2 className="shrink-0 text-[11px] font-medium tracking-[0.4em] text-zinc-600 uppercase dark:text-zinc-400">
                 {month}
               </h2>
               <div className="h-px w-full bg-zinc-100 dark:bg-zinc-900"></div>
@@ -941,20 +941,20 @@ function EventsList({
       </div>
 
       {activeTab === "past" && finalTotalEvents > EVENTS_PER_PAGE && (
-        <div className="flex justify-center items-center gap-8 mt-16 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-zinc-100 dark:border-zinc-900 w-fit mx-auto shadow-none">
+        <div className="mx-auto mt-16 flex w-fit items-center justify-center gap-8 rounded-2xl border border-zinc-100 bg-white p-2 shadow-none dark:border-zinc-900 dark:bg-zinc-950">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             aria-label="Предишна страница"
-            className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+            className="size-12 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900"
           >
-            <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
+            <ChevronLeft className="size-5" strokeWidth={1.5} />
           </Button>
-          <span className="font-medium text-[11px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 px-4">
+          <span className="px-4 text-[11px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
             Страница {currentPage}{" "}
-            <span className="text-zinc-200 dark:text-zinc-800 mx-4">/</span>{" "}
+            <span className="mx-4 text-zinc-200 dark:text-zinc-800">/</span>{" "}
             {Math.ceil(finalTotalEvents / EVENTS_PER_PAGE)}
           </span>
           <Button
@@ -963,9 +963,9 @@ function EventsList({
             onClick={() => setCurrentPage((prev) => prev + 1)}
             disabled={currentPage * EVENTS_PER_PAGE >= finalTotalEvents}
             aria-label="Следваща страница"
-            className="rounded-xl h-12 w-12 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+            className="size-12 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900"
           >
-            <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
+            <ChevronRight className="size-5" strokeWidth={1.5} />
           </Button>
         </div>
       )}

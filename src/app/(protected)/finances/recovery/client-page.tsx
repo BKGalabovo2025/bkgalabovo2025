@@ -48,7 +48,7 @@ export default function RecoveryClientPage({
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-bold">{row.original.name}</span>
-          <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+          <span className="text-[10px] tracking-wider text-zinc-400 uppercase">
             {row.original.category}
           </span>
         </div>
@@ -68,11 +68,11 @@ export default function RecoveryClientPage({
       accessorKey: "zones",
       header: "Зони",
       cell: ({ row }) => (
-        <div className="flex gap-1 flex-wrap">
+        <div className="flex flex-wrap gap-1">
           {row.original.zones?.map((zone) => (
             <span
               key={zone}
-              className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[10px] font-medium"
+              className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium dark:bg-zinc-800"
             >
               {zone}
             </span>
@@ -95,11 +95,11 @@ export default function RecoveryClientPage({
   ];
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700 pb-24">
+    <div className="space-y-12 pb-24 duration-700 animate-in fade-in">
       {!showPageHeader ? (
-        <div className="flex justify-between items-center px-2 flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+            <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
               Каталог Възстановяване
             </h3>
             <p className="text-[11px] text-zinc-400">
@@ -110,29 +110,29 @@ export default function RecoveryClientPage({
             <Tabs
               value={view}
               onValueChange={(v) => setView(v as "grid" | "table")}
-              className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
+              className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex"
             >
-              <TabsList className="bg-transparent h-9 border-none">
+              <TabsList className="h-9 border-none bg-transparent">
                 <TabsTrigger
                   value="grid"
                   className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="size-4" />
                 </TabsTrigger>
                 <TabsTrigger
                   value="table"
                   className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <List className="h-4 w-4" />
+                  <List className="size-4" />
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Button
               onClick={() => router.push("/finances/recovery/new")}
-              className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+              className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
             >
-              <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} />{" "}
+              <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} />{" "}
               Добави процедура
             </Button>
           </div>
@@ -151,29 +151,29 @@ export default function RecoveryClientPage({
             <Tabs
               value={view}
               onValueChange={(v) => setView(v as "grid" | "table")}
-              className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
+              className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex"
             >
-              <TabsList className="bg-transparent h-9 border-none">
+              <TabsList className="h-9 border-none bg-transparent">
                 <TabsTrigger
                   value="grid"
                   className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="size-4" />
                 </TabsTrigger>
                 <TabsTrigger
                   value="table"
                   className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <List className="h-4 w-4" />
+                  <List className="size-4" />
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Button
               onClick={() => router.push("/finances/recovery/new")}
-              className="rounded-2xl shadow-xl shadow-zinc-200 bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+              className="h-12 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800"
             >
-              <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Добави
+              <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Добави
               процедура
             </Button>
           </div>
@@ -181,39 +181,39 @@ export default function RecoveryClientPage({
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex justify-between items-center mb-12 flex-wrap gap-4 px-2">
-          <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl w-fit border border-zinc-100 dark:border-zinc-800 mb-0">
+        <div className="mb-12 flex flex-wrap items-center justify-between gap-4 px-2">
+          <TabsList className="mb-0 w-fit rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
               value="services"
-              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <LayoutGrid className="mr-3 h-4 w-4" strokeWidth={1.5} /> Услуги
+              <LayoutGrid className="mr-3 size-4" strokeWidth={1.5} /> Услуги
             </TabsTrigger>
             <TabsTrigger
               value="packages"
-              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <PackageSearch className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              <PackageSearch className="mr-3 size-4" strokeWidth={1.5} />{" "}
               Пакети
             </TabsTrigger>
             <TabsTrigger
               value="reservations"
-              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <CalendarDays className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              <CalendarDays className="mr-3 size-4" strokeWidth={1.5} />{" "}
               Резервации
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <History className="mr-3 h-4 w-4" strokeWidth={1.5} /> Движения
+              <History className="mr-3 size-4" strokeWidth={1.5} /> Движения
             </TabsTrigger>
             <TabsTrigger
               value="sales"
-              className="rounded-xl px-10 font-medium text-[11px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-emerald-500 transition-all py-3"
+              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 h-4 w-4" strokeWidth={1.5} />{" "}
+              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} />{" "}
               Продажби
             </TabsTrigger>
           </TabsList>
@@ -223,20 +223,20 @@ export default function RecoveryClientPage({
               <Tabs
                 value={view}
                 onValueChange={(v) => setView(v as "grid" | "table")}
-                className="bg-zinc-50 p-1 rounded-xl border border-zinc-100 hidden md:flex"
+                className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex"
               >
-                <TabsList className="bg-transparent h-9 border-none">
+                <TabsList className="h-9 border-none bg-transparent">
                   <TabsTrigger
                     value="grid"
                     className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                   >
-                    <LayoutGrid className="h-4 w-4" />
+                    <LayoutGrid className="size-4" />
                   </TabsTrigger>
                   <TabsTrigger
                     value="table"
                     className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                   >
-                    <List className="h-4 w-4" />
+                    <List className="size-4" />
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -251,7 +251,7 @@ export default function RecoveryClientPage({
               onSale={(service) => setSelectedSaleService(service)}
             />
           ) : (
-            <BentoCard className="p-8 overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
+            <BentoCard className="overflow-hidden rounded-5xl border border-zinc-100 bg-white p-8 shadow-none">
               <DataTable
                 columns={columns}
                 data={data}
@@ -260,21 +260,21 @@ export default function RecoveryClientPage({
                 isLoading={false}
                 emptyStateMessage="Няма намерени процедури."
                 renderMobileCard={(service: ClubService) => (
-                  <div className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors">
-                    <div className="flex justify-between items-start">
+                  <div className="flex flex-col gap-3 p-4 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-sm text-zinc-900 dark:text-white">
+                        <div className="text-sm font-medium text-zinc-900 dark:text-white">
                           {service.name}
                         </div>
-                        <div className="text-[10px] text-zinc-500 uppercase tracking-wider mt-1">
+                        <div className="mt-1 text-[10px] tracking-wider text-zinc-500 uppercase">
                           {service.category} • {service.durationMinutes} мин
                         </div>
                         {service.zones && service.zones.length > 0 && (
-                          <div className="flex gap-1 flex-wrap mt-2">
+                          <div className="mt-2 flex flex-wrap gap-1">
                             {service.zones.map((zone) => (
                               <span
                                 key={zone}
-                                className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px] font-medium text-zinc-600 dark:text-zinc-400"
+                                className="rounded bg-zinc-100 px-2 py-0.5 text-[9px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                               >
                                 {zone}
                               </span>
@@ -283,13 +283,13 @@ export default function RecoveryClientPage({
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <div className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg text-xs shrink-0 whitespace-nowrap">
+                        <div className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-emerald-600 dark:bg-emerald-900/30">
                           {formatPrice(service.price)}
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-[10px] px-2 text-zinc-500"
+                          className="h-7 px-2 text-[10px] text-zinc-500"
                           onClick={() =>
                             router.push(`/finances/recovery/${service.id}`)
                           }
@@ -306,25 +306,25 @@ export default function RecoveryClientPage({
         </TabsContent>
 
         <TabsContent value="packages" className="animate-in fade-in">
-          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+          <BentoCard className="h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
             <RecoveryClientPackages />
           </BentoCard>
         </TabsContent>
 
         <TabsContent value="reservations" className="animate-in fade-in">
-          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+          <BentoCard className="h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
             <RecoveryReservationsHistory />
           </BentoCard>
         </TabsContent>
 
         <TabsContent value="history" className="animate-in fade-in">
-          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+          <BentoCard className="h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
             <RecoveryHistory />
           </BentoCard>
         </TabsContent>
 
         <TabsContent value="sales" className="animate-in fade-in">
-          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl h-[calc(100vh-16rem)]">
+          <BentoCard className="h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
             <RecoverySalesHistory />
           </BentoCard>
         </TabsContent>

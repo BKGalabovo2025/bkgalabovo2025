@@ -52,22 +52,22 @@ const GeneralServiceSaleWizardContent = () => {
   };
 
   return (
-    <DialogContent className="sm:max-w-[600px] p-8 sm:p-10 rounded-5xl bg-white dark:bg-zinc-950 border-none shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <DialogContent className="custom-scrollbar max-h-[90vh] overflow-y-auto rounded-5xl border-none bg-white p-8 shadow-2xl sm:max-w-150 sm:p-10 dark:bg-zinc-950">
       <DialogHeader className="mb-6">
-        <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50 flex items-center gap-3">
-          <ShoppingBag className="h-6 w-6 text-emerald-500" strokeWidth={1.5} />
+        <DialogTitle className="flex items-center gap-3 text-2xl font-light text-zinc-950 dark:text-zinc-50">
+          <ShoppingBag className="size-6 text-emerald-500" strokeWidth={1.5} />
           Продажба: {service.name}
         </DialogTitle>
-        <DialogDescription className="font-light text-zinc-500 mt-1">
+        <DialogDescription className="mt-1 font-light text-zinc-500">
           {renderStepDescription()}
         </DialogDescription>
       </DialogHeader>
 
       {/* STEP PROGRESS BAR */}
       {step < 4 && (
-        <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded-full mb-8 overflow-hidden">
+        <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
           <div
-            className="bg-emerald-500 h-full transition-all duration-300"
+            className="h-full bg-emerald-500 transition-all duration-300"
             // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${(step / 3) * 100}%` }}
           />
@@ -81,23 +81,23 @@ const GeneralServiceSaleWizardContent = () => {
 
       {/* DIALOG FOOTER: NAVIGATION BUTTONS */}
       {step < 4 && (
-        <DialogFooter className="px-8 py-6 border-t border-zinc-100 dark:border-zinc-900 flex flex-row justify-between items-center sm:justify-between mt-6 -mx-8 -mb-10 w-[calc(100%+4rem)] bg-white dark:bg-zinc-950 rounded-b-5xl">
+        <DialogFooter className="-mx-8 mt-6 -mb-10 flex w-[calc(100%+4rem)] flex-row items-center justify-between rounded-b-5xl border-t border-zinc-100 bg-white px-8 py-6 sm:justify-between dark:border-zinc-900 dark:bg-zinc-950">
           <div>
             {step > 1 ? (
               <Button
                 variant="outline"
                 onClick={handlePrevStep}
                 disabled={isProcessing}
-                className="rounded-xl px-5 h-11 flex items-center gap-2 text-zinc-500 hover:text-zinc-800"
+                className="flex h-11 items-center gap-2 rounded-xl px-5 text-zinc-500 hover:text-zinc-800"
               >
-                <ArrowLeft className="h-4 w-4" /> Назад
+                <ArrowLeft className="size-4" /> Назад
               </Button>
             ) : (
               <Button
                 variant="outline"
                 onClick={handleClose}
                 disabled={isProcessing}
-                className="rounded-xl px-5 h-11 text-zinc-500 hover:text-zinc-800"
+                className="h-11 rounded-xl px-5 text-zinc-500 hover:text-zinc-800"
               >
                 Отказ
               </Button>
@@ -109,17 +109,17 @@ const GeneralServiceSaleWizardContent = () => {
               <Button
                 onClick={handleExecuteSale}
                 disabled={isProcessing}
-                className="rounded-xl px-8 h-11 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                className="flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-8 text-[11px] font-medium tracking-widest text-white uppercase hover:bg-emerald-600"
               >
-                Завърши продажбата <Check className="h-4 w-4" />
+                Завърши продажбата <Check className="size-4" />
               </Button>
             ) : (
               <Button
                 onClick={handleNextStep}
                 disabled={isProcessing}
-                className="rounded-xl px-6 h-11 bg-zinc-950 hover:bg-zinc-800 text-white flex items-center gap-2 font-medium text-[11px] uppercase tracking-widest"
+                className="flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-6 text-[11px] font-medium tracking-widest text-white uppercase hover:bg-zinc-800"
               >
-                Напред <ArrowRight className="h-3.5 w-3.5" />
+                Напред <ArrowRight className="size-3.5" />
               </Button>
             )}
           </div>
@@ -127,10 +127,10 @@ const GeneralServiceSaleWizardContent = () => {
       )}
 
       {step >= 5 && (
-        <DialogFooter className="px-8 py-6 border-t border-zinc-100 dark:border-zinc-900 flex justify-end mt-6 -mx-8 -mb-10 w-[calc(100%+4rem)] bg-white dark:bg-zinc-950 rounded-b-5xl">
+        <DialogFooter className="-mx-8 mt-6 -mb-10 flex w-[calc(100%+4rem)] justify-end rounded-b-5xl border-t border-zinc-100 bg-white px-8 py-6 dark:border-zinc-900 dark:bg-zinc-950">
           <Button
             onClick={handleClose}
-            className="rounded-xl px-8 h-11 bg-zinc-950 hover:bg-zinc-800 text-white font-medium text-[11px] uppercase tracking-widest"
+            className="h-11 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase hover:bg-zinc-800"
           >
             Затвори
           </Button>

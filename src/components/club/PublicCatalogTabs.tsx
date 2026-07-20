@@ -104,58 +104,58 @@ export default function PublicCatalogTabs({
   return (
     <div className="space-y-8">
       {/* Search and Navigation Bar */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-6 bg-zinc-900/50 border border-zinc-800/80 p-4 rounded-3xl backdrop-blur-md">
+      <div className="flex flex-col items-center justify-center gap-6 rounded-3xl border border-zinc-800/80 bg-zinc-900/50 p-4 backdrop-blur-md md:flex-row">
         {/* Tabs switcher */}
-        <div className="grid grid-cols-2 lg:flex lg:items-center p-1 bg-zinc-950/80 border border-zinc-800/50 rounded-2xl w-full lg:w-auto gap-1">
+        <div className="grid w-full grid-cols-2 gap-1 rounded-2xl border border-zinc-800/50 bg-zinc-950/80 p-1 lg:flex lg:w-auto lg:items-center">
           {allowedTabs.includes("trainings") && (
             <button
               onClick={() => handleTabChange("trainings")}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
                 activeTab === "trainings"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Trophy size={16} className="sm:w-4 sm:h-4" />
+              <Trophy size={16} className="sm:size-4" />
               Тренировки
             </button>
           )}
           {allowedTabs.includes("general") && (
             <button
               onClick={() => handleTabChange("general")}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
                 activeTab === "general"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Activity size={16} className="sm:w-4 sm:h-4" />
+              <Activity size={16} className="sm:size-4" />
               Клубни Услуги
             </button>
           )}
           {allowedTabs.includes("products") && (
             <button
               onClick={() => handleTabChange("products")}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
                 activeTab === "products"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Package size={16} className="sm:w-4 sm:h-4" />
+              <Package size={16} className="sm:size-4" />
               Магазин
             </button>
           )}
           {allowedTabs.includes("recovery") && (
             <button
               onClick={() => handleTabChange("recovery")}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 w-full text-center ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
                 activeTab === "recovery"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Zap size={16} className="sm:w-4 sm:h-4" />
+              <Zap size={16} className="sm:size-4" />
               Възстановяване
             </button>
           )}
@@ -164,18 +164,18 @@ export default function PublicCatalogTabs({
 
       {/* Category Pills */}
       {categories.length > 2 && (
-        <div className="flex flex-wrap gap-2 items-center px-1">
-          <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold mr-2">
+        <div className="flex flex-wrap items-center gap-2 px-1">
+          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
             Категория:
           </span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all border ${
+              className={`rounded-full border px-4 py-1.5 text-[10px] font-semibold tracking-wider uppercase transition-all ${
                 selectedCategory === cat
-                  ? "bg-white text-zinc-950 border-white"
-                  : "bg-zinc-900/40 text-zinc-400 border-zinc-800/80 hover:text-white hover:border-zinc-700"
+                  ? "border-white bg-white text-zinc-950"
+                  : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
               }`}
             >
               {cat === "all" ? "Всички" : cat}
@@ -186,15 +186,15 @@ export default function PublicCatalogTabs({
 
       {/* Catalog Grid View */}
       {filteredItems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
             <CatalogCard key={item.id} item={item} tab={activeTab} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-zinc-400 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/10 py-20 text-zinc-400">
           <ShoppingBag
-            className="h-10 w-10 text-zinc-700 mb-3"
+            className="mb-3 size-10 text-zinc-700"
             strokeWidth={1.5}
           />
           <p className="text-sm font-light">Няма намерени артикули.</p>
@@ -229,15 +229,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
       return [];
     }
-    return item.imageUrl.split(",").filter(Boolean).map((url: string) => {
-      let validUrl = url;
-      if (validUrl.includes("\\public\\")) {
-        validUrl = "/" + validUrl.split("\\public\\")[1].replace(/\\/g, "/");
-      } else if (validUrl.includes("/public/")) {
-        validUrl = "/" + validUrl.split("/public/")[1];
-      }
-      return validUrl;
-    }).filter((url: string) => url.startsWith("/") || url.startsWith("http") || url.startsWith("data:"));
+    return item.imageUrl.split(",").filter(Boolean);
   }, [item.imageUrl, item.name, item.zones]);
 
   const displayMode = item.imageDisplayMode || "collage";
@@ -282,20 +274,20 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
       if (isOutOfStock) {
         return (
-          <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-none text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 border">
+          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none">
             Изчерпан
           </Badge>
         );
       }
       if (isLowStock) {
         return (
-          <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-none text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 border">
+          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none">
             Ограничен ({item.stock} бр.)
           </Badge>
         );
       }
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-none text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 border">
+        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none">
           В наличност
         </Badge>
       );
@@ -305,7 +297,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
     const category = item.category || item.type || "";
     if (category) {
       return (
-        <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-none text-[9px] uppercase tracking-wider font-semibold px-2.5 py-0.5 border">
+        <Badge className="border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-blue-400 uppercase shadow-none">
           {category}
         </Badge>
       );
@@ -316,12 +308,12 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
   const getTabIcon = (currentTab: string) => {
     if (currentTab === "trainings")
-      return <Trophy className="h-12 w-12 opacity-35" strokeWidth={1} />;
+      return <Trophy className="size-12 opacity-35" strokeWidth={1} />;
     if (currentTab === "general")
-      return <Activity className="h-12 w-12 opacity-35" strokeWidth={1} />;
+      return <Activity className="size-12 opacity-35" strokeWidth={1} />;
     if (currentTab === "recovery")
-      return <Zap className="h-12 w-12 opacity-35" strokeWidth={1} />;
-    return <ShoppingBag className="h-12 w-12 opacity-35" strokeWidth={1} />;
+      return <Zap className="size-12 opacity-35" strokeWidth={1} />;
+    return <ShoppingBag className="size-12 opacity-35" strokeWidth={1} />;
   };
 
   const getTabLabel = (currentTab: string) => {
@@ -334,9 +326,9 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   const renderImages = () => {
     if (images.length === 0) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
+        <div className="flex size-full flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
           {getTabIcon(tab)}
-          <span className="text-[9px] font-semibold uppercase tracking-widest opacity-40 mt-3">
+          <span className="mt-3 text-[9px] font-semibold tracking-widest uppercase opacity-40">
             Няма снимка
           </span>
         </div>
@@ -345,11 +337,11 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
     if (displayMode === "collage") {
       return (
-        <div className="flex w-full h-full">
+        <div className="flex size-full">
           {images.map((imgUrl: string, idx: number) => (
             <div
               key={imgUrl}
-              className="h-full relative overflow-hidden"
+              className="relative h-full overflow-hidden"
               // eslint-disable-next-line react/forbid-dom-props
               style={{ width: `${100 / images.length}%` }}
             >
@@ -359,10 +351,10 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 fill
                 priority={true}
                 sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
               {idx > 0 && (
-                <div className="absolute left-0 top-0 bottom-0 w-px bg-white/20 z-10" />
+                <div className="absolute inset-y-0 left-0 z-10 w-px bg-white/20" />
               )}
             </div>
           ))}
@@ -377,29 +369,29 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
           alt={item.name}
           sizes="(max-width: 768px) 100vw, 33vw"
           priority={true}
-          className="object-cover group-hover:scale-110 transition-transform duration-700"
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
           fill
         />
         {images.length > 1 && (
           <>
             <button
               onClick={prevImg}
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+              className="absolute top-1/2 left-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={nextImg}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-zinc-900/80 border border-zinc-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-zinc-800"
+              className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
             >
               <ChevronRight size={16} />
             </button>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
               {images.map((_: any, i: number) => (
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeImgIndex === i ? "bg-white w-4" : "bg-white/40 w-1.5"
+                    activeImgIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/40"
                   }`}
                 />
               ))}
@@ -411,9 +403,9 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   };
 
   return (
-    <BentoCard className="group relative overflow-hidden bg-zinc-900 border border-zinc-800/80 shadow-none hover:border-zinc-700/80 hover:shadow-2xl hover:shadow-blue-900/5 transition-all duration-500 rounded-3xl flex flex-col h-full min-h-[420px]">
+    <BentoCard className="group relative flex h-full min-h-105 flex-col overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-500 hover:border-zinc-700/80 hover:shadow-2xl hover:shadow-blue-900/5">
       {/* Product Image section with navigation */}
-      <div className="relative h-56 w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-800/60 shrink-0">
+      <div className="relative flex h-56 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-800/60 bg-zinc-950">
         {renderImages()}
 
         {/* Top Floating Badge */}
@@ -421,26 +413,26 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
       </div>
 
       {/* Product Content Details */}
-      <div className="p-6 flex-1 flex flex-col justify-between">
+      <div className="flex flex-1 flex-col justify-between p-6">
         <div>
           {(item.category || item.sessionType) && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div className="mb-2 flex flex-wrap gap-1.5">
               {item.category && (
-                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-800/50 px-2 py-0.5 rounded-md">
+                <span className="rounded-md bg-zinc-800/50 px-2 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
                   {item.category}
                 </span>
               )}
               {item.sessionType && (
-                <span className="text-[9px] font-black uppercase tracking-widest text-cyan-500 bg-cyan-900/30 px-2 py-0.5 rounded-md">
+                <span className="rounded-md bg-cyan-900/30 px-2 py-0.5 text-[9px] font-black tracking-widest text-cyan-500 uppercase">
                   {item.sessionType}
                 </span>
               )}
             </div>
           )}
-          <h2 className="text-base font-semibold leading-snug text-white group-hover:text-blue-400 transition-colors duration-300 min-h-10 flex items-center">
+          <h2 className="flex min-h-10 items-center text-base leading-snug font-semibold text-white transition-colors duration-300 group-hover:text-blue-400">
             {item.name}
           </h2>
-          <p className="text-zinc-400 text-xs font-light leading-relaxed mt-3 line-clamp-3 min-h-14">
+          <p className="mt-3 line-clamp-3 min-h-14 text-xs leading-relaxed font-light text-zinc-400">
             {item.description || "Няма предоставено описание за този артикул."}
           </p>
 
@@ -451,7 +443,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 const zText = getZonesDisplayText();
                 if (!zText) return null;
                 return (
-                  <span className="px-3 py-1 bg-cyan-950/40 border border-cyan-900/50 rounded-full text-[10px] uppercase tracking-wider text-cyan-400 font-medium">
+                  <span className="rounded-full border border-cyan-900/50 bg-cyan-950/40 px-3 py-1 text-[10px] font-medium tracking-wider text-cyan-400 uppercase">
                     {zText}
                   </span>
                 );
@@ -460,22 +452,22 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
           )}
 
           {/* Features */}
-          <div className="space-y-3 pt-4 mt-4 border-t border-zinc-800/50">
+          <div className="mt-4 space-y-3 border-t border-zinc-800/50 pt-4">
             {(item.duration || item.durationMinutes) && (
               <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Clock className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <Clock className="size-4 text-zinc-500" strokeWidth={1.5} />
                 <span>{item.duration || item.durationMinutes} минути</span>
               </div>
             )}
             {item.athleteCount && (
               <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Users className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <Users className="size-4 text-zinc-500" strokeWidth={1.5} />
                 <span>{item.athleteCount} спортисти</span>
               </div>
             )}
             {(item.numberOfDays || 1) >= 1 && (
               <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Calendar className="h-4 w-4 text-zinc-500" strokeWidth={1.5} />
+                <Calendar className="size-4 text-zinc-500" strokeWidth={1.5} />
                 <span>
                   {item.numberOfDays || 1} дни / {item.proceduresPerDay || 1}{" "}
                   процедури на ден
@@ -486,9 +478,9 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
         </div>
 
         {/* Bottom Pricing & Details bar */}
-        <div className="pt-5 border-t border-zinc-800/80 mt-6 flex justify-between items-end">
+        <div className="mt-6 flex items-end justify-between border-t border-zinc-800/80 pt-5">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest">
+            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase">
               Цена
             </span>
             <span className="text-xl font-medium tracking-tight text-white">
@@ -499,12 +491,12 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="h-7 w-7 flex items-center justify-center rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors border border-blue-500/20"
+              className="flex size-7 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-colors hover:bg-blue-500/20 hover:text-blue-300"
               title="Детайли"
             >
               <Eye size={14} />
             </button>
-            <Badge className="bg-zinc-950 text-zinc-400 border-zinc-800/60 shadow-none font-medium text-[8px] uppercase tracking-wider px-2.5 py-1 flex items-center gap-1 border">
+            <Badge className="flex items-center gap-1 border border-zinc-800/60 bg-zinc-950 px-2.5 py-1 text-[8px] font-medium tracking-wider text-zinc-400 uppercase shadow-none">
               {getTabLabel(tab)}
             </Badge>
           </div>
@@ -512,7 +504,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-zinc-950 border-zinc-800 p-0 overflow-hidden">
+        <DialogContent className="overflow-hidden border-zinc-800 bg-zinc-950 p-0 sm:max-w-150">
           <div className="relative h-64 w-full bg-black">
             {images.length > 0 ? (
               <Image
@@ -522,8 +514,8 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 className="object-cover opacity-80"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-zinc-900/40 text-zinc-700">
-                <span className="text-[10px] uppercase tracking-widest font-semibold">
+              <div className="flex size-full items-center justify-center bg-zinc-900/40 text-zinc-700">
+                <span className="text-[10px] font-semibold tracking-widest uppercase">
                   Няма снимка
                 </span>
               </div>
@@ -532,13 +524,13 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
             <div className="absolute top-4 left-4">{renderBadges()}</div>
           </div>
 
-          <div className="p-6 md:p-8 relative -mt-16">
-            <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 shadow-2xl mb-6">
+          <div className="relative -mt-16 p-6 md:p-8">
+            <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-2xl backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-white mb-2 leading-tight">
+                <DialogTitle className="mb-2 text-2xl leading-tight font-bold text-white">
                   {item.name}
                 </DialogTitle>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div className="text-xl font-medium tracking-tight text-blue-400">
                     {item.price > 0
                       ? item.price.toFixed(2) + " EUR"
@@ -560,13 +552,13 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                         href={"https://wa.me/359899829923?text=" + waMsg}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-green-600/20"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-green-600/20 transition-colors hover:bg-green-700"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
                           fill="currentColor"
-                          className="w-4 h-4"
+                          className="size-4"
                         >
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                         </svg>
@@ -578,7 +570,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               </DialogHeader>
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-6">
+            <div className="custom-scrollbar max-h-75 space-y-6 overflow-y-auto pr-2">
               {/* Additional Metadata */}
               {(item.duration ||
                 item.durationMinutes ||
@@ -589,7 +581,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                   {(item.duration || item.durationMinutes) && (
                     <Badge
                       variant="outline"
-                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
                       Продължителност: {item.duration || item.durationMinutes}{" "}
                       мин
@@ -598,7 +590,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                   {item.athleteCount && (
                     <Badge
                       variant="outline"
-                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
                       Капацитет: {item.athleteCount} спортисти
                     </Badge>
@@ -606,7 +598,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                   {(item.numberOfDays || 1) >= 1 && (
                     <Badge
                       variant="outline"
-                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
                       {item.numberOfDays || 1} дни /{" "}
                       {item.proceduresPerDay || 1} процедури на ден
@@ -615,7 +607,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                   {item.zones && (
                     <Badge
                       variant="outline"
-                      className="bg-zinc-900 border-zinc-700 text-zinc-300 rounded-md text-xs px-3 py-1"
+                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
                       {getZonesDisplayText()}
                     </Badge>
@@ -625,32 +617,32 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
               {/* Resources */}
               {item.requiredResources && (
-                <div className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800/50 mt-4">
-                  <h4 className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold mb-3">
+                <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
+                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                     Ресурси
                   </h4>
                   <div className="flex flex-wrap gap-4">
                     {(item.requiredResources.compressors ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span className="size-1.5 rounded-full bg-emerald-400" />
                         {item.requiredResources.compressors} компресора
                       </div>
                     )}
                     {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        <span className="size-1.5 rounded-full bg-blue-400" />
                         {item.requiredResources.attachments?.arms} РЪЦЕ
                       </div>
                     )}
                     {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        <span className="size-1.5 rounded-full bg-cyan-400" />
                         {item.requiredResources.attachments?.legs} КРАКА
                       </div>
                     )}
                     {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                        <span className="size-1.5 rounded-full bg-purple-400" />
                         {item.requiredResources.attachments?.hips} ТАЗ
                       </div>
                     )}
@@ -658,7 +650,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 </div>
               )}
 
-              <DialogDescription className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
+              <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
                 {item.description ||
                   "Няма предоставено описание за този артикул."}
               </DialogDescription>

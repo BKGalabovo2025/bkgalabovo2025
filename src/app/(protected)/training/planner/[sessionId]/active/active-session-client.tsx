@@ -290,8 +290,8 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
   if (isLoading || !session) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-100 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -305,15 +305,15 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   );
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-32">
+    <div className="mx-auto max-w-5xl p-4 pb-32 sm:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <Button
           variant="ghost"
           onClick={() => router.push("/training/planner")}
           className="text-zinc-500"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 size-4" />
           Назад
         </Button>
         <div className="text-right">
@@ -326,7 +326,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       </div>
 
       {/* Interval Timer Panel */}
-      <Card className="mb-8 border-indigo-100 shadow-sm bg-zinc-950 text-white overflow-hidden">
+      <Card className="mb-8 overflow-hidden border-indigo-100 bg-zinc-950 text-white shadow-sm">
         <CardContent className="p-0">
           {activeExercise ? (
             <div
@@ -344,25 +344,25 @@ export default function ActiveSessionClient({ sessionId }: Props) {
               <div className="mb-4">
                 <Badge
                   variant="outline"
-                  className="text-indigo-300 border-indigo-500/30 mb-2"
+                  className="mb-2 border-indigo-500/30 text-indigo-300"
                 >
                   {activeExercise.category.toUpperCase()}
                 </Badge>
-                <h2 className="text-2xl sm:text-3xl font-black text-white">
+                <h2 className="text-2xl font-black text-white sm:text-3xl">
                   {activeExercise.name}
                 </h2>
                 {activeExercise.defaultSets && (
-                  <p className="text-zinc-400 mt-2 font-medium">
+                  <p className="mt-2 font-medium text-zinc-400">
                     Серия {currentSet} от {activeExercise.defaultSets}
                   </p>
                 )}
               </div>
 
-              <div className="text-7xl sm:text-9xl font-black tracking-tighter mb-2 tabular-nums">
+              <div className="mb-2 text-7xl font-black tracking-tighter tabular-nums sm:text-9xl">
                 {formatTime(timeRemaining)}
               </div>
 
-              <div className="text-xl font-bold mb-8 uppercase tracking-widest text-white/50">
+              <div className="mb-8 text-xl font-bold tracking-widest text-white/50 uppercase">
                 {timerState === "work"
                   ? "РАБОТА"
                   : timerState === "rest"
@@ -379,7 +379,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                     onClick={() => toggleTimerPause()}
                     className="bg-white text-zinc-950 hover:bg-zinc-200"
                   >
-                    <Pause className="w-5 h-5" />
+                    <Pause className="size-5" />
                   </Button>
                 )}
                 {timerState !== "finished" && (
@@ -389,7 +389,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                     onClick={skipInterval}
                     className="border-white/20 hover:bg-white/10"
                   >
-                    <SkipForward className="w-5 h-5 mr-2" /> Пропусни
+                    <SkipForward className="mr-2 size-5" /> Пропусни
                   </Button>
                 )}
                 <Button size="lg" variant="destructive" onClick={stopExercise}>
@@ -398,21 +398,21 @@ export default function ActiveSessionClient({ sessionId }: Props) {
               </div>
             </div>
           ) : (
-            <div className="p-6 bg-zinc-900">
-              <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                <Timer className="w-5 h-5" />
+            <div className="bg-zinc-900 p-6">
+              <div className="mb-4 flex items-center gap-2 text-zinc-400">
+                <Timer className="size-5" />
                 <h3 className="font-bold">
                   План на тренировката (Изберете за старт)
                 </h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="custom-scrollbar grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
                 {uniqueExercises.map((ex) => (
                   <div
                     key={ex.id}
-                    className="flex justify-between items-center bg-zinc-800 p-3 rounded-xl border border-zinc-700"
+                    className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
                   >
                     <div>
-                      <div className="font-bold text-sm text-zinc-100">
+                      <div className="text-sm font-bold text-zinc-100">
                         {ex.name}
                       </div>
                       <div className="text-xs text-zinc-400">
@@ -426,7 +426,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                       onClick={() => startExercise(ex)}
                       className="bg-indigo-600 hover:bg-indigo-500"
                     >
-                      <Play className="w-4 h-4 mr-1" /> Старт
+                      <Play className="mr-1 size-4" /> Старт
                     </Button>
                   </div>
                 ))}
@@ -438,8 +438,8 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
       {/* Members List */}
       <div className="mb-8">
-        <div className="flex justify-between items-end mb-4">
-          <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-900">
             Присъствия и Натоварване
           </h2>
           <Badge variant="secondary" className="text-sm">
@@ -455,16 +455,16 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             return (
               <div
                 key={member.id}
-                className={`p-4 rounded-xl border transition-all ${isPresent ? "border-indigo-200 bg-white shadow-sm" : "border-zinc-200 bg-zinc-50/50"}`}
+                className={`rounded-xl border p-4 transition-all ${isPresent ? "border-indigo-200 bg-white shadow-sm" : "border-zinc-200 bg-zinc-50/50"}`}
               >
                 <div className="flex items-center gap-4">
                   <Checkbox
                     checked={isPresent}
                     onCheckedChange={() => toggleAttendance(member.id)}
-                    className="w-6 h-6 rounded-md"
+                    className="size-6 rounded-md"
                   />
                   <div className="flex-1">
-                    <div className="font-bold text-zinc-900 text-lg">
+                    <div className="text-lg font-bold text-zinc-900">
                       {member.firstName} {member.lastName}
                     </div>
                   </div>
@@ -541,13 +541,13 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                 </div>
 
                 {isPresent && (
-                  <div className="mt-6 pt-4 border-t border-zinc-100 grid grid-cols-1 sm:grid-cols-2 gap-8 animate-in fade-in duration-300">
+                  <div className="mt-6 grid grid-cols-1 gap-8 border-t border-zinc-100 pt-4 duration-300 animate-in fade-in sm:grid-cols-2">
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         <Label className="flex items-center gap-2 text-zinc-600">
-                          <Activity className="w-4 h-4" /> RPE (Умора: 1-10)
+                          <Activity className="size-4" /> RPE (Умора: 1-10)
                         </Label>
-                        <span className="font-black text-lg text-indigo-600">
+                        <span className="text-lg font-black text-indigo-600">
                           {att.rpe}
                         </span>
                       </div>
@@ -566,18 +566,18 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                         }
                         className="w-full accent-indigo-600"
                       />
-                      <div className="flex justify-between text-[10px] text-zinc-400 uppercase font-bold tracking-wider">
+                      <div className="flex justify-between text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                         <span>Много леко</span>
                         <span>Изтощение</span>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         <Label className="flex items-center gap-2 text-zinc-600">
-                          <Target className="w-4 h-4" /> Старание (1-5)
+                          <Target className="size-4" /> Старание (1-5)
                         </Label>
-                        <span className="font-black text-lg text-emerald-600">
+                        <span className="text-lg font-black text-emerald-600">
                           {att.effort}
                         </span>
                       </div>
@@ -596,7 +596,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                         }
                         className="w-full accent-emerald-600"
                       />
-                      <div className="flex justify-between text-[10px] text-zinc-400 uppercase font-bold tracking-wider">
+                      <div className="flex justify-between text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                         <span>Слабо</span>
                         <span>Перфектно</span>
                       </div>
@@ -614,24 +614,24 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         <Label>Треньорски Дневник (Бележки за сесията)</Label>
         <Textarea
           placeholder="Напр. Групата беше много разсеяна днес. Утре да наблегнем на дисциплината..."
-          className="h-32 bg-amber-50/50 border-amber-200 focus-visible:ring-amber-500"
+          className="h-32 border-amber-200 bg-amber-50/50 focus-visible:ring-amber-500"
           value={coachNotes}
           onChange={(e) => setCoachNotes(e.target.value)}
         />
       </div>
 
       {/* Floating Save Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t shadow-lg z-50 flex justify-center">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-white/80 p-4 shadow-lg backdrop-blur-md">
         <Button
           size="lg"
           onClick={handleFinish}
           disabled={isSaving}
-          className="w-full max-w-md bg-zinc-950 text-white rounded-xl shadow-xl hover:bg-zinc-800"
+          className="w-full max-w-md rounded-xl bg-zinc-950 text-white shadow-xl hover:bg-zinc-800"
         >
           {isSaving ? (
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            <Loader2 className="mr-2 size-5 animate-spin" />
           ) : (
-            <Save className="w-5 h-5 mr-2" />
+            <Save className="mr-2 size-5" />
           )}
           Завърши и Запази ({presentCount} деца)
         </Button>

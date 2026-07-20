@@ -55,7 +55,7 @@ interface ServiceFormProps {
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
     <Button type="submit" size="lg" disabled={isPending}>
-      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
       Запази промените
     </Button>
   );
@@ -138,8 +138,8 @@ export default function ServiceForm({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Редактиране на услуга</h1>
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+      <h1 className="mb-6 text-2xl font-bold">Редактиране на услуга</h1>
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Основна информация</CardTitle>
@@ -187,7 +187,7 @@ export default function ServiceForm({
           <CardHeader>
             <CardTitle>Насоченост и Тип</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start pt-4">
+          <CardContent className="grid grid-cols-1 items-start gap-6 pt-4 md:grid-cols-2">
             <div className="space-y-3">
               <Label>Целева група (една или повече)</Label>
               <div className="flex items-center space-x-4 pt-2">
@@ -279,7 +279,7 @@ export default function ServiceForm({
                   />
                 </div>
                 {grantsLicense && (
-                  <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
+                  <div className="space-y-2 pt-2 pl-2 animate-in fade-in">
                     <Label htmlFor="licenseCondition">
                       Условие за получаване
                     </Label>
@@ -329,7 +329,7 @@ export default function ServiceForm({
                   />
                 </div>
                 {grantsApparel && (
-                  <div className="space-y-2 pl-2 pt-2 animate-in fade-in">
+                  <div className="space-y-2 pt-2 pl-2 animate-in fade-in">
                     <Label htmlFor="apparelCondition">
                       Условие за получаване
                     </Label>

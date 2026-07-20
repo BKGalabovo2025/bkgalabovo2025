@@ -133,12 +133,12 @@ export function GeneralServiceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-        <DialogHeader className="p-8 bg-zinc-950 text-white">
+      <DialogContent className="overflow-hidden rounded-3xl border-none p-0 shadow-2xl sm:max-w-125">
+        <DialogHeader className="bg-zinc-950 p-8 text-white">
           <DialogTitle className="text-2xl font-light tracking-tight">
             {service ? "Редактиране на услуга" : "Нова услуга"}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 font-light">
+          <DialogDescription className="font-light text-zinc-400">
             {service
               ? "Променете детайлите на съществуващата услуга."
               : "Добавете нова услуга към каталога."}
@@ -148,21 +148,21 @@ export function GeneralServiceDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="p-8 space-y-6"
+            className="space-y-6 p-8"
           >
             <FormField<FormValues, "name">
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                  <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                     Име на услугата
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="напр. Наплитане на ракета"
-                      className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all h-12"
+                      className="h-12 rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -176,7 +176,7 @@ export function GeneralServiceDialog({
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                    <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                       Цена (EUR)
                     </FormLabel>
                     <FormControl>
@@ -185,7 +185,7 @@ export function GeneralServiceDialog({
                         type="number"
                         step="0.01"
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all h-12"
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -198,12 +198,12 @@ export function GeneralServiceDialog({
                 name="pricingUnit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                    <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                       Тип ценообразуване
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all h-12">
+                        <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white">
                           <SelectValue placeholder="Изберете тип" />
                         </SelectTrigger>
                       </FormControl>
@@ -225,14 +225,14 @@ export function GeneralServiceDialog({
                 name="performerName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                    <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                       Изпълнител
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         placeholder="Име на изпълнител"
-                        className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all h-12"
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -245,12 +245,12 @@ export function GeneralServiceDialog({
                 name="performerType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                    <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                       Тип изпълнител
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all h-12">
+                        <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white">
                           <SelectValue placeholder="Изберете тип" />
                         </SelectTrigger>
                       </FormControl>
@@ -272,14 +272,14 @@ export function GeneralServiceDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs uppercase tracking-widest text-zinc-400 font-medium">
+                  <FormLabel className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                     Описание
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       placeholder="Опишете услугата..."
-                      className="rounded-xl border-zinc-100 bg-zinc-50 focus:bg-white transition-all min-h-[100px] resize-none"
+                      className="min-h-25 resize-none rounded-xl border-zinc-100 bg-zinc-50 transition-all focus:bg-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -292,14 +292,14 @@ export function GeneralServiceDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="rounded-xl h-12 px-6"
+                className="h-12 rounded-xl px-6"
               >
                 Отказ
               </Button>
               <Button
                 type="submit"
                 disabled={isPending}
-                className="rounded-xl h-12 px-8 bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200"
+                className="h-12 rounded-xl bg-zinc-950 px-8 text-white shadow-lg shadow-zinc-200 transition-all hover:bg-zinc-800"
               >
                 {isPending ? "Запазване..." : "Запази услугата"}
               </Button>

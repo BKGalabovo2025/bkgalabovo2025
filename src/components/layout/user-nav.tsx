@@ -39,38 +39,38 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-10 w-10 rounded-full border border-zinc-200 dark:border-zinc-800 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all overflow-hidden shadow-sm"
+          className="relative size-10 overflow-hidden rounded-full border border-zinc-200 p-0 shadow-sm transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
         >
-          <Avatar className="h-9 w-9 border-2 border-white dark:border-zinc-950">
+          <Avatar className="size-9 border-2 border-white dark:border-zinc-950">
             <AvatarImage src={user.photoURL || ""} alt={user.email || "User"} />
-            <AvatarFallback className="bg-zinc-950 text-white text-[10px] font-bold">
+            <AvatarFallback className="bg-zinc-950 text-[10px] font-bold text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-64 rounded-2xl p-2 shadow-2xl border-zinc-100 dark:border-zinc-800"
+        className="w-64 rounded-2xl border-zinc-100 p-2 shadow-2xl dark:border-zinc-800"
         align="end"
         forceMount
       >
-        <DropdownMenuLabel className="font-normal p-4">
+        <DropdownMenuLabel className="p-4 font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+            <p className="flex items-center gap-2 text-xs font-bold tracking-widest text-zinc-400 uppercase">
               <Shield size={12} className="text-emerald-500" /> Администратор
             </p>
-            <p className="text-sm font-medium leading-none text-zinc-900 dark:text-white truncate pt-1">
+            <p className="truncate pt-1 text-sm leading-none font-medium text-zinc-900 dark:text-white">
               {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-zinc-50 dark:bg-zinc-800 mx-2" />
+        <DropdownMenuSeparator className="mx-2 bg-zinc-50 dark:bg-zinc-800" />
         <DropdownMenuGroup className="p-1">
           <DropdownMenuItem
             onClick={() => router.push("/settings?tab=profile")}
-            className="rounded-xl px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus:bg-zinc-50 dark:focus:bg-zinc-900 transition-colors cursor-pointer"
+            className="cursor-pointer rounded-xl px-3 py-2.5 text-xs font-medium tracking-wider text-zinc-600 uppercase transition-colors hover:text-zinc-950 focus:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:focus:bg-zinc-900"
           >
-            <User className="mr-3 h-4 w-4" strokeWidth={1.5} />
+            <User className="mr-3 size-4" strokeWidth={1.5} />
             Моят Профил
             <DropdownMenuShortcut className="text-[10px] opacity-30">
               ⇧⌘P
@@ -78,21 +78,21 @@ export function UserNav() {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => router.push("/settings")}
-            className="rounded-xl px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white focus:bg-zinc-50 dark:focus:bg-zinc-900 transition-colors cursor-pointer"
+            className="cursor-pointer rounded-xl px-3 py-2.5 text-xs font-medium tracking-wider text-zinc-600 uppercase transition-colors hover:text-zinc-950 focus:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:focus:bg-zinc-900"
           >
-            <Settings className="mr-3 h-4 w-4" strokeWidth={1.5} />
+            <Settings className="mr-3 size-4" strokeWidth={1.5} />
             Настройки
             <DropdownMenuShortcut className="text-[10px] opacity-30">
               ⌘S
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator className="bg-zinc-50 dark:bg-zinc-800 mx-2" />
+        <DropdownMenuSeparator className="mx-2 bg-zinc-50 dark:bg-zinc-800" />
         <DropdownMenuItem
           onClick={handleLogout}
-          className="rounded-xl px-3 py-2.5 text-xs font-medium uppercase tracking-wider text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+          className="cursor-pointer rounded-xl px-3 py-2.5 text-xs font-medium tracking-wider text-rose-500 uppercase transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
         >
-          <LogOut className="mr-3 h-4 w-4" strokeWidth={1.5} />
+          <LogOut className="mr-3 size-4" strokeWidth={1.5} />
           Изход
           <DropdownMenuShortcut className="text-[10px] opacity-30">
             ⇧⌘Q

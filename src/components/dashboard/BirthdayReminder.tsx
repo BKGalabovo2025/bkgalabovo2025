@@ -104,12 +104,12 @@ export function BirthdayReminder() {
   if (loading) {
     return (
       <BentoCard className="p-6">
-        <div className="flex items-center gap-2 mb-6 text-zinc-900 dark:text-zinc-50">
-          <Gift className="h-5 w-5 text-rose-500" strokeWidth={1.5} />
-          <h3 className="font-medium text-lg">Предстоящи Рождени Дни</h3>
+        <div className="mb-6 flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+          <Gift className="size-5 text-rose-500" strokeWidth={1.5} />
+          <h3 className="text-lg font-medium">Предстоящи Рождени Дни</h3>
         </div>
-        <div className="flex items-center justify-center h-32">
-          <Loader2 className="h-6 w-6 animate-spin text-zinc-300" />
+        <div className="flex h-32 items-center justify-center">
+          <Loader2 className="size-6 animate-spin text-zinc-300" />
         </div>
       </BentoCard>
     );
@@ -120,33 +120,33 @@ export function BirthdayReminder() {
   }
 
   return (
-    <BentoCard className="p-6 border-l-4 border-l-rose-500 relative overflow-hidden">
+    <BentoCard className="relative overflow-hidden border-l-4 border-l-rose-500 p-6">
       <div className="absolute top-0 right-0 p-8 opacity-5">
-        <Gift className="w-48 h-48 rotate-12" />
+        <Gift className="size-48 rotate-12" />
       </div>
 
-      <div className="flex items-center gap-2 mb-6 relative z-10 text-zinc-900 dark:text-zinc-50">
-        <Gift className="h-5 w-5 text-rose-500" strokeWidth={1.5} />
-        <h3 className="font-medium text-lg">Предстоящи Рождени Дни</h3>
+      <div className="relative z-10 mb-6 flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+        <Gift className="size-5 text-rose-500" strokeWidth={1.5} />
+        <h3 className="text-lg font-medium">Предстоящи Рождени Дни</h3>
         <Badge
           variant="secondary"
-          className="ml-2 bg-rose-50 text-rose-800 border-rose-100 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 shadow-none font-medium text-[10px] uppercase tracking-widest px-2"
+          className="ml-2 border-rose-100 bg-rose-50 px-2 text-[10px] font-medium tracking-widest text-rose-800 uppercase shadow-none dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300"
         >
           {upcomingBirthdays.length} члена
         </Badge>
       </div>
 
-      <div className="space-y-3 relative z-10">
+      <div className="relative z-10 space-y-3">
         {upcomingBirthdays.map((bday) => (
           <div
             key={bday.member.id}
-            className="flex items-center justify-between p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-rose-200 hover:shadow-sm transition-all cursor-pointer group"
+            className="group flex cursor-pointer items-center justify-between rounded-2xl border border-zinc-100 bg-white p-3 transition-all hover:border-rose-200 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
             onClick={() => router.push(`/members/${bday.member.id}`)}
           >
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border border-zinc-100 group-hover:border-rose-200 transition-colors">
+              <Avatar className="size-10 border border-zinc-100 transition-colors group-hover:border-rose-200">
                 <AvatarImage src={bday.member.avatarUrl ?? undefined} />
-                <AvatarFallback className="bg-zinc-50 text-zinc-700 font-medium">
+                <AvatarFallback className="bg-zinc-50 font-medium text-zinc-700">
                   {bday.member.firstName?.[0]}
                   {bday.member.lastName?.[0]}
                 </AvatarFallback>
@@ -155,17 +155,17 @@ export function BirthdayReminder() {
                 <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {bday.member.firstName} {bday.member.lastName}
                 </p>
-                <p className="text-[10px] uppercase tracking-widest font-medium text-zinc-600 dark:text-zinc-400">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                   Навършва {bday.ageTurning} год.
                 </p>
               </div>
             </div>
 
-            <div className="text-right flex flex-col items-end gap-1">
+            <div className="flex flex-col items-end gap-1 text-right">
               {(() => {
                 if (bday.diffDays === 0) {
                   return (
-                    <Badge className="bg-rose-500 hover:bg-rose-600 shadow-none border-none animate-pulse">
+                    <Badge className="animate-pulse border-none bg-rose-500 shadow-none hover:bg-rose-600">
                       ДНЕС! 🥳
                     </Badge>
                   );
@@ -174,7 +174,7 @@ export function BirthdayReminder() {
                   return (
                     <Badge
                       variant="outline"
-                      className="border-rose-200 text-rose-600 bg-rose-50 dark:bg-rose-900/20"
+                      className="border-rose-200 bg-rose-50 text-rose-600 dark:bg-rose-900/20"
                     >
                       УТРЕ
                     </Badge>
@@ -189,7 +189,7 @@ export function BirthdayReminder() {
                   </Badge>
                 );
               })()}
-              <span className="text-xs text-zinc-600 font-medium">
+              <span className="text-xs font-medium text-zinc-600">
                 {bday.nextBirthday.toLocaleDateString("bg-BG", {
                   day: "numeric",
                   month: "long",

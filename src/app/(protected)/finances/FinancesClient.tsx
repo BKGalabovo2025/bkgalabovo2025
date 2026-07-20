@@ -38,19 +38,19 @@ export default function FinancesClient({
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700 pb-24">
+    <div className="space-y-10 pb-24 duration-700 animate-in fade-in">
       {/* Main Unified Navigation tabs */}
       <div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+        <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h2 className="text-2xl font-light text-zinc-950 dark:text-zinc-50 uppercase tracking-widest flex items-center gap-3">
+            <h2 className="flex items-center gap-3 text-2xl font-light tracking-widest text-zinc-950 uppercase dark:text-zinc-50">
               <Briefcase
-                className="h-6 w-6 text-zinc-655 dark:text-zinc-400"
+                className="text-zinc-655 size-6 dark:text-zinc-400"
                 strokeWidth={1.5}
               />
               <span>Каса & Операции</span>
             </h2>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 font-light mt-1.5">
+            <p className="mt-1.5 text-xs font-light text-zinc-400 dark:text-zinc-500">
               Управление на активните плащания, семейни дългове, хроника на
               транзакциите и наличности на склад.
             </p>
@@ -64,25 +64,25 @@ export default function FinancesClient({
           onValueChange={handleTabChange}
           className="space-y-6"
         >
-          <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full sm:w-fit border border-zinc-200/40 dark:border-zinc-800/40 mb-2 overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
+          <TabsList className="no-scrollbar mb-2 flex h-11 w-full justify-start overflow-x-auto rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50">
             <TabsTrigger
               value="sales"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <History className="h-3.5 w-3.5 mr-2" />
+              <History className="mr-2 size-3.5" />
               Хроника на продажбите
             </TabsTrigger>
             <TabsTrigger
               value="inventory"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <Boxes className="h-3.5 w-3.5 mr-2" />
+              <Boxes className="mr-2 size-3.5" />
               Магазин & Наличности
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="sales" className="outline-none mt-0">
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+          <TabsContent value="sales" className="mt-0 outline-none">
+            <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
               <SalesClient
                 showPageHeader={false}
                 initialSales={initialSales}
@@ -91,8 +91,8 @@ export default function FinancesClient({
             </div>
           </TabsContent>
 
-          <TabsContent value="inventory" className="outline-none mt-0">
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+          <TabsContent value="inventory" className="mt-0 outline-none">
+            <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
               <InventoryClient showPageHeader={false} />
             </div>
           </TabsContent>

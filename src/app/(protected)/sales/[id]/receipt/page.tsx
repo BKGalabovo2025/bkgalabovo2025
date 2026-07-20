@@ -18,7 +18,7 @@ export default async function ReceiptPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
       <PageHeader
         title="Касова бележка"
         description={`Преглед на детайли за продажба #${saleId.substring(0, 8).toUpperCase()}`}

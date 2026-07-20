@@ -77,9 +77,9 @@ export default async function RecoveryZonePage() {
 
   if (!site) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Обектът не е намерен</h1>
+          <h1 className="mb-4 text-2xl font-bold">Обектът не е намерен</h1>
           <Link href="/" className="text-emerald-500 hover:underline">
             Обратно към началната страница
           </Link>

@@ -378,9 +378,9 @@ export default function SettingsClient() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-zinc-500 font-light uppercase tracking-widest text-xs">
+      <div className="flex min-h-100 flex-col items-center justify-center space-y-4">
+        <Loader2 className="size-8 animate-spin text-primary" />
+        <p className="text-xs font-light tracking-widest text-zinc-500 uppercase">
           Зареждане на настройки...
         </p>
       </div>
@@ -398,7 +398,7 @@ export default function SettingsClient() {
     "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 pb-20 duration-500 animate-in fade-in">
       <PageHeader
         title="Настройки"
         description="Управление на системните параметри, сигурността и брандирането на клуба."
@@ -410,85 +410,85 @@ export default function SettingsClient() {
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-primary text-white hover:bg-primary/90 shadow-none transition-all"
+          className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
         >
           {isSaving ? "Запазване..." : "Запази промените"}
-          {!isSaving && <Save className="ml-3 h-4 w-4" strokeWidth={1.5} />}
+          {!isSaving && <Save className="ml-3 size-4" strokeWidth={1.5} />}
         </Button>
       </PageHeader>
 
       <Tabs defaultValue="general" className="w-full">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-72 space-y-3">
-            <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-3">
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <div className="space-y-3 lg:w-72">
+            <TabsList className="flex h-auto flex-col gap-3 bg-transparent p-0">
               <TabsTrigger
                 value="general"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Settings className="mr-4 h-5 w-5" strokeWidth={1.5} /> Общи
+                <Settings className="mr-4 size-5" strokeWidth={1.5} /> Общи
               </TabsTrigger>
               <TabsTrigger
                 value="branding"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Palette className="mr-4 h-5 w-5" strokeWidth={1.5} />{" "}
+                <Palette className="mr-4 size-5" strokeWidth={1.5} />{" "}
                 Брандиране
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Shield className="mr-4 h-5 w-5" strokeWidth={1.5} /> Сигурност
+                <Shield className="mr-4 size-5" strokeWidth={1.5} /> Сигурност
               </TabsTrigger>
               <TabsTrigger
                 value="profile"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <User className="mr-4 h-5 w-5" strokeWidth={1.5} /> Личен Профил
+                <User className="mr-4 size-5" strokeWidth={1.5} /> Личен Профил
               </TabsTrigger>
 
               <TabsTrigger
                 value="recovery"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-[#00f2fe]/10 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-[#00f2fe] text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-[#00f2fe]/10 data-[state=active]:text-[#00f2fe]"
               >
-                <Activity className="mr-4 h-5 w-5" strokeWidth={1.5} /> Зона
+                <Activity className="mr-4 size-5" strokeWidth={1.5} /> Зона
                 Възстановяване
               </TabsTrigger>
 
               <TabsTrigger
                 value="team"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest"
+                className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Users className="mr-4 h-5 w-5" strokeWidth={1.5} /> Екип
+                <Users className="mr-4 size-5" strokeWidth={1.5} /> Екип
               </TabsTrigger>
 
               <TabsTrigger
                 value="audit"
-                className="w-full justify-start px-6 py-5 rounded-2xl data-[state=active]:bg-primary/5 transition-all border-none font-medium text-zinc-500 data-[state=active]:text-primary text-[13px] uppercase tracking-widest mt-8"
+                className="mt-8 w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Clock className="mr-4 h-5 w-5" strokeWidth={1.5} /> Системна
+                <Clock className="mr-4 size-5" strokeWidth={1.5} /> Системна
                 история
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <TabsContent
               value="general"
               className="m-0 focus-visible:outline-none"
             >
               <div className="grid grid-cols-1 gap-6">
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-2">
+                <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-2 flex items-center gap-4">
                     <Building2
-                      className="h-5 w-5 text-primary"
+                      className="size-5 text-primary"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                       Информация за Клуба
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div className="space-y-3">
                       <Label className={labelClass}>Име на клуба</Label>
                       <Input
@@ -505,7 +505,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Mail className="inline h-3 w-3 mr-1" />
+                        <Mail className="mr-1 inline size-3" />
                         Официален Имейл
                       </Label>
                       <Input
@@ -522,7 +522,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Phone className="inline h-3 w-3 mr-1" />
+                        <Phone className="mr-1 inline size-3" />
                         Телефон за връзка
                       </Label>
                       <Input
@@ -539,7 +539,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Globe className="inline h-3 w-3 mr-1" />
+                        <Globe className="mr-1 inline size-3" />
                         Уебсайт
                       </Label>
                       <Input
@@ -557,7 +557,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>
-                        <MapPin className="inline h-3 w-3 mr-1" />
+                        <MapPin className="mr-1 inline size-3" />
                         Адрес
                       </Label>
                       <Input
@@ -574,14 +574,14 @@ export default function SettingsClient() {
                       />
                     </div>
                   </div>
-                  <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
+                  <div className="border-t border-zinc-50 pt-4 dark:border-zinc-900">
+                    <p className="mb-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                       Социални мрежи
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <InstagramIcon className="inline h-3 w-3 mr-1 text-pink-500" />
+                          <InstagramIcon className="mr-1 inline size-3 text-pink-500" />
                           Instagram
                         </Label>
                         <Input
@@ -599,7 +599,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <YoutubeIcon className="inline h-3 w-3 mr-1 text-red-500" />
+                          <YoutubeIcon className="mr-1 inline size-3 text-red-500" />
                           YouTube
                         </Label>
                         <Input
@@ -617,7 +617,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <FacebookIcon className="inline h-3 w-3 mr-1 text-blue-500" />
+                          <FacebookIcon className="mr-1 inline size-3 text-blue-500" />
                           Facebook Страница
                         </Label>
                         <Input
@@ -635,7 +635,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <Users className="inline h-3 w-3 mr-1 text-blue-400" />
+                          <Users className="mr-1 inline size-3 text-blue-400" />
                           Facebook Група (Родители и деца)
                         </Label>
                         <Input
@@ -655,17 +655,17 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-2">
+                <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-2 flex items-center gap-4">
                     <Activity
-                      className="h-5 w-5 text-[#00f2fe]"
+                      className="size-5 text-[#00f2fe]"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                       Информация за Зоната
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div className="space-y-3">
                       <Label className={labelClass}>Име на обекта</Label>
                       <Input
@@ -682,7 +682,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Mail className="inline h-3 w-3 mr-1" />
+                        <Mail className="mr-1 inline size-3" />
                         Официален Имейл
                       </Label>
                       <Input
@@ -699,7 +699,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Phone className="inline h-3 w-3 mr-1" />
+                        <Phone className="mr-1 inline size-3" />
                         Телефон за връзка
                       </Label>
                       <Input
@@ -716,7 +716,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3">
                       <Label className={labelClass}>
-                        <Globe className="inline h-3 w-3 mr-1" />
+                        <Globe className="mr-1 inline size-3" />
                         Уебсайт
                       </Label>
                       <Input
@@ -733,7 +733,7 @@ export default function SettingsClient() {
                     </div>
                     <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>
-                        <MapPin className="inline h-3 w-3 mr-1" />
+                        <MapPin className="mr-1 inline size-3" />
                         Адрес
                       </Label>
                       <Input
@@ -749,14 +749,14 @@ export default function SettingsClient() {
                       />
                     </div>
                   </div>
-                  <div className="pt-4 border-t border-zinc-50 dark:border-zinc-900">
-                    <p className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6">
+                  <div className="border-t border-zinc-50 pt-4 dark:border-zinc-900">
+                    <p className="mb-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                       Социални мрежи
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <InstagramIcon className="inline h-3 w-3 mr-1 text-pink-500" />
+                          <InstagramIcon className="mr-1 inline size-3 text-pink-500" />
                           Instagram
                         </Label>
                         <Input
@@ -774,7 +774,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <FacebookIcon className="inline h-3 w-3 mr-1 text-blue-500" />
+                          <FacebookIcon className="mr-1 inline size-3 text-blue-500" />
                           Facebook
                         </Label>
                         <Input
@@ -792,7 +792,7 @@ export default function SettingsClient() {
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>
-                          <YoutubeIcon className="inline h-3 w-3 mr-1 text-red-500" />
+                          <YoutubeIcon className="mr-1 inline size-3 text-red-500" />
                           YouTube
                         </Label>
                         <Input
@@ -813,11 +813,11 @@ export default function SettingsClient() {
                 </BentoCard>
 
                 {/* ── Localization + Status ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                    <div className="flex items-center gap-4 mb-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                    <div className="mb-2 flex items-center gap-4">
                       <Globe
-                        className="h-5 w-5 text-primary"
+                        className="size-5 text-primary"
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -827,26 +827,26 @@ export default function SettingsClient() {
                     <div className="space-y-6">
                       <div className="space-y-3">
                         <Label className={labelClass}>Основна Валута</Label>
-                        <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
+                        <div className="flex h-14 items-center rounded-xl border border-zinc-100 bg-zinc-50 px-5 font-light text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                           EUR (€)
                         </div>
                       </div>
                       <div className="space-y-3">
                         <Label className={labelClass}>Часова Зона</Label>
-                        <div className="h-14 flex items-center px-5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 font-light text-zinc-700 dark:text-zinc-300">
+                        <div className="flex h-14 items-center rounded-xl border border-zinc-100 bg-zinc-50 px-5 font-light text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                           UTC+2 (Europe/Sofia)
                         </div>
                       </div>
                     </div>
                   </BentoCard>
-                  <BentoCard className="p-10 space-y-6 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 flex flex-col justify-center items-center text-center">
-                    <div className="h-20 w-20 bg-primary/5 text-primary rounded-3xl flex items-center justify-center mb-4 transition-all hover:scale-105">
+                  <BentoCard className="flex flex-col items-center justify-center space-y-6 border-zinc-100 bg-white p-10 text-center dark:border-zinc-900 dark:bg-zinc-950">
+                    <div className="mb-4 flex size-20 items-center justify-center rounded-3xl bg-primary/5 text-primary transition-all hover:scale-105">
                       <CheckCircle2 size={36} strokeWidth={1} />
                     </div>
-                    <h4 className="font-light text-xl text-zinc-900 dark:text-white">
+                    <h4 className="text-xl font-light text-zinc-900 dark:text-white">
                       Системата е Оптимизирана
                     </h4>
-                    <p className="text-sm text-zinc-400 max-w-[200px] font-light leading-relaxed">
+                    <p className="max-w-50 text-sm leading-relaxed font-light text-zinc-400">
                       Всички системни параметри са в нормални граници.
                     </p>
                   </BentoCard>
@@ -858,11 +858,11 @@ export default function SettingsClient() {
               value="branding"
               className="m-0 focus-visible:outline-none"
             >
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <BentoCard className="md:col-span-8 p-10 space-y-10 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <BentoCard className="space-y-10 border-zinc-100 bg-white p-10 md:col-span-8 dark:border-zinc-900 dark:bg-zinc-950">
                   <div className="flex items-center gap-4">
                     <Palette
-                      className="h-5 w-5 text-primary"
+                      className="size-5 text-primary"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -872,11 +872,11 @@ export default function SettingsClient() {
 
                   <div className="space-y-8">
                     <div className="space-y-4">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                         Лого на Клуба
                       </Label>
-                      <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
-                        <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
+                      <div className="flex items-center gap-8 rounded-2xl border border-dashed border-zinc-100 bg-zinc-50/30 p-8 dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div className="flex size-28 items-center justify-center overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-none">
                           <Image
                             src="/logo.png"
                             alt="BKG Logo"
@@ -888,15 +888,15 @@ export default function SettingsClient() {
                         <div className="space-y-3">
                           <Button
                             variant="outline"
-                            className="rounded-xl border-zinc-200 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-6 bg-white dark:bg-zinc-900"
+                            className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900"
                           >
                             <Camera
-                              className="mr-3 h-4 w-4"
+                              className="mr-3 size-4"
                               strokeWidth={1.5}
                             />{" "}
                             Промени Лого
                           </Button>
-                          <p className="text-[11px] text-zinc-400 uppercase font-light tracking-wide">
+                          <p className="text-[11px] font-light tracking-wide text-zinc-400 uppercase">
                             Препоръчителен размер: 512x512px (PNG, SVG)
                           </p>
                         </div>
@@ -905,11 +905,11 @@ export default function SettingsClient() {
 
                     <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-3">
-                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                           Основен Цвят
                         </Label>
                         <div className="flex gap-3">
-                          <div className="h-14 w-14 rounded-xl bg-[#00AEEF] border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <div className="size-14 rounded-xl border-4 border-white bg-[#00AEEF] shadow-none dark:border-zinc-800" />
                           <Input
                             value={bkgData.primaryColor || "#00AEEF"}
                             onChange={(e) =>
@@ -919,16 +919,16 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                            className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-mono text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
                           />
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                           Акцентен Цвят
                         </Label>
                         <div className="flex gap-3">
-                          <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <div className="size-14 rounded-xl border-4 border-white bg-zinc-900 shadow-none dark:border-zinc-800 dark:bg-white" />
                           <Input
                             value={bkgData.accentColor || "#000000"}
                             onChange={(e) =>
@@ -938,7 +938,7 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                            className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-mono text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
                           />
                         </div>
                       </div>
@@ -946,10 +946,10 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                <BentoCard className="md:col-span-8 p-10 space-y-10 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+                <BentoCard className="space-y-10 border-zinc-100 bg-white p-10 md:col-span-8 dark:border-zinc-900 dark:bg-zinc-950">
                   <div className="flex items-center gap-4">
                     <Palette
-                      className="h-5 w-5 text-[#00f2fe]"
+                      className="size-5 text-[#00f2fe]"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -959,11 +959,11 @@ export default function SettingsClient() {
 
                   <div className="space-y-8">
                     <div className="space-y-4">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                         Лого на Зоната
                       </Label>
-                      <div className="flex items-center gap-8 p-8 rounded-2xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
-                        <div className="h-28 w-28 bg-white rounded-3xl flex items-center justify-center shadow-none overflow-hidden border border-zinc-100">
+                      <div className="flex items-center gap-8 rounded-2xl border border-dashed border-zinc-100 bg-zinc-50/30 p-8 dark:border-zinc-800 dark:bg-zinc-900/30">
+                        <div className="flex size-28 items-center justify-center overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-none">
                           <Image
                             src="/1.png"
                             alt="RZ Logo"
@@ -975,15 +975,15 @@ export default function SettingsClient() {
                         <div className="space-y-3">
                           <Button
                             variant="outline"
-                            className="rounded-xl border-zinc-200 dark:border-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-6 bg-white dark:bg-zinc-900"
+                            className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900"
                           >
                             <Camera
-                              className="mr-3 h-4 w-4"
+                              className="mr-3 size-4"
                               strokeWidth={1.5}
                             />{" "}
                             Промени Лого
                           </Button>
-                          <p className="text-[11px] text-zinc-400 uppercase font-light tracking-wide">
+                          <p className="text-[11px] font-light tracking-wide text-zinc-400 uppercase">
                             Препоръчителен размер: 512x512px (PNG, SVG)
                           </p>
                         </div>
@@ -992,11 +992,11 @@ export default function SettingsClient() {
 
                     <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-3">
-                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                           Основен Цвят
                         </Label>
                         <div className="flex gap-3">
-                          <div className="h-14 w-14 rounded-xl bg-[#00f2fe] border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <div className="size-14 rounded-xl border-4 border-white bg-[#00f2fe] shadow-none dark:border-zinc-800" />
                           <Input
                             value={rzData.primaryColor || "#00f2fe"}
                             onChange={(e) =>
@@ -1006,16 +1006,16 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                            className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-mono text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
                           />
                         </div>
                       </div>
                       <div className="space-y-3">
-                        <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                        <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                           Акцентен Цвят
                         </Label>
                         <div className="flex gap-3">
-                          <div className="h-14 w-14 rounded-xl bg-zinc-900 dark:bg-white border-4 border-white dark:border-zinc-800 shadow-none" />
+                          <div className="size-14 rounded-xl border-4 border-white bg-zinc-900 shadow-none dark:border-zinc-800 dark:bg-white" />
                           <Input
                             value={rzData.accentColor || "#18181b"}
                             onChange={(e) =>
@@ -1025,7 +1025,7 @@ export default function SettingsClient() {
                                 e.target.value
                               )
                             }
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 font-mono text-center text-sm"
+                            className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-mono text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
                           />
                         </div>
                       </div>
@@ -1033,18 +1033,18 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                <BentoCard className="md:col-span-4 p-10 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-none flex flex-col justify-between">
+                <BentoCard className="flex flex-col justify-between border-none bg-zinc-950 p-10 text-white md:col-span-4 dark:bg-white dark:text-zinc-950">
                   <div className="space-y-6">
-                    <h3 className="font-light text-xl uppercase tracking-widest">
+                    <h3 className="text-xl font-light tracking-widest uppercase">
                       Преглед
                     </h3>
-                    <div className="p-6 rounded-2xl bg-white/5 dark:bg-zinc-50 border border-white/10 dark:border-zinc-200 space-y-4">
-                      <div className="h-2 w-16 bg-primary rounded-full" />
-                      <div className="h-5 w-full bg-white/10 dark:bg-zinc-100 rounded-full" />
-                      <div className="h-5 w-2/3 bg-white/10 dark:bg-zinc-100 rounded-full" />
+                    <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 dark:border-zinc-200 dark:bg-zinc-50">
+                      <div className="h-2 w-16 rounded-full bg-primary" />
+                      <div className="h-5 w-full rounded-full bg-white/10 dark:bg-zinc-100" />
+                      <div className="h-5 w-2/3 rounded-full bg-white/10 dark:bg-zinc-100" />
                     </div>
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase font-medium leading-relaxed tracking-wider">
+                  <p className="text-[11px] leading-relaxed font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
                     Промените в брандирането ще се отразят веднага на всички
                     публични страници и генерирани документи.
                   </p>
@@ -1056,22 +1056,22 @@ export default function SettingsClient() {
               value="security"
               className="m-0 focus-visible:outline-none"
             >
-              <BentoCard className="p-10 space-y-10 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
+              <BentoCard className="space-y-10 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
                 <div className="flex items-center gap-4">
-                  <Lock className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                  <Lock className="size-5 text-primary" strokeWidth={1.5} />
                   <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                     Сигурност на Системата
                   </h3>
                 </div>
 
-                <div className="space-y-10 max-w-2xl">
+                <div className="max-w-2xl space-y-10">
                   <div className="space-y-6">
-                    <h4 className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                    <h4 className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                       Смяна на Парола (Админ)
                     </h4>
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                        <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase dark:text-zinc-500">
                           Текуща Парола
                         </Label>
                         <div className="relative">
@@ -1080,7 +1080,7 @@ export default function SettingsClient() {
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
                             placeholder="••••••••"
-                            className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                            className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 pr-12 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                           />
                           <Button
                             type="button"
@@ -1089,30 +1089,30 @@ export default function SettingsClient() {
                             onClick={() =>
                               setShowCurrentPassword(!showCurrentPassword)
                             }
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                            className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                           >
                             {showCurrentPassword ? (
-                              <EyeOff className="h-4 w-4" />
+                              <EyeOff className="size-4" />
                             ) : (
-                              <Eye className="h-4 w-4" />
+                              <Eye className="size-4" />
                             )}
                           </Button>
                         </div>
-                        <div className="flex justify-end mt-1">
+                        <div className="mt-1 flex justify-end">
                           <Button
                             type="button"
                             variant="link"
                             onClick={handleResetPassword}
                             disabled={isSendingReset}
-                            className="text-[11px] text-primary hover:text-primary/80 h-auto p-0 font-light"
+                            className="h-auto p-0 text-[11px] font-light text-primary hover:text-primary/80"
                           >
                             Забравена текуща парола?
                           </Button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div className="space-y-3">
-                          <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                          <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase dark:text-zinc-500">
                             Нова Парола
                           </Label>
                           <div className="relative">
@@ -1121,7 +1121,7 @@ export default function SettingsClient() {
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
                               placeholder="••••••••"
-                              className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                              className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 pr-12 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                             />
                             <Button
                               type="button"
@@ -1130,18 +1130,18 @@ export default function SettingsClient() {
                               onClick={() =>
                                 setShowNewPassword(!showNewPassword)
                               }
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                             >
                               {showNewPassword ? (
-                                <EyeOff className="h-4 w-4" />
+                                <EyeOff className="size-4" />
                               ) : (
-                                <Eye className="h-4 w-4" />
+                                <Eye className="size-4" />
                               )}
                             </Button>
                           </div>
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                          <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase dark:text-zinc-500">
                             Повтори Новата Парола
                           </Label>
                           <div className="relative">
@@ -1152,7 +1152,7 @@ export default function SettingsClient() {
                                 setRepeatPassword(e.target.value)
                               }
                               placeholder="••••••••"
-                              className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary pr-12"
+                              className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 pr-12 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                             />
                             <Button
                               type="button"
@@ -1161,12 +1161,12 @@ export default function SettingsClient() {
                               onClick={() =>
                                 setShowRepeatPassword(!showRepeatPassword)
                               }
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                             >
                               {showRepeatPassword ? (
-                                <EyeOff className="h-4 w-4" />
+                                <EyeOff className="size-4" />
                               ) : (
-                                <Eye className="h-4 w-4" />
+                                <Eye className="size-4" />
                               )}
                             </Button>
                           </div>
@@ -1183,10 +1183,10 @@ export default function SettingsClient() {
               className="m-0 focus-visible:outline-none"
             >
               <div className="grid grid-cols-1 gap-6">
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-6">
+                <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center gap-4">
                     <Activity
-                      className="h-5 w-5 text-[#00f2fe]"
+                      className="size-5 text-[#00f2fe]"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1194,8 +1194,8 @@ export default function SettingsClient() {
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="md:col-span-2 space-y-3">
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>Общо Описание</Label>
                       <Textarea
                         value={rzData.description || ""}
@@ -1207,7 +1207,7 @@ export default function SettingsClient() {
                           )
                         }
                         placeholder="Възстанови своите Сили..."
-                        className={`${inputClassRz} min-h-[120px] resize-y`}
+                        className={`${inputClassRz} min-h-30 resize-y`}
                       />
                     </div>
                     <div className="space-y-3">
@@ -1240,7 +1240,7 @@ export default function SettingsClient() {
                         className={inputClassRz}
                       />
                     </div>
-                    <div className="md:col-span-2 space-y-3">
+                    <div className="space-y-3 md:col-span-2">
                       <Label className={labelClass}>Адрес</Label>
                       <Input
                         value={rzData.address || ""}
@@ -1303,10 +1303,10 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-6">
+                <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center gap-4">
                     <Activity
-                      className="h-5 w-5 text-[#00f2fe]"
+                      className="size-5 text-[#00f2fe]"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1314,7 +1314,7 @@ export default function SettingsClient() {
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div className="space-y-3">
                       <Label className={labelClass}>Брой Компресори</Label>
                       <Input
@@ -1388,10 +1388,10 @@ export default function SettingsClient() {
                   </div>
                 </BentoCard>
 
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
-                  <div className="flex items-center gap-4 mb-6">
+                <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center gap-4">
                     <Clock
-                      className="h-5 w-5 text-[#00f2fe]"
+                      className="size-5 text-[#00f2fe]"
                       strokeWidth={1.5}
                     />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1432,7 +1432,7 @@ export default function SettingsClient() {
                       return (
                         <div
                           key={day}
-                          className="flex items-center gap-6 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30"
+                          className="flex items-center gap-6 rounded-xl border border-zinc-100 bg-zinc-50/30 p-4 dark:border-zinc-800 dark:bg-zinc-900/30"
                         >
                           <div className="w-32">
                             <Label
@@ -1456,12 +1456,12 @@ export default function SettingsClient() {
                                 )
                               }
                             />
-                            <span className="text-[10px] uppercase font-bold text-zinc-400 w-16">
+                            <span className="w-16 text-[10px] font-bold text-zinc-400 uppercase">
                               {daySched.isOpen ? "Отворено" : "Затворено"}
                             </span>
                           </div>
                           {daySched.isOpen && (
-                            <div className="flex items-center gap-3 flex-1 justify-end">
+                            <div className="flex flex-1 items-center justify-end gap-3">
                               <Input
                                 id={`rz-time-open-${day}`}
                                 name={`rz-time-open-${day}`}
@@ -1476,7 +1476,7 @@ export default function SettingsClient() {
                                     e.target.value
                                   )
                                 }
-                                className="w-32 h-10"
+                                className="h-10 w-32"
                               />
                               <span className="text-zinc-400">-</span>
                               <Input
@@ -1493,7 +1493,7 @@ export default function SettingsClient() {
                                     e.target.value
                                   )
                                 }
-                                className="w-32 h-10"
+                                className="h-10 w-32"
                               />
                             </div>
                           )}
@@ -1504,11 +1504,11 @@ export default function SettingsClient() {
                 </BentoCard>
 
                 {/* Benefits / База */}
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
-                  <div className="flex items-center justify-between mb-6">
+                <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <CheckCircle2
-                        className="h-5 w-5 text-[#00f2fe]"
+                        className="size-5 text-[#00f2fe]"
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1520,9 +1520,9 @@ export default function SettingsClient() {
                       onClick={() =>
                         addStringArrayItem("recoveryzone", "benefits")
                       }
-                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                      className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="mr-2 size-4" />
                       Добави Предимство
                     </Button>
                   </div>
@@ -1556,15 +1556,15 @@ export default function SettingsClient() {
                                 index
                               )
                             }
-                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="size-4" />
                           </Button>
                         </div>
                       );
                     })}
                     {(!rzData.benefits || rzData.benefits.length === 0) && (
-                      <p className="text-zinc-500 text-sm font-light">
+                      <p className="text-sm font-light text-zinc-500">
                         Няма въведени предимства.
                       </p>
                     )}
@@ -1572,11 +1572,11 @@ export default function SettingsClient() {
                 </BentoCard>
 
                 {/* Contraindications */}
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
-                  <div className="flex items-center justify-between mb-6">
+                <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Shield
-                        className="h-5 w-5 text-red-500"
+                        className="size-5 text-red-500"
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1588,9 +1588,9 @@ export default function SettingsClient() {
                       onClick={() =>
                         addStringArrayItem("recoveryzone", "contraindications")
                       }
-                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                      className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="mr-2 size-4" />
                       Добави Противопоказание
                     </Button>
                   </div>
@@ -1619,15 +1619,15 @@ export default function SettingsClient() {
                               index
                             )
                           }
-                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                          className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                       </div>
                     ))}
                     {(!rzData.contraindications ||
                       rzData.contraindications.length === 0) && (
-                      <p className="text-zinc-500 text-sm font-light">
+                      <p className="text-sm font-light text-zinc-500">
                         Няма въведени противопоказания.
                       </p>
                     )}
@@ -1635,11 +1635,11 @@ export default function SettingsClient() {
                 </BentoCard>
 
                 {/* FAQs */}
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 mt-6">
-                  <div className="flex items-center justify-between mb-6">
+                <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Settings
-                        className="h-5 w-5 text-primary"
+                        className="size-5 text-primary"
                         strokeWidth={1.5}
                       />
                       <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
@@ -1649,9 +1649,9 @@ export default function SettingsClient() {
                     <Button
                       variant="outline"
                       onClick={() => addFaq("recoveryzone")}
-                      className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                      className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="mr-2 size-4" />
                       Добави Въпрос
                     </Button>
                   </div>
@@ -1659,14 +1659,14 @@ export default function SettingsClient() {
                     {rzData.faqs?.map((faq, index) => (
                       <div
                         key={index}
-                        className="relative p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-4"
+                        className="relative space-y-4 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
                       >
                         <Button
                           variant="ghost"
                           onClick={() => removeFaq("recoveryzone", index)}
-                          className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                          className="absolute top-4 right-4 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                         <div className="space-y-3">
                           <Label className={labelClass}>Въпрос</Label>
@@ -1697,13 +1697,13 @@ export default function SettingsClient() {
                               )
                             }
                             placeholder="Отговор..."
-                            className="w-full rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm font-light p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary min-h-[100px] resize-none"
+                            className="min-h-25 w-full resize-none rounded-xl border border-zinc-100 bg-white p-4 text-sm font-light focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none dark:border-zinc-800 dark:bg-zinc-950"
                           />
                         </div>
                       </div>
                     ))}
                     {(!rzData.faqs || rzData.faqs.length === 0) && (
-                      <p className="text-zinc-500 text-sm font-light">
+                      <p className="text-sm font-light text-zinc-500">
                         Няма въведени въпроси.
                       </p>
                     )}
@@ -1716,9 +1716,9 @@ export default function SettingsClient() {
               value="profile"
               className="m-0 focus-visible:outline-none"
             >
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <BentoCard className="md:col-span-4 p-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 flex flex-col items-center text-center space-y-6">
-                  <div className="h-40 w-40 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-none overflow-hidden transition-all group-hover:scale-105 relative">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <BentoCard className="flex flex-col items-center space-y-6 border border-zinc-100 bg-white p-10 text-center md:col-span-4 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="relative flex size-40 items-center justify-center overflow-hidden rounded-full border border-zinc-100 bg-zinc-50 shadow-none transition-all group-hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
                     {user?.photoURL ? (
                       <Image
                         src={user.photoURL}
@@ -1736,19 +1736,19 @@ export default function SettingsClient() {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-2xl font-light text-zinc-900 dark:text-white truncate px-2 w-full max-w-[250px]">
+                    <h3 className="w-full max-w-[250px] truncate px-2 text-2xl font-light text-zinc-900 dark:text-white">
                       {user?.displayName ||
                         user?.email?.split("@")[0] ||
                         "Администратор"}
                     </h3>
-                    <p className="text-[11px] text-primary font-medium uppercase tracking-widest mt-1">
+                    <p className="mt-1 text-[11px] font-medium tracking-widest text-primary uppercase">
                       Супер Потребител
                     </p>
                   </div>
-                  <div className="w-full pt-8 space-y-6 border-t border-zinc-50 dark:border-zinc-900">
-                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest">
+                  <div className="w-full space-y-6 border-t border-zinc-50 pt-8 dark:border-zinc-900">
+                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium tracking-widest uppercase">
                       <span className="text-zinc-400">Последен вход</span>
-                      <span className="text-zinc-900 dark:text-white font-bold text-[13px] tracking-normal">
+                      <span className="text-[13px] font-bold tracking-normal text-zinc-900 dark:text-white">
                         {user?.metadata?.lastSignInTime
                           ? new Date(
                               user.metadata.lastSignInTime
@@ -1762,49 +1762,49 @@ export default function SettingsClient() {
                           : "Неизвестно"}
                       </span>
                     </div>
-                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-1.5 text-[11px] font-medium tracking-widest uppercase">
                       <span className="text-zinc-400">Ниво на достъп</span>
-                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold text-[12px] tracking-wider">
+                      <span className="rounded-full bg-primary/10 px-3 py-1 text-[12px] font-bold tracking-wider text-primary">
                         FULL ACCESS
                       </span>
                     </div>
                   </div>
                 </BentoCard>
 
-                <BentoCard className="md:col-span-8 p-10 space-y-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900">
+                <BentoCard className="space-y-10 border border-zinc-100 bg-white p-10 md:col-span-8 dark:border-zinc-900 dark:bg-zinc-950">
                   <div className="flex items-center gap-4">
-                    <Mail className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                    <Mail className="size-5 text-primary" strokeWidth={1.5} />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                       Лична Информация
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                         Име
                       </Label>
                       <Input
                         defaultValue="Бадминтон клуб"
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                         Фамилия
                       </Label>
                       <Input
                         defaultValue="Гълъбово"
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                        className="h-14 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                       />
                     </div>
                     <div className="space-y-3 md:col-span-2">
-                      <Label className="text-[11px] font-medium uppercase tracking-widest text-zinc-400">
+                      <Label className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                         Имейл Адрес
                       </Label>
                       <Input
                         defaultValue={user?.email || ""}
                         disabled
-                        className="h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none opacity-60 cursor-not-allowed"
+                        className="h-14 cursor-not-allowed rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light opacity-60 shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                       />
                     </div>
                   </div>
@@ -1817,25 +1817,25 @@ export default function SettingsClient() {
               className="m-0 focus-visible:outline-none"
             >
               <div className="grid grid-cols-1 gap-6">
-                <BentoCard className="p-10 space-y-8 border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Users className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
+                  <div className="mb-6 flex items-center gap-4">
+                    <Users className="size-5 text-primary" strokeWidth={1.5} />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                       Управление на Екипи
                     </h3>
                   </div>
 
-                  <h4 className="text-xl font-light mt-8 mb-4 border-b border-zinc-100 dark:border-zinc-800 pb-2 text-zinc-800 dark:text-zinc-200">
+                  <h4 className="mt-8 mb-4 border-b border-zinc-100 pb-2 text-xl font-light text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                     Бадминтон Клуб Гълъбово
                   </h4>
                   {/* Team (Therapists) Section */}
-                  <div className="bg-zinc-50/30 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden mt-8">
-                    <div className="flex items-center justify-between p-6 md:p-8 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="mt-8 overflow-hidden rounded-3xl border border-zinc-100 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/30">
+                    <div className="flex items-center justify-between border-b border-zinc-100 p-6 md:p-8 dark:border-zinc-800">
                       <div>
                         <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                           Екип
                         </h3>
-                        <p className="text-zinc-500 text-sm mt-1">
+                        <p className="mt-1 text-sm text-zinc-500">
                           Добавете снимка, име, роля и описание. За снимки
                           можете да добавите файловете в папка
                           &quot;public/team&quot; и да напишете
@@ -1845,17 +1845,17 @@ export default function SettingsClient() {
                       <Button
                         variant="outline"
                         onClick={() => addTherapist("bkgalabovo")}
-                        className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                        className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="mr-2 size-4" />
                         Добави Член
                       </Button>
                     </div>
-                    <div className="p-6 md:p-8 space-y-6">
+                    <div className="space-y-6 p-6 md:p-8">
                       <div className="mb-6">
                         <Label
                           htmlFor="bkg-team-intro"
-                          className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                          className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                         >
                           Въведение към екипа (Team Intro)
                         </Label>
@@ -1871,26 +1871,26 @@ export default function SettingsClient() {
                             )
                           }
                           placeholder="Кратко описание на екипа..."
-                          className="min-h-[100px] resize-y h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                          className="h-14 min-h-25 resize-y rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                         />
                       </div>
                       {bkgData.therapists?.map((therapist, index) => (
                         <div
                           key={index}
-                          className="flex flex-col gap-4 p-6 bg-white dark:bg-black/50 border border-zinc-200 dark:border-zinc-800/50 rounded-2xl relative shadow-sm"
+                          className="relative flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800/50 dark:bg-black/50"
                         >
                           <Button
                             variant="ghost"
                             onClick={() => removeTherapist("bkgalabovo", index)}
-                            className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                            className="absolute top-4 right-4 size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="size-4" />
                           </Button>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                               <Label
                                 htmlFor={`bkg-therapist-name-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Име
                               </Label>
@@ -1913,7 +1913,7 @@ export default function SettingsClient() {
                             <div>
                               <Label
                                 htmlFor={`bkg-therapist-role-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Длъжност / Роля
                               </Label>
@@ -1936,7 +1936,7 @@ export default function SettingsClient() {
                             <div>
                               <Label
                                 htmlFor={`bkg-therapist-image-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Път към снимка
                               </Label>
@@ -1959,7 +1959,7 @@ export default function SettingsClient() {
                             <div className="md:col-span-2">
                               <Label
                                 htmlFor={`bkg-therapist-bio-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Описание (Bio)
                               </Label>
@@ -1976,7 +1976,7 @@ export default function SettingsClient() {
                                   )
                                 }
                                 placeholder="Живко Иванов отговаря за..."
-                                className={`${inputClassRz} min-h-[100px] resize-y`}
+                                className={`${inputClassRz} min-h-25 resize-y`}
                               />
                             </div>
                           </div>
@@ -1984,24 +1984,24 @@ export default function SettingsClient() {
                       ))}
                       {(!bkgData.therapists ||
                         bkgData.therapists.length === 0) && (
-                        <p className="text-zinc-500 text-sm font-light">
+                        <p className="text-sm font-light text-zinc-500">
                           Няма добавени членове на екипа.
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <h4 className="text-xl font-light mt-12 mb-4 border-b border-zinc-100 dark:border-zinc-800 pb-2 text-zinc-800 dark:text-zinc-200">
+                  <h4 className="mt-12 mb-4 border-b border-zinc-100 pb-2 text-xl font-light text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                     Recovery Zone
                   </h4>
                   {/* Team (Therapists) Section */}
-                  <div className="bg-zinc-50/30 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden mt-8">
-                    <div className="flex items-center justify-between p-6 md:p-8 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="mt-8 overflow-hidden rounded-3xl border border-zinc-100 bg-zinc-50/30 dark:border-zinc-800 dark:bg-zinc-900/30">
+                    <div className="flex items-center justify-between border-b border-zinc-100 p-6 md:p-8 dark:border-zinc-800">
                       <div>
                         <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                           Екип
                         </h3>
-                        <p className="text-zinc-500 text-sm mt-1">
+                        <p className="mt-1 text-sm text-zinc-500">
                           Добавете снимка, име, роля и описание. За снимки
                           можете да добавите файловете в папка
                           &quot;public/team&quot; и да напишете
@@ -2011,17 +2011,17 @@ export default function SettingsClient() {
                       <Button
                         variant="outline"
                         onClick={() => addTherapist("recoveryzone")}
-                        className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                        className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="mr-2 size-4" />
                         Добави Член
                       </Button>
                     </div>
-                    <div className="p-6 md:p-8 space-y-6">
+                    <div className="space-y-6 p-6 md:p-8">
                       <div className="mb-6">
                         <Label
                           htmlFor="rz-team-intro"
-                          className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                          className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                         >
                           Въведение към екипа (Team Intro)
                         </Label>
@@ -2037,28 +2037,28 @@ export default function SettingsClient() {
                             )
                           }
                           placeholder="Кратко описание на екипа..."
-                          className="min-h-[100px] resize-y h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+                          className="h-14 min-h-25 resize-y rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                         />
                       </div>
                       {rzData.therapists?.map((therapist, index) => (
                         <div
                           key={index}
-                          className="flex flex-col gap-4 p-6 bg-white dark:bg-black/50 border border-zinc-200 dark:border-zinc-800/50 rounded-2xl relative shadow-sm"
+                          className="relative flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800/50 dark:bg-black/50"
                         >
                           <Button
                             variant="ghost"
                             onClick={() =>
                               removeTherapist("recoveryzone", index)
                             }
-                            className="absolute top-4 right-4 text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                            className="absolute top-4 right-4 size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="size-4" />
                           </Button>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                               <Label
                                 htmlFor={`rz-therapist-name-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Име
                               </Label>
@@ -2081,7 +2081,7 @@ export default function SettingsClient() {
                             <div>
                               <Label
                                 htmlFor={`rz-therapist-role-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Длъжност / Роля
                               </Label>
@@ -2104,7 +2104,7 @@ export default function SettingsClient() {
                             <div>
                               <Label
                                 htmlFor={`rz-therapist-image-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Път към снимка
                               </Label>
@@ -2127,7 +2127,7 @@ export default function SettingsClient() {
                             <div className="md:col-span-2">
                               <Label
                                 htmlFor={`rz-therapist-bio-${index}`}
-                                className="text-zinc-600 dark:text-zinc-400 mb-2 block text-sm font-medium"
+                                className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400"
                               >
                                 Описание (Bio)
                               </Label>
@@ -2144,7 +2144,7 @@ export default function SettingsClient() {
                                   )
                                 }
                                 placeholder="Живко Иванов отговаря за..."
-                                className={`${inputClassRz} min-h-[100px] resize-y`}
+                                className={`${inputClassRz} min-h-25 resize-y`}
                               />
                             </div>
                           </div>
@@ -2152,7 +2152,7 @@ export default function SettingsClient() {
                       ))}
                       {(!rzData.therapists ||
                         rzData.therapists.length === 0) && (
-                        <p className="text-zinc-500 text-sm font-light">
+                        <p className="text-sm font-light text-zinc-500">
                           Няма добавени членове на екипа.
                         </p>
                       )}
@@ -2166,10 +2166,10 @@ export default function SettingsClient() {
               value="audit"
               className="m-0 focus-visible:outline-none"
             >
-              <BentoCard className="p-10 space-y-8 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 min-h-[600px]">
+              <BentoCard className="min-h-150 space-y-8 border border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <Clock className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                    <Clock className="size-5 text-primary" strokeWidth={1.5} />
                     <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
                       Системна История (Одиторски дневник)
                     </h3>
@@ -2178,43 +2178,43 @@ export default function SettingsClient() {
                     variant="outline"
                     onClick={fetchLogs}
                     disabled={loadingLogs}
-                    className="h-10 rounded-xl px-4 text-xs font-medium uppercase tracking-widest"
+                    className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
                   >
                     {loadingLogs ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="mr-2 size-4 animate-spin" />
                     ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
+                      <RefreshCw className="mr-2 size-4" />
                     )}
                     Опресни
                   </Button>
                 </div>
 
-                <div className="border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden flex flex-col">
-                  <div className="overflow-x-auto w-full max-h-[600px] overflow-y-auto relative">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                      <thead className="bg-zinc-50/95 dark:bg-zinc-900/95 backdrop-blur-md text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 sticky top-0 z-10 border-b border-zinc-100 dark:border-zinc-800 shadow-sm">
+                <div className="flex flex-col overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="relative max-h-150 w-full overflow-auto">
+                    <table className="w-full min-w-200 border-collapse text-left">
+                      <thead className="sticky top-0 z-10 border-b border-zinc-100 bg-zinc-50/95 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
                         <tr>
-                          <th className="px-6 py-4 font-medium w-[20%]">
+                          <th className="w-[20%] px-6 py-4 font-medium">
                             Дата / Време
                           </th>
-                          <th className="px-6 py-4 font-medium w-[20%]">
+                          <th className="w-[20%] px-6 py-4 font-medium">
                             Действие
                           </th>
-                          <th className="px-6 py-4 font-medium w-[45%]">
+                          <th className="w-[45%] px-6 py-4 font-medium">
                             Детайли
                           </th>
-                          <th className="px-6 py-4 font-medium w-[15%]">
+                          <th className="w-[15%] px-6 py-4 font-medium">
                             Потребител
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
+                      <tbody className="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-950">
                         {auditLogs.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="p-16 text-center">
                               <div className="flex flex-col items-center justify-center">
                                 <Activity
-                                  className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
+                                  className="mb-4 size-10 text-zinc-200 dark:text-zinc-800"
                                   strokeWidth={1}
                                 />
                                 <span className="text-sm font-light text-zinc-500">
@@ -2236,36 +2236,36 @@ export default function SettingsClient() {
                             return (
                               <tr
                                 key={log.id}
-                                className="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50 transition-all group"
+                                className="group transition-all hover:bg-zinc-50/80 dark:hover:bg-zinc-900/50"
                               >
                                 <td className="px-6 py-5 align-top">
                                   <div className="flex flex-col gap-0.5">
-                                    <span className="font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap">
+                                    <span className="font-medium whitespace-nowrap text-zinc-900 dark:text-zinc-100">
                                       {datePart}
                                     </span>
                                     {timePart && (
-                                      <span className="text-xs font-light text-zinc-500 group-hover:text-primary transition-colors whitespace-nowrap">
+                                      <span className="text-xs font-light whitespace-nowrap text-zinc-500 transition-colors group-hover:text-primary">
                                         {timePart}
                                       </span>
                                     )}
                                   </div>
                                 </td>
                                 <td className="px-6 py-5 align-top">
-                                  <span className="inline-block px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-wider break-words max-w-full leading-relaxed">
+                                  <span className="inline-block max-w-full rounded-md bg-zinc-100 px-2.5 py-1 text-[10px] leading-relaxed font-bold tracking-wider break-words text-zinc-700 uppercase dark:bg-zinc-800 dark:text-zinc-300">
                                     {log.action.replace(/_/g, " ")}
                                   </span>
                                 </td>
-                                <td className="px-6 py-5 align-top text-zinc-600 dark:text-zinc-400 font-light text-sm leading-relaxed">
-                                  <div className="break-words max-w-full">
+                                <td className="px-6 py-5 align-top text-sm leading-relaxed font-light text-zinc-600 dark:text-zinc-400">
+                                  <div className="max-w-full break-words">
                                     {log.details}
                                   </div>
                                 </td>
                                 <td className="px-6 py-5 align-top">
-                                  <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                                    <div className="h-7 w-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-                                      <User className="h-3.5 w-3.5 text-zinc-400" />
+                                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                      <User className="size-3.5 text-zinc-400" />
                                     </div>
-                                    <span className="truncate max-w-[120px]">
+                                    <span className="max-w-30 truncate">
                                       {log.userEmail.split("@")[0]}
                                     </span>
                                   </div>

@@ -63,7 +63,7 @@ export default function ReservationsClient() {
   if (!mounted) return null;
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="mx-auto max-w-400 space-y-6 duration-700 animate-in fade-in slide-in-from-bottom-4">
       <PageHeader
         title="Резервации"
         description={
@@ -85,10 +85,10 @@ export default function ReservationsClient() {
             <BlockSlotDialog onSave={handleSave} courtCount={COURT_COUNT}>
               <Button
                 variant="outline"
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 h-11 px-5 font-bold text-[10px] uppercase tracking-widest bg-white dark:bg-zinc-900 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                className="h-11 rounded-xl border-zinc-200 bg-white px-5 text-[10px] font-bold tracking-widest uppercase transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               >
                 <ShieldAlert
-                  className="mr-2.5 h-4 w-4 text-zinc-400"
+                  className="mr-2.5 size-4 text-zinc-400"
                   strokeWidth={2}
                 />
                 Блокирай
@@ -96,8 +96,8 @@ export default function ReservationsClient() {
             </BlockSlotDialog>
           )}
           <ReservationDialog onSave={handleSave}>
-            <Button className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-11 px-6 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all border-none">
-              <Plus className="mr-2.5 h-4 w-4" strokeWidth={2.5} /> Нова
+            <Button className="h-11 rounded-xl border-none bg-primary px-6 text-[10px] font-bold tracking-widest text-white uppercase shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
+              <Plus className="mr-2.5 size-4" strokeWidth={2.5} /> Нова
               Резервация на КОРТ
             </Button>
           </ReservationDialog>
@@ -109,32 +109,32 @@ export default function ReservationsClient() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-zinc-950 p-3 pr-5 rounded-4xl border border-zinc-100 dark:border-zinc-900 shadow-sm shadow-black/2">
-          <TabsList className="bg-zinc-100/50 dark:bg-zinc-900/50 p-1 rounded-3xl h-14 border border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="flex flex-col items-center justify-between gap-6 rounded-4xl border border-zinc-100 bg-white p-3 pr-5 shadow-sm shadow-black/2 md:flex-row dark:border-zinc-900 dark:bg-zinc-950">
+          <TabsList className="h-14 rounded-3xl border border-zinc-200/50 bg-zinc-100/50 p-1 dark:border-zinc-800/50 dark:bg-zinc-900/50">
             <TabsTrigger
               value="schedule"
-              className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+              className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="size-4" />
               График
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="rounded-2xl px-6 h-full font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all flex items-center gap-2.5"
+              className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <History className="h-4 w-4" />
+              <History className="size-4" />
               История
             </TabsTrigger>
           </TabsList>
 
           {activeTab === "schedule" && (
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex items-center gap-4 border-r border-zinc-100 dark:border-zinc-900 pr-6">
-                <div className="h-10 w-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary border border-primary/10">
-                  <CalendarIcon className="h-4 w-4" strokeWidth={2} />
+            <div className="flex flex-col items-center gap-6 md:flex-row">
+              <div className="flex items-center gap-4 border-r border-zinc-100 pr-6 dark:border-zinc-900">
+                <div className="flex size-10 items-center justify-center rounded-xl border border-primary/10 bg-primary/5 text-primary">
+                  <CalendarIcon className="size-4" strokeWidth={2} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                  <h2 className="flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-white">
                     {currentDate.toLocaleDateString("bg-BG", {
                       day: "2-digit",
                       month: "long",
@@ -142,7 +142,7 @@ export default function ReservationsClient() {
                     })}
                     {new Date().toDateString() ===
                       currentDate.toDateString() && (
-                      <span className="text-[8px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                      <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[8px] font-bold tracking-wider text-primary uppercase">
                         Днес
                       </span>
                     )}
@@ -150,19 +150,19 @@ export default function ReservationsClient() {
                 </div>
               </div>
 
-              <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 p-1 rounded-2xl gap-1 border border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-1 rounded-2xl border border-zinc-100 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={goToPreviousDay}
-                  className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                  className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                 >
-                  <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+                  <ChevronLeft className="size-4" strokeWidth={2} />
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={goToToday}
-                  className="px-6 h-10 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                  className="h-10 rounded-xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                 >
                   Днес
                 </Button>
@@ -170,9 +170,9 @@ export default function ReservationsClient() {
                   variant="ghost"
                   size="icon"
                   onClick={goToNextDay}
-                  className="h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all"
+                  className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
                 >
-                  <ChevronRight className="h-4 w-4" strokeWidth={2} />
+                  <ChevronRight className="size-4" strokeWidth={2} />
                 </Button>
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function ReservationsClient() {
         </div>
 
         <TabsContent value="schedule" className="mt-0 outline-none">
-          <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-4xl shadow-sm shadow-black/2">
+          <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-sm shadow-black/2 dark:border-zinc-900 dark:bg-zinc-950">
             <div className="bg-white dark:bg-zinc-950">
               <AgendaView
                 key={`${currentDate.toISOString()}-${refreshKey}`}

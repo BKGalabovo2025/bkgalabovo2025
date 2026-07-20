@@ -85,9 +85,9 @@ export default function MonthlyScheduleForm({
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       <div className="mb-6 space-y-2">
-        <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <div className="flex items-center justify-between text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
           <span>
             {(() => {
               if (step === 1) return "Стъпка 1: Основна информация";
@@ -125,7 +125,7 @@ export default function MonthlyScheduleForm({
               form.handleSubmit(onSave)();
             }
           }}
-          className="space-y-8 flex-1"
+          className="flex-1 space-y-8"
         >
           <MonthlyScheduleStep1
             form={form}
@@ -147,15 +147,15 @@ export default function MonthlyScheduleForm({
           />
 
           {/* NAVIGATION BUTTONS */}
-          <div className="flex items-center justify-between gap-4 pt-6 border-t border-zinc-100 dark:border-zinc-900 mt-8">
+          <div className="mt-8 flex items-center justify-between gap-4 border-t border-zinc-100 pt-6 dark:border-zinc-900">
             {step > 1 && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={handlePrevStep}
-                className="h-11 rounded-xl text-xs font-medium uppercase tracking-wider text-zinc-500 hover:border-zinc-50 hover:bg-zinc-50 gap-2 px-4"
+                className="h-11 gap-2 rounded-xl px-4 text-xs font-medium tracking-wider text-zinc-500 uppercase hover:border-zinc-50 hover:bg-zinc-50"
               >
-                <ArrowLeft className="h-3 w-3" /> Назад
+                <ArrowLeft className="size-3" /> Назад
               </Button>
             )}
             {step < 3 ? (
@@ -163,26 +163,26 @@ export default function MonthlyScheduleForm({
                 type="button"
                 onClick={handleNextStep}
                 className={cn(
-                  "h-11 rounded-xl text-xs font-medium uppercase tracking-wider gap-2 px-5 ml-auto",
-                  "bg-zinc-950 text-white hover:border-zinc-900 hover:bg-zinc-900 shadow-md shadow-zinc-950/10"
+                  "ml-auto h-11 gap-2 rounded-xl px-5 text-xs font-medium tracking-wider uppercase",
+                  "bg-zinc-950 text-white shadow-md shadow-zinc-950/10 hover:border-zinc-900 hover:bg-zinc-900"
                 )}
               >
-                Напред <ArrowRight className="h-3 w-3" />
+                Напред <ArrowRight className="size-3" />
               </Button>
             ) : (
               <Button
                 type="submit"
                 disabled={isSaving || !canSubmit}
                 className={cn(
-                  "h-11 rounded-xl text-xs font-medium uppercase tracking-wider gap-2 px-6 ml-auto transition-all",
+                  "ml-auto h-11 gap-2 rounded-xl px-6 text-xs font-medium tracking-wider uppercase transition-all",
                   canSubmit
-                    ? "bg-zinc-950 text-white hover:border-zinc-900 hover:bg-zinc-900 shadow-lg shadow-zinc-950/20"
-                    : "bg-zinc-300 text-zinc-500 cursor-not-allowed opacity-70"
+                    ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/20 hover:border-zinc-900 hover:bg-zinc-900"
+                    : "cursor-not-allowed bg-zinc-300 text-zinc-500 opacity-70"
                 )}
               >
                 {isSaving ? (
                   <>
-                    <Loader2 className="h-3 w-3 animate-spin" /> Запазване...
+                    <Loader2 className="size-3 animate-spin" /> Запазване...
                   </>
                 ) : (
                   "Потвърди и създай"

@@ -12,16 +12,16 @@ export const ProductSalesTab = () => {
 
   if (historyLoading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-35" />
-        <p className="text-zinc-400 text-xs font-light">Зареждане на продажби...</p>
+      <div className="flex flex-col items-center justify-center space-y-4 py-20">
+        <Loader2 className="size-8 animate-spin text-emerald-500 opacity-35" />
+        <p className="text-xs font-light text-zinc-400">Зареждане на продажби...</p>
       </div>
     );
   }
 
   if (sales.length === 0) {
     return (
-      <div className="py-20 text-center text-zinc-400 text-xs font-light">
+      <div className="py-20 text-center text-xs font-light text-zinc-400">
         Няма записани продажби за този продукт.
       </div>
     );
@@ -37,11 +37,11 @@ export const ProductSalesTab = () => {
             : membersMap[sale.memberId] || "Зареден Член";
 
         return (
-          <div key={sale.id} className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400 text-[10px]">{new Date(sale.saleDate).toLocaleDateString("bg-BG")}</span>
+          <div key={sale.id} className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-zinc-400">{new Date(sale.saleDate).toLocaleDateString("bg-BG")}</span>
               <Badge
-                className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${
+                className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${
                   sale.isPaid
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
                     : "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400"
@@ -50,15 +50,15 @@ export const ProductSalesTab = () => {
                 {sale.isPaid ? "Платено" : "Неплатено"}
               </Badge>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-zinc-500">Клиент:</span>
               <span className="font-semibold text-zinc-900 dark:text-white">{memberName}</span>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-zinc-500">Брой:</span>
               <span className="font-medium">{item?.quantity || 1} бр.</span>
             </div>
-            <div className="flex justify-between items-center pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50">
+            <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1 dark:border-zinc-800/50">
               <span className="text-zinc-500">Сума:</span>
               <span className="font-bold text-emerald-500">{formatPrice(sale.totalAmount)}</span>
             </div>

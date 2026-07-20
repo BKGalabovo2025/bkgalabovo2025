@@ -53,50 +53,50 @@ export const QuickTasks = () => {
   };
 
   return (
-    <BentoCard className="p-8 h-full flex flex-col border border-zinc-100 bg-white shadow-none rounded-4xl">
-      <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-6 flex items-center gap-3">
-        <CheckCircle2 className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />{" "}
+    <BentoCard className="flex h-full flex-col rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+      <h2 className="mb-6 flex items-center gap-3 text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase dark:text-zinc-400">
+        <CheckCircle2 className="size-4 text-emerald-500" strokeWidth={1.5} />{" "}
         {t("dash.quick_tasks")}
       </h2>
 
-      <div className="flex gap-2 mb-8">
+      <div className="mb-8 flex gap-2">
         <Input
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           placeholder={t("dash.add_task")}
-          className="h-12 rounded-xl border-zinc-100 bg-zinc-50 focus-visible:ring-zinc-200 text-sm placeholder:text-zinc-400"
+          className="h-12 rounded-xl border-zinc-100 bg-zinc-50 text-sm placeholder:text-zinc-400 focus-visible:ring-zinc-200"
           onKeyDown={(e) => e.key === "Enter" && addTask()}
         />
         <Button
           onClick={addTask}
           size="icon"
           aria-label={t("dash.add_task") || "Добави задача"}
-          className="h-12 w-12 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 shrink-0 shadow-none transition-all"
+          className="size-12 shrink-0 rounded-xl bg-zinc-950 text-white shadow-none transition-all hover:bg-zinc-800"
         >
           <Plus size={18} strokeWidth={1.5} />
         </Button>
       </div>
 
-      <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+      <div className="custom-scrollbar max-h-100 space-y-4 overflow-y-auto pr-2">
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center gap-4 group animate-in slide-in-from-left duration-300"
+            className="group flex items-center gap-4 duration-300 animate-in slide-in-from-left"
           >
             <Checkbox
               checked={task.completed}
               onCheckedChange={() => toggleTask(task.id)}
-              className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-950 data-[state=checked]:border-zinc-950 transition-all"
+              className="size-5 rounded-md border-zinc-200 transition-all data-[state=checked]:border-zinc-950 data-[state=checked]:bg-zinc-950"
             />
             <span
-              className={`text-sm flex-1 font-light transition-all ${task.completed ? "text-zinc-300 line-through" : "text-zinc-650"}`}
+              className={`flex-1 text-sm font-light transition-all ${task.completed ? "text-zinc-300 line-through" : "text-zinc-650"}`}
             >
               {task.text}
             </span>
             <button
               onClick={() => deleteTask(task.id)}
               aria-label="Изтрий задача"
-              className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-rose-500 transition-all"
+              className="text-zinc-400 opacity-0 transition-all group-hover:opacity-100 hover:text-rose-500"
             >
               <Trash2 size={14} strokeWidth={1.5} />
             </button>
@@ -105,7 +105,7 @@ export const QuickTasks = () => {
         {tasks.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12">
             <CheckCircle2 size={32} strokeWidth={1} className="text-zinc-300" />
-            <p className="text-[10px] uppercase tracking-widest mt-4 font-semibold text-zinc-700 dark:text-zinc-400">
+            <p className="mt-4 text-[10px] font-semibold tracking-widest text-zinc-700 uppercase dark:text-zinc-400">
               Всичко е изпълнено
             </p>
           </div>

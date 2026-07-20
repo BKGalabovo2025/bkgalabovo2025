@@ -24,61 +24,61 @@ const EditProductDialogContent = () => {
   if (!product) return null;
 
   return (
-    <DialogContent className="sm:max-w-[850px] p-8 sm:p-10 rounded-4xl bg-white dark:bg-zinc-950 border-none shadow-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <DialogContent className="custom-scrollbar max-h-[90vh] overflow-y-auto rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-[850px] sm:p-10 dark:bg-zinc-950">
       <DialogHeader className="mb-6">
-        <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50 flex items-center gap-3">
-          <Package className="h-6 w-6 text-zinc-650" strokeWidth={1.5} />
+        <DialogTitle className="flex items-center gap-3 text-2xl font-light text-zinc-950 dark:text-zinc-50">
+          <Package className="text-zinc-650 size-6" strokeWidth={1.5} />
           Редактиране на: {product.name}
         </DialogTitle>
-        <DialogDescription className="font-light text-zinc-400 mt-1">
+        <DialogDescription className="mt-1 font-light text-zinc-400">
           Промяна на информацията за артикула, добавяне на снимки и управление на складовите наличности.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
         {/* LEFT COLUMN: Product Details */}
         <ProductDetailsForm />
 
         {/* RIGHT COLUMN: Inventory Movements System with Tabs */}
-        <div className="space-y-6 md:border-l md:border-zinc-100 md:dark:border-zinc-900 md:pl-10 flex flex-col h-full min-h-[450px]">
-          <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-            <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full border border-zinc-200/40 dark:border-zinc-800/40 mb-6 flex">
+        <div className="flex h-full min-h-[450px] flex-col space-y-6 md:border-l md:border-zinc-100 md:pl-10 md:dark:border-zinc-900">
+          <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab} className="flex w-full flex-1 flex-col">
+            <TabsList className="mb-6 flex h-11 w-full rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 dark:border-zinc-800/40 dark:bg-zinc-900/50">
               <TabsTrigger
                 value="stock"
-                className="flex-1 rounded-xl text-xs font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all py-2"
+                className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
               >
                 Наличност
               </TabsTrigger>
               <TabsTrigger
                 value="movements"
-                className="flex-1 rounded-xl text-xs font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all py-2"
+                className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
               >
                 Движения
               </TabsTrigger>
               <TabsTrigger
                 value="sales"
-                className="flex-1 rounded-xl text-xs font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all py-2"
+                className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
               >
                 Продажби
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="stock" className="outline-none flex-1 space-y-6">
+            <TabsContent value="stock" className="flex-1 space-y-6 outline-none">
               <ProductStockTab />
             </TabsContent>
 
-            <TabsContent value="movements" className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1">
+            <TabsContent value="movements" className="custom-scrollbar max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none">
               <ProductMovementsTab />
             </TabsContent>
 
-            <TabsContent value="sales" className="outline-none flex-1 max-h-[380px] overflow-y-auto custom-scrollbar space-y-4 pr-1">
+            <TabsContent value="sales" className="custom-scrollbar max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none">
               <ProductSalesTab />
             </TabsContent>
           </Tabs>
         </div>
       </div>
 
-      <DialogFooter className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-900 flex justify-end gap-3">
+      <DialogFooter className="mt-8 flex justify-end gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-900">
         <Button variant="outline" onClick={onClose} disabled={isProcessing} className="rounded-xl px-6">
           Затвори
         </Button>

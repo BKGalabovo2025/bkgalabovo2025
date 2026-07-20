@@ -74,12 +74,12 @@ export function AddMemberToFamilyDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-full gap-2 bg-zinc-950 text-white hover:bg-zinc-800">
-          <UserPlus className="h-4 w-4" />
+        <Button className="gap-2 rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
+          <UserPlus className="size-4" />
           Добави член
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-4xl border-none shadow-2xl">
+      <DialogContent className="rounded-4xl border-none shadow-2xl sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light tracking-tight">
             Добавяне към семейството
@@ -87,31 +87,31 @@ export function AddMemberToFamilyDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
             <Input
               placeholder="Търсене на член по име..."
-              className="pl-10 h-12 rounded-2xl bg-zinc-50 border-zinc-100 focus-visible:ring-zinc-200"
+              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50 pl-10 focus-visible:ring-zinc-200"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+          <div className="custom-scrollbar max-h-100 space-y-2 overflow-y-auto pr-2">
             {(() => {
               if (loading) {
                 return (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
+                    <Loader2 className="size-8 animate-spin text-zinc-200" />
                   </div>
                 );
               }
               if (filteredMembers.length === 0) {
                 return (
-                  <div className="text-center py-12 space-y-2">
+                  <div className="space-y-2 py-12 text-center">
                     <p className="text-sm text-zinc-400">
                       Няма намерени свободни членове.
                     </p>
-                    <p className="text-[10px] text-zinc-300 uppercase tracking-widest2">
+                    <p className="tracking-widest2 text-[10px] text-zinc-300 uppercase">
                       Проверете дали членът вече не е в друго семейство
                     </p>
                   </div>
@@ -120,12 +120,12 @@ export function AddMemberToFamilyDialog({
               return filteredMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100 group"
+                  className="group flex items-center justify-between rounded-2xl border border-transparent p-3 transition-all hover:border-zinc-100 hover:bg-zinc-50"
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                    <Avatar className="size-10 border-2 border-white shadow-sm">
                       <AvatarImage src={member.avatarUrl ?? undefined} />
-                      <AvatarFallback className="bg-zinc-100 text-zinc-500 text-xs">
+                      <AvatarFallback className="bg-zinc-100 text-xs text-zinc-500">
                         {member.firstName[0]}
                         {member.lastName[0]}
                       </AvatarFallback>
@@ -134,7 +134,7 @@ export function AddMemberToFamilyDialog({
                       <span className="text-sm font-medium text-zinc-900">
                         {member.firstName} {member.lastName}
                       </span>
-                      <span className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      <span className="text-[10px] tracking-widest text-zinc-400 uppercase">
                         {member.ageGroup || "Няма група"}
                       </span>
                     </div>
@@ -142,12 +142,12 @@ export function AddMemberToFamilyDialog({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 rounded-full px-4 text-[10px] uppercase tracking-widest font-medium border-zinc-200 hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all"
+                    className="h-8 rounded-full border-zinc-200 px-4 text-[10px] font-medium tracking-widest uppercase transition-all hover:border-zinc-950 hover:bg-zinc-950 hover:text-white"
                     disabled={isSubmitting !== null}
                     onClick={() => handleAddMember(member.id)}
                   >
                     {isSubmitting === member.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <Loader2 className="size-3 animate-spin" />
                     ) : (
                       "Добави"
                     )}

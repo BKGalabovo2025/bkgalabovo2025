@@ -14,11 +14,11 @@ import { Member } from "@/types/member.types";
 
 const AthleteCard = ({ member }: { member: Member }) => {
   return (
-    <div className="athlete-card-container border-b-2 border-dashed border-slate-300 pb-12 mb-12 last:border-0 last:mb-0 last:pb-0 h-[48vh] flex flex-col justify-between bg-white">
+    <div className="athlete-card-container mb-12 flex h-[48vh] flex-col justify-between border-b-2 border-dashed border-slate-300 bg-white pb-12 last:mb-0 last:border-0 last:pb-0">
       <div className="w-full">
         {/* Top Section: Photo and Title */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="w-24 h-32 border-2 border-slate-400 flex items-center justify-center overflow-hidden bg-slate-50">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex h-32 w-24 items-center justify-center overflow-hidden border-2 border-slate-400 bg-slate-50">
             {member.avatarUrl ? (
               <Image
                 src={member.avatarUrl}
@@ -29,16 +29,16 @@ const AthleteCard = ({ member }: { member: Member }) => {
                 unoptimized
               />
             ) : (
-              <div className="text-[10px] text-slate-400 uppercase italic text-center px-2">
+              <div className="px-2 text-center text-[10px] text-slate-400 uppercase italic">
                 Снимка
               </div>
             )}
           </div>
-          <div className="text-center flex-1 pr-24">
-            <h1 className="text-xl font-bold uppercase tracking-tight mb-1">
+          <div className="flex-1 pr-24 text-center">
+            <h1 className="mb-1 text-xl font-bold tracking-tight uppercase">
               Българска Федерация Бадминтон
             </h1>
-            <h2 className="text-sm font-bold uppercase tracking-widest">
+            <h2 className="text-sm font-bold tracking-widest uppercase">
               Картон на състезателя
             </h2>
           </div>
@@ -49,19 +49,19 @@ const AthleteCard = ({ member }: { member: Member }) => {
           {/* Club Column */}
           <div className="col-span-4 space-y-3">
             <div>
-              <p className="text-[11pt] font-bold border-b border-dotted border-slate-600">
+              <p className="border-b border-dotted border-slate-600 text-[11pt] font-bold">
                 &quot;Бадминтон клуб Гълъбово&quot;
               </p>
               <p className="text-[8pt] text-slate-500 italic">/ клуб /</p>
             </div>
             <div>
-              <p className="text-[11pt] border-b border-dotted border-slate-600">
+              <p className="border-b border-dotted border-slate-600 text-[11pt]">
                 гр. Гълъбово
               </p>
               <p className="text-[8pt] text-slate-500 italic">гр.</p>
             </div>
             <div className="pt-4">
-              <p className="text-[11pt] border-b border-dotted border-slate-600 min-h-6"></p>
+              <p className="min-h-6 border-b border-dotted border-slate-600 text-[11pt]"></p>
               <p className="text-[8pt] text-slate-500 italic">
                 Председател: / Подпис, печат /
               </p>
@@ -93,9 +93,9 @@ const AthleteCard = ({ member }: { member: Member }) => {
               </span>
             </div>
             <div className="flex items-start gap-2 pt-1">
-              <span className="text-[9pt] whitespace-nowrap mt-1">Адрес:</span>
+              <span className="mt-1 text-[9pt] whitespace-nowrap">Адрес:</span>
               <div className="flex-1">
-                <p className="border-b border-dotted border-slate-600 min-h-[1.2rem] text-[9pt]">
+                <p className="min-h-[1.2rem] border-b border-dotted border-slate-600 text-[9pt]">
                   {member.address || ""}
                 </p>
                 <p className="text-[7pt] text-slate-500 italic">
@@ -114,14 +114,14 @@ const AthleteCard = ({ member }: { member: Member }) => {
                 {[...Array(6)].map((_, i) => (
                   <th
                     key={i}
-                    className="p-1 font-normal w-1/6 text-left space-y-1 pb-4 border-b border-slate-950"
+                    className="w-1/6 space-y-1 border-b border-slate-950 p-1 pb-4 text-left font-normal"
                   >
                     <p className="font-bold">Мед. преглед</p>
                     <p>Дата: ...................</p>
                     <p>Периодичен</p>
                     <div className="pt-2">
                       <p>Подпис: .............</p>
-                      <p className="text-[6pt] italic ml-4">печат</p>
+                      <p className="ml-4 text-[6pt] italic">печат</p>
                     </div>
                   </th>
                 ))}
@@ -130,7 +130,7 @@ const AthleteCard = ({ member }: { member: Member }) => {
             <tbody>
               <tr className="divide-x divide-slate-950">
                 {[...Array(6)].map((_, i) => (
-                  <td key={i} className="p-1 space-y-1 pb-2 h-24 align-top">
+                  <td key={i} className="h-24 space-y-1 p-1 pb-2 align-top">
                     <p className="font-bold">Заверка за</p>
                     <p className="font-bold">Правоучастие</p>
                     <p>Дата: ...................</p>
@@ -138,7 +138,7 @@ const AthleteCard = ({ member }: { member: Member }) => {
                     <p>.............................</p>
                     <div className="pt-1">
                       <p>Председател......</p>
-                      <p className="text-[6pt] italic ml-4">печат</p>
+                      <p className="ml-4 text-[6pt] italic">печат</p>
                     </div>
                   </td>
                 ))}
@@ -161,7 +161,7 @@ const AthleteCardPage = () => {
 
   if (loading)
     return (
-      <div className="p-8 text-center animate-pulse text-slate-400">
+      <div className="animate-pulse p-8 text-center text-slate-400">
         Зареждане...
       </div>
     );
@@ -226,18 +226,18 @@ const AthleteCardPage = () => {
   const fullName = `${member.firstName} ${member.lastName}`;
 
   return (
-    <div className="max-w-[210mm] mx-auto p-0 bg-white min-h-screen font-serif overflow-hidden">
+    <div className="mx-auto min-h-screen max-w-[210mm] overflow-hidden bg-white p-0 font-serif">
       {/* Non-printable header */}
-      <div className="flex justify-between items-center p-8 print:hidden bg-slate-50 border-b">
+      <div className="flex items-center justify-between border-b bg-slate-50 p-8 print:hidden">
         <Button
           variant="outline"
           onClick={() => router.back()}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
         <div className="text-center">
-          <p className="text-sm font-bold text-slate-950 uppercase tracking-widest">
+          <p className="text-sm font-bold tracking-widest text-slate-950 uppercase">
             {fullName}
           </p>
           <p className="text-[10px] text-slate-500 italic">
@@ -249,25 +249,25 @@ const AthleteCardPage = () => {
             variant="outline"
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="rounded-xl border-slate-200 hover:bg-white hover:border-zinc-950"
+            className="rounded-xl border-slate-200 hover:border-zinc-950 hover:bg-white"
           >
             {isExporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             ) : (
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="mr-2 size-4" />
             )}
             PDF Сваляне
           </Button>
           <Button
             onClick={() => window.print()}
-            className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
           >
-            <Printer className="mr-2 h-4 w-4" /> Принтирай
+            <Printer className="mr-2 size-4" /> Принтирай
           </Button>
         </div>
       </div>
 
-      <div ref={printRef} className="print-area px-[10mm] py-[10mm] bg-white">
+      <div ref={printRef} className="print-area bg-white p-[10mm]">
         <AthleteCard member={member} />
       </div>
 

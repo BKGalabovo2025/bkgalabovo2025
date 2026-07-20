@@ -108,8 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="size-12 animate-spin text-primary" />
         <p className="ml-4 text-lg text-muted-foreground">Аутентикация...</p>
       </div>
     );

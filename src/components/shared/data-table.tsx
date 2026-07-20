@@ -74,8 +74,8 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="relative w-full max-w-sm group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-primary transition-colors" />
+        <div className="group relative w-full max-w-sm">
+          <Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-primary" />
           <Input
             id="table-filter"
             name="table-filter"
@@ -89,7 +89,7 @@ export function DataTable<TData, TValue>({
                 .getColumn(filterColumnId)
                 ?.setFilterValue(event.target.value)
             }
-            className="pl-11 h-12 bg-zinc-50 border-zinc-100 rounded-2xl focus:ring-1 focus:ring-zinc-200 focus:bg-white transition-all shadow-sm"
+            className="h-12 rounded-2xl border-zinc-100 bg-zinc-50 pl-11 shadow-sm transition-all focus:bg-white focus:ring-1 focus:ring-zinc-200"
           />
         </div>
       </div>
@@ -101,17 +101,17 @@ export function DataTable<TData, TValue>({
         )}
       >
         <Table>
-          <TableHeader className="bg-zinc-50/50 border-b border-zinc-100">
+          <TableHeader className="border-b border-zinc-100 bg-zinc-50/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="hover:bg-transparent border-none"
+                className="border-none hover:bg-transparent"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      className="h-14 text-zinc-500 font-medium text-[11px] uppercase tracking-wider px-6"
+                      className="h-14 px-6 text-[11px] font-medium tracking-wider text-zinc-500 uppercase"
                     >
                       {header.isPlaceholder
                         ? null
@@ -133,8 +133,8 @@ export function DataTable<TData, TValue>({
                   className="h-64 text-center"
                 >
                   <div className="flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
-                    <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">
+                    <Loader2 className="size-8 animate-spin text-zinc-200" />
+                    <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                       Зареждане на данни...
                     </p>
                   </div>
@@ -145,7 +145,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group hover:bg-zinc-50/50 transition-colors border-b border-zinc-50 last:border-none"
+                  className="group border-b border-zinc-50 transition-colors last:border-none hover:bg-zinc-50/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-6 py-4">
@@ -169,13 +169,13 @@ export function DataTable<TData, TValue>({
                   className="h-64 text-center"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center border border-zinc-100 mb-2">
-                      <Search className="h-5 w-5 text-zinc-300" />
+                    <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50">
+                      <Search className="size-5 text-zinc-300" />
                     </div>
-                    <p className="text-zinc-900 font-medium text-sm">
+                    <p className="text-sm font-medium text-zinc-900">
                       {emptyStateMessage}
                     </p>
-                    <p className="text-zinc-400 text-xs">
+                    <p className="text-xs text-zinc-400">
                       Опитайте да потърсите с друго ключово име.
                     </p>
                   </div>
@@ -187,11 +187,11 @@ export function DataTable<TData, TValue>({
       </div>
 
       {renderMobileCard && (
-        <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+        <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
           {isLoading ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-zinc-200" />
-              <p className="text-zinc-400 text-xs uppercase tracking-widest font-medium">
+            <div className="flex flex-col items-center justify-center gap-3 py-12">
+              <Loader2 className="size-8 animate-spin text-zinc-200" />
+              <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
                 Зареждане на данни...
               </p>
             </div>
@@ -202,14 +202,14 @@ export function DataTable<TData, TValue>({
                 <div key={row.id}>{renderMobileCard(row.original)}</div>
               ))
           ) : (
-            <div className="py-12 flex flex-col items-center justify-center gap-2 text-center px-4">
-              <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center border border-zinc-100 mb-2">
-                <Search className="h-5 w-5 text-zinc-300" />
+            <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
+              <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50">
+                <Search className="size-5 text-zinc-300" />
               </div>
-              <p className="text-zinc-900 font-medium text-sm">
+              <p className="text-sm font-medium text-zinc-900">
                 {emptyStateMessage}
               </p>
-              <p className="text-zinc-400 text-xs">
+              <p className="text-xs text-zinc-400">
                 Опитайте да потърсите с друго ключово име.
               </p>
             </div>
@@ -217,8 +217,8 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="flex items-center justify-between px-2 pt-4 border-t border-zinc-100">
-        <div className="text-[11px] text-zinc-400 uppercase tracking-widest font-medium">
+      <div className="flex items-center justify-between border-t border-zinc-100 px-2 pt-4">
+        <div className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
           Страница {table.getState().pagination.pageIndex + 1} от{" "}
           {table.getPageCount()}
         </div>
@@ -228,18 +228,18 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="h-10 w-10 p-0 rounded-xl border-zinc-100 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30 transition-all"
+            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="h-10 w-10 p-0 rounded-xl border-zinc-100 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30 transition-all"
+            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
         </div>
       </div>

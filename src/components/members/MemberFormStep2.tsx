@@ -28,27 +28,27 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
   const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
 
   return (
-    <BentoCard className="p-5 sm:p-8 border-zinc-100 shadow-none rounded-3xl sm:rounded-4xl animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="flex items-center gap-2 mb-6">
-        <Phone className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
-        <h3 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
+      <div className="mb-6 flex items-center gap-2">
+        <Phone className="size-4 text-zinc-400" strokeWidth={1.5} />
+        <h3 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
           Стъпка 2: Контакти
         </h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         <FormField
           name="phone"
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Телефон
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   value={field.value || ""}
-                  className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                 />
               </FormControl>
               <FormMessage />
@@ -60,7 +60,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Имейл
               </FormLabel>
               <FormControl>
@@ -68,7 +68,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                   type="email"
                   {...field}
                   value={field.value || ""}
-                  className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                 />
               </FormControl>
               <FormMessage />
@@ -82,14 +82,14 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
             control={form.control}
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
-                <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                   Адрес
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     value={field.value || ""}
-                    className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                   />
                 </FormControl>
                 <FormMessage />
@@ -99,24 +99,24 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
         )}
 
         {!isGuestOnly && (
-          <div className="sm:col-span-2 pt-6 border-t border-zinc-100 mt-2">
-            <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 mb-4">
+          <div className="mt-2 border-t border-zinc-100 pt-6 sm:col-span-2">
+            <h4 className="mb-4 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
               Спешен Контакт
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
               <FormField
                 name="emergencyContactName"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                    <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                       Име на контакт
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         value={field.value || ""}
-                        className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                        className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                       />
                     </FormControl>
                     <FormMessage />
@@ -128,14 +128,14 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                    <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                       Телефон на контакт
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         value={field.value || ""}
-                        className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                        className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                       />
                     </FormControl>
                     <FormMessage />

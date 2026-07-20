@@ -30,59 +30,59 @@ export const MemberDocumentShell = ({
   children,
 }: MemberDocumentShellProps) => {
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-12 bg-white min-h-screen">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 md:p-12">
       {/* Non-printable toolbar */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="mb-8 flex items-center justify-between print:hidden">
         <Button
           variant="outline"
           onClick={onBack}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
         <Button
           onClick={() => window.print()}
-          className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+          className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
         >
-          <Printer className="mr-2 h-4 w-4" /> Принтирай
+          <Printer className="mr-2 size-4" /> Принтирай
         </Button>
       </div>
 
       {/* Printable area */}
-      <div className="print-area text-slate-900 text-justify leading-snug font-serif">
+      <div className="print-area text-justify font-serif leading-snug text-slate-900">
         {/* Document header */}
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold uppercase tracking-tight mb-1">
+        <div className="mb-6 text-center">
+          <h1 className="mb-1 text-xl font-bold tracking-tight uppercase">
             М О Л Б А
           </h1>
           <p className="text-base italic">{documentSubtitle}</p>
         </div>
 
         {/* Address block */}
-        <div className="flex justify-end mb-8">
+        <div className="mb-8 flex justify-end">
           <div className="w-1/2 space-y-0.5 text-sm">
             <p className="font-bold">ДО</p>
             <p className="font-bold">Председателя на</p>
-            <p className="font-bold">СНЦ „Бадминтон клуб Гълъбово"</p>
-            <p className="font-bold text-sm">град ГЪЛЪБОВО</p>
+            <p className="font-bold">СНЦ „Бадминтон клуб Гълъбово&quot;</p>
+            <p className="text-sm font-bold">град ГЪЛЪБОВО</p>
           </div>
         </div>
 
         {/* ОТ: section */}
-        <div className="space-y-4 mb-8">
+        <div className="mb-8 space-y-4">
           <div>
             <p className="flex items-baseline gap-2 text-sm">
-              <span className="font-bold shrink-0">ОТ:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-[1.2rem]"></span>
+              <span className="shrink-0 font-bold">ОТ:</span>
+              <span className="min-h-[1.2rem] flex-1 border-b border-dotted border-slate-400"></span>
             </p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
+            <p className="mt-0.5 text-[9px] text-slate-500 italic">
               (трите имена на родителя/настойника, адрес, телефон, e-mail)
             </p>
           </div>
 
           <div>
-            <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] w-full"></p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
+            <p className="min-h-[1.2rem] w-full border-b border-dotted border-slate-400"></p>
+            <p className="mt-0.5 text-[9px] text-slate-500 italic">
               (трите имена на втория родител/настойник, адрес, телефон, e-mail –
               ако е приложимо)
             </p>
@@ -90,12 +90,12 @@ export const MemberDocumentShell = ({
 
           <div>
             <p className="flex items-baseline gap-2 text-sm">
-              <span className="font-bold shrink-0">ЗА:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-[1.2rem]">
+              <span className="shrink-0 font-bold">ЗА:</span>
+              <span className="min-h-[1.2rem] flex-1 border-b border-dotted border-slate-400">
                 <strong>{fullName}</strong>
               </span>
             </p>
-            <p className="text-[9px] text-slate-500 italic mt-0.5">
+            <p className="mt-0.5 text-[9px] text-slate-500 italic">
               (трите имена на детето/члена, ЕГН, адрес)
             </p>
           </div>
@@ -105,9 +105,9 @@ export const MemberDocumentShell = ({
         {children}
 
         {/* Footer with signatures */}
-        <div className="mt-10 flex justify-between items-end text-sm">
+        <div className="mt-10 flex items-end justify-between text-sm">
           <div className="space-y-0.5">
-            <p>Спортна зала „Енергетик" град Гълъбово</p>
+            <p>Спортна зала „Енергетик&quot; град Гълъбово</p>
             <p>Дата: {today} г.</p>
           </div>
           <div className="text-right">
@@ -115,13 +115,13 @@ export const MemberDocumentShell = ({
             <div className="flex gap-6">
               <div className="text-center">
                 <p>........................................</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">
+                <p className="mt-0.5 text-[9px] text-slate-500">
                   1. (подпис на родител/настойник)
                 </p>
               </div>
               <div className="text-center">
                 <p>........................................</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">
+                <p className="mt-0.5 text-[9px] text-slate-500">
                   2. (подпис на родител/настойник)
                 </p>
               </div>

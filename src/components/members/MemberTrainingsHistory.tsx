@@ -46,7 +46,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
 
   if (loading) {
     return (
-      <div className="p-8 text-center animate-pulse text-slate-400">
+      <div className="animate-pulse p-8 text-center text-slate-400">
         Зареждане на тренировки...
       </div>
     );
@@ -54,9 +54,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
 
   if (trainings.length === 0) {
     return (
-      <div className="bg-white border border-zinc-100 rounded-3xl p-10 text-center text-zinc-500">
+      <div className="rounded-3xl border border-zinc-100 bg-white p-10 text-center text-zinc-500">
         {error ? (
-          <p className="text-red-500 text-sm">Грешка: {error}</p>
+          <p className="text-sm text-red-500">Грешка: {error}</p>
         ) : (
           "Няма записани тренировки за този член."
         )}
@@ -86,18 +86,18 @@ export function MemberTrainingsHistory({ memberId }: Props) {
     <div className="space-y-6">
       {/* Badges Section */}
       {badges.length > 0 && (
-        <div className="bg-white border border-zinc-100 rounded-3xl p-6">
-          <h3 className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
-            <Medal className="h-4 w-4" /> Значки за постижения
+        <div className="rounded-3xl border border-zinc-100 bg-white p-6">
+          <h3 className="mb-4 flex items-center gap-2 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+            <Medal className="size-4" /> Значки за постижения
           </h3>
           <div className="flex gap-4">
             {badges.map((b) => (
               <div
                 key={b.id}
-                className="p-4 bg-primary/5 border border-primary/20 rounded-xl text-center"
+                className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
               >
                 <div className="font-bold text-primary">{b.name}</div>
-                <div className="text-xs text-zinc-500 mt-1">{b.desc}</div>
+                <div className="mt-1 text-xs text-zinc-500">{b.desc}</div>
               </div>
             ))}
           </div>
@@ -105,9 +105,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
       )}
 
       {/* History List */}
-      <div className="bg-white border border-zinc-100 rounded-3xl p-6">
-        <h3 className="text-[11px] font-medium uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
-          <Zap className="h-4 w-4" /> История на тренировките (Общо:{" "}
+      <div className="rounded-3xl border border-zinc-100 bg-white p-6">
+        <h3 className="mb-6 flex items-center gap-2 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+          <Zap className="size-4" /> История на тренировките (Общо:{" "}
           {totalMinutes} мин)
         </h3>
 
@@ -115,9 +115,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
           {trainings.map((session) => (
             <Card
               key={session.id}
-              className="border-zinc-100 shadow-none hover:bg-zinc-50 transition-colors"
+              className="border-zinc-100 shadow-none transition-colors hover:bg-zinc-50"
             >
-              <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
                 <div>
                   <div className="font-semibold text-zinc-900">
                     {session.shadowDetails?.mode === "ghost_match"
@@ -126,7 +126,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                         ? "Скоростен Тест"
                         : "Shadow Training"}
                   </div>
-                  <div className="text-xs text-zinc-500 mt-1">
+                  <div className="mt-1 text-xs text-zinc-500">
                     {format(new Date(session.date), "dd MMMM yyyy, HH:mm")}
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                     <div className="font-bold">
                       {Math.round((session.durationMs || 0) / 60000)}
                     </div>
-                    <div className="text-[10px] uppercase text-zinc-400">
+                    <div className="text-[10px] text-zinc-400 uppercase">
                       Мин
                     </div>
                   </div>
@@ -144,7 +144,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                     <div className="font-bold">
                       {session.shadowDetails?.totalSets || 0}
                     </div>
-                    <div className="text-[10px] uppercase text-zinc-400">
+                    <div className="text-[10px] text-zinc-400 uppercase">
                       Серии
                     </div>
                   </div>

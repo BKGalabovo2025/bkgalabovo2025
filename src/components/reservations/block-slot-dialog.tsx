@@ -166,14 +166,14 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-4xl border-zinc-100 dark:border-zinc-900 shadow-2xl">
+      <DialogContent className="rounded-4xl border-zinc-100 shadow-2xl sm:max-w-md dark:border-zinc-900">
         <DialogHeader className="pb-4">
           <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-white">
             {isEditMode
               ? "Редактиране на блокиран период"
               : "Блокиране на часове"}
           </DialogTitle>
-          <DialogDescription className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
+          <DialogDescription className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
             {isEditMode
               ? "Променете данните и натиснете 'Запази промените'."
               : "Изберете период и кортове, които да бъдат блокирани."}
@@ -186,13 +186,13 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                  <FormLabel className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                     Причина
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Напр. Поддръжка, Турнир..."
-                      className="rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium h-12"
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 font-medium transition-all focus:bg-white focus:ring-0"
                       {...field}
                     />
                   </FormControl>
@@ -217,11 +217,11 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               name="courtIds"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between mb-2">
-                    <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                  <div className="mb-2 flex items-center justify-between">
+                    <FormLabel className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                       Избор на кортове
                     </FormLabel>
-                    <div className="flex items-center space-x-2 bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-center space-x-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
                       <Checkbox
                         id="all-courts"
                         checked={field.value.length === courtCount}
@@ -232,7 +232,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                       />
                       <label
                         htmlFor="all-courts"
-                        className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer"
+                        className="cursor-pointer text-[10px] font-black tracking-widest text-zinc-500 uppercase"
                       >
                         Всички
                       </label>
@@ -244,10 +244,10 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                       <div
                         key={id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer",
+                          "flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-all",
                           field.value?.includes(id)
-                            ? "bg-primary/5 border-primary/20 text-primary"
-                            : "bg-zinc-50/50 border-zinc-100 text-zinc-400 hover:border-zinc-200"
+                            ? "border-primary/20 bg-primary/5 text-primary"
+                            : "border-zinc-100 bg-zinc-50/50 text-zinc-400 hover:border-zinc-200"
                         )}
                         onClick={() =>
                           handleCourtToggle(id, field.value, field.onChange)
@@ -257,7 +257,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                           checked={field.value?.includes(id)}
                           className="rounded-md"
                         />
-                        <span className="text-xs font-bold uppercase tracking-wider">
+                        <span className="text-xs font-bold tracking-wider uppercase">
                           Корт {id}
                         </span>
                       </div>
@@ -267,11 +267,11 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
                 </FormItem>
               )}
             />
-            <DialogFooter className="pt-4 gap-3">
+            <DialogFooter className="gap-3 pt-4">
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-xl px-8 font-bold uppercase tracking-widest text-[10px] text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all"
+                className="rounded-xl px-8 text-[10px] font-bold tracking-widest text-zinc-400 uppercase transition-all hover:bg-zinc-50 hover:text-zinc-900"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
@@ -279,11 +279,11 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="bg-zinc-900 dark:bg-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white rounded-xl px-8 h-12 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-black/10 border-none transition-all"
+                className="h-12 rounded-xl border-none bg-zinc-900 px-8 text-[10px] font-bold tracking-widest text-white uppercase shadow-lg shadow-black/10 transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
               >
                 {isSaving && (
                   <Loader2
-                    className="mr-2 h-3 w-3 animate-spin"
+                    className="mr-2 size-3 animate-spin"
                     strokeWidth={2}
                   />
                 )}

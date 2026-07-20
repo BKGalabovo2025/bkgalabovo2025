@@ -73,14 +73,14 @@ export const WizardStep1NewGuestForm = ({
   handleRegisterGuest,
 }: NewGuestFormProps) => {
   return (
-    <div className="space-y-4 p-5 border border-amber-200 dark:border-amber-900/35 bg-amber-50/20 dark:bg-amber-950/5 rounded-2xl animate-in fade-in duration-300">
-      <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+    <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/20 p-5 duration-300 animate-in fade-in dark:border-amber-900/35 dark:bg-amber-950/5">
+      <h4 className="text-xs font-bold tracking-wider text-amber-800 uppercase dark:text-amber-400">
         Регистрация на Нов Външен клиент (Гост)
       </h4>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-[10px] font-bold uppercase text-zinc-500">Име *</Label>
+          <Label className="text-[10px] font-bold text-zinc-500 uppercase">Име *</Label>
           <Input
             placeholder="Име"
             value={newGuestFirstName}
@@ -89,7 +89,7 @@ export const WizardStep1NewGuestForm = ({
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[10px] font-bold uppercase text-zinc-500">Фамилия *</Label>
+          <Label className="text-[10px] font-bold text-zinc-500 uppercase">Фамилия *</Label>
           <Input
             placeholder="Фамилия"
             value={newGuestLastName}
@@ -101,7 +101,7 @@ export const WizardStep1NewGuestForm = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-[10px] font-bold uppercase text-zinc-500">Телефон *</Label>
+          <Label className="text-[10px] font-bold text-zinc-500 uppercase">Телефон *</Label>
           <Input
             placeholder="Телефон"
             value={newGuestPhone}
@@ -110,7 +110,7 @@ export const WizardStep1NewGuestForm = ({
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[10px] font-bold uppercase text-zinc-500">Имейл</Label>
+          <Label className="text-[10px] font-bold text-zinc-500 uppercase">Имейл</Label>
           <Input
             placeholder="Имейл (по избор)"
             value={newGuestEmail}
@@ -120,7 +120,7 @@ export const WizardStep1NewGuestForm = ({
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end pt-2">
+      <div className="flex justify-end gap-2 pt-2">
         <Button
           type="button"
           variant="ghost"
@@ -136,9 +136,9 @@ export const WizardStep1NewGuestForm = ({
           size="sm"
           disabled={isSavingNewGuest}
           onClick={handleRegisterGuest}
-          className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-white animate-in"
+          className="rounded-xl bg-amber-500 text-xs text-white animate-in hover:bg-amber-600"
         >
-          {isSavingNewGuest && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+          {isSavingNewGuest && <Loader2 className="mr-1 size-3 animate-spin" />}
           Регистрирай и избери
         </Button>
       </div>
@@ -165,7 +165,7 @@ export const WizardStep1MemberList = ({
 }: MemberListProps) => {
   if (filteredMembers.length === 0) {
     return (
-      <div className="p-8 text-center text-zinc-400 text-xs font-light">
+      <div className="p-8 text-center text-xs font-light text-zinc-400">
         {clientTypeTab === "guest"
           ? "Няма регистрирани външни гости. Създайте нов гост от бутона вдясно!"
           : "Няма намерени членове по този критерий."}
@@ -199,7 +199,7 @@ export const WizardStep1MemberList = ({
                 <span className="font-medium text-zinc-900 dark:text-zinc-50">
                   {member.firstName} {member.lastName}
                 </span>
-                <span className="text-[10px] text-zinc-400 font-light mt-0.5">
+                <span className="mt-0.5 text-[10px] font-light text-zinc-400">
                   {member.phone || member.email || "Няма контакти"}
                 </span>
               </div>
@@ -207,7 +207,7 @@ export const WizardStep1MemberList = ({
             {isSelected && (
               <Check
                 className={cn(
-                  "h-4 w-4 shrink-0",
+                  "size-4 shrink-0",
                   clientTypeTab === "guest" ? "text-amber-500" : "text-emerald-500"
                 )}
               />
@@ -352,9 +352,9 @@ export const WizardStep1Shell = ({
 }: WizardStep1ShellProps) => {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900">
+      <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-900">
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+          <User className="size-4 text-emerald-500" strokeWidth={1.5} />
           <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
             Избор на клиент
           </h3>
@@ -366,7 +366,7 @@ export const WizardStep1Shell = ({
       ) : (
         <div className="space-y-4">
           {/* Tab switcher */}
-          <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 gap-1">
+          <div className="flex gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
             <button
               type="button"
               onClick={() => {
@@ -375,9 +375,9 @@ export const WizardStep1Shell = ({
                 setIsGuestSale(false);
               }}
               className={cn(
-                "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all",
+                "flex-1 rounded-lg py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
                 clientTypeTab === "member"
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm font-bold"
+                  ? "bg-white font-bold text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                   : "text-zinc-500 hover:text-zinc-700"
               )}
             >
@@ -391,9 +391,9 @@ export const WizardStep1Shell = ({
                 setIsGuestSale(true);
               }}
               className={cn(
-                "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all",
+                "flex-1 rounded-lg py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
                 clientTypeTab === "guest"
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm font-bold"
+                  ? "bg-white font-bold text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                   : "text-zinc-500 hover:text-zinc-700"
               )}
             >
@@ -403,9 +403,9 @@ export const WizardStep1Shell = ({
 
           {/* Search + New Guest button */}
           <div className="flex gap-2">
-            <div className="relative flex-1 group">
+            <div className="group relative flex-1">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors"
+                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-emerald-500"
                 strokeWidth={1.5}
               />
               <Input
@@ -416,28 +416,28 @@ export const WizardStep1Shell = ({
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 rounded-xl h-11 border-zinc-200 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                className="h-11 rounded-xl border-zinc-200 pl-11 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
               />
             </div>
             {clientTypeTab === "guest" && (
               <Button
                 type="button"
                 onClick={() => setShowNewGuestForm(true)}
-                className="rounded-xl h-11 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[10px] uppercase tracking-wider shrink-0 px-4 shadow-none"
+                className="h-11 shrink-0 rounded-xl bg-amber-500 px-4 text-[10px] font-semibold tracking-wider text-white uppercase shadow-none hover:bg-amber-600"
               >
-                <PlusCircle className="mr-1.5 h-4 w-4" /> Нов Гост
+                <PlusCircle className="mr-1.5 size-4" /> Нов Гост
               </Button>
             )}
           </div>
 
           {/* Member list */}
           {membersLoading ? (
-            <div className="py-16 flex flex-col items-center justify-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-500 opacity-30" />
-              <p className="text-zinc-400 text-xs font-light">Зареждане на списъка...</p>
+            <div className="flex flex-col items-center justify-center space-y-4 py-16">
+              <Loader2 className="size-8 animate-spin text-emerald-500 opacity-30" />
+              <p className="text-xs font-light text-zinc-400">Зареждане на списъка...</p>
             </div>
           ) : (
-            <div className="border border-zinc-100 dark:border-zinc-900 rounded-2xl max-h-[240px] overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-900 custom-scrollbar">
+            <div className="custom-scrollbar max-h-60 divide-y divide-zinc-50 overflow-y-auto rounded-2xl border border-zinc-100 dark:divide-zinc-900 dark:border-zinc-900">
               {memberList}
             </div>
           )}

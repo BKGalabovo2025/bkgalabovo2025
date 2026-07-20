@@ -77,26 +77,26 @@ const InfoRow = ({
   return (
     <div
       className={cn(
-        "flex py-4 sm:py-6 border-b border-zinc-50 last:border-0",
+        "flex border-b border-zinc-50 py-4 last:border-0 sm:py-6",
         isBlock
           ? "flex-col items-start gap-3 sm:gap-4"
-          : "flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
+          : "flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4"
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center shrink-0">
-          <Icon className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50">
+          <Icon className="size-3.5 text-zinc-400" strokeWidth={1.5} />
         </div>
-        <span className="text-[10px] font-medium uppercase tracking-widest2 text-zinc-400">
+        <span className="tracking-widest2 text-[10px] font-medium text-zinc-400 uppercase">
           {label}
         </span>
       </div>
       {!isBlock ? (
-        <span className="text-sm font-light text-zinc-900 sm:text-right w-full sm:w-auto pl-12 sm:pl-0">
+        <span className="w-full pl-12 text-sm font-light text-zinc-900 sm:w-auto sm:pl-0 sm:text-right">
           {value}
         </span>
       ) : (
-        <span className="text-sm font-light text-zinc-400 leading-relaxed max-w-xl pl-12">
+        <span className="max-w-xl pl-12 text-sm leading-relaxed font-light text-zinc-400">
           {value}
         </span>
       )}
@@ -115,8 +115,8 @@ export const MemberPersonalTab = ({
   const router = useRouter();
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-2">
+    <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+      <div className="grid grid-cols-1 gap-x-16 gap-y-2 md:grid-cols-2">
         <InfoRow icon={Contact} label="Тип клиент" value={getMemberTypeLabel(member)} />
         <InfoRow icon={Mail} label="Имейл" value={member.email} />
         <InfoRow icon={Phone} label="Телефон" value={member.phone} />
@@ -135,7 +135,7 @@ export const MemberPersonalTab = ({
         <InfoRow icon={Users} label="Пол" value={getGenderLabel(member.gender)} />
         <InfoRow icon={Trophy} label="Ниво на умения" value={getSkillLevelLabel(member.skillLevel)} />
         <div className="md:col-span-2">
-          <div className="h-px bg-zinc-50 my-6" />
+          <div className="my-6 h-px bg-zinc-50" />
         </div>
         <InfoRow
           icon={Calendar}
@@ -155,7 +155,7 @@ export const MemberPersonalTab = ({
         <InfoRow icon={Home} label="Адрес" value={member.address} />
 
         {member.healthConditionNotes && (
-          <div className="md:col-span-2 mt-4">
+          <div className="mt-4 md:col-span-2">
             <InfoRow
               icon={Stethoscope}
               label="Здравно състояние / Травми"
@@ -177,18 +177,18 @@ export const MemberPersonalTab = ({
 
       {familyMembers && familyMembers.length > 0 && (
         <div className="mt-16">
-          <h3 className="text-[11px] font-medium uppercase tracking-widest3 text-zinc-400 mb-8 flex items-center gap-3">
-            <Users className="h-4 w-4" strokeWidth={1.5} />
+          <h3 className="tracking-widest3 mb-8 flex items-center gap-3 text-[11px] font-medium text-zinc-400 uppercase">
+            <Users className="size-4" strokeWidth={1.5} />
             Членове на семейството
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {familyMembers.map((familyMember) => (
               <div
                 key={familyMember.id}
-                className="flex items-center gap-4 p-4 rounded-2xl border border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-all group"
+                className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-zinc-100 p-4 transition-all hover:bg-zinc-50"
                 onClick={() => router.push(`/members/${familyMember.id}`)}
               >
-                <Avatar className="h-12 w-12 rounded-xl ring-1 ring-zinc-100">
+                <Avatar className="size-12 rounded-xl ring-1 ring-zinc-100">
                   <AvatarImage
                     src={familyMember.avatarUrl ?? undefined}
                     alt={formatFullName(familyMember)}
@@ -197,11 +197,11 @@ export const MemberPersonalTab = ({
                     {getInitials(formatFullName(familyMember))}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zinc-900 truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-zinc-900">
                     {formatFullName(familyMember)}
                   </p>
-                  <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest truncate mt-1">
+                  <p className="mt-1 truncate text-[10px] font-light tracking-widest text-zinc-400 uppercase">
                     {getFamilyMemberStatusLabel(familyMember.status)}
                   </p>
                 </div>

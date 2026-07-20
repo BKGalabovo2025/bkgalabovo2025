@@ -33,8 +33,8 @@ function VisualCheckbox({
   return (
     <div
       className={cn(
-        "shrink-0 rounded-md border border-zinc-300 flex items-center justify-center",
-        checked ? "bg-zinc-950 border-zinc-950" : "bg-white",
+        "flex shrink-0 items-center justify-center rounded-md border border-zinc-300",
+        checked ? "border-zinc-950 bg-zinc-950" : "bg-white",
         className
       )}
     >
@@ -67,16 +67,16 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
   if (isGuestOnly) return null;
 
   return (
-    <BentoCard className="p-5 sm:p-8 border-zinc-100 shadow-none rounded-3xl sm:rounded-4xl animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="flex items-center gap-2 mb-6">
-        <FileText className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
-        <h3 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
+      <div className="mb-6 flex items-center gap-2">
+        <FileText className="size-4 text-zinc-400" strokeWidth={1.5} />
+        <h3 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
           {isRecoveryMember
             ? "Стъпка 3: Здравно досие и бележки"
             : "Стъпка 3: Допълнителни данни"}
         </h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
         {isClubMember && (
           <>
             <FormField
@@ -84,14 +84,14 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Учебно заведение
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       value={field.value || ""}
-                      className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                     />
                   </FormControl>
                   <FormMessage />
@@ -103,7 +103,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               name="apparelSize"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Размер екипировка
                   </FormLabel>
                   <FormControl>
@@ -111,7 +111,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       {...field}
                       value={field.value || ""}
                       placeholder="напр. M, L, XL"
-                      className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
                     />
                   </FormControl>
                   <FormMessage />
@@ -123,14 +123,14 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               name="skillLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Ниво на умения
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
                   >
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                       <SelectValue placeholder="Избери ниво" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-zinc-100">
@@ -142,7 +142,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                  <p className="mt-1 text-[10px] leading-relaxed text-zinc-400">
                     Ако изберете &quot;Напреднало&quot; или
                     &quot;Професионално&quot;, в публичния отбор ще излиза като
                     &quot;Състезател&quot;, иначе &quot;Любител&quot;.
@@ -159,11 +159,11 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Статус
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-zinc-100">
@@ -182,9 +182,9 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
             const hasMedicalCertificate = form.watch("hasMedicalCertificate");
             const isLicensed = form.watch("isLicensed");
             return (
-              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 pt-6 border-t border-zinc-100 mt-2">
+              <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-6 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
                 <div
-                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue(
                       "hasSignedDeclaration",
@@ -195,19 +195,19 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                 >
                   <VisualCheckbox
                     checked={hasSignedDeclaration}
-                    className="h-5 w-5"
+                    className="size-5"
                   />
                   <div className="space-y-1 leading-none">
                     <p className="text-sm font-medium text-zinc-950">
                       Декларация
                     </p>
-                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                    <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
                       Подписана декларация
                     </p>
                   </div>
                 </div>
                 <div
-                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue(
                       "hasMedicalCertificate",
@@ -218,31 +218,31 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                 >
                   <VisualCheckbox
                     checked={hasMedicalCertificate}
-                    className="h-5 w-5"
+                    className="size-5"
                   />
                   <div className="space-y-1 leading-none">
                     <p className="text-sm font-medium text-zinc-950">
                       Медицинско
                     </p>
-                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                    <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
                       Предадено за годината
                     </p>
                   </div>
                 </div>
                 <div
-                  className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border border-zinc-100 p-4 sm:p-5 bg-zinc-50/30 cursor-pointer"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue("isLicensed", !isLicensed, {
                       shouldValidate: true,
                     })
                   }
                 >
-                  <VisualCheckbox checked={isLicensed} className="h-5 w-5" />
+                  <VisualCheckbox checked={isLicensed} className="size-5" />
                   <div className="space-y-1 leading-none">
                     <p className="text-sm font-medium text-zinc-950">
                       Картотека
                     </p>
-                    <p className="text-[10px] font-light uppercase tracking-wider text-zinc-400">
+                    <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
                       Картотекиран в БФБ
                     </p>
                   </div>
@@ -252,14 +252,14 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
           })()}
 
         {(isRecoveryMember || isClubMember) && (
-          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-6 border-t border-zinc-100 mt-2">
+          <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-6 sm:col-span-2 sm:grid-cols-2 sm:gap-6">
             {isRecoveryMember && (
               <FormField
                 name="healthConditionNotes"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                    <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                       Здравно състояние / Предишни травми
                     </FormLabel>
                     <FormControl>
@@ -268,7 +268,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                         value={field.value || ""}
                         rows={4}
                         placeholder="Опишете предишни травми, операции, алергии или други важни състояния..."
-                        className="rounded-2xl border-zinc-200 bg-white focus:bg-white focus:ring-primary focus:border-primary resize-none p-4 text-sm shadow-sm"
+                        className="resize-none rounded-2xl border-zinc-200 bg-white p-4 text-sm shadow-sm focus:border-primary focus:bg-white focus:ring-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -282,7 +282,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               control={form.control}
               render={({ field }) => (
                 <FormItem className={cn(!isRecoveryMember && "sm:col-span-2")}>
-                  <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Общи Бележки
                   </FormLabel>
                   <FormControl>
@@ -290,10 +290,10 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       {...field}
                       value={field.value || ""}
                       rows={4}
-                      className="rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 resize-none p-4 font-light text-sm"
+                      className="resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 text-sm font-light focus:bg-white focus:ring-0"
                     />
                   </FormControl>
-                  <FormDescription className="text-[10px] font-light uppercase tracking-wider text-zinc-400 ml-1">
+                  <FormDescription className="ml-1 text-[10px] font-light tracking-wider text-zinc-400 uppercase">
                     Вътрешни бележки, видими само за администратори.
                   </FormDescription>
                   <FormMessage />

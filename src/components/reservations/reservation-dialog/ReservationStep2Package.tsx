@@ -19,19 +19,19 @@ export const ReservationStep2Package = () => {
   const { serviceId } = watchedValues;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider mb-2">
+    <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
+      <h3 className="mb-2 text-sm font-semibold tracking-wider text-zinc-800 uppercase dark:text-zinc-200">
         ПРЕГЛЕД НА ВСИЧКИ ДНИ
       </h3>
       <p className="text-xs text-zinc-500">
         Системата автоматично попълва часовете и зоните за всички дни от пакета. Можете да ги промените при нужда.
       </p>
       {packageDays.map((pd, index) => (
-        <div key={index} className="p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col gap-4">
+        <div key={index} className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="text-xs font-black text-cyan-600">ДЕН {pd.dayIndex + 1}</div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Начален час</Label>
+              <Label className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Начален час</Label>
               <Input
                 type="datetime-local"
                 className="h-10 text-sm"
@@ -56,7 +56,7 @@ export const ReservationStep2Package = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Краен час</Label>
+              <Label className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Краен час</Label>
               <Input
                 type="datetime-local"
                 className="h-10 text-sm"
@@ -71,9 +71,9 @@ export const ReservationStep2Package = () => {
           </div>
 
           {isRecoveryZone && (
-            <div className="space-y-4 pt-4 border-t border-zinc-200/50">
+            <div className="space-y-4 border-t border-zinc-200/50 pt-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Зона за Клиент 1</Label>
+                <Label className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Зона за Клиент 1</Label>
                 <div className="grid grid-cols-3 gap-2">
                   {services.find((s) => s.id === serviceId)?.zones?.map((zone) => (
                     <button
@@ -88,10 +88,10 @@ export const ReservationStep2Package = () => {
                         setPackageDays(newDays);
                       }}
                       className={cn(
-                        "h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border",
+                        "h-8 rounded-lg border text-[10px] font-bold tracking-wider uppercase transition-all",
                         pd.client1Zone === zone
-                          ? "bg-cyan-600 border-cyan-600 text-white"
-                          : "bg-white border-zinc-200 text-zinc-500"
+                          ? "border-cyan-600 bg-cyan-600 text-white"
+                          : "border-zinc-200 bg-white text-zinc-500"
                       )}
                     >
                       {zone}
@@ -102,7 +102,7 @@ export const ReservationStep2Package = () => {
 
               {isTwoClients && (
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Зона за Клиент 2</Label>
+                  <Label className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Зона за Клиент 2</Label>
                   <div className="grid grid-cols-3 gap-2">
                     {services.find((s) => s.id === serviceId)?.zones?.map((zone) => (
                       <button
@@ -117,10 +117,10 @@ export const ReservationStep2Package = () => {
                           setPackageDays(newDays);
                         }}
                         className={cn(
-                          "h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border",
+                          "h-8 rounded-lg border text-[10px] font-bold tracking-wider uppercase transition-all",
                           pd.client2Zone === zone
-                            ? "bg-cyan-600 border-cyan-600 text-white"
-                            : "bg-white border-zinc-200 text-zinc-500"
+                            ? "border-cyan-600 bg-cyan-600 text-white"
+                            : "border-zinc-200 bg-white text-zinc-500"
                         )}
                       >
                         {zone}
@@ -140,7 +140,7 @@ export const ReservationStep2Package = () => {
                       const maxQty = siteInfo?.inventory?.attachments?.[key as keyof typeof siteInfo.inventory.attachments] || 0;
                       if (maxQty < 2) {
                         return (
-                          <p className="text-[11px] font-medium text-red-500 bg-red-500/10 p-2 rounded-lg mt-2">
+                          <p className="mt-2 rounded-lg bg-red-500/10 p-2 text-[11px] font-medium text-red-500">
                             Внимание: Разполагате само с {maxQty} приставка за {zoneName.toUpperCase()}. Моля, изберете различна зона за Клиент 2.
                           </p>
                         );

@@ -76,21 +76,21 @@ export default function ExercisesClient() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-100 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div className="mx-auto max-w-7xl p-4 sm:p-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-950 flex items-center gap-2">
-            <Dumbbell className="w-6 h-6 text-indigo-600" />
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
+            <Dumbbell className="size-6 text-indigo-600" />
             База с Упражнения
           </h1>
-          <p className="text-zinc-500 font-medium mt-1">
+          <p className="mt-1 font-medium text-zinc-500">
             Официални упражнения и твои собствени методики
           </p>
         </div>
@@ -100,12 +100,12 @@ export default function ExercisesClient() {
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="rounded-xl border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+              className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
             >
               {isInjecting ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
               ) : (
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 size-4" />
               )}
               Инжектирай BWF База
             </Button>
@@ -115,12 +115,12 @@ export default function ExercisesClient() {
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="rounded-xl border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 font-bold"
+              className="rounded-xl border-amber-200 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100"
             >
               {isInjecting ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
               ) : (
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 size-4" />
               )}
               Нови упражнения (+{missingCount})
             </Button>
@@ -129,19 +129,19 @@ export default function ExercisesClient() {
             onClick={handleAdd}
             className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Добави упражнение
           </Button>
         </div>
       </div>
 
       {exercises.length === 0 ? (
-        <div className="text-center py-20 bg-zinc-50 rounded-2xl border border-zinc-200 border-dashed">
-          <Dumbbell className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-zinc-900 mb-2">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
+          <Dumbbell className="mx-auto mb-4 size-12 text-zinc-300" />
+          <h3 className="mb-2 text-lg font-bold text-zinc-900">
             Базата е празна
           </h3>
-          <p className="text-zinc-500 max-w-md mx-auto mb-6">
+          <p className="mx-auto mb-6 max-w-md text-zinc-500">
             Можеш да започнеш от нулата или да инжектираш стартовия пакет с
             официални упражнения на Световната федерация по бадминтон.
           </p>
@@ -150,39 +150,39 @@ export default function ExercisesClient() {
             disabled={isInjecting}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
-            {isInjecting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isInjecting && <Loader2 className="mr-2 size-4 animate-spin" />}
             Инжектирай стартов пакет
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {exercises.map((ex) => (
             <Card
               key={ex.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer transition-shadow hover:shadow-md"
               onClick={() => handleEdit(ex)}
             >
               <CardContent className="p-5">
-                <div className="flex justify-between items-start mb-3">
+                <div className="mb-3 flex items-start justify-between">
                   <Badge
                     variant="secondary"
-                    className="uppercase text-[10px] tracking-wider font-bold"
+                    className="text-[10px] font-bold tracking-wider uppercase"
                   >
                     {ex.category}
                   </Badge>
-                  <span className="text-[10px] text-zinc-400 font-medium bg-zinc-100 px-2 py-0.5 rounded">
+                  <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
                     {ex.durationMinutes} мин
                   </span>
                 </div>
-                <h3 className="font-bold text-zinc-900 text-lg leading-tight mb-2">
+                <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900">
                   {ex.name}
                 </h3>
-                <p className="text-sm text-zinc-600 line-clamp-2 mb-4">
+                <p className="mb-4 line-clamp-2 text-sm text-zinc-600">
                   {ex.description}
                 </p>
                 <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
+                    <MapPin className="size-3" />
                     {(() => {
                       if (
                         ex.location.includes("indoor") &&

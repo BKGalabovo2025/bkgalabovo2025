@@ -31,7 +31,7 @@ export default function MemberProfileClient({
           variant="destructive"
           className="rounded-2xl border-none shadow-lg"
         >
-          <AlertTitle className="font-black uppercase tracking-tight">
+          <AlertTitle className="font-black tracking-tight uppercase">
             Грешка
           </AlertTitle>
           <AlertDescription className="font-medium">{error}</AlertDescription>
@@ -44,7 +44,7 @@ export default function MemberProfileClient({
     return (
       <div className="p-8">
         <Alert className="rounded-2xl border-none shadow-lg">
-          <AlertTitle className="font-black uppercase tracking-tight">
+          <AlertTitle className="font-black tracking-tight uppercase">
             Не е намерен член
           </AlertTitle>
           <AlertDescription className="font-medium">

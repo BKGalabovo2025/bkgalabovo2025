@@ -47,24 +47,24 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
         isLoading={false}
         emptyStateMessage="Няма намерени цени."
         renderMobileCard={(price: Price) => (
-          <div className="p-5 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-medium text-sm text-zinc-900 dark:text-white">
+          <div className="p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-zinc-900 dark:text-white">
                 {price.name}
               </span>
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-widest ${price.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600"}`}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-widest uppercase ${price.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600"}`}
                 >
                   {price.isActive ? "Активна" : "Неактивна"}
                 </span>
-                <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
+                <div className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenEdit(price);
                     }}
-                    className="p-1.5 text-zinc-500 hover:text-blue-600 hover:bg-white dark:hover:bg-zinc-700 rounded-md transition-colors"
+                    className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white hover:text-blue-600 dark:hover:bg-zinc-700"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +85,7 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
                       e.stopPropagation();
                       handleOpenHistory(price);
                     }}
-                    className="p-1.5 text-zinc-500 hover:text-amber-600 hover:bg-white dark:hover:bg-zinc-700 rounded-md transition-colors"
+                    className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white hover:text-amber-600 dark:hover:bg-zinc-700"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -106,7 +106,7 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-900">
+            <div className="flex items-center justify-between border-t border-zinc-50 pt-3 dark:border-zinc-900">
               <span className="text-sm font-semibold text-zinc-900 dark:text-white">
                 {price.value.toFixed(2)} лв.
               </span>

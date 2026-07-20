@@ -71,7 +71,7 @@ const InventoryHistory = () => {
       case "restock":
         return (
           <Badge
-            className={`${badgeBase} bg-emerald-50/50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/5 dark:border-emerald-500/20`}
+            className={`${badgeBase} border-emerald-100 bg-emerald-50/50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/5`}
           >
             Презареждане
           </Badge>
@@ -79,7 +79,7 @@ const InventoryHistory = () => {
       case "price_update":
         return (
           <Badge
-            className={`${badgeBase} bg-amber-50/50 text-amber-600 border-amber-100 dark:bg-amber-500/5 dark:border-amber-500/20`}
+            className={`${badgeBase} border-amber-100 bg-amber-50/50 text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/5`}
           >
             Промяна на цена
           </Badge>
@@ -87,7 +87,7 @@ const InventoryHistory = () => {
       case "sale":
         return (
           <Badge
-            className={`${badgeBase} bg-rose-50/50 text-rose-600 border-rose-100 dark:bg-rose-500/5 dark:border-rose-500/20`}
+            className={`${badgeBase} border-rose-100 bg-rose-50/50 text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/5`}
           >
             Продажба
           </Badge>
@@ -95,7 +95,7 @@ const InventoryHistory = () => {
       case "correction":
         return (
           <Badge
-            className={`${badgeBase} bg-zinc-50/50 text-zinc-600 border-zinc-100 dark:bg-zinc-500/5 dark:border-zinc-500/20`}
+            className={`${badgeBase} border-zinc-100 bg-zinc-50/50 text-zinc-600 dark:border-zinc-500/20 dark:bg-zinc-500/5`}
           >
             Корекция
           </Badge>
@@ -103,7 +103,7 @@ const InventoryHistory = () => {
       case "initial":
         return (
           <Badge
-            className={`${badgeBase} bg-primary/5 text-primary border-primary/10`}
+            className={`${badgeBase} border-primary/10 bg-primary/5 text-primary`}
           >
             Първоначално
           </Badge>
@@ -114,20 +114,20 @@ const InventoryHistory = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-none overflow-hidden">
-      <div className="p-6 border-b border-zinc-100 dark:border-zinc-900">
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+    <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-none dark:border-zinc-900 dark:bg-zinc-950">
+      <div className="border-b border-zinc-100 p-6 dark:border-zinc-900">
+        <h3 className="text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
           История на движенията
         </h3>
       </div>
       <div className="p-0">
         {loading && (
-          <div className="p-8 text-center text-[11px] uppercase tracking-widest text-zinc-400 font-medium animate-pulse">
+          <div className="animate-pulse p-8 text-center text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
             Зареждане на историята...
           </div>
         )}
         {error && (
-          <div className="p-8 text-center text-[11px] uppercase tracking-widest text-rose-400 font-medium">
+          <div className="p-8 text-center text-[11px] font-medium tracking-widest text-rose-400 uppercase">
             {error}
           </div>
         )}
@@ -136,26 +136,26 @@ const InventoryHistory = () => {
             <div className="hidden md:block">
               <Table>
                 <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
-                  <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                  <TableRow className="border-none hover:bg-transparent">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Дата
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Артикул
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Тип
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Клиент (за продажба)
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6 text-right">
+                    <TableHead className="h-10 px-6 text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Промяна
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Потребител
                     </TableHead>
-                    <TableHead className="h-10 text-[10px] font-medium uppercase tracking-widest text-zinc-400 px-6">
+                    <TableHead className="h-10 px-6 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Бележка
                     </TableHead>
                   </TableRow>
@@ -164,7 +164,7 @@ const InventoryHistory = () => {
                   {events.map((event) => (
                     <TableRow
                       key={event.id}
-                      className="border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors"
+                      className="border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-900 dark:hover:bg-zinc-900/50"
                     >
                       <TableCell className="px-6 py-4 text-[11px] font-medium text-zinc-400">
                         {formatDateTimeDisplay(event.createdAt)}
@@ -178,13 +178,13 @@ const InventoryHistory = () => {
                       <TableCell className="px-6 py-4 text-xs font-medium text-emerald-600 dark:text-emerald-500">
                         {event.type === "sale" ? event.clientName || "-" : "-"}
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-right font-medium text-sm">
+                      <TableCell className="px-6 py-4 text-right text-sm font-medium">
                         {renderEventDetails(event)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
                         {event.userName}
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-xs text-zinc-400 italic font-light">
+                      <TableCell className="px-6 py-4 text-xs font-light text-zinc-400 italic">
                         {event.notes || "--"}
                       </TableCell>
                     </TableRow>
@@ -192,18 +192,18 @@ const InventoryHistory = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+            <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+                  className="flex flex-col gap-3 p-4 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {event.productName}
                       </div>
-                      <div className="text-xs text-zinc-500 mt-1">
+                      <div className="mt-1 text-xs text-zinc-500">
                         {formatDateTimeDisplay(event.createdAt)}
                       </div>
                     </div>
@@ -211,9 +211,9 @@ const InventoryHistory = () => {
                       {getEventTypeLabel(event.type)}
                     </div>
                   </div>
-                  <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
                     <div className="flex flex-col">
-                      <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+                      <span className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
                         Промяна
                       </span>
                       <span className="text-sm font-semibold">
@@ -221,7 +221,7 @@ const InventoryHistory = () => {
                       </span>
                     </div>
                     <div className="flex flex-col items-end text-right">
-                      <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+                      <span className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
                         Потребител
                       </span>
                       <span className="text-xs text-zinc-900 dark:text-zinc-100">
@@ -245,7 +245,7 @@ const InventoryHistory = () => {
           </>
         )}
         {!loading && events.length === 0 && (
-          <div className="p-12 text-center text-[11px] uppercase tracking-widest text-zinc-400 font-medium">
+          <div className="p-12 text-center text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
             Няма записани събития.
           </div>
         )}

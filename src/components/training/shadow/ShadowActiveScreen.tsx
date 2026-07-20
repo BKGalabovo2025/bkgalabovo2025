@@ -69,12 +69,12 @@ export function ShadowActiveScreen({
   );
 
   return (
-    <div className="space-y-4 md:space-y-6 animate-in fade-in zoom-in-95 duration-300 w-full flex flex-col">
-      <Card className="border-none shadow-2xl bg-zinc-950 w-full flex flex-col text-white relative">
+    <div className="flex w-full flex-col space-y-4 duration-300 animate-in fade-in zoom-in-95 md:space-y-6">
+      <Card className="relative flex w-full flex-col border-none bg-zinc-950 text-white shadow-2xl">
         {/* Top Rotation Bar */}
-        <div className="bg-zinc-900 border-b border-zinc-800 p-4 flex flex-col md:flex-row gap-4 justify-between items-center shrink-0">
+        <div className="flex shrink-0 flex-col items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-900 p-4 md:flex-row">
           <div className="flex items-center gap-3">
-            <span className="text-zinc-400 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+            <span className="flex items-center gap-2 text-sm font-bold tracking-wider text-zinc-400 uppercase">
               <Activity size={16} className="text-green-500" /> На Корта:
             </span>
             <div className="flex flex-wrap gap-2">
@@ -82,7 +82,7 @@ export function ShadowActiveScreen({
                 (p: ShadowPlayer, i: number) => (
                   <span
                     key={i}
-                    className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-bold"
+                    className="rounded-full border border-green-500/30 bg-green-500/20 px-3 py-1 font-bold text-green-400"
                   >
                     {p.displayName}
                   </span>
@@ -93,21 +93,21 @@ export function ShadowActiveScreen({
 
           {restingPlayers.length > 0 && (
             <div className="flex items-center gap-3">
-              <span className="text-zinc-500 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+              <span className="flex items-center gap-2 text-sm font-bold tracking-wider text-zinc-500 uppercase">
                 <RotateCcw size={16} /> Почиват/Следват:
               </span>
               <div className="flex flex-wrap gap-2">
                 {restingPlayers.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-2 md:gap-3 bg-zinc-800/80 p-2 md:p-3 rounded-xl border border-zinc-700/50"
+                    className="flex items-center gap-2 rounded-xl border border-zinc-700/50 bg-zinc-800/80 p-2 md:gap-3 md:p-3"
                   >
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-zinc-700 flex items-center justify-center font-bold text-sm md:text-base">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-zinc-700 text-sm font-bold md:size-10 md:text-base">
                       {p.displayName
                         ? p.displayName.charAt(0).toUpperCase()
                         : "?"}
                     </div>
-                    <span className="font-semibold text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">
+                    <span className="max-w-25 truncate text-sm font-semibold md:max-w-[150px] md:text-base">
                       {p.displayName}
                     </span>
                   </div>
@@ -118,16 +118,16 @@ export function ShadowActiveScreen({
         </div>
 
         {/* Main Dashboard Area */}
-        <CardContent className="p-4 md:p-8 flex-1 flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-between">
-          <div className="flex-1 w-full max-w-[280px] md:max-w-[400px] flex items-center justify-center">
+        <CardContent className="flex flex-1 flex-col items-center justify-between gap-6 p-4 md:flex-row md:gap-10 md:p-8">
+          <div className="flex w-full max-w-70 flex-1 items-center justify-center md:max-w-100">
             <CourtVisualizer
               activeZone={trainer.activeZone}
               visualPhase={trainer.visualPhase}
-              className="w-full scale-100 md:scale-110 origin-center"
+              className="w-full origin-center scale-100 md:scale-110"
             />
           </div>
 
-          <div className="flex-1 w-full space-y-6 md:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
+          <div className="flex w-full flex-1 flex-col items-center space-y-6 text-center md:items-start md:space-y-10 md:text-left">
             <div className="space-y-2 md:space-y-4">
               {/* Mode badge */}
               {(() => {
@@ -135,7 +135,7 @@ export function ShadowActiveScreen({
                 const ModeIcon = modeInfo.icon;
                 return (
                   <div
-                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 ${modeInfo.color} text-sm font-bold mb-2`}
+                    className={`inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 ${modeInfo.color} mb-2 text-sm font-bold`}
                   >
                     <ModeIcon size={14} />
                     {modeInfo.label}
@@ -144,8 +144,8 @@ export function ShadowActiveScreen({
               })()}
 
               <div className="flex items-center gap-3">
-                <Activity className="w-8 h-8 text-primary animate-pulse" />
-                <span className="text-3xl md:text-4xl font-black tracking-wider text-primary">
+                <Activity className="size-8 animate-pulse text-primary" />
+                <span className="text-3xl font-black tracking-wider text-primary md:text-4xl">
                   {getStateLabel(trainer.state)}
                 </span>
               </div>
@@ -154,10 +154,10 @@ export function ShadowActiveScreen({
               {settings.mode === "agility_test" &&
               trainer.state === "working" ? (
                 <div className="space-y-1">
-                  <div className="text-[6rem] sm:text-8xl md:text-[9rem] lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-red-400 to-red-700">
+                  <div className="bg-gradient-to-b from-red-400 to-red-700 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
                     {trainer.agilityActionsDone}
                   </div>
-                  <p className="text-zinc-400 text-lg font-medium">
+                  <p className="text-lg font-medium text-zinc-400">
                     движения от {settings.workSec}
                   </p>
                   {/* Progress bar */}
@@ -184,21 +184,21 @@ export function ShadowActiveScreen({
                       100: "w-full",
                     };
                     return (
-                      <div className="w-full max-w-xs bg-zinc-800 rounded-full h-3 mt-2">
+                      <div className="mt-2 h-3 w-full max-w-xs rounded-full bg-zinc-800">
                         <div
-                          className={`bg-red-500 h-3 rounded-full transition-all duration-300 ${widthMap[w] ?? "w-0"}`}
+                          className={`h-3 rounded-full bg-red-500 transition-all duration-300 ${widthMap[w] ?? "w-0"}`}
                         />
                       </div>
                     );
                   })()}
                 </div>
               ) : (
-                <div className="text-[6rem] sm:text-8xl md:text-[9rem] lg:text-[10rem] leading-none font-black tabular-nums tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                <div className="bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
                   {trainer.timeRemaining}
                 </div>
               )}
 
-              <p className="text-zinc-400 text-xl md:text-2xl font-medium mt-2 md:mt-4">
+              <p className="mt-2 text-xl font-medium text-zinc-400 md:mt-4 md:text-2xl">
                 {getSubLabel(
                   settings.mode,
                   trainer.state,
@@ -213,21 +213,21 @@ export function ShadowActiveScreen({
                 trainer.state === "working" &&
                 trainer.nextActionDelay !== undefined &&
                 trainer.nextActionDelay !== null && (
-                  <div className="text-yellow-400 text-lg md:text-xl font-bold animate-pulse mt-2 flex items-center gap-2">
+                  <div className="mt-2 flex animate-pulse items-center gap-2 text-lg font-bold text-yellow-400 md:text-xl">
                     <Timer size={20} /> Следваща след{" "}
                     {trainer.nextActionDelay.toFixed(1)}с
                   </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-md">
+            <div className="grid w-full max-w-md grid-cols-2 gap-3 md:gap-4">
               {trainer.state === "idle" ? (
                 <Button
                   size="lg"
-                  className="col-span-2 h-20 md:h-24 text-2xl md:text-3xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_0_40px_rgba(var(--primary),0.3)]"
+                  className="col-span-2 h-20 rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-[0_0_40px_rgba(var(--primary),0.3)] hover:bg-primary/90 md:h-24 md:text-3xl"
                   onClick={trainer.startTraining}
                 >
-                  <Play className="mr-3 md:mr-4 w-8 h-8 md:w-10 md:h-10" />{" "}
+                  <Play className="mr-3 size-8 md:mr-4 md:size-10" />{" "}
                   СТАРТ
                 </Button>
               ) : (
@@ -235,29 +235,29 @@ export function ShadowActiveScreen({
                   {trainer.state === "paused" ? (
                     <Button
                       size="lg"
-                      className="h-20 md:h-24 text-xl md:text-2xl font-black bg-green-600 hover:bg-green-700 rounded-2xl"
+                      className="h-20 rounded-2xl bg-green-600 text-xl font-black hover:bg-green-700 md:h-24 md:text-2xl"
                       onClick={trainer.resumeTraining}
                     >
-                      <Play className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                      <Play className="mr-2 size-6 md:mr-3 md:size-8" />{" "}
                       ПРОДЪЛЖИ
                     </Button>
                   ) : (
                     <Button
                       size="lg"
-                      className="h-20 md:h-24 text-xl md:text-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-yellow-950 rounded-2xl"
+                      className="h-20 rounded-2xl bg-yellow-500 text-xl font-black text-yellow-950 hover:bg-yellow-600 md:h-24 md:text-2xl"
                       onClick={trainer.pauseTraining}
                     >
-                      <Pause className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                      <Pause className="mr-2 size-6 md:mr-3 md:size-8" />{" "}
                       ПАУЗА
                     </Button>
                   )}
                   <Button
                     size="lg"
                     variant="destructive"
-                    className="h-20 md:h-24 text-xl md:text-2xl font-black rounded-2xl"
+                    className="h-20 rounded-2xl text-xl font-black md:h-24 md:text-2xl"
                     onClick={() => trainer.stopTraining()}
                   >
-                    <Square className="mr-2 md:mr-3 w-6 h-6 md:w-8 md:h-8" />{" "}
+                    <Square className="mr-2 size-6 md:mr-3 md:size-8" />{" "}
                     СТОП
                   </Button>
                 </>

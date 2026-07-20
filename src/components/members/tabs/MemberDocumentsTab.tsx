@@ -80,36 +80,36 @@ const DocumentRow = ({
       : "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800";
 
   return (
-    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 sm:p-8 bg-zinc-50/50 rounded-3xl sm:rounded-4xl border border-zinc-100/50 gap-4 sm:gap-6">
-      <div className="flex items-center gap-4 sm:gap-6 w-full">
+    <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:gap-6 sm:rounded-4xl sm:p-8 lg:flex-row lg:items-center">
+      <div className="flex w-full items-center gap-4 sm:gap-6">
         <div
           className={cn(
-            "p-3 sm:p-4 rounded-xl sm:rounded-2xl shrink-0",
+            "shrink-0 rounded-xl p-3 sm:rounded-2xl sm:p-4",
             isCompleted
               ? "bg-zinc-950 text-white"
-              : "bg-white border border-zinc-100 text-zinc-300"
+              : "border border-zinc-100 bg-white text-zinc-300"
           )}
         >
-          <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+          <IconComponent className="size-5 sm:size-6" strokeWidth={1.5} />
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-[10px] sm:text-[11px] font-medium uppercase tracking-widest2 text-zinc-950 mb-1 truncate">
+          <h4 className="tracking-widest2 mb-1 truncate text-[10px] font-medium text-zinc-950 uppercase sm:text-[11px]">
             {title}
           </h4>
-          <p className="text-xs sm:text-sm font-light text-zinc-400 line-clamp-2">
+          <p className="line-clamp-2 text-xs font-light text-zinc-400 sm:text-sm">
             {statusText}
           </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+      <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto">
         <Button
           variant="outline"
-          className="flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-zinc-950 hover:text-white transition-all"
+          className="h-10 flex-1 rounded-lg border-zinc-100 px-4 text-[9px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-950 hover:text-white sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none"
           onClick={onPrint}
         >
           <Printer
-            className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"
+            className="mr-2 size-3.5 sm:size-4"
             strokeWidth={1.5}
           />
           Печат
@@ -117,7 +117,7 @@ const DocumentRow = ({
         <Button
           variant="outline"
           className={cn(
-            "flex-1 lg:flex-none h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl border-zinc-100 font-medium text-[9px] sm:text-[10px] uppercase tracking-widest transition-all",
+            "h-10 flex-1 rounded-lg border-zinc-100 px-4 text-[9px] font-medium tracking-widest uppercase transition-all sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none",
             !isCompleted && pendingClass
           )}
           onClick={onToggle}
@@ -133,7 +133,7 @@ const DocumentRow = ({
 
 function completedText(label: string, date: string | null): React.ReactNode {
   return (
-    <span className="text-emerald-600 font-medium">
+    <span className="font-medium text-emerald-600">
       {label} {date}
     </span>
   );
@@ -313,7 +313,7 @@ export const MemberDocumentsTab = ({
   const medicalStatus = getMedicalStatus(member, formatDocDate);
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10 space-y-4 sm:space-y-6">
+    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-white p-4 sm:space-y-6 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <DocumentRow
         icon={FileText}
         isCompleted={!!member.hasMembershipApplication}
@@ -440,37 +440,37 @@ export const MemberDocumentsTab = ({
       />
 
       {declarations.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-zinc-100">
-          <h3 className="text-lg font-bold text-zinc-900 mb-6">Подписани Декларации (Recovery Zone)</h3>
+        <div className="mt-12 border-t border-zinc-100 pt-8">
+          <h3 className="mb-6 text-lg font-bold text-zinc-900">Подписани Декларации (Recovery Zone)</h3>
           <div className="space-y-4">
             {declarations.map((decl) => (
-              <div key={decl.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 bg-zinc-50/50 rounded-2xl border border-zinc-100/50 gap-4">
+              <div key={decl.id} className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:flex-row sm:items-center sm:p-6">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-                    <CheckCircle className="h-5 w-5" strokeWidth={1.5} />
+                  <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+                    <CheckCircle className="size-5" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-zinc-900 mb-1">Декларация за информирано съгласие</h4>
+                    <h4 className="mb-1 text-sm font-bold text-zinc-900">Декларация за информирано съгласие</h4>
                     <p className="text-xs text-zinc-500">
                       Подписана на: {new Date(decl.signedAt).toLocaleDateString("bg-BG")} в {new Date(decl.signedAt).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+                <div className="flex w-full shrink-0 gap-2 sm:w-auto">
                   <Button
                     variant="outline"
-                    className="h-10 px-6 rounded-xl border-zinc-200 font-medium text-xs hover:bg-zinc-950 hover:text-white transition-all flex-1 sm:flex-none"
+                    className="h-10 flex-1 rounded-xl border-zinc-200 px-6 text-xs font-medium transition-all hover:bg-zinc-950 hover:text-white sm:flex-none"
                     onClick={() => window.open(`/print-declaration/${decl.id}`, "_blank")}
                   >
-                    <Printer className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    <Printer className="mr-2 size-4" strokeWidth={1.5} />
                     Печат
                   </Button>
                   <Button
                     variant="ghost"
-                    className="h-10 px-3 rounded-xl border border-transparent text-red-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all shrink-0"
+                    className="h-10 shrink-0 rounded-xl border border-transparent px-3 text-red-500 transition-all hover:border-red-100 hover:bg-red-50 hover:text-red-600"
                     onClick={() => handleDeleteDeclaration(decl.id)}
                   >
-                    <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                    <Trash2 className="size-4" strokeWidth={1.5} />
                   </Button>
                 </div>
               </div>

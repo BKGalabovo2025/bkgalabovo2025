@@ -32,32 +32,32 @@ export const ReservationStep4Review = () => {
   } = watchedValues;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl rounded-[2rem] p-6 border border-white/40 dark:border-zinc-800/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+    <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
+      <div className="space-y-4 rounded-4xl border border-white/40 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/40 dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <div className="flex items-center justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center font-bold">
-              {!isRecoveryZone ? courtId : <Activity className="w-5 h-5" />}
+            <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-900 font-bold text-white dark:bg-white dark:text-zinc-900">
+              {!isRecoveryZone ? courtId : <Activity className="size-5" />}
             </div>
-            <div className="max-w-[180px]">
-              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+            <div className="max-w-45">
+              <p className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">
                 {!isRecoveryZone ? "Избран Корт" : "Избрана Услуга"}
               </p>
-              <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">
+              <p className="truncate text-sm font-bold text-zinc-900 dark:text-white">
                 {!isRecoveryZone ? `Корт № ${courtId}` : services.find((s) => s.id === serviceId)?.name || "Услуга"}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Обща Сума</p>
-            <p className="text-xl font-black text-primary tracking-tight">{formatPrice(price)}</p>
+            <p className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">Обща Сума</p>
+            <p className="text-xl font-black tracking-tight text-primary">{formatPrice(price)}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-1">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-              <Clock className="w-3 h-3" /> График
+            <p className="flex items-center gap-1 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
+              <Clock className="size-3" /> График
             </p>
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               {startTime?.toLocaleDateString("bg-BG")}
@@ -67,36 +67,36 @@ export const ReservationStep4Review = () => {
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-              <User className="w-3 h-3" /> Клиент
+            <p className="flex items-center gap-1 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
+              <User className="size-3" /> Клиент
             </p>
-            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 truncate">
+            <p className="truncate text-xs font-bold text-zinc-700 dark:text-zinc-300">
               {clientName}
               <br />
               {clientPhone}
-              {clientEmail && <span className="block opacity-60 text-[10px]">{clientEmail}</span>}
+              {clientEmail && <span className="block text-[10px] opacity-60">{clientEmail}</span>}
             </p>
           </div>
         </div>
 
         {selectedZone && (
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-              <Activity className="w-3 h-3" /> Избрана Зона
+          <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            <p className="flex items-center gap-1 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
+              <Activity className="size-3" /> Избрана Зона
             </p>
-            <p className="text-sm font-bold text-cyan-600 uppercase tracking-wider">{selectedZone}</p>
+            <p className="text-sm font-bold tracking-wider text-cyan-600 uppercase">{selectedZone}</p>
           </div>
         )}
       </div>
 
       {/* Payment Options */}
-      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/40 dark:border-zinc-800/50 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-6 space-y-4">
+      <div className="space-y-4 rounded-4xl border border-white/40 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/40 dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white">
+            <h4 className="text-xs font-black tracking-wider text-zinc-900 uppercase dark:text-white">
               {isEditMode ? "Статус на плащане" : "Плащане при създаване?"}
             </h4>
-            <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-tight font-bold">
+            <p className="mt-1 text-[10px] font-bold tracking-tight text-zinc-400 uppercase">
               {isEditMode ? "Промяна на статуса на плащане" : "Маркирайте резервацията като платена веднага"}
             </p>
           </div>
@@ -108,13 +108,13 @@ export const ReservationStep4Review = () => {
               if (!isPaid) form.setValue("paymentMethod", "Cash");
             }}
             className={cn(
-              "w-12 h-6 rounded-full p-1 transition-all duration-300 relative focus:outline-none",
+              "relative h-6 w-12 rounded-full p-1 transition-all duration-300 focus:outline-none",
               form.watch("status") === "paid" ? "bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-800"
             )}
           >
             <div
               className={cn(
-                "w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 absolute top-1",
+                "absolute top-1 size-4 rounded-full bg-white shadow-md transition-all duration-300",
                 form.watch("status") === "paid" ? "left-7" : "left-1"
               )}
             />
@@ -122,17 +122,17 @@ export const ReservationStep4Review = () => {
         </div>
 
         {form.watch("status") === "paid" && (
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50 animate-in slide-in-from-top-2 duration-300">
+          <div className="grid grid-cols-2 gap-3 border-t border-zinc-200/50 pt-3 duration-300 animate-in slide-in-from-top-2 dark:border-zinc-800/50">
             {["Cash", "Revolut", "Card"].map((method) => (
               <button
                 key={method}
                 type="button"
                 onClick={() => form.setValue("paymentMethod", method)}
                 className={cn(
-                  "h-10 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all",
+                  "h-10 rounded-xl text-[10px] font-bold tracking-wider uppercase transition-all",
                   form.watch("paymentMethod") === method
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
-                    : "bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300"
+                    : "border border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
                 )}
               >
                 {(() => {
@@ -146,17 +146,17 @@ export const ReservationStep4Review = () => {
         )}
 
         {isEditMode && reservation?.packageGroupId && (
-          <div className="flex items-center space-x-2 pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
+          <div className="flex items-center space-x-2 border-t border-zinc-200/50 pt-3 dark:border-zinc-800/50">
             <input
               type="checkbox"
               id="applyPaymentToPackage"
               checked={applyPaymentToPackage}
               onChange={(e) => setApplyPaymentToPackage(e.target.checked)}
-              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-zinc-300"
+              className="size-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
             />
             <label
               htmlFor="applyPaymentToPackage"
-              className="text-[11px] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-600"
+              className="text-[11px] leading-none font-medium text-zinc-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Приложи плащането/статуса за всички дни от пакета (Препоръчително)
             </label>
@@ -165,17 +165,17 @@ export const ReservationStep4Review = () => {
       </div>
 
       {/* Confirmation Options */}
-      <div className="bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/40 dark:border-zinc-800/50 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-6">
+      <div className="rounded-4xl border border-white/40 bg-white/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/40 dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
         <FormField
           control={form.control}
           name="sendConfirmation"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between space-y-0">
               <div className="space-y-1">
-                <FormLabel className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white cursor-pointer">
+                <FormLabel className="cursor-pointer text-xs font-black tracking-wider text-zinc-900 uppercase dark:text-white">
                   Изпрати потвърждение
                 </FormLabel>
-                <p className="text-[10px] text-zinc-400 uppercase tracking-tight font-bold">
+                <p className="text-[10px] font-bold tracking-tight text-zinc-400 uppercase">
                   Системата автоматично ще изпрати имейл с детайли за резервацията
                 </p>
               </div>
@@ -184,13 +184,13 @@ export const ReservationStep4Review = () => {
                   type="button"
                   onClick={() => field.onChange(!field.value)}
                   className={cn(
-                    "w-11 h-6 rounded-full p-1 transition-all duration-300 relative focus:outline-none",
+                    "relative h-6 w-11 rounded-full p-1 transition-all duration-300 focus:outline-none",
                     field.value ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
                   )}
                 >
                   <div
                     className={cn(
-                      "w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 absolute top-1",
+                      "absolute top-1 size-4 rounded-full bg-white shadow-md transition-all duration-300",
                       field.value ? "left-6" : "left-1"
                     )}
                   />
@@ -207,13 +207,13 @@ export const ReservationStep4Review = () => {
         name="notes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
               Бележки (опц.)
             </FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Допълнителни изисквания или коментари..."
-                className="resize-none rounded-[2rem] border-white/40 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xl focus:bg-white focus:ring-0 text-sm h-24 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+                className="h-24 resize-none rounded-4xl border-white/40 bg-white/60 text-sm shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl focus:bg-white focus:ring-0 dark:border-zinc-800/50 dark:bg-zinc-900/40"
                 {...field}
               />
             </FormControl>

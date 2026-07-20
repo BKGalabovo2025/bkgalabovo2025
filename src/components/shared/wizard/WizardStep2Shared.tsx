@@ -57,7 +57,7 @@ export const WizardStep2Subscription = ({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+        <Label className="text-xs font-bold tracking-widest text-zinc-700 uppercase dark:text-zinc-300">
           Изберете месеци за плащане
         </Label>
         {unpaidMonths.length > 1 && (
@@ -66,7 +66,7 @@ export const WizardStep2Subscription = ({
             onClick={() =>
               setSelectedMonthKeys(allUnpaidMonthsSelected ? [] : unpaidMonths.map((m) => m.monthKey))
             }
-            className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest transition-colors"
+            className="text-[10px] font-semibold tracking-widest text-emerald-600 uppercase transition-colors hover:text-emerald-700"
           >
             {allUnpaidMonthsSelected ? "Изчисти" : "Избери всички неплатени"}
           </button>
@@ -74,27 +74,27 @@ export const WizardStep2Subscription = ({
       </div>
 
       {monthlyAttendance.length === 0 ? (
-        <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
-          <CalendarDays className="h-8 w-8 text-zinc-200 mx-auto mb-3" />
+        <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-8 text-center dark:border-zinc-900 dark:bg-zinc-900/40">
+          <CalendarDays className="mx-auto mb-3 size-8 text-zinc-200" />
           <p className="text-xs font-light text-zinc-400">
             Няма регистрирани присъствия за {selectedMember.firstName}.
           </p>
-          <p className="text-[10px] font-light text-zinc-300 mt-1">
+          <p className="mt-1 text-[10px] font-light text-zinc-300">
             Можете да продължите с плащане без свързани присъствия.
           </p>
           <button
             type="button"
             onClick={() => setSelectedMonthKeys(["NO_EVENTS"])}
             className={cn(
-              "mt-4 px-4 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all",
+              "mt-4 rounded-xl px-4 py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
               selectedMonthKeys.includes("NO_EVENTS")
                 ? "bg-emerald-500 text-white"
-                : "bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
             )}
           >
             {selectedMonthKeys.includes("NO_EVENTS") ? (
               <>
-                <Check className="inline h-3 w-3 mr-1" /> Избрано
+                <Check className="mr-1 inline size-3" /> Избрано
               </>
             ) : (
               "Продължи без присъствия"
@@ -102,7 +102,7 @@ export const WizardStep2Subscription = ({
           </button>
         </div>
       ) : (
-        <div className="max-h-[280px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
+        <div className="custom-scrollbar max-h-70 space-y-2 overflow-y-auto pr-1">
           {monthlyAttendance.map((monthData) => {
             const isSelected = selectedMonthKeys.includes(monthData.monthKey);
             const hasUnpaid = monthData.unpaidCount > 0;
@@ -112,27 +112,27 @@ export const WizardStep2Subscription = ({
                 type="button"
                 onClick={() => toggleMonthSelection(monthData.monthKey)}
                 className={cn(
-                  "w-full text-left px-5 py-4 rounded-2xl border transition-all duration-200",
+                  "w-full rounded-2xl border px-5 py-4 text-left transition-all duration-200",
                   isSelected
-                    ? "bg-emerald-50 border-emerald-300 dark:bg-emerald-950/20 dark:border-emerald-700"
-                    : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
+                    ? "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/20"
+                    : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900/20"
                 )}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
-                      isSelected ? "bg-emerald-500 border-emerald-500" : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                      "flex size-5 shrink-0 items-center justify-center rounded-md border transition-all",
+                      isSelected ? "border-emerald-500 bg-emerald-500" : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
                     )}
                   >
-                    {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                    {isSelected && <Check className="size-3 text-white" strokeWidth={3} />}
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className={cn("text-sm font-semibold", isSelected ? "text-emerald-900 dark:text-emerald-200" : "text-zinc-900 dark:text-zinc-100")}>
                       {monthData.monthLabel}
                     </p>
-                    <div className="text-[10px] text-zinc-400 font-light mt-1 flex flex-col gap-0.5">
+                    <div className="mt-1 flex flex-col gap-0.5 text-[10px] font-light text-zinc-400">
                       {Object.values(monthData.memberStats).length > 1 ? (
                         Object.values(monthData.memberStats).map((stat) => {
                           const total = stat.paidCount + stat.unpaidCount;
@@ -140,7 +140,7 @@ export const WizardStep2Subscription = ({
                           return (
                             <span key={stat.memberId} className={isSelected ? "text-emerald-700/70 dark:text-emerald-300/70" : ""}>
                               • {stat.firstName}: {total} присъстви{total === 1 ? "е" : "я"}
-                              {stat.unpaidCount > 0 && <span className="text-rose-500 font-medium ml-1">({stat.unpaidCount} неплатени)</span>}
+                              {stat.unpaidCount > 0 && <span className="ml-1 font-medium text-rose-500">({stat.unpaidCount} неплатени)</span>}
                             </span>
                           );
                         })
@@ -152,18 +152,18 @@ export const WizardStep2Subscription = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex shrink-0 items-center gap-2">
                     {monthData.paidCount > 0 && (
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-semibold uppercase">
+                      <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-semibold text-emerald-700 uppercase">
                         {monthData.paidCount} платени
                       </span>
                     )}
                     {hasUnpaid ? (
-                      <span className="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[9px] font-semibold uppercase">
+                      <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[9px] font-semibold text-rose-700 uppercase">
                         {monthData.unpaidCount} неплатени
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full text-[9px] font-semibold uppercase">
+                      <span className="rounded-full border border-zinc-100 bg-zinc-50 px-2.5 py-1 text-[9px] font-semibold text-zinc-400 uppercase">
                         Изплатен
                       </span>
                     )}
@@ -178,15 +178,15 @@ export const WizardStep2Subscription = ({
       {selectedMonthKeys.length > 0 && !selectedMonthKeys.includes("NO_EVENTS") && (
         <div
           className={cn(
-            "px-4 py-3 rounded-2xl border flex items-center justify-between",
+            "flex items-center justify-between rounded-2xl border px-4 py-3",
             selectedMonthKeys.length > 1
-              ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800"
-              : "bg-zinc-50 border-zinc-100 dark:bg-zinc-900/30 dark:border-zinc-800"
+              ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20"
+              : "border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30"
           )}
         >
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-3.5 w-3.5 text-emerald-600" strokeWidth={2} />
-            <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-widest">
+            <CalendarDays className="size-3.5 text-emerald-600" strokeWidth={2} />
+            <span className="text-[10px] font-semibold tracking-widest text-emerald-800 uppercase dark:text-emerald-300">
               Избрани: {selectedMonthKeys.length} {selectedMonthKeys.length === 1 ? "месец" : "месеца"}
             </span>
           </div>
@@ -224,7 +224,7 @@ export const WizardStep2Individual = ({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+        <Label className="text-xs font-bold tracking-widest text-zinc-700 uppercase dark:text-zinc-300">
           Изберете {eventLabel} за плащане
         </Label>
         {unpaidEvents.length > 0 && (
@@ -235,21 +235,21 @@ export const WizardStep2Individual = ({
                 selectedEventIds.length === unpaidEvents.length ? [] : unpaidEvents.map((e) => e.id)
               )
             }
-            className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 uppercase tracking-widest"
+            className="text-[10px] font-semibold tracking-widest text-emerald-600 uppercase hover:text-emerald-700"
           >
             {selectedEventIds.length === unpaidEvents.length ? "Изчисти" : "Избери всички"}
           </button>
         )}
       </div>
       {unpaidEvents.length === 0 ? (
-        <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-900">
-          <CheckSquare className="h-8 w-8 text-emerald-200 mx-auto mb-3" />
+        <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-8 text-center dark:border-zinc-900 dark:bg-zinc-900/40">
+          <CheckSquare className="mx-auto mb-3 size-8 text-emerald-200" />
           <p className="text-xs font-light text-zinc-400">
             Няма неплатени {eventLabel} за {selectedMember.firstName}.
           </p>
         </div>
       ) : (
-        <div className="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar pr-1">
+        <div className="custom-scrollbar max-h-75 space-y-2 overflow-y-auto pr-1">
           {unpaidEvents.map((event) => {
             const isChecked = selectedEventIds.includes(event.id);
             return (
@@ -258,37 +258,37 @@ export const WizardStep2Individual = ({
                 type="button"
                 onClick={() => toggleEventSelection(event.id)}
                 className={cn(
-                  "w-full text-left px-4 py-3.5 rounded-2xl border transition-all duration-200 flex items-center gap-3",
+                  "flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-200",
                   isChecked
-                    ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800"
-                    : "bg-white border-zinc-100 dark:bg-zinc-900/20 dark:border-zinc-800 hover:border-zinc-200"
+                    ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20"
+                    : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900/20"
                 )}
               >
                 <div
                   className={cn(
-                    "h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
-                    isChecked ? "bg-blue-500 border-blue-500" : "border-zinc-200 bg-white dark:bg-zinc-900"
+                    "flex size-5 shrink-0 items-center justify-center rounded-md border transition-all",
+                    isChecked ? "border-blue-500 bg-blue-500" : "border-zinc-200 bg-white dark:bg-zinc-900"
                   )}
                 >
-                  {isChecked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                  {isChecked && <Check className="size-3 text-white" strokeWidth={3} />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={cn("text-sm font-medium truncate", isChecked ? "text-blue-900 dark:text-blue-200" : "text-zinc-900 dark:text-zinc-100")}>
+                <div className="min-w-0 flex-1">
+                  <p className={cn("truncate text-sm font-medium", isChecked ? "text-blue-900 dark:text-blue-200" : "text-zinc-900 dark:text-zinc-100")}>
                     {event.title}
                   </p>
-                  <p className="text-[10px] text-zinc-400 font-light mt-0.5">
+                  <p className="mt-0.5 text-[10px] font-light text-zinc-400">
                     {format(new Date(event.startDate), "dd MMMM yyyy", { locale: bg })}
                     {event.location && ` · ${event.location}`}
                   </p>
                 </div>
-                {isChecked && <Check className="h-4 w-4 text-blue-500 shrink-0" />}
+                {isChecked && <Check className="size-4 shrink-0 text-blue-500" />}
               </button>
             );
           })}
         </div>
       )}
       {selectedEventIds.length > 0 && (
-        <div className="px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-[10px] font-medium text-blue-700">
           Избрани: {selectedEventIds.length} {eventLabel}
         </div>
       )}
@@ -337,38 +337,38 @@ export const WizardStep2Wrapper = ({
 }: WizardStep2WrapperProps) => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <CalendarDays className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <CalendarDays className="size-4 text-emerald-500" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
           Присъствия и период
         </h3>
       </div>
 
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-        <div className="h-6 w-6 rounded-md bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+      <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 dark:border-emerald-900/30 dark:bg-emerald-950/20">
+        <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-emerald-500 text-[9px] font-bold text-white">
           {selectedMember.firstName[0]}
           {selectedMember.lastName[0]}
         </div>
         <span className="text-sm font-medium text-emerald-900 dark:text-emerald-300">
           {selectedMember.firstName} {selectedMember.lastName}
         </span>
-        <div className="ml-auto rounded-full text-[8px] px-2 py-0 border-none bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+        <div className="ml-auto rounded-full border-none bg-emerald-100 px-2 py-0 text-[8px] text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
           {service.type}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+        <Label className="text-xs font-bold tracking-widest text-zinc-700 uppercase dark:text-zinc-300">
           Тип плащане
         </Label>
-        <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 gap-1">
+        <div className="flex gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
           <button
             type="button"
             onClick={() => setPaymentMode("subscription")}
             className={cn(
-              "flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[10px] font-semibold tracking-widest uppercase transition-all",
               paymentMode === "subscription"
-                ? "bg-white dark:bg-zinc-800 text-emerald-700 shadow-sm"
+                ? "bg-white text-emerald-700 shadow-sm dark:bg-zinc-800"
                 : "text-zinc-500 hover:text-zinc-700"
             )}
           >
@@ -383,7 +383,7 @@ export const WizardStep2Wrapper = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-3.5 w-3.5"
+              className="size-3.5"
             >
               <path d="M8 2v4"></path>
               <path d="M16 2v4"></path>
@@ -396,9 +396,9 @@ export const WizardStep2Wrapper = ({
             type="button"
             onClick={() => setPaymentMode("individual")}
             className={cn(
-              "flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-1.5",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[10px] font-semibold tracking-widest uppercase transition-all",
               paymentMode === "individual"
-                ? "bg-white dark:bg-zinc-800 text-blue-700 shadow-sm"
+                ? "bg-white text-blue-700 shadow-sm dark:bg-zinc-800"
                 : "text-zinc-500 hover:text-zinc-700"
             )}
           >
@@ -413,7 +413,7 @@ export const WizardStep2Wrapper = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-3.5 w-3.5"
+              className="size-3.5"
             >
               <rect width="20" height="14" x="2" y="5" rx="2"></rect>
               <line x1="2" x2="22" y1="10" y2="10"></line>
@@ -426,7 +426,7 @@ export const WizardStep2Wrapper = ({
       {(() => {
         if (attendanceLoading) {
           return (
-            <div className="py-12 flex flex-col items-center justify-center gap-3">
+            <div className="flex flex-col items-center justify-center gap-3 py-12">
               {/* Loader2 */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -438,11 +438,11 @@ export const WizardStep2Wrapper = ({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-7 w-7 animate-spin text-emerald-500 opacity-40"
+                className="size-7 animate-spin text-emerald-500 opacity-40"
               >
                 <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
               </svg>
-              <p className="text-zinc-400 text-xs font-light">
+              <p className="text-xs font-light text-zinc-400">
                 Зареждане на присъствията...
               </p>
             </div>

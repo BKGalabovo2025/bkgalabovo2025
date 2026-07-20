@@ -60,7 +60,7 @@ export function RecoverySalesHistory() {
     <SharedSalesHistory
       title="История на продажбите"
       description="Проследяване на всички направени продажби на възстановяване."
-      icon={<ShoppingCart className="h-5 w-5 text-emerald-500" />}
+      icon={<ShoppingCart className="size-5 text-emerald-500" />}
       sales={sales}
       isLoading={isLoading || membersLoading}
       membersMap={membersMap}

@@ -74,10 +74,10 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
 
     return (
       <>
-        <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
           {formattedDate}
         </span>
-        <div className="text-[10px] text-zinc-400 mt-0.5">
+        <div className="mt-0.5 text-[10px] text-zinc-400">
           {timeRange} ({hours} ч.)
         </div>
       </>
@@ -86,10 +86,10 @@ const formatSaleDateCell = (sale: import("@/types").Sale) => {
 
   return (
     <>
-      <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
         {formattedDate}
       </span>
-      <div className="text-[10px] text-zinc-400 mt-0.5">
+      <div className="mt-0.5 text-[10px] text-zinc-400">
         {start.toLocaleTimeString("bg-BG", {
           hour: "2-digit",
           minute: "2-digit",
@@ -223,7 +223,7 @@ export const MemberSalesHistory = ({
       return (
         <div className="flex justify-center py-20">
           <Loader2
-            className="h-8 w-8 animate-spin text-zinc-200"
+            className="size-8 animate-spin text-zinc-200"
             strokeWidth={1.5}
           />
         </div>
@@ -232,7 +232,7 @@ export const MemberSalesHistory = ({
 
     if (error) {
       return (
-        <div className="p-10 text-center bg-rose-50 rounded-4xl border border-rose-100 text-rose-500 text-sm font-light">
+        <div className="rounded-4xl border border-rose-100 bg-rose-50 p-10 text-center text-sm font-light text-rose-500">
           Грешка: {error}
         </div>
       );
@@ -240,8 +240,8 @@ export const MemberSalesHistory = ({
 
     if (sales.length === 0) {
       return (
-        <div className="text-center py-20 bg-zinc-50/50 border border-zinc-100 border-dashed rounded-4xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+        <div className="rounded-4xl border border-dashed border-zinc-100 bg-zinc-50/50 py-20 text-center">
+          <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
             Няма регистрирани продажби.
           </p>
         </div>
@@ -264,32 +264,32 @@ export const MemberSalesHistory = ({
           return (
             <div
               key={year}
-              className="border border-zinc-100 rounded-3xl overflow-hidden bg-zinc-50/20 transition-all"
+              className="overflow-hidden rounded-3xl border border-zinc-100 bg-zinc-50/20 transition-all"
             >
               <button
                 type="button"
                 onClick={() => toggleYear(year)}
-                className="w-full flex items-center justify-between p-5 sm:p-6 bg-zinc-50/50 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100"
+                className="flex w-full items-center justify-between border-b border-zinc-100 bg-zinc-50/50 p-5 text-left transition-colors hover:bg-zinc-50 sm:p-6"
               >
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <span className="text-lg sm:text-xl font-light text-zinc-950 tracking-tight">
+                  <span className="text-lg font-light tracking-tight text-zinc-950 sm:text-xl">
                     {year} г.
                   </span>
                   <Badge
                     variant="outline"
-                    className="rounded-full px-2.5 py-0.5 text-[8px] sm:text-[9px] font-medium text-zinc-400 border-zinc-200 uppercase tracking-widest"
+                    className="rounded-full border-zinc-200 px-2.5 py-0.5 text-[8px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[9px]"
                   >
                     {yearSales.length}{" "}
                     {yearSales.length === 1 ? "запис" : "записа"}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <span className="text-xs sm:text-sm font-medium text-zinc-950">
+                  <span className="text-xs font-medium text-zinc-950 sm:text-sm">
                     Общо: {formatPrice(yearTotal)}
                   </span>
                   <MoreHorizontal
                     className={cn(
-                      "h-4 w-4 text-zinc-400 transition-transform duration-300",
+                      "size-4 text-zinc-400 transition-transform duration-300",
                       isExpanded && "rotate-90 text-zinc-950"
                     )}
                   />
@@ -297,31 +297,31 @@ export const MemberSalesHistory = ({
               </button>
 
               {isExpanded && (
-                <div className="p-3 sm:p-6 bg-white animate-in slide-in-from-top-1 duration-200 space-y-4">
+                <div className="space-y-4 bg-white p-3 duration-200 animate-in slide-in-from-top-1 sm:p-6">
                   {/* Desktop Table View */}
-                  <div className="hidden md:block overflow-hidden rounded-2xl border border-zinc-100">
+                  <div className="hidden overflow-hidden rounded-2xl border border-zinc-100 md:block">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-zinc-50/50 border-zinc-100 hover:bg-zinc-50/50">
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 pl-5">
+                        <TableRow className="border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50/50">
+                          <TableHead className="h-10 pl-5 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Дата
                           </TableHead>
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                          <TableHead className="h-10 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Услуга / Продукт
                           </TableHead>
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                          <TableHead className="h-10 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Клиент(и)
                           </TableHead>
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                          <TableHead className="h-10 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Плащане
                           </TableHead>
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                          <TableHead className="h-10 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Статус
                           </TableHead>
-                          <TableHead className="h-10 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right">
+                          <TableHead className="h-10 text-right text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Обща сума
                           </TableHead>
-                          <TableHead className="h-10 w-[60px]">
+                          <TableHead className="h-10 w-15">
                             <span className="sr-only">Действия</span>
                           </TableHead>
                         </TableRow>
@@ -362,7 +362,7 @@ export const MemberSalesHistory = ({
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="md:hidden space-y-3">
+                  <div className="space-y-3 md:hidden">
                     {yearSales.map((sale) => {
                       const statusDetails = getStatusDetails(
                         sale.status,
@@ -404,13 +404,13 @@ export const MemberSalesHistory = ({
   };
 
   return (
-    <div className="bg-white border border-zinc-100 rounded-3xl sm:rounded-4xl lg:rounded-5xl p-4 sm:p-8 lg:p-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 sm:mb-12">
+    <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+      <div className="mb-8 flex flex-col items-start justify-between gap-6 sm:mb-12 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-light tracking-tighter text-zinc-950 mb-2">
+          <h2 className="mb-2 text-2xl font-light tracking-tighter text-zinc-950 sm:text-3xl">
             История на продажбите
           </h2>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+          <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
             Списък с всички регистрирани плащания и услуги.
           </p>
         </div>

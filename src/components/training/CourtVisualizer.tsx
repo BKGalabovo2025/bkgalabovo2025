@@ -38,13 +38,13 @@ export function CourtVisualizer({
   return (
     <div
       className={cn(
-        "relative w-full max-w-[320px] mx-auto aspect-[610/1340] bg-[#1a1c23] rounded-xl overflow-hidden border-2 border-zinc-800 shadow-2xl",
+        "relative mx-auto aspect-[610/1340] w-full max-w-80 overflow-hidden rounded-xl border-2 border-zinc-800 bg-[#1a1c23] shadow-2xl",
         className
       )}
     >
       <svg
         viewBox="0 0 610 1340"
-        className="w-full h-full"
+        className="size-full"
         preserveAspectRatio="xMidYMid meet"
       >
         {/* ФОН / НАСТИЛКА НА КОРТА */}
@@ -213,7 +213,7 @@ function Zone({
         fontSize="24"
         fontWeight="600"
         textAnchor={labelAlign}
-        className="uppercase tracking-widest select-none pointer-events-none transition-colors duration-300"
+        className="pointer-events-none tracking-widest uppercase transition-colors duration-300 select-none"
       >
         {label}
       </text>

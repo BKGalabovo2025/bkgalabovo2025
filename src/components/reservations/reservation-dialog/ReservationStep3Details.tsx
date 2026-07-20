@@ -28,22 +28,22 @@ export const ReservationStep3Details = () => {
   } = useReservationDialog();
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
       {/* SEARCH AND SELECT EXISTING MEMBER OR GUEST */}
       {form.watch("memberId") ? (
-        <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 p-5 rounded-3xl flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between rounded-3xl border border-emerald-100 bg-emerald-50/50 p-5 duration-200 animate-in fade-in zoom-in-95 dark:border-emerald-900/30 dark:bg-emerald-950/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-black text-sm uppercase">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-sm font-black text-emerald-600 uppercase">
               {form.watch("clientName")?.[0]}
             </div>
             <div>
-              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">
+              <p className="mb-1 text-[9px] leading-none font-black tracking-widest text-emerald-600 uppercase">
                 Свързан профил
               </p>
-              <h4 className="font-bold text-xs text-zinc-950 dark:text-white leading-none">
+              <h4 className="text-xs leading-none font-bold text-zinc-950 dark:text-white">
                 {form.watch("clientName")}
               </h4>
-              <p className="text-[9px] text-zinc-400 mt-1 uppercase tracking-wider font-bold">
+              <p className="mt-1 text-[9px] font-bold tracking-wider text-zinc-400 uppercase">
                 {form.watch("clientPhone")} •{" "}
                 {form.watch("clientEmail") || "Няма имейл"}
               </p>
@@ -60,17 +60,17 @@ export const ReservationStep3Details = () => {
               form.setValue("clientEmail", "");
               setSearchTerm("");
             }}
-            className="h-8 px-3 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-[10px] font-black uppercase tracking-wider transition-colors"
+            className="h-8 rounded-lg px-3 text-[10px] font-black tracking-wider text-rose-500 uppercase transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/20"
           >
             Откачи
           </Button>
         </div>
       ) : (
         <div className="relative space-y-2">
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
+          <FormLabel className="flex items-center justify-between text-[10px] font-black tracking-widest text-zinc-400 uppercase">
             <span>Избор от съществуващи членове или гости</span>
             {membersLoading && (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              <Loader2 className="size-3.5 animate-spin text-primary" />
             )}
           </FormLabel>
           <div className="relative">
@@ -82,10 +82,10 @@ export const ReservationStep3Details = () => {
                 setShowMemberDropdown(true);
               }}
               onFocus={() => setShowMemberDropdown(true)}
-              className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-xs text-zinc-900"
+              className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0"
             />
             {showMemberDropdown && searchTerm && (
-              <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
+              <div className="absolute z-50 mt-1 max-h-48 w-full divide-y divide-zinc-100 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
                 {members
                   .filter(
                     (m) =>
@@ -106,7 +106,7 @@ export const ReservationStep3Details = () => {
                         setSearchTerm(m.name || "");
                         setShowMemberDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-xs transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     >
                       <span className="font-bold text-zinc-800 dark:text-zinc-200">
                         {m.name}
@@ -122,7 +122,7 @@ export const ReservationStep3Details = () => {
                     m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     (m.phone && m.phone.includes(searchTerm))
                 ).length === 0 && (
-                  <div className="p-3 text-center text-zinc-400 text-xs">
+                  <div className="p-3 text-center text-xs text-zinc-400">
                     Няма намерени резултати
                   </div>
                 )}
@@ -137,13 +137,13 @@ export const ReservationStep3Details = () => {
         name="clientName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
               {isTwoClients ? "Име на Клиент 1" : "Пълно име"}
             </FormLabel>
             <FormControl>
               <Input
                 placeholder="Иван Иванов"
-                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
                 {...field}
               />
             </FormControl>
@@ -157,13 +157,13 @@ export const ReservationStep3Details = () => {
           name="clientPhone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                 {isTwoClients ? "Телефон на Клиент 1" : "Телефон"}
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder="0888..."
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
                   {...field}
                 />
               </FormControl>
@@ -176,13 +176,13 @@ export const ReservationStep3Details = () => {
           name="clientEmail"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                 Имейл (опц.)
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder="email@..."
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
                   {...field}
                 />
               </FormControl>
@@ -194,21 +194,21 @@ export const ReservationStep3Details = () => {
 
       {isTwoClients && (
         <>
-          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-6">
+          <div className="space-y-6 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             {form.watch("client2Id") ? (
-              <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 p-5 rounded-3xl flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between rounded-3xl border border-emerald-100 bg-emerald-50/50 p-5 duration-200 animate-in fade-in zoom-in-95 dark:border-emerald-900/30 dark:bg-emerald-950/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-black text-sm uppercase">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-sm font-black text-emerald-600 uppercase">
                     {form.watch("client2Name")?.[0]}
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">
+                    <p className="mb-1 text-[9px] leading-none font-black tracking-widest text-emerald-600 uppercase">
                       Свързан профил (Клиент 2)
                     </p>
-                    <h4 className="font-bold text-xs text-zinc-950 dark:text-white leading-none">
+                    <h4 className="text-xs leading-none font-bold text-zinc-950 dark:text-white">
                       {form.watch("client2Name")}
                     </h4>
-                    <p className="text-[9px] text-zinc-400 mt-1 uppercase tracking-wider font-bold">
+                    <p className="mt-1 text-[9px] font-bold tracking-wider text-zinc-400 uppercase">
                       {form.watch("client2Phone")}
                     </p>
                   </div>
@@ -223,17 +223,17 @@ export const ReservationStep3Details = () => {
                     form.setValue("client2Phone", "");
                     setSearchTerm2("");
                   }}
-                  className="h-8 px-3 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-[10px] font-black uppercase tracking-wider transition-colors"
+                  className="h-8 rounded-lg px-3 text-[10px] font-black tracking-wider text-rose-500 uppercase transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/20"
                 >
                   Откачи
                 </Button>
               </div>
             ) : (
               <div className="relative space-y-2">
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex justify-between items-center">
+                <FormLabel className="flex items-center justify-between text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                   <span>Избор на втори клиент или гост</span>
                   {membersLoading && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    <Loader2 className="size-3.5 animate-spin text-primary" />
                   )}
                 </FormLabel>
                 <div className="relative">
@@ -245,10 +245,10 @@ export const ReservationStep3Details = () => {
                       setShowMemberDropdown2(true);
                     }}
                     onFocus={() => setShowMemberDropdown2(true)}
-                    className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-xs text-zinc-900"
+                    className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0"
                   />
                   {showMemberDropdown2 && searchTerm2 && (
-                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-900">
+                    <div className="absolute z-50 mt-1 max-h-48 w-full divide-y divide-zinc-100 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
                       {members
                         .filter(
                           (m) =>
@@ -268,7 +268,7 @@ export const ReservationStep3Details = () => {
                               setSearchTerm2(m.name || "");
                               setShowMemberDropdown2(false);
                             }}
-                            className="w-full text-left px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs flex justify-between items-center transition-colors"
+                            className="flex w-full items-center justify-between px-4 py-3 text-left text-xs transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                           >
                             <span className="font-bold text-zinc-800 dark:text-zinc-200">
                               {m.name}
@@ -284,7 +284,7 @@ export const ReservationStep3Details = () => {
                           m.name?.toLowerCase().includes(searchTerm2.toLowerCase()) ||
                           (m.phone && m.phone.includes(searchTerm2))
                       ).length === 0 && (
-                        <div className="p-3 text-center text-zinc-400 text-xs">
+                        <div className="p-3 text-center text-xs text-zinc-400">
                           Няма намерени резултати
                         </div>
                       )}
@@ -299,13 +299,13 @@ export const ReservationStep3Details = () => {
               name="client2Name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                     Име на Клиент 2 <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Петър Петров"
-                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
                       {...field}
                     />
                   </FormControl>
@@ -318,13 +318,13 @@ export const ReservationStep3Details = () => {
               name="client2Phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  <FormLabel className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                     Телефон на Клиент 2
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="0888..."
-                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-bold text-zinc-900"
+                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
                       {...field}
                     />
                   </FormControl>

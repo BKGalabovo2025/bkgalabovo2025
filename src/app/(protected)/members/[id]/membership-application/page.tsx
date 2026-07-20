@@ -30,10 +30,10 @@ const MembershipApplicationPage = () => {
         <p>Моля, да приемете</p>
 
         <div className="text-center">
-          <p className="border-b border-dotted border-slate-400 min-h-[1.2rem] font-bold text-base inline-block px-8">
+          <p className="inline-block min-h-[1.2rem] border-b border-dotted border-slate-400 px-8 text-base font-bold">
             {fullName}
           </p>
-          <p className="text-[9px] text-slate-500 italic mt-0.5">
+          <p className="mt-0.5 text-[9px] text-slate-500 italic">
             (име на детето/члена)
           </p>
         </div>
@@ -43,11 +43,11 @@ const MembershipApplicationPage = () => {
           .................................................. 20........... г.
         </p>
 
-        <div className="space-y-2 my-4">
+        <div className="my-4 space-y-2">
           <p className="font-bold">
             Избирам/е следната форма на участие (отбележете с ✔):
           </p>
-          <div className="grid grid-cols-1 gap-1 ml-4 text-xs">
+          <div className="ml-4 grid grid-cols-1 gap-1 text-xs">
             <p>☐ Месечен абонамент - едно дете ( 20 EUR / )</p>
             <p>☐ Месечен абонамент - 2 деца ( 30 EUR / )</p>
             <p>☐ Месечен абонамент - 2+ деца ( 40 EUR / )</p>

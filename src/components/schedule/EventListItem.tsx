@@ -111,56 +111,56 @@ export const EventListItem = React.memo<EventListItemProps>(
 
     return (
       <div
-        className={`rounded-4xl shadow-none transition-all duration-500 border group overflow-hidden ${cardClasses}`}
+        className={`group overflow-hidden rounded-4xl border shadow-none transition-all duration-500 ${cardClasses}`}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
-          <div className="flex items-start sm:items-center gap-6 grow w-full">
+        <div className="flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+          <div className="flex w-full grow items-start gap-6 sm:items-center">
             <div
-              className={`w-1.5 h-14 rounded-full ${
+              className={`h-14 w-1.5 rounded-full ${
                 event.isCancelled
                   ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"
                   : color
-              } opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block`}
+              } hidden opacity-40 transition-opacity group-hover:opacity-100 sm:block`}
             ></div>
             <div className="grow space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-3 py-1 dark:border-zinc-800 dark:bg-zinc-900">
                   <Tag size={12} strokeWidth={2} className="text-zinc-400" />
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
                     {translation}
                   </span>
                 </div>
                 {attendeesData.total > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30">
+                  <div className="flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 dark:border-emerald-900/30 dark:bg-emerald-900/20">
                     <Users
                       size={12}
                       strokeWidth={2}
                       className="text-emerald-600 dark:text-emerald-400"
                     />
-                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold tracking-widest text-emerald-800 uppercase dark:text-emerald-400">
                       {attendeesData.attended} / {members.length} присъствали
                     </span>
                   </div>
                 )}
                 {formattedDates.isCurrent && (
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-950 dark:bg-white">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <div className="flex items-center gap-2 rounded-full bg-zinc-950 px-3 py-1 dark:bg-white">
+                    <span className="relative flex size-2">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
                     </span>
-                    <span className="text-[10px] font-bold text-white dark:text-zinc-950 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold tracking-widest text-white uppercase dark:text-zinc-950">
                       В ход
                     </span>
                   </div>
                 )}
                 {event.isCancelled && (
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30">
+                  <div className="flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50 px-3 py-1 dark:border-rose-900/30 dark:bg-rose-900/20">
                     <Ban
                       size={12}
                       strokeWidth={2}
                       className="text-rose-600 dark:text-rose-400"
                     />
-                    <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold tracking-widest text-rose-600 uppercase dark:text-rose-400">
                       Отменена
                     </span>
                   </div>
@@ -168,12 +168,12 @@ export const EventListItem = React.memo<EventListItemProps>(
               </div>
 
               <h3
-                className={`text-2xl font-light text-zinc-950 dark:text-white tracking-tight leading-tight ${event.isCancelled ? "line-through text-zinc-500 dark:text-zinc-500" : ""}`}
+                className={`text-2xl leading-tight font-light tracking-tight text-zinc-950 dark:text-white ${event.isCancelled ? "text-zinc-500 line-through dark:text-zinc-500" : ""}`}
               >
                 {event.title}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium text-zinc-600 dark:text-zinc-400 tracking-wider">
+              <div className="flex flex-wrap items-center gap-6 text-[11px] font-medium tracking-wider text-zinc-600 dark:text-zinc-400">
                 <div className="flex items-center gap-2">
                   <CalendarIcon size={14} strokeWidth={1.5} />
                   <span>{formattedDates.displayStr}</span>
@@ -186,25 +186,25 @@ export const EventListItem = React.memo<EventListItemProps>(
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-none pt-4 sm:pt-0">
+          <div className="flex w-full items-center justify-end gap-2 border-t pt-4 sm:w-auto sm:border-none sm:pt-0">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
+                    className="group/btn size-12 rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     onClick={() => onManageAttendees(event)}
                     aria-label={`Присъствия за ${event.title}`}
                   >
                     <Users
-                      className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
+                      className="size-5 text-zinc-400 transition-colors group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white"
                       strokeWidth={1.5}
                     />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                <TooltipContent className="rounded-xl border-zinc-100 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+                  <p className="text-[10px] font-bold tracking-widest uppercase">
                     Присъствия
                   </p>
                 </TooltipContent>
@@ -215,18 +215,18 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
+                    className="group/btn size-12 rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     onClick={() => onPrint(event)}
                     aria-label={`Принтирай списък за ${event.title}`}
                   >
                     <Printer
-                      className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
+                      className="size-5 text-zinc-400 transition-colors group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white"
                       strokeWidth={1.5}
                     />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                <TooltipContent className="rounded-xl border-zinc-100 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+                  <p className="text-[10px] font-bold tracking-widest uppercase">
                     Принтирай списък
                   </p>
                 </TooltipContent>
@@ -237,18 +237,18 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group/btn"
+                    className="group/btn size-12 rounded-2xl transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     onClick={() => onEdit(event)}
                     aria-label={`Редактирай ${event.title}`}
                   >
                     <Edit
-                      className="h-5 w-5 text-zinc-400 group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white transition-colors"
+                      className="size-5 text-zinc-400 transition-colors group-hover/btn:text-zinc-950 dark:group-hover/btn:text-white"
                       strokeWidth={1.5}
                     />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                <TooltipContent className="rounded-xl border-zinc-100 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+                  <p className="text-[10px] font-bold tracking-widest uppercase">
                     Редактирай
                   </p>
                 </TooltipContent>
@@ -259,7 +259,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-2xl hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all group/btn"
+                    className="group/btn size-12 rounded-2xl transition-all hover:bg-orange-50 dark:hover:bg-orange-900/20"
                     onClick={() =>
                       onToggleCancel(event.id, !!event.isCancelled)
                     }
@@ -271,19 +271,19 @@ export const EventListItem = React.memo<EventListItemProps>(
                   >
                     {event.isCancelled ? (
                       <RotateCcw
-                        className="h-5 w-5 text-orange-400 group-hover/btn:text-orange-600 transition-colors"
+                        className="size-5 text-orange-400 transition-colors group-hover/btn:text-orange-600"
                         strokeWidth={1.5}
                       />
                     ) : (
                       <Ban
-                        className="h-5 w-5 text-orange-400 group-hover/btn:text-orange-600 transition-colors"
+                        className="size-5 text-orange-400 transition-colors group-hover/btn:text-orange-600"
                         strokeWidth={1.5}
                       />
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl border-orange-100 dark:border-orange-900/30 bg-white dark:bg-zinc-950 px-4 py-2 text-orange-600">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                <TooltipContent className="rounded-xl border-orange-100 bg-white px-4 py-2 text-orange-600 dark:border-orange-900/30 dark:bg-zinc-950">
+                  <p className="text-[10px] font-bold tracking-widest uppercase">
                     {event.isCancelled ? "Възстанови" : "Отмени"}
                   </p>
                 </TooltipContent>
@@ -294,18 +294,18 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all group/btn"
+                    className="group/btn size-12 rounded-2xl transition-all hover:bg-rose-50 dark:hover:bg-rose-900/20"
                     onClick={() => onDelete(event.id)}
                     aria-label={`Изтрий ${event.title}`}
                   >
                     <Trash2
-                      className="h-5 w-5 text-rose-400 group-hover/btn:text-rose-600 transition-colors"
+                      className="size-5 text-rose-400 transition-colors group-hover/btn:text-rose-600"
                       strokeWidth={1.5}
                     />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="rounded-xl border-rose-100 dark:border-rose-900/30 bg-white dark:bg-zinc-950 px-4 py-2 text-rose-600">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                <TooltipContent className="rounded-xl border-rose-100 bg-white px-4 py-2 text-rose-600 dark:border-rose-900/30 dark:bg-zinc-950">
+                  <p className="text-[10px] font-bold tracking-widest uppercase">
                     Изтрий
                   </p>
                 </TooltipContent>
@@ -315,7 +315,7 @@ export const EventListItem = React.memo<EventListItemProps>(
         </div>
         {attendeesData.list.length > 0 && !event.isCancelled && (
           <div
-            className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-900 flex items-center gap-6 cursor-pointer rounded-b-2xl hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+            className="flex cursor-pointer items-center gap-6 rounded-b-2xl border-t border-zinc-100 px-6 py-4 transition-colors hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50"
             onClick={() => onManageAttendees(event)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -326,7 +326,7 @@ export const EventListItem = React.memo<EventListItemProps>(
             tabIndex={0}
             aria-label={`Управление на ${attendeesData.list.length} присъстващи`}
           >
-            <strong className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 shrink-0">
+            <strong className="shrink-0 text-[10px] font-medium tracking-[0.2em] text-zinc-600 uppercase dark:text-zinc-400">
               Присъствали:
             </strong>
             <div className="flex items-center">
@@ -335,17 +335,17 @@ export const EventListItem = React.memo<EventListItemProps>(
                   {visibleAttendees.map((member) => (
                     <Tooltip key={member.id}>
                       <TooltipTrigger asChild>
-                        <Avatar className="border-2 border-white dark:border-zinc-950 transition-transform hover:scale-110 hover:z-10 h-10 w-10 shadow-none">
+                        <Avatar className="size-10 border-2 border-white shadow-none transition-transform hover:z-10 hover:scale-110 dark:border-zinc-950">
                           <AvatarImage
                             src={member.avatarUrl ?? undefined}
                             alt={formatFullName(member)}
                           />
-                          <AvatarFallback className="font-medium text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+                          <AvatarFallback className="bg-zinc-100 text-xs font-medium text-zinc-400 dark:bg-zinc-800">
                             {getInitials(formatFullName(member))}
                           </AvatarFallback>
                         </Avatar>
                       </TooltipTrigger>
-                      <TooltipContent className="rounded-lg text-[10px] uppercase tracking-widest font-medium border-zinc-100 dark:border-zinc-800">
+                      <TooltipContent className="rounded-lg border-zinc-100 text-[10px] font-medium tracking-widest uppercase dark:border-zinc-800">
                         <p>{formatFullName(member)}</p>
                       </TooltipContent>
                     </Tooltip>
@@ -353,7 +353,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                 </div>
               </TooltipProvider>
               {hiddenAttendeesCount > 0 && (
-                <div className="ml-2 h-10 w-10 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-[10px] font-medium text-zinc-400 border-2 border-white dark:border-zinc-950 z-0">
+                <div className="z-0 ml-2 flex size-10 items-center justify-center rounded-full border-2 border-white bg-zinc-50 text-[10px] font-medium text-zinc-400 dark:border-zinc-950 dark:bg-zinc-900">
                   +{hiddenAttendeesCount}
                 </div>
               )}

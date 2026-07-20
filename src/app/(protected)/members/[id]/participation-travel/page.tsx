@@ -66,15 +66,15 @@ const ParticipationTravelPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white min-h-screen font-serif">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 font-serif md:p-8">
       {/* Non-printable header */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="mb-8 flex items-center justify-between print:hidden">
         <Button
           variant="outline"
           onClick={() => router.back()}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
 
         <div className="flex items-center gap-2">
@@ -82,12 +82,12 @@ const ParticipationTravelPage = () => {
             variant="outline"
             onClick={() => setSignatureOpen(true)}
             disabled={isSaving}
-            className="rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-950 transition-all font-medium text-[10px] uppercase tracking-widest"
+            className="rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50"
           >
             {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             ) : (
-              <PenLine className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              <PenLine className="mr-2 size-4" strokeWidth={1.5} />
             )}
             {existingSignatureUrl
               ? "Смени подписа"
@@ -95,17 +95,17 @@ const ParticipationTravelPage = () => {
           </Button>
           <Button
             onClick={() => window.print()}
-            className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
           >
-            <Printer className="mr-2 h-4 w-4" /> Принтирай
+            <Printer className="mr-2 size-4" /> Принтирай
           </Button>
         </div>
       </div>
 
       <div className="print-area text-slate-900">
-        <div className="text-center mb-10">
+        <div className="mb-10 text-center">
           <h1 className="text-xl font-bold uppercase">ДЕКЛАРАЦИЯ — СЪГЛАСИЕ</h1>
-          <h2 className="text-base font-bold uppercase mt-1">
+          <h2 className="mt-1 text-base font-bold uppercase">
             ЗА УЧАСТИЕ И ПЪТУВАНЕ
           </h2>
         </div>
@@ -119,7 +119,7 @@ const ParticipationTravelPage = () => {
                 1. Баща:
                 ....................................................................................................................................................................
               </p>
-              <p className="text-[9pt] text-slate-500 italic ml-4 mt-1">
+              <p className="mt-1 ml-4 text-[9pt] text-slate-500 italic">
                 / име, презиме, фамилия по документ за самоличност /
               </p>
               <p className="mt-2">
@@ -134,7 +134,7 @@ const ParticipationTravelPage = () => {
                 2. Майка:
                 ..................................................................................................................................................................
               </p>
-              <p className="text-[9pt] text-slate-500 italic ml-4 mt-1">
+              <p className="mt-1 ml-4 text-[9pt] text-slate-500 italic">
                 / име, презиме, фамилия по документ за самоличност /
               </p>
               <p className="mt-2">
@@ -145,15 +145,15 @@ const ParticipationTravelPage = () => {
             </div>
           </div>
 
-          <p className="font-bold pt-6 text-center">
+          <p className="pt-6 text-center font-bold">
             ДЕКЛАРИРАМЕ, че като родители и законни представители на:
           </p>
 
           <div className="space-y-3 py-4">
-            <p className="text-center border-b border-dotted border-slate-400 min-h-8 font-bold text-lg flex items-center justify-center">
+            <p className="flex min-h-8 items-center justify-center border-b border-dotted border-slate-400 text-center text-lg font-bold">
               {fullName}
             </p>
-            <p className="text-[9pt] text-center italic">
+            <p className="text-center text-[9pt] italic">
               / трите имена на детето /
             </p>
 
@@ -190,17 +190,17 @@ const ParticipationTravelPage = () => {
             наказателна отговорност по чл. 313 от Наказателния кодекс.
           </p>
 
-          <div className="mt-16 flex justify-between items-baseline px-4">
+          <div className="mt-16 flex items-baseline justify-between px-4">
             <p>Дата: .........................</p>
             <p>град Гълъбово</p>
           </div>
 
           <div className="mt-12">
-            <p className="font-bold mb-6">ДЕКЛАРАТОРИ:</p>
+            <p className="mb-6 font-bold">ДЕКЛАРАТОРИ:</p>
             <div className="grid grid-cols-2 gap-16">
               <div className="space-y-2">
                 {existingSignatureUrl ? (
-                  <div className="border-b border-dotted border-slate-400 min-h-12 flex items-end justify-center pb-1">
+                  <div className="flex min-h-12 items-end justify-center border-b border-dotted border-slate-400 pb-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={existingSignatureUrl}

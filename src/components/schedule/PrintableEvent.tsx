@@ -35,34 +35,34 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
 
   return (
     <div className="p-4 font-sans text-sm">
-      <h1 className="text-xl font-bold mb-4 border-b pb-2">
+      <h1 className="mb-4 border-b pb-2 text-xl font-bold">
         Детайли за събитието
       </h1>
       <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-        <p className="font-semibold col-span-1">Заглавие:</p>
+        <p className="col-span-1 font-semibold">Заглавие:</p>
         <p className="col-span-2">{event.title}</p>
 
-        <p className="font-semibold col-span-1">Начало:</p>
+        <p className="col-span-1 font-semibold">Начало:</p>
         <p className="col-span-2">{formatDateTimeDisplay(event.startDate)}</p>
 
-        <p className="font-semibold col-span-1">Край:</p>
+        <p className="col-span-1 font-semibold">Край:</p>
         <p className="col-span-2">{formatDateTimeDisplay(event.endDate)}</p>
 
-        <p className="font-semibold col-span-1">Място:</p>
+        <p className="col-span-1 font-semibold">Място:</p>
         <p className="col-span-2">{event.location || "Няма посочено"}</p>
 
-        <p className="font-semibold col-span-1">Тип:</p>
+        <p className="col-span-1 font-semibold">Тип:</p>
         <p className="col-span-2">{translatedEventType}</p>
 
         {attendeeNames && (
           <>
-            <p className="font-semibold col-span-1 mt-2">Присъстващи:</p>
+            <p className="col-span-1 mt-2 font-semibold">Присъстващи:</p>
             <p className="col-span-2 mt-2">{attendeeNames}</p>
           </>
         )}
       </div>
       <p
-        className="text-xs text-gray-500 mt-6 pt-2 border-t"
+        className="mt-6 border-t pt-2 text-xs text-gray-500"
         suppressHydrationWarning
       >
         Генерирано на: {formatDateTimeDisplay(new Date())}

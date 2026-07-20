@@ -36,21 +36,21 @@ export default function PlannerClient() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-100 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div className="mx-auto max-w-7xl p-4 sm:p-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-950 flex items-center gap-2">
-            <CalendarRange className="w-6 h-6 text-indigo-600" />
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
+            <CalendarRange className="size-6 text-indigo-600" />
             Универсален Планировчик
           </h1>
-          <p className="text-zinc-500 font-medium mt-1">
+          <p className="mt-1 font-medium text-zinc-500">
             Планиране на лагери и целогодишни тренировки
           </p>
         </div>
@@ -58,18 +58,18 @@ export default function PlannerClient() {
           onClick={() => setIsWizardOpen(true)}
           className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="mr-2 size-4" />
           Планирай тренировка
         </Button>
       </div>
 
       {sessions.length === 0 ? (
-        <div className="text-center py-20 bg-zinc-50 rounded-2xl border border-zinc-200 border-dashed">
-          <CalendarRange className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-zinc-900 mb-2">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
+          <CalendarRange className="mx-auto mb-4 size-12 text-zinc-300" />
+          <h3 className="mb-2 text-lg font-bold text-zinc-900">
             Няма планирани тренировки
           </h3>
-          <p className="text-zinc-500 max-w-md mx-auto mb-6">
+          <p className="mx-auto mb-6 max-w-md text-zinc-500">
             Използвай автоматичния съветник, за да генерираш перфектната
             тренировка спрямо възрастта и локацията.
           </p>
@@ -85,12 +85,12 @@ export default function PlannerClient() {
           {sessions.map((session) => (
             <Card
               key={session.id}
-              className="overflow-hidden border-zinc-200 shadow-sm hover:shadow-md transition-all"
+              className="overflow-hidden border-zinc-200 shadow-sm transition-all hover:shadow-md"
             >
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row sm:items-center">
-                  <div className="bg-zinc-50 p-6 flex flex-col justify-center sm:w-48 sm:border-r border-zinc-200">
-                    <div className="text-sm text-zinc-500 font-medium mb-1">
+                  <div className="flex flex-col justify-center border-zinc-200 bg-zinc-50 p-6 sm:w-48 sm:border-r">
+                    <div className="mb-1 text-sm font-medium text-zinc-500">
                       {new Date(session.date).toLocaleDateString("bg-BG", {
                         weekday: "long",
                       })}
@@ -102,14 +102,14 @@ export default function PlannerClient() {
                       })}
                     </div>
                   </div>
-                  <div className="p-6 flex-1 flex justify-between items-center">
+                  <div className="flex flex-1 items-center justify-between p-6">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="mb-2 flex items-center gap-2">
                         <Badge
                           variant={
                             session.mode === "camp" ? "destructive" : "default"
                           }
-                          className="uppercase text-[10px] tracking-wider"
+                          className="text-[10px] tracking-wider uppercase"
                         >
                           {session.mode === "camp" ? "Лагер" : "Целогодишна"}
                         </Badge>
@@ -119,7 +119,7 @@ export default function PlannerClient() {
                             <Badge
                               key={i}
                               variant="outline"
-                              className="uppercase text-[10px] tracking-wider bg-indigo-50 text-indigo-700 border-indigo-200"
+                              className="border-indigo-200 bg-indigo-50 text-[10px] tracking-wider text-indigo-700 uppercase"
                             >
                               {g}
                             </Badge>
@@ -127,18 +127,18 @@ export default function PlannerClient() {
                         ) : (
                           <Badge
                             variant="outline"
-                            className="uppercase text-[10px] tracking-wider bg-zinc-100"
+                            className="bg-zinc-100 text-[10px] tracking-wider uppercase"
                           >
                             {session.ageGroup}
                           </Badge>
                         )}
                       </div>
-                      <h3 className="text-lg font-bold text-zinc-900 mb-1">
+                      <h3 className="mb-1 text-lg font-bold text-zinc-900">
                         {session.title}
                       </h3>
                       <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
+                          <MapPin className="size-3" />
                           {session.location === "indoor"
                             ? "В зала"
                             : "На открито"}
@@ -157,10 +157,10 @@ export default function PlannerClient() {
                     <div className="hidden sm:flex">
                       <Button
                         asChild
-                        className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl"
+                        className="rounded-xl bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100"
                       >
                         <Link href={`/training/planner/${session.id}/active`}>
-                          <Play className="w-4 h-4 mr-2" />
+                          <Play className="mr-2 size-4" />
                           Старт
                         </Link>
                       </Button>

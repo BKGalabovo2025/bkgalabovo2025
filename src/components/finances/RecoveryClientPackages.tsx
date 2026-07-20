@@ -40,11 +40,11 @@ export function RecoveryClientPackages() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-4">
+      <div className="space-y-4 p-8">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-16 rounded-xl bg-zinc-100 dark:bg-zinc-900 animate-pulse"
+            className="h-16 animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900"
           />
         ))}
       </div>
@@ -71,14 +71,14 @@ export function RecoveryClientPackages() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-950">
-      <div className="p-6 md:p-8 border-b border-zinc-100 dark:border-zinc-900 flex justify-between items-center">
+    <div className="flex h-full flex-col bg-white dark:bg-zinc-950">
+      <div className="flex items-center justify-between border-b border-zinc-100 p-6 md:p-8 dark:border-zinc-900">
         <div>
-          <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-            <PackageSearch className="h-5 w-5 text-indigo-500" />
+          <h2 className="flex items-center gap-2 text-xl font-light text-zinc-900 dark:text-zinc-50">
+            <PackageSearch className="size-5 text-indigo-500" />
             Закупени Пакети
           </h2>
-          <p className="text-xs text-zinc-500 mt-1 font-light">
+          <p className="mt-1 text-xs font-light text-zinc-500">
             Проследяване на пакетите и оставащите сесии на клиентите.
           </p>
         </div>
@@ -88,28 +88,28 @@ export function RecoveryClientPackages() {
               description: "Функцията за ръчно добавяне се разработва.",
             })
           }
-          className="bg-zinc-900 text-white hover:bg-zinc-800 rounded-full h-10 px-4 text-sm font-medium transition-all shadow-sm"
+          className="h-10 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white shadow-sm transition-all hover:bg-zinc-800"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="mr-2 size-4" />
           Добави Пакет
         </Button>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar hidden md:block">
+      <div className="custom-scrollbar hidden flex-1 overflow-auto md:block">
         {clientPackages.length > 0 && (
           <Table>
-            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50 sticky top-0 backdrop-blur-sm">
-              <TableRow className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+            <TableHeader className="sticky top-0 bg-zinc-50/50 backdrop-blur-sm dark:bg-zinc-900/50">
+              <TableRow className="border-b border-zinc-100 hover:bg-transparent dark:border-zinc-800">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Клиент
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Пакет
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5 text-center">
+                <TableHead className="py-5 text-center text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Оставащи
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5 text-right">
+                <TableHead className="py-5 text-right text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Статус
                 </TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -119,7 +119,7 @@ export function RecoveryClientPackages() {
               {clientPackages.map((pkg) => (
                 <TableRow
                   key={pkg.id}
-                  className="border-b border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                  className="border-b border-zinc-50 transition-colors hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50"
                 >
                   <TableCell className="py-4">
                     <div className="flex flex-col">
@@ -136,11 +136,11 @@ export function RecoveryClientPackages() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                      <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                         {pkg.packageName || "Пакет"}
                       </span>
                       {pkg.purchaseDate && (
-                        <span className="text-xs text-zinc-400 mt-1">
+                        <span className="mt-1 text-xs text-zinc-400">
                           Закупен:{" "}
                           {format(new Date(pkg.purchaseDate), "dd MMM yyyy", {
                             locale: bg,
@@ -154,7 +154,7 @@ export function RecoveryClientPackages() {
                       <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                         {pkg.sessionsRemaining}
                       </span>
-                      <span className="text-xs text-zinc-400 font-light mt-1">
+                      <span className="mt-1 text-xs font-light text-zinc-400">
                         / {pkg.sessionsTotal}
                       </span>
                     </div>
@@ -163,46 +163,46 @@ export function RecoveryClientPackages() {
                     {pkg.status === "active" && pkg.sessionsRemaining > 0 ? (
                       <Badge
                         variant="outline"
-                        className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20"
+                        className="border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-500"
                       >
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        <CheckCircle2 className="mr-1 size-3" />
                         Активен
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-500 dark:border-rose-500/20"
+                        className="border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-500"
                       >
-                        <XCircle className="w-3 h-3 mr-1" />
+                        <XCircle className="mr-1 size-3" />
                         Изчерпан
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="py-4 text-right pr-6">
+                  <TableCell className="py-4 pr-6 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                           disabled={isProcessing === pkg.id}
                         >
                           {isProcessing === pkg.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin" />
                           ) : (
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className="size-4" />
                           )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="w-[160px] rounded-xl"
+                        className="w-40 rounded-xl"
                       >
                         <DropdownMenuItem
                           onClick={() => handleDelete(pkg.id)}
-                          className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="size-3.5" />
                           Изтрий
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -215,11 +215,11 @@ export function RecoveryClientPackages() {
         )}
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+      <div className="custom-scrollbar flex-1 divide-y divide-zinc-50 overflow-auto md:hidden dark:divide-zinc-900">
         {clientPackages.length > 0 ? (
           clientPackages.map((pkg) => (
-            <div key={pkg.id} className="p-4 flex flex-col gap-3">
-              <div className="flex justify-between items-start">
+            <div key={pkg.id} className="flex flex-col gap-3 p-4">
+              <div className="flex items-start justify-between">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     {pkg.clientName}
@@ -234,28 +234,28 @@ export function RecoveryClientPackages() {
                 {pkg.status === "active" && pkg.sessionsRemaining > 0 ? (
                   <Badge
                     variant="outline"
-                    className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20 px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold"
+                    className="border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold tracking-wider text-emerald-600 uppercase dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-500"
                   >
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    <CheckCircle2 className="mr-1 size-3" />
                     Активен
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-500 dark:border-rose-500/20 px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold"
+                    className="border-rose-100 bg-rose-50 px-2 py-0.5 text-[9px] font-bold tracking-wider text-rose-600 uppercase dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-500"
                   >
-                    <XCircle className="w-3 h-3 mr-1" />
+                    <XCircle className="mr-1 size-3" />
                     Изчерпан
                   </Badge>
                 )}
               </div>
-              <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-xl">
+              <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900/50">
                 <div className="flex flex-col">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     {pkg.packageName || "Пакет"}
                   </span>
                   {pkg.purchaseDate && (
-                    <span className="text-xs text-zinc-400 mt-1">
+                    <span className="mt-1 text-xs text-zinc-400">
                       Закупен:{" "}
                       {format(new Date(pkg.purchaseDate), "dd MMM yyyy", {
                         locale: bg,
@@ -264,7 +264,7 @@ export function RecoveryClientPackages() {
                   )}
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">
+                  <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                     Оставащи
                   </span>
                   <div className="flex items-center gap-1">
@@ -283,25 +283,25 @@ export function RecoveryClientPackages() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                       disabled={isProcessing === pkg.id}
                     >
                       {isProcessing === pkg.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="size-4" />
                       )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-[160px] rounded-xl"
+                    className="w-40 rounded-xl"
                   >
                     <DropdownMenuItem
                       onClick={() => handleDelete(pkg.id)}
-                      className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="size-3.5" />
                       Изтрий
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -310,12 +310,12 @@ export function RecoveryClientPackages() {
             </div>
           ))
         ) : (
-          <div className="py-24 flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center py-24 text-center">
             <PackageSearch
-              className="h-10 w-10 text-zinc-200 dark:text-zinc-800 mb-4"
+              className="mb-4 size-10 text-zinc-200 dark:text-zinc-800"
               strokeWidth={1}
             />
-            <p className="text-zinc-500 text-sm font-light">
+            <p className="text-sm font-light text-zinc-500">
               Няма намерени пакети.
             </p>
           </div>

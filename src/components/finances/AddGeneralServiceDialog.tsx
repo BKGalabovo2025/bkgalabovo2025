@@ -99,17 +99,17 @@ export const AddGeneralServiceDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] rounded-4xl p-8 bg-white dark:bg-zinc-950 border-none shadow-xl">
+      <DialogContent className="rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-120 dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
             Добавяне на услуга
           </DialogTitle>
-          <DialogDescription className="font-light text-zinc-400 mt-1">
+          <DialogDescription className="mt-1 font-light text-zinc-400">
             Въведете детайлите за новата клубна услуга.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4 mt-2">
+        <div className="mt-2 grid gap-4 py-4">
           <div className="grid gap-1.5">
             <Label htmlFor="name" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Име на услугата *
@@ -119,7 +119,7 @@ export const AddGeneralServiceDialog = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="напр. Наем на корт"
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -136,7 +136,7 @@ export const AddGeneralServiceDialog = ({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0.00"
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -149,7 +149,7 @@ export const AddGeneralServiceDialog = ({
                 onValueChange={(val: any) => setPricingUnit(val)}
                 disabled={isProcessing}
               >
-                <SelectTrigger className="rounded-xl h-11 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <SelectValue placeholder="Избери..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -171,7 +171,7 @@ export const AddGeneralServiceDialog = ({
                 value={performerName}
                 onChange={(e) => setPerformerName(e.target.value)}
                 placeholder="Име на треньор/клуб"
-                className="rounded-xl h-11"
+                className="h-11 rounded-xl"
                 disabled={isProcessing}
               />
             </div>
@@ -184,7 +184,7 @@ export const AddGeneralServiceDialog = ({
                 onValueChange={(val: any) => setPerformerType(val)}
                 disabled={isProcessing}
               >
-                <SelectTrigger className="rounded-xl h-11 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
                   <SelectValue placeholder="Избери..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -204,7 +204,7 @@ export const AddGeneralServiceDialog = ({
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Линк към снимка на услугата..."
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -218,7 +218,7 @@ export const AddGeneralServiceDialog = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Допълнителни детайли..."
-              className="rounded-xl min-h-[100px] resize-none"
+              className="min-h-25 resize-none rounded-xl"
               disabled={isProcessing}
             />
           </div>
@@ -229,14 +229,14 @@ export const AddGeneralServiceDialog = ({
             variant="outline"
             onClick={onClose}
             disabled={isProcessing}
-            className="rounded-xl px-6 h-11"
+            className="h-11 rounded-xl px-6"
           >
             Отказ
           </Button>
           <Button
             onClick={handleAdd}
             disabled={isProcessing}
-            className="rounded-xl px-6 h-11 bg-zinc-950 text-white hover:bg-zinc-800"
+            className="h-11 rounded-xl bg-zinc-950 px-6 text-white hover:bg-zinc-800"
           >
             Добави услуга
           </Button>

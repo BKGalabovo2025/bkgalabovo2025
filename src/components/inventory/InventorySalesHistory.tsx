@@ -73,7 +73,7 @@ const InventorySalesHistory = () => {
     <SharedSalesHistory
       title="История на продажбите"
       description="Проследяване на всички направени продажби от склада."
-      icon={<Package className="h-5 w-5 text-indigo-500" />}
+      icon={<Package className="size-5 text-indigo-500" />}
       sales={sales}
       isLoading={loading}
       membersMap={membersMap}

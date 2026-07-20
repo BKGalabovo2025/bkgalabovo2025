@@ -166,18 +166,18 @@ export default function ConductTestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-sm font-bold">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <span className="rounded bg-indigo-100 px-2 py-0.5 text-sm font-bold text-indigo-700">
               {test.ageGroup}
             </span>
             {test.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
-          <div className="bg-zinc-50 p-4 rounded-xl text-sm border border-zinc-100">
+        <div className="mt-4 space-y-6">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-sm">
             <p>
               <strong>Цел/Правила:</strong> {test.description}
             </p>
@@ -197,7 +197,7 @@ export default function ConductTestDialog({
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <Label className="text-base font-bold">
                 Участници и Резултати
               </Label>
@@ -207,23 +207,23 @@ export default function ConductTestDialog({
                 size="sm"
                 onClick={handleAddParticipant}
               >
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus className="mr-1 size-4" />
                 Добави дете
               </Button>
             </div>
 
             {isLoading ? (
               <div className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+                <Loader2 className="size-6 animate-spin text-zinc-400" />
               </div>
             ) : (
               <div className="space-y-3">
                 {participants.map((p, index) => (
                   <div
                     key={index}
-                    className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white border border-zinc-200 p-3 rounded-lg shadow-sm"
+                    className="flex flex-col items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center"
                   >
-                    <div className="flex-1 w-full">
+                    <div className="w-full flex-1">
                       <Select
                         value={p.memberId}
                         onValueChange={(val) =>
@@ -257,7 +257,7 @@ export default function ConductTestDialog({
                       />
                     </div>
 
-                    <div className="flex-1 w-full">
+                    <div className="w-full flex-1">
                       <Input
                         placeholder="Бележка (опц.)"
                         value={p.notes}
@@ -271,16 +271,16 @@ export default function ConductTestDialog({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
                       onClick={() => handleRemoveParticipant(index)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
                 ))}
 
                 {participants.length === 0 && (
-                  <p className="text-center text-zinc-500 text-sm py-4">
+                  <p className="py-4 text-center text-sm text-zinc-500">
                     Няма добавени участници. Натиснете &quot;Добави дете&quot;.
                   </p>
                 )}
@@ -288,17 +288,17 @@ export default function ConductTestDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 border-t pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Отказ
             </Button>
             <Button
               onClick={handleSave}
               disabled={isSubmitting || participants.length === 0}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-indigo-600 text-white hover:bg-indigo-700"
             >
               {isSubmitting && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
               )}
               Запази резултатите
             </Button>

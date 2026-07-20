@@ -86,21 +86,21 @@ export default function DeclarationsClient() {
             {isEditing ? "Отказ" : "Настройки на шаблона"}
           </Button> */}
           <Button onClick={handlePrint} className="print:hidden">
-            <Printer className="w-4 h-4 mr-2" />
+            <Printer className="mr-2 size-4" />
             Разпечатай празен шаблон
           </Button>
         </div>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center gap-4 bg-white dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-sm">
-            <Search className="w-5 h-5 text-zinc-400" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
+            <Search className="size-5 text-zinc-400" />
             <Input
               placeholder="Търсене по име или телефон..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-0 bg-transparent focus-visible:ring-0 px-0"
+              className="border-0 bg-transparent px-0 focus-visible:ring-0"
             />
           </div>
 
@@ -114,9 +114,9 @@ export default function DeclarationsClient() {
             }
             if (filteredDeclarations.length === 0) {
               return (
-                <div className="p-12 text-center bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900">
-                  <FileText className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-zinc-900 mb-2">
+                <div className="rounded-2xl border border-zinc-100 bg-white p-12 text-center dark:border-zinc-900 dark:bg-zinc-950">
+                  <FileText className="mx-auto mb-4 size-12 text-zinc-300" />
+                  <h3 className="mb-2 text-lg font-bold text-zinc-900">
                     Няма намерени декларации
                   </h3>
                   <p className="text-zinc-500">
@@ -127,24 +127,24 @@ export default function DeclarationsClient() {
               );
             }
             return (
-              <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900 overflow-hidden shadow-sm">
+              <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
                   {filteredDeclarations.map((decl) => (
                     <div
                       key={decl.id}
-                      className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                      className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:p-6 dark:hover:bg-zinc-900/50"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <User className="w-5 h-5 text-primary" />
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <User className="size-5 text-primary" />
                         </div>
                         <div>
                           <h4 className="font-bold text-zinc-900 dark:text-white">
                             {decl.memberName}
                           </h4>
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-zinc-500">
+                          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-500">
                             <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
+                              <Clock className="size-3.5" />
                               {format(
                                 new Date(decl.signedAt),
                                 "d MMMM yyyy, HH:mm",
@@ -153,14 +153,14 @@ export default function DeclarationsClient() {
                             </span>
                             {decl.phone && <span>{decl.phone}</span>}
                             {decl.isMinor && (
-                              <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md text-xs font-medium">
+                              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
                                 Непълнолетен
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
+                      <div className="flex shrink-0 gap-2">
                         <Button
                           variant="outline"
                           onClick={() =>
@@ -170,15 +170,15 @@ export default function DeclarationsClient() {
                             )
                           }
                         >
-                          <Printer className="w-4 h-4 mr-2" />
+                          <Printer className="mr-2 size-4" />
                           Преглед
                         </Button>
                         <Button
                           variant="ghost"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-3"
+                          className="px-3 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                           onClick={() => handleDelete(decl.id, decl.memberName)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -190,17 +190,17 @@ export default function DeclarationsClient() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-zinc-100 dark:bg-zinc-900 p-8 rounded-2xl flex flex-col items-center justify-center text-center">
-            <FileText className="w-12 h-12 text-zinc-300 mb-4" />
-            <h3 className="text-lg font-bold text-zinc-900 mb-2">
+          <div className="flex flex-col items-center justify-center rounded-2xl bg-zinc-100 p-8 text-center dark:bg-zinc-900">
+            <FileText className="mb-4 size-12 text-zinc-300" />
+            <h3 className="mb-2 text-lg font-bold text-zinc-900">
               Оригинален PDF шаблон
             </h3>
-            <p className="text-sm text-zinc-500 mb-6">
+            <p className="mb-6 text-sm text-zinc-500">
               От тук можете да изтеглите или разпечатате празна бланка, ако ви е
               нужна на хартия.
             </p>
             <Button onClick={handlePrint} variant="outline" className="w-full">
-              <Printer className="w-4 h-4 mr-2" />
+              <Printer className="mr-2 size-4" />
               Отвори шаблона
             </Button>
           </div>

@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-conditional */
+ 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 import { RankingEntry } from "@/types/ranking.types";

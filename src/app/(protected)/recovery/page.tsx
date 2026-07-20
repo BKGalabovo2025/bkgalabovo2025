@@ -149,22 +149,22 @@ export default function RecoveryPage() {
     if (isAvailLoading) {
       return (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="size-8 animate-spin rounded-full border-b-2 border-primary"></div>
         </div>
       );
     }
 
     if (!site?.recoveryEnabled) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-          <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-            <AlertCircle className="h-8 w-8 text-amber-600" />
+        <div className="flex flex-col items-center justify-center space-y-4 py-20 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+            <AlertCircle className="size-8 text-amber-600" />
           </div>
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">
               Възстановителната зона не е активна
             </h3>
-            <p className="text-muted-foreground max-w-sm">
+            <p className="max-w-sm text-muted-foreground">
               За избрания обект ({activeBranch}) в момента няма
               конфигурирана активна възстановителна зона.
             </p>
@@ -174,26 +174,26 @@ export default function RecoveryPage() {
     }
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {availableSlots.map((slot, i) => (
           <Button
             key={i}
             variant={slot.available ? "outline" : "ghost"}
             disabled={!slot.available}
             className={cn(
-              "h-14 flex flex-col items-center justify-center gap-1 transition-all",
+              "flex h-14 flex-col items-center justify-center gap-1 transition-all",
               slot.available
                 ? "hover:border-primary hover:bg-primary/5 active:scale-95"
-                : "opacity-40 grayscale cursor-not-allowed"
+                : "cursor-not-allowed opacity-40 grayscale"
             )}
             onClick={() => handleBooking(slot.start)}
           >
             <div className="flex items-center gap-2 font-semibold">
-              <Clock className="h-3 w-3" />
+              <Clock className="size-3" />
               {slot.time}
             </div>
             {slot.available && (
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
                 Свободно
               </span>
             )}
@@ -204,10 +204,10 @@ export default function RecoveryPage() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6 bg-zinc-50/50 dark:bg-zinc-950/50">
+    <div className="flex-1 space-y-6 bg-zinc-50/50 p-8 pt-6 dark:bg-zinc-950/50">
       <div className="flex items-center justify-between space-y-2">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-linear-to-r from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
+          <h2 className="bg-linear-to-r from-zinc-900 to-zinc-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent dark:from-white dark:to-zinc-400">
             Възстановяване & Релакс
           </h2>
           <p className="text-muted-foreground">
@@ -219,11 +219,11 @@ export default function RecoveryPage() {
 
       <div className="grid gap-6 md:grid-cols-12">
         {/* Left Column: Selection & Calendar */}
-        <div className="md:col-span-4 space-y-6">
-          <Card className="border-none shadow-xl shadow-zinc-200/50 dark:shadow-none bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl">
+        <div className="space-y-6 md:col-span-4">
+          <Card className="border-none bg-white/80 shadow-xl shadow-zinc-200/50 backdrop-blur-xl dark:bg-zinc-900/80 dark:shadow-none">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CalendarIcon className="size-5 text-primary" />
                 Настройки на резервацията
               </CardTitle>
             </CardHeader>
@@ -278,9 +278,9 @@ export default function RecoveryPage() {
               </div>
 
               {selectedMemberId && (
-                <div className="pt-4 border-t space-y-3">
-                  <h4 className="text-sm font-semibold flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-emerald-500" />
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="flex items-center gap-2 text-sm font-semibold">
+                    <Activity className="size-4 text-emerald-500" />
                     Активни пакети
                   </h4>
                   {packages.length === 0 ? (
@@ -293,10 +293,10 @@ export default function RecoveryPage() {
                         <div
                           key={pkg.id}
                           className={cn(
-                            "p-2 rounded-lg border text-sm flex justify-between items-center",
+                            "flex items-center justify-between rounded-lg border p-2 text-sm",
                             pkg.sessionsRemaining > 0
-                              ? "bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800"
-                              : "bg-zinc-50 border-zinc-100 opacity-60"
+                              ? "border-emerald-100 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-900/10"
+                              : "border-zinc-100 bg-zinc-50 opacity-60"
                           )}
                         >
                           <div>
@@ -321,7 +321,7 @@ export default function RecoveryPage() {
           </Card>
 
           {/* Current Reservations Stats */}
-          <Card className="border-none shadow-lg bg-primary/5 dark:bg-primary/10">
+          <Card className="border-none bg-primary/5 shadow-lg dark:bg-primary/10">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -332,8 +332,8 @@ export default function RecoveryPage() {
                     {currentReservations.length}
                   </p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Activity className="h-6 w-6 text-primary" />
+                <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+                  <Activity className="size-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -341,8 +341,8 @@ export default function RecoveryPage() {
         </div>
 
         {/* Right Column: Time Slots & Existing Bookings */}
-        <div className="md:col-span-8 space-y-6">
-          <Card className="border-none shadow-xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl min-h-[600px]">
+        <div className="space-y-6 md:col-span-8">
+          <Card className="min-h-150 border-none bg-white/80 shadow-xl backdrop-blur-xl dark:bg-zinc-900/80">
             <Tabs defaultValue="available" className="w-full">
               <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
                 <div>
@@ -351,7 +351,7 @@ export default function RecoveryPage() {
                     {format(date, "EEEE, d MMMM yyyy", { locale: bg })}
                   </CardDescription>
                 </div>
-                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                <TabsList className="grid w-full max-w-100 grid-cols-2">
                   <TabsTrigger value="available">Свободни часове</TabsTrigger>
                   <TabsTrigger value="existing">Резервации</TabsTrigger>
                 </TabsList>
@@ -362,22 +362,22 @@ export default function RecoveryPage() {
               </TabsContent>
 
               <TabsContent value="existing" className="p-0">
-                <ScrollArea className="h-[500px]">
-                  <div className="p-6 space-y-4">
+                <ScrollArea className="h-125">
+                  <div className="space-y-4 p-6">
                     {currentReservations.length === 0 ? (
-                      <div className="text-center py-20 text-muted-foreground">
-                        <AlertCircle className="h-10 w-10 mx-auto mb-4 opacity-20" />
+                      <div className="py-20 text-center text-muted-foreground">
+                        <AlertCircle className="mx-auto mb-4 size-10 opacity-20" />
                         <p>Няма направени резервации за тази дата.</p>
                       </div>
                     ) : (
                       currentReservations.map((res) => (
                         <div
                           key={res.id}
-                          className="flex items-center justify-between p-4 rounded-xl border bg-white dark:bg-zinc-800/50 hover:shadow-md transition-all group"
+                          className="group flex items-center justify-between rounded-xl border bg-white p-4 transition-all hover:shadow-md dark:bg-zinc-800/50"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
-                              <User className="h-5 w-5 text-zinc-500" />
+                            <div className="flex size-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-700">
+                              <User className="size-5 text-zinc-500" />
                             </div>
                             <div>
                               <p className="font-semibold">{res.clientName}</p>
@@ -390,7 +390,7 @@ export default function RecoveryPage() {
                                 </Badge>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
+                                  <Clock className="size-3" />
                                   {format(
                                     res.startTime.toDate(),
                                     "HH:mm"
@@ -400,15 +400,15 @@ export default function RecoveryPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-none">
+                            <Badge className="border-none bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                               Потвърдена
                             </Badge>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="opacity-0 transition-opacity group-hover:opacity-100"
                             >
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronRight className="size-4" />
                             </Button>
                           </div>
                         </div>

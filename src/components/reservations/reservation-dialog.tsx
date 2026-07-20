@@ -77,23 +77,23 @@ const ReservationDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg rounded-4xl border-zinc-100 dark:border-zinc-900 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
         {/* Wizard Header / Progress */}
-        <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 border-b border-zinc-100 dark:border-zinc-900">
-          <div className="flex items-center justify-between mb-8">
+        <div className="border-b border-zinc-100 bg-zinc-50 p-8 dark:border-zinc-900 dark:bg-zinc-900/50">
+          <div className="mb-8 flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-black text-zinc-950 dark:text-white tracking-tighter uppercase italic">
+              <DialogTitle className="text-2xl font-black tracking-tighter text-zinc-950 uppercase italic dark:text-white">
                 {title}
               </DialogTitle>
-              <DialogDescription className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+              <DialogDescription className="mt-1 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 {description}
               </DialogDescription>
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              {currentStep === "time" && <CalendarRange className="w-6 h-6" />}
-              {currentStep === "details" && <User className="w-6 h-6" />}
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              {currentStep === "time" && <CalendarRange className="size-6" />}
+              {currentStep === "details" && <User className="size-6" />}
               {currentStep === "review" && (
-                <ClipboardCheck className="w-6 h-6" />
+                <ClipboardCheck className="size-6" />
               )}
             </div>
           </div>
@@ -109,7 +109,7 @@ const ReservationDialogContent = ({
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500",
+                        "flex size-8 items-center justify-center rounded-xl transition-all duration-500",
                         (() => {
                           if (isActive)
                             return "bg-primary text-white shadow-lg shadow-primary/20 scale-110";
@@ -119,14 +119,14 @@ const ReservationDialogContent = ({
                       )}
                     >
                       {isPast ? (
-                        <CheckCircle2 className="w-4 h-4" />
+                        <CheckCircle2 className="size-4" />
                       ) : (
-                        <Icon className="w-4 h-4" />
+                        <Icon className="size-4" />
                       )}
                     </div>
                     <span
                       className={cn(
-                        "text-[9px] font-black uppercase tracking-widest hidden sm:block",
+                        "hidden text-[9px] font-black tracking-widest uppercase sm:block",
                         isActive
                           ? "text-zinc-900 dark:text-white"
                           : "text-zinc-400"
@@ -136,7 +136,7 @@ const ReservationDialogContent = ({
                     </span>
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800 mx-2" />
+                    <div className="mx-2 h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
                   )}
                 </React.Fragment>
               );
@@ -144,7 +144,7 @@ const ReservationDialogContent = ({
           </div>
         </div>
 
-        <div className="p-8 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+        <div className="max-h-[70vh] scrollbar-thin scrollbar-thumb-zinc-200 overflow-y-auto p-8 dark:scrollbar-thumb-zinc-800">
           <Form {...form}>
             <form
               onSubmit={(e) => {
@@ -162,7 +162,7 @@ const ReservationDialogContent = ({
               {currentStep === "details" && <ReservationStep3Details />}
               {currentStep === "review" && <ReservationStep4Review />}
 
-              <div className="flex justify-between items-center pt-8 border-t border-zinc-100 dark:border-zinc-900">
+              <div className="flex items-center justify-between border-t border-zinc-100 pt-8 dark:border-zinc-900">
                 <Button
                   type="button"
                   variant="ghost"
@@ -171,13 +171,13 @@ const ReservationDialogContent = ({
                       ? handleOpenChange(false)
                       : handleBack()
                   }
-                  className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+                  className="h-12 rounded-2xl px-6 text-[10px] font-black tracking-widest text-zinc-500 uppercase hover:text-zinc-900"
                 >
                   {currentStep === "time" ? (
                     "Отказ"
                   ) : (
                     <>
-                      <ChevronLeft className="w-4 h-4 mr-2" /> Назад
+                      <ChevronLeft className="mr-2 size-4" /> Назад
                     </>
                   )}
                 </Button>
@@ -186,17 +186,17 @@ const ReservationDialogContent = ({
                   type="submit"
                   disabled={isSaving}
                   className={cn(
-                    "h-12 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all",
+                    "h-12 rounded-2xl px-8 text-[10px] font-black tracking-widest uppercase shadow-lg transition-all",
                     currentStep === "review"
-                      ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20 text-white"
-                      : "bg-primary hover:bg-primary/90 shadow-primary/20 text-white"
+                      ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600"
+                      : "bg-primary text-white shadow-primary/20 hover:bg-primary/90"
                   )}
                 >
                   {(() => {
                     if (isSaving) {
                       return (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                          <Loader2 className="mr-2 size-4 animate-spin" />{" "}
                           Запис...
                         </>
                       );
@@ -204,13 +204,13 @@ const ReservationDialogContent = ({
                     if (currentStep === "review") {
                       return (
                         <>
-                          <CheckCircle2 className="w-4 h-4 mr-2" /> Потвърди
+                          <CheckCircle2 className="mr-2 size-4" /> Потвърди
                         </>
                       );
                     }
                     return (
                       <>
-                        Напред <ChevronRight className="w-4 h-4 ml-2" />
+                        Напред <ChevronRight className="ml-2 size-4" />
                       </>
                     );
                   })()}

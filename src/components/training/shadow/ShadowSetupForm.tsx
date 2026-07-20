@@ -47,15 +47,15 @@ function ToggleButton({
       role="switch"
       aria-checked={enabled}
       onClick={onClick}
-      className={`w-full text-left flex items-center justify-between gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+      className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border-2 p-3 text-left transition-colors ${
         enabled
           ? `border-${colorClass}-500 bg-${colorClass}-500/10`
-          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+          : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
       }`}
     >
-      <div className="flex flex-col min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
         <span
-          className={`font-bold text-sm leading-tight ${
+          className={`text-sm leading-tight font-bold ${
             enabled
               ? `text-${colorClass}-700 dark:text-${colorClass}-400`
               : "text-zinc-700 dark:text-zinc-300"
@@ -63,15 +63,15 @@ function ToggleButton({
         >
           {label}
         </span>
-        <span className="text-xs text-zinc-500 leading-tight mt-0.5">
+        <span className="mt-0.5 text-xs leading-tight text-zinc-500">
           {desc}
         </span>
       </div>
       <div
-        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${enabled ? bgClass : "bg-zinc-300 dark:bg-zinc-700"}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? bgClass : "bg-zinc-300 dark:bg-zinc-700"}`}
       >
         <div
-          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${enabled ? "left-6" : "left-1"}`}
+          className={`absolute top-1 size-4 rounded-full bg-white transition-all ${enabled ? "left-6" : "left-1"}`}
         />
       </div>
     </button>
@@ -85,17 +85,17 @@ export function ShadowSetupForm({
   onStartTraining,
 }: ShadowSetupFormProps) {
   return (
-    <div className="w-full h-full flex flex-col animate-in fade-in duration-300 relative">
-      <div className="flex-1 overflow-visible space-y-4 md:space-y-6 pb-6">
-        <div className="flex items-center gap-3 px-2 shrink-0">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+    <div className="relative flex size-full flex-col duration-300 animate-in fade-in">
+      <div className="flex-1 space-y-4 overflow-visible pb-6 md:space-y-6">
+        <div className="flex shrink-0 items-center gap-3 px-2">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-primary shadow-lg">
             <Settings2 className="text-white" size={24} />
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">
               Интелигентен Настройчик
             </h1>
-            <p className="text-zinc-500 font-medium">
+            <p className="font-medium text-zinc-500">
               Конфигурирайте тренировката с един клик
             </p>
           </div>
@@ -103,14 +103,14 @@ export function ShadowSetupForm({
 
         <div className="w-full space-y-6">
           {/* Top Row: Category Selection */}
-          <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-              <h2 className="font-bold text-lg flex items-center gap-2">
+          <Card className="overflow-hidden border-2 border-zinc-100 shadow-sm dark:border-zinc-800">
+            <div className="border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
                 <Users size={18} className="text-primary" /> Избор на Категория
               </h2>
             </div>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[
                   { id: "U9-U11", title: "U9 - U11", sub: "Деца / Начинаещи" },
                   { id: "U13-U15", title: "U13 - U15", sub: "Юноши" },
@@ -141,15 +141,15 @@ export function ShadowSetupForm({
                       }
                       setSettings(newSettings);
                     }}
-                    className={`text-left p-5 rounded-2xl border-2 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    className={`cursor-pointer rounded-2xl border-2 p-5 text-left transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                       settings.ageGroup === a.id
-                        ? "border-primary bg-primary shadow-[0_8px_16px_rgba(var(--primary),0.2)] text-primary-foreground transform scale-[1.02]"
-                        : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-primary/50 text-zinc-900 dark:text-zinc-100"
+                        ? "scale-1.02 transform border-primary bg-primary text-primary-foreground shadow-[0_8px_16px_rgba(var(--primary),0.2)]"
+                        : "border-zinc-200 bg-white text-zinc-900 hover:border-primary/50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                     }`}
                   >
-                    <h3 className="font-black text-2xl">{a.title}</h3>
+                    <h3 className="text-2xl font-black">{a.title}</h3>
                     <p
-                      className={`text-sm mt-1 font-medium ${settings.ageGroup === a.id ? "text-primary-foreground" : "text-zinc-500"}`}
+                      className={`mt-1 text-sm font-medium ${settings.ageGroup === a.id ? "text-primary-foreground" : "text-zinc-500"}`}
                     >
                       {a.sub}
                     </p>
@@ -157,14 +157,14 @@ export function ShadowSetupForm({
                 ))}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="space-y-1">
-                  <Label className="text-zinc-500 text-xs uppercase font-bold">
+                  <Label className="text-xs font-bold text-zinc-500 uppercase">
                     Серии
                   </Label>
                   <Input
                     type="number"
-                    className="font-bold text-lg h-12"
+                    className="h-12 text-lg font-bold"
                     value={settings.sets}
                     onChange={(e) =>
                       setSettings({
@@ -175,14 +175,14 @@ export function ShadowSetupForm({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-zinc-500 text-xs uppercase font-bold">
+                  <Label className="text-xs font-bold text-zinc-500 uppercase">
                     {settings.mode === "agility_test"
                       ? "Брой движения"
                       : "Работа (с)"}
                   </Label>
                   <Input
                     type="number"
-                    className="font-bold text-lg h-12"
+                    className="h-12 text-lg font-bold"
                     value={settings.workSec}
                     onChange={(e) =>
                       setSettings({
@@ -193,12 +193,12 @@ export function ShadowSetupForm({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-zinc-500 text-xs uppercase font-bold">
+                  <Label className="text-xs font-bold text-zinc-500 uppercase">
                     Почивка (с)
                   </Label>
                   <Input
                     type="number"
-                    className="font-bold text-lg h-12"
+                    className="h-12 text-lg font-bold"
                     value={settings.restSec}
                     onChange={(e) =>
                       setSettings({
@@ -209,16 +209,16 @@ export function ShadowSetupForm({
                   />
                 </div>
                 <div
-                  className={`space-y-1 ${settings.mode === "ghost_match" ? "opacity-40 pointer-events-none" : "opacity-100"}`}
+                  className={`space-y-1 ${settings.mode === "ghost_match" ? "pointer-events-none opacity-40" : "opacity-100"}`}
                 >
-                  <Label className="text-zinc-500 text-xs uppercase font-bold">
+                  <Label className="text-xs font-bold text-zinc-500 uppercase">
                     Темпо (с) {settings.mode === "ghost_match" && "(АВТО)"}
                   </Label>
                   <Input
                     type="number"
                     step="0.5"
                     disabled={settings.mode === "ghost_match"}
-                    className="font-bold text-lg h-12"
+                    className="h-12 text-lg font-bold"
                     value={settings.paceSec}
                     onChange={(e) =>
                       setSettings({
@@ -233,24 +233,24 @@ export function ShadowSetupForm({
           </Card>
 
           {/* Bottom Row: 3 Columns Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
             {/* Col 1: Logistics & Toggles */}
             <div className="space-y-6">
-              <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
-                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <h2 className="font-bold text-lg flex items-center gap-2">
+              <Card className="flex h-full flex-col border-2 border-zinc-100 shadow-sm dark:border-zinc-800">
+                <div className="border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <h2 className="flex items-center gap-2 text-lg font-bold">
                     <RotateCcw size={18} className="text-primary" /> Логистика
                     на корта
                   </h2>
                 </div>
-                <CardContent className="p-5 flex-1 flex flex-col space-y-5">
+                <CardContent className="flex flex-1 flex-col space-y-5 p-5">
                   <div className="space-y-1">
-                    <Label className="text-zinc-500 text-xs uppercase font-bold">
+                    <Label className="text-xs font-bold text-zinc-500 uppercase">
                       Налични кортове
                     </Label>
                     <Input
                       type="number"
-                      className="font-bold text-lg h-12"
+                      className="h-12 text-lg font-bold"
                       value={settings.courtsAvailable}
                       onChange={(e) =>
                         setSettings({
@@ -261,8 +261,8 @@ export function ShadowSetupForm({
                     />
                   </div>
 
-                  <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                    <Label className="text-zinc-500 text-xs uppercase font-bold">
+                  <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                    <Label className="text-xs font-bold text-zinc-500 uppercase">
                       Модификатори
                     </Label>
 
@@ -286,13 +286,13 @@ export function ShadowSetupForm({
 
             {/* Col 2: Mode */}
             <div className="space-y-6">
-              <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
-                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <h2 className="font-bold text-lg flex items-center gap-2">
+              <Card className="flex h-full flex-col border-2 border-zinc-100 shadow-sm dark:border-zinc-800">
+                <div className="border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <h2 className="flex items-center gap-2 text-lg font-bold">
                     <Zap size={18} className="text-primary" /> Режим на игра
                   </h2>
                 </div>
-                <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
+                <CardContent className="flex flex-1 flex-col space-y-4 p-5">
                   <div className="flex flex-col gap-2">
                     {[
                       {
@@ -315,16 +315,16 @@ export function ShadowSetupForm({
                             mode: m.id as ShadowSettings["mode"],
                           })
                         }
-                        className={`w-full text-left px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex flex-col gap-0.5 ${
+                        className={`flex w-full cursor-pointer flex-col gap-0.5 rounded-xl border-2 px-4 py-3 text-left transition-all ${
                           settings.mode === m.id
                             ? "border-primary bg-primary/10 text-primary"
-                            : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                            : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
                         }`}
                       >
-                        <span className="font-bold text-sm leading-tight">
+                        <span className="text-sm leading-tight font-bold">
                           {m.title}
                         </span>
-                        <span className="text-xs opacity-60 font-medium leading-tight">
+                        <span className="text-xs leading-tight font-medium opacity-60">
                           {m.desc}
                         </span>
                       </button>
@@ -332,8 +332,8 @@ export function ShadowSetupForm({
                   </div>
 
                   {/* Callout Mode */}
-                  <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
-                    <Label className="text-zinc-500 text-xs uppercase font-bold flex items-center gap-1">
+                  <div className="space-y-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                    <Label className="flex items-center gap-1 text-xs font-bold text-zinc-500 uppercase">
                       <Mic size={12} /> Тип на командите
                     </Label>
                     <div className="flex flex-col gap-1.5">
@@ -367,14 +367,14 @@ export function ShadowSetupForm({
                                 c.id as ShadowSettings["calloutMode"],
                             })
                           }
-                          className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
+                          className={`flex w-full flex-col gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-all ${
                             settings.calloutMode === c.id
                               ? "border-primary bg-primary/10"
-                              : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                              : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
                           }`}
                         >
                           <span
-                            className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
+                            className={`flex items-center gap-1.5 text-sm leading-tight font-bold ${
                               settings.calloutMode === c.id
                                 ? "text-primary"
                                 : "text-zinc-700 dark:text-zinc-300"
@@ -383,7 +383,7 @@ export function ShadowSetupForm({
                             <span>{c.icon}</span>
                             {c.label}
                           </span>
-                          <span className="text-xs text-zinc-500 leading-tight">
+                          <span className="text-xs leading-tight text-zinc-500">
                             {c.desc}
                           </span>
                         </button>
@@ -396,20 +396,20 @@ export function ShadowSetupForm({
 
             {/* Col 3: Court Config */}
             <div className="space-y-6">
-              <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm h-full flex flex-col">
-                <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <h2 className="font-bold text-lg flex items-center gap-2">
+              <Card className="flex h-full flex-col border-2 border-zinc-100 shadow-sm dark:border-zinc-800">
+                <div className="border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <h2 className="flex items-center gap-2 text-lg font-bold">
                     <Target size={18} className="text-primary" /> Конфигурация
                     на корта
                   </h2>
                 </div>
-                <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
+                <CardContent className="flex flex-1 flex-col space-y-4 p-5">
                   {/* Corners mode */}
                   <div className="flex flex-col gap-3">
-                    <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
+                    <Label className="text-sm font-bold tracking-wider text-zinc-500 uppercase">
                       Ъгли на корта
                     </Label>
-                    <div className="flex w-full bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1 gap-1">
+                    <div className="flex w-full gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
                       <button
                         onClick={() =>
                           setSettings({
@@ -422,9 +422,9 @@ export function ShadowSetupForm({
                                 : settings.drillMode,
                           })
                         }
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                        className={`flex-1 rounded-md py-2 text-sm font-bold transition-all ${
                           settings.cornersMode === "2-corners"
-                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            ? "bg-white text-primary shadow dark:bg-zinc-800"
                             : "text-zinc-500"
                         }`}
                       >
@@ -438,9 +438,9 @@ export function ShadowSetupForm({
                             drillMode: "all",
                           })
                         }
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                        className={`flex-1 rounded-md py-2 text-sm font-bold transition-all ${
                           settings.cornersMode === "4-corners"
-                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            ? "bg-white text-primary shadow dark:bg-zinc-800"
                             : "text-zinc-500"
                         }`}
                       >
@@ -458,9 +458,9 @@ export function ShadowSetupForm({
                                 : settings.drillMode,
                           })
                         }
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${
+                        className={`flex-1 rounded-md py-2 text-sm font-bold transition-all ${
                           settings.cornersMode === "6-corners"
-                            ? "bg-white dark:bg-zinc-800 shadow text-primary"
+                            ? "bg-white text-primary shadow dark:bg-zinc-800"
                             : "text-zinc-500"
                         }`}
                       >
@@ -471,7 +471,7 @@ export function ShadowSetupForm({
 
                   {/* Drill Mode */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider">
+                    <Label className="text-sm font-bold tracking-wider text-zinc-500 uppercase">
                       Насоченост на зоните
                     </Label>
                     <div className="flex flex-wrap gap-2">
@@ -498,10 +498,10 @@ export function ShadowSetupForm({
                               drillMode: z.id as ShadowSettings["drillMode"],
                             })
                           }
-                          className={`px-3 py-2 rounded-full text-sm font-bold border transition-all ${
+                          className={`rounded-full border px-3 py-2 text-sm font-bold transition-all ${
                             settings.drillMode === z.id
-                              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-transparent"
-                              : "bg-transparent border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"
+                              ? "border-transparent bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                              : "border-zinc-300 bg-transparent text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
                           }`}
                         >
                           {z.title}
@@ -511,8 +511,8 @@ export function ShadowSetupForm({
                   </div>
 
                   {/* Drill Pattern */}
-                  <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                    <Label className="text-sm font-bold uppercase text-zinc-500 tracking-wider flex items-center gap-1">
+                  <div className="space-y-2 border-t border-zinc-100 pt-2 dark:border-zinc-800">
+                    <Label className="flex items-center gap-1 text-sm font-bold tracking-wider text-zinc-500 uppercase">
                       <Star size={12} /> Шаблон на движение
                     </Label>
                     <div className="flex flex-col gap-1.5">
@@ -552,14 +552,14 @@ export function ShadowSetupForm({
                                 p.id as ShadowSettings["drillPattern"],
                             })
                           }
-                          className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex flex-col gap-0.5 ${
+                          className={`flex w-full flex-col gap-0.5 rounded-lg border px-3 py-2.5 text-left transition-all ${
                             settings.drillPattern === p.id
                               ? "border-primary bg-primary/10"
-                              : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                              : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
                           }`}
                         >
                           <span
-                            className={`font-bold text-sm leading-tight flex items-center gap-1.5 ${
+                            className={`flex items-center gap-1.5 text-sm leading-tight font-bold ${
                               settings.drillPattern === p.id
                                 ? "text-primary"
                                 : "text-zinc-700 dark:text-zinc-300"
@@ -568,7 +568,7 @@ export function ShadowSetupForm({
                             <span>{p.icon}</span>
                             {p.label}
                           </span>
-                          <span className="text-xs text-zinc-500 leading-tight">
+                          <span className="text-xs leading-tight text-zinc-500">
                             {p.desc}
                           </span>
                         </button>
@@ -582,22 +582,22 @@ export function ShadowSetupForm({
         </div>
 
         {/* Full-width: Players List */}
-        <Card className="border-2 border-zinc-100 dark:border-zinc-800 shadow-sm">
-          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-            <h2 className="font-bold text-lg flex items-center gap-2">
+        <Card className="border-2 border-zinc-100 shadow-sm dark:border-zinc-800">
+          <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
               <Users size={18} className="text-primary" /> Присъстващи играчи
             </h2>
-            <span className="text-sm text-zinc-500 font-medium">
+            <span className="text-sm font-medium text-zinc-500">
               {settings.activePlayers.length} избрани
             </span>
           </div>
           <CardContent className="p-5">
             {initialMembers.length === 0 ? (
-              <p className="text-sm text-zinc-500 p-4 text-center">
+              <p className="p-4 text-center text-sm text-zinc-500">
                 Няма намерени играчи
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                 {initialMembers.map((m) => {
                   const isChecked = settings.activePlayers.some(
                     (p) => p.id === m.id
@@ -605,10 +605,10 @@ export function ShadowSetupForm({
                   return (
                     <label
                       key={m.id}
-                      className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all border ${
+                      className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 transition-all ${
                         isChecked
-                          ? "bg-primary/10 border-primary/40 shadow-sm"
-                          : "bg-transparent border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                          ? "border-primary/40 bg-primary/10 shadow-sm"
+                          : "border-zinc-200 bg-transparent hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                       }`}
                     >
                       <Checkbox
@@ -636,7 +636,7 @@ export function ShadowSetupForm({
                         }}
                       />
                       <span
-                        className={`font-semibold text-sm leading-tight min-w-0 truncate ${
+                        className={`min-w-0 truncate text-sm leading-tight font-semibold ${
                           isChecked
                             ? "text-primary"
                             : "text-zinc-600 dark:text-zinc-400"
@@ -652,12 +652,12 @@ export function ShadowSetupForm({
           </CardContent>
         </Card>
 
-        <div className="pt-6 pb-4 flex justify-center shrink-0 w-full mt-auto">
+        <div className="mt-auto flex w-full shrink-0 justify-center pt-6 pb-4">
           <Button
             onClick={onStartTraining}
-            className="w-full max-w-2xl h-16 text-xl font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-[0_8px_30px_rgba(var(--primary),0.3)] transition-transform hover:-translate-y-1 active:translate-y-0"
+            className="h-16 w-full max-w-2xl rounded-2xl bg-primary text-xl font-black text-primary-foreground shadow-[0_8px_30px_rgba(var(--primary),0.3)] transition-transform hover:-translate-y-1 hover:bg-primary/90 active:translate-y-0"
           >
-            <Play className="w-6 h-6 mr-3" /> ГОТОВНОСТ ЗА СТАРТ
+            <Play className="mr-3 size-6" /> ГОТОВНОСТ ЗА СТАРТ
           </Button>
         </div>
       </div>

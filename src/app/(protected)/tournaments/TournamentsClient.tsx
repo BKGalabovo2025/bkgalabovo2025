@@ -124,7 +124,7 @@ export default function TournamentsClient({
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 duration-500 animate-in fade-in">
       <PageHeader
         title="Турнири"
         description="Организирайте и управлявайте спортни събития, схеми на игра и класирания."
@@ -135,63 +135,63 @@ export default function TournamentsClient({
       >
         <Button
           onClick={() => setIsDialogOpen(true)}
-          className="rounded-xl font-medium uppercase tracking-widest text-[11px] h-12 px-8 bg-zinc-950 text-white hover:bg-zinc-800 shadow-none transition-all"
+          className="h-12 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
         >
-          <Plus className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нов турнир
+          <Plus className="mr-3 size-4" strokeWidth={1.5} /> Нов турнир
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <BentoCard className="p-8">
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
-              <p className="text-4xl font-light text-zinc-900 dark:text-white mb-1">
+              <p className="mb-1 text-4xl font-light text-zinc-900 dark:text-white">
                 {activeTournaments.length}
               </p>
-              <p className="text-[11px] text-zinc-400 uppercase font-medium tracking-widest">
+              <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Активни
               </p>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-              <Trophy className="h-5 w-5" strokeWidth={1.5} />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/5 text-primary">
+              <Trophy className="size-5" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
         <BentoCard className="p-8">
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
-              <p className="text-4xl font-light text-zinc-900 dark:text-white mb-1">
+              <p className="mb-1 text-4xl font-light text-zinc-900 dark:text-white">
                 {completedTournaments.length}
               </p>
-              <p className="text-[11px] text-zinc-400 uppercase font-medium tracking-widest">
+              <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Приключили
               </p>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-400">
-              <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 dark:bg-zinc-900">
+              <CheckCircle2 className="size-5" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="md:col-span-2 p-4 flex items-center px-8">
+        <BentoCard className="flex items-center p-4 px-8 md:col-span-2">
           <div className="relative w-full">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+              className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
               strokeWidth={1.5}
             />
             <Input
               placeholder="Търсене на турнир по име или локация..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-14 rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary"
+              className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 pl-12 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
             />
           </div>
         </BentoCard>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-5xl shadow-2xl border-zinc-100">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-5xl border-zinc-100 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-light uppercase tracking-widest text-zinc-900 dark:text-white">
+            <DialogTitle className="text-2xl font-light tracking-widest text-zinc-900 uppercase dark:text-white">
               Нов турнир
             </DialogTitle>
           </DialogHeader>
@@ -208,9 +208,9 @@ export default function TournamentsClient({
         open={!!editingTournament}
         onOpenChange={(open) => !open && setEditingTournament(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-5xl shadow-2xl border-zinc-100">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-5xl border-zinc-100 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-light uppercase tracking-widest text-zinc-900 dark:text-white">
+            <DialogTitle className="text-2xl font-light tracking-widest text-zinc-900 uppercase dark:text-white">
               Редактиране
             </DialogTitle>
           </DialogHeader>
@@ -225,22 +225,22 @@ export default function TournamentsClient({
       </Dialog>
 
       {tournaments.length === 0 ? (
-        <BentoCard className="flex flex-col items-center justify-center py-40 text-center border-dashed border-2 border-zinc-100 dark:border-zinc-900 rounded-5xl bg-zinc-50/30 dark:bg-zinc-900/10">
-          <div className="h-32 w-32 rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center mb-10 transition-all hover:scale-105">
+        <BentoCard className="flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-40 text-center dark:border-zinc-900 dark:bg-zinc-900/10">
+          <div className="mb-10 flex size-32 items-center justify-center rounded-full border border-zinc-100 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
             <Trophy
-              className="h-12 w-12 text-zinc-200 dark:text-zinc-700"
+              className="size-12 text-zinc-200 dark:text-zinc-700"
               strokeWidth={1}
             />
           </div>
-          <h3 className="text-3xl font-light text-zinc-900 dark:text-white mb-4">
+          <h3 className="mb-4 text-3xl font-light text-zinc-900 dark:text-white">
             Няма създадени турнири
           </h3>
-          <p className="text-zinc-400 max-w-sm mb-12 font-light leading-relaxed">
+          <p className="mb-12 max-w-sm leading-relaxed font-light text-zinc-400">
             Започнете, като създадете първия турнир за вашия клуб.
           </p>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="rounded-xl h-14 px-10 font-medium uppercase tracking-widest text-[11px] bg-zinc-950 text-white hover:bg-zinc-800 shadow-none transition-all"
+            className="h-14 rounded-xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
           >
             Създай първия турнир
           </Button>
@@ -250,12 +250,12 @@ export default function TournamentsClient({
           {activeTournaments.length > 0 && (
             <div className="space-y-10">
               <div className="flex items-center gap-4 px-1">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <h2 className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-400">
+                <div className="size-2 animate-pulse rounded-full bg-primary" />
+                <h2 className="text-sm font-medium tracking-[0.3em] text-zinc-400 uppercase">
                   Активни събития
                 </h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {activeTournaments.map((t) => (
                   <TournamentCard
                     key={t.id}
@@ -271,12 +271,12 @@ export default function TournamentsClient({
           {completedTournaments.length > 0 && (
             <div className="space-y-10">
               <div className="flex items-center gap-4 px-1">
-                <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                <h2 className="text-sm font-medium uppercase tracking-[0.3em] text-zinc-400">
+                <div className="size-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                <h2 className="text-sm font-medium tracking-[0.3em] text-zinc-400 uppercase">
                   Архив
                 </h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {completedTournaments.map((t) => (
                   <TournamentCard
                     key={t.id}
@@ -307,25 +307,25 @@ function TournamentCard({
     switch (status) {
       case "upcoming":
         return (
-          <Badge className="bg-primary/5 text-primary border border-primary/10 rounded-full font-medium text-[10px] uppercase tracking-wider px-3 py-1">
+          <Badge className="rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-medium tracking-wider text-primary uppercase">
             Предстоящ
           </Badge>
         );
       case "registration_open":
         return (
-          <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full font-medium text-[10px] uppercase tracking-wider px-3 py-1">
+          <Badge className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-medium tracking-wider text-emerald-600 uppercase">
             Записване
           </Badge>
         );
       case "ongoing":
         return (
-          <Badge className="bg-rose-50 text-rose-600 border border-rose-100 rounded-full font-medium text-[10px] uppercase tracking-wider px-3 py-1">
+          <Badge className="rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-[10px] font-medium tracking-wider text-rose-600 uppercase">
             В ход
           </Badge>
         );
       case "completed":
         return (
-          <Badge className="bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full font-medium text-[10px] uppercase tracking-wider px-3 py-1">
+          <Badge className="rounded-full border border-zinc-100 bg-zinc-50 px-3 py-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
             Завършен
           </Badge>
         );
@@ -347,44 +347,44 @@ function TournamentCard({
   };
 
   return (
-    <BentoCard className="flex flex-col h-full group hover:border-primary/30 transition-all duration-500 overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl">
+    <BentoCard className="group flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none transition-all duration-500 hover:border-primary/30 dark:border-zinc-900 dark:bg-zinc-950">
       <div className="p-8 pb-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="mb-6 flex items-center justify-between">
           {getStatusBadge(tournament.status)}
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+          <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
             {getFormatLabel(tournament.format || "")}
           </span>
         </div>
-        <h3 className="text-2xl font-light text-zinc-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-16">
+        <h3 className="line-clamp-2 min-h-16 text-2xl leading-tight font-light text-zinc-900 transition-colors group-hover:text-primary dark:text-white">
           {tournament.title}
         </h3>
-        <div className="flex items-center mt-4 text-zinc-400 text-xs font-light tracking-wide">
-          <MapPin className="mr-2 h-4 w-4" strokeWidth={1} />{" "}
+        <div className="mt-4 flex items-center text-xs font-light tracking-wide text-zinc-400">
+          <MapPin className="mr-2 size-4" strokeWidth={1} />{" "}
           {tournament.location}
         </div>
       </div>
 
-      <div className="px-8 py-6 bg-zinc-50/30 dark:bg-zinc-900/30 flex-1 border-y border-zinc-100/50 dark:border-zinc-900/50">
+      <div className="flex-1 border-y border-zinc-100/50 bg-zinc-50/30 px-8 py-6 dark:border-zinc-900/50 dark:bg-zinc-900/30">
         <div className="grid grid-cols-2 gap-8">
           <div className="space-y-2">
-            <p className="text-[11px] uppercase font-medium text-zinc-400 tracking-widest">
+            <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Дата
             </p>
-            <div className="flex items-center text-zinc-900 dark:text-zinc-100 font-light text-sm">
+            <div className="flex items-center text-sm font-light text-zinc-900 dark:text-zinc-100">
               <Calendar
-                className="mr-3 h-4 w-4 text-primary/40"
+                className="mr-3 size-4 text-primary/40"
                 strokeWidth={1.5}
               />
               {formatDateShort(tournament.startDate)}
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-[11px] uppercase font-medium text-zinc-400 tracking-widest">
+            <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Категории
             </p>
-            <div className="flex items-center text-zinc-900 dark:text-zinc-100 font-light text-sm">
+            <div className="flex items-center text-sm font-light text-zinc-900 dark:text-zinc-100">
               <Users
-                className="mr-3 h-4 w-4 text-primary/40"
+                className="mr-3 size-4 text-primary/40"
                 strokeWidth={1.5}
               />
               {tournament.categories?.length || 0}
@@ -392,11 +392,11 @@ function TournamentCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-6">
+        <div className="mt-6 flex flex-wrap gap-2">
           {tournament.categories?.slice(0, 3).map((cat) => (
             <span
               key={cat}
-              className="text-[9px] font-medium bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 px-3 py-1 rounded-full uppercase tracking-widest"
+              className="rounded-full border border-zinc-100 bg-white px-3 py-1 text-[9px] font-medium tracking-widest text-zinc-400 uppercase dark:border-zinc-800 dark:bg-zinc-900"
             >
               {getCategoryLabel(cat)}
             </span>
@@ -404,13 +404,13 @@ function TournamentCard({
         </div>
       </div>
 
-      <div className="p-6 flex gap-3 bg-white dark:bg-zinc-950 mt-auto border-t border-zinc-50 dark:border-zinc-900">
+      <div className="mt-auto flex gap-3 border-t border-zinc-50 bg-white p-6 dark:border-zinc-900 dark:bg-zinc-950">
         <Button
           asChild
-          className="flex-1 rounded-xl font-medium h-12 shadow-none uppercase tracking-widest text-[10px] bg-zinc-950 text-white hover:bg-zinc-800 transition-all"
+          className="h-12 flex-1 rounded-xl bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
         >
           <Link href={`/tournaments/${tournament.id}`}>
-            <LayoutList className="mr-3 h-4 w-4" strokeWidth={1.5} /> Детайли
+            <LayoutList className="mr-3 size-4" strokeWidth={1.5} /> Детайли
           </Link>
         </Button>
         <div className="flex gap-2">
@@ -418,17 +418,17 @@ function TournamentCard({
             variant="outline"
             size="icon"
             onClick={onEdit}
-            className="rounded-xl h-12 w-12 border-zinc-100 dark:border-zinc-800 text-zinc-600 hover:text-primary hover:border-primary/30 transition-all bg-zinc-50/30 dark:bg-zinc-900/30"
+            className="size-12 rounded-xl border-zinc-100 bg-zinc-50/30 text-zinc-600 transition-all hover:border-primary/30 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900/30"
           >
-            <Pencil className="h-4 w-4" strokeWidth={1.5} />
+            <Pencil className="size-4" strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl h-12 w-12 text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+            className="size-12 rounded-xl text-zinc-400 transition-all hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
             onClick={onDelete}
           >
-            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+            <Trash2 className="size-4" strokeWidth={1.5} />
           </Button>
         </div>
       </div>

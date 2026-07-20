@@ -22,8 +22,8 @@ export const GeneralWizardStep2 = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <CreditCard className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <CreditCard className="size-4 text-emerald-500" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Детайли на транзакцията</h3>
       </div>
 
@@ -39,7 +39,7 @@ export const GeneralWizardStep2 = () => {
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="rounded-xl h-11 border-zinc-200"
+              className="h-11 rounded-xl border-zinc-200"
             />
           </div>
           <div className="grid gap-2">
@@ -53,7 +53,7 @@ export const GeneralWizardStep2 = () => {
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="rounded-xl h-11 border-zinc-200"
+              className="h-11 rounded-xl border-zinc-200"
             />
           </div>
         </div>
@@ -67,7 +67,7 @@ export const GeneralWizardStep2 = () => {
               id="pay-method"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="В брой">В брой</option>
               <option value="Карта">Карта</option>
@@ -83,7 +83,7 @@ export const GeneralWizardStep2 = () => {
               id="pay-status"
               value={isPaid ? "paid" : "unpaid"}
               onChange={(e) => setIsPaid(e.target.value === "paid")}
-              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="paid">Платено</option>
               <option value="unpaid">Неплатено (Дълг)</option>
@@ -100,7 +100,7 @@ export const GeneralWizardStep2 = () => {
             placeholder="Добавете бележка или допълнителен коментар..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="rounded-xl border-zinc-200 dark:border-zinc-800 resize-none"
+            className="resize-none rounded-xl border-zinc-200 dark:border-zinc-800"
             rows={3}
           />
         </div>

@@ -186,7 +186,7 @@ export function ScoreDialog({
     if (!allGamesValid) {
       return (
         <span className="flex items-center justify-center gap-2">
-          <AlertCircle className="w-4 h-4" />
+          <AlertCircle className="size-4" />
           Невалиден резултат за формат &quot;{fmt.label}&quot;
         </span>
       );
@@ -194,7 +194,7 @@ export function ScoreDialog({
     if (autoWinnerId) {
       return (
         <span className="flex items-center justify-center gap-2">
-          <Trophy className="w-4 h-4" />
+          <Trophy className="size-4" />
           Победител: {getEntryName(autoWinnerId)}
         </span>
       );
@@ -217,26 +217,26 @@ export function ScoreDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 sm:max-w-lg">
+      <DialogContent className="border-zinc-200 bg-white sm:max-w-lg dark:border-zinc-800 dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle>Въвеждане на резултат</DialogTitle>
         </DialogHeader>
 
         {/* Формат */}
-        <div className="text-xs text-center text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-md border">
+        <div className="rounded-md border bg-muted/50 px-3 py-1.5 text-center text-xs text-muted-foreground">
           📋 Формат: <span className="font-medium text-foreground">{fmt.label}</span>
         </div>
 
-        <div className="py-2 space-y-5">
+        <div className="space-y-5 py-2">
           {/* Заглавна лента с имената */}
-          <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-center">
+          <div className="grid grid-cols-3 gap-2 text-center text-sm font-semibold">
             <div
-              className={`px-3 py-2 rounded-lg truncate transition-colors ${getPlayerHighlightClass(wins.p1, wins.p2)}`}
+              className={`truncate rounded-lg px-3 py-2 transition-colors ${getPlayerHighlightClass(wins.p1, wins.p2)}`}
             >
               {player1Name}
             </div>
             <div className="flex flex-col items-center justify-center gap-0.5">
-              <span className="text-muted-foreground text-xs font-normal">
+              <span className="text-xs font-normal text-muted-foreground">
                 VS
               </span>
               {matchOver && (
@@ -246,7 +246,7 @@ export function ScoreDialog({
               )}
             </div>
             <div
-              className={`px-3 py-2 rounded-lg truncate transition-colors ${getPlayerHighlightClass(wins.p2, wins.p1)}`}
+              className={`truncate rounded-lg px-3 py-2 transition-colors ${getPlayerHighlightClass(wins.p2, wins.p1)}`}
             >
               {player2Name}
             </div>
@@ -277,13 +277,13 @@ export function ScoreDialog({
               onClick={addGame}
               type="button"
             >
-              <Plus className="w-4 h-4 mr-2" /> Добави гейм
+              <Plus className="mr-2 size-4" /> Добави гейм
             </Button>
           )}
 
           {/* Победител preview */}
           <div
-            className={`p-3 rounded-lg text-center text-sm font-semibold transition-all border ${getPreviewBoxClass()}`}
+            className={`rounded-lg border p-3 text-center text-sm font-semibold transition-all ${getPreviewBoxClass()}`}
           >
             {getPreviewBoxContent()}
           </div>

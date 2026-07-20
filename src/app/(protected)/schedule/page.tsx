@@ -9,12 +9,12 @@ export default function SchedulePage() {
     <main className="pb-12">
       <Suspense
         fallback={
-          <div className="flex flex-col items-center justify-center py-40 space-y-6">
+          <div className="flex flex-col items-center justify-center space-y-6 py-40">
             <Loader2
-              className="h-12 w-12 animate-spin text-primary opacity-20"
+              className="size-12 animate-spin text-primary opacity-20"
               strokeWidth={1}
             />
-            <p className="text-zinc-400 font-medium uppercase tracking-[0.2em] text-[10px]">
+            <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Зареждане на график...
             </p>
           </div>

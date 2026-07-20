@@ -421,10 +421,10 @@ export default function CreateSessionWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <CalendarRange className="w-5 h-5 text-indigo-600" />
+            <CalendarRange className="size-5 text-indigo-600" />
             Универсален Планировчик
           </DialogTitle>
           <DialogDescription>
@@ -433,10 +433,10 @@ export default function CreateSessionWizard({
         </DialogHeader>
 
         {step === 1 && (
-          <div className="space-y-6 py-4 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="space-y-6 py-4 duration-300 animate-in fade-in slide-in-from-right-4">
             {competitionWarning && (
-              <Alert className="bg-amber-50 border-amber-200 text-amber-800">
-                <AlertTriangle className="h-4 w-4" />
+              <Alert className="border-amber-200 bg-amber-50 text-amber-800">
+                <AlertTriangle className="size-4" />
                 <AlertTitle>Периодизация</AlertTitle>
                 <AlertDescription className="text-xs">
                   {competitionWarning}
@@ -445,9 +445,9 @@ export default function CreateSessionWizard({
             )}
 
             {/* Calendar Import Section */}
-            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl space-y-4">
+            <div className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
               <div className="space-y-2">
-                <Label className="text-indigo-900 font-bold">
+                <Label className="font-bold text-indigo-900">
                   Импорт от График
                 </Label>
                 <Select
@@ -472,12 +472,12 @@ export default function CreateSessionWizard({
               </div>
 
               {attendees.length > 0 && (
-                <div className="bg-white p-4 rounded-xl border border-indigo-100 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-sm text-zinc-900">
+                <div className="space-y-3 rounded-xl border border-indigo-100 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-zinc-900">
                       Смесени Групи ({attendees.length} участници)
                     </h4>
-                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md flex items-center">
+                    <span className="flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-600">
                       <Clock size={12} className="mr-1" /> {eventDuration} мин
                     </span>
                   </div>
@@ -485,11 +485,11 @@ export default function CreateSessionWizard({
                     Системата автоматично разделя децата по възраст и ниво на
                     умения (Skill Level).
                   </p>
-                  <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                  <div className="max-h-48 space-y-2 overflow-y-auto pr-2">
                     {attendees.map((a) => (
                       <div
                         key={a.member.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-50 hover:bg-zinc-100 transition-colors p-2 border border-zinc-200 rounded-lg gap-2"
+                        className="flex flex-col justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:bg-zinc-100 sm:flex-row sm:items-center"
                       >
                         <span className="text-sm font-medium text-zinc-700">
                           {a.member.firstName} {a.member.lastName}
@@ -505,7 +505,7 @@ export default function CreateSessionWizard({
                               )
                             }
                           >
-                            <SelectTrigger className="w-24 h-8 text-xs font-bold bg-white">
+                            <SelectTrigger className="h-8 w-24 bg-white text-xs font-bold">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -522,7 +522,7 @@ export default function CreateSessionWizard({
                               updateAttendeeGroup(a.member.id, a.ageGroup, val)
                             }
                           >
-                            <SelectTrigger className="w-28 h-8 text-xs font-bold bg-white">
+                            <SelectTrigger className="h-8 w-28 bg-white text-xs font-bold">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -544,20 +544,20 @@ export default function CreateSessionWizard({
             </div>
 
             {/* Methodological Settings */}
-            <div className="border border-zinc-200 p-4 rounded-xl space-y-4">
-              <h4 className="font-bold text-zinc-900 flex items-center gap-2">
-                <Info className="w-4 h-4 text-zinc-400" />
+            <div className="space-y-4 rounded-xl border border-zinc-200 p-4">
+              <h4 className="flex items-center gap-2 font-bold text-zinc-900">
+                <Info className="size-4 text-zinc-400" />
                 Методически Параметри
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Тема / Фокус</Label>
                   <Select value={focus} onValueChange={setFocus}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                    <SelectContent className="max-h-75 overflow-y-auto">
                       {focusOptions.map((f) => (
                         <SelectItem key={f} value={f}>
                           {f}
@@ -595,13 +595,13 @@ export default function CreateSessionWizard({
               </div>
 
               <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <Label>Целева Интензивност (1-5)</Label>
-                  <span className="font-black text-indigo-600 bg-indigo-50 px-2 rounded">
+                  <span className="rounded bg-indigo-50 px-2 font-black text-indigo-600">
                     {targetIntensity}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                   {[
                     { val: 1, label: "Много лесна" },
                     { val: 2, label: "Лесна" },
@@ -613,13 +613,13 @@ export default function CreateSessionWizard({
                       key={lvl.val}
                       onClick={() => setTargetIntensity(lvl.val)}
                       className={cn(
-                        "cursor-pointer border rounded-xl p-2 text-center transition-all flex flex-col items-center justify-center min-h-[60px]",
+                        "flex min-h-15 cursor-pointer flex-col items-center justify-center rounded-xl border p-2 text-center transition-all",
                         targetIntensity === lvl.val
-                          ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                          : "bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:border-zinc-300"
+                          ? "border-indigo-600 bg-indigo-600 text-white shadow-md"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100"
                       )}
                     >
-                      <span className="text-xs font-bold mb-0.5">
+                      <span className="mb-0.5 text-xs font-bold">
                         {lvl.val}
                       </span>
                       <span className="text-[10px] leading-tight opacity-90">
@@ -628,7 +628,7 @@ export default function CreateSessionWizard({
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-2">
+                <p className="mt-2 text-[10px] text-zinc-500">
                   Системата ще избере упражнения, които отговарят на тази
                   интензивност.
                 </p>
@@ -647,7 +647,7 @@ export default function CreateSessionWizard({
                           : "outline"
                       }
                       className={cn(
-                        "flex-1 text-xs h-8",
+                        "h-8 flex-1 text-xs",
                         pedagogicalAction === "consolidation" && "bg-indigo-600"
                       )}
                       onClick={() => setPedagogicalAction("consolidation")}
@@ -661,7 +661,7 @@ export default function CreateSessionWizard({
                           : "outline"
                       }
                       className={cn(
-                        "flex-1 text-xs h-8",
+                        "h-8 flex-1 text-xs",
                         pedagogicalAction === "progression" && "bg-indigo-600"
                       )}
                       onClick={() => setPedagogicalAction("progression")}
@@ -673,7 +673,7 @@ export default function CreateSessionWizard({
                         pedagogicalAction === "new" ? "default" : "outline"
                       }
                       className={cn(
-                        "flex-1 text-xs h-8",
+                        "h-8 flex-1 text-xs",
                         pedagogicalAction === "new" && "bg-indigo-600"
                       )}
                       onClick={() => setPedagogicalAction("new")}
@@ -686,7 +686,7 @@ export default function CreateSessionWizard({
             </div>
 
             {selectedEventId === "none" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-zinc-200 p-4 rounded-xl">
+              <div className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 p-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Възрастова група</Label>
                   <Select
@@ -751,16 +751,16 @@ export default function CreateSessionWizard({
               </div>
             )}
 
-            <DialogFooter className="pt-4 border-t">
+            <DialogFooter className="border-t pt-4">
               <Button
                 onClick={generatePlan}
                 disabled={isFetching}
-                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 sm:w-auto"
               >
                 {isFetching ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 mr-2" />
+                  <ChevronRight className="mr-2 size-4" />
                 )}
                 Генерирай Тренировка
               </Button>
@@ -769,10 +769,10 @@ export default function CreateSessionWizard({
         )}
 
         {step === 2 && (
-          <div className="space-y-6 py-4 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="space-y-6 py-4 duration-300 animate-in fade-in slide-in-from-right-4">
             {fallbackWarning && (
-              <Alert className="bg-red-50 border-red-200 text-red-800">
-                <AlertTriangle className="h-4 w-4" />
+              <Alert className="border-red-200 bg-red-50 text-red-800">
+                <AlertTriangle className="size-4" />
                 <AlertTitle>Липсващи упражнения!</AlertTitle>
                 <AlertDescription className="text-xs">
                   В базата данни няма достатъчно упражнения за избрания фокус (
@@ -782,7 +782,7 @@ export default function CreateSessionWizard({
               </Alert>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Име на сесията</Label>
                 <Input
@@ -801,9 +801,9 @@ export default function CreateSessionWizard({
               </div>
             </div>
 
-            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
-              <h3 className="font-bold text-zinc-900 flex items-center gap-2 mb-3">
-                <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <h3 className="mb-3 flex items-center gap-2 font-bold text-zinc-900">
+                <CheckCircle2 className="size-5 text-indigo-600" />
                 Генериран План ({eventDuration} мин)
               </h3>
 
@@ -815,7 +815,7 @@ export default function CreateSessionWizard({
                 <div className="space-y-6">
                   {groupedExercises.map((group, gIdx) => (
                     <div key={gIdx} className="space-y-3">
-                      <h4 className="font-black text-indigo-900 bg-indigo-100 inline-block px-3 py-1 rounded-md text-sm">
+                      <h4 className="inline-block rounded-md bg-indigo-100 px-3 py-1 text-sm font-black text-indigo-900">
                         Група: {group.ageGroup} | {group.skillLevel}
                       </h4>
                       {group.exercises.length === 0 ? (
@@ -826,32 +826,32 @@ export default function CreateSessionWizard({
                         group.exercises.map((ex, idx) => (
                           <details
                             key={ex.id + idx}
-                            className="group flex flex-col bg-white border border-zinc-200 p-3 rounded-lg shadow-sm relative overflow-hidden"
+                            className="group relative flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white p-3 shadow-sm"
                           >
-                            <summary className="flex gap-3 cursor-pointer list-none outline-none [&::-webkit-details-marker]:hidden">
-                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
-                              <div className="bg-indigo-50 text-indigo-700 font-black w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                            <summary className="flex cursor-pointer list-none gap-3 outline-none [&::-webkit-details-marker]:hidden">
+                              <div className="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
+                              <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 font-black text-indigo-700">
                                 {idx + 1}
                               </div>
-                              <div className="flex-1 pr-6 relative">
-                                <div className="font-bold text-zinc-900 text-sm">
+                              <div className="relative flex-1 pr-6">
+                                <div className="text-sm font-bold text-zinc-900">
                                   {ex.name}
                                 </div>
-                                <div className="text-xs text-zinc-500 mt-0.5 flex flex-wrap gap-2">
+                                <div className="mt-0.5 flex flex-wrap gap-2 text-xs text-zinc-500">
                                   <span>{ex.durationMinutes} мин</span>
                                   <span>• {ex.category.toUpperCase()}</span>
                                   {ex.defaultSets && (
-                                    <span className="text-indigo-600 font-medium">
+                                    <span className="font-medium text-indigo-600">
                                       • {ex.defaultSets} серии x{" "}
                                       {ex.defaultWorkSec}с /{ex.defaultRestSec}с
                                       почивка
                                     </span>
                                   )}
                                 </div>
-                                <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-open:rotate-90 transition-transform" />
+                                <ChevronRight className="absolute top-1/2 right-0 size-4 -translate-y-1/2 text-zinc-400 transition-transform group-open:rotate-90" />
                               </div>
                             </summary>
-                            <div className="mt-4 pt-3 border-t border-zinc-100 text-sm text-zinc-600 space-y-2 pl-11">
+                            <div className="mt-4 space-y-2 border-t border-zinc-100 pt-3 pl-11 text-sm text-zinc-600">
                               {ex.description && (
                                 <p>
                                   <strong>Описание:</strong> {ex.description}
@@ -860,10 +860,10 @@ export default function CreateSessionWizard({
                               {ex.coachingPoints &&
                                 ex.coachingPoints.length > 0 && (
                                   <div>
-                                    <strong className="block mb-1">
+                                    <strong className="mb-1 block">
                                       Ключови точки:
                                     </strong>
-                                    <ul className="list-disc pl-4 space-y-1">
+                                    <ul className="list-disc space-y-1 pl-4">
                                       {ex.coachingPoints.map(
                                         (cp: string, i: number) => (
                                           <li key={i}>{cp}</li>
@@ -873,12 +873,12 @@ export default function CreateSessionWizard({
                                   </div>
                                 )}
                               {ex.focusTags && ex.focusTags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
+                                <div className="mt-2 flex flex-wrap gap-1">
                                   {ex.focusTags.map(
                                     (tag: string, i: number) => (
                                       <span
                                         key={i}
-                                        className="bg-zinc-100 px-2 py-0.5 rounded text-[10px] text-zinc-500"
+                                        className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] text-zinc-500"
                                       >
                                         {tag}
                                       </span>
@@ -897,11 +897,11 @@ export default function CreateSessionWizard({
             </div>
 
             {uniqueEquipment.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <h4 className="font-bold text-amber-900 text-sm mb-2">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <h4 className="mb-2 text-sm font-bold text-amber-900">
                   Чеклист Екипировка
                 </h4>
-                <ul className="list-disc pl-5 text-sm text-amber-800 space-y-1">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-amber-800">
                   {uniqueEquipment.map((eq, i) => (
                     <li key={i}>{eq}</li>
                   ))}
@@ -917,13 +917,13 @@ export default function CreateSessionWizard({
               />
               <label
                 htmlFor="schedule"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Покажи в публичния График на клуба
               </label>
             </div>
 
-            <DialogFooter className="flex justify-between w-full pt-4 border-t">
+            <DialogFooter className="flex w-full justify-between border-t pt-4">
               <Button variant="outline" onClick={() => setStep(1)}>
                 Назад
               </Button>
@@ -932,7 +932,7 @@ export default function CreateSessionWizard({
                 disabled={isSaving || groupedExercises.length === 0}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isSaving && <Loader2 className="mr-2 size-4 animate-spin" />}
                 Запази Тренировката
               </Button>
             </DialogFooter>

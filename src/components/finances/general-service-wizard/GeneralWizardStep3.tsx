@@ -23,16 +23,16 @@ export const GeneralWizardStep3 = () => {
   // If in processing step
   if (step === 4) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-6">
+      <div className="flex flex-col items-center justify-center space-y-6 py-20">
         <Loader2
-          className="h-12 w-12 animate-spin text-emerald-500"
+          className="size-12 animate-spin text-emerald-500"
           strokeWidth={2}
         />
-        <div className="text-center space-y-2">
-          <p className="font-light text-zinc-900 dark:text-zinc-100 text-lg">
+        <div className="space-y-2 text-center">
+          <p className="text-lg font-light text-zinc-900 dark:text-zinc-100">
             Регистриране на продажбата...
           </p>
-          <p className="text-zinc-500 text-xs font-light">
+          <p className="text-xs font-light text-zinc-500">
             Моля, изчакайте, докато транзакцията се записва в базата данни.
           </p>
         </div>
@@ -44,21 +44,21 @@ export const GeneralWizardStep3 = () => {
   if (step === 5) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-          <Receipt className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+        <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+          <Receipt className="size-4 text-emerald-500" strokeWidth={1.5} />
           <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
             Касова бележка
           </h3>
         </div>
 
-        <div className="flex flex-col border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-950 rounded-2xl relative text-zinc-950 dark:text-zinc-50 w-full max-w-lg mx-auto shadow-sm font-sans tracking-wide">
-          <div className="flex flex-col h-full">
-            <div className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-3 text-[10px]">
+        <div className="relative mx-auto flex w-full max-w-lg flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">
+          <div className="flex h-full flex-col">
+            <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px] dark:border-zinc-800">
               <div className="space-y-1">
-                <h4 className="text-xs font-bold uppercase tracking-tight text-zinc-900 dark:text-white">
+                <h4 className="text-xs font-bold tracking-tight text-zinc-900 uppercase dark:text-white">
                   РАЗПИСКА ЗА ПЛАЩАНЕ
                 </h4>
-                <p className="text-[9px] font-bold uppercase text-zinc-500">
+                <p className="text-[9px] font-bold text-zinc-500 uppercase">
                   №{" "}
                   {completedSaleId
                     ? completedSaleId.substring(0, 8).toUpperCase()
@@ -66,8 +66,8 @@ export const GeneralWizardStep3 = () => {
                   / {new Date().toLocaleDateString("bg-BG")} г.
                 </p>
               </div>
-              <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
-                <p className="font-bold uppercase text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-0.5 text-right text-[9px] text-zinc-500">
+                <p className="font-bold text-zinc-700 uppercase dark:text-zinc-300">
                   {clubInfo.name}
                 </p>
                 <p className="uppercase">{clubInfo.address}</p>
@@ -75,19 +75,19 @@ export const GeneralWizardStep3 = () => {
               </div>
             </div>
 
-            <div className="mb-3 text-[9px] flex justify-between items-start bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800 rounded-lg">
+            <div className="mb-3 flex items-start justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-2.5 text-[9px] dark:border-zinc-800 dark:bg-zinc-900/50">
               <div>
-                <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
+                <p className="mb-0.5 text-[8px] font-bold tracking-widest text-zinc-400 uppercase">
                   Получател
                 </p>
-                <p className="font-bold uppercase text-zinc-800 dark:text-zinc-200">
+                <p className="font-bold text-zinc-800 uppercase dark:text-zinc-200">
                   {selectedMember?.id === "GUEST_EXTERNAL"
                     ? "Външен клиент"
                     : `${selectedMember?.firstName} ${selectedMember?.lastName}`}
                 </p>
               </div>
               <div className="text-right text-zinc-600 dark:text-zinc-400">
-                <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
+                <p className="mb-0.5 text-[8px] font-bold tracking-widest text-zinc-400 uppercase">
                   Детайли за плащане
                 </p>
                 <p className="font-bold">
@@ -110,30 +110,30 @@ export const GeneralWizardStep3 = () => {
             </div>
 
             <div className="mb-3">
-              <table className="w-full border-collapse border border-zinc-200 dark:border-zinc-800 text-[9px]">
+              <table className="w-full border-collapse border border-zinc-200 text-[9px] dark:border-zinc-800">
                 <thead>
-                  <tr className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 text-[8px] font-bold uppercase text-zinc-500">
-                    <th className="p-1.5 text-left border-r border-zinc-200 dark:border-zinc-800">
+                  <tr className="border-b border-zinc-200 bg-zinc-50 text-[8px] font-bold text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900">
+                    <th className="border-r border-zinc-200 p-1.5 text-left dark:border-zinc-800">
                       Описание
                     </th>
-                    <th className="p-1.5 text-center border-r border-zinc-200 dark:border-zinc-800">
+                    <th className="border-r border-zinc-200 p-1.5 text-center dark:border-zinc-800">
                       Кол.
                     </th>
-                    <th className="p-1.5 text-right border-r border-zinc-200 dark:border-zinc-800">
+                    <th className="border-r border-zinc-200 p-1.5 text-right dark:border-zinc-800">
                       Ед. Цена
                     </th>
                     <th className="p-1.5 text-right">Сума</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-800 font-medium">
-                    <td className="p-1.5 border-r border-zinc-200 dark:border-zinc-800 font-bold text-left text-zinc-800 dark:text-zinc-200">
+                  <tr className="border-b border-zinc-200 font-medium dark:border-zinc-800">
+                    <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                       {service.name}
                     </td>
-                    <td className="p-1.5 border-r border-zinc-200 dark:border-zinc-800 text-center">
+                    <td className="border-r border-zinc-200 p-1.5 text-center dark:border-zinc-800">
                       {quantity}
                     </td>
-                    <td className="p-1.5 border-r border-zinc-200 dark:border-zinc-800 text-right">
+                    <td className="border-r border-zinc-200 p-1.5 text-right dark:border-zinc-800">
                       {formatPrice(unitPrice)}
                     </td>
                     <td className="p-1.5 text-right font-bold text-zinc-800 dark:text-zinc-200">
@@ -143,11 +143,11 @@ export const GeneralWizardStep3 = () => {
                   <tr>
                     <td
                       colSpan={3}
-                      className="p-1.5 text-right border-r border-zinc-200 dark:border-zinc-800 font-bold uppercase text-[8px] text-zinc-400"
+                      className="border-r border-zinc-200 p-1.5 text-right text-[8px] font-bold text-zinc-400 uppercase dark:border-zinc-800"
                     >
                       Обща стойност:
                     </td>
-                    <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900 dark:text-white">
+                    <td className="p-1.5 text-right text-[10px] font-bold text-zinc-900 dark:text-white">
                       {formatPrice(totalAmount)}
                     </td>
                   </tr>
@@ -156,31 +156,31 @@ export const GeneralWizardStep3 = () => {
             </div>
 
             {note && (
-              <div className="mb-3 p-2 border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/30 text-[9px] rounded-lg">
-                <span className="font-bold text-zinc-500 uppercase mr-1">
+              <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px] dark:border-zinc-700 dark:bg-zinc-900/30">
+                <span className="mr-1 font-bold text-zinc-500 uppercase">
                   Забележка:
                 </span>
-                <span className="italic text-zinc-800 dark:text-zinc-200">
+                <span className="text-zinc-800 italic dark:text-zinc-200">
                   {note}
                 </span>
               </div>
             )}
 
-            <div className="mt-4 text-[7px] text-zinc-400 text-center border-t border-zinc-100 dark:border-zinc-800 pt-3">
+            <div className="mt-4 border-t border-zinc-100 pt-3 text-center text-[7px] text-zinc-400 dark:border-zinc-800">
               Документът е издаден съгласно чл. 7, ал. 1 от Закона за
               счетоводството.
             </div>
 
             <div className="mt-4 flex justify-between gap-12 text-zinc-500">
               <div className="flex-1">
-                <div className="h-px bg-zinc-300 dark:bg-zinc-800 w-full" />
-                <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+                <div className="h-px w-full bg-zinc-300 dark:bg-zinc-800" />
+                <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
                   Доставчик: {clubInfo.name}
                 </p>
               </div>
               <div className="flex-1">
-                <div className="h-px bg-zinc-300 dark:bg-zinc-800 w-full" />
-                <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+                <div className="h-px w-full bg-zinc-300 dark:bg-zinc-800" />
+                <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
                   Получател:{" "}
                   {selectedMember?.id === "GUEST_EXTERNAL"
                     ? "Външен клиент"
@@ -191,7 +191,7 @@ export const GeneralWizardStep3 = () => {
           </div>
         </div>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex justify-center gap-3">
           <Button
             onClick={() => {
               if (completedSaleId) {
@@ -201,9 +201,9 @@ export const GeneralWizardStep3 = () => {
                 );
               }
             }}
-            className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 h-11 px-6 text-xs font-semibold flex items-center gap-2"
+            className="flex h-11 items-center gap-2 rounded-xl bg-zinc-900 px-6 text-xs font-semibold text-white hover:bg-zinc-800"
           >
-            <Printer className="h-4 w-4" /> Отвори за печат (PDF)
+            <Printer className="size-4" /> Отвори за печат (PDF)
           </Button>
         </div>
       </div>
@@ -213,15 +213,15 @@ export const GeneralWizardStep3 = () => {
   // Review step (step === 3)
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <Sparkles className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <Sparkles className="size-4 text-emerald-500" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
           Преглед и потвърждение
         </h3>
       </div>
 
-      <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-3xl space-y-4 border border-zinc-100/50 dark:border-zinc-900">
-        <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+      <div className="space-y-4 rounded-3xl border border-zinc-100/50 bg-zinc-50 p-6 dark:border-zinc-900 dark:bg-zinc-900/40">
+        <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Клиент</span>
           <span className="font-bold text-zinc-900 dark:text-white">
             {selectedMember?.id === "GUEST_EXTERNAL"
@@ -229,45 +229,45 @@ export const GeneralWizardStep3 = () => {
               : `${selectedMember?.firstName} ${selectedMember?.lastName}`}
           </span>
         </div>
-        <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Услуга</span>
           <span className="font-bold text-zinc-900 dark:text-white">
             {service.name}
           </span>
         </div>
-        <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Количество x Цена</span>
           <span className="font-bold text-zinc-900 dark:text-white">
             {quantity} x {formatPrice(unitPrice)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Начин на плащане</span>
           <span className="font-bold text-zinc-900 dark:text-white">
             {paymentMethod}
           </span>
         </div>
-        <div className="flex justify-between items-center text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Статус</span>
           <span
-            className={`font-bold uppercase tracking-wider text-[10px] ${isPaid ? "text-emerald-600" : "text-rose-600"}`}
+            className={`text-[10px] font-bold tracking-wider uppercase ${isPaid ? "text-emerald-600" : "text-rose-600"}`}
           >
             {isPaid ? "Платено" : "Неплатено"}
           </span>
         </div>
         {note && (
-          <div className="flex flex-col gap-1 text-xs pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50">
+          <div className="flex flex-col gap-1 border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
             <span className="text-zinc-500">Допълнителна бележка</span>
-            <span className="font-medium text-zinc-900 dark:text-white italic">
+            <span className="font-medium text-zinc-900 italic dark:text-white">
               {note}
             </span>
           </div>
         )}
-        <div className="flex justify-between items-center pt-2">
+        <div className="flex items-center justify-between pt-2">
           <span className="text-sm font-semibold text-zinc-900 dark:text-white">
             Обща сума
           </span>
-          <span className="text-2xl font-bold text-emerald-500 tracking-tight">
+          <span className="text-2xl font-bold tracking-tight text-emerald-500">
             {formatPrice(totalAmount)}
           </span>
         </div>

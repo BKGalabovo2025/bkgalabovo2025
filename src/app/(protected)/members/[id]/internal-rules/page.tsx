@@ -18,28 +18,28 @@ const InternalRulesPage = () => {
   const fullName = formatFullName(member);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 bg-white min-h-screen">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 md:p-6">
       {/* Non-printable header */}
-      <div className="flex justify-between items-center mb-4 print:hidden">
+      <div className="mb-4 flex items-center justify-between print:hidden">
         <Button
           variant="outline"
           onClick={() => router.back()}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
         <Button
           onClick={() => window.print()}
-          className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+          className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
         >
-          <Printer className="mr-2 h-4 w-4" /> Принтирай
+          <Printer className="mr-2 size-4" /> Принтирай
         </Button>
       </div>
 
       {/* Printable Area */}
-      <div className="print-area text-slate-900 text-justify leading-[1.15] font-serif">
-        <div className="text-center mb-3">
-          <h1 className="text-base font-bold uppercase mb-0.5">
+      <div className="print-area leading-1.15 text-justify font-serif text-slate-900">
+        <div className="mb-3 text-center">
+          <h1 className="mb-0.5 text-base font-bold uppercase">
             ВЪТРЕШЕН ПРАВИЛНИК
           </h1>
           <p className="text-sm font-bold">
@@ -47,9 +47,9 @@ const InternalRulesPage = () => {
           </p>
         </div>
 
-        <div className="text-[8.8pt] space-y-1.5">
+        <div className="space-y-1.5 text-[8.8pt]">
           <section>
-            <h2 className="font-bold underline mb-0.5">I. Общи положения</h2>
+            <h2 className="mb-0.5 font-bold underline">I. Общи положения</h2>
             <div className="space-y-0.5">
               <p>
                 1. Настоящият правилник урежда членството, правата, задълженията
@@ -68,7 +68,7 @@ const InternalRulesPage = () => {
           </section>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               II. Членство и документи
             </h2>
             <div className="space-y-0.5">
@@ -89,7 +89,7 @@ const InternalRulesPage = () => {
           </section>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               III. Финансови условия (от 01.01.2026 г.)
             </h2>
             <div className="space-y-0.5">
@@ -116,7 +116,7 @@ const InternalRulesPage = () => {
           </section>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               IV. Тренировъчен процес
             </h2>
             <div className="space-y-0.5">
@@ -133,7 +133,7 @@ const InternalRulesPage = () => {
           </section>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               V. Права и задължения на трениращите
             </h2>
             <div className="space-y-0.5">
@@ -170,7 +170,7 @@ const InternalRulesPage = () => {
           </section>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               VI. Състезания и клубни дейности
             </h2>
             <div className="space-y-0.5">
@@ -204,9 +204,9 @@ const InternalRulesPage = () => {
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-x-6 items-start">
+          <div className="grid grid-cols-2 items-start gap-x-6">
             <section>
-              <h2 className="font-bold underline mb-0.5">
+              <h2 className="mb-0.5 font-bold underline">
                 VII. Етика и дисциплина
               </h2>
               <div className="space-y-0.5">
@@ -223,7 +223,7 @@ const InternalRulesPage = () => {
             </section>
 
             <section>
-              <h2 className="font-bold underline mb-0.5">VIII. Отговорности</h2>
+              <h2 className="mb-0.5 font-bold underline">VIII. Отговорности</h2>
               <div className="space-y-0.5">
                 <p>
                   18. Треньорът и клубът не носят отговорност при: Травми,
@@ -235,7 +235,7 @@ const InternalRulesPage = () => {
           </div>
 
           <section>
-            <h2 className="font-bold underline mb-0.5">
+            <h2 className="mb-0.5 font-bold underline">
               IX. Заключителни разпоредби
             </h2>
             <div className="space-y-0.5">
@@ -247,28 +247,28 @@ const InternalRulesPage = () => {
             </div>
           </section>
         </div>
-        <div className="mt-4 text-[9pt] border-t border-slate-200 pt-2">
+        <div className="mt-4 border-t border-slate-200 pt-2 text-[9pt]">
           <p className="mb-2">
             Дата:
             .........................................................................
             Място: спортна зала „Енергетик“ град Гълъбово
           </p>
-          <p className="font-bold mb-2">Подписват:</p>
+          <p className="mb-2 font-bold">Подписват:</p>
 
           <div className="space-y-2">
             <div className="flex items-baseline gap-2">
-              <span className="shrink-0 w-32">Родител/настойник:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-5"></span>
+              <span className="w-32 shrink-0">Родител/настойник:</span>
+              <span className="min-h-5 flex-1 border-b border-dotted border-slate-400"></span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="shrink-0 w-32">Състезател:</span>
-              <span className="border-b border-dotted border-slate-400 flex-1 min-h-5">
+              <span className="w-32 shrink-0">Състезател:</span>
+              <span className="min-h-5 flex-1 border-b border-dotted border-slate-400">
                 <strong>{fullName}</strong>
               </span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="shrink-0 w-32">Председател:</span>
-              <div className="flex-1 flex justify-between items-baseline border-b border-dotted border-slate-400">
+              <span className="w-32 shrink-0">Председател:</span>
+              <div className="flex flex-1 items-baseline justify-between border-b border-dotted border-slate-400">
                 <span>
                   Мира Петрова Георгиева
                   ....................................................

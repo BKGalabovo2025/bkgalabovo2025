@@ -93,15 +93,15 @@ export function EditPriceDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <p className="font-semibold text-lg">{price.name}</p>
+          <p className="text-lg font-semibold">{price.name}</p>
           <p className="text-sm text-muted-foreground">{price.description}</p>
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 items-center gap-4">
             <Label>Текуща цена:</Label>
-            <span className="font-bold text-lg">
+            <span className="text-lg font-bold">
               {formatPrice(price.value)}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-4 items-center">
+          <div className="grid grid-cols-2 items-center gap-4">
             <Label htmlFor="new-price">Нова цена (в {price.currency}):</Label>
             <Input
               id="new-price"
@@ -128,7 +128,7 @@ export function EditPriceDialog({
             </Button>
           </DialogClose>
           <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             Запази промяната
           </Button>
         </DialogFooter>

@@ -35,11 +35,11 @@ export function MonthlyScheduleStep1({
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-              <Tag className="h-3 w-3" /> Тип събитие
+            <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+              <Tag className="size-3" /> Тип събитие
             </FormLabel>
             <select
-              className="w-full h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light px-4"
+              className="h-12 w-full rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
               value={field.value || "training"}
               onChange={(e) => field.onChange(e.target.value)}
             >
@@ -49,7 +49,7 @@ export function MonthlyScheduleStep1({
               <option value="event">Събитие</option>
               <option value="other">Друго</option>
             </select>
-            <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+            <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}
       />
@@ -59,16 +59,16 @@ export function MonthlyScheduleStep1({
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-              <Type className="h-3 w-3" /> Име на събитието / Група
+            <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+              <Type className="size-3" /> Име на събитието / Група
             </FormLabel>
             <Input
               placeholder="напр. Тренировка - Група А"
-              className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
+              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
               onKeyDown={onKeyDown}
               {...field}
             />
-            <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+            <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}
       />
@@ -78,15 +78,15 @@ export function MonthlyScheduleStep1({
         name="location"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-              <MapPin className="h-3 w-3" /> Място / Корт
+            <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+              <MapPin className="size-3" /> Място / Корт
             </FormLabel>
             <Input
-              className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
+              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
               onKeyDown={onKeyDown}
               {...field}
             />
-            <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+            <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}
       />

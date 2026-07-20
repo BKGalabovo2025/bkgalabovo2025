@@ -147,7 +147,7 @@ export function EntryForm({
                     <SelectValue placeholder="Изберете дисциплина" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
+                <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
                   {allowedCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {getCategoryName(cat)}
@@ -160,7 +160,7 @@ export function EntryForm({
           )}
         />
 
-        <div className="flex items-center justify-between gap-4 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-2 dark:border-blue-800 dark:bg-blue-900/10">
           <div className="flex-1">
             <h4 className="text-sm font-semibold">Групово добавяне</h4>
             <p className="text-[10px] text-muted-foreground">
@@ -176,13 +176,13 @@ export function EntryForm({
         </div>
 
         {isBulkMode && !isDoubles ? (
-          <div className="border rounded-md p-4 space-y-4">
+          <div className="space-y-4 rounded-md border p-4">
             <FormLabel>Избери участници ({selectedMemberIds.length})</FormLabel>
-            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+            <div className="max-h-75 space-y-2 overflow-y-auto pr-2">
               {availableMembers.map((m) => (
                 <div
                   key={m.id}
-                  className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md transition-colors border border-transparent hover:border-border"
+                  className="flex items-center space-x-2 rounded-md border border-transparent p-2 transition-colors hover:border-border hover:bg-accent"
                 >
                   <Checkbox
                     id={`member-${m.id}`}
@@ -198,14 +198,14 @@ export function EntryForm({
                   />
                   <label
                     htmlFor={`member-${m.id}`}
-                    className="text-sm cursor-pointer flex-1"
+                    className="flex-1 cursor-pointer text-sm"
                   >
                     {m.firstName} {m.lastName}
                   </label>
                 </div>
               ))}
               {availableMembers.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="py-4 text-center text-sm text-muted-foreground">
                   Няма свободни членове за тази категория.
                 </p>
               )}
@@ -214,7 +214,7 @@ export function EntryForm({
         ) : (
           <div className="space-y-6">
             {/* Участник 1 */}
-            <div className="border p-4 rounded-md space-y-4">
+            <div className="space-y-4 rounded-md border p-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold">
                   {isDoubles ? "Играч 1" : "Състезател"}
@@ -227,7 +227,7 @@ export function EntryForm({
                   />
                   <label
                     htmlFor="p1guest"
-                    className="text-sm font-medium leading-none cursor-pointer"
+                    className="cursor-pointer text-sm leading-none font-medium"
                   >
                     Гост (Външен)
                   </label>
@@ -250,7 +250,7 @@ export function EntryForm({
                             <SelectValue placeholder="Търсене..." />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
+                        <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
                           {availableMembers.map((m) => (
                             <SelectItem key={m.id} value={m.id as string}>
                               {m.firstName} {m.lastName}
@@ -281,7 +281,7 @@ export function EntryForm({
 
             {/* Участник 2 (Само за двойки) */}
             {isDoubles && (
-              <div className="border p-4 rounded-md space-y-4 bg-muted/20">
+              <div className="space-y-4 rounded-md border bg-muted/20 p-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">Играч 2 (Партньор)</h4>
                   <div className="flex items-center space-x-2">
@@ -292,7 +292,7 @@ export function EntryForm({
                     />
                     <label
                       htmlFor="p2guest"
-                      className="text-sm font-medium leading-none cursor-pointer"
+                      className="cursor-pointer text-sm leading-none font-medium"
                     >
                       Гост (Външен)
                     </label>
@@ -315,7 +315,7 @@ export function EntryForm({
                               <SelectValue placeholder="Търсене..." />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 z-50 max-h-[300px] overflow-y-auto">
+                          <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
                             {availableMembers.map((m) => (
                               <SelectItem key={m.id} value={m.id as string}>
                                 {m.firstName} {m.lastName}
@@ -354,10 +354,10 @@ export function EntryForm({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            <X className="mr-2 h-4 w-4" /> Отказ
+            <X className="mr-2 size-4" /> Отказ
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="mr-2 size-4" />
             Запиши участник
           </Button>
         </div>

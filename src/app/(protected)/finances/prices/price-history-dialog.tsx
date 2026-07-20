@@ -54,8 +54,8 @@ export function PriceHistoryDialog({
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center h-40">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex h-40 items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       );
     }
@@ -72,8 +72,8 @@ export function PriceHistoryDialog({
       <ScrollArea className="h-80 pr-4">
         <div className="space-y-4">
           {history.map((entry) => (
-            <div key={entry.id} className="p-3 border rounded-lg">
-              <div className="flex justify-between items-start">
+            <div key={entry.id} className="rounded-lg border p-3">
+              <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
                     {new Date(entry.timestamp).toLocaleString("bg-BG")}
@@ -86,14 +86,14 @@ export function PriceHistoryDialog({
                   <span className="text-red-600">
                     {formatPrice(entry.oldValue)}
                   </span>
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="size-5" />
                   <span className="text-green-600">
                     {formatPrice(entry.newValue)}
                   </span>
                 </div>
               </div>
               {entry.notes && (
-                <p className="mt-2 text-sm bg-gray-100 p-2 rounded">
+                <p className="mt-2 rounded bg-gray-100 p-2 text-sm">
                   <b>Бележка:</b> {entry.notes}
                 </p>
               )}

@@ -59,7 +59,7 @@ export function SharedSalesHistory({
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const router = useRouter();
 
-  const getClientName = (sale: any) => {
+  const getClientName = (sale: Sale) => {
     if (sale.clientName) return sale.clientName;
     if (sale.memberId === "GUEST_EXTERNAL") return "Гост";
     return membersMap[sale.memberId] || "Гост";
@@ -76,11 +76,11 @@ export function SharedSalesHistory({
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-4">
+      <div className="space-y-4 p-8">
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-16 rounded-xl bg-zinc-100 dark:bg-zinc-900 animate-pulse"
+            className="h-16 animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900"
           />
         ))}
       </div>
@@ -88,39 +88,39 @@ export function SharedSalesHistory({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-900 shadow-none overflow-hidden">
-      <div className="p-6 md:p-8 border-b border-zinc-100 dark:border-zinc-900">
-        <h2 className="text-xl font-light text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-none dark:border-zinc-900 dark:bg-zinc-950">
+      <div className="border-b border-zinc-100 p-6 md:p-8 dark:border-zinc-900">
+        <h2 className="flex items-center gap-2 text-xl font-light text-zinc-900 dark:text-zinc-50">
           {icon}
           {title}
         </h2>
-        <p className="text-xs text-zinc-500 mt-1 font-light">{description}</p>
+        <p className="mt-1 text-xs font-light text-zinc-500">{description}</p>
       </div>
 
       {/* Desktop View */}
-      <div className="flex-1 overflow-auto custom-scrollbar hidden md:block">
+      <div className="custom-scrollbar hidden flex-1 overflow-auto md:block">
         {sales.length > 0 ? (
           <Table>
-            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50 sticky top-0 backdrop-blur-sm">
-              <TableRow className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+            <TableHeader className="sticky top-0 bg-zinc-50/50 backdrop-blur-sm dark:bg-zinc-900/50">
+              <TableRow className="border-b border-zinc-100 hover:bg-transparent dark:border-zinc-800">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Дата
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Клиент
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Артикули / Услуги
                 </TableHead>
                 {showPaymentMethod && (
-                  <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+                  <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                     Плащане
                   </TableHead>
                 )}
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5">
+                <TableHead className="py-5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Сума
                 </TableHead>
-                <TableHead className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold py-5 text-right">
+                <TableHead className="py-5 text-right text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                   Статус
                 </TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -130,11 +130,11 @@ export function SharedSalesHistory({
               {sales.map((sale) => (
                 <TableRow
                   key={sale.id}
-                  className="border-b border-zinc-50 dark:border-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                  className="border-b border-zinc-50 transition-colors hover:bg-zinc-50 dark:border-zinc-900 dark:hover:bg-zinc-900/50"
                 >
                   <TableCell className="py-4">
                     <div className="flex flex-col">
-                      <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {format(new Date(sale.saleDate), "dd MMM yyyy", {
                           locale: bg,
                         })}
@@ -159,7 +159,7 @@ export function SharedSalesHistory({
                           >
                             {item.name || "Услуга"}{" "}
                             {item.quantity > 1 ? (
-                              <span className="text-xs text-zinc-400 font-normal">
+                              <span className="text-xs font-normal text-zinc-400">
                                 x{item.quantity}
                               </span>
                             ) : null}
@@ -188,70 +188,70 @@ export function SharedSalesHistory({
                     {sale.isPaid ? (
                       <Badge
                         variant="outline"
-                        className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20"
+                        className="border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-500"
                       >
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        <CheckCircle2 className="mr-1 size-3" />
                         Платено
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20"
+                        className="border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500"
                       >
                         Неплатено
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="py-4 text-right pr-6">
+                  <TableCell className="py-4 pr-6 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                           disabled={isDeleting === sale.id}
                         >
                           {isDeleting === sale.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin" />
                           ) : (
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className="size-4" />
                           )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="w-[160px] rounded-xl"
+                        className="w-40 rounded-xl"
                       >
                         <DropdownMenuItem
                           onClick={() =>
                             router.push(`${baseRoute}/${sale.id}/receipt`)
                           }
-                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                         >
-                          <Receipt className="h-3.5 w-3.5 text-zinc-500" />
+                          <Receipt className="size-3.5 text-zinc-500" />
                           Касова бележка
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => router.push(`${baseRoute}/${sale.id}`)}
-                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                         >
-                          <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                          <Eye className="size-3.5 text-zinc-500" />
                           Детайли
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
                             router.push(`${baseRoute}/${sale.id}/edit`)
                           }
-                          className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                         >
-                          <Edit2 className="h-3.5 w-3.5 text-zinc-500" />
+                          <Edit2 className="size-3.5 text-zinc-500" />
                           Редактирай
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(sale.id)}
-                          className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="size-3.5" />
                           Изтрий
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -262,14 +262,14 @@ export function SharedSalesHistory({
             </TableBody>
           </Table>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div className="h-20 w-20 bg-zinc-50 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-4">
-              <Receipt className="h-8 w-8 text-zinc-400" />
+          <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
+            <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-zinc-50 dark:bg-zinc-900">
+              <Receipt className="size-8 text-zinc-400" />
             </div>
-            <h3 className="text-zinc-900 dark:text-zinc-100 font-medium text-lg">
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
               Няма намерени продажби
             </h3>
-            <p className="text-zinc-500 text-sm mt-1 max-w-sm">
+            <p className="mt-1 max-w-sm text-sm text-zinc-500">
               Все още няма регистрирани продажби в тази категория.
             </p>
           </div>
@@ -277,18 +277,18 @@ export function SharedSalesHistory({
       </div>
 
       {/* Mobile View */}
-      <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+      <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
         {sales.map((sale) => (
           <div
             key={sale.id}
-            className="p-4 flex flex-col gap-3 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+            className="flex flex-col gap-3 p-4 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {getClientName(sale)}
                 </div>
-                <div className="text-xs text-zinc-500 mt-1">
+                <div className="mt-1 text-xs text-zinc-500">
                   {format(new Date(sale.saleDate), "dd MMM yyyy, HH:mm", {
                     locale: bg,
                   })}
@@ -300,47 +300,47 @@ export function SharedSalesHistory({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                       disabled={isDeleting === sale.id}
                     >
                       {isDeleting === sale.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="size-4" />
                       )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[160px] rounded-xl">
+                  <DropdownMenuContent align="end" className="w-40 rounded-xl">
                     <DropdownMenuItem
                       onClick={() =>
                         router.push(`${baseRoute}/${sale.id}/receipt`)
                       }
-                      className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                     >
-                      <Receipt className="h-3.5 w-3.5 text-zinc-500" />
+                      <Receipt className="size-3.5 text-zinc-500" />
                       Касова бележка
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => router.push(`${baseRoute}/${sale.id}`)}
-                      className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                     >
-                      <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                      <Eye className="size-3.5 text-zinc-500" />
                       Детайли
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
                         router.push(`${baseRoute}/${sale.id}/edit`)
                       }
-                      className="flex items-center gap-2 text-xs font-medium cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 text-xs font-medium"
                     >
-                      <Edit2 className="h-3.5 w-3.5 text-zinc-500" />
+                      <Edit2 className="size-3.5 text-zinc-500" />
                       Редактирай
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDelete(sale.id)}
-                      className="flex items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/30 focus:text-rose-600 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="size-3.5" />
                       Изтрий
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -368,17 +368,17 @@ export function SharedSalesHistory({
                 </span>
               )}
             </div>
-            <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="mt-2 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
               <Badge
-                className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border shadow-none ${
+                className={`rounded border px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase shadow-none ${
                   sale.isPaid
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30"
-                    : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30"
+                    ? "border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400"
+                    : "border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-400"
                 }`}
               >
                 {sale.isPaid ? "Платено" : "Неплатено"}
               </Badge>
-              <div className="text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg text-xs">
+              <div className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:bg-emerald-900/30">
                 {formatPrice(sale.totalAmount)}
               </div>
             </div>

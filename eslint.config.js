@@ -37,6 +37,15 @@ export default tseslint.config(
       tailwindcss: {
         config: "tailwind.config.ts",
         cssFiles: ["src/app/globals.css"],
+        callees: ["cn", "cva", "clsx"],
+        whitelist: [
+          "custom-scrollbar", "no-print", "no-print-visible", "printable-area", "print-area",
+          "receipt-container", "lucide.*", "scale-.*", "leading-.*", "tracking-.*", "text-md", 
+          "font-bento", "inputs", "divider", "has-data-.*", "active:.*", "hover:.*"
+        ]
+      },
+      react: {
+        version: "19.2.6",
       },
     },
     rules: {
@@ -66,11 +75,6 @@ export default tseslint.config(
       "react-hooks/immutability": "off",
       "sonarjs/pseudo-random": "off",
       "sonarjs/no-nested-functions": "off",
-    },
-    settings: {
-      react: {
-        version: "19.2.6",
-      },
     },
   }
 );

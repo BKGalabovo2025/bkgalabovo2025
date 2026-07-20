@@ -80,12 +80,12 @@ export const EditTrainingDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl rounded-4xl p-6 sm:p-8 bg-white dark:bg-zinc-950 border-none shadow-xl max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="custom-scrollbar max-h-[85vh] max-w-5xl overflow-y-auto rounded-4xl border-none bg-white p-6 shadow-xl sm:p-8 dark:bg-zinc-950">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
             Редактиране на тренировка
           </DialogTitle>
-          <DialogDescription className="font-light text-zinc-400 mt-1">
+          <DialogDescription className="mt-1 font-light text-zinc-400">
             Промяна на детайлите за &quot;{service.name}&quot;
           </DialogDescription>
         </DialogHeader>

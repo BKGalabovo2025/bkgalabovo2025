@@ -12,8 +12,8 @@ export const RecoveryWizardStep3 = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <CreditCard className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <CreditCard className="size-4 text-emerald-500" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
           Детайли на плащането
         </h3>
@@ -31,7 +31,7 @@ export const RecoveryWizardStep3 = () => {
             step="0.01"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="rounded-xl h-11 border-zinc-200"
+            className="h-11 rounded-xl border-zinc-200"
           />
         </div>
 
@@ -49,13 +49,13 @@ export const RecoveryWizardStep3 = () => {
                 type="button"
                 onClick={() => setPaymentMethod(method.value)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-medium transition-all",
+                  "flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all",
                   paymentMethod === method.value
-                    ? "bg-zinc-950 text-white border-zinc-950 dark:bg-white dark:text-zinc-950"
-                    : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800"
+                    ? "border-zinc-950 bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 )}
               >
-                <method.icon className="h-4 w-4" strokeWidth={1.5} />
+                <method.icon className="size-4" strokeWidth={1.5} />
                 {method.label}
               </button>
             ))}
@@ -71,26 +71,26 @@ export const RecoveryWizardStep3 = () => {
               type="button"
               onClick={() => setIsPaid(true)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all",
                 isPaid
-                  ? "bg-emerald-500 text-white border-emerald-500"
-                  : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800"
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
               )}
             >
-              <Check className="h-4 w-4" strokeWidth={2} />
+              <Check className="size-4" strokeWidth={2} />
               Платено
             </button>
             <button
               type="button"
               onClick={() => setIsPaid(false)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all",
                 !isPaid
-                  ? "bg-rose-500 text-white border-rose-500"
-                  : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800"
+                  ? "border-rose-500 bg-rose-500 text-white"
+                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
               )}
             >
-              <AlertCircle className="h-4 w-4" strokeWidth={2} />
+              <AlertCircle className="size-4" strokeWidth={2} />
               Неплатено (Дълг)
             </button>
           </div>
@@ -105,7 +105,7 @@ export const RecoveryWizardStep3 = () => {
             placeholder="Добавете коментар..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="rounded-xl border-zinc-200 dark:border-zinc-800 resize-none"
+            className="resize-none rounded-xl border-zinc-200 dark:border-zinc-800"
             rows={3}
           />
         </div>

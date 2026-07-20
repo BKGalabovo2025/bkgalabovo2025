@@ -346,7 +346,7 @@ export default function MarketingClient() {
 
   if (membersLoading) {
     return (
-      <div className="flex items-center justify-center h-40">
+      <div className="flex h-40 items-center justify-center">
         <Loader2 className="animate-spin text-zinc-500" />
       </div>
     );
@@ -358,40 +358,40 @@ export default function MarketingClient() {
         <TabsList className="mb-6 inline-flex h-11 w-full max-w-sm rounded-xl bg-muted p-1">
           <TabsTrigger
             value="send"
-            className="rounded-lg flex-1 data-[state=active]:bg-background data-[state=active]:text-foreground text-xs tracking-wider uppercase font-semibold"
+            className="flex-1 rounded-lg text-xs font-semibold tracking-wider uppercase data-[state=active]:bg-background data-[state=active]:text-foreground"
           >
-            <Target className="w-4 h-4 mr-2" /> Изпращане
+            <Target className="mr-2 size-4" /> Изпращане
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="rounded-lg flex-1 data-[state=active]:bg-background data-[state=active]:text-foreground text-xs tracking-wider uppercase font-semibold"
+            className="flex-1 rounded-lg text-xs font-semibold tracking-wider uppercase data-[state=active]:bg-background data-[state=active]:text-foreground"
           >
-            <List className="w-4 h-4 mr-2" /> История
+            <List className="mr-2 size-4" /> История
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="send" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card className="rounded-3xl border-border/50 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  <MessageCircle className="text-primary w-5 h-5" /> Създаване на съобщение
+                <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                  <MessageCircle className="size-5 text-primary" /> Създаване на съобщение
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
 
-                <div className="flex bg-muted p-1 rounded-xl w-fit">
+                <div className="flex w-fit rounded-xl bg-muted p-1">
                    <button 
                      onClick={() => setChannel("whatsapp")}
-                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${channel === 'whatsapp' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === 'whatsapp' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                    >
-                     <Phone className="w-4 h-4 text-emerald-500" /> WhatsApp
+                     <Phone className="size-4 text-emerald-500" /> WhatsApp
                    </button>
                    <button 
                      onClick={() => setChannel("email")}
-                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${channel === 'email' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === 'email' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                    >
-                     <Mail className="w-4 h-4 text-primary" /> Имейл
+                     <Mail className="size-4 text-primary" /> Имейл
                    </button>
                 </div>
                 
@@ -402,22 +402,22 @@ export default function MarketingClient() {
                       value={emailSubject}
                       onChange={(e) => setEmailSubject(e.target.value)}
                       disabled={!!systemTemplate}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary h-12 rounded-xl text-sm"
+                      className="h-12 rounded-xl border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
                     />
                     {systemTemplate && (
-                      <p className="text-xs text-muted-foreground ml-2">Темата е автоматична за системни съобщения.</p>
+                      <p className="ml-2 text-xs text-muted-foreground">Темата е автоматична за системни съобщения.</p>
                     )}
                   </div>
                 )}
 
               <div className="space-y-6">
-                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 p-4 rounded-xl flex gap-3 items-start">
-                  <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg text-blue-600 dark:text-blue-400 mt-0.5">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
+                  <div className="mt-0.5 rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
+                    <AlertCircle className="size-4" />
                   </div>
-                  <p className="text-sm text-blue-900 dark:text-blue-100 leading-relaxed">
+                  <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-100">
                     Използвайте{" "}
-                    <code className="bg-white dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded font-semibold text-blue-700 dark:text-blue-300">
+                    <code className="rounded border border-blue-200 bg-white px-1.5 py-0.5 font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
                       {"{ИМЕ}"}
                     </code>{" "}
                     където искате системата автоматично да постави малкото име на получателя.
@@ -437,7 +437,7 @@ export default function MarketingClient() {
                         setEmailSubject("");
                         setSystemTemplate(null);
                       }}
-                      className="text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 h-8 text-xs"
+                      className="h-8 text-xs text-muted-foreground hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/30"
                     >
                       Изчисти полетата
                     </Button>
@@ -472,12 +472,12 @@ export default function MarketingClient() {
                       }
                     }}
                   >
-                    <SelectTrigger className="bg-background border-border text-foreground focus:ring-primary w-full h-11 rounded-xl">
+                    <SelectTrigger className="h-11 w-full rounded-xl border-border bg-background text-foreground focus:ring-primary">
                       <SelectValue placeholder="Изберете готов шаблон за зареждане..." />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent className="max-h-75">
                       <SelectGroup>
-                        <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Системни Известия</SelectLabel>
+                        <SelectLabel className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Системни Известия</SelectLabel>
                         <SelectItem value="reservationConfirmation:">Потвърждение за резервация</SelectItem>
                         <SelectItem value="reminder:">Напомняне за плащане</SelectItem>
                         <SelectItem value="deactivated:">Известие за неактивен профил</SelectItem>
@@ -485,7 +485,7 @@ export default function MarketingClient() {
                       
                       {events.filter(e => e.type === "training").length > 0 && (
                         <SelectGroup>
-                          <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-2">Тренировки</SelectLabel>
+                          <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Тренировки</SelectLabel>
                           {events.filter(e => e.type === "training").map((ev) => (
                             <SelectItem key={`training:${ev.id}`} value={`training:${ev.id}`}>
                               {ev.title} ({format(new Date(ev.startDate), "dd.MM", { locale: bg })})
@@ -496,7 +496,7 @@ export default function MarketingClient() {
 
                       {(events.filter(e => e.type === "competition").length > 0 || tournaments.length > 0) && (
                         <SelectGroup>
-                          <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-2">Състезания и Турнири</SelectLabel>
+                          <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Състезания и Турнири</SelectLabel>
                           {events.filter(e => e.type === "competition").map((c) => (
                             <SelectItem key={`competition:${c.id}`} value={`competition:${c.id}`}>
                               {c.title} ({format(new Date(c.startDate), "dd.MM", { locale: bg })})
@@ -511,7 +511,7 @@ export default function MarketingClient() {
                       )}
 
                       <SelectGroup>
-                        <SelectLabel className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-2">Други</SelectLabel>
+                        <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Други</SelectLabel>
                         <SelectItem value="recovery:">Отстъпка за възстановяване</SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -520,21 +520,21 @@ export default function MarketingClient() {
 
                 <div className="space-y-4">
                   {systemTemplate === "reservationConfirmation" && channel === "email" ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-xl border border-border">
+                    <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 md:grid-cols-2">
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Дата</label>
+                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Дата</label>
                         <Input type="date" value={resDate} onChange={e => setResDate(e.target.value)} className="bg-background" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Корт / Процедура</label>
+                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Корт / Процедура</label>
                         <Input value={resLocation} onChange={e => setResLocation(e.target.value)} placeholder="напр. Корт 1" className="bg-background" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Начален час</label>
+                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Начален час</label>
                         <Input type="time" value={resStartTime} onChange={e => setResStartTime(e.target.value)} className="bg-background" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Краен час</label>
+                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Краен час</label>
                         <Input type="time" value={resEndTime} onChange={e => setResEndTime(e.target.value)} className="bg-background" />
                       </div>
                     </div>
@@ -546,13 +546,13 @@ export default function MarketingClient() {
                     onChange={(e) => setMessageTemplate(e.target.value)}
                     placeholder="Въведете вашия текст тук... Здравей, {ИМЕ}!"
                     disabled={!!systemTemplate && channel === "email"}
-                    className="min-h-[200px] bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary resize-y rounded-xl p-4 text-sm"
+                    className="min-h-50 resize-y rounded-xl border-border bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
                   />
                   {systemTemplate && channel === "email" && (
-                    <p className="text-xs text-rose-500 ml-2">Това поле е заключено, защото системният шаблон за имейл има вграден дизайн.</p>
+                    <p className="ml-2 text-xs text-rose-500">Това поле е заключено, защото системният шаблон за имейл има вграден дизайн.</p>
                   )}
                   {systemTemplate && channel === "whatsapp" && (
-                     <p className="text-xs text-primary ml-2">Текстът на системното съобщение е зареден за изпращане по WhatsApp.</p>
+                     <p className="ml-2 text-xs text-primary">Текстът на системното съобщение е зареден за изпращане по WhatsApp.</p>
                   )}
                   </div>
                 </div>
@@ -561,11 +561,11 @@ export default function MarketingClient() {
             </Card>
 
             {/* Right: Select Members */}
-            <Card className="rounded-3xl border-border/50 shadow-sm flex flex-col h-[600px]">
+            <Card className="flex h-150 flex-col rounded-3xl border-border/50 shadow-sm">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-bold flex items-center gap-2">
-                    <Target className="text-primary w-5 h-5" /> Избор на получатели
+                  <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                    <Target className="size-5 text-primary" /> Избор на получатели
                   </CardTitle>
                   <Badge
                     variant="secondary"
@@ -575,32 +575,32 @@ export default function MarketingClient() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden flex flex-col p-0 px-6 pb-6">
+              <CardContent className="flex flex-1 flex-col overflow-hidden p-0 px-6 pb-6">
                 <div className="relative mb-4 shrink-0">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Търсене по име или телефон..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 bg-background border-border"
+                    className="border-border bg-background pl-9"
                   />
                 </div>
 
-                <div className="flex items-center gap-3 px-2 py-3 border-b border-border shrink-0">
+                <div className="flex shrink-0 items-center gap-3 border-b border-border px-2 py-3">
                   <button
                     onClick={toggleAll}
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="text-muted-foreground transition-colors hover:text-primary"
                   >
                     <CheckSquare size={18} />
                   </button>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     {channel === "whatsapp" ? "Име и телефон" : "Име и имейл"}
                   </span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto min-h-0 py-2 space-y-1 pr-2">
+                <div className="min-h-0 flex-1 space-y-1 overflow-y-auto py-2 pr-2">
                   {filteredMembers.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground text-sm">
+                    <div className="py-10 text-center text-sm text-muted-foreground">
                       Няма намерени членове.
                     </div>
                   ) : (
@@ -627,13 +627,13 @@ export default function MarketingClient() {
                       return (
                       <div
                         key={member.id}
-                        className={`flex items-center justify-between p-3 rounded-xl transition-all ${itemClass}`}
+                        className={`flex items-center justify-between rounded-xl p-3 transition-all ${itemClass}`}
                       >
                         <div className="flex items-center gap-3">
                           <button
                             disabled={!canSend}
                             onClick={() => canSend && toggleMember(member.id)}
-                            className={`transition-colors shrink-0 ${canSend ? "text-muted-foreground hover:text-primary cursor-pointer" : "text-muted-foreground/30 cursor-not-allowed"}`}
+                            className={`shrink-0 transition-colors ${canSend ? "cursor-pointer text-muted-foreground hover:text-primary" : "cursor-not-allowed text-muted-foreground/30"}`}
                           >
                             {selectedIds.has(member.id) && canSend ? (
                               <CheckSquare size={18} className="text-primary" />
@@ -642,15 +642,15 @@ export default function MarketingClient() {
                             )}
                           </button>
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                               {member.name}
                               {!canSend && (
-                                <Badge variant="outline" className="text-[10px] py-0 h-4 border-rose-500/30 text-rose-500 bg-rose-500/10 font-medium">
+                                <Badge variant="outline" className="h-4 border-rose-500/30 bg-rose-500/10 py-0 text-[10px] font-medium text-rose-500">
                                   {reason}
                                 </Badge>
                               )}
                             </span>
-                            <span className="text-xs text-muted-foreground font-mono">
+                            <span className="font-mono text-xs text-muted-foreground">
                               {contactInfo || "-"}
                             </span>
                           </div>
@@ -663,12 +663,12 @@ export default function MarketingClient() {
                               !messageTemplate.trim() || sendingId === member.id || (channel === "email" && !emailSubject.trim())
                             }
                             onClick={() => handleSendToMember(member.id)}
-                            className="h-8 gap-1.5 shrink-0"
+                            className="h-8 shrink-0 gap-1.5"
                           >
                             {sendingId === member.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <Loader2 className="size-3.5 animate-spin" />
                             ) : (
-                              <Send className="w-3.5 h-3.5" />
+                              <Send className="size-3.5" />
                             )}
                             Изпрати
                           </Button>
@@ -683,16 +683,16 @@ export default function MarketingClient() {
         </TabsContent>
 
         <TabsContent value="history">
-          <Card className="rounded-3xl border-border/50 shadow-sm min-h-[600px]">
+          <Card className="min-h-150 rounded-3xl border-border/50 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl font-bold flex items-center gap-2">
-                <List className="text-primary w-5 h-5" /> История на съобщенията
+              <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                <List className="size-5 text-primary" /> История на съобщенията
               </CardTitle>
             </CardHeader>
             <CardContent>
               {history.length === 0 ? (
-                <div className="text-center py-20 text-muted-foreground">
-                  <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <div className="py-20 text-center text-muted-foreground">
+                  <AlertCircle className="mx-auto mb-4 size-12 opacity-20" />
                   Все още няма изпратени съобщения от тази система.
                 </div>
               ) : (
@@ -700,23 +700,23 @@ export default function MarketingClient() {
                   {history.map((log) => (
                     <div
                       key={log.id}
-                      className="bg-background border border-border rounded-xl p-5 flex flex-col sm:flex-row gap-5"
+                      className="flex flex-col gap-5 rounded-xl border border-border bg-background p-5 sm:flex-row"
                     >
-                      <div className="sm:w-1/4 shrink-0 border-r border-border pr-4">
-                        <div className="text-sm font-bold text-foreground mb-1">
+                      <div className="shrink-0 border-r border-border pr-4 sm:w-1/4">
+                        <div className="mb-1 text-sm font-bold text-foreground">
                           {log.recipientName}
                         </div>
-                        <div className="text-xs font-mono text-muted-foreground mb-3">
+                        <div className="mb-3 font-mono text-xs text-muted-foreground">
                           {log.recipientPhone}
                         </div>
-                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        <div className="text-[10px] tracking-wider text-muted-foreground uppercase">
                           {format(new Date(log.sentAt), "dd MMM yyyy, HH:mm", {
                             locale: bg,
                           })}
                         </div>
                       </div>
                       <div className="sm:w-3/4">
-                        <div className="bg-muted/50 text-foreground text-sm p-4 rounded-lg whitespace-pre-wrap border border-border/50">
+                        <div className="rounded-lg border border-border/50 bg-muted/50 p-4 text-sm whitespace-pre-wrap text-foreground">
                           {log.messageText}
                         </div>
                       </div>

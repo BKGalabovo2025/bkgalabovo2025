@@ -127,18 +127,18 @@ export function ReservationHistoryTableRow({
   const displayPrice = res.totalPrice ?? res.price ?? 0;
 
   return (
-    <TableRow className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 border-zinc-50 dark:border-zinc-900 transition-colors">
+    <TableRow className="border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-900 dark:hover:bg-zinc-900/50">
       <TableCell className="py-4">
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-zinc-900 dark:text-zinc-100">
             {format(startTime, "dd MMM yyyy", { locale: bg })}
           </span>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+            <Clock className="size-3" />
             {format(startTime, "HH:mm")} - {format(endTime, "HH:mm")}
           </div>
           {res.bufferAfter ? (
-            <div className="text-[9px] text-amber-500/80 font-bold tracking-tight">
+            <div className="text-[9px] font-bold tracking-tight text-amber-500/80">
               + {res.bufferAfter} мин. почистване
             </div>
           ) : null}
@@ -146,10 +146,10 @@ export function ReservationHistoryTableRow({
       </TableCell>
       <TableCell>
         <div className="flex flex-col gap-0.5">
-          <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+          <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
             {getReservationTitle(res)}
           </span>
-          <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-tight">
+          <span className="text-[10px] font-medium tracking-tight text-zinc-400 uppercase">
             {res.client2Phone
               ? `${res.clientPhone} / ${res.client2Phone}`
               : res.clientPhone}
@@ -160,17 +160,17 @@ export function ReservationHistoryTableRow({
         {res.courtId ? (
           <Badge
             variant="outline"
-            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5 whitespace-nowrap"
+            className="gap-1.5 rounded-lg border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-bold whitespace-nowrap dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <MapPin className="h-3 w-3 text-primary" />
+            <MapPin className="size-3 text-primary" />
             Корт {res.courtId}
           </Badge>
         ) : (
           <Badge
             variant="outline"
-            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
+            className="gap-1.5 rounded-lg border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-bold dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <Activity className="h-3 w-3 text-emerald-500" />
+            <Activity className="size-3 text-emerald-500" />
             {(() => {
               const svcName =
                 res.serviceName ||
@@ -182,7 +182,7 @@ export function ReservationHistoryTableRow({
       </TableCell>
       <TableCell>
         <Badge
-          className={`rounded-lg font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 border-none shadow-none ${getStatusStyles(
+          className={`rounded-lg border-none px-2.5 py-1 text-[9px] font-bold tracking-widest uppercase shadow-none ${getStatusStyles(
             res.status
           )}`}
         >
@@ -195,7 +195,7 @@ export function ReservationHistoryTableRow({
             в пакета
           </span>
         ) : (
-          <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+          <span className="flex items-center gap-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
             {displayPrice}
             <span className="text-[10px] text-zinc-400">
               {res.currency || "EUR"}
@@ -205,10 +205,10 @@ export function ReservationHistoryTableRow({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="h-3 w-3 text-primary" />
+          <div className="flex size-6 items-center justify-center rounded-full bg-primary/10">
+            <User className="size-3 text-primary" />
           </div>
-          <span className="text-xs font-medium text-zinc-500 truncate max-w-[120px]">
+          <span className="max-w-30 truncate text-xs font-medium text-zinc-500">
             {res.createdBy?.userName || res.teamMemberName || "Система"}
           </span>
         </div>
@@ -219,11 +219,11 @@ export function ReservationHistoryTableRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+              className="size-8 rounded-lg text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
               onClick={() => handleMarkAsPaid(res.id)}
               title="Маркирай като платено"
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="size-4" />
             </Button>
           )}
 
@@ -232,10 +232,10 @@ export function ReservationHistoryTableRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
                 title="Издай документ"
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="size-4" />
               </Button>
             </DonationReceiptDialog>
           )}
@@ -245,10 +245,10 @@ export function ReservationHistoryTableRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
                 title="Декларация"
               >
-                <PenTool className="w-4 h-4" />
+                <PenTool className="size-4" />
               </Button>
             </DeclarationSignDialog>
           )}
@@ -267,31 +267,31 @@ export function ReservationHistoryTableRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+              className="size-8 rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
               title="Редактирай"
             >
-              <Pencil className="w-4 h-4 text-zinc-400" />
+              <Pencil className="size-4 text-zinc-400" />
             </Button>
           </ReservationDialog>
 
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+            className="size-8 rounded-lg transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
             onClick={() => handleDeleteReservation(res.id)}
             title="Изтрий"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="size-4" />
           </Button>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onViewInCalendar(startTime)}
-            className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white transition-all group"
+            className="group size-8 rounded-lg transition-all hover:bg-primary hover:text-white"
             title="Виж в календара"
           >
-            <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <Eye className="size-4 transition-transform group-hover:scale-110" />
           </Button>
         </div>
       </TableCell>
@@ -313,19 +313,19 @@ export function ReservationHistoryMobileCard({
   const displayPrice = res.totalPrice ?? res.price ?? 0;
 
   return (
-    <div className="bg-white dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex flex-col gap-4 shadow-sm">
-      <div className="flex justify-between items-start gap-2">
+    <div className="flex flex-col gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1">
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {format(startTime, "dd MMM yyyy", { locale: bg })}
           </span>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+            <Clock className="size-3" />
             {format(startTime, "HH:mm")} - {format(endTime, "HH:mm")}
           </div>
         </div>
         <Badge
-          className={`rounded-lg font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 border-none shadow-none ${getStatusStyles(
+          className={`rounded-lg border-none px-2.5 py-1 text-[9px] font-bold tracking-widest uppercase shadow-none ${getStatusStyles(
             res.status
           )}`}
         >
@@ -334,7 +334,7 @@ export function ReservationHistoryMobileCard({
       </div>
 
       <div className="flex flex-col gap-0.5">
-        <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
           {getReservationTitle(res)}
         </span>
         <span className="text-xs font-medium text-zinc-500">
@@ -348,17 +348,17 @@ export function ReservationHistoryMobileCard({
         {res.courtId ? (
           <Badge
             variant="outline"
-            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
+            className="gap-1.5 rounded-lg border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-bold dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <MapPin className="h-3 w-3 text-primary" />
+            <MapPin className="size-3 text-primary" />
             Корт {res.courtId}
           </Badge>
         ) : (
           <Badge
             variant="outline"
-            className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-bold text-[10px] gap-1.5 py-1 px-2.5"
+            className="gap-1.5 rounded-lg border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[10px] font-bold dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <Activity className="h-3 w-3 text-emerald-500" />
+            <Activity className="size-3 text-emerald-500" />
             {res.serviceName ||
               services.find((s) => s.id === res.serviceId)?.name ||
               "Услуга"}
@@ -370,7 +370,7 @@ export function ReservationHistoryMobileCard({
             в пакета
           </span>
         ) : (
-          <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
+          <span className="flex items-center gap-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
             {displayPrice}
             <span className="text-[10px] text-zinc-400">
               {res.currency || "EUR"}
@@ -379,12 +379,12 @@ export function ReservationHistoryMobileCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="h-3 w-3 text-primary" />
+          <div className="flex size-6 items-center justify-center rounded-full bg-primary/10">
+            <User className="size-3 text-primary" />
           </div>
-          <span className="text-xs font-medium text-zinc-500 truncate max-w-[120px]">
+          <span className="max-w-30 truncate text-xs font-medium text-zinc-500">
             {res.createdBy?.userName || res.teamMemberName || "Система"}
           </span>
         </div>
@@ -394,10 +394,10 @@ export function ReservationHistoryMobileCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+              className="size-8 rounded-lg text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
               onClick={() => handleMarkAsPaid(res.id)}
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle2 className="size-4" />
             </Button>
           )}
 
@@ -406,9 +406,9 @@ export function ReservationHistoryMobileCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+                className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="size-4" />
               </Button>
             </DonationReceiptDialog>
           )}
@@ -421,29 +421,29 @@ export function ReservationHistoryMobileCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+              className="size-8 rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
-              <Pencil className="w-4 h-4 text-zinc-400" />
+              <Pencil className="size-4 text-zinc-400" />
             </Button>
           </ReservationDialog>
 
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+            className="size-8 rounded-lg transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
             onClick={() => handleDeleteReservation(res.id)}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="size-4" />
           </Button>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onViewInCalendar(startTime)}
-            className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white transition-all group"
+            className="group size-8 rounded-lg transition-all hover:bg-primary hover:text-white"
             title="Виж в календара"
           >
-            <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <Eye className="size-4 transition-transform group-hover:scale-110" />
           </Button>
         </div>
       </div>

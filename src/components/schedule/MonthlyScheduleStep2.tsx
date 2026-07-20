@@ -54,12 +54,12 @@ export function MonthlyScheduleStep2({
         name="month"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-              <Calendar className="h-3 w-3" /> Месец за генериране
+            <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+              <Calendar className="size-3" /> Месец за генериране
             </FormLabel>
             <Input
               type="month"
-              className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light text-center"
+              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-center text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
               {...field}
             />
           </FormItem>
@@ -72,16 +72,16 @@ export function MonthlyScheduleStep2({
           name="startTime"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                <Clock className="h-3 w-3" /> Начален час
+              <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <Clock className="size-3" /> Начален час
               </FormLabel>
               <Input
                 type="time"
-                className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
                 onKeyDown={onKeyDown}
                 {...field}
               />
-              <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+              <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
             </FormItem>
           )}
         />
@@ -91,23 +91,23 @@ export function MonthlyScheduleStep2({
           name="endTime"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-                <Clock className="h-3 w-3" /> Краен час
+              <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <Clock className="size-3" /> Краен час
               </FormLabel>
               <Input
                 type="time"
-                className="h-12 rounded-2xl bg-zinc-50/50 border-zinc-100 focus:ring-0 focus:border-zinc-200 transition-all text-sm font-light"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
                 onKeyDown={onKeyDown}
                 {...field}
               />
-              <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+              <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
             </FormItem>
           )}
         />
       </div>
 
       <div className="space-y-4">
-        <FormLabel className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block mb-4">
+        <FormLabel className="mb-4 block text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
           Повторение в дните (Дни от седмицата)
         </FormLabel>
         <div className="flex flex-wrap gap-2">
@@ -127,20 +127,20 @@ export function MonthlyScheduleStep2({
                   }
                 }}
                 className={cn(
-                  "h-12 rounded-xl border flex flex-col items-center justify-center cursor-pointer transition-all gap-0.5 flex-1 min-w-[50px] md:min-w-[60px] select-none outline-none focus-visible:ring-2 focus-visible:ring-zinc-950",
+                  "flex h-12 min-w-[50px] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-zinc-950 md:min-w-15",
                   isSelected
-                    ? "bg-zinc-950 border-zinc-950 text-white shadow-lg shadow-zinc-950/20"
-                    : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-200 hover:bg-zinc-50"
+                    ? "border-zinc-950 bg-zinc-950 text-white shadow-lg shadow-zinc-950/20"
+                    : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-200 hover:bg-zinc-50"
                 )}
               >
-                <span className="text-[11px] font-medium uppercase tracking-widest">
+                <span className="text-[11px] font-medium tracking-widest uppercase">
                   {day.label}
                 </span>
               </div>
             );
           })}
         </div>
-        <FormMessage className="text-[10px] font-medium uppercase tracking-widest text-rose-500" />
+        <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
       </div>
     </div>
   );

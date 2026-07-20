@@ -75,8 +75,8 @@ export default async function RankingsPage(props: {
   return (
     <div className="pb-12">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
-          <p className="text-rose-600 font-medium">{error}</p>
+        <div className="rounded-5xl border border-rose-100 bg-rose-50 p-8 text-center">
+          <p className="font-medium text-rose-600">{error}</p>
         </div>
       ) : (
         <RankingsClient initialRankings={enrichedRankings} />

@@ -95,7 +95,7 @@ export function DateSelectorField({
 
         return (
           <FormItem className="flex flex-col">
-            <FormLabel className="text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 mt-0.5 mb-1.5">
+            <FormLabel className="mt-0.5 mb-1.5 text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
               {label}
             </FormLabel>
             <div className="grid grid-cols-3 gap-2">
@@ -103,10 +103,10 @@ export function DateSelectorField({
                 onValueChange={(v) => updateDate(v, curMonth, curDay)}
                 value={curYear || ""}
               >
-                <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                   <SelectValue placeholder="Година" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
+                <SelectContent className="max-h-75">
                   {years.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}
@@ -121,7 +121,7 @@ export function DateSelectorField({
                 }
                 value={curMonth || "none"}
               >
-                <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                   <SelectValue placeholder="Месец" />
                 </SelectTrigger>
                 <SelectContent>
@@ -141,7 +141,7 @@ export function DateSelectorField({
                 value={curDay || "none"}
                 disabled={!curMonth}
               >
-                <SelectTrigger className="h-11 sm:h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 text-sm">
+                <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
                   <SelectValue placeholder="Ден" />
                 </SelectTrigger>
                 <SelectContent>

@@ -141,12 +141,12 @@ export default function SalesClient({
   const renderTableContent = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center py-32 space-y-6">
+        <div className="flex flex-col items-center justify-center space-y-6 py-32">
           <Loader2
-            className="h-10 w-10 animate-spin text-zinc-200"
+            className="size-10 animate-spin text-zinc-200"
             strokeWidth={1}
           />
-          <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
+          <p className="text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
             Зареждане на продажби...
           </p>
         </div>
@@ -155,12 +155,12 @@ export default function SalesClient({
     
     if (error) {
       return (
-        <div className="text-center py-32 text-rose-500 flex flex-col items-center">
+        <div className="flex flex-col items-center py-32 text-center text-rose-500">
           <AlertTriangle
-            className="h-10 w-10 mb-6 opacity-30"
+            className="mb-6 size-10 opacity-30"
             strokeWidth={1}
           />
-          <p className="text-sm font-light uppercase tracking-widest">
+          <p className="text-sm font-light tracking-widest uppercase">
             {error || "An error occurred while loading the sales."}
           </p>
         </div>
@@ -171,20 +171,20 @@ export default function SalesClient({
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-zinc-50/50">
-            <TableRow className="border-none hover:bg-transparent h-16">
-              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 px-8">
+            <TableRow className="h-16 border-none hover:bg-transparent">
+              <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Дата и Час
               </TableHead>
-              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+              <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Клиент
               </TableHead>
-              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+              <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Статус
               </TableHead>
-              <TableHead className="font-medium text-[10px] uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+              <TableHead className="pr-8 text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Сума
               </TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,12 +193,12 @@ export default function SalesClient({
                 <TableRow
                   key={sale.id}
                   onClick={() => handleRowClick(sale.id)}
-                  className="cursor-pointer group border-zinc-50 hover:bg-zinc-50/50 transition-colors h-20"
+                  className="group h-20 cursor-pointer border-zinc-50 transition-colors hover:bg-zinc-50/50"
                 >
                   <TableCell className="px-8">
                     <div className="flex items-center gap-3">
                       <Calendar
-                        className="h-3.5 w-3.5 text-zinc-300"
+                        className="size-3.5 text-zinc-300"
                         strokeWidth={1.5}
                       />
                       <span className="text-sm font-light text-zinc-600">
@@ -209,7 +209,7 @@ export default function SalesClient({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <User
-                        className="h-3.5 w-3.5 text-zinc-300"
+                        className="size-3.5 text-zinc-300"
                         strokeWidth={1.5}
                       />
                       <span className="text-sm font-medium text-zinc-900">
@@ -220,7 +220,7 @@ export default function SalesClient({
                   <TableCell>
                     <Badge
                       className={cn(
-                        "border-none rounded-full px-3 py-1 text-[9px] uppercase tracking-widest font-medium",
+                        "rounded-full border-none px-3 py-1 text-[9px] font-medium tracking-widest uppercase",
                         sale.isPaid
                           ? "bg-emerald-50 text-emerald-600"
                           : "bg-amber-50 text-amber-600"
@@ -229,11 +229,11 @@ export default function SalesClient({
                       {sale.isPaid ? "Платено" : "Висящо"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right font-medium text-sm text-zinc-950 pr-8 tabular-nums">
+                  <TableCell className="pr-8 text-right text-sm font-medium text-zinc-950 tabular-nums">
                     {formatPrice(sale.totalAmount)}
                   </TableCell>
                   <TableCell
-                    className="text-right px-6"
+                    className="px-6 text-right"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <DropdownMenu>
@@ -241,24 +241,24 @@ export default function SalesClient({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all"
+                          className="size-10 rounded-xl transition-all group-hover:bg-white group-hover:shadow-sm"
                         >
-                          <MoreVertical className="h-4 w-4 text-zinc-300" />
+                          <MoreVertical className="size-4 text-zinc-300" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="rounded-3xl shadow-2xl border-zinc-100 p-2 min-w-[160px]"
+                        className="min-w-40 rounded-3xl border-zinc-100 p-2 shadow-2xl"
                       >
                         <DropdownMenuItem
-                          className="text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer font-medium rounded-xl p-3"
+                          className="cursor-pointer rounded-xl p-3 font-medium text-rose-500 focus:bg-rose-50 focus:text-rose-600"
                           onSelect={() => setSaleToDelete(sale.id)}
                         >
                           <Trash2
-                            className="mr-3 h-4 w-4"
+                            className="mr-3 size-4"
                             strokeWidth={1.5}
                           />
-                          <span className="text-[11px] uppercase tracking-widest">
+                          <span className="text-[11px] tracking-widest uppercase">
                             Изтрий
                           </span>
                         </DropdownMenuItem>
@@ -271,10 +271,10 @@ export default function SalesClient({
               <TableRow>
                 <TableCell colSpan={5} className="py-32 text-center">
                   <ShoppingCart
-                    className="h-12 w-12 text-zinc-100 mx-auto mb-6"
+                    className="mx-auto mb-6 size-12 text-zinc-100"
                     strokeWidth={1}
                   />
-                  <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px]">
+                  <p className="text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
                     Все още няма продажби
                   </p>
                 </TableCell>
@@ -287,7 +287,7 @@ export default function SalesClient({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 duration-500 animate-in fade-in">
       {showPageHeader ? (
         <>
           <PageHeader
@@ -300,56 +300,56 @@ export default function SalesClient({
           >
             <Button
               onClick={() => router.push("/sales/new")}
-              className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-12 px-8 font-medium text-[11px] uppercase tracking-widest transition-all"
+              className="h-12 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
             >
-              <PlusCircle className="mr-3 h-4 w-4" strokeWidth={1.5} /> Нова
+              <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Нова
               продажба
             </Button>
           </PageHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-              <div className="flex justify-between items-start">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+            <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-3xl font-light tracking-tighter mb-2">
+                  <p className="mb-2 text-3xl font-light tracking-tighter">
                     {sortedSales.length}
                   </p>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                  <p className="text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Общо транзакции
                   </p>
                 </div>
                 <ShoppingCart
-                  className="h-5 w-5 text-zinc-300"
+                  className="size-5 text-zinc-300"
                   strokeWidth={1.5}
                 />
               </div>
             </BentoCard>
-            <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-              <div className="flex justify-between items-start">
+            <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-3xl font-light tracking-tighter text-amber-600 mb-2">
+                  <p className="mb-2 text-3xl font-light tracking-tighter text-amber-600">
                     {sortedSales.filter((s) => !s.isPaid).length}
                   </p>
-                  <p className="text-[10px] text-zinc-400 uppercase tracking-[0.2em]">
+                  <p className="text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Висящи плащания
                   </p>
                 </div>
                 <AlertTriangle
-                  className="h-5 w-5 text-amber-400"
+                  className="size-5 text-amber-400"
                   strokeWidth={1.5}
                 />
               </div>
             </BentoCard>
-            <BentoCard className="md:col-span-2 p-8 flex items-center bg-zinc-950 text-white border-none shadow-none rounded-4xl">
+            <BentoCard className="flex items-center rounded-4xl border-none bg-zinc-950 p-8 text-white shadow-none md:col-span-2">
               <div className="flex items-center gap-6">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <Receipt className="h-6 w-6 text-primary" strokeWidth={1.5} />
+                <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                  <Receipt className="size-6 text-primary" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="text-zinc-500 uppercase tracking-[0.3em] text-[9px] mb-2">
+                  <p className="mb-2 text-[9px] tracking-[0.3em] text-zinc-500 uppercase">
                     Дневен оборот
                   </p>
-                  <p className="text-xl font-light text-zinc-100 tracking-tight">
+                  <p className="text-xl font-light tracking-tight text-zinc-100">
                     Преглед на приходите за деня
                   </p>
                 </div>
@@ -358,9 +358,9 @@ export default function SalesClient({
           </div>
         </>
       ) : (
-        <div className="flex justify-between items-center px-2 flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-900">
+            <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
               Хроника на плащанията
             </h3>
             <p className="text-[11px] text-zinc-400">
@@ -369,15 +369,15 @@ export default function SalesClient({
           </div>
           <Button
             onClick={() => router.push("/sales/new")}
-            className="rounded-xl shadow-none bg-zinc-950 text-white hover:bg-zinc-800 h-10 px-6 font-medium text-[10px] uppercase tracking-widest transition-all"
+            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
           >
-            <PlusCircle className="mr-2 h-3.5 w-3.5" strokeWidth={1.5} /> Нова
+            <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} /> Нова
             продажба
           </Button>
         </div>
       )}
 
-      <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl">
+      <BentoCard className="overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
         {renderTableContent()}
       </BentoCard>
 
@@ -385,27 +385,27 @@ export default function SalesClient({
         open={!!saleToDelete}
         onOpenChange={(open) => !open && setSaleToDelete(null)}
       >
-        <AlertDialogContent className="rounded-5xl border-none shadow-2xl p-8">
+        <AlertDialogContent className="rounded-5xl border-none p-8 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-medium uppercase tracking-[0.2em] text-zinc-900">
+            <AlertDialogTitle className="text-lg font-medium tracking-[0.2em] text-zinc-900 uppercase">
               Сигурни ли сте?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm font-light text-zinc-500 mt-4 leading-relaxed">
+            <AlertDialogDescription className="mt-4 text-sm leading-relaxed font-light text-zinc-500">
               Това действие ще изтрие записа на продажбата за постоянно. Ако
               това е продажба на инвентар, наличностите няма да се възстановят
               автоматично.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 gap-3">
-            <AlertDialogCancel className="rounded-xl border-zinc-100 h-12 px-6 font-medium text-[11px] uppercase tracking-widest hover:bg-zinc-50 transition-all">
+            <AlertDialogCancel className="h-12 rounded-xl border-zinc-100 px-6 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50">
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-rose-500 text-white hover:bg-rose-600 rounded-xl h-12 px-8 font-medium text-[11px] uppercase tracking-widest shadow-none transition-all"
+              className="h-12 rounded-xl bg-rose-500 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-rose-600"
             >
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting && <Loader2 className="mr-2 size-4 animate-spin" />}
               Изтрий
             </AlertDialogAction>
           </AlertDialogFooter>

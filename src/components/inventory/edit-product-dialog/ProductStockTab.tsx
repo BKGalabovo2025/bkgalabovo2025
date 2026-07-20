@@ -22,13 +22,13 @@ export const ProductStockTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900">
+      <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-900">
         <div className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4 text-amber-500 animate-spin-slow" />
+          <RefreshCw className="animate-spin-slow size-4 text-amber-500" />
           <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Склад & Движения</h3>
         </div>
         <span className="text-xs font-medium text-zinc-500">
-          Текуща наличност: <strong className="text-zinc-950 dark:text-white font-bold">{product.stock} бр.</strong>
+          Текуща наличност: <strong className="font-bold text-zinc-950 dark:text-white">{product.stock} бр.</strong>
         </span>
       </div>
 
@@ -46,12 +46,12 @@ export const ProductStockTab = () => {
               value={restockAmount}
               onChange={(e) => setRestockAmount(e.target.value)}
               disabled={isProcessing}
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
             />
             <Button
               onClick={handleRestock}
               disabled={isProcessing || !restockAmount}
-              className="rounded-xl h-11 px-5 bg-zinc-950 text-white hover:bg-zinc-800"
+              className="h-11 rounded-xl bg-zinc-950 px-5 text-white hover:bg-zinc-800"
             >
               Заприходи
             </Button>
@@ -63,11 +63,11 @@ export const ProductStockTab = () => {
         {/* ADJUSTMENT */}
         <div className="space-y-3">
           <div className="flex flex-col gap-0.5">
-            <Label htmlFor="adjustment-amount" className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-              <ShieldAlert className="h-3.5 w-3.5 text-zinc-400" />
+            <Label htmlFor="adjustment-amount" className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              <ShieldAlert className="size-3.5 text-zinc-400" />
               Корекция / Ръчно Отписване
             </Label>
-            <p className="text-[10px] text-zinc-400 font-light">Използвайте отрицателно число за бракуване/отписване (напр. -5).</p>
+            <p className="text-[10px] font-light text-zinc-400">Използвайте отрицателно число за бракуване/отписване (напр. -5).</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -78,19 +78,19 @@ export const ProductStockTab = () => {
               value={adjustmentAmount}
               onChange={(e) => setAdjustmentAmount(e.target.value)}
               disabled={isProcessing}
-              className="rounded-xl h-11"
+              className="h-11 rounded-xl"
             />
             <Button
               onClick={handleAdjustment}
               disabled={isProcessing || !adjustmentAmount}
-              className="rounded-xl h-11 px-5 bg-rose-500 hover:bg-rose-600 text-white"
+              className="h-11 rounded-xl bg-rose-500 px-5 text-white hover:bg-rose-600"
             >
               Коригирай
             </Button>
           </div>
 
           <div className="grid gap-1.5">
-            <Label htmlFor="adjustment-notes" className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">
+            <Label htmlFor="adjustment-notes" className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
               Причина / Бележка
             </Label>
             <Textarea

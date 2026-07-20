@@ -60,7 +60,7 @@ export default function EditRecoverySessionClient({
   }, [state, router]);
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-12 duration-700 animate-in fade-in">
       <PageHeader
         title="Редактиране на Процедура"
         description={`Редактиране на ${initialData.name}`}

@@ -66,15 +66,15 @@ const SafetyInstructionPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white min-h-screen font-serif">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 font-serif md:p-8">
       {/* Non-printable header */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="mb-8 flex items-center justify-between print:hidden">
         <Button
           variant="outline"
           onClick={() => router.back()}
           className="rounded-xl border-slate-200"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+          <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
 
         <div className="flex items-center gap-2">
@@ -82,12 +82,12 @@ const SafetyInstructionPage = () => {
             variant="outline"
             onClick={() => setSignatureOpen(true)}
             disabled={isSaving}
-            className="rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-950 transition-all font-medium text-[10px] uppercase tracking-widest"
+            className="rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50"
           >
             {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
             ) : (
-              <PenLine className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              <PenLine className="mr-2 size-4" strokeWidth={1.5} />
             )}
             {existingSignatureUrl
               ? "Смени подписа"
@@ -95,23 +95,23 @@ const SafetyInstructionPage = () => {
           </Button>
           <Button
             onClick={() => window.print()}
-            className="bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-lg"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
           >
-            <Printer className="mr-2 h-4 w-4" /> Принтирай
+            <Printer className="mr-2 size-4" /> Принтирай
           </Button>
         </div>
       </div>
 
       <div className="print-area text-slate-900">
-        <div className="text-center mb-10">
+        <div className="mb-10 text-center">
           <h1 className="text-xl font-bold uppercase">ИНСТРУКТАЖ</h1>
-          <h2 className="text-base font-bold uppercase mt-1 leading-tight">
+          <h2 className="mt-1 text-base leading-tight font-bold uppercase">
             ЗА БЕЗОПАСНО ПЪТУВАНЕ И ПРОВЕЖДАНЕ НА СПОРТНО СЪСТЕЗАНИЕ
           </h2>
           <p className="mt-2 text-lg font-bold">20.......... г.</p>
         </div>
 
-        <div className="space-y-4 text-[10.5pt] leading-snug text-justify">
+        <div className="space-y-4 text-justify text-[10.5pt] leading-snug">
           <div className="space-y-2">
             <p>
               ☑ 1. На състезателите се забранява да пътуват сами от и до мястото
@@ -165,10 +165,10 @@ const SafetyInstructionPage = () => {
             </p>
           </div>
 
-          <div className="mt-12 space-y-8 pt-8 border-t border-slate-100">
+          <div className="mt-12 space-y-8 border-t border-slate-100 pt-8">
             <div className="flex items-baseline gap-4">
-              <span className="shrink-0 w-28 font-bold">Родител:</span>
-              <div className="flex-1 border-b border-dotted border-slate-400 min-h-8 flex items-end justify-center pb-1">
+              <span className="w-28 shrink-0 font-bold">Родител:</span>
+              <div className="flex min-h-8 flex-1 items-end justify-center border-b border-dotted border-slate-400 pb-1">
                 {existingSignatureUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
@@ -186,8 +186,8 @@ const SafetyInstructionPage = () => {
               </div>
             </div>
             <div className="flex items-baseline gap-4">
-              <span className="shrink-0 w-28 font-bold">Състезател:</span>
-              <div className="flex-1 border-b border-dotted border-slate-400 min-h-8 flex items-end px-4 gap-6">
+              <span className="w-28 shrink-0 font-bold">Състезател:</span>
+              <div className="flex min-h-8 flex-1 items-end gap-6 border-b border-dotted border-slate-400 px-4">
                 <strong className="text-lg">{fullName}</strong>
                 <span className="text-[10pt] text-slate-400 italic">
                   / име, фамилия, подпис /
@@ -201,8 +201,8 @@ const SafetyInstructionPage = () => {
             <p>Място: гр. Гълъбово</p>
           </div>
 
-          <div className="mt-16 pt-8 border-t border-slate-50">
-            <p className="font-bold uppercase mb-2">УТВЪРДИЛ:</p>
+          <div className="mt-16 border-t border-slate-50 pt-8">
+            <p className="mb-2 font-bold uppercase">УТВЪРДИЛ:</p>
             <div className="space-y-1">
               <p className="text-lg font-bold">Председател: Мира Георгиева</p>
               <p className="text-slate-600 italic">

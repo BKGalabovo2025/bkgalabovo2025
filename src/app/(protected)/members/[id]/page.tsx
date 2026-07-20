@@ -31,7 +31,7 @@ export default async function MemberProfilePage({
           variant="destructive"
           className="rounded-2xl border-none shadow-lg"
         >
-          <AlertTitle className="font-black uppercase tracking-tight">
+          <AlertTitle className="font-black tracking-tight uppercase">
             Грешка
           </AlertTitle>
           <AlertDescription className="font-medium">
@@ -46,7 +46,7 @@ export default async function MemberProfilePage({
   const fullName = formatFullName(member);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
       <PageHeader
         title={fullName}
         description={`Управление на профил, членство и присъствия за ${fullName}.`}

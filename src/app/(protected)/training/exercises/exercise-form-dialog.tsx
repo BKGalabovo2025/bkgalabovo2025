@@ -137,7 +137,7 @@ export default function ExerciseFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
             {exercise ? "Редакция на упражнение" : "Ново упражнение"}
@@ -264,7 +264,7 @@ export default function ExerciseFormDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between sm:justify-between items-center w-full">
+        <DialogFooter className="flex w-full items-center justify-between sm:justify-between">
           {exercise ? (
             <Button
               type="button"
@@ -273,9 +273,9 @@ export default function ExerciseFormDialog({
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="mr-2 size-4" />
               )}
               Изтрий
             </Button>
@@ -297,7 +297,7 @@ export default function ExerciseFormDialog({
               disabled={isSaving || !name || ageGroups.length === 0}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isSaving && <Loader2 className="mr-2 size-4 animate-spin" />}
               Запази
             </Button>
           </div>

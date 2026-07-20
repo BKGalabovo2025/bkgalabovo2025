@@ -55,28 +55,28 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans relative overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 p-6 font-sans">
       {/* Background Decorative Elements */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-zinc-200/20 rounded-full blur-[120px] -mr-64 -mt-64" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-zinc-200/20 rounded-full blur-[120px] -ml-64 -mb-64" />
+      <div className="absolute top-0 right-0 -mt-64 -mr-64 size-[500px] rounded-full bg-zinc-200/20 blur-[120px]" />
+      <div className="absolute bottom-0 left-0 -mb-64 -ml-64 size-[500px] rounded-full bg-zinc-200/20 blur-[120px]" />
 
-      <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="relative z-10 w-full max-w-md duration-700 animate-in fade-in slide-in-from-bottom-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-950 transition-colors mb-8 font-medium uppercase tracking-[0.3em] text-[10px]"
+          className="mb-8 inline-flex items-center gap-2 text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase transition-colors hover:text-zinc-950"
         >
           <ArrowLeft size={14} strokeWidth={1.5} /> Обратно към началото
         </Link>
 
-        <BentoCard className="p-10 bg-white border-zinc-100 shadow-none rounded-4xl">
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="h-16 w-16 bg-zinc-950 rounded-3xl flex items-center justify-center text-white shadow-none mb-6 transform -rotate-6 border border-zinc-800">
+        <BentoCard className="rounded-4xl border-zinc-100 bg-white p-10 shadow-none">
+          <div className="mb-10 flex flex-col items-center text-center">
+            <div className="mb-6 flex size-16 -rotate-6 transform items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-950 text-white shadow-none">
               <ShieldCheck size={32} strokeWidth={1.5} />
             </div>
-            <h1 className="text-3xl font-light tracking-tighter text-zinc-950 font-bento uppercase">
+            <h1 className="font-bento text-3xl font-light tracking-tighter text-zinc-950 uppercase">
               Админ Портал
             </h1>
-            <p className="text-zinc-400 font-medium tracking-[0.4em] uppercase text-[10px] mt-2">
+            <p className="mt-2 text-[10px] font-medium tracking-[0.4em] text-zinc-400 uppercase">
               Бадминтон Клуб Гълъбово
             </p>
           </div>
@@ -85,7 +85,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500 ml-1"
+                className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase"
               >
                 Имейл
               </Label>
@@ -95,23 +95,23 @@ const LoginPage = () => {
                 autoComplete="username"
                 placeholder="admin@bkgalabovo.com"
                 required
-                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 px-6 font-medium transition-all focus:bg-white focus:ring-0"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
+              <div className="ml-1 flex items-center justify-between">
                 <Label
                   htmlFor="password"
-                  className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500"
+                  className="text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase"
                 >
                   Парола
                 </Label>
                 <Link
                   href="#"
-                  className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em] hover:text-zinc-950 transition-colors"
+                  className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase transition-colors hover:text-zinc-950"
                 >
                   Забравена парола?
                 </Link>
@@ -121,15 +121,15 @@ const LoginPage = () => {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 focus:bg-white focus:ring-0 transition-all font-medium px-6"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 px-6 font-medium transition-all focus:bg-white focus:ring-0"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
             {error && (
-              <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-2xl">
-                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest text-center">
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-center text-[10px] font-medium tracking-widest text-zinc-500 uppercase">
                   {error}
                 </p>
               </div>
@@ -137,25 +137,25 @@ const LoginPage = () => {
 
             <Button
               type="submit"
-              className="w-full h-14 bg-zinc-950 hover:bg-zinc-900 text-white font-medium uppercase tracking-[0.2em] text-[11px] rounded-2xl shadow-none transition-all active:scale-95 disabled:opacity-50 border-none"
+              className="h-14 w-full rounded-2xl border-none bg-zinc-950 text-[11px] font-medium tracking-[0.2em] text-white uppercase shadow-none transition-all hover:bg-zinc-900 active:scale-95 disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="size-5 animate-spin" />
               ) : (
                 "Влез в системата"
               )}
             </Button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-zinc-50 text-center">
-            <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em]">
+          <div className="mt-10 border-t border-zinc-50 pt-8 text-center">
+            <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Система за управление на спортни клубове
             </p>
           </div>
         </BentoCard>
 
-        <p className="mt-8 text-center text-[10px] font-medium text-zinc-300 uppercase tracking-[0.4em]">
+        <p className="mt-8 text-center text-[10px] font-medium tracking-[0.4em] text-zinc-300 uppercase">
           v2.1.0 • Secure Infrastructure
         </p>
       </div>

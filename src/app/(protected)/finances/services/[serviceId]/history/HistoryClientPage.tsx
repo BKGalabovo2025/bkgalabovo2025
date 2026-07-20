@@ -131,8 +131,8 @@ export default function HistoryClientPage({
   // --- Render Logic ---
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-40">
-        <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+      <div className="flex h-40 items-center justify-center">
+        <Loader2 className="mr-2 size-8 animate-spin" />
         <span>Зареждане на историята...</span>
       </div>
     );
@@ -141,11 +141,11 @@ export default function HistoryClientPage({
   if (error) {
     return (
       <div className="container mx-auto p-4">
-        <div className="p-4 border-l-4 border-red-500 bg-red-50">
+        <div className="border-l-4 border-red-500 bg-red-50 p-4">
           <h2 className="text-xl font-bold text-red-800">
             Грешка при зареждане
           </h2>
-          <p className="text-red-700 mt-2">{error}</p>
+          <p className="mt-2 text-red-700">{error}</p>
         </div>
         <Link href="/finances/services" className="mt-4 inline-block">
           <Button variant="outline">Назад към услугите</Button>
@@ -156,7 +156,7 @@ export default function HistoryClientPage({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
+      <h1 className="mb-4 text-2xl font-bold">
         История на промените за &quot;{service?.name || "..."}&quot;
       </h1>
       <div className="mb-6">
@@ -169,7 +169,7 @@ export default function HistoryClientPage({
           {history.map((entry) => (
             <li
               key={entry.id}
-              className="p-4 border rounded-lg shadow-sm bg-white"
+              className="rounded-lg border bg-white p-4 shadow-sm"
             >
               <p className="text-sm text-gray-500">{entry.timestamp}</p>
               <p>
@@ -183,7 +183,7 @@ export default function HistoryClientPage({
           ))}
         </ul>
       ) : (
-        <div className="p-4 border-dashed border-2 rounded-lg text-center">
+        <div className="rounded-lg border-2 border-dashed p-4 text-center">
           <p>Няма намерена история на промените за тази услуга.</p>
         </div>
       )}

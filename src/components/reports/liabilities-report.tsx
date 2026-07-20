@@ -102,11 +102,11 @@ const LiabilitiesReport = ({
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-        <div className="flex flex-col md:flex-row gap-6 items-end">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
+      <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+        <div className="flex flex-col items-end gap-6 md:flex-row">
+          <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-3">
-              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
+              <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Година
               </Label>
               <Select value={year} onValueChange={setYear}>
@@ -123,7 +123,7 @@ const LiabilitiesReport = ({
               </Select>
             </div>
             <div className="space-y-3">
-              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
+              <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 Месец
               </Label>
               <Select value={month} onValueChange={setMonth}>
@@ -141,16 +141,16 @@ const LiabilitiesReport = ({
             </div>
           </div>
 
-          <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex w-full gap-3 md:w-auto">
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading}
-              className="flex-1 md:flex-none rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none transition-all"
+              className="h-12 flex-1 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 md:flex-none"
             >
               {isLoading ? (
-                <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-3 size-4 animate-spin" />
               ) : (
-                <Filter className="mr-3 h-4 w-4" strokeWidth={1.5} />
+                <Filter className="mr-3 size-4" strokeWidth={1.5} />
               )}
               Генерирай
             </Button>
@@ -158,9 +158,9 @@ const LiabilitiesReport = ({
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[11px] uppercase tracking-widest h-12 px-8 transition-all"
+                className="h-12 rounded-xl border-zinc-100 px-8 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50"
               >
-                <Download className="mr-3 h-4 w-4" strokeWidth={1.5} /> Експорт
+                <Download className="mr-3 size-4" strokeWidth={1.5} /> Експорт
               </Button>
             )}
           </div>
@@ -169,10 +169,10 @@ const LiabilitiesReport = ({
 
       {/* Summary Stat Card */}
       {hasSearched && !isLoading && unpaidMembers.length > 0 && (
-        <BentoCard className="p-8 bg-white border border-rose-100 rounded-4xl shadow-none">
-          <div className="flex items-center gap-4 mb-3 text-rose-500">
-            <AlertCircle className="h-5 w-5" strokeWidth={1.5} />
-            <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
+        <BentoCard className="rounded-4xl border border-rose-100 bg-white p-8 shadow-none">
+          <div className="mb-3 flex items-center gap-4 text-rose-500">
+            <AlertCircle className="size-5" strokeWidth={1.5} />
+            <span className="text-[11px] font-medium tracking-[0.2em] uppercase">
               Общо неплатили за периода
             </span>
           </div>
@@ -183,16 +183,16 @@ const LiabilitiesReport = ({
       )}
 
       {/* Results Table Card */}
-      <BentoCard className="p-0 overflow-hidden bg-white border border-zinc-100 shadow-none rounded-5xl">
-        <div className="p-8 border-b border-zinc-50 flex items-center justify-between">
-          <h3 className="font-medium text-[11px] uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3">
-            <Users className="h-4 w-4 text-primary" strokeWidth={1.5} />
+      <BentoCard className="overflow-hidden rounded-5xl border border-zinc-100 bg-white p-0 shadow-none">
+        <div className="flex items-center justify-between border-b border-zinc-50 p-8">
+          <h3 className="flex items-center gap-3 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+            <Users className="size-4 text-primary" strokeWidth={1.5} />
             Списък на длъжници
           </h3>
           {hasSearched && (
             <Badge
               variant={unpaidMembers.length > 0 ? "destructive" : "outline"}
-              className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest border-none"
+              className="rounded-full border-none px-4 py-1 text-[10px] font-medium tracking-widest uppercase"
             >
               {unpaidMembers.length} задължения
             </Badge>
@@ -202,35 +202,35 @@ const LiabilitiesReport = ({
         {isLoading ? (
           <div className="p-32 text-center">
             <Loader2
-              className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
+              className="mx-auto mb-6 size-10 animate-spin text-zinc-200"
               strokeWidth={1}
             />
-            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+            <p className="text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
               Проверка на плащания...
             </p>
           </div>
         ) : unpaidMembers.length === 0 ? (
           <div className="p-32 text-center text-emerald-600">
-            <div className="h-16 w-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Users className="h-8 w-8" strokeWidth={1} />
+            <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-emerald-50">
+              <Users className="size-8" strokeWidth={1} />
             </div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.2em]">
+            <p className="text-[11px] font-medium tracking-[0.2em] uppercase">
               Браво! Всички са платили.
             </p>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto hidden md:block">
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader className="bg-zinc-50/50">
-                  <TableRow className="border-none hover:bg-transparent h-16">
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                  <TableRow className="h-16 border-none hover:bg-transparent">
+                    <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Член
                     </TableHead>
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                    <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Контакти
                     </TableHead>
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+                    <TableHead className="pr-8 text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Действие
                     </TableHead>
                   </TableRow>
@@ -239,19 +239,19 @@ const LiabilitiesReport = ({
                   {unpaidMembers.map((member) => (
                     <TableRow
                       key={member.id}
-                      className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
+                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50"
                     >
                       <TableCell className="px-8">
-                        <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
-                        <p className="text-[10px] font-light text-rose-500 uppercase tracking-widest mt-1">
+                        <p className="text-sm font-medium text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
+                        <p className="mt-1 text-[10px] font-light tracking-widest text-rose-500 uppercase">
                           Неплатен абонамент
                         </p>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1.5">
-                          <span className="text-sm font-light text-zinc-600 flex items-center gap-2">
+                          <span className="flex items-center gap-2 text-sm font-light text-zinc-600">
                             <Mail
-                              className="h-3.5 w-3.5 text-zinc-300"
+                              className="size-3.5 text-zinc-300"
                               strokeWidth={1.5}
                             />{" "}
                             {member.email || "—"}
@@ -261,11 +261,11 @@ const LiabilitiesReport = ({
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right pr-8">
+                      <TableCell className="pr-8 text-right">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="rounded-xl text-zinc-600 hover:text-rose-500 hover:bg-rose-50 font-medium text-[10px] uppercase tracking-widest px-6 h-10 transition-all"
+                          className="h-10 rounded-xl px-6 text-[10px] font-medium tracking-widest text-zinc-600 uppercase transition-all hover:bg-rose-50 hover:text-rose-500"
                         >
                           Напомняне
                         </Button>
@@ -275,28 +275,28 @@ const LiabilitiesReport = ({
                 </TableBody>
               </Table>
             </div>
-            <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+            <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
               {unpaidMembers.map((member) => (
-                <div key={member.id} className="p-6 flex flex-col gap-4">
+                <div key={member.id} className="flex flex-col gap-4 p-6">
                   <div>
-                    <p className="font-medium text-sm text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
-                    <p className="text-[10px] font-medium text-rose-500 uppercase tracking-widest mt-1">
+                    <p className="text-sm font-medium text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
+                    <p className="mt-1 text-[10px] font-medium tracking-widest text-rose-500 uppercase">
                       Неплатен абонамент
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1.5 bg-zinc-50 rounded-xl p-3">
-                    <span className="text-xs font-medium text-zinc-600 flex items-center gap-2">
-                      <Mail className="h-3.5 w-3.5 text-zinc-400" />
+                  <div className="flex flex-col gap-1.5 rounded-xl bg-zinc-50 p-3">
+                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600">
+                      <Mail className="size-3.5 text-zinc-400" />
                       {member.email || "—"}
                     </span>
-                    <span className="text-xs font-medium text-zinc-600 flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600">
                       {member.phone || "—"}
                     </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full text-rose-500 border-rose-200 bg-rose-50 hover:bg-rose-100 uppercase text-[10px] tracking-widest h-10"
+                    className="h-10 w-full border-rose-200 bg-rose-50 text-[10px] tracking-widest text-rose-500 uppercase hover:bg-rose-100"
                   >
                     Напомняне
                   </Button>

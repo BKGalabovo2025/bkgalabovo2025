@@ -11,14 +11,14 @@ export const ProductSaleStep2 = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-100 dark:border-zinc-900">
-        <CreditCard className="h-4 w-4 text-emerald-500" strokeWidth={1.5} />
+      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+        <CreditCard className="size-4 text-emerald-500" strokeWidth={1.5} />
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Детайли на транзакцията</h3>
       </div>
 
       <div className="grid gap-5">
         <div className="grid gap-2">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <Label htmlFor="sale-qty" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Количество *</Label>
             <span className="text-[10px] text-zinc-400">Складова наличност: <strong>{product.stock} бр.</strong></span>
           </div>
@@ -29,7 +29,7 @@ export const ProductSaleStep2 = () => {
             max={product.stock}
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="rounded-xl h-11 border-zinc-200"
+            className="h-11 rounded-xl border-zinc-200"
           />
         </div>
 
@@ -40,7 +40,7 @@ export const ProductSaleStep2 = () => {
               id="pay-method"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="В брой">В брой</option>
               <option value="Карта">Карта</option>
@@ -54,7 +54,7 @@ export const ProductSaleStep2 = () => {
               id="pay-status"
               value={isPaid ? "paid" : "unpaid"}
               onChange={(e) => setIsPaid(e.target.value === "paid")}
-              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
+              className="flex h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="paid">Платено</option>
               <option value="unpaid">Неплатено (Дълг)</option>

@@ -147,12 +147,12 @@ export default function ClubClient({
     label === "Днес" || label === "Утре";
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-blue-400 selection:text-white">
+    <main className="min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-blue-400 selection:text-white">
       {/* Nav */}
       <PublicNav clubSite={clubSite} />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16">
+      <section className="relative flex min-h-screen items-center justify-center pt-16">
         <div className="absolute inset-0">
           <Image
             src="/bk-hero.png"
@@ -170,13 +170,13 @@ export default function ClubClient({
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative z-10 max-w-6xl mx-auto px-6 text-center mt-20"
+          className="relative z-10 mx-auto mt-20 max-w-6xl px-6 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/80 border border-blue-400/50 rounded-full text-blue-400 text-xs font-medium uppercase tracking-widest mb-8 shadow-[0_0_15px_rgba(30,58,138,0.3)]">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-400/50 bg-black/80 px-4 py-2 text-xs font-medium tracking-widest text-blue-400 uppercase shadow-[0_0_15px_rgba(30,58,138,0.3)]">
             <Trophy size={14} className="animate-pulse" />
             Основан 2014 г.
           </div>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl mx-auto leading-[1.05] mb-6 uppercase">
+          <h1 className="leading-1.05 mx-auto mb-6 max-w-4xl text-5xl font-black tracking-tighter uppercase md:text-8xl">
             Страстта
             <br />
             към{" "}
@@ -185,20 +185,20 @@ export default function ClubClient({
             </span>
           </h1>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
             <a
               href="#contacts"
-              className="group flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(30,58,138,0.6)] hover:shadow-[0_0_30px_rgba(30,58,138,0.9)] hover:-translate-y-1"
+              className="group flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(30,58,138,0.6)] transition-all hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(30,58,138,0.9)]"
             >
               Стани Член{" "}
               <ChevronRight
                 size={18}
-                className="group-hover:translate-x-1 transition-transform"
+                className="transition-transform group-hover:translate-x-1"
               />
             </a>
             <a
               href="#schedule"
-              className="flex items-center justify-center gap-2 px-8 py-4 bg-black/80 hover:bg-black text-white border border-zinc-800 hover:border-blue-400 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(30,58,138,0.3)]"
+              className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase transition-all hover:-translate-y-1 hover:border-blue-400 hover:bg-black hover:shadow-[0_0_15px_rgba(30,58,138,0.3)]"
             >
               График и Тренировки
             </a>
@@ -207,39 +207,39 @@ export default function ClubClient({
       </section>
 
       {/* About & Mission */}
-      <section id="about" className="py-24 px-6 bg-zinc-950 relative">
+      <section id="about" className="relative bg-zinc-950 px-6 py-24">
         {/* Glow effect */}
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 size-[800px] -translate-1/2 rounded-full bg-blue-500/5 blur-[120px]" />
 
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 text-center">
+            <p className="mb-4 text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
               За Клуба & Мисия
             </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Развитие и популяризиране на{" "}
-              <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
+              <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent">
                 бадминтона
               </span>{" "}
               в Гълъбово
             </h2>
           </div>
 
-          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+          <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+            <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-400/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-400/10" />
 
-            <div className="space-y-8 text-center md:text-left relative z-10">
-              <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed">
+            <div className="relative z-10 space-y-8 text-center md:text-left">
+              <p className="text-lg leading-relaxed font-light text-zinc-300 md:text-xl">
                 СНЦ „Бадминтон клуб Гълъбово“ е сдружение с нестопанска цел,
                 създадено през{" "}
-                <span className="text-white font-medium">2014 г.</span> Нашата
+                <span className="font-medium text-white">2014 г.</span> Нашата
                 основна цел е да създадем професионална и същевременно
                 приятелска среда за развитие на този динамичен спорт.
               </p>
 
-              <div className="w-16 h-px bg-gradient-to-r from-blue-500 to-transparent mx-auto md:mx-0" />
+              <div className="mx-auto h-px w-16 bg-gradient-to-r from-blue-500 to-transparent md:mx-0" />
 
-              <p className="text-zinc-400 text-lg leading-relaxed">
+              <p className="text-lg leading-relaxed text-zinc-400">
                 Клубът организира регулярни тренировки за всички възрастови
                 групи –{" "}
                 <span className="text-zinc-200">
@@ -250,16 +250,16 @@ export default function ClubClient({
               </p>
             </div>
 
-            <div className="mt-16 pt-12 border-t border-zinc-800/50 relative z-10">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-950 px-4 rounded-full border border-zinc-800/80 p-3 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                <Target className="w-6 h-6 text-blue-400" />
+            <div className="relative z-10 mt-16 border-t border-zinc-800/50 pt-12">
+              <div className="absolute top-0 left-1/2 -translate-1/2 rounded-full border border-zinc-800/80 bg-zinc-950 p-3 px-4 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                <Target className="size-6 text-blue-400" />
               </div>
 
-              <div className="text-center mt-6">
-                <h3 className="text-2xl font-bold tracking-widest text-white uppercase mb-6">
+              <div className="mt-6 text-center">
+                <h3 className="mb-6 text-2xl font-bold tracking-widest text-white uppercase">
                   Мисия
                 </h3>
-                <p className="text-zinc-400 text-lg leading-relaxed max-w-3xl mx-auto">
+                <p className="mx-auto max-w-3xl text-lg leading-relaxed text-zinc-400">
                   Извън спортните постижения, нашата най-важна мисия е да държим
                   младото поколение активно и здраво. Чрез бадминтона
                   осигуряваме сигурна среда за децата – далеч от застоялия живот
@@ -275,21 +275,21 @@ export default function ClubClient({
       </section>
 
       {/* Activities Section */}
-      <section id="activities" className="py-24 px-6 relative">
+      <section id="activities" className="relative px-6 py-24">
         {/* Glow effect */}
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 size-[800px] -translate-1/2 rounded-full bg-indigo-500/5 blur-[120px]" />
 
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 text-center">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Нашите Дейности
             </h2>
           </div>
 
-          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-400/10 transition-colors duration-700" />
+          <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+            <div className="pointer-events-none absolute right-0 bottom-0 size-64 rounded-full bg-indigo-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-indigo-400/10" />
 
-            <div className="space-y-12 relative z-10">
+            <div className="relative z-10 space-y-12">
               {activities.map((act, i) => (
                 <motion.div
                   key={act.title}
@@ -299,22 +299,22 @@ export default function ClubClient({
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="group/item relative"
                 >
-                  <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-                    <div className="h-14 w-14 shrink-0 bg-zinc-950/80 border border-zinc-800/80 rounded-2xl flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)] group-hover/item:bg-blue-400 group-hover/item:text-white group-hover/item:border-blue-400 transition-all duration-500">
+                  <div className="flex flex-col items-start gap-6 md:flex-row md:gap-8">
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-800/80 bg-zinc-950/80 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all duration-500 group-hover/item:border-blue-400 group-hover/item:bg-blue-400 group-hover/item:text-white">
                       <act.icon size={24} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-3 tracking-wide">
+                      <h3 className="mb-3 text-xl font-bold tracking-wide text-white">
                         {act.title}
                       </h3>
-                      <p className="text-zinc-400 text-lg leading-relaxed">
+                      <p className="text-lg leading-relaxed text-zinc-400">
                         {act.desc}
                       </p>
                     </div>
                   </div>
                   {/* Divider except for last item */}
                   {i !== activities.length - 1 && (
-                    <div className="w-full h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent mt-12" />
+                    <div className="mt-12 h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
                   )}
                 </motion.div>
               ))}
@@ -324,23 +324,23 @@ export default function ClubClient({
       </section>
 
       {/* Services Call to Action */}
-      <section className="py-24 px-6 relative">
+      <section className="relative px-6 py-24">
         {/* Glow effect */}
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 size-[800px] -translate-1/2 rounded-full bg-blue-500/5 blur-[120px]" />
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          <p className="mb-4 text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
             Каталог
           </p>
-          <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-16">
+          <h2 className="mb-16 text-4xl font-light tracking-tight md:text-5xl">
             Нашите Услуги и Тренировки
           </h2>
 
-          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-16 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+          <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 shadow-2xl backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-16">
+            <div className="pointer-events-none absolute top-0 left-0 size-64 rounded-full bg-blue-400/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-400/10" />
 
             <div className="relative z-10 flex flex-col items-center">
-              <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto mb-12">
+              <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed font-light text-zinc-300 md:text-xl">
                 Разгледайте пълния списък с предлагани групови и индивидуални
                 тренировки, наеми на кортове, абонаменти, спортна екипировка и
                 възстановяване.
@@ -348,12 +348,12 @@ export default function ClubClient({
 
               <Link
                 href="/club/catalog"
-                className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:-translate-y-1 group/btn"
+                className="group/btn inline-flex items-center gap-3 rounded-2xl bg-blue-600 px-10 py-5 font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]"
               >
                 Разгледай нашите услуги
                 <ArrowRight
                   size={20}
-                  className="group-hover/btn:translate-x-1 transition-transform"
+                  className="transition-transform group-hover/btn:translate-x-1"
                 />
               </Link>
             </div>
@@ -362,28 +362,28 @@ export default function ClubClient({
       </section>
 
       {/* Schedule 7 days */}
-      <section id="schedule" className="py-24 px-6 relative">
-        <div className="absolute right-0 top-1/2 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+      <section id="schedule" className="relative px-6 py-24">
+        <div className="pointer-events-none absolute top-1/2 right-0 size-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/10 blur-[120px]" />
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
                 Предстоящи Тренировки и Събития
               </h2>
-              <p className="text-zinc-400 mt-4 text-lg">
+              <p className="mt-4 text-lg text-zinc-400">
                 През следващите 7 дни
               </p>
             </div>
             <Link
               href="/club/schedule"
-              className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
+              className="inline-flex items-center gap-2 text-sm font-bold tracking-widest text-blue-400 uppercase transition-colors hover:text-blue-300 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
             >
               Пълен Календар <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700">
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-indigo-400/10 transition-colors duration-700" />
+          <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+            <div className="pointer-events-none absolute right-0 bottom-0 size-64 rounded-full bg-indigo-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-indigo-400/10" />
 
             <div className="relative z-10">
               {schedule.length > 0 ? (
@@ -396,17 +396,17 @@ export default function ClubClient({
                       transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
                     >
                       {/* Date Header */}
-                      <div className="flex items-center gap-4 mb-4">
+                      <div className="mb-4 flex items-center gap-4">
                         <span
-                          className={`text-xs font-bold uppercase tracking-[0.35em] px-3 py-1 rounded-full ${
+                          className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.35em] uppercase ${
                             isSpecialLabel(dateLabel)
-                              ? "bg-blue-600/20 text-blue-300 border border-blue-600/40"
+                              ? "border border-blue-600/40 bg-blue-600/20 text-blue-300"
                               : "text-zinc-400"
                           }`}
                         >
                           {dateLabel}
                         </span>
-                        <div className="flex-1 h-px bg-zinc-800/50" />
+                        <div className="h-px flex-1 bg-zinc-800/50" />
                       </div>
 
                       {/* Events for this date */}
@@ -425,12 +425,12 @@ export default function ClubClient({
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 flex flex-col items-center">
-                  <CalendarDays size={48} className="text-zinc-700 mb-6" />
-                  <p className="text-zinc-300 text-xl font-light">
+                <div className="flex flex-col items-center py-12 text-center">
+                  <CalendarDays size={48} className="mb-6 text-zinc-700" />
+                  <p className="text-xl font-light text-zinc-300">
                     Няма въведени тренировки за следващите 7 дни.
                   </p>
-                  <p className="text-zinc-500 text-md mt-2">
+                  <p className="text-md mt-2 text-zinc-500">
                     Очаквайте обновяване на седмичната програма.
                   </p>
                 </div>
@@ -441,27 +441,27 @@ export default function ClubClient({
       </section>
 
       {/* Facilities Carousel */}
-      <section className="py-24 px-6 relative">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+      <section className="relative px-6 py-24">
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 text-center">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Къде тренираме
             </h2>
           </div>
 
-          <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+          <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 shadow-2xl backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+            <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-400/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-400/10" />
 
-            <div className="grid grid-cols-1 gap-12 items-center relative z-10">
+            <div className="relative z-10 grid grid-cols-1 items-center gap-12">
               <div className="text-center md:text-left">
-                <p className="text-zinc-300 text-lg md:text-xl font-light leading-relaxed mb-8">
+                <p className="mb-8 text-lg leading-relaxed font-light text-zinc-300 md:text-xl">
                   Разполагаме със съвременна и напълно оборудвана спортна база.{" "}
-                  <strong className="text-white font-medium">
+                  <strong className="font-medium text-white">
                     Спортна зала „Енергетик“
                   </strong>{" "}
                   предлага:
                 </p>
-                <ul className="space-y-4 mb-12 max-w-lg mx-auto md:mx-0 text-left">
+                <ul className="mx-auto mb-12 max-w-lg space-y-4 text-left md:mx-0">
                   {[
                     "6 изцяло оборудвани корта за бадминтон",
                     "Трибуни за състезатели и зрители",
@@ -469,17 +469,17 @@ export default function ClubClient({
                     "Просторни съблекални",
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <div className="mt-1 shrink-0 h-5 w-5 rounded-full bg-blue-400/10 flex items-center justify-center border border-blue-400/30">
-                        <div className="h-2 w-2 rounded-full bg-blue-400" />
+                      <div className="mt-1 flex size-5 shrink-0 items-center justify-center rounded-full border border-blue-400/30 bg-blue-400/10">
+                        <div className="size-2 rounded-full bg-blue-400" />
                       </div>
-                      <span className="text-zinc-300 font-medium">{item}</span>
+                      <span className="font-medium text-zinc-300">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               {/* Carousel inside the card */}
-              <div className="relative aspect-video bg-black/60 rounded-3xl overflow-hidden border border-zinc-800/80 shadow-2xl group/carousel">
+              <div className="group/carousel relative aspect-video overflow-hidden rounded-3xl border border-zinc-800/80 bg-black/60 shadow-2xl">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeImage}
@@ -500,34 +500,34 @@ export default function ClubClient({
                 </AnimatePresence>
 
                 {/* Controls */}
-                <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">
+                <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 transition-opacity duration-300 group-hover/carousel:opacity-100">
                   <button
                     onClick={prevImage}
                     aria-label="Предишна снимка"
-                    className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
+                    className="flex size-10 items-center justify-center rounded-full border border-blue-400/50 bg-black/60 text-blue-400 shadow-[0_0_15px_rgba(30,58,138,0.5)] backdrop-blur-md transition-all hover:bg-blue-400 hover:text-white"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextImage}
                     aria-label="Следваща снимка"
-                    className="h-10 w-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-blue-400 hover:text-white border border-blue-400/50 hover:bg-blue-400 transition-all shadow-[0_0_15px_rgba(30,58,138,0.5)]"
+                    className="flex size-10 items-center justify-center rounded-full border border-blue-400/50 bg-black/60 text-blue-400 shadow-[0_0_15px_rgba(30,58,138,0.5)] backdrop-blur-md transition-all hover:bg-blue-400 hover:text-white"
                   >
                     <ChevronRight size={20} />
                   </button>
                 </div>
 
                 {/* Indicators */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2">
                   {hallImages.map((_, i) => (
                     <button
                       key={i}
                       aria-label={`Отиди на снимка ${i + 1}`}
                       onClick={() => setActiveImage(i)}
-                      className="touch-manipulation group/btn p-3"
+                      className="group/btn touch-manipulation p-3"
                     >
                       <div
-                        className={`h-2 transition-all duration-300 rounded-full group-hover/btn:bg-white/90 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/70"}`}
+                        className={`h-2 rounded-full transition-all duration-300 group-hover/btn:bg-white/90 ${i === activeImage ? "w-8 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-2 bg-white/70"}`}
                       />
                     </button>
                   ))}
@@ -539,67 +539,67 @@ export default function ClubClient({
       </section>
 
       {/* Contacts & Social */}
-      <section id="contacts" className="py-24 px-6 relative">
+      <section id="contacts" className="relative px-6 py-24">
         {/* Glow effect */}
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 size-[800px] -translate-1/2 rounded-full bg-blue-500/5 blur-[120px]" />
 
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <p className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-4 drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 text-center">
+            <p className="mb-4 text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]">
               Свържете се с нас
             </p>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Контакти и Локация
             </h2>
           </div>
 
           <div className="flex flex-col gap-12">
-            <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
+            <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 shadow-2xl backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+              <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-400/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-400/10" />
 
-              <div className="space-y-6 relative z-10">
-                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-start gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-6 transition-colors hover:border-blue-400/50">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-400/10 text-blue-400">
                     <MapPin size={24} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">
+                    <p className="mb-1 font-medium text-white">
                       Спортна база / Място на тренировките
                     </p>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
+                    <p className="text-sm leading-relaxed text-zinc-400">
                       {clubSite?.address ||
                         "Спортна зала „Енергетик“, ул. „Александър Стамболийски“ 41"}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+                <div className="flex items-start gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-6 transition-colors hover:border-blue-400/50">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-400/10 text-blue-400">
                     <Phone size={24} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">
+                    <p className="mb-1 font-medium text-white">
                       Телефон за връзка
                     </p>
-                    <p className="text-zinc-400 text-sm">Официален телефон</p>
+                    <p className="text-sm text-zinc-400">Официален телефон</p>
                     <a
                       href={`tel:${clubSite?.phone || "+359899829923"}`}
-                      className="text-blue-400 font-bold text-lg mt-1 inline-block hover:underline"
+                      className="mt-1 inline-block text-lg font-bold text-blue-400 hover:underline"
                     >
                       {clubSite?.phone || "+359 899 82 99 23"}
                     </a>
                   </div>
                 </div>
 
-                <div className="bg-zinc-950/50 border border-zinc-800/80 p-6 rounded-3xl flex items-start gap-4 hover:border-blue-400/50 transition-colors">
-                  <div className="h-12 w-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-400/20">
+                <div className="flex items-start gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-6 transition-colors hover:border-blue-400/50">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-400/10 text-blue-400">
                     <Mail size={24} />
                   </div>
                   <div>
-                    <p className="text-white font-medium mb-1">Имейл</p>
+                    <p className="mb-1 font-medium text-white">Имейл</p>
                     <a
                       href={`mailto:${clubSite?.email || "bk_galabovo@abv.bg"}`}
-                      className="text-zinc-400 text-sm hover:text-blue-400 transition-colors break-all"
+                      className="text-sm break-all text-zinc-400 transition-colors hover:text-blue-400"
                     >
                       {clubSite?.email || "bk_galabovo@abv.bg"}
                     </a>
@@ -608,23 +608,23 @@ export default function ClubClient({
               </div>
             </div>
 
-            <div className="bg-black/40 border border-zinc-800/50 p-8 md:p-14 rounded-[3rem] backdrop-blur-xl relative overflow-hidden group hover:border-zinc-700/80 transition-colors duration-700 shadow-2xl">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-700" />
-              <h3 className="text-3xl font-light text-white mb-10 relative z-10 text-center">
+            <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 shadow-2xl backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
+              <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-400/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-400/10" />
+              <h3 className="relative z-10 mb-10 text-center text-3xl font-light text-white">
                 Последвайте ни в мрежите
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+              <div className="relative z-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {clubSite?.facebook && (
                   <a
                     href={clubSite.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-blue-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] group/social"
+                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-500 hover:bg-black hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]"
                   >
-                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-blue-500/10 group-hover/social:text-blue-500 transition-colors border border-zinc-800 group-hover/social:border-blue-500/30">
+                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-500/30 group-hover/social:bg-blue-500/10 group-hover/social:text-blue-500">
                       <FacebookIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
                       Facebook
                     </span>
                   </a>
@@ -634,12 +634,12 @@ export default function ClubClient({
                     href={clubSite.facebookGroup}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-blue-400 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(96,165,250,0.3)] group/social"
+                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-400 hover:bg-black hover:shadow-[0_0_20px_rgba(96,165,250,0.3)]"
                   >
-                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-blue-400/10 group-hover/social:text-blue-400 transition-colors border border-zinc-800 group-hover/social:border-blue-400/30">
+                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-400/30 group-hover/social:bg-blue-400/10 group-hover/social:text-blue-400">
                       <Users size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
                       Група
                     </span>
                   </a>
@@ -649,12 +649,12 @@ export default function ClubClient({
                     href={clubSite.instagram}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-pink-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] group/social"
+                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-pink-500 hover:bg-black hover:shadow-[0_0_20px_rgba(236,72,153,0.3)]"
                   >
-                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-pink-500/10 group-hover/social:text-pink-500 transition-colors border border-zinc-800 group-hover/social:border-pink-500/30">
+                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-pink-500/30 group-hover/social:bg-pink-500/10 group-hover/social:text-pink-500">
                       <InstagramIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
                       Instagram
                     </span>
                   </a>
@@ -664,12 +664,12 @@ export default function ClubClient({
                     href={clubSite.youtube}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-4 p-5 bg-zinc-950/50 border border-zinc-800/80 rounded-3xl hover:border-red-500 hover:bg-black transition-all shadow-none hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] group/social"
+                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-red-500 hover:bg-black hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]"
                   >
-                    <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/social:bg-red-500/10 group-hover/social:text-red-500 transition-colors border border-zinc-800 group-hover/social:border-red-500/30">
+                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-red-500/30 group-hover/social:bg-red-500/10 group-hover/social:text-red-500">
                       <YoutubeIcon size={24} />
                     </div>
-                    <span className="font-medium text-zinc-300 group-hover/social:text-white transition-colors text-lg">
+                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
                       YouTube
                     </span>
                   </a>
@@ -679,7 +679,7 @@ export default function ClubClient({
                   !clubSite?.facebookGroup &&
                   !clubSite?.instagram &&
                   !clubSite?.youtube && (
-                    <p className="text-zinc-400 text-sm col-span-2 text-center py-4">
+                    <p className="col-span-2 py-4 text-center text-sm text-zinc-400">
                       Очаквайте скоро нашите социални мрежи.
                     </p>
                   )}
@@ -688,7 +688,7 @@ export default function ClubClient({
               {/* Instagram Feed Widget (Lazy Loaded) */}
               <div
                 ref={widgetRef}
-                className="mt-12 overflow-hidden rounded-3xl relative w-full min-h-[400px] bg-zinc-950/50 border border-zinc-800/80 z-10"
+                className="relative z-10 mt-12 min-h-100 w-full overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-950/50"
               >
                 {isWidgetVisible && (
                   <>

@@ -11,10 +11,10 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-blue-400/30">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
       <div className="flex items-center justify-between">
         <Link href="/club" className="flex items-center gap-2">
-          <div className="h-8 w-8 relative overflow-hidden rounded-lg bg-white/5 p-1 border border-blue-400/50 shadow-[0_0_10px_rgba(30,58,138,0.5)]">
+          <div className="relative size-8 overflow-hidden rounded-lg border border-blue-400/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
               src="/logo.png"
               alt="Logo"
@@ -23,53 +23,53 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
               className="object-contain"
             />
           </div>
-          <span className="font-medium text-sm text-white">БК ГЪЛЪБОВО</span>
+          <span className="text-sm font-medium text-white">БК ГЪЛЪБОВО</span>
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+        <div className="hidden items-center gap-8 text-[11px] font-bold tracking-widest text-zinc-400 uppercase md:flex">
           <Link
             href="/club#about"
-            className="hover:text-blue-400 transition-colors"
+            className="transition-colors hover:text-blue-400"
           >
             За Клуба
           </Link>
           <Link
             href="/club#activities"
-            className="hover:text-blue-400 transition-colors"
+            className="transition-colors hover:text-blue-400"
           >
             Дейности
           </Link>
           <Link
             href="/club/catalog"
-            className="hover:text-blue-400 transition-colors"
+            className="transition-colors hover:text-blue-400"
           >
             Услуги
           </Link>
           <Link
             href="/club#schedule"
-            className="hover:text-blue-400 transition-colors"
+            className="transition-colors hover:text-blue-400"
           >
             График
           </Link>
           <Link
             href="/club/team"
-            className="hover:text-blue-400 transition-colors text-blue-400"
+            className="text-blue-400 transition-colors hover:text-blue-400"
           >
             Отбор
           </Link>
           <Link
             href="/club#contacts"
-            className="hover:text-blue-400 transition-colors"
+            className="transition-colors hover:text-blue-400"
           >
             Контакти
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden items-center gap-4 md:flex">
           <Link
             href="/"
-            className="text-xs font-medium uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
+            className="text-xs font-medium tracking-widest text-zinc-400 uppercase transition-colors hover:text-white"
           >
             Портал
           </Link>
@@ -77,7 +77,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden text-white p-2"
+          className="p-2 text-white md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
           aria-expanded={mobileMenuOpen}
@@ -93,9 +93,9 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-black/95 backdrop-blur-xl border-t border-blue-900/30 mt-4 -mx-6 px-6"
+            className="-mx-6 mt-4 overflow-hidden border-t border-blue-900/30 bg-black/95 px-6 backdrop-blur-xl md:hidden"
           >
-            <div className="flex flex-col gap-6 py-6 text-sm font-bold uppercase tracking-widest text-zinc-300">
+            <div className="flex flex-col gap-6 py-6 text-sm font-bold tracking-widest text-zinc-300 uppercase">
               <Link
                 href="/club#about"
                 onClick={() => setMobileMenuOpen(false)}
@@ -127,7 +127,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
               <Link
                 href="/club/team"
                 onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-blue-400 text-blue-400"
+                className="text-blue-400 hover:text-blue-400"
               >
                 Отбор
               </Link>
@@ -141,7 +141,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-zinc-500 hover:text-white pt-4 border-t border-blue-900/30"
+                className="border-t border-blue-900/30 pt-4 text-zinc-500 hover:text-white"
               >
                 Обратно към Портала
               </Link>

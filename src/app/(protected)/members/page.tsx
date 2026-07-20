@@ -19,10 +19,10 @@ export default async function MembersPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
       {error ? (
-        <div className="bg-rose-50 border border-rose-100 rounded-5xl p-8 text-center">
-          <p className="text-rose-600 font-medium">{error}</p>
+        <div className="rounded-5xl border border-rose-100 bg-rose-50 p-8 text-center">
+          <p className="font-medium text-rose-600">{error}</p>
         </div>
       ) : (
         <Suspense fallback={<MembersLoading />}>
@@ -35,8 +35,8 @@ export default async function MembersPage() {
 
 function MembersLoading() {
   return (
-    <div className="p-8 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="space-y-6 p-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Skeleton className="h-32 rounded-3xl" />
         <Skeleton className="h-32 rounded-3xl" />
         <Skeleton className="h-32 rounded-3xl" />

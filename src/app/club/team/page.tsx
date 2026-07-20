@@ -244,25 +244,25 @@ export default async function TeamPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 font-sans">
+    <div className="min-h-screen bg-black font-sans text-white selection:bg-blue-500/30">
       <PublicNav clubSite={clubSite} />
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6 overflow-hidden min-h-[50vh] flex items-center">
+      <section className="relative flex min-h-[50vh] items-center overflow-hidden px-6 pt-40 pb-20">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-black/80 to-black z-10" />
-          <div className="absolute top-1/2 left-1/2 w-[1000px] h-[1000px] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-blue-900/20 via-black/80 to-black" />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 size-[1000px] -translate-1/2 rounded-full bg-blue-500/20 blur-[120px]" />
         </div>
 
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-blue-400 mb-6 block drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
+        <div className="relative z-10 mx-auto max-w-7xl text-center">
+          <span className="mb-6 block text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
             Лицата на клуба
           </span>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-light tracking-tight mb-8">
+          <h1 className="mb-8 text-5xl font-light tracking-tight md:text-7xl lg:text-8xl">
             Нашият <span className="font-semibold text-blue-400">Отбор</span>
           </h1>
           {clubSite?.teamIntro && (
-            <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto font-light leading-relaxed">
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed font-light text-zinc-400 md:text-xl">
               {clubSite.teamIntro}
             </p>
           )}
@@ -271,27 +271,27 @@ export default async function TeamPage() {
 
       {/* Coaches Section */}
       {clubSite?.therapists && clubSite.therapists.length > 0 && (
-        <section className="py-24 px-6 relative">
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex items-center gap-4 mb-16">
-              <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+        <section className="relative px-6 py-24">
+          <div className="relative z-10 mx-auto max-w-7xl">
+            <div className="mb-16 flex items-center gap-4">
+              <div className="flex size-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400">
                 <Medal size={24} />
               </div>
-              <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
                 Ръководство и Треньори
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {clubSite.therapists.map((coach, idx) => (
                 <div
                   key={idx}
-                  className="bg-black/40 border border-zinc-800/50 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500"
+                  className="group relative overflow-hidden rounded-5xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30"
                 >
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/10 transition-colors duration-700" />
+                  <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-500/10" />
 
                   <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="w-40 h-40 rounded-full overflow-hidden mb-6 border-2 border-zinc-800 group-hover:border-blue-500/50 transition-colors shadow-2xl relative bg-zinc-900">
+                    <div className="relative mb-6 size-40 overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-2xl transition-colors group-hover:border-blue-500/50">
                       {coach.image ? (
                         <Image
                           src={getValidImageSrc(coach.image)}
@@ -300,19 +300,19 @@ export default async function TeamPage() {
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                        <div className="flex size-full items-center justify-center text-zinc-700">
                           <UserIcon size={64} />
                         </div>
                       )}
                     </div>
-                    <h3 className="text-2xl font-medium text-white mb-2">
+                    <h3 className="mb-2 text-2xl font-medium text-white">
                       {coach.name}
                     </h3>
-                    <p className="text-blue-400 font-semibold uppercase tracking-widest text-[11px] mb-6">
+                    <p className="mb-6 text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
                       {coach.role || "Треньор"}
                     </p>
                     {coach.bio && (
-                      <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                      <p className="mb-6 text-sm leading-relaxed text-zinc-400">
                         {coach.bio}
                       </p>
                     )}
@@ -325,42 +325,42 @@ export default async function TeamPage() {
       )}
 
       {/* Athletes Section */}
-      <section className="py-24 px-6 relative border-t border-zinc-900/50">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+      <section className="relative border-t border-zinc-900/50 px-6 py-24">
+        <div className="pointer-events-none absolute top-0 right-0 size-[800px] rounded-full bg-blue-500/5 blur-[150px]" />
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex items-center gap-4 mb-20">
-            <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="mb-20 flex items-center gap-4">
+            <div className="flex size-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400">
               <Trophy size={24} />
             </div>
-            <h2 className="text-4xl md:text-5xl font-light tracking-tight">
+            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Нашите Състезатели
             </h2>
           </div>
 
           {sortedAgeGroups.length === 0 ? (
-            <p className="text-zinc-500 text-center py-12 text-lg">
+            <p className="py-12 text-center text-lg text-zinc-500">
               Все още няма добавени състезатели.
             </p>
           ) : (
             <div className="space-y-24">
               {sortedAgeGroups.map((group) => (
                 <div key={group}>
-                  <h3 className="text-2xl md:text-3xl font-light text-white mb-10 flex items-center gap-4">
-                    <span className="w-8 h-[1px] bg-blue-500/50 block"></span>
+                  <h3 className="mb-10 flex items-center gap-4 text-2xl font-light text-white md:text-3xl">
+                    <span className="block h-px w-8 bg-blue-500/50"></span>
                     Възрастова група {group}
-                    <span className="h-[1px] flex-1 bg-gradient-to-r from-blue-500/50 to-transparent block"></span>
+                    <span className="block h-px flex-1 bg-gradient-to-r from-blue-500/50 to-transparent"></span>
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {groupedMembers[group].map((member) => (
                       <div
                         key={member.id}
-                        className="bg-black/40 border border-zinc-800/50 rounded-[2rem] overflow-hidden backdrop-blur-xl relative group hover:border-zinc-700 transition-all duration-500 flex flex-col h-full"
+                        className="group relative flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-800/50 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-zinc-700"
                       >
                         {/* Athlete Photo */}
-                        <div className="aspect-[4/5] relative bg-zinc-900 overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+                        <div className="relative aspect-[4/5] overflow-hidden bg-zinc-900">
+                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-black/20 to-transparent" />
                           {member.avatarUrl ? (
                             <Image
                               src={getValidImageSrc(member.avatarUrl)}
@@ -368,20 +368,20 @@ export default async function TeamPage() {
                               fill
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                               priority
-                              className="object-cover group-hover:scale-105 transition-transform duration-700"
+                              className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                            <div className="flex size-full items-center justify-center text-zinc-800">
                               <UserIcon size={80} />
                             </div>
                           )}
 
                           {/* Name Overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-                            <h4 className="text-xl font-medium text-white mb-1">
+                          <div className="absolute inset-x-0 bottom-0 z-20 p-6">
+                            <h4 className="mb-1 text-xl font-medium text-white">
                               {member.name}
                             </h4>
-                            <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+                            <p className="text-xs font-medium tracking-wider text-zinc-400 uppercase">
                               {member.skillLevel === "advanced" ||
                               member.skillLevel === "professional"
                                 ? "Състезател"
@@ -393,8 +393,8 @@ export default async function TeamPage() {
                         {/* Athlete Details */}
                         {member.tournaments &&
                           member.tournaments.length > 0 && (
-                            <div className="p-6 bg-zinc-950/50 flex-1 border-t border-zinc-800/50">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-4 flex items-center gap-2">
+                            <div className="flex-1 border-t border-zinc-800/50 bg-zinc-950/50 p-6">
+                              <p className="mb-4 flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase">
                                 <MapPin size={12} />
                                 Участия в Турнири
                               </p>
@@ -404,14 +404,14 @@ export default async function TeamPage() {
                                   .map((t, idx) => (
                                     <li
                                       key={idx}
-                                      className="text-sm text-zinc-300 font-light flex items-start gap-2"
+                                      className="flex items-start gap-2 text-sm font-light text-zinc-300"
                                     >
-                                      <span className="w-1 h-1 rounded-full bg-blue-500/50 mt-1.5 shrink-0"></span>
+                                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-blue-500/50"></span>
                                       <span className="leading-snug">{t}</span>
                                     </li>
                                   ))}
                                 {member.tournaments.length > 3 && (
-                                  <li className="text-xs text-zinc-500 italic mt-2">
+                                  <li className="mt-2 text-xs text-zinc-500 italic">
                                     и още {member.tournaments.length - 3}...
                                   </li>
                                 )}

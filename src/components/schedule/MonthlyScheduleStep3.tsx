@@ -33,34 +33,34 @@ export function MonthlyScheduleStep3({
         isActive ? "block opacity-100" : "hidden opacity-0"
       )}
     >
-      <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl p-6 space-y-4 border border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-3 text-emerald-500 mb-4">
-          <CheckCircle2 className="h-6 w-6" />
-          <h3 className="font-medium text-sm">
+      <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="mb-4 flex items-center gap-3 text-emerald-500">
+          <CheckCircle2 className="size-6" />
+          <h3 className="text-sm font-medium">
             Всичко е готово за генериране!
           </h3>
         </div>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
+            <span className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Събитие:
             </span>
             <span className="font-medium">{currentValues.title}</span>
-            <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
+            <span className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Място:
             </span>
             <span className="font-medium">{currentValues.location}</span>
-            <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
+            <span className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Месец:
             </span>
             <span className="font-medium">{currentValues.month}</span>
-            <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
+            <span className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Час:
             </span>
             <span className="font-medium">
               {currentValues.startTime} - {currentValues.endTime}
             </span>
-            <span className="text-zinc-500 uppercase tracking-wider font-medium text-[10px]">
+            <span className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Дни:
             </span>
             <span className="font-medium">{selectedDaysLabels}</span>

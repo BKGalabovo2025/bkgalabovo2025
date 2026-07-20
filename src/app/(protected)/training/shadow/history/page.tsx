@@ -57,33 +57,33 @@ export default async function GlobalShadowHistoryPage() {
     .slice(0, 5);
 
   return (
-    <div className="flex-1 w-full flex flex-col min-h-full pb-20 pt-4 px-4 bg-zinc-50 dark:bg-black overflow-y-auto">
-      <div className="w-full max-w-5xl mx-auto space-y-8">
+    <div className="flex min-h-full w-full flex-1 flex-col overflow-y-auto bg-zinc-50 px-4 pt-4 pb-20 dark:bg-black">
+      <div className="mx-auto w-full max-w-5xl space-y-8">
         <div className="flex flex-col gap-2">
           <Link href="/training/shadow" className="self-start">
             <Button
               variant="ghost"
               size="sm"
-              className="-ml-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2"
+              className="mb-2 -ml-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
+              <ChevronLeft className="mr-1 size-4" />
               Назад към Треньора
             </Button>
           </Link>
-          <div className="flex justify-between items-end">
+          <div className="flex items-end justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                 <Zap className="text-primary" /> История на Тренировките
               </h1>
-              <p className="text-zinc-500 text-sm mt-1">
+              <p className="mt-1 text-sm text-zinc-500">
                 Всички проведени сесии в клуба.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1 bg-primary/5 border-primary/20 shadow-md">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Card className="border-primary/20 bg-primary/5 shadow-md md:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="text-yellow-500" /> Топ 5 Най-трудолюбиви
@@ -93,23 +93,23 @@ export default async function GlobalShadowHistoryPage() {
             <CardContent>
               <div className="space-y-4">
                 {leaderboard.length === 0 ? (
-                  <p className="text-zinc-500 text-sm">Няма данни.</p>
+                  <p className="text-sm text-zinc-500">Няма данни.</p>
                 ) : (
                   leaderboard.map((lb, idx) => (
                     <Link
                       key={lb.id}
                       href={`/members/${lb.id}`}
-                      className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-2 last:border-0 hover:bg-primary/5 rounded-lg px-2 -mx-2 transition-colors cursor-pointer group"
+                      className="group -mx-2 flex cursor-pointer items-center justify-between rounded-lg border-b border-zinc-200 px-2 pb-2 transition-colors last:border-0 hover:bg-primary/5 dark:border-zinc-800"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="font-bold text-lg text-zinc-400 w-4 group-hover:text-primary transition-colors">
+                        <div className="w-4 text-lg font-bold text-zinc-400 transition-colors group-hover:text-primary">
                           {idx + 1}.
                         </div>
-                        <div className="font-medium group-hover:text-primary transition-colors">
+                        <div className="font-medium transition-colors group-hover:text-primary">
                           {lb.name}
                         </div>
                       </div>
-                      <div className="text-primary font-bold">
+                      <div className="font-bold text-primary">
                         {Math.round(lb.min)} мин
                       </div>
                     </Link>
@@ -126,25 +126,25 @@ export default async function GlobalShadowHistoryPage() {
             <CardContent>
               <div className="space-y-4">
                 {sessions.length === 0 ? (
-                  <p className="text-zinc-500 text-sm">
+                  <p className="text-sm text-zinc-500">
                     Няма проведени тренировки.
                   </p>
                 ) : (
                   sessions.map((session: TrainingSession) => (
                     <div
                       key={session.id}
-                      className="p-4 bg-zinc-100 dark:bg-zinc-900 rounded-xl flex justify-between items-center"
+                      className="flex items-center justify-between rounded-xl bg-zinc-100 p-4 dark:bg-zinc-900"
                     >
                       <div>
                         <div className="font-semibold text-zinc-900 dark:text-zinc-100">
                           {getModeName(session.shadowDetails?.mode)}
                         </div>
-                        <div className="text-xs text-zinc-500 mt-1">
+                        <div className="mt-1 text-xs text-zinc-500">
                           {format(new Date(session.date), "dd MMM yyyy HH:mm")}{" "}
                           • {session.memberIds.length} участници
                         </div>
                       </div>
-                      <div className="text-right flex items-center gap-4">
+                      <div className="flex items-center gap-4 text-right">
                         <div>
                           <div className="text-sm font-bold">
                             {Math.round((session.durationMs || 0) / 60000)}{" "}

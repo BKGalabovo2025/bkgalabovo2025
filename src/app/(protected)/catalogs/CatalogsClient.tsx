@@ -45,38 +45,38 @@ export default function CatalogsClient({
           onValueChange={setCatalogsSubTab}
           className="space-y-6"
         >
-          <TabsList className="bg-zinc-100 dark:bg-zinc-900/50 p-1 rounded-2xl h-11 w-full sm:w-fit border border-zinc-200/40 dark:border-zinc-800/40 mb-2 overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
+          <TabsList className="no-scrollbar mb-2 flex h-11 w-full justify-start overflow-x-auto rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50">
             {!isRecoveryOnly && (
               <>
                 <TabsTrigger
                   value="services"
-                  className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+                  className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
-                  <ListTree className="h-3.5 w-3.5 mr-2" />
+                  <ListTree className="mr-2 size-3.5" />
                   Тренировки
                 </TabsTrigger>
                 <TabsTrigger
                   value="general"
-                  className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+                  className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
-                  <Wrench className="h-3.5 w-3.5 mr-2" />
+                  <Wrench className="mr-2 size-3.5" />
                   Клубни Услуги
                 </TabsTrigger>
               </>
             )}
             <TabsTrigger
               value="recovery"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+              className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <Activity className="h-3.5 w-3.5 mr-2" />
+              <Activity className="mr-2 size-3.5" />
               Възстановяване
             </TabsTrigger>
             {!isRecoveryOnly && (
               <TabsTrigger
                 value="inventory"
-                className="rounded-xl px-5 text-xs font-semibold tracking-wide data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:text-white shadow-none transition-all whitespace-nowrap"
+                className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
               >
-                <Package className="h-3.5 w-3.5 mr-2" />
+                <Package className="mr-2 size-3.5" />
                 Магазин / Стоки
               </TabsTrigger>
             )}
@@ -84,22 +84,22 @@ export default function CatalogsClient({
 
           {!isRecoveryOnly && (
             <>
-              <TabsContent value="services" className="outline-none mt-0">
-                <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+              <TabsContent value="services" className="mt-0 outline-none">
+                <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
                   <ServicesClientPage showPageHeader={false} data={services} />
                 </div>
               </TabsContent>
 
-              <TabsContent value="general" className="outline-none mt-0">
-                <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+              <TabsContent value="general" className="mt-0 outline-none">
+                <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
                   <GeneralServicesClient showPageHeader={false} />
                 </div>
               </TabsContent>
             </>
           )}
 
-          <TabsContent value="recovery" className="outline-none mt-0">
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+          <TabsContent value="recovery" className="mt-0 outline-none">
+            <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
               <RecoveryClientPage
                 showPageHeader={false}
                 data={recoveryServices}
@@ -108,8 +108,8 @@ export default function CatalogsClient({
           </TabsContent>
 
           {!isRecoveryOnly && (
-            <TabsContent value="inventory" className="outline-none mt-0">
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-5xl p-6 sm:p-8 shadow-sm">
+            <TabsContent value="inventory" className="mt-0 outline-none">
+              <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
                 <InventoryClient showPageHeader={false} />
               </div>
             </TabsContent>

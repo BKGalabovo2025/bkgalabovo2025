@@ -86,7 +86,7 @@ export function ReservationHistory({
   if (isLoading) {
     return (
       <div className="p-12 text-center text-zinc-500">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+        <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         Зареждане на историята...
       </div>
     );
@@ -94,44 +94,44 @@ export function ReservationHistory({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+      <div className="flex items-center gap-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
           <Input
             placeholder="Търсене по име, телефон или имейл..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-xl bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
+            className="rounded-xl border-zinc-200 bg-white pl-10 dark:border-zinc-800 dark:bg-zinc-950"
           />
         </div>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+        <div className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
           Намерени: {filteredReservations.length}
         </div>
       </div>
 
-      <div className="border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-black/2 bg-white dark:bg-zinc-950 hidden md:block">
+      <div className="hidden overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-sm shadow-black/2 md:block dark:border-zinc-800 dark:bg-zinc-950">
         <Table>
           <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
-            <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-800">
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+            <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-800">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Дата и Час
               </TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Клиент
               </TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Ресурс / Услуга
               </TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Статус
               </TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Цена
               </TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-widest text-zinc-400 h-12">
+              <TableHead className="h-12 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 Направена от
               </TableHead>
-              <TableHead className="w-[200px] text-right"></TableHead>
+              <TableHead className="w-50 text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -139,7 +139,7 @@ export function ReservationHistory({
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="h-48 text-center text-zinc-500 font-medium"
+                  className="h-48 text-center font-medium text-zinc-500"
                 >
                   Няма намерени резервации.
                 </TableCell>
@@ -175,9 +175,9 @@ export function ReservationHistory({
         </Table>
       </div>
 
-      <div className="md:hidden flex flex-col gap-4">
+      <div className="flex flex-col gap-4 md:hidden">
         {filteredReservations.length === 0 ? (
-          <div className="h-32 flex items-center justify-center text-center text-zinc-500 font-medium">
+          <div className="flex h-32 items-center justify-center text-center font-medium text-zinc-500">
             Няма намерени резервации.
           </div>
         ) : (

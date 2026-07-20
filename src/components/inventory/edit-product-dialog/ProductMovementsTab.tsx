@@ -35,16 +35,16 @@ export const ProductMovementsTab = () => {
 
   if (historyLoading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500 opacity-35" />
-        <p className="text-zinc-400 text-xs font-light">Зареждане на движения...</p>
+      <div className="flex flex-col items-center justify-center space-y-4 py-20">
+        <Loader2 className="size-8 animate-spin text-amber-500 opacity-35" />
+        <p className="text-xs font-light text-zinc-400">Зареждане на движения...</p>
       </div>
     );
   }
 
   if (movements.length === 0) {
     return (
-      <div className="py-20 text-center text-zinc-400 text-xs font-light">
+      <div className="py-20 text-center text-xs font-light text-zinc-400">
         Няма записани движения за този продукт.
       </div>
     );
@@ -61,25 +61,25 @@ export const ProductMovementsTab = () => {
         else if (isNegative) quantityColor = "text-rose-600";
 
         return (
-          <div key={move.id} className="p-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-2xl border border-zinc-100/50 dark:border-zinc-900 space-y-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400 text-[10px]">{formatDateTimeDisplay(move.createdAt)}</span>
-              <Badge className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider shadow-none border-none ${getEventBadgeClass(move.type)}`}>
+          <div key={move.id} className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-zinc-400">{formatDateTimeDisplay(move.createdAt)}</span>
+              <Badge className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${getEventBadgeClass(move.type)}`}>
                 {getEventLabel(move.type)}
               </Badge>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-zinc-500">Количество:</span>
               <span className={`font-semibold ${quantityColor}`}>
                 {isPositive ? `+${move.quantityChange}` : move.quantityChange} бр.
               </span>
             </div>
             {move.notes && (
-              <p className="text-zinc-400 italic text-[11px] border-t border-zinc-200/50 dark:border-zinc-800/50 pt-1.5 mt-1">
+              <p className="mt-1 border-t border-zinc-200/50 pt-1.5 text-[11px] text-zinc-400 italic dark:border-zinc-800/50">
                 Бележка: {move.notes}
               </p>
             )}
-            <div className="text-[10px] text-zinc-400/80 text-right mt-1">
+            <div className="mt-1 text-right text-[10px] text-zinc-400/80">
               Оператор: {move.userName}
             </div>
           </div>

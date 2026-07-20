@@ -51,17 +51,17 @@ const EditMemberPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-12 w-12 animate-spin" />
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="size-12 animate-spin" />
       </div>
     );
   }
 
   if (error || !member) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-destructive">
-        <AlertCircle className="h-12 w-12 mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Грешка при зареждане</h2>
+      <div className="flex h-[calc(100vh-200px)] flex-col items-center justify-center text-destructive">
+        <AlertCircle className="mb-4 size-12" />
+        <h2 className="mb-2 text-xl font-semibold">Грешка при зареждане</h2>
         <p>{error || "Членът не е намерен"}</p>
       </div>
     );
@@ -69,7 +69,7 @@ const EditMemberPage = () => {
 
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-4">Редактиране на член</h1>
+      <h1 className="mb-4 text-2xl font-bold">Редактиране на член</h1>
       <MemberForm
         initialData={member}
         onSave={handleSave}

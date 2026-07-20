@@ -69,15 +69,15 @@ export default async function RecoveryCatalogPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-emerald-400/30">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-emerald-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
         <Link
           href="/recovery-zone"
-          className="flex items-center gap-2 text-zinc-400 hover:text-emerald-400 hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-all text-sm"
+          className="flex items-center gap-2 text-sm text-zinc-400 transition-all hover:text-emerald-400 hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]"
         >
           <ArrowLeft size={16} />
           Назад към Recovery Zone
         </Link>
-        <span className="font-medium text-sm text-emerald-400 uppercase tracking-widest drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+        <span className="text-sm font-medium tracking-widest text-emerald-400 uppercase drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
           Каталог
         </span>
         <div className="w-20"></div>
@@ -85,10 +85,10 @@ export default async function RecoveryCatalogPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-24 px-6 pb-32">
-        <div className="max-w-6xl mx-auto">
+      <main className="px-6 pt-24 pb-32">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-12">
-            <h1 className="text-4xl font-light tracking-tight mb-4">
+            <h1 className="mb-4 text-4xl font-light tracking-tight">
               Recovery Zone{" "}
               <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
                 Каталог
@@ -99,7 +99,7 @@ export default async function RecoveryCatalogPage() {
             </p>
           </div>
 
-          <div className="bg-black/80 border border-emerald-400/20 rounded-3xl p-6 md:p-10 glassmorphism">
+          <div className="glassmorphism rounded-3xl border border-emerald-400/20 bg-black/80 p-6 md:p-10">
             <PublicCatalogTabs
               trainings={[]}
               generalServices={[]}

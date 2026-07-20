@@ -110,45 +110,45 @@ const AttendanceReport = ({
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="p-8 bg-white border border-zinc-100 shadow-none rounded-4xl">
-        <div className="flex flex-col md:flex-row gap-6 items-end">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
+      <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+        <div className="flex flex-col items-end gap-6 md:flex-row">
+          <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-3">
-              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} /> Начална
+              <Label className="ml-1 flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <Calendar className="size-3.5" strokeWidth={1.5} /> Начална
                 дата
               </Label>
               <Input
                 type="date"
                 value={startDate ? formatDateInput(startDate) : ""}
                 onChange={handleDateChange(setStartDate)}
-                className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200 font-light"
+                className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 font-light shadow-none focus:ring-zinc-200"
               />
             </div>
             <div className="space-y-3">
-              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1 flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5" strokeWidth={1.5} /> Крайна
+              <Label className="ml-1 flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <Calendar className="size-3.5" strokeWidth={1.5} /> Крайна
                 дата
               </Label>
               <Input
                 type="date"
                 value={endDate ? formatDateInput(endDate) : ""}
                 onChange={handleDateChange(setEndDate)}
-                className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200 font-light"
+                className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 font-light shadow-none focus:ring-zinc-200"
               />
             </div>
           </div>
 
-          <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex w-full gap-3 md:w-auto">
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading}
-              className="flex-1 md:flex-none rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-medium text-[11px] uppercase tracking-widest h-12 px-8 shadow-none transition-all"
+              className="h-12 flex-1 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 md:flex-none"
             >
               {isLoading ? (
-                <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-3 size-4 animate-spin" />
               ) : (
-                <Filter className="mr-3 h-4 w-4" strokeWidth={1.5} />
+                <Filter className="mr-3 size-4" strokeWidth={1.5} />
               )}
               Генерирай
             </Button>
@@ -156,15 +156,15 @@ const AttendanceReport = ({
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="rounded-xl border-zinc-100 hover:bg-zinc-50 font-medium text-[11px] uppercase tracking-widest h-12 px-8 transition-all"
+                className="h-12 rounded-xl border-zinc-100 px-8 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50"
               >
-                <Download className="mr-3 h-4 w-4" strokeWidth={1.5} /> Експорт
+                <Download className="mr-3 size-4" strokeWidth={1.5} /> Експорт
               </Button>
             )}
           </div>
         </div>
         {error && (
-          <p className="text-rose-500 text-[11px] font-medium uppercase tracking-widest mt-6 ml-1">
+          <p className="mt-6 ml-1 text-[11px] font-medium tracking-widest text-rose-500 uppercase">
             {error}
           </p>
         )}
@@ -172,11 +172,11 @@ const AttendanceReport = ({
 
       {/* Stats Cards */}
       {reportData.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none">
-            <div className="flex items-center gap-4 mb-3 text-zinc-400">
-              <Activity className="h-5 w-5" strokeWidth={1.5} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+            <div className="mb-3 flex items-center gap-4 text-zinc-400">
+              <Activity className="size-5" strokeWidth={1.5} />
+              <span className="text-[11px] font-medium tracking-[0.2em] uppercase">
                 Общо посещения
               </span>
             </div>
@@ -185,10 +185,10 @@ const AttendanceReport = ({
             </p>
           </BentoCard>
 
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none">
-            <div className="flex items-center gap-4 mb-3 text-zinc-400">
-              <Users className="h-5 w-5" strokeWidth={1.5} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
+          <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
+            <div className="mb-3 flex items-center gap-4 text-zinc-400">
+              <Users className="size-5" strokeWidth={1.5} />
+              <span className="text-[11px] font-medium tracking-[0.2em] uppercase">
                 Активни членове
               </span>
             </div>
@@ -197,23 +197,23 @@ const AttendanceReport = ({
             </p>
           </BentoCard>
 
-          <BentoCard className="p-8 bg-white border border-zinc-100 rounded-4xl shadow-none relative group">
+          <BentoCard className="group relative rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
             <Trophy
-              className="absolute top-8 right-8 h-8 w-8 text-zinc-100 group-hover:text-amber-100 transition-colors"
+              className="absolute top-8 right-8 size-8 text-zinc-100 transition-colors group-hover:text-amber-100"
               strokeWidth={1}
             />
-            <div className="flex items-center gap-4 mb-3 text-zinc-400">
-              <Trophy className="h-5 w-5" strokeWidth={1.5} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.2em]">
+            <div className="mb-3 flex items-center gap-4 text-zinc-400">
+              <Trophy className="size-5" strokeWidth={1.5} />
+              <span className="text-[11px] font-medium tracking-[0.2em] uppercase">
                 Най-активен
               </span>
             </div>
-            <p className="text-xl font-light text-zinc-900 truncate">
+            <p className="truncate text-xl font-light text-zinc-900">
               {topAttendee
                 ? `${topAttendee.member.firstName} ${topAttendee.member.lastName}`
                 : "N/A"}
             </p>
-            <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest mt-2">
+            <p className="mt-2 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
               {topAttendee?.attendanceCount} посещения
             </p>
           </BentoCard>
@@ -221,15 +221,15 @@ const AttendanceReport = ({
       )}
 
       {/* Table Card */}
-      <BentoCard className="p-0 overflow-hidden bg-white border border-zinc-100 shadow-none rounded-5xl">
-        <div className="p-8 border-b border-zinc-50 flex items-center justify-between">
-          <h3 className="font-medium text-[11px] uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-3">
-            <Users className="h-4 w-4 text-primary" strokeWidth={1.5} />
+      <BentoCard className="overflow-hidden rounded-5xl border border-zinc-100 bg-white p-0 shadow-none">
+        <div className="flex items-center justify-between border-b border-zinc-50 p-8">
+          <h3 className="flex items-center gap-3 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+            <Users className="size-4 text-primary" strokeWidth={1.5} />
             Списък с присъствия
           </h3>
           <Badge
             variant="outline"
-            className="rounded-full px-4 py-1 text-[10px] font-medium uppercase tracking-widest border-zinc-100 text-zinc-400"
+            className="rounded-full border-zinc-100 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
           >
             {reportData.length} резултата
           </Badge>
@@ -238,26 +238,26 @@ const AttendanceReport = ({
         {isLoading ? (
           <div className="p-32 text-center">
             <Loader2
-              className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-6"
+              className="mx-auto mb-6 size-10 animate-spin text-zinc-200"
               strokeWidth={1}
             />
-            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-400">
+            <p className="text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
               Обработка на данни...
             </p>
           </div>
         ) : reportData.length > 0 ? (
           <>
-            <div className="overflow-x-auto hidden md:block">
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader className="bg-zinc-50/50">
-                  <TableRow className="border-none hover:bg-transparent h-16">
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                  <TableRow className="h-16 border-none hover:bg-transparent">
+                    <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Член
                     </TableHead>
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                    <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Контакти
                     </TableHead>
-                    <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">
+                    <TableHead className="pr-8 text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Брой посещения
                     </TableHead>
                   </TableRow>
@@ -266,11 +266,11 @@ const AttendanceReport = ({
                   {reportData.map((item) => (
                     <TableRow
                       key={item.member.id}
-                      className="border-zinc-50 hover:bg-zinc-50/50 transition-colors h-24"
+                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50"
                     >
                       <TableCell className="px-8">
-                        <p className="font-medium text-sm text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
-                        <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest mt-1">
+                        <p className="text-sm font-medium text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
+                        <p className="mt-1 text-[10px] font-light tracking-widest text-zinc-400 uppercase">
                           {item.member.status}
                         </p>
                       </TableCell>
@@ -278,12 +278,12 @@ const AttendanceReport = ({
                         <p className="text-sm font-light text-zinc-600">
                           {item.member.email || "—"}
                         </p>
-                        <p className="text-xs font-light text-zinc-400 mt-1">
+                        <p className="mt-1 text-xs font-light text-zinc-400">
                           {item.member.phone || "—"}
                         </p>
                       </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <span className="inline-flex items-center justify-center h-10 w-16 rounded-xl bg-zinc-50 text-zinc-900 font-medium text-sm border border-zinc-100">
+                      <TableCell className="pr-8 text-right">
+                        <span className="inline-flex h-10 w-16 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900">
                           {item.attendanceCount}
                         </span>
                       </TableCell>
@@ -292,16 +292,16 @@ const AttendanceReport = ({
                 </TableBody>
               </Table>
             </div>
-            <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+            <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
               {reportData.map((item) => (
                 <div
                   key={item.member.id}
-                  className="p-6 flex justify-between items-center gap-4"
+                  className="flex items-center justify-between gap-4 p-6"
                 >
                   <div className="flex flex-col gap-3">
                     <div>
-                      <p className="font-medium text-sm text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
-                      <p className="text-[10px] font-light text-zinc-400 uppercase tracking-widest mt-1">
+                      <p className="text-sm font-medium text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
+                      <p className="mt-1 text-[10px] font-light tracking-widest text-zinc-400 uppercase">
                         {item.member.status}
                       </p>
                     </div>
@@ -309,16 +309,16 @@ const AttendanceReport = ({
                       <p className="text-xs font-light text-zinc-600">
                         {item.member.email || "—"}
                       </p>
-                      <p className="text-xs font-light text-zinc-400 mt-0.5">
+                      <p className="mt-0.5 text-xs font-light text-zinc-400">
                         {item.member.phone || "—"}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 text-right">
+                    <span className="text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Посещения
                     </span>
-                    <span className="inline-flex items-center justify-center h-10 w-12 rounded-xl bg-zinc-50 text-zinc-900 font-medium text-sm border border-zinc-100">
+                    <span className="inline-flex h-10 w-12 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900">
                       {item.attendanceCount}
                     </span>
                   </div>
@@ -328,10 +328,10 @@ const AttendanceReport = ({
           </>
         ) : (
           <div className="p-32 text-center">
-            <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Activity className="h-8 w-8 text-zinc-200" strokeWidth={1} />
+            <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-50">
+              <Activity className="size-8 text-zinc-200" strokeWidth={1} />
             </div>
-            <p className="text-sm font-light text-zinc-400 tracking-wide">
+            <p className="text-sm font-light tracking-wide text-zinc-400">
               Няма намерени данни за избрания период.
             </p>
           </div>

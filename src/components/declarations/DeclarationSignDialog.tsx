@@ -224,19 +224,19 @@ export function DeclarationSignDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-black dark:bg-zinc-950 dark:text-white">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-white text-black dark:bg-zinc-950 dark:text-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold uppercase mb-4 text-center">
+          <DialogTitle className="mb-4 text-center text-xl font-bold uppercase">
             Декларация за информирано съгласие
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {hasClient2 && (
-            <div className="flex gap-2 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg max-w-sm mx-auto mb-6">
+            <div className="mx-auto mb-6 flex max-w-sm gap-2 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
               <button
                 onClick={() => handleSelectClient(1)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-bold rounded-md transition-all ${selectedClientIndex === 1 ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-bold transition-all ${selectedClientIndex === 1 ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
               >
                 {reservation.clientName || "Клиент 1"}
                 {signedClients.includes(1) && (
@@ -245,7 +245,7 @@ export function DeclarationSignDialog({
               </button>
               <button
                 onClick={() => handleSelectClient(2)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-sm font-bold rounded-md transition-all ${selectedClientIndex === 2 ? "bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-bold transition-all ${selectedClientIndex === 2 ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
               >
                 {reservation.client2Name || "Клиент 2"}
                 {signedClients.includes(2) && (
@@ -255,14 +255,14 @@ export function DeclarationSignDialog({
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label className="font-bold">Име на състезателя</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Трите имена"
-                className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                className="border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
               />
             </div>
             <div className="space-y-2">
@@ -271,10 +271,10 @@ export function DeclarationSignDialog({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Телефон за връзка"
-                className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                className="border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
               />
-              <div className="prose dark:prose-invert max-w-none text-sm text-zinc-600 dark:text-zinc-400 space-y-4">
-                <h4 className="font-bold text-zinc-900 dark:text-white mb-2">
+              <div className="prose dark:prose-invert max-w-none space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
+                <h4 className="mb-2 font-bold text-zinc-900 dark:text-white">
                   Декларация и здравен статус / Declaration and Health Status:
                 </h4>
                 <p>
@@ -297,7 +297,7 @@ export function DeclarationSignDialog({
                   or pronounced varicose veins and open wounds.
                 </p>
 
-                <h4 className="font-bold text-zinc-900 dark:text-white mb-2 mt-4">
+                <h4 className="mt-4 mb-2 font-bold text-zinc-900 dark:text-white">
                   Съгласие с правилата / Agreement to the rules:
                 </h4>
                 <p>
@@ -330,7 +330,7 @@ export function DeclarationSignDialog({
               checked={isMinor}
               onCheckedChange={(checked) => setIsMinor(checked as boolean)}
             />
-            <Label htmlFor="isMinor" className="font-bold cursor-pointer">
+            <Label htmlFor="isMinor" className="cursor-pointer font-bold">
               Лицето е непълнолетно (под 18 години) / The person is a minor
               (under 18)
             </Label>
@@ -343,14 +343,14 @@ export function DeclarationSignDialog({
                 value={parentName}
                 onChange={(e) => setParentName(e.target.value)}
                 placeholder="Трите имена на родителя"
-                className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                className="border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
               />
             </div>
           )}
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="flex justify-between items-center mb-2">
+              <div className="mb-2 flex items-center justify-between">
                 <Label className="font-bold">
                   Подпис на състезателя / Athlete&apos;s Signature *
                 </Label>
@@ -363,7 +363,7 @@ export function DeclarationSignDialog({
                   Изчисти / Clear
                 </Button>
               </div>
-              <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl overflow-hidden bg-white touch-none">
+              <div className="touch-none overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-white dark:border-zinc-700">
                 <SignatureCanvas
                   ref={sigCanvasRef}
                   penColor="#1a3399"
@@ -373,8 +373,8 @@ export function DeclarationSignDialog({
             </div>
 
             {isMinor && (
-              <div className="space-y-2 mt-4">
-                <div className="flex justify-between items-center mb-2">
+              <div className="mt-4 space-y-2">
+                <div className="mb-2 flex items-center justify-between">
                   <Label className="font-bold text-red-500">
                     Подпис на родител/настойник / Parent/Guardian Signature *
                   </Label>
@@ -387,7 +387,7 @@ export function DeclarationSignDialog({
                     Изчисти / Clear
                   </Button>
                 </div>
-                <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl overflow-hidden bg-white touch-none">
+                <div className="touch-none overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-white dark:border-zinc-700">
                   <SignatureCanvas
                     ref={parentSigCanvasRef}
                     penColor="#1a3399"
@@ -398,7 +398,7 @@ export function DeclarationSignDialog({
             )}
           </div>
 
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Отказ
             </Button>

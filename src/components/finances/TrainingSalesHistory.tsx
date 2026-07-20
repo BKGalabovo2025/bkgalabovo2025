@@ -60,7 +60,7 @@ export function TrainingSalesHistory() {
     <SharedSalesHistory
       title="История на продажбите"
       description="Проследяване на всички направени продажби на тренировки."
-      icon={<Dumbbell className="h-5 w-5 text-indigo-500" />}
+      icon={<Dumbbell className="size-5 text-indigo-500" />}
       sales={sales}
       isLoading={isLoading || membersLoading}
       membersMap={membersMap}

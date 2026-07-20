@@ -157,18 +157,18 @@ export const MemberForm = ({
       <form
         aria-label="member-form"
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col h-full"
+        className="flex h-full flex-col"
       >
         {/* STEP PROGRESS BAR */}
-        <div className="w-full bg-zinc-100 dark:bg-zinc-900 h-1.5 rounded-full mb-8 overflow-hidden">
+        <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
           <div
-            className="bg-zinc-950 dark:bg-zinc-50 h-full transition-all duration-300"
+            className="h-full bg-zinc-950 transition-all duration-300 dark:bg-zinc-50"
             // eslint-disable-next-line react/forbid-dom-props
             style={{ width: `${(step / totalSteps) * 100}%` }}
           />
         </div>
 
-        <div className="flex-1 space-y-6 sm:space-y-8 min-h-[400px]">
+        <div className="min-h-100 flex-1 space-y-6 sm:space-y-8">
           <MemberFormStep1
             form={form}
             isActive={step === 1}
@@ -179,7 +179,7 @@ export const MemberForm = ({
         </div>
 
         {/* НАВИГАЦИОННИ БУТОНИ */}
-        <div className="flex justify-between items-center pt-6 mt-6 border-t border-zinc-100 dark:border-zinc-900">
+        <div className="mt-6 flex items-center justify-between border-t border-zinc-100 pt-6 dark:border-zinc-900">
           <div>
             {step > 1 ? (
               <Button
@@ -187,9 +187,9 @@ export const MemberForm = ({
                 variant="outline"
                 onClick={handlePrevStep}
                 disabled={isSubmitting}
-                className="h-11 sm:h-12 px-6 rounded-xl border-zinc-200 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] hover:bg-zinc-50 text-zinc-500 flex items-center gap-2"
+                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase hover:bg-zinc-50 sm:h-12 sm:text-[11px]"
               >
-                <ArrowLeft className="h-4 w-4" strokeWidth={1.5} /> Назад
+                <ArrowLeft className="size-4" strokeWidth={1.5} /> Назад
               </Button>
             ) : (
               <Button
@@ -197,9 +197,9 @@ export const MemberForm = ({
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="h-11 sm:h-12 px-6 rounded-xl border-zinc-200 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] hover:bg-zinc-50 text-zinc-500 flex items-center gap-2"
+                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase hover:bg-zinc-50 sm:h-12 sm:text-[11px]"
               >
-                <X className="h-4 w-4" strokeWidth={1.5} /> Отказ
+                <X className="size-4" strokeWidth={1.5} /> Отказ
               </Button>
             )}
           </div>
@@ -213,17 +213,17 @@ export const MemberForm = ({
                   handleNextStep();
                 }}
                 disabled={isSubmitting}
-                className="h-11 sm:h-12 px-8 rounded-xl bg-zinc-950 text-white hover:bg-zinc-900 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] flex items-center gap-2"
+                className="flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-8 text-[10px] font-medium tracking-[0.2em] text-white uppercase hover:bg-zinc-900 sm:h-12 sm:text-[11px]"
               >
-                Напред <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+                Напред <ArrowRight className="size-4" strokeWidth={1.5} />
               </Button>
             ) : (
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-11 sm:h-12 px-8 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.2em] flex items-center gap-2"
+                className="flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-8 text-[10px] font-medium tracking-[0.2em] text-white uppercase hover:bg-emerald-600 sm:h-12 sm:text-[11px]"
               >
-                <Save className="h-4 w-4" strokeWidth={1.5} />{" "}
+                <Save className="size-4" strokeWidth={1.5} />{" "}
                 {initialData && Object.keys(initialData).length > 0
                   ? "Запазване"
                   : "Създаване"}

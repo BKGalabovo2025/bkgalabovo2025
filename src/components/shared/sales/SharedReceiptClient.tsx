@@ -18,17 +18,6 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { Member, ClubService, Sale, Family } from "@/types";
 
-interface ReceiptClientPageProps {
-  saleId: string;
-  initialDetails: {
-    sale: Sale | null;
-    member: Member | null;
-    relatedMember: Member | null;
-    service: ClubService | null;
-    family?: Family | null;
-    familyMembers?: Member[];
-  };
-}
 
 interface ReceiptCopyProps {
   label: string;
@@ -104,33 +93,33 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
     sale?.siteId === "recoveryzone";
 
   return (
-    <div className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide">
-      <div className="flex flex-col h-full">
+    <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
+      <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
+        <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px]">
           <div className="space-y-1">
-            <h2 className="text-xs font-bold uppercase tracking-tight text-zinc-900">
+            <h2 className="text-xs font-bold tracking-tight text-zinc-900 uppercase">
               ДОКУМЕНТ ЗА ДАРЕНИЕ
             </h2>
-            <p className="text-[9px] font-bold uppercase text-zinc-500">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
-            <p className="text-[9px] font-bold uppercase text-zinc-500">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase">
               {label}
             </p>
           </div>
-          <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
-            <p className="font-bold uppercase text-zinc-700">{clubInfo.name}</p>
+          <div className="space-y-0.5 text-right text-[9px] text-zinc-500">
+            <p className="font-bold text-zinc-700 uppercase">{clubInfo.name}</p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Legal statement */}
-        <div className="mb-3 text-[10px] leading-relaxed text-justify text-zinc-700">
+        <div className="mb-3 text-justify text-[10px] leading-relaxed text-zinc-700">
           С настоящия документ се потвърждава постъпило целево дарение от{" "}
-          <span className="font-bold uppercase text-zinc-900">
+          <span className="font-bold text-zinc-900 uppercase">
             {clientName}
           </span>{" "}
           {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
@@ -146,14 +135,14 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         <div className="flex-1">
           <table className="w-full border-collapse border border-zinc-200 text-[9px]">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200 text-[8px] font-bold uppercase text-zinc-500">
-                <th className="p-1.5 text-left border-r border-zinc-200">
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-[8px] font-bold text-zinc-500 uppercase">
+                <th className="border-r border-zinc-200 p-1.5 text-left">
                   Описание на дарението
                 </th>
-                <th className="p-1.5 text-center border-r border-zinc-200">
+                <th className="border-r border-zinc-200 p-1.5 text-center">
                   {isRecovery ? "Услуга" : "Корт"}
                 </th>
-                <th className="p-1.5 text-center border-r border-zinc-200">
+                <th className="border-r border-zinc-200 p-1.5 text-center">
                   Дата / Час
                 </th>
                 <th className="p-1.5 text-right">Сума</th>
@@ -161,19 +150,19 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
             </thead>
             <tbody>
               <tr className="border-b border-zinc-200 font-medium">
-                <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
+                <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800">
                   Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“{" "}
                   {isRecovery
                     ? "от възстановителни процедури от Recovery zone by ZM"
                     : "за ползване на бадминтон корт"}
                 </td>
-                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800 font-bold">
+                <td className="border-r border-zinc-200 p-1.5 text-center font-bold text-zinc-800">
                   {isRecovery
                     ? sale?.items?.[0]?.name?.replace("Възстановяване: ", "") ||
                       "Услуга"
                     : courtId}
                 </td>
-                <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
+                <td className="border-r border-zinc-200 p-1.5 text-center text-zinc-800">
                   {formattedDate}
                   <br />
                   {timeRange} ({hours} ч.)
@@ -185,11 +174,11 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
               <tr>
                 <td
                   colSpan={3}
-                  className="p-1.5 text-right border-r border-zinc-200 font-bold uppercase text-[8px] text-zinc-400"
+                  className="border-r border-zinc-200 p-1.5 text-right text-[8px] font-bold text-zinc-400 uppercase"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900">
+                <td className="p-1.5 text-right text-[10px] font-bold text-zinc-900">
                   {formatPrice(totalAmount)}
                 </td>
               </tr>
@@ -200,21 +189,21 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         {/* Signatures */}
         <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">
-            <div className="h-px bg-zinc-300 w-full" />
-            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+            <div className="h-px w-full bg-zinc-300" />
+            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
               За Клуба: {clubInfo.name}
             </p>
           </div>
           <div className="flex-1">
-            <div className="h-px bg-zinc-300 w-full" />
-            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+            <div className="h-px w-full bg-zinc-300" />
+            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
               Дарител: {clientName}
             </p>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
+          <p className="text-[7px] font-bold tracking-widest text-zinc-400 uppercase">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
         </div>
@@ -233,62 +222,62 @@ const StandardReceipt = ({
   const { paymentDate, issueDate } = getReceiptDates(sale);
 
   return (
-    <div className="flex flex-col flex-1 border border-zinc-200 p-6 bg-white rounded-2xl relative text-zinc-950 shadow-sm font-sans tracking-wide">
-      <div className="flex flex-col h-full">
+    <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
+      <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-3 text-[10px]">
+        <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px]">
           <div className="space-y-1">
-            <h2 className="text-xs font-bold uppercase tracking-tight text-zinc-900">
+            <h2 className="text-xs font-bold tracking-tight text-zinc-900 uppercase">
               РАЗПИСКА ЗА ПЛАЩАНЕ
             </h2>
-            <p className="text-[9px] font-bold uppercase text-zinc-500">
+            <p className="text-[9px] font-bold text-zinc-500 uppercase">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
-            <p className="text-[9px] font-bold uppercase mt-1 text-zinc-500">
+            <p className="mt-1 text-[9px] font-bold text-zinc-500 uppercase">
               {label}
             </p>
           </div>
-          <div className="text-right text-[9px] space-y-0.5 text-zinc-500">
-            <p className="font-bold uppercase text-zinc-700">{clubInfo.name}</p>
+          <div className="space-y-0.5 text-right text-[9px] text-zinc-500">
+            <p className="font-bold text-zinc-700 uppercase">{clubInfo.name}</p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Info Block (Получател, Статус, Начин на плащане) */}
-        <div className="mb-3 text-[9px] flex justify-between items-start bg-zinc-50 p-2.5 border border-zinc-100 rounded-lg">
+        <div className="mb-3 flex items-start justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-2.5 text-[9px]">
           <div className="space-y-0.5">
-            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
               Получател на услугата
             </span>
-            <span className="font-bold text-zinc-800 uppercase text-[10px]">
+            <span className="text-[10px] font-bold text-zinc-800 uppercase">
               {sale?.clientName || (member ? formatFullName(member) : "N/A")}
             </span>
             {(sale?.clientPhone || member?.phone) && (
-              <span className="block text-zinc-500 mt-0.5">
+              <span className="mt-0.5 block text-zinc-500">
                 {sale?.clientPhone || member?.phone}
               </span>
             )}
           </div>
           <div className="space-y-0.5 text-center">
-            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
               Статус на плащане
             </span>
             <span
-              className={`font-bold uppercase text-[10px] ${
+              className={`text-[10px] font-bold uppercase ${
                 sale?.isPaid ? "text-emerald-600" : "text-amber-600"
               }`}
             >
               {sale?.isPaid ? "Платено" : "Неплатено"}
             </span>
-            <span className="block text-zinc-500 mt-0.5">{paymentDate}</span>
+            <span className="mt-0.5 block text-zinc-500">{paymentDate}</span>
           </div>
           <div className="space-y-0.5 text-right">
-            <span className="font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">
+            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
               Начин на плащане
             </span>
-            <span className="font-bold text-zinc-800 uppercase text-[10px]">
+            <span className="text-[10px] font-bold text-zinc-800 uppercase">
               {sale?.paymentMethod || "N/A"}
             </span>
           </div>
@@ -296,26 +285,26 @@ const StandardReceipt = ({
 
         {/* Client 2 (if present) */}
         {(sale?.client2Name || relatedMember) && (
-          <div className="mb-3 p-2 border border-dashed border-zinc-300 bg-zinc-50/50 text-[9px] rounded-lg">
-            <span className="font-bold uppercase text-zinc-500 tracking-widest mr-1">
+          <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
+            <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
               Втори клиент:
             </span>
             <span className="font-bold text-zinc-800">
               {sale?.client2Name || formatFullName(relatedMember!)}
             </span>
             {sale?.client2Phone && (
-              <span className="text-zinc-500 ml-1">({sale.client2Phone})</span>
+              <span className="ml-1 text-zinc-500">({sale.client2Phone})</span>
             )}
           </div>
         )}
 
         {/* Note Block */}
         {sale?.note && (
-          <div className="mb-3 p-2 border border-dashed border-zinc-300 bg-zinc-50/50 text-[9px] rounded-lg">
-            <span className="font-bold uppercase text-zinc-500 tracking-widest mr-1">
+          <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
+            <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
               Бележка:
             </span>
-            <span className="italic text-zinc-800">{sale.note}</span>
+            <span className="text-zinc-800 italic">{sale.note}</span>
           </div>
         )}
 
@@ -323,14 +312,14 @@ const StandardReceipt = ({
         <div className="flex-1">
           <table className="w-full border-collapse border border-zinc-200 text-[9px]">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200 text-[8px] font-bold uppercase text-zinc-500">
-                <th className="p-1.5 text-left border-r border-zinc-200">
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-[8px] font-bold text-zinc-500 uppercase">
+                <th className="border-r border-zinc-200 p-1.5 text-left">
                   Описание на услугата / продукта
                 </th>
-                <th className="p-1.5 text-center border-r border-zinc-200">
+                <th className="border-r border-zinc-200 p-1.5 text-center">
                   К-во
                 </th>
-                <th className="p-1.5 text-right border-r border-zinc-200">
+                <th className="border-r border-zinc-200 p-1.5 text-right">
                   Ед. цена
                 </th>
                 <th className="p-1.5 text-right">Общо</th>
@@ -343,31 +332,31 @@ const StandardReceipt = ({
                     key={index}
                     className="border-b border-zinc-200 font-medium"
                   >
-                    <td className="p-1.5 border-r border-zinc-200 font-bold text-left text-zinc-800">
+                    <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800">
                       {item.name || "(Липсва име)"}
                       {sale?.targetMonthLabels &&
                         sale.targetMonthLabels.length > 0 && (
-                          <span className="ml-1 text-[9px] text-zinc-500 font-normal">
+                          <span className="ml-1 text-[9px] font-normal text-zinc-500">
                             ({sale.targetMonthLabels.join(", ")})
                           </span>
                         )}
                       {sale?.targetEventDates &&
                         sale.targetEventDates.length > 0 && (
-                          <span className="ml-1 text-[9px] text-zinc-500 font-normal">
+                          <span className="ml-1 text-[9px] font-normal text-zinc-500">
                             (Дата: {sale.targetEventDates.join(", ")})
                           </span>
                         )}
 
                       {service?.name && (
-                        <span className="block text-[8px] text-zinc-500 font-normal mt-0.5">
+                        <span className="mt-0.5 block text-[8px] font-normal text-zinc-500">
                           {service.name}
                         </span>
                       )}
                     </td>
-                    <td className="p-1.5 text-center border-r border-zinc-200 text-zinc-800">
+                    <td className="border-r border-zinc-200 p-1.5 text-center text-zinc-800">
                       {item.quantity}
                     </td>
-                    <td className="p-1.5 text-right border-r border-zinc-200 text-zinc-800">
+                    <td className="border-r border-zinc-200 p-1.5 text-right text-zinc-800">
                       {formatPrice(item.price)}
                     </td>
                     <td className="p-1.5 text-right font-bold text-zinc-800">
@@ -388,11 +377,11 @@ const StandardReceipt = ({
               <tr>
                 <td
                   colSpan={3}
-                  className="p-1.5 text-right border-r border-zinc-200 font-bold uppercase text-[8px] text-zinc-400"
+                  className="border-r border-zinc-200 p-1.5 text-right text-[8px] font-bold text-zinc-400 uppercase"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-1.5 text-right font-bold text-[10px] text-zinc-900">
+                <td className="p-1.5 text-right text-[10px] font-bold text-zinc-900">
                   {formatPrice(sale?.totalAmount || 0)}
                 </td>
               </tr>
@@ -401,7 +390,7 @@ const StandardReceipt = ({
         </div>
 
         {/* Unified Legal / Accounting Statement */}
-        <div className="mt-4 text-[7px] text-zinc-400 text-center border-t border-zinc-100 pt-3">
+        <div className="mt-4 border-t border-zinc-100 pt-3 text-center text-[7px] text-zinc-400">
           Документът е издаден съгласно чл. 7, ал. 1 от Закона за
           счетоводството.
         </div>
@@ -409,21 +398,21 @@ const StandardReceipt = ({
         {/* Signatures */}
         <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">
-            <div className="h-px bg-zinc-300 w-full" />
-            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+            <div className="h-px w-full bg-zinc-300" />
+            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
               Доставчик: {clubInfo.name}
             </p>
           </div>
           <div className="flex-1">
-            <div className="h-px bg-zinc-300 w-full" />
-            <p className="text-[7px] font-bold mt-0.5 uppercase text-center">
+            <div className="h-px w-full bg-zinc-300" />
+            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
               Получател: {member ? formatFullName(member) : ""}
             </p>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest">
+          <p className="text-[7px] font-bold tracking-widest text-zinc-400 uppercase">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
         </div>
@@ -654,26 +643,26 @@ export function SharedReceiptClient({
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto p-4 sm:p-8 receipt-container">
+      <div className="receipt-container mx-auto max-w-4xl p-4 sm:p-8">
         {/* ACTION BAR */}
-        <div className="flex flex-wrap justify-between items-center mb-8 no-print gap-4 bg-zinc-50 p-6 rounded-3xl border border-zinc-100 shadow-sm">
+        <div className="no-print mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
               size="icon"
-              className="w-12 h-12 rounded-2xl border-zinc-200 hover:bg-zinc-100"
+              className="size-12 rounded-2xl border-zinc-200 hover:bg-zinc-100"
               onClick={() => window.location.href = backUrl}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             </Button>
-            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <BadgeCheck className="text-white w-6 h-6" />
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
+              <BadgeCheck className="size-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight uppercase text-zinc-950">
+              <h1 className="text-xl font-black tracking-tight text-zinc-950 uppercase">
                 Разписка за Плащане
               </h1>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
+              <p className="mt-1 text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
                 А4 формат (2 екземпляра)
               </p>
             </div>
@@ -683,28 +672,28 @@ export function SharedReceiptClient({
               onClick={handlePrint}
               variant="outline"
               size="lg"
-              className="rounded-2xl border-zinc-200 hover:bg-zinc-50 h-12 px-6 font-bold uppercase tracking-widest text-[10px]"
+              className="h-12 rounded-2xl border-zinc-200 px-6 text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-50"
             >
-              <Printer className="mr-2 h-4 w-4" />
+              <Printer className="mr-2 size-4" />
               Принтирай
             </Button>
             <Button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}
               size="lg"
-              className="bg-emerald-500 text-white hover:bg-emerald-600 rounded-2xl h-12 px-8 font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-500/20"
+              className="h-12 rounded-2xl bg-emerald-500 px-8 text-[10px] font-bold tracking-widest text-white uppercase shadow-xl shadow-emerald-500/20 hover:bg-emerald-600"
             >
-              <FileDown className="mr-2 h-4 w-4" />
+              <FileDown className="mr-2 size-4" />
               {isGeneratingPDF ? "Генериране..." : "Изтегли PDF"}
             </Button>
           </div>
         </div>
 
         {/* PRINTABLE AREA */}
-        <div className="bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-3xl overflow-x-auto">
+        <div className="overflow-x-auto rounded-3xl bg-zinc-50 p-4 dark:bg-zinc-950/50">
           <div
             ref={receiptRef}
-            className="mx-auto bg-white text-zinc-950 shadow-2xl w-[794px] min-w-[794px] shrink-0 min-h-[1123px] p-8 flex flex-col justify-between gap-6 printable-area"
+            className="printable-area mx-auto flex min-h-[1123px] w-[794px] min-w-[794px] shrink-0 flex-col justify-between gap-6 bg-white p-8 text-zinc-950 shadow-2xl"
             // eslint-disable-next-line react/forbid-dom-props
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
@@ -718,10 +707,10 @@ export function SharedReceiptClient({
               familyMembers={familyMembers}
             />
 
-            <div className="relative py-2 no-print-visible flex items-center justify-center">
-              <div className="absolute left-0 right-0 border-t-2 border-dashed border-zinc-300" />
+            <div className="no-print-visible relative flex items-center justify-center py-2">
+              <div className="absolute inset-x-0 border-t-2 border-dashed border-zinc-300" />
               <div className="relative bg-white px-4 text-zinc-300">
-                <Scissors className="w-5 h-5" />
+                <Scissors className="size-5" />
               </div>
             </div>
 
@@ -742,13 +731,13 @@ export function SharedReceiptClient({
 }
 
 const ErrorDisplay = ({ message }: { message: string }) => (
-  <div className="max-w-4xl mx-auto p-8">
+  <div className="mx-auto max-w-4xl p-8">
     <Alert variant="destructive" className="border-2">
-      <AlertCircle className="h-5 w-5" />
+      <AlertCircle className="size-5" />
       <AlertTitle className="text-lg font-bold">
         Грешка при зареждане
       </AlertTitle>
-      <AlertDescription className="mt-2 text-md font-medium">
+      <AlertDescription className="text-md mt-2 font-medium">
         {message}
       </AlertDescription>
     </Alert>

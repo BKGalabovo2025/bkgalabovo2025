@@ -42,21 +42,21 @@ export function GameScoreRow({
   };
 
   const inputClassName = cn(
-    "w-14 h-10 text-center text-xl font-bold border rounded-lg bg-background focus:outline-none focus:ring-2 transition-colors",
+    "h-10 w-14 rounded-lg border bg-background text-center text-xl font-bold transition-colors focus:ring-2 focus:outline-none",
     getInputClass()
   );
 
   return (
     <div className="space-y-1">
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         {/* Играч 1 */}
-        <div className="flex items-center gap-1 justify-end">
+        <div className="flex items-center justify-end gap-1">
           <button
             type="button"
             onClick={() => onUpdateScore(idx, "p1", -1)}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+            className="flex size-8 items-center justify-center rounded-full border transition-colors hover:bg-muted"
           >
-            <Minus className="w-3 h-3" />
+            <Minus className="size-3" />
           </button>
           <input
             type="number"
@@ -68,38 +68,38 @@ export function GameScoreRow({
           <button
             type="button"
             onClick={() => onUpdateScore(idx, "p1", 1)}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+            className="flex size-8 items-center justify-center rounded-full border transition-colors hover:bg-muted"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="size-3" />
           </button>
         </div>
 
         {/* Разделител */}
         <div className="flex flex-col items-center gap-1">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] tracking-wider text-muted-foreground uppercase">
             Гейм {idx + 1}
           </span>
-          {isOk && <CheckCircle2 className="w-3 h-3 text-green-500" />}
-          {hasError && <AlertCircle className="w-3 h-3 text-red-500" />}
+          {isOk && <CheckCircle2 className="size-3 text-green-500" />}
+          {hasError && <AlertCircle className="size-3 text-red-500" />}
           {totalGames > 1 && !isOk && (
             <button
               type="button"
               onClick={() => onRemoveGame(idx)}
-              className="text-muted-foreground hover:text-destructive transition-colors"
+              className="text-muted-foreground transition-colors hover:text-destructive"
             >
-              <X className="w-3 h-3" />
+              <X className="size-3" />
             </button>
           )}
         </div>
 
         {/* Играч 2 */}
-        <div className="flex items-center gap-1 justify-start">
+        <div className="flex items-center justify-start gap-1">
           <button
             type="button"
             onClick={() => onUpdateScore(idx, "p2", -1)}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+            className="flex size-8 items-center justify-center rounded-full border transition-colors hover:bg-muted"
           >
-            <Minus className="w-3 h-3" />
+            <Minus className="size-3" />
           </button>
           <input
             type="number"
@@ -111,17 +111,17 @@ export function GameScoreRow({
           <button
             type="button"
             onClick={() => onUpdateScore(idx, "p2", 1)}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+            className="flex size-8 items-center justify-center rounded-full border transition-colors hover:bg-muted"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="size-3" />
           </button>
         </div>
       </div>
 
       {/* Грешка за гейма */}
       {hasError && (
-        <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1">
-          <AlertCircle className="w-3 h-3" />
+        <p className="flex items-center justify-center gap-1 text-center text-xs text-red-500">
+          <AlertCircle className="size-3" />
           {validation?.error}
         </p>
       )}

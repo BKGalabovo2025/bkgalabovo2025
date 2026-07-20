@@ -58,18 +58,18 @@ function TimeColumn({
   endTime: Date;
 }) {
   return (
-    <div className="flex flex-row sm:flex-col items-center sm:items-start gap-3 w-full sm:w-[110px] shrink-0 pb-3 sm:pb-0 border-b sm:border-b-0 border-zinc-100 dark:border-zinc-900">
+    <div className="flex w-full shrink-0 flex-row items-center gap-3 border-b border-zinc-100 pb-3 sm:w-[110px] sm:flex-col sm:items-start sm:border-b-0 sm:pb-0 dark:border-zinc-900">
       <div className="flex items-center gap-2 text-primary">
-        <Clock className="w-4 h-4" strokeWidth={2.5} />
-        <span className="font-black text-sm tracking-tight">
+        <Clock className="size-4" strokeWidth={2.5} />
+        <span className="text-sm font-black tracking-tight">
           {startTime.toLocaleTimeString("bg-BG", {
             hour: "2-digit",
             minute: "2-digit",
           })}
         </span>
       </div>
-      <div className="h-px w-4 bg-zinc-200 dark:bg-zinc-800 sm:hidden" />
-      <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
+      <div className="h-px w-4 bg-zinc-200 sm:hidden dark:bg-zinc-800" />
+      <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
         до{" "}
         {endTime.toLocaleTimeString("bg-BG", {
           hour: "2-digit",
@@ -77,7 +77,7 @@ function TimeColumn({
         })}
       </span>
       {reservation.bufferAfter ? (
-        <span className="text-[9px] text-amber-500/80 font-bold tracking-tight">
+        <span className="text-[9px] font-bold tracking-tight text-amber-500/80">
           + {reservation.bufferAfter} мин.
         </span>
       ) : null}
@@ -95,14 +95,14 @@ function ClientInfo({
   serviceName: string;
 }) {
   return (
-    <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1 min-w-0">
-      <div className="shrink-0 flex flex-col items-center justify-center min-w-[3rem] min-h-[3rem] py-2 px-3 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-black/10 max-w-[120px] text-center">
-        <span className="text-[8px] font-black uppercase tracking-tighter opacity-50 mb-0.5">
+    <div className="flex w-full min-w-0 flex-1 flex-row items-center gap-4 sm:w-auto">
+      <div className="flex min-h-12 max-w-30 min-w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-zinc-900 px-3 py-2 text-center text-white shadow-lg shadow-black/10 dark:bg-white dark:text-zinc-900">
+        <span className="mb-0.5 text-[8px] font-black tracking-tighter uppercase opacity-50">
           {effectiveBranch === "bkgalabovo" ? "Корт" : "Услуга"}
         </span>
         <span
           className={cn(
-            "font-bold leading-tight",
+            "leading-tight font-bold",
             effectiveBranch === "bkgalabovo"
               ? "text-sm whitespace-nowrap"
               : "text-[11px]"
@@ -112,18 +112,18 @@ function ClientInfo({
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-start gap-2">
           {effectiveBranch === "bkgalabovo" ? (
-            <User className="shrink-0 w-4 h-4 text-zinc-400 mt-0.5" />
+            <User className="mt-0.5 size-4 shrink-0 text-zinc-400" />
           ) : (
-            <Activity className="shrink-0 w-4 h-4 text-primary mt-0.5" />
+            <Activity className="mt-0.5 size-4 shrink-0 text-primary" />
           )}
-          <h4 className="font-bold text-zinc-900 dark:text-white leading-snug break-words w-full flex-1 min-w-0">
+          <h4 className="w-full min-w-0 flex-1 leading-snug font-bold break-words text-zinc-900 dark:text-white">
             {reservation.memberId || reservation.clientId ? (
               <Link
                 href={`/members/${reservation.memberId || reservation.clientId}`}
-                className="hover:underline hover:text-primary transition-colors"
+                className="transition-colors hover:text-primary hover:underline"
               >
                 {reservation.clientName}
                 {reservation.selectedZone
@@ -141,11 +141,11 @@ function ClientInfo({
 
             {reservation.client2Name && (
               <>
-                <span className="mx-1.5 text-zinc-400 font-normal">&amp;</span>
+                <span className="mx-1.5 font-normal text-zinc-400">&amp;</span>
                 {reservation.client2Id ? (
                   <Link
                     href={`/members/${reservation.client2Id}`}
-                    className="hover:underline hover:text-primary transition-colors"
+                    className="transition-colors hover:text-primary hover:underline"
                   >
                     {reservation.client2Name}
                     {reservation.client2Zone
@@ -164,16 +164,16 @@ function ClientInfo({
             )}
           </h4>
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-zinc-500 text-xs font-medium w-full min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Phone className="shrink-0 w-3 h-3 opacity-50" />
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-zinc-500">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Phone className="size-3 shrink-0 opacity-50" />
             {reservation.client2Phone
               ? `${reservation.clientPhone} / ${reservation.client2Phone}`
               : reservation.clientPhone}
           </div>
           {reservation.clientEmail && (
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <Tag className="shrink-0 w-3 h-3 opacity-50" />
+            <div className="flex min-w-0 flex-1 items-center gap-1.5">
+              <Tag className="size-3 shrink-0 opacity-50" />
               <span className="truncate">{reservation.clientEmail}</span>
             </div>
           )}
@@ -308,66 +308,66 @@ function StatusAndActions({
     "https://wa.me/" + phoneStr + "?text=" + encodeURIComponent(messageText);
 
   return (
-    <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-6 w-full 2xl:w-auto shrink-0 pt-4 2xl:pt-0 border-t 2xl:border-t-0 border-zinc-100 dark:border-zinc-900 mt-2 2xl:mt-0">
+    <div className="mt-2 flex w-full shrink-0 flex-row flex-wrap items-center justify-between gap-6 border-t border-zinc-100 pt-4 sm:flex-nowrap sm:justify-end 2xl:mt-0 2xl:w-auto 2xl:border-t-0 2xl:pt-0 dark:border-zinc-900">
       {/* Status & Price */}
-      <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+      <div className="flex shrink-0 items-center gap-4 sm:gap-6">
         {effectiveBranch === "recoveryzone" && missingDeclarations > 0 && (
           <div className="flex flex-col items-end">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-1">
+            <span className="mb-1 text-[10px] font-black tracking-[0.2em] text-rose-500 uppercase">
               Декларации
             </span>
-            <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/20 dark:border-rose-800">
+            <span className="rounded-lg border border-rose-100 bg-rose-50 px-3 py-1 text-[9px] font-black tracking-widest text-rose-600 uppercase dark:border-rose-800 dark:bg-rose-900/20">
               Липсват ({missingDeclarations})
             </span>
           </div>
         )}
 
         <div className="flex flex-col items-end">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">
+          <span className="mb-1 text-[10px] font-black tracking-[0.2em] text-zinc-400 uppercase">
             Статус
           </span>
           <span
             className={cn(
-              "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border",
+              "rounded-lg border px-3 py-1 text-[9px] font-black tracking-widest uppercase",
               reservation.status === "paid"
-                ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800"
-                : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800"
+                ? "border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-800 dark:bg-emerald-900/20"
+                : "border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-800 dark:bg-amber-900/20"
             )}
           >
             {reservation.status === "paid" ? "Платено" : "Неплатено"}
           </span>
         </div>
-        <div className="flex flex-col items-end min-w-[70px]">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">
+        <div className="flex min-w-[70px] flex-col items-end">
+          <span className="mb-1 text-[10px] font-black tracking-[0.2em] text-zinc-400 uppercase">
             Сума
           </span>
-          <span className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">
+          <span className="text-lg font-black tracking-tight text-zinc-900 dark:text-white">
             {formatPrice(reservation.totalPrice ?? reservation.price ?? 0)}
           </span>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <div onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-11 w-11 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-all"
+                className="size-11 rounded-2xl text-blue-600 transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 title="Изпрати потвърждение"
               >
-                <Send className="w-5 h-5" />
+                <Send className="size-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 rounded-2xl p-2 border-zinc-100 dark:border-zinc-800"
+              className="w-48 rounded-2xl border-zinc-100 p-2 dark:border-zinc-800"
             >
               <DropdownMenuItem
                 asChild
-                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 text-zinc-700 dark:text-zinc-300 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 focus:text-emerald-600 dark:focus:text-emerald-400 transition-colors"
+                className="cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-emerald-50 focus:text-emerald-600 dark:text-zinc-300 dark:focus:bg-emerald-950/30 dark:focus:text-emerald-400"
               >
                 <a
                   href={waLink}
@@ -375,33 +375,33 @@ function StatusAndActions({
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="size-4" />
                   WhatsApp
                 </a>
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-blue-50 dark:focus:bg-blue-950/30 focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
+                className="mt-1 cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-blue-50 focus:text-blue-600 dark:text-zinc-300 dark:focus:bg-blue-950/30 dark:focus:text-blue-400"
                 onClick={sendSystemEmail}
                 disabled={isSendingEmail}
               >
                 {isSendingEmail ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <Mail className="w-4 h-4" />
+                  <Mail className="size-4" />
                 )}
                 {isSendingEmail ? "Изпращане..." : "Имейл (системно)"}
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="rounded-xl text-xs font-bold cursor-pointer gap-2 py-2.5 mt-1 text-zinc-700 dark:text-zinc-300 focus:bg-amber-50 dark:focus:bg-amber-950/30 focus:text-amber-600 dark:focus:text-amber-400 transition-colors"
+                className="mt-1 cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-amber-50 focus:text-amber-600 dark:text-zinc-300 dark:focus:bg-amber-950/30 dark:focus:text-amber-400"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(messageText);
                   toast.success("Текстът е копиран в клипборда!");
                 }}
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="size-4" />
                 Копирай текста
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -412,11 +412,11 @@ function StatusAndActions({
           <Button
             variant="ghost"
             size="icon"
-            className="h-11 w-11 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 transition-all"
+            className="size-11 rounded-2xl text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
             onClick={() => onMarkAsPaid(reservation.id)}
             title="Маркирай като платено"
           >
-            <CheckCircle2 className="w-5 h-5" />
+            <CheckCircle2 className="size-5" />
           </Button>
         )}
 
@@ -425,10 +425,10 @@ function StatusAndActions({
             <Button
               variant="ghost"
               size="icon"
-              className="h-11 w-11 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all"
+              className="size-11 rounded-2xl text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
               title="Издай документ"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="size-5" />
             </Button>
           </DonationReceiptDialog>
         )}
@@ -438,10 +438,10 @@ function StatusAndActions({
             <Button
               variant="ghost"
               size="icon"
-              className="h-11 w-11 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-all"
+              className="size-11 rounded-2xl text-blue-600 transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20"
               title="Попълни декларация"
             >
-              <PenTool className="w-5 h-5" />
+              <PenTool className="size-5" />
             </Button>
           </DeclarationSignDialog>
         )}
@@ -458,19 +458,19 @@ function StatusAndActions({
           <Button
             variant="ghost"
             size="icon"
-            className="h-11 w-11 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+            className="size-11 rounded-2xl transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            <Pencil className="w-4 h-4 text-zinc-400" />
+            <Pencil className="size-4 text-zinc-400" />
           </Button>
         </ReservationDialog>
 
         <Button
           variant="ghost"
           size="icon"
-          className="h-11 w-11 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 transition-all"
+          className="size-11 rounded-2xl transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
           onClick={() => onDelete(reservation.id)}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="size-4" />
         </Button>
       </div>
     </div>
@@ -490,9 +490,9 @@ export function AgendaReservationItem(props: AgendaReservationItemProps) {
   };
 
   return (
-    <div className="group relative flex flex-wrap 2xl:flex-nowrap gap-4 lg:gap-6 p-4 sm:p-6 rounded-4xl border transition-all duration-300 bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 hover:border-primary/20 hover:shadow-xl hover:shadow-black/5 items-center justify-between">
+    <div className="group relative flex flex-wrap items-center justify-between gap-4 rounded-4xl border border-zinc-100 bg-white p-4 transition-all duration-300 hover:border-primary/20 hover:shadow-xl hover:shadow-black/5 sm:p-6 lg:gap-6 2xl:flex-nowrap dark:border-zinc-900 dark:bg-zinc-950">
       {/* --- LEFT SECTION: Time & Info --- */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 w-full 2xl:w-auto flex-1 min-w-0">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 2xl:w-auto">
         <TimeColumn
           reservation={reservation}
           startTime={startTime}

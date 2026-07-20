@@ -401,7 +401,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-12 px-3 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-3 pb-12 duration-500 animate-in fade-in sm:space-y-8 sm:px-6 lg:px-8">
       <PageHeader
         title={isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
         description={isRecoveryBranch ? "Управление на профили, здравни досиета и статуси на клиентите." : "Управление на профили, членски карти и статуси на спортистите."}
@@ -410,60 +410,60 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           { label: "Членове" },
         ]}
       >
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button
             variant="outline"
             onClick={handleSyncStatuses}
             disabled={isSyncing}
-            className="rounded-xl border-zinc-200 font-medium text-[10px] sm:text-xs uppercase tracking-widest h-10 sm:h-11 px-4 sm:px-6 hover:bg-zinc-50 w-full sm:w-auto"
+            className="h-10 w-full rounded-xl border-zinc-200 px-4 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
           >
             <Activity
-              className={cn("mr-2 h-4 w-4", isSyncing && "animate-spin")}
+              className={cn("mr-2 size-4", isSyncing && "animate-spin")}
             />{" "}
             Синхронизирай статуси
           </Button>
           <Button
             variant="outline"
             onClick={handleExport}
-            className="rounded-xl border-zinc-200 font-medium text-[10px] sm:text-xs uppercase tracking-widest h-10 sm:h-11 px-4 sm:px-6 hover:bg-zinc-50 w-full sm:w-auto"
+            className="h-10 w-full rounded-xl border-zinc-200 px-4 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
           >
-            <Download className="mr-2 h-4 w-4" /> Експорт
+            <Download className="mr-2 size-4" /> Експорт
           </Button>
           <Button
             onClick={() => router.push("/members/new")}
-            className="rounded-xl font-medium text-[10px] sm:text-xs uppercase tracking-widest bg-zinc-950 text-white hover:bg-zinc-800 h-10 sm:h-11 px-4 sm:px-6 shadow-none w-full sm:w-auto"
+            className="h-10 w-full rounded-xl bg-zinc-950 px-4 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-zinc-800 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
           >
-            <PlusCircle className="mr-2 h-4 w-4" /> Нов член
+            <PlusCircle className="mr-2 size-4" /> Нов член
           </Button>
         </div>
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {!isRecoveryBranch && (
-          <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl h-12 w-full sm:w-fit overflow-x-auto no-scrollbar justify-start flex sm:inline-flex">
+          <TabsList className="no-scrollbar flex h-12 w-full justify-start overflow-x-auto rounded-2xl bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:bg-zinc-900">
             <TabsTrigger
               value="members"
-              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <Users className="h-4 w-4 mr-2" /> Членове
+              <Users className="mr-2 size-4" /> Членове
             </TabsTrigger>
             <TabsTrigger
               value="guests"
-              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <UserCog className="h-4 w-4 mr-2" /> Външни
+              <UserCog className="mr-2 size-4" /> Външни
             </TabsTrigger>
             <TabsTrigger
               value="families"
-              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <FamilyIcon className="h-4 w-4 mr-2" /> Семейства
+              <FamilyIcon className="mr-2 size-4" /> Семейства
             </TabsTrigger>
             <TabsTrigger
               value="recovery-clients"
-              className="rounded-xl flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:shadow-sm transition-all uppercase tracking-widest text-[10px] font-semibold"
+              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <Activity className="h-4 w-4 mr-2" /> Зона Възстановяване
+              <Activity className="mr-2 size-4" /> Зона Възстановяване
             </TabsTrigger>
           </TabsList>
         )}
@@ -475,71 +475,71 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             "animate-in fade-in"
           )}
         >
-          <BentoCard className="overflow-hidden border border-zinc-100 bg-white shadow-none rounded-5xl min-h-[calc(100vh-16rem)]">
+          <BentoCard className="min-h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
             <RecoveryClientsList members={members} />
           </BentoCard>
         </TabsContent>
 
         <TabsContent value="members" className="mt-8 space-y-8">
           {/* Stats Bento Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
-              <div className="p-3.5 sm:p-4 bg-primary/5 text-primary rounded-2xl shrink-0">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-primary/5 p-3.5 text-primary sm:p-4">
+                <Users className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
                   Общо членове
                 </p>
-                <p className="text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
+                <p className="text-2xl font-light text-zinc-900 sm:text-3xl dark:text-white">
                   {stats.total}
                 </p>
               </div>
             </BentoCard>
 
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
-              <div className="p-3.5 sm:p-4 bg-emerald-500/5 text-emerald-600 rounded-2xl shrink-0">
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-emerald-500/5 p-3.5 text-emerald-600 sm:p-4">
                 <UserCheck
-                  className="h-5 w-5 sm:h-6 sm:w-6"
+                  className="size-5 sm:size-6"
                   strokeWidth={1.5}
                 />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
                   Активни
                 </p>
-                <p className="text-2xl sm:text-3xl font-light text-emerald-600">
+                <p className="text-2xl font-light text-emerald-600 sm:text-3xl">
                   {stats.active}
                 </p>
               </div>
             </BentoCard>
 
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2 lg:col-span-1">
-              <div className="p-3.5 sm:p-4 bg-rose-500/5 text-rose-600 rounded-2xl shrink-0">
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-rose-500/5 p-3.5 text-rose-600 sm:p-4">
                 <UserMinus
-                  className="h-5 w-5 sm:h-6 sm:w-6"
+                  className="size-5 sm:size-6"
                   strokeWidth={1.5}
                 />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
                   Неактивни
                 </p>
-                <p className="text-2xl sm:text-3xl font-light text-rose-600">
+                <p className="text-2xl font-light text-rose-600 sm:text-3xl">
                   {stats.inactive}
                 </p>
               </div>
             </BentoCard>
 
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2 lg:col-span-3">
-              <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 lg:col-span-3 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
+                <Users className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
                   Относно Клубни Членове
                 </p>
-                <p className="text-xs font-light text-zinc-500 leading-relaxed">
+                <p className="text-xs leading-relaxed font-light text-zinc-500">
                   Клубните членове са редовни участници в клуба. Те разполагат с
                   пълно досие, членска карта, проследяване на статус
                   (активен/неактивен), финансова история и история на
@@ -551,35 +551,35 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </div>
 
           {/* Main Table Bento */}
-          <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl sm:rounded-5xl">
-            <div className="p-4 sm:p-6 border-b border-zinc-50 dark:border-zinc-900">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+                <div className="flex w-full flex-col items-center gap-4 sm:flex-row lg:w-auto">
                   <div className="relative w-full sm:w-80 lg:w-96">
                     <Search
-                      className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400"
+                      className="absolute top-1/2 left-4 size-3.5 -translate-y-1/2 text-zinc-400"
                       strokeWidth={1.5}
                     />
                     <Input
                       placeholder="Търсене по име или имейл..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shadow-none focus-visible:ring-primary h-11 text-xs font-light"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 pl-10 text-xs font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                     />
                   </div>
 
                   {selectedIds.length > 0 && (
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                      <span className="text-[10px] font-medium text-primary uppercase tracking-widest whitespace-nowrap">
+                    <div className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 animate-in fade-in slide-in-from-left-4 dark:border-zinc-800 dark:bg-zinc-900">
+                      <span className="text-[10px] font-medium tracking-widest whitespace-nowrap text-primary uppercase">
                         {selectedIds.length} избрани
                       </span>
-                      <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1" />
+                      <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="rounded-lg h-7 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            className="h-7 rounded-lg px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
                             <MoreVertical size={14} className="text-zinc-500" />
                           </Button>
@@ -590,14 +590,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         >
                           <DropdownMenuItem
                             onClick={() => handleBulkStatusUpdate("active")}
-                            className="flex items-center gap-2 rounded-lg text-[10px] font-medium text-emerald-600 focus:text-emerald-700 uppercase tracking-widest"
+                            className="flex items-center gap-2 rounded-lg text-[10px] font-medium tracking-widest text-emerald-600 uppercase focus:text-emerald-700"
                           >
                             <CheckCircle size={14} strokeWidth={1.5} />{" "}
                             Активирай
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleBulkStatusUpdate("inactive")}
-                            className="flex items-center gap-2 rounded-lg text-[10px] font-medium text-zinc-500 uppercase tracking-widest"
+                            className="flex items-center gap-2 rounded-lg text-[10px] font-medium tracking-widest text-zinc-500 uppercase"
                           >
                             <XCircle size={14} strokeWidth={1.5} /> Деактивирай
                           </DropdownMenuItem>
@@ -607,27 +607,27 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto custom-scrollbar no-scrollbar pb-2 sm:pb-0">
+                <div className="custom-scrollbar no-scrollbar flex w-full items-center gap-3 overflow-x-auto pb-2 sm:w-auto sm:pb-0">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     className={cn(
-                      "rounded-xl border-zinc-200 h-10 text-[10px] font-semibold uppercase tracking-widest px-4 shrink-0 transition-all",
+                      "h-10 shrink-0 rounded-xl border-zinc-200 px-4 text-[10px] font-semibold tracking-widest uppercase transition-all",
                       isFiltersExpanded || activeFiltersCount > 0
-                        ? "bg-zinc-950 text-white hover:bg-zinc-850 hover:text-white dark:bg-white dark:text-zinc-950 border-transparent shadow-sm"
+                        ? "hover:bg-zinc-850 border-transparent bg-zinc-950 text-white shadow-sm hover:text-white dark:bg-white dark:text-zinc-950"
                         : "hover:bg-zinc-50"
                     )}
                   >
                     <Filter
-                      className="mr-1.5 h-3.5 w-3.5 shrink-0"
+                      className="mr-1.5 size-3.5 shrink-0"
                       strokeWidth={1.5}
                     />
                     Умни филтри
                     {activeFiltersCount > 0 && (
                       <span
                         className={cn(
-                          "ml-1.5 px-1.5 py-0.5 text-[8px] rounded-full font-bold",
+                          "ml-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold",
                           isFiltersExpanded || activeFiltersCount > 0
                             ? "bg-white text-zinc-950 dark:bg-zinc-950 dark:text-white"
                             : "bg-zinc-100 text-zinc-900"
@@ -638,15 +638,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     )}
                   </Button>
 
-                  <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 shrink-0 h-10 items-center">
+                  <div className="flex h-10 shrink-0 items-center rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
                     {(["all", "active", "inactive"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setStatusFilter(f)}
                         className={cn(
-                          "px-3 sm:px-4 py-1.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all whitespace-nowrap",
+                          "rounded-lg px-3 py-1.5 text-[9px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:text-[10px]",
                           statusFilter === f
-                            ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                            ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                             : "text-zinc-500 hover:text-zinc-700"
                         )}
                       >
@@ -665,22 +665,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
               {/* Умни филтри панел */}
               {isFiltersExpanded && (
-                <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-300">
+                <div className="mt-6 grid grid-cols-1 gap-6 border-t border-zinc-100 pt-6 duration-300 animate-in slide-in-from-top-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-zinc-900">
                   {/* Age Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
+                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                       Възрастова група
                     </label>
-                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
                       {(["all", "under18", "18plus"] as const).map((a) => (
                         <button
                           key={a}
                           type="button"
                           onClick={() => setAgeFilter(a)}
                           className={cn(
-                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
                             ageFilter === a
-                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
@@ -698,19 +698,19 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Medical Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
+                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                       Медицинско
                     </label>
-                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
                       {(["all", "valid", "missing"] as const).map((m) => (
                         <button
                           key={m}
                           type="button"
                           onClick={() => setMedicalFilter(m)}
                           className={cn(
-                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
                             medicalFilter === m
-                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
@@ -728,19 +728,19 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Payment Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
+                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                       Такси / Плащане
                     </label>
-                    <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1 w-full">
+                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
                       {(["all", "paid", "due"] as const).map((p) => (
                         <button
                           key={p}
                           type="button"
                           onClick={() => setPaymentFilter(p)}
                           className={cn(
-                            "flex-1 py-1.5 text-[9px] font-medium uppercase tracking-widest rounded-lg transition-all text-center",
+                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
                             paymentFilter === p
-                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                               : "text-zinc-550 hover:text-zinc-700"
                           )}
                         >
@@ -758,7 +758,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
                   {/* Documents Filter */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block">
+                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                       Документи
                     </label>
                     <select
@@ -772,7 +772,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             | "all-valid"
                         )
                       }
-                      className="w-full bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-transparent rounded-xl h-9.5 px-3 text-[10px] font-medium uppercase tracking-widest outline-none focus:bg-white dark:focus:bg-zinc-800 focus:border-zinc-200"
+                      className="h-9.5 w-full rounded-xl border border-transparent bg-zinc-50 px-3 text-[10px] font-medium tracking-widest text-zinc-800 uppercase outline-none focus:border-zinc-200 focus:bg-white dark:bg-zinc-900 dark:text-zinc-200 dark:focus:bg-zinc-800"
                     >
                       <option value="all">Всички документи</option>
                       <option value="missing-declaration">
@@ -784,36 +784,36 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   </div>
 
                   {/* Presets and Clear All row */}
-                  <div className="sm:col-span-2 lg:col-span-4 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-55 dark:border-zinc-900">
+                  <div className="border-zinc-55 flex flex-wrap items-center justify-between gap-4 border-t pt-4 sm:col-span-2 lg:col-span-4 dark:border-zinc-900">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-medium text-zinc-450 uppercase tracking-widest mr-1">
+                      <span className="text-zinc-450 mr-1 text-[10px] font-medium tracking-widest uppercase">
                         Бързи филтри:
                       </span>
                       <button
                         type="button"
                         onClick={() => applyPreset("under18-no-medical")}
-                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         Деца без медицинско
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset("unpaid-fees")}
-                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         С неплатени такси
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset("missing-declarations")}
-                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-700 dark:text-zinc-300 transition-colors"
+                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         Липсващи декларации
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset("all-clear")}
-                        className="px-3 py-1.5 rounded-full text-[9px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 hover:bg-emerald-100/70 transition-colors"
+                        className="rounded-full bg-emerald-50 px-3 py-1.5 text-[9px] font-medium text-emerald-700 transition-colors hover:bg-emerald-100/70 dark:bg-emerald-950/20 dark:text-emerald-400"
                       >
                         Всичко изрядно ✨
                       </button>
@@ -823,7 +823,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       <button
                         type="button"
                         onClick={clearAllFilters}
-                        className="text-[9px] font-semibold text-rose-600 dark:text-rose-450 hover:underline uppercase tracking-widest"
+                        className="dark:text-rose-450 text-[9px] font-semibold tracking-widest text-rose-600 uppercase hover:underline"
                       >
                         Изчисти филтрите
                       </button>
@@ -834,10 +834,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             </div>
 
             {/* Desktop View: Table */}
-            <div className="hidden md:block overflow-x-auto custom-scrollbar">
-              <Table className="min-w-[900px] lg:min-w-full table-fixed">
+            <div className="custom-scrollbar hidden overflow-x-auto md:block">
+              <Table className="min-w-225 table-fixed lg:min-w-full">
                 <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
-                  <TableRow className="hover:bg-transparent border-zinc-100 dark:border-zinc-900">
+                  <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-900">
                     <TableHead className="w-[50px] px-4">
                       <Checkbox
                         checked={
@@ -848,22 +848,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         className="rounded-md border-zinc-200"
                       />
                     </TableHead>
-                    <TableHead className="py-4 px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                    <TableHead className="p-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Член
                     </TableHead>
-                    <TableHead className="px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
+                    <TableHead className="px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Контакт
                     </TableHead>
-                    <TableHead className="px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[120px]">
+                    <TableHead className="w-30 px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Група
                     </TableHead>
-                    <TableHead className="hidden lg:table-cell px-4 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[140px]">
+                    <TableHead className="hidden w-35 px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase lg:table-cell">
                       Регистрация
                     </TableHead>
-                    <TableHead className="text-right px-6 text-[10px] font-medium uppercase tracking-widest text-zinc-400 w-[120px]">
+                    <TableHead className="w-30 px-6 text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Статус
                     </TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead className="w-15"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -878,7 +878,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         <TableRow
                           key={member.id}
                           className={cn(
-                            "cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors group border-zinc-50 dark:border-zinc-900",
+                            "group cursor-pointer border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-900 dark:hover:bg-zinc-900/50",
                             selectedIds.includes(member.id) && "bg-primary/5"
                           )}
                         >
@@ -893,22 +893,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             />
                           </TableCell>
                           <TableCell
-                            className="py-4 px-4"
+                            className="p-4"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 rounded-lg border border-zinc-100 dark:border-zinc-800 shrink-0">
+                              <Avatar className="size-8 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
                                 <AvatarImage 
                                   src={getValidAvatarUrl(member.avatarUrl)} 
                                   alt={`${member.firstName} ${member.lastName}`} 
                                   className="object-cover" 
                                 />
-                                <AvatarFallback className="rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-[10px] group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300">
+                                <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-medium text-zinc-600 transition-all duration-300 group-hover:bg-zinc-950 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400">
                                   {member.firstName[0]}
                                   {member.lastName[0]}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="font-medium text-[13px] text-zinc-900 dark:text-white group-hover:text-zinc-950 transition-colors truncate">
+                              <div className="truncate text-[13px] font-medium text-zinc-900 transition-colors group-hover:text-zinc-950 dark:text-white">
                                 {member.firstName} {member.lastName}
                               </div>
                             </div>
@@ -919,10 +919,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           >
                             <div className="flex items-center gap-2 text-zinc-500">
                               <Mail
-                                className="h-3 w-3 shrink-0 text-zinc-300"
+                                className="size-3 shrink-0 text-zinc-300"
                                 strokeWidth={1.5}
                               />
-                              <span className="text-[11px] font-light truncate max-w-[150px]">
+                              <span className="max-w-[150px] truncate text-[11px] font-light">
                                 {member.email || "—"}
                               </span>
                             </div>
@@ -934,26 +934,26 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             {ageGrp ? (
                               <Badge
                                 variant="outline"
-                                className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
+                                className="h-5 rounded-lg border-zinc-100 bg-transparent px-2 py-0 text-[9px] font-medium tracking-widest uppercase"
                               >
                                 {ageGrp}
                               </Badge>
                             ) : (
-                              <span className="text-zinc-300 text-[11px]">
+                              <span className="text-[11px] text-zinc-300">
                                 —
                               </span>
                             )}
                           </TableCell>
                           <TableCell
-                            className="hidden lg:table-cell px-4"
+                            className="hidden px-4 lg:table-cell"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
                               <Calendar
-                                className="h-3 w-3 text-zinc-300"
+                                className="size-3 text-zinc-300"
                                 strokeWidth={1.5}
                               />
-                              <span className="text-[10px] font-medium uppercase tracking-widest">
+                              <span className="text-[10px] font-medium tracking-widest uppercase">
                                 {new Date(
                                   member.registrationDate
                                 ).toLocaleDateString("bg-BG")}
@@ -961,15 +961,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             </div>
                           </TableCell>
                           <TableCell
-                            className="text-right px-6"
+                            className="px-6 text-right"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <Badge
                               className={cn(
-                                "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
+                                "rounded-full border-none px-2.5 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
                                 member.status === "active"
                                   ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
+                                  : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
                               )}
                             >
                               {member.status === "active"
@@ -989,9 +989,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                 )
                               }
                               aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                              className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                              className="size-8 rounded-lg text-zinc-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
                             >
-                              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                              <Trash2 className="size-4" strokeWidth={1.5} />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -1002,13 +1002,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       <TableCell colSpan={6} className="h-64 text-center">
                         <div className="flex flex-col items-center justify-center text-zinc-400">
                           <Users
-                            className="h-12 w-12 mb-3 opacity-20"
+                            className="mb-3 size-12 opacity-20"
                             strokeWidth={1}
                           />
-                          <p className="text-xl font-light text-zinc-900 dark:text-white uppercase tracking-[0.2em]">
+                          <p className="text-xl font-light tracking-[0.2em] text-zinc-900 uppercase dark:text-white">
                             Няма намерени членове
                           </p>
-                          <p className="text-[10px] font-medium uppercase tracking-widest mt-2 text-zinc-600 dark:text-zinc-400">
+                          <p className="mt-2 text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                             Опитайте с друго име или филтър.
                           </p>
                         </div>
@@ -1020,34 +1020,34 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             </div>
 
             {/* Mobile View: Cards */}
-            <div className="md:hidden divide-y divide-zinc-50 dark:divide-zinc-900">
+            <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
               {paginatedMembers.length > 0 ? (
                 paginatedMembers.map((member) => (
                   <div
                     key={member.id}
                     onClick={() => router.push(`/members/${member.id}`)}
-                    className="p-5 active:bg-zinc-50 dark:active:bg-zinc-900 transition-colors"
+                    className="p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
                   >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="mb-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 rounded-xl border border-zinc-100 dark:border-zinc-800 shrink-0">
+                        <Avatar className="size-10 shrink-0 rounded-xl border border-zinc-100 dark:border-zinc-800">
                           <AvatarImage 
                             src={getValidAvatarUrl(member.avatarUrl)} 
                             alt={`${member.firstName} ${member.lastName}`} 
                             className="object-cover" 
                           />
-                          <AvatarFallback className="rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 font-medium text-xs">
+                          <AvatarFallback className="flex items-center justify-center rounded-xl bg-zinc-100 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                             {member.firstName[0]}
                             {member.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium text-sm text-zinc-900 dark:text-white">
+                          <div className="text-sm font-medium text-zinc-900 dark:text-white">
                             {member.firstName} {member.lastName}
                           </div>
-                          <div className="flex items-center gap-1.5 text-zinc-500 mt-1">
+                          <div className="mt-1 flex items-center gap-1.5 text-zinc-500">
                             <Mail
-                              className="h-3 w-3 text-zinc-300"
+                              className="size-3 text-zinc-300"
                               strokeWidth={1.5}
                             />
                             <span className="text-[10px] font-light">
@@ -1059,10 +1059,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       <div className="flex items-center gap-2">
                         <Badge
                           className={cn(
-                            "rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none",
+                            "rounded-full border-none px-2.5 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
                             member.status === "active"
                               ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
+                              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
                           )}
                         >
                           {member.status === "active" ? "Активен" : "Неактивен"}
@@ -1078,19 +1078,19 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             )
                           }
                           aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-rose-500 transition-colors"
+                          className="size-8 rounded-lg text-zinc-300 transition-colors hover:text-rose-500"
                         >
-                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                          <Trash2 className="size-4" strokeWidth={1.5} />
                         </Button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-900">
+                    <div className="flex items-center justify-between border-t border-zinc-50 pt-3 dark:border-zinc-900">
                       <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
                         <Calendar
-                          className="h-3 w-3 text-zinc-300"
+                          className="size-3 text-zinc-300"
                           strokeWidth={1.5}
                         />
-                        <span className="text-[9px] font-medium uppercase tracking-widest">
+                        <span className="text-[9px] font-medium tracking-widest uppercase">
                           {new Date(member.registrationDate).toLocaleDateString(
                             "bg-BG"
                           )}
@@ -1099,7 +1099,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       {(member.ageGroup || member.dateOfBirth) && (
                         <Badge
                           variant="outline"
-                          className="rounded-lg font-medium text-[9px] bg-transparent border-zinc-100 uppercase tracking-widest px-2 py-0 h-5"
+                          className="h-5 rounded-lg border-zinc-100 bg-transparent px-2 py-0 text-[9px] font-medium tracking-widest uppercase"
                         >
                           {member.ageGroup || getAgeGroup(member.dateOfBirth!)}
                         </Badge>
@@ -1110,10 +1110,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               ) : (
                 <div className="p-12 text-center">
                   <Users
-                    className="h-12 w-12 mx-auto mb-3 opacity-20 text-zinc-400"
+                    className="mx-auto mb-3 size-12 text-zinc-400 opacity-20"
                     strokeWidth={1}
                   />
-                  <p className="text-sm font-medium text-zinc-900 dark:text-white uppercase tracking-widest">
+                  <p className="text-sm font-medium tracking-widest text-zinc-900 uppercase dark:text-white">
                     Няма резултати
                   </p>
                 </div>
@@ -1122,8 +1122,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between p-5 sm:p-6 border-t border-zinc-50 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50 gap-6">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-widest order-2 sm:order-1">
+              <div className="flex flex-col items-center justify-between gap-6 border-t border-zinc-50 bg-zinc-50/50 p-5 sm:flex-row sm:p-6 dark:border-zinc-900 dark:bg-zinc-900/50">
+                <p className="order-2 text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:order-1 sm:text-[11px] dark:text-zinc-400">
                   Показани{" "}
                   <span className="text-zinc-900 dark:text-white">
                     {(currentPage - 1) * ITEMS_PER_PAGE + 1}
@@ -1140,18 +1140,18 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     {filteredMembers.length}
                   </span>
                 </p>
-                <div className="flex items-center gap-3 order-1 sm:order-2 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="order-1 flex w-full items-center justify-between gap-3 sm:order-2 sm:w-auto sm:justify-end">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     aria-label="Предишна страница"
-                    className="rounded-xl h-11 w-11 p-0 border-zinc-100 bg-white dark:bg-zinc-800 shadow-none hover:bg-zinc-50"
+                    className="size-11 rounded-xl border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="size-4" />
                   </Button>
-                  <div className="px-5 py-2.5 bg-white dark:bg-zinc-800 rounded-xl text-[10px] font-semibold border border-zinc-100 dark:border-zinc-700 shadow-none min-w-[70px] text-center uppercase tracking-widest">
+                  <div className="min-w-[70px] rounded-xl border border-zinc-100 bg-white px-5 py-2.5 text-center text-[10px] font-semibold tracking-widest uppercase shadow-none dark:border-zinc-700 dark:bg-zinc-800">
                     {currentPage} {"/"} {totalPages}
                   </div>
                   <Button
@@ -1162,9 +1162,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     }
                     disabled={currentPage === totalPages}
                     aria-label="Следваща страница"
-                    className="rounded-xl h-11 w-11 p-0 border-zinc-100 bg-white dark:bg-zinc-800 shadow-none hover:bg-zinc-50"
+                    className="size-11 rounded-xl border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="size-4" />
                   </Button>
                 </div>
               </div>
@@ -1174,16 +1174,16 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
         <TabsContent value="guests" className="mt-8 space-y-8">
           {/* Guest Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
-              <div className="p-3.5 sm:p-4 bg-amber-500/10 text-amber-600 rounded-2xl shrink-0">
-                <UserCog className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-amber-500/10 p-3.5 text-amber-600 sm:p-4">
+                <UserCog className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                   Външни клиенти
                 </p>
-                <p className="text-2xl sm:text-3xl font-light text-amber-600">
+                <p className="text-2xl font-light text-amber-600 sm:text-3xl">
                   {
                     members.filter((m) => m.isGuest || m.memberType === "guest")
                       .length
@@ -1191,15 +1191,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 </p>
               </div>
             </BentoCard>
-            <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl sm:col-span-2">
-              <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
-                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
+                <UserPlus className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+                <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                   Относно Външни клиенти
                 </p>
-                <p className="text-xs font-light text-zinc-500 leading-relaxed">
+                <p className="text-xs leading-relaxed font-light text-zinc-500">
                   Външните клиенти са лица, участвали в тренировки, но не са
                   редовни членове на клуба. Те имат собствени досиета и история
                   на посещенията.
@@ -1209,37 +1209,37 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </div>
 
           {/* Guest Cards */}
-          <BentoCard className="overflow-hidden border border-zinc-100 dark:border-zinc-900 shadow-none bg-white dark:bg-zinc-950 rounded-4xl sm:rounded-5xl">
-            <div className="p-4 sm:p-6 border-b border-zinc-50 dark:border-zinc-900 flex items-center justify-between">
+          <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="flex items-center justify-between border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
               <div className="flex items-center gap-3">
-                <UserCog className="h-4 w-4 text-amber-500" strokeWidth={1.5} />
+                <UserCog className="size-4 text-amber-500" strokeWidth={1.5} />
                 <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                   Регистрирани Външни клиенти
                 </h3>
               </div>
               <Button
                 onClick={() => router.push("/members/new?type=guest")}
-                className="rounded-xl font-medium text-[10px] uppercase tracking-widest bg-amber-500 text-white hover:bg-amber-600 h-9 px-4 shadow-none"
+                className="h-9 rounded-xl bg-amber-500 px-4 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-amber-600"
               >
-                <UserPlus className="mr-2 h-3.5 w-3.5" /> Нов Гост
+                <UserPlus className="mr-2 size-3.5" /> Нов Гост
               </Button>
             </div>
             {members.filter((m) => m.isGuest || m.memberType === "guest")
               .length === 0 ? (
               <div className="p-16 text-center">
-                <div className="h-16 w-16 bg-amber-50 dark:bg-amber-950/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <UserCog className="h-8 w-8 text-amber-300" strokeWidth={1} />
+                <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/20">
+                  <UserCog className="size-8 text-amber-300" strokeWidth={1} />
                 </div>
-                <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest mb-3">
+                <p className="mb-3 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                   Няма регистрирани външни клиенти
                 </p>
-                <p className="max-w-sm mx-auto text-sm font-light text-zinc-400 leading-relaxed">
+                <p className="mx-auto max-w-sm text-sm leading-relaxed font-light text-zinc-400">
                   Когато добавите външен клиент, той ще се появи тук с пълно
                   досие и история на посещенията.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6">
+              <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
                 {members
                   .filter((m) => m.isGuest || m.memberType === "guest")
                   .sort((a, b) =>
@@ -1252,33 +1252,33 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     <div
                       key={guest.id}
                       onClick={() => router.push(`/members/${guest.id}`)}
-                      className="group cursor-pointer bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-3xl p-5 hover:border-amber-200 dark:hover:border-amber-800 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300"
+                      className="group cursor-pointer rounded-3xl border border-zinc-100 bg-white p-5 transition-all duration-300 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-500/5 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:border-amber-800"
                     >
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="mb-4 flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center text-amber-600 dark:text-amber-400 font-medium text-sm shrink-0 group-hover:bg-amber-100 transition-colors">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-sm font-medium text-amber-600 transition-colors group-hover:bg-amber-100 dark:bg-amber-950/20 dark:text-amber-400">
                             {guest.firstName[0]}
                             {guest.lastName[0]}
                           </div>
                           <div>
-                            <p className="font-medium text-sm text-zinc-900 dark:text-white">
+                            <p className="text-sm font-medium text-zinc-900 dark:text-white">
                               {guest.firstName} {guest.lastName}
                             </p>
-                            <p className="text-[10px] font-light text-zinc-400 mt-0.5">
+                            <p className="mt-0.5 text-[10px] font-light text-zinc-400">
                               {guest.email || "Няма имейл"}
                             </p>
                           </div>
                         </div>
-                        <Badge className="rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest border-none shadow-none bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 shrink-0">
+                        <Badge className="shrink-0 rounded-full border-none bg-amber-100 px-2.5 py-0.5 text-[9px] font-semibold tracking-widest text-amber-700 uppercase shadow-none dark:bg-amber-950/30 dark:text-amber-400">
                           Гост
                         </Badge>
                       </div>
-                      <div className="pt-3 border-t border-zinc-50 dark:border-zinc-900 flex items-center gap-2 text-zinc-400">
+                      <div className="flex items-center gap-2 border-t border-zinc-50 pt-3 text-zinc-400 dark:border-zinc-900">
                         <Calendar
-                          className="h-3 w-3 text-zinc-300"
+                          className="size-3 text-zinc-300"
                           strokeWidth={1.5}
                         />
-                        <span className="text-[9px] font-medium uppercase tracking-widest">
+                        <span className="text-[9px] font-medium tracking-widest uppercase">
                           {new Date(guest.registrationDate).toLocaleDateString(
                             "bg-BG"
                           )}
@@ -1294,9 +1294,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                 `${guest.firstName} ${guest.lastName}`
                               )
                             }
-                            className="h-7 w-7 rounded-lg text-zinc-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                            className="size-7 rounded-lg text-zinc-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
                           >
-                            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            <Trash2 className="size-3.5" strokeWidth={1.5} />
                           </Button>
                         </div>
                       </div>
@@ -1308,15 +1308,15 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         </TabsContent>
 
         <TabsContent value="families" className="mt-8 space-y-8">
-          <BentoCard className="p-5 sm:p-8 flex items-center gap-4 sm:gap-6 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 shadow-none rounded-4xl sm:rounded-5xl">
-            <div className="p-3.5 sm:p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-2xl shrink-0">
-              <FamilyIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
+              <FamilyIcon className="size-5 sm:size-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 uppercase tracking-widest">
+              <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                 Относно Семейства
               </p>
-              <p className="text-xs font-light text-zinc-500 leading-relaxed">
+              <p className="text-xs leading-relaxed font-light text-zinc-500">
                 Семейните профили обединяват няколко членове на клуба в една
                 група за по-лесно управление. Те позволяват споделяне на семейни
                 такси и отстъпки, както и общо проследяване на финансовата
@@ -1325,7 +1325,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             </div>
           </BentoCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {families.map((family) => {
               const familyMembers = initialMembers.filter((m) =>
                 family.memberIds.includes(m.id)
@@ -1333,14 +1333,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               return (
                 <BentoCard
                   key={family.id}
-                  className="p-6 space-y-4 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 rounded-3xl shadow-none"
+                  className="space-y-4 rounded-3xl border border-zinc-100 bg-white p-6 shadow-none dark:border-zinc-900 dark:bg-zinc-950"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
-                        <FamilyIcon className="h-5 w-5 text-zinc-500" />
+                      <div className="rounded-xl bg-zinc-100 p-2 dark:bg-zinc-800">
+                        <FamilyIcon className="size-5 text-zinc-500" />
                       </div>
-                      <h3 className="font-semibold text-lg">
+                      <h3 className="text-lg font-semibold">
                         {family.name || "Без име"}
                       </h3>
                     </div>
@@ -1354,14 +1354,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         key={m.id}
                         className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400"
                       >
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <div className="size-1.5 rounded-full bg-emerald-500" />
                         {m.firstName} {m.lastName}
                       </div>
                     ))}
                   </div>
                   <Button
                     variant="ghost"
-                    className="w-full mt-2 rounded-xl text-xs uppercase tracking-widest font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    className="mt-2 w-full rounded-xl text-xs font-semibold tracking-widest uppercase hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     onClick={() => router.push(`/families/${family.id}`)}
                   >
                     Детайли

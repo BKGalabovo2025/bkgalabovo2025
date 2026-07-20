@@ -51,7 +51,7 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
           }}
           disabled={productsToRestock.length === 0}
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="mr-2 size-4" />
           Експорт (CSV)
         </Button>
       </CardHeader>
@@ -90,22 +90,22 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
                 </TableBody>
               </Table>
             </div>
-            <div className="md:hidden flex flex-col gap-3">
+            <div className="flex flex-col gap-3 md:hidden">
               {productsToRestock.map((product) => (
                 <div
                   key={product.id}
-                  className="p-4 border border-zinc-100 dark:border-zinc-800 rounded-xl flex flex-col gap-2 bg-zinc-50/50 dark:bg-zinc-900/50"
+                  className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50"
                 >
-                  <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
+                  <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {product.name}
                   </div>
-                  <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-500">Наличност:</span>
                     <span className="font-bold text-rose-600">
                       {product.stock} бр.
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-500">Праг:</span>
                     <span className="font-medium text-zinc-700 dark:text-zinc-300">
                       {product.restockThreshold} бр.

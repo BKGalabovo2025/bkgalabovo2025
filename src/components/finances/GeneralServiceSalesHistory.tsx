@@ -57,7 +57,7 @@ export function GeneralServiceSalesHistory() {
     <SharedSalesHistory
       title="История на продажбите"
       description="Списък с всички продадени клубни услуги и техния статус на плащане."
-      icon={<ShoppingBag className="h-5 w-5 text-emerald-500" />}
+      icon={<ShoppingBag className="size-5 text-emerald-500" />}
       sales={sales}
       isLoading={isLoading || membersLoading}
       membersMap={membersMap}

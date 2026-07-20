@@ -184,52 +184,52 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10 duration-700 animate-in fade-in">
       {/* Top Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 bg-zinc-50/50 p-6 rounded-3xl border border-zinc-100">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 rounded-3xl border border-zinc-100 bg-zinc-50/50 p-6 md:grid-cols-3 lg:col-span-3">
           <div className="space-y-2.5">
-            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
+            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               От дата
             </Label>
             <div className="relative">
               <CalendarIcon
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
                 strokeWidth={1.5}
               />
               <Input
                 type="date"
                 value={dateFrom ? formatDateInput(dateFrom) : ""}
                 onChange={handleDateChange(setDateFrom)}
-                className="pl-12 rounded-xl border-zinc-100 bg-white shadow-none h-12 text-sm font-light focus:ring-zinc-200"
+                className="h-12 rounded-xl border-zinc-100 bg-white pl-12 text-sm font-light shadow-none focus:ring-zinc-200"
               />
             </div>
           </div>
           <div className="space-y-2.5">
-            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
+            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               До дата
             </Label>
             <div className="relative">
               <CalendarIcon
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
+                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
                 strokeWidth={1.5}
               />
               <Input
                 type="date"
                 value={dateTo ? formatDateInput(dateTo) : ""}
                 onChange={handleDateChange(setDateTo)}
-                className="pl-12 rounded-xl border-zinc-100 bg-white shadow-none h-12 text-sm font-light focus:ring-zinc-200"
+                className="h-12 rounded-xl border-zinc-100 bg-white pl-12 text-sm font-light shadow-none focus:ring-zinc-200"
               />
             </div>
           </div>
           <div className="space-y-2.5">
-            <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 ml-1">
+            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Тип приходи
             </Label>
             <Select value={paymentType} onValueChange={setPaymentType}>
-              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-white shadow-none text-sm font-light focus:ring-zinc-200">
+              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-white text-sm font-light shadow-none focus:ring-zinc-200">
                 <div className="flex items-center gap-3">
-                  <Filter className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
+                  <Filter className="size-4 text-zinc-400" strokeWidth={1.5} />
                   <SelectValue placeholder="Всички" />
                 </div>
               </SelectTrigger>
@@ -246,31 +246,31 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               <Button
                 variant="outline"
                 disabled={data.sales.length === 0 || isPending}
-                className="rounded-xl h-12 border-zinc-100 font-medium text-[11px] uppercase tracking-widest px-8 transition-all hover:bg-zinc-50 flex items-center justify-between"
+                className="flex h-12 items-center justify-between rounded-xl border-zinc-100 px-8 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50"
               >
                 <div className="flex items-center">
                   {isPending ? (
                     <Loader2
-                      className="mr-3 h-4 w-4 animate-spin"
+                      className="mr-3 size-4 animate-spin"
                       strokeWidth={1.5}
                     />
                   ) : (
-                    <Download className="mr-3 h-4 w-4" strokeWidth={1.5} />
+                    <Download className="mr-3 size-4" strokeWidth={1.5} />
                   )}
                   Експорт
                 </div>
                 <ChevronDown
-                  className="ml-3 h-4 w-4 text-zinc-400"
+                  className="ml-3 size-4 text-zinc-400"
                   strokeWidth={1.5}
                 />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 rounded-xl p-2 shadow-xl border-zinc-100"
+              className="w-48 rounded-xl border-zinc-100 p-2 shadow-xl"
             >
               <DropdownMenuItem
-                className="text-sm font-medium rounded-lg cursor-pointer p-3 flex items-center"
+                className="flex cursor-pointer items-center rounded-lg p-3 text-sm font-medium"
                 onClick={() => {
                   const exportData = data.sales.map((s) => ({
                     date: formatDateShort(s.saleDate),
@@ -292,11 +292,11 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                   );
                 }}
               >
-                <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-600" />{" "}
+                <FileSpreadsheet className="mr-3 size-4 text-emerald-600" />{" "}
                 Експорт в Excel
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-sm font-medium rounded-lg cursor-pointer p-3 flex items-center"
+                className="flex cursor-pointer items-center rounded-lg p-3 text-sm font-medium"
                 onClick={() => {
                   const exportData = data.sales.map((s) => ({
                     date: formatDateShort(s.saleDate),
@@ -318,7 +318,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                   );
                 }}
               >
-                <FileText className="mr-3 h-4 w-4 text-red-500" /> Експорт в PDF
+                <FileText className="mr-3 size-4 text-red-500" /> Експорт в PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -326,28 +326,28 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       </div>
 
       {/* Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="border border-zinc-100 shadow-none bg-white rounded-4xl overflow-hidden col-span-1 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <Card className="col-span-1 overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none lg:col-span-2">
           <CardHeader className="border-b border-zinc-50 p-8">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                <CardTitle className="text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                   Разпределение на приходите
                 </CardTitle>
-                <CardDescription className="text-sm font-light mt-2">
+                <CardDescription className="mt-2 text-sm font-light">
                   Визуализация на източниците за избрания период
                 </CardDescription>
               </div>
               <PieChartIcon
-                className="h-5 w-5 text-zinc-200"
+                className="size-5 text-zinc-200"
                 strokeWidth={1.5}
               />
             </div>
           </CardHeader>
-          <CardContent className="p-8 h-[350px]">
+          <CardContent className="h-[350px] p-8">
             {isPending ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="h-8 w-8 text-zinc-300 animate-spin" />
+              <div className="flex h-full items-center justify-center">
+                <Loader2 className="size-8 animate-spin text-zinc-300" />
               </div>
             ) : data.chartData.length > 0 ? (
               <ResponsiveContainer
@@ -390,7 +390,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     height={36}
                     iconType="circle"
                     formatter={(value) => (
-                      <span className="text-[10px] uppercase tracking-widest font-medium text-zinc-400">
+                      <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                         {value}
                       </span>
                     )}
@@ -398,7 +398,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+              <div className="flex h-full items-center justify-center text-[11px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
                 Няма данни за графиката
               </div>
             )}
@@ -406,15 +406,15 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
         </Card>
 
         <div className="space-y-8">
-          <Card className="border-none shadow-none bg-zinc-950 text-white rounded-4xl overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity">
-              <TrendingUp className="h-24 w-24 text-zinc-400" strokeWidth={1} />
+          <Card className="group relative overflow-hidden rounded-4xl border-none bg-zinc-950 text-white shadow-none">
+            <div className="absolute top-0 right-0 p-8 opacity-20 transition-opacity group-hover:opacity-30">
+              <TrendingUp className="size-24 text-zinc-400" strokeWidth={1} />
             </div>
-            <CardContent className="p-10 relative z-10">
-              <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-zinc-500">
+            <CardContent className="relative z-10 p-10">
+              <p className="text-[11px] font-medium tracking-[0.3em] text-zinc-500 uppercase">
                 Общ Приход
               </p>
-              <h3 className="text-5xl font-light tracking-tighter mt-6 mb-8">
+              <h3 className="mt-6 mb-8 text-5xl font-light tracking-tighter">
                 {isPending ? "—" : formatPrice(data.total)}
               </h3>
               <div className="space-y-3"></div>
@@ -424,9 +424,9 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       </div>
 
       {/* Detailed Table */}
-      <Card className="border border-zinc-100 shadow-none bg-white rounded-5xl overflow-hidden">
+      <Card className="overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
         <CardHeader className="border-b border-zinc-50 p-8">
-          <CardTitle className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+          <CardTitle className="text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
             Детайлен списък
           </CardTitle>
         </CardHeader>
@@ -434,27 +434,27 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
           <div className="hidden md:block">
             <Table>
               <TableHeader className="bg-zinc-50/50">
-                <TableRow className="border-none hover:bg-transparent h-16">
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 px-8">
+                <TableRow className="h-16 border-none hover:bg-transparent">
+                  <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Дата
                   </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                  <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Член
                   </TableHead>
-                  <TableHead className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                  <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Тип
                   </TableHead>
-                  <TableHead className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+                  <TableHead className="text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Сума
                   </TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="w-15"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isPending ? (
                   <TableRow>
                     <TableCell colSpan={5} className="h-48 text-center">
-                      <Loader2 className="h-6 w-6 text-zinc-300 animate-spin mx-auto" />
+                      <Loader2 className="mx-auto size-6 animate-spin text-zinc-300" />
                     </TableCell>
                   </TableRow>
                 ) : data.sales.length > 0 ? (
@@ -462,7 +462,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     return (
                       <TableRow
                         key={s.id}
-                        className="border-zinc-50 group hover:bg-zinc-50/50 transition-colors h-20"
+                        className="group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50"
                       >
                         <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
                           {formatDateShort(s.saleDate)}
@@ -474,18 +474,18 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                           <Badge
                             variant="outline"
                             className={cn(
-                              "rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-3 py-1",
+                              "rounded-full border-none px-3 py-1 text-[9px] font-medium tracking-widest uppercase",
                               "bg-emerald-50 text-emerald-600"
                             )}
                           >
                             Продажба
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-medium text-sm text-zinc-900">
+                        <TableCell className="text-right text-sm font-medium text-zinc-900">
                           {formatPrice(s.totalAmount)}
                         </TableCell>
                         <TableCell
-                          className="text-right pr-6"
+                          className="pr-6 text-right"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <DropdownMenu>
@@ -493,41 +493,41 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 rounded-xl opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                                className="size-8 rounded-xl opacity-0 transition-all group-hover:opacity-100 focus:opacity-100"
                                 disabled={isDeleting === s.id}
                               >
                                 {isDeleting === s.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                                  <Loader2 className="size-4 animate-spin text-zinc-400" />
                                 ) : (
-                                  <MoreVertical className="h-4 w-4 text-zinc-400" />
+                                  <MoreVertical className="size-4 text-zinc-400" />
                                 )}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="rounded-2xl shadow-xl p-2 w-48 border-zinc-100"
+                              className="w-48 rounded-2xl border-zinc-100 p-2 shadow-xl"
                             >
                               <DropdownMenuItem
-                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                                className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
                                 onClick={() =>
                                   handleRowClick(s.id, s.isPaid, s.type)
                                 }
                               >
-                                <Eye className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                                <Eye className="mr-3 size-4 text-zinc-400" />{" "}
                                 Преглед
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                                className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
                                 onClick={() => handleEdit(s.id, s.type)}
                               >
-                                <Edit className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                                <Edit className="mr-3 size-4 text-zinc-400" />{" "}
                                 Редакция
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                                className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                                 onClick={() => handleDelete(s.id)}
                               >
-                                <Trash2 className="mr-3 h-4 w-4 text-rose-500" />{" "}
+                                <Trash2 className="mr-3 size-4 text-rose-500" />{" "}
                                 Изтрий
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -539,7 +539,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-48 text-center">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+                      <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
                         Няма транзакции за този период
                       </p>
                     </TableCell>
@@ -547,15 +547,15 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 )}
               </TableBody>
               {data.sales.length > 0 && !isPending && (
-                <TableFooter className="bg-zinc-50/50 border-none">
+                <TableFooter className="border-none bg-zinc-50/50">
                   <TableRow className="h-20 hover:bg-transparent">
                     <TableCell
                       colSpan={3}
-                      className="text-right text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 pr-4"
+                      className="pr-4 text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                     >
                       Общо за периода
                     </TableCell>
-                    <TableCell className="text-right font-light text-2xl text-zinc-950">
+                    <TableCell className="text-right text-2xl font-light text-zinc-950">
                       {formatPrice(data.total)}
                     </TableCell>
                     <TableCell></TableCell>
@@ -565,29 +565,29 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
             </Table>
           </div>
 
-          <div className="md:hidden flex flex-col divide-y divide-zinc-50">
+          <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
             {isPending ? (
-              <div className="h-48 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 text-zinc-300 animate-spin" />
+              <div className="flex h-48 items-center justify-center">
+                <Loader2 className="size-6 animate-spin text-zinc-300" />
               </div>
             ) : data.sales.length > 0 ? (
               data.sales.map((s) => (
                 <div
                   key={s.id}
-                  className="p-4 flex flex-col gap-2 bg-white hover:bg-zinc-50/50 transition-colors"
+                  className="flex flex-col gap-2 bg-white p-4 transition-colors hover:bg-zinc-50/50"
                 >
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
+                  <div className="flex items-start justify-between">
+                    <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       {formatDateShort(s.saleDate)}
                     </span>
                     <Badge
                       variant="outline"
-                      className="rounded-full text-[9px] font-medium uppercase tracking-widest border-none px-2 py-0.5 bg-emerald-50 text-emerald-600"
+                      className="rounded-full border-none bg-emerald-50 px-2 py-0.5 text-[9px] font-medium tracking-widest text-emerald-600 uppercase"
                     >
                       Продажба
                     </Badge>
                   </div>
-                  <div className="flex justify-between items-center mt-1">
+                  <div className="mt-1 flex items-center justify-between">
                     <span className="text-sm font-medium text-zinc-900">
                       {s.memberName}
                     </span>
@@ -600,41 +600,41 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-xl"
+                            className="size-8 rounded-xl"
                             disabled={isDeleting === s.id}
                           >
                             {isDeleting === s.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                              <Loader2 className="size-4 animate-spin text-zinc-400" />
                             ) : (
-                              <MoreVertical className="h-4 w-4 text-zinc-400" />
+                              <MoreVertical className="size-4 text-zinc-400" />
                             )}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="rounded-2xl shadow-xl p-2 w-48 border-zinc-100"
+                          className="w-48 rounded-2xl border-zinc-100 p-2 shadow-xl"
                         >
                           <DropdownMenuItem
-                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                            className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
                             onClick={() =>
                               handleRowClick(s.id, s.isPaid, s.type)
                             }
                           >
-                            <Eye className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                            <Eye className="mr-3 size-4 text-zinc-400" />{" "}
                             Преглед
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center"
+                            className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
                             onClick={() => handleEdit(s.id, s.type)}
                           >
-                            <Edit className="mr-3 h-4 w-4 text-zinc-400" />{" "}
+                            <Edit className="mr-3 size-4 text-zinc-400" />{" "}
                             Редакция
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-sm font-medium rounded-lg cursor-pointer p-2 flex items-center text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                            className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                             onClick={() => handleDelete(s.id)}
                           >
-                            <Trash2 className="mr-3 h-4 w-4 text-rose-500" />{" "}
+                            <Trash2 className="mr-3 size-4 text-rose-500" />{" "}
                             Изтрий
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -644,15 +644,15 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 </div>
               ))
             ) : (
-              <div className="h-48 flex items-center justify-center">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+              <div className="flex h-48 items-center justify-center">
+                <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                   Няма транзакции за този период
                 </p>
               </div>
             )}
             {data.sales.length > 0 && !isPending && (
-              <div className="p-4 bg-zinc-50/50 flex justify-between items-center mt-auto border-t border-zinc-100">
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <div className="mt-auto flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 p-4">
+                <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
                   Общо за периода
                 </span>
                 <span className="text-xl font-semibold text-zinc-950">

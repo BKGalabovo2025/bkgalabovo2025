@@ -148,18 +148,18 @@ export default function AssessmentsClient() {
         }}
       />
 
-      <div className="max-w-7xl mx-auto p-4 sm:p-8">
+      <div className="mx-auto max-w-7xl p-4 sm:p-8">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "bwf" | "history")}
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 no-print">
+          <div className="no-print mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-950 flex items-center gap-2">
-                <Target className="w-6 h-6 text-indigo-600" />
+              <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
+                <Target className="size-6 text-indigo-600" />
                 Бадминтон Оценяване (BWF)
               </h1>
-              <p className="text-zinc-500 font-medium mt-1">
+              <p className="mt-1 font-medium text-zinc-500">
                 Официална методика за тестване на физически и технически
                 качества
               </p>
@@ -178,18 +178,18 @@ export default function AssessmentsClient() {
                 <Button
                   onClick={() => handlePrint("all")}
                   variant="outline"
-                  className="rounded-xl border-zinc-200 font-bold text-zinc-700 h-10"
+                  className="h-10 rounded-xl border-zinc-200 font-bold text-zinc-700"
                 >
-                  <Printer className="w-4 h-4 mr-2" />
+                  <Printer className="mr-2 size-4" />
                   Принтирай ВСИЧКИ
                 </Button>
               )}
             </div>
           </div>
 
-          <TabsContent value="bwf" className="animate-in fade-in duration-300">
-            <div className="space-y-12 printable-area bg-white p-2">
-              <div className="hidden print:block mb-8 text-center">
+          <TabsContent value="bwf" className="duration-300 animate-in fade-in">
+            <div className="printable-area space-y-12 bg-white p-2">
+              <div className="mb-8 hidden text-center print:block">
                 <h1 className="text-2xl font-bold uppercase">
                   Бланка за Оценяване - BWF Тестове
                 </h1>
@@ -211,38 +211,38 @@ export default function AssessmentsClient() {
 
                 return (
                   <div key={group} className={cn("mb-10", groupPrintClass)}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-lg font-black tracking-widest uppercase">
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="rounded-lg bg-indigo-600 px-3 py-1 text-lg font-black tracking-widest text-white uppercase">
                         {group}
                       </span>
-                      <div className="h-px bg-zinc-200 flex-1"></div>
+                      <div className="h-px flex-1 bg-zinc-200"></div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       {groupTests.map((test: BadmintonTest) => (
                         <div
                           key={test.id}
                           className={cn(
-                            "border border-zinc-200 rounded-xl p-5 bg-white shadow-sm flex flex-col justify-between",
+                            "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm",
                             printFilter !== "all" &&
                               printFilter !== test.id &&
                               "print:hidden"
                           )}
                         >
                           <div>
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-bold text-lg leading-tight">
+                            <div className="mb-2 flex items-start justify-between">
+                              <h3 className="text-lg leading-tight font-bold">
                                 {test.name}
                               </h3>
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
+                              <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                                 {test.source}
                               </span>
                             </div>
-                            <p className="text-sm text-zinc-600 mb-4">
+                            <p className="mb-4 text-sm text-zinc-600">
                               {test.description}
                             </p>
 
-                            <div className="space-y-2 text-sm bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+                            <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm">
                               <p>
                                 <strong className="text-zinc-800">
                                   Оборудване:
@@ -270,36 +270,36 @@ export default function AssessmentsClient() {
                             </div>
                           </div>
 
-                          <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-end gap-2 no-print">
+                          <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4">
                             <Button
                               onClick={() => handlePrint(test.id)}
                               variant="ghost"
-                              className="w-full sm:w-auto text-zinc-500 hover:text-zinc-800"
+                              className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto"
                             >
-                              <Printer className="w-4 h-4 mr-2" />
+                              <Printer className="mr-2 size-4" />
                               Принтирай
                             </Button>
                             <Button
                               onClick={() => handleConductTest(test)}
-                              className="w-full sm:w-auto bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold"
+                              className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto"
                             >
-                              <ClipboardList className="w-4 h-4 mr-2" />
+                              <ClipboardList className="mr-2 size-4" />
                               Проведи тест
                             </Button>
                           </div>
 
                           {/* Print-only empty table rows for writing results */}
-                          <div className="hidden print:block mt-4 border-t border-zinc-200 pt-2">
-                            <table className="w-full text-xs text-left border-collapse border border-zinc-300">
+                          <div className="mt-4 hidden border-t border-zinc-200 pt-2 print:block">
+                            <table className="w-full border-collapse border border-zinc-300 text-left text-xs">
                               <thead>
                                 <tr className="bg-zinc-100">
-                                  <th className="border border-zinc-300 p-1 w-1/2">
+                                  <th className="w-1/2 border border-zinc-300 p-1">
                                     Име на състезател
                                   </th>
-                                  <th className="border border-zinc-300 p-1 w-1/4">
+                                  <th className="w-1/4 border border-zinc-300 p-1">
                                     Резултат
                                   </th>
-                                  <th className="border border-zinc-300 p-1 w-1/4">
+                                  <th className="w-1/4 border border-zinc-300 p-1">
                                     Бележка
                                   </th>
                                 </tr>
@@ -326,17 +326,17 @@ export default function AssessmentsClient() {
 
           <TabsContent
             value="history"
-            className="animate-in fade-in duration-300 space-y-6"
+            className="space-y-6 duration-300 animate-in fade-in"
           >
             {isHistoryLoading && (
               <div className="flex justify-center p-12">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                <Loader2 className="size-8 animate-spin text-indigo-600" />
               </div>
             )}
 
             {!isHistoryLoading && Object.keys(groupedHistory).length === 0 && (
-              <div className="text-center py-12 bg-white rounded-2xl border border-zinc-200 shadow-sm">
-                <p className="text-zinc-500 font-medium">
+              <div className="rounded-2xl border border-zinc-200 bg-white py-12 text-center shadow-sm">
+                <p className="font-medium text-zinc-500">
                   Няма проведени тестове до момента.
                 </p>
               </div>
@@ -349,13 +349,13 @@ export default function AssessmentsClient() {
                 return (
                   <Card
                     key={dateStr}
-                    className="border-zinc-200 overflow-hidden shadow-sm"
+                    className="overflow-hidden border-zinc-200 shadow-sm"
                   >
-                    <div className="bg-zinc-50 px-6 py-4 border-b border-zinc-100 flex justify-between items-center">
-                      <h3 className="font-bold text-lg text-zinc-900">
+                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4">
+                      <h3 className="text-lg font-bold text-zinc-900">
                         {format(dateObj, "dd MMMM yyyy", { locale: bg })}
                       </h3>
-                      <div className="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full">
+                      <div className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-800">
                         {results.length} теста
                       </div>
                     </div>
@@ -390,17 +390,17 @@ export default function AssessmentsClient() {
                           return (
                             <div
                               key={r.id}
-                              className="flex justify-between items-center p-4 sm:px-6 hover:bg-zinc-50 transition-colors group"
+                              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6"
                             >
                               <Link
                                 href={`/members/${r.memberId}?tab=assessments`}
-                                className="flex-1 flex justify-between items-center pr-4"
+                                className="flex flex-1 items-center justify-between pr-4"
                               >
                                 <div>
-                                  <div className="font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                                  <div className="font-bold text-zinc-900 transition-colors group-hover:text-indigo-600">
                                     {memberName}
                                   </div>
-                                  <div className="text-xs text-zinc-500 mt-0.5 font-medium flex items-center gap-2">
+                                  <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-zinc-500">
                                     <span>{r.testName}</span>
                                     {r.notes && (
                                       <>
@@ -412,18 +412,18 @@ export default function AssessmentsClient() {
                                     )}
                                   </div>
                                   {(analysis || recommendation) && (
-                                    <div className="mt-2 text-xs p-2 rounded-lg bg-indigo-50/30 border border-indigo-100/50 space-y-1 w-full max-w-xl">
+                                    <div className="mt-2 w-full max-w-xl space-y-1 rounded-lg border border-indigo-100/50 bg-indigo-50/30 p-2 text-xs">
                                       {analysis && (
-                                        <div className="text-indigo-700 font-medium line-clamp-2">
-                                          <strong className="text-indigo-800 uppercase tracking-wide text-[10px] block mb-0.5">
+                                        <div className="line-clamp-2 font-medium text-indigo-700">
+                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-indigo-800 uppercase">
                                             Анализ
                                           </strong>
                                           {analysis}
                                         </div>
                                       )}
                                       {recommendation && (
-                                        <div className="text-emerald-700 font-medium line-clamp-2">
-                                          <strong className="text-emerald-800 uppercase tracking-wide text-[10px] block mb-0.5">
+                                        <div className="line-clamp-2 font-medium text-emerald-700">
+                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-emerald-800 uppercase">
                                             Препоръка
                                           </strong>
                                           {recommendation}
@@ -432,17 +432,17 @@ export default function AssessmentsClient() {
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex flex-col items-end gap-1 shrink-0">
-                                  <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                  <span className="rounded border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-sm font-black text-indigo-600">
                                     {r.scoreDisplay}
                                   </span>
-                                  <span className="text-[10px] text-zinc-400 font-medium group-hover:text-indigo-500 transition-colors">
+                                  <span className="text-[10px] font-medium text-zinc-400 transition-colors group-hover:text-indigo-500">
                                     Към досие &rarr;
                                   </span>
                                 </div>
                               </Link>
 
-                              <div className="pl-2 border-l border-zinc-100">
+                              <div className="border-l border-zinc-100 pl-2">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -450,10 +450,10 @@ export default function AssessmentsClient() {
                                     e.preventDefault();
                                     handleDeleteResult(r.id);
                                   }}
-                                  className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
+                                  className="text-zinc-400 hover:bg-red-50 hover:text-red-500"
                                   title="Изтрий резултата"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="size-4" />
                                 </Button>
                               </div>
                             </div>

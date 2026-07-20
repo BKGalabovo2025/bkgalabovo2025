@@ -72,8 +72,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         collapsible="icon"
         className="border-r-0 bg-white dark:bg-zinc-950"
       >
-        <SidebarHeader className="h-auto py-6 px-6" />
-        <SidebarContent className="px-4 py-4" />
+        <SidebarHeader className="h-auto p-6" />
+        <SidebarContent className="p-4" />
       </Sidebar>
     );
   }
@@ -84,11 +84,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       collapsible="icon"
       className="border-r-0 bg-white dark:bg-zinc-950"
     >
-      <SidebarHeader className="h-auto py-6 flex flex-col gap-4 px-6 border-none">
-        <div className="flex items-center justify-between w-full">
+      <SidebarHeader className="flex h-auto flex-col gap-4 border-none p-6">
+        <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">
-              <Link href="/" className="relative h-10 w-10">
+            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
+              <Link href="/" className="relative size-10">
                 <Image
                   src={brandLogo}
                   alt="Logo"
@@ -99,11 +99,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </Link>
             </div>
             {open && (
-              <div className="flex flex-col animate-in fade-in duration-300">
-                <span className="font-medium text-sm tracking-wide whitespace-nowrap text-zinc-900 dark:text-white leading-tight">
+              <div className="flex flex-col duration-300 animate-in fade-in">
+                <span className="text-sm leading-tight font-medium tracking-wide whitespace-nowrap text-zinc-900 dark:text-white">
                   {brandTitle}
                 </span>
-                <span className="font-light text-xs tracking-[0.2em] whitespace-nowrap text-primary uppercase">
+                <span className="text-xs font-light tracking-[0.2em] whitespace-nowrap text-primary uppercase">
                   {brandSubtitle}
                 </span>
               </div>
@@ -112,25 +112,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           {open && (
             <button
               onClick={() => setOpen(!open)}
-              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 lg:hidden"
+              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 lg:hidden dark:hover:bg-zinc-800"
             >
               <PanelLeft size={18} />
             </button>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="px-4 py-4">
+      <SidebarContent className="p-4">
         <SidebarGroup>
           <SidebarMenu className="gap-0.5">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={pathname === "/dashboard"}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none active:bg-primary/10"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary active:bg-primary/10 dark:hover:bg-primary/10"
               >
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Home size={18} strokeWidth={1.5} />
@@ -139,7 +139,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <li className="px-4 py-2 mt-2 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+            <li className="mt-2 px-4 py-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
               Управление и Бизнес Център
             </li>
 
@@ -147,11 +147,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/members")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href="/members"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Users size={18} strokeWidth={1.5} />
@@ -164,11 +164,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/marketing")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href="/marketing"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Target size={18} strokeWidth={1.5} />
@@ -184,13 +184,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   pathname.startsWith("/schedule") ||
                   pathname.startsWith("/reservations")
                 }
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href={
                     !isRecoveryZone ? "/schedule" : "/schedule?tab=reservations"
                   }
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => {
                     if (isRecoveryZone) {
                       setActiveBranch("recoveryzone");
@@ -217,11 +217,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuButton
                   asChild
                   isActive={pathname.startsWith("/declarations")}
-                  className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                  className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                 >
                   <Link
                     href="/declarations"
-                    className="flex items-center gap-3 w-full"
+                    className="flex w-full items-center gap-3"
                     onClick={() => isMobile && setOpen(false)}
                   >
                     <FileSignature size={18} strokeWidth={1.5} />
@@ -235,11 +235,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/catalogs")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href="/catalogs"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <ListTree size={18} strokeWidth={1.5} />
@@ -252,11 +252,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/reports")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href="/reports"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <BarChart size={18} strokeWidth={1.5} />
@@ -269,11 +269,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith("/settings")}
-                className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   href="/settings"
-                  className="flex items-center gap-3 w-full"
+                  className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Settings size={18} strokeWidth={1.5} />
@@ -284,7 +284,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
             {!isRecoveryZone && (
               <>
-                <li className="px-4 py-2 mt-4 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                <li className="mt-4 px-4 py-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
                   Тренировъчен процес
                 </li>
 
@@ -292,11 +292,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/training/planner")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/training/planner"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <CalendarRange size={18} strokeWidth={1.5} />
@@ -311,11 +311,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/training/exercises")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/training/exercises"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Dumbbell size={18} strokeWidth={1.5} />
@@ -328,11 +328,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/training/shadow")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/training/shadow"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Zap size={18} strokeWidth={1.5} />
@@ -345,11 +345,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/training/beep-test")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/training/beep-test"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Activity size={18} strokeWidth={1.5} />
@@ -362,11 +362,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/training/assessments")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/training/assessments"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Target size={18} strokeWidth={1.5} />
@@ -379,11 +379,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/tournaments")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/tournaments"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Trophy size={18} strokeWidth={1.5} />
@@ -396,11 +396,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith("/rankings")}
-                    className="h-11 px-3 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 rounded-xl transition-all border-none"
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
                       href="/rankings"
-                      className="flex items-center gap-3 w-full"
+                      className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Medal size={18} strokeWidth={1.5} />
@@ -413,13 +413,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-6 border-none">
+      <SidebarFooter className="border-none p-6">
         <SidebarMenu className="gap-2">
           <SidebarMenuItem>
             <SidebarMenuButton
               type="button"
               onClick={logout}
-              className="h-11 px-3 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all border-none cursor-pointer"
+              className="h-11 cursor-pointer rounded-xl border-none px-3 text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-900/10"
             >
               <LogOut size={18} strokeWidth={1.5} />{" "}
               <span className="text-[14px]">Изход</span>
