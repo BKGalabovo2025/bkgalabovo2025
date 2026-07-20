@@ -11,8 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
-import { ClubService } from "@/types";
-
 /** Generic shape of the wizard context used by the UI */
 export interface SaleWizardState {
   step: number;

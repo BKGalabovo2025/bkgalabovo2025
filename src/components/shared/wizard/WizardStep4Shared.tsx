@@ -9,7 +9,7 @@ import { Sparkles, Loader2, Receipt, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { clubInfo } from "@/config/club";
-import { Member, ScheduleEvent, ClubService } from "@/types";
+import { Member, ScheduleEvent } from "@/types";
 interface WizardStep4SharedProps {
   step: number;
   isGuestSale: boolean;
