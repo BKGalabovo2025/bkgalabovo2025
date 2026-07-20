@@ -33,6 +33,8 @@ export type MemberAssessment = {
   score: number; // For charts
   scoreDisplay: string; // What the coach typed (e.g., "15.4", "8/10")
   notes?: string;
+  coachAnalysis?: string; // Automatically generated analysis
+  recommendedExercises?: string; // Automatically generated recommendations
   recordedBy: {
     userId: string;
     userName: string;

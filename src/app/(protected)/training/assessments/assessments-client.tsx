@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
+import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import {
   AssessmentAgeGroup,
   BadmintonTest,
@@ -367,6 +368,25 @@ export default function AssessmentsClient() {
                           const memberName = member
                             ? `${member.firstName} ${member.lastName}`
                             : "Неизвестен";
+
+                          let analysis = r.coachAnalysis;
+                          let recommendation = r.recommendedExercises;
+
+                          if (!analysis && !recommendation) {
+                            const testDef = BADMINTON_TESTS.find(
+                              (t) => t.id === r.testId
+                            );
+                            if (testDef) {
+                              const dynamicResult = generateAssessmentAnalysis(
+                                r.testId,
+                                r.score,
+                                testDef.scoreType
+                              );
+                              analysis = dynamicResult.analysis;
+                              recommendation = dynamicResult.recommendation;
+                            }
+                          }
+
                           return (
                             <div
                               key={r.id}
@@ -391,8 +411,28 @@ export default function AssessmentsClient() {
                                       </>
                                     )}
                                   </div>
+                                  {(analysis || recommendation) && (
+                                    <div className="mt-2 text-xs p-2 rounded-lg bg-indigo-50/30 border border-indigo-100/50 space-y-1 w-full max-w-xl">
+                                      {analysis && (
+                                        <div className="text-indigo-700 font-medium line-clamp-2">
+                                          <strong className="text-indigo-800 uppercase tracking-wide text-[10px] block mb-0.5">
+                                            Анализ
+                                          </strong>
+                                          {analysis}
+                                        </div>
+                                      )}
+                                      {recommendation && (
+                                        <div className="text-emerald-700 font-medium line-clamp-2">
+                                          <strong className="text-emerald-800 uppercase tracking-wide text-[10px] block mb-0.5">
+                                            Препоръка
+                                          </strong>
+                                          {recommendation}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="flex flex-col items-end gap-1">
+                                <div className="flex flex-col items-end gap-1 shrink-0">
                                   <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
                                     {r.scoreDisplay}
                                   </span>

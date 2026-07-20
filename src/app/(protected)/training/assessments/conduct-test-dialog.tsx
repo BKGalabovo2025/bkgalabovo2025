@@ -38,6 +38,8 @@ type ParticipantEntry = {
   notes: string;
 };
 
+import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
+
 export default function ConductTestDialog({
   test,
   open,
@@ -124,6 +126,12 @@ export default function ConductTestDialog({
         const member = members.find((m) => m.id === p.memberId);
         if (!member) return Promise.resolve();
 
+        const analysisResult = generateAssessmentAnalysis(
+          test.id,
+          p.scoreNum,
+          test.scoreType
+        );
+
         return addAssessment({
           memberId: p.memberId,
           memberName: member.name,
@@ -134,6 +142,8 @@ export default function ConductTestDialog({
           score: p.scoreNum,
           scoreDisplay: p.scoreDisplay,
           notes: p.notes,
+          coachAnalysis: analysisResult.analysis,
+          recommendedExercises: analysisResult.recommendation,
           recordedBy: {
             userId: user.uid,
             userName: user.displayName || user.email || "Unknown",

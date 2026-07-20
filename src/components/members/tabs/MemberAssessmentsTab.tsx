@@ -5,6 +5,8 @@ import { getAssessmentsByMemberId } from "@/services/assessment-service";
 import { MemberAssessment } from "@/types/assessment.types";
 import { beepTestService } from "@/services/beep-test-service";
 import { BeepTestResult } from "@/types/beep-test.types";
+import { BADMINTON_TESTS } from "@/lib/badminton-tests";
+import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { useAppStore } from "@/store/use-app-store";
 import { Loader2, TrendingUp, Activity } from "lucide-react";
 import {
@@ -367,30 +369,77 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
               {data.reverse().map(
                 (
                   entry // Reverse just for the list to show newest first
-                ) => (
-                  <div
-                    key={entry.id}
-                    className="flex justify-between items-center text-sm bg-zinc-50 px-4 py-3 rounded-xl"
-                  >
-                    <div>
-                      <span className="font-bold text-zinc-900">
-                        {entry.scoreDisplay}
-                      </span>
-                      {entry.notes && (
-                        <span className="ml-2 text-zinc-500 italic">
-                          - {entry.notes}
-                        </span>
+                ) => {
+                  let analysis = entry.coachAnalysis;
+                  let recommendation = entry.recommendedExercises;
+
+                  if (!analysis && !recommendation) {
+                    const testDef = BADMINTON_TESTS.find(
+                      (t) => t.id === entry.testId
+                    );
+                    if (testDef) {
+                      const dynamicResult = generateAssessmentAnalysis(
+                        entry.testId,
+                        entry.score,
+                        testDef.scoreType
+                      );
+                      analysis = dynamicResult.analysis;
+                      recommendation = dynamicResult.recommendation;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className="flex flex-col bg-zinc-50 rounded-xl overflow-hidden"
+                    >
+                      <div className="flex justify-between items-center text-sm px-4 py-3">
+                        <div>
+                          <span className="font-bold text-zinc-900">
+                            {entry.scoreDisplay}
+                          </span>
+                          {entry.notes && (
+                            <span className="ml-2 text-zinc-500 italic">
+                              - {entry.notes}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-zinc-500 text-xs text-right">
+                          {format(new Date(entry.date), "dd MMMM yyyy", {
+                            locale: bg,
+                          })}
+                          <br />
+                          от {entry.recordedBy.userName}
+                        </div>
+                      </div>
+                      {/* Coach Analysis & Recommendations */}
+                      {(analysis || recommendation) && (
+                        <div className="bg-indigo-50/50 px-4 py-3 border-t border-indigo-100/50 space-y-2">
+                          {analysis && (
+                            <div>
+                              <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide block mb-1">
+                                Треньорски Анализ
+                              </span>
+                              <p className="text-sm text-zinc-700">
+                                {analysis}
+                              </p>
+                            </div>
+                          )}
+                          {recommendation && (
+                            <div>
+                              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide block mb-1 mt-2">
+                                Препоръка
+                              </span>
+                              <p className="text-sm text-zinc-700">
+                                {recommendation}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                    <div className="text-zinc-500 text-xs text-right">
-                      {format(new Date(entry.date), "dd MMMM yyyy", {
-                        locale: bg,
-                      })}
-                      <br />
-                      от {entry.recordedBy.userName}
-                    </div>
-                  </div>
-                )
+                  );
+                }
               )}
             </div>
           </div>
