@@ -1,6 +1,6 @@
+"use server";
 import "server-only";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -11,22 +11,10 @@ import { serverCache } from "@/lib/server-cache";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
-  name: z
-    .string()
-    .min(2, "�?мето трябва да е поне 2 символа."),
-  price: z.coerce
-    .number()
-    .min(
-      0,
-      "Цената трябва да е положително число."
-    ),
+  name: z.string().min(2, "�?мето трябва да е поне 2 символа."),
+  price: z.coerce.number().min(0, "Цената трябва да е положително число."),
   currency: z.string().default("EUR"),
-  description: z
-    .string()
-    .min(
-      5,
-      "Описанието трябва да е поне 5 символа."
-    ),
+  description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
   type: z.enum([
     "Абонамент",
     "Годишен абонамент",
@@ -312,9 +300,7 @@ export async function deleteClubService(idToken: string, id: string) {
 // --- Recovery Session Actions ---
 
 const RecoverySessionSchema = z.object({
-  name: z
-    .string()
-    .min(2, "�?мето трябва да е поне 2 символа."),
+  name: z.string().min(2, "�?мето трябва да е поне 2 символа."),
   description: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   durationMinutes: z.coerce.number().min(1),
@@ -478,8 +464,7 @@ export async function updateRecoverySession(
       if (Number(oldData.price) !== Number(data.price))
         changes.push(`цена (${oldData.price} -> ${data.price})`);
       if (oldData.name !== data.name) changes.push(`име`);
-      if (oldData.description !== data.description)
-        changes.push(`описание`);
+      if (oldData.description !== data.description) changes.push(`описание`);
       if (
         Number(oldData.durationMinutes || oldData.duration) !==
         Number(data.durationMinutes)

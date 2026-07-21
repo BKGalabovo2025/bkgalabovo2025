@@ -1,6 +1,6 @@
+"use server";
 import "server-only";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import * as admin from "firebase-admin";
 import { getAdminDb } from "@/lib/firebase-admin";

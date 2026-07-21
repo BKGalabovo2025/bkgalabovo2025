@@ -124,20 +124,6 @@ export const updateSite = async (site: Partial<Site> & { id: string }) => {
 };
 
 export const getAllSites = async (): Promise<Site[]> => {
-  if (typeof window === "undefined") {
-    const { getAdminDb } = await import("@/lib/firebase-admin");
-    const adminDb = getAdminDb();
-    try {
-      const snapshot = await adminDb.collection(SITES_COLLECTION).get();
-      if (snapshot.empty) {
-        return getDefaultSites();
-      }
-      return snapshot.docs.map(docToSite).filter(Boolean) as Site[];
-    } catch {
-      return getDefaultSites();
-    }
-  }
-
   const db = getDb();
   const q = query(collection(db, SITES_COLLECTION));
   const snapshot = await getDocs(q);
@@ -181,26 +167,6 @@ const getDefaultSites = (): Site[] => [
 ];
 
 export const getSiteById = async (id: string): Promise<Site | null> => {
-  if (typeof window === "undefined") {
-    const { getAdminDb } = await import("@/lib/firebase-admin");
-    const adminDb = getAdminDb();
-    try {
-      const docRef = adminDb.collection(SITES_COLLECTION).doc(id);
-      const snapshot = await docRef.get();
-
-      if (!snapshot.exists) {
-        const all = await getAllSites();
-        return all.find((s) => s.id === id) || null;
-      }
-
-      return docToSite(snapshot);
-    } catch {
-      // Fallback to defaults when quota is exhausted or network fails
-      const defaults = getDefaultSites();
-      return defaults.find((s) => s.id === id) || null;
-    }
-  }
-
   const db = getDb();
   const siteRef = doc(db, SITES_COLLECTION, id);
   const snapshot = await getDoc(siteRef);

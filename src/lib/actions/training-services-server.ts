@@ -1,6 +1,6 @@
+"use server";
 import "server-only";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";

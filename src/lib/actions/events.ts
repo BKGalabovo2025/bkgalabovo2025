@@ -1,7 +1,7 @@
+"use server";
 import "server-only";
 /* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable sonarjs/cognitive-complexity */
-"use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
@@ -148,7 +148,8 @@ export async function updateAttendeesAction(
           }
         } catch (err) {
           console.error(
-            "Error checking sales for member %s:", attendee.memberId,
+            "Error checking sales for member %s:",
+            attendee.memberId,
             err
           );
         }

@@ -1,8 +1,8 @@
+"use server";
 import "server-only";
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import { revalidatePath } from "next/cache";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -418,9 +418,12 @@ export async function deleteSaleAction(
     }
 
     // 5. If this is a general service sale, delete associated reservations and packages
-    if (deletedSaleData.type === "general_service" || deletedSaleData.reservationId) {
+    if (
+      deletedSaleData.type === "general_service" ||
+      deletedSaleData.reservationId
+    ) {
       const reservationId = deletedSaleData.reservationId;
-      
+
       const reservationsSnapshot = await adminDb
         .collection("reservations")
         .where("saleId", "==", id)
@@ -446,7 +449,7 @@ export async function deleteSaleAction(
       if (reservationId && !resIds.includes(reservationId)) {
         resIds.push(reservationId);
       }
-      
+
       if (resIds.length > 0) {
         // Find member declarations for these reservations
         // Chunk into groups of 30 due to Firestore limits
@@ -456,7 +459,7 @@ export async function deleteSaleAction(
             .collection("member_declarations")
             .where("reservationId", "in", chunk)
             .get();
-          
+
           declSnapshot.docs.forEach((doc: any) => {
             generalBatch.delete(doc.ref);
           });
@@ -485,5 +488,3 @@ export async function deleteSaleAction(
     };
   }
 }
-
-

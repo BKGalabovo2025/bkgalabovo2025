@@ -1,6 +1,6 @@
+"use server";
 import "server-only";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getAuthUser } from "@/lib/auth-utils";
@@ -853,13 +853,15 @@ export async function sendDonationReceiptEmailAction(
     const formattedDate = format(startTime, "dd.MM.yyyy", { locale: bg });
     const timeRange =
       format(startTime, "HH:mm") + " - " + format(endTime, "HH:mm");
-      
+
     const isRecovery = reservation.siteId === "recoveryzone";
-    const donationText = isRecovery 
+    const donationText = isRecovery
       ? "Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“ от възстановителни процедури (от Recovery zone by ZM)"
       : "Целево дарение за ползване на бадминтон корт";
-    const serviceName = isRecovery ? (reservation.serviceName || "Услуга") : "";
-    const courtIdText = reservation.courtId ? `Корт ${reservation.courtId}` : "-";
+    const serviceName = isRecovery ? reservation.serviceName || "Услуга" : "";
+    const courtIdText = reservation.courtId
+      ? `Корт ${reservation.courtId}`
+      : "-";
     const priceText = formatPrice(reservation.totalPrice || reservation.price);
 
     const htmlContent = await render(
