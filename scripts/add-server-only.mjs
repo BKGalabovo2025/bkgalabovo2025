@@ -11,9 +11,14 @@ const filesToProtect = [
 const actionsDir = "src/lib/actions";
 let actionsFiles = [];
 if (fs.existsSync(actionsDir)) {
-  actionsFiles = fs.readdirSync(actionsDir)
-    .filter(f => f.endsWith('.ts'))
-    .map(f => path.join(actionsDir, f));
+  actionsFiles = fs
+    .readdirSync(actionsDir)
+    .filter((f) => f.endsWith(".ts"))
+    .map((f) => {
+      const safeName = path.basename(f);
+      // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+      return path.resolve(actionsDir, safeName);
+    });
 }
 
 const allFiles = [...filesToProtect, ...actionsFiles];
