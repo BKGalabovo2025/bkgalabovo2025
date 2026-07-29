@@ -1,4 +1,4 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 import { Member, Sale, Product, ScheduleEvent } from "@/types";
 
 type TotalRevenue = {
@@ -68,7 +68,11 @@ const getDashboardStats = (
   const calculateRevenue = (saleList: Sale[]) =>
     saleList
       .filter(
-        (sale) => sale && sale.status === "completed" && sale.isPaid === true
+        (sale) =>
+          sale &&
+          sale.status === "completed" &&
+          sale.isPaid === true &&
+          sale.type !== "camp_fee"
       )
       .reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
 
@@ -84,7 +88,11 @@ const getDashboardStats = (
 
   const totalRevenue: TotalRevenue = safeSales
     .filter(
-      (sale) => sale && sale.status === "completed" && sale.isPaid === true
+      (sale) =>
+        sale &&
+        sale.status === "completed" &&
+        sale.isPaid === true &&
+        sale.type !== "camp_fee"
     )
     .reduce((acc, sale) => {
       const totalAmount = sale.totalAmount || 0;
@@ -152,7 +160,8 @@ export const getRevenueTrendData = (sales: Sale[]) => {
           sDate.getMonth() === month &&
           sDate.getFullYear() === year &&
           s.status === "completed" &&
-          s.isPaid === true
+          s.isPaid === true &&
+          s.type !== "camp_fee"
         );
       })
       .reduce((sum, s) => sum + (s.totalAmount || 0), 0);

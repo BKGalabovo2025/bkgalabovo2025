@@ -241,8 +241,13 @@ export const MemberDetailsCard = ({
             </div>
 
             <div className="mb-2 flex-1 space-y-3 sm:mb-4 sm:space-y-4">
-              <h2 className="text-3xl font-light tracking-tighter text-zinc-950 sm:text-5xl">
+              <h2 className="flex items-center justify-center gap-4 text-3xl font-light tracking-tighter text-zinc-950 sm:text-5xl md:justify-start">
                 {fullName}
+                {member.isCoach && (
+                  <Badge className="mt-2 border-none bg-amber-100 px-3 py-1 text-xs font-semibold tracking-widest text-amber-700 uppercase hover:bg-amber-100">
+                    Треньор
+                  </Badge>
+                )}
               </h2>
               <div className="flex items-center justify-center gap-3 md:justify-start">
                 <Badge

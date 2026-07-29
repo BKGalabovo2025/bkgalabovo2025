@@ -331,7 +331,7 @@ export const useEvents = () => {
         const member = members.find((m) => m.id === a.memberId);
         return {
           ...a,
-          name: member ? formatFullName(member) : "Unknown",
+          name: member ? formatFullName(member) : a.name || "Unknown",
         };
       });
 

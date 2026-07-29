@@ -66,7 +66,8 @@ export function MemberFormStep1({
   const isClubMember = form.watch("isClubMember");
   const isRecoveryMember = form.watch("isRecoveryMember");
   const isGuest = form.watch("isGuest");
-  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
+  const isCoach = form.watch("isCoach");
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember && !isCoach;
 
   return (
     <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
@@ -75,7 +76,7 @@ export function MemberFormStep1({
           <FormLabel className="mb-4 block text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
             Роли на профила (може да изберете повече от една) *
           </FormLabel>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div
               onClick={() =>
                 form.setValue("isClubMember", !isClubMember, {
@@ -188,6 +189,42 @@ export function MemberFormStep1({
               </span>
               <span className="mt-1 text-center text-[10px] text-zinc-400">
                 Бърз профил (име и телефон)
+              </span>
+            </div>
+            <div
+              onClick={() =>
+                form.setValue("isCoach", !isCoach, { shouldValidate: true })
+              }
+              className={cn(
+                "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
+                isCoach
+                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
+              )}
+            >
+              <div className="absolute top-3 right-3">
+                <VisualCheckbox checked={!!isCoach} />
+              </div>
+              <Activity
+                className={cn(
+                  "mb-2 size-6",
+                  isCoach
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-zinc-400"
+                )}
+              />
+              <span
+                className={cn(
+                  "text-xs font-semibold tracking-wider uppercase",
+                  isCoach
+                    ? "text-amber-700 dark:text-amber-400"
+                    : "text-zinc-500"
+                )}
+              >
+                Треньор
+              </span>
+              <span className="mt-1 text-center text-[10px] text-zinc-400">
+                Треньорски права
               </span>
             </div>
           </div>

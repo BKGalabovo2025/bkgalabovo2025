@@ -27,6 +27,15 @@ export const docToScheduleEvent = (
         paymentType: item.paymentType,
         paymentDate: item.paymentDate,
         saleId: item.saleId,
+        // Camp-specific fields
+        campDepositPaid: item.campDepositPaid,
+        campRemainderPaid: item.campRemainderPaid,
+        campPriceOverride: item.campPriceOverride,
+        campMedicalProvided: item.campMedicalProvided,
+        campRoom: item.campRoom,
+        isGuest: item.isGuest,
+        guestName: item.guestName,
+        isCampLeader: item.isCampLeader,
       };
     })
     .filter(Boolean) as Attendee[];
@@ -52,6 +61,7 @@ export const docToScheduleEvent = (
       ? data.attendeeMemberIds
       : [],
     isCancelled: !!data.isCancelled,
+    totalCampPrice: data.totalCampPrice,
   };
 };
 
@@ -103,4 +113,3 @@ export const getEventsByMemberId = async (
 
   return events;
 };
-

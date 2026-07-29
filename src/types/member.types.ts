@@ -17,6 +17,7 @@ export const MemberSchema = z.object({
     .catch("active")
     .optional(),
   ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
+  isCoach: z.boolean().optional(),
 
   // --- Date Fields (as ISO strings) ---
   registrationDate: z

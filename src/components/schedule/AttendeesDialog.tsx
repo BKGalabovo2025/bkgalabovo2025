@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 "use client";
 
 import React, { useState, useMemo, useId, useEffect } from "react";
@@ -97,6 +96,11 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
             paymentDate: existingAttendee.paymentDate,
           }),
           ...(existingAttendee?.saleId && { saleId: existingAttendee.saleId }),
+
+          // Mark coaches as inherently "paid" (free) so they are not charged
+          ...(member?.isCoach && {
+            paymentStatus: "paid" as const,
+          }),
         };
       });
 
@@ -222,8 +226,28 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                           {formatFullName(member)}
                         </span>
                         {member.status === "inactive" && (
-                          <span className="shrink-0 rounded-full border border-amber-500/10 bg-amber-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:bg-amber-950/20 dark:text-amber-400">
+                          <span className="shrink-0 rounded-full border border-rose-500/10 bg-rose-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-rose-600 uppercase dark:bg-rose-950/20 dark:text-rose-400">
                             Неактивен
+                          </span>
+                        )}
+                        {member.isClubMember && (
+                          <span className="shrink-0 rounded-full border border-blue-500/10 bg-blue-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-blue-600 uppercase dark:bg-blue-950/20 dark:text-blue-400">
+                            Клубен
+                          </span>
+                        )}
+                        {member.isRecoveryMember && (
+                          <span className="shrink-0 rounded-full border border-emerald-500/10 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-emerald-600 uppercase dark:bg-emerald-950/20 dark:text-emerald-400">
+                            Зона
+                          </span>
+                        )}
+                        {member.isGuest && (
+                          <span className="shrink-0 rounded-full border border-amber-500/10 bg-amber-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:bg-amber-950/20 dark:text-amber-400">
+                            Външен
+                          </span>
+                        )}
+                        {member.isCoach && (
+                          <span className="shrink-0 rounded-full border border-orange-500/10 bg-orange-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-orange-600 uppercase dark:bg-orange-950/20 dark:text-orange-400">
+                            Треньор
                           </span>
                         )}
                       </div>

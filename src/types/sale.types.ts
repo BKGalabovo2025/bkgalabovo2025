@@ -34,7 +34,7 @@ export const SaleSchema = z.object({
     .datetime({ message: "Invalid creation date format" })
     .optional(),
   type: z
-    .enum(["inventory", "general_service", "training_service"])
+    .enum(["inventory", "general_service", "training_service", "camp_fee"])
     .optional()
     .default("inventory"),
 

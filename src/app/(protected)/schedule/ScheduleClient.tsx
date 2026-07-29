@@ -43,6 +43,13 @@ const AttendeesDialog = dynamic(
     ),
   { ssr: false }
 );
+const CampManagerDialog = dynamic(
+  () =>
+    import("@/components/schedule/CampManagerDialog").then(
+      (m) => m.CampManagerDialog
+    ),
+  { ssr: false }
+);
 const MonthlyScheduleDialog = dynamic(
   () => import("@/components/schedule/MonthlyScheduleDialog"),
   { ssr: false }
@@ -74,8 +81,18 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 
 // Reservations components
-const AgendaView = dynamic(() => import("@/components/reservations/agenda-view").then(m => m.AgendaView), { ssr: false });
-const ReservationHistory = dynamic(() => import("@/components/reservations/reservation-history").then(m => m.ReservationHistory), { ssr: false });
+const AgendaView = dynamic(
+  () =>
+    import("@/components/reservations/agenda-view").then((m) => m.AgendaView),
+  { ssr: false }
+);
+const ReservationHistory = dynamic(
+  () =>
+    import("@/components/reservations/reservation-history").then(
+      (m) => m.ReservationHistory
+    ),
+  { ssr: false }
+);
 
 const ReservationDialog = dynamic(
   () =>
@@ -137,6 +154,7 @@ export default function ScheduleClient() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isAttendeesDialogOpen, setAttendeesDialogOpen] = useState(false);
+  const [isCampManagerOpen, setCampManagerOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isMonthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
 
@@ -226,9 +244,13 @@ export default function ScheduleClient() {
     );
     printWindow.document.close();
     printWindow.focus();
+
+    printWindow.onafterprint = () => {
+      printWindow.close();
+    };
+
     setTimeout(() => {
       printWindow.print();
-      printWindow.close();
     }, 250);
   };
 
@@ -251,7 +273,10 @@ export default function ScheduleClient() {
     await updateEvent(eventId, eventData);
   };
 
-  const handleToggleCancel = async (eventId: string, currentStatus: boolean) => {
+  const handleToggleCancel = async (
+    eventId: string,
+    currentStatus: boolean
+  ) => {
     await updateEvent(eventId, { isCancelled: !currentStatus });
   };
 
@@ -269,7 +294,11 @@ export default function ScheduleClient() {
 
   const openAttendeesDialog = (event: ScheduleEvent) => {
     setSelectedEvent(event);
-    setAttendeesDialogOpen(true);
+    if (event.type === "camp") {
+      setCampManagerOpen(true);
+    } else {
+      setAttendeesDialogOpen(true);
+    }
   };
 
   const closeAttendeesDialog = () => {
@@ -404,9 +433,12 @@ export default function ScheduleClient() {
   }
 
   const getPageDescription = () => {
-    if (isRecoveryZone) return "Управление на резервации за възстановителни процедури в recoveryzone.";
-    if (activeMainTab === "courts") return "Управление на кортовете и заетостта в реално време.";
-    if (activeMainTab === "recovery") return "Управление на резервации за възстановителни процедури.";
+    if (isRecoveryZone)
+      return "Управление на резервации за възстановителни процедури в recoveryzone.";
+    if (activeMainTab === "courts")
+      return "Управление на кортовете и заетостта в реално време.";
+    if (activeMainTab === "recovery")
+      return "Управление на резервации за възстановителни процедури.";
     return "Управление на тренировъчни графици, състезания и клубни събития.";
   };
 
@@ -424,14 +456,11 @@ export default function ScheduleClient() {
         </div>
       );
     }
-    
+
     if (errorObject) {
       return (
         <div className="flex flex-col items-center py-40 text-center text-rose-500">
-          <AlertTriangle
-            className="mb-6 size-12 opacity-20"
-            strokeWidth={1}
-          />
+          <AlertTriangle className="mb-6 size-12 opacity-20" strokeWidth={1} />
           <p className="text-2xl font-light text-zinc-900 dark:text-white">
             Грешка при зареждане
           </p>
@@ -441,7 +470,7 @@ export default function ScheduleClient() {
         </div>
       );
     }
-    
+
     return (
       <>
         <TabsContent value="current" className="mt-0 outline-none">
@@ -513,8 +542,8 @@ export default function ScheduleClient() {
         <div className="flex items-center gap-3">
           <ReservationDialog mode={mode} onSave={handleSaveReservation}>
             <Button className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90">
-              <Plus className="mr-3 size-4" strokeWidth={2.5} /> Нова
-              Резервация {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
+              <Plus className="mr-3 size-4" strokeWidth={2.5} /> Нова Резервация{" "}
+              {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
             </Button>
           </ReservationDialog>
           {!isRecoveryZone && activeBranch === "bkgalabovo" && (
@@ -544,8 +573,7 @@ export default function ScheduleClient() {
             onClick={() => setMonthlyDialogOpen(true)}
             className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
           >
-            <Repeat className="mr-3 size-4" strokeWidth={1.5} /> Шаблонен
-            график
+            <Repeat className="mr-3 size-4" strokeWidth={1.5} /> Шаблонен график
           </Button>
           <Button
             onClick={() => setCreateDialogOpen(true)}
@@ -688,9 +716,7 @@ export default function ScheduleClient() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            {renderEventsTabContent()}
-          </div>
+          <div className="space-y-6">{renderEventsTabContent()}</div>
         </Tabs>
       ) : (
         /* Courts Reservations Grid Layout */
@@ -818,6 +844,14 @@ export default function ScheduleClient() {
         event={selectedEvent}
         onUpdateAttendees={handleUpdateAttendees}
         members={members as Member[]}
+      />
+      <CampManagerDialog
+        isOpen={isCampManagerOpen}
+        onClose={() => setCampManagerOpen(false)}
+        event={selectedEvent}
+        members={members as Member[]}
+        onUpdateEvent={handleUpdateEvent}
+        onUpdateAttendees={handleUpdateAttendees}
       />
       <MonthlyScheduleDialog
         isOpen={isMonthlyDialogOpen}

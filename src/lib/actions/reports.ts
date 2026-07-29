@@ -43,7 +43,7 @@ export async function generateFinancialReportAction(
 
     const isTypeMatch = paymentType === "all" || paymentType === "inventory"; // You can expand this logic if needed
 
-    return isInDateRange && isTypeMatch;
+    return isInDateRange && isTypeMatch && s.type !== "camp_fee";
   });
 
   const totalRevenue = filteredSales.reduce((acc, s) => acc + s.totalAmount, 0);

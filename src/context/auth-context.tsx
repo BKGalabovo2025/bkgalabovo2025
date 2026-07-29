@@ -61,10 +61,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const currentUser = auth.currentUser;
         if (currentUser) {
           try {
+            if (typeof navigator !== "undefined" && !navigator.onLine) {
+              return; // Skip refresh if explicitly offline
+            }
             const token = await currentUser.getIdToken(true);
             setIdToken(token);
           } catch (error) {
-            console.error("Token refresh failed:", error);
+            const err = error as { code?: string; message?: string } | null;
+            if (
+              err?.code === "auth/network-request-failed" ||
+              err?.message?.includes("network-request-failed")
+            ) {
+              console.warn(
+                "Skipping token refresh due to network disconnection."
+              );
+            } else {
+              console.error("Token refresh failed:", error);
+            }
           }
         }
       },

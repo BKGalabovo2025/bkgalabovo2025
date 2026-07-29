@@ -195,13 +195,23 @@ export type ScheduleEventType =
   | "other";
 
 export type Attendee = {
-  memberId: string;
+  memberId: string; // If guest, might be empty or some ID like "guest"
   name: string;
   attended: boolean;
   paymentStatus?: "paid" | "unpaid";
   paymentType?: "subscription" | "individual";
   paymentDate?: string;
   saleId?: string;
+
+  // Camp-specific fields
+  campDepositPaid?: number;
+  campRemainderPaid?: number;
+  campPriceOverride?: number;
+  campMedicalProvided?: boolean;
+  campRoom?: string;
+  isGuest?: boolean;
+  guestName?: string;
+  isCampLeader?: boolean;
 };
 
 /**
@@ -219,6 +229,9 @@ export type ScheduleEvent = {
   description?: string | null;
   maxAttendees?: number;
   isCancelled?: boolean;
+
+  // Camp-specific fields
+  totalCampPrice?: number;
 };
 
 // =================================================================

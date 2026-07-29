@@ -73,14 +73,12 @@ function calculateRevenueCategories(
   sales: Sale[],
   activeBranch: string
 ): CategoryRevenue[] {
-
   let recoveryRevenue = 0;
   let shopRevenue = 0;
   let otherRevenue = 0;
 
   sales.forEach((sale) => {
     const amount = sale.totalAmount || 0;
-
 
     const hasRecoveryItem = sale.items?.some((item) =>
       isRecoveryItem(item.name)
@@ -101,7 +99,6 @@ function calculateRevenueCategories(
 
   const isRecoveryZone = activeBranch === "recoveryzone";
   const categories: CategoryRevenue[] = [
-
     {
       name: "Възстановяване",
       value: Math.round(recoveryRevenue * 100) / 100,
@@ -136,7 +133,8 @@ function calculateRevenueCategories(
 
 export function calculateFinancesOverview(sales: Sale[], activeBranch: string) {
   const filteredSales = sales.filter(
-    (sale) => sale.isPaid && sale.status === "completed"
+    (sale) =>
+      sale.isPaid && sale.status === "completed" && sale.type !== "camp_fee"
   );
 
   const forOverview = filteredSales;

@@ -128,7 +128,7 @@ export default function CreateSessionWizard({
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         const future = new Date();
-        future.setDate(future.getDate() + 21); // Look 3 weeks ahead for comps
+        future.setDate(future.getDate() + 90); // Look 3 months ahead for comps and camps
         try {
           const fetched = await getEventsForPeriod(now, future);
           const upcomingComps = fetched.filter((e) => e.type === "competition");
@@ -461,12 +461,18 @@ export default function CreateSessionWizard({
                     <SelectItem value="none">
                       Без импорт (ръчно планиране)
                     </SelectItem>
-                    {events.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {new Date(e.startDate).toLocaleDateString("bg-BG")} -{" "}
-                        {e.title}
-                      </SelectItem>
-                    ))}
+                    {events
+                      .filter((e) =>
+                        mode === "camp"
+                          ? e.type === "camp"
+                          : e.type === "training" || e.type === "camp"
+                      )
+                      .map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {new Date(e.startDate).toLocaleDateString("bg-BG")} -{" "}
+                          {e.title}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
