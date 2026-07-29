@@ -14,8 +14,7 @@ type TotalRevenue = {
  * @param events - An array of events (optional).
  * @returns An object containing calculated dashboard statistics, including 30-day trends.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getDashboardStats = (
+export const getDashboardStats = (
   members: Member[],
   sales: Sale[],
   lowStockProducts: Product[],
