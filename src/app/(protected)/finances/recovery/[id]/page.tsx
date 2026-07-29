@@ -2,7 +2,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { ClubService } from "@/types";
 import EditRecoverySessionClient from "@/app/(protected)/finances/recovery/[id]/edit-client";
 import { notFound } from "next/navigation";
-import { getSiteById } from "@/services/site-service";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +59,7 @@ export default async function EditRecoverySessionPage({
   const { id } = await params;
   const [data, site] = await Promise.all([
     getRecoverySession(id),
-    getSiteById("recoveryzone"),
+    getSiteByIdAdmin("recoveryzone"),
   ]);
 
   const siteInventory = site?.inventory

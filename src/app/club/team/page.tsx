@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Metadata } from "next";
-import { getSiteById } from "@/services/site-service";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { calculateAgeGroup } from "@/services/member-service";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { PublicNav } from "@/components/layout/public-nav";
@@ -154,9 +154,9 @@ export default async function TeamPage() {
   const adminDb = getAdminDb();
 
   // 1. Fetch site data (for coaches/therapists) – safe fallback
-  let clubSite = null;
+  let clubSite: import("@/types/site.types").Site | null = null;
   try {
-    clubSite = await getSiteById("bkgalabovo");
+    clubSite = await getSiteByIdAdmin("bkgalabovo");
   } catch (err) {
     console.error("TeamPage: failed to fetch site data:", err);
   }

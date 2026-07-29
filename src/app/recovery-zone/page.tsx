@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSiteById } from "@/services/site-service";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ import path from "path";
 import RecoveryZoneClient from "./RecoveryZoneClient";
 
 export default async function RecoveryZonePage() {
-  const site = await getSiteById("recoveryzone");
+  const site = await getSiteByIdAdmin("recoveryzone");
 
   const jsonLd = {
     "@context": "https://schema.org",
