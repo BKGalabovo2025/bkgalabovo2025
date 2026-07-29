@@ -92,7 +92,7 @@ describe("Firestore Rules Security Testing", () => {
     it("админ МОЖЕ да пише в members с валиден siteId", async () => {
       const db = getAdminDb();
       const docRef = db.collection("members").doc("m3");
-      await expect(assertSucceeds(docRef.set({ name: "Admin Setup", siteId: "bkgalabovo" }))).resolves.toBeDefined();
+      await expect(assertSucceeds(docRef.set({ name: "Admin Setup", siteId: "bkgalabovo" }))).resolves.toBeUndefined();
     });
   });
 
@@ -100,7 +100,7 @@ describe("Firestore Rules Security Testing", () => {
     it("админ МОЖЕ да създава оценки (member_assessments)", async () => {
       const db = getAdminDb();
       const docRef = db.collection("member_assessments").doc("a1");
-      await expect(assertSucceeds(docRef.set({ score: 10, siteId: "bkgalabovo" }))).resolves.toBeDefined();
+      await expect(assertSucceeds(docRef.set({ score: 10, siteId: "bkgalabovo" }))).resolves.toBeUndefined();
     });
 
     it("обикновен потребител НЕ може да създава оценки (GDPR)", async () => {
@@ -132,7 +132,7 @@ describe("Firestore Rules Security Testing", () => {
     it("админ МОЖЕ да чете и пише в inventory за неговия siteId", async () => {
       const db = getAdminDb();
       const docRef = db.collection("inventory").doc("inv1");
-      await expect(assertSucceeds(docRef.set({ product: "Water", siteId: "bkgalabovo" }))).resolves.toBeDefined();
+      await expect(assertSucceeds(docRef.set({ product: "Water", siteId: "bkgalabovo" }))).resolves.toBeUndefined();
       await expect(assertSucceeds(docRef.get())).resolves.toBeDefined();
     });
   });
