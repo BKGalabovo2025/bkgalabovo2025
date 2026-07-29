@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-java@8df1039596372ce767d63207295ead38676fee6f # v4.5.0
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
 
     - name: Install Dependencies
       run: npm install
