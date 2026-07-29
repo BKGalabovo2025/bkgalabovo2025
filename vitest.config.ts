@@ -6,7 +6,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./vitest.setup.ts"],
+    setupFiles:
+      process.env.TEST_ENV === "integration" ? [] : ["./vitest.setup.ts"],
     exclude: [
       "node_modules",
       "e2e",
@@ -16,8 +17,12 @@ export default defineConfig({
       "tmp",
       "scratch",
       // Requires Firebase Emulator — run separately with: npm run test:rules
-      ...(process.env.TEST_ENV === "rules" ? [] : ["src/__tests__/firestore.rules.test.ts"]),
-      ...(process.env.TEST_ENV === "integration" ? [] : ["src/integration-tests"]),
+      ...(process.env.TEST_ENV === "rules"
+        ? []
+        : ["src/__tests__/firestore.rules.test.ts"]),
+      ...(process.env.TEST_ENV === "integration"
+        ? []
+        : ["src/integration-tests"]),
     ],
     server: {
       deps: {
