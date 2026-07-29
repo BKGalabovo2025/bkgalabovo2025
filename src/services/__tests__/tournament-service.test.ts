@@ -107,6 +107,7 @@ describe("tournamentService", () => {
 
     await tournamentService.updateMatchScore("match1", {
       score: "2-0",
+      winnerId: "p1",
     } as unknown as Parameters<typeof tournamentService.updateMatchScore>[1]);
 
     expect(tournamentRepo.updateMatchDoc).toHaveBeenCalledWith(
