@@ -391,19 +391,20 @@ const getSignedDeclarationsCollection = () =>
 // --- Tenant-Aware Query Getters ---
 
 export const getMembersQuery = () => {
-  return query(getMembersCollection());
+  const siteConfig = getSiteConfig();
+  return query(getMembersCollection(), where("siteId", "==", siteConfig.id));
 };
 
 export const getSalesQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getSalesCollection());
+
   return query(getSalesCollection(), where("siteId", "==", siteConfig.id));
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getClubServicesQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getClubServicesCollection());
+
   return query(
     getClubServicesCollection(),
     where("siteId", "==", siteConfig.id)
@@ -412,14 +413,11 @@ const getClubServicesQuery = () => {
 
 export const getProductsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getProductsCollection());
   return query(getProductsCollection(), where("siteId", "==", siteConfig.id));
 };
 
 export const getInventoryEventsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo")
-    return query(getInventoryEventsCollection());
   return query(
     getInventoryEventsCollection(),
     where("siteId", "==", siteConfig.id)
@@ -428,7 +426,7 @@ export const getInventoryEventsQuery = () => {
 
 export const getEventsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getEventsCollection());
+
   return query(getEventsCollection(), where("siteId", "==", siteConfig.id));
 };
 
@@ -444,15 +442,6 @@ export const getTodayEventsQuery = () => {
 
   const startStr = startOfToday.toISOString();
   const endStr = endOfToday.toISOString();
-
-  if (siteConfig.id === "bkgalabovo") {
-    return query(
-      getEventsCollection(),
-      where("startDate", ">=", startStr),
-      where("startDate", "<=", endStr),
-      orderBy("startDate", "asc")
-    );
-  }
 
   return query(
     getEventsCollection(),
@@ -471,14 +460,6 @@ export const getUpcomingEventsQuery = () => {
 
   const startStr = startOfTomorrow.toISOString();
 
-  if (siteConfig.id === "bkgalabovo") {
-    return query(
-      getEventsCollection(),
-      where("startDate", ">=", startStr),
-      orderBy("startDate", "asc")
-    );
-  }
-
   return query(
     getEventsCollection(),
     where("siteId", "==", siteConfig.id),
@@ -494,14 +475,6 @@ export const getPastEventsQuery = () => {
 
   const startStr = startOfToday.toISOString();
 
-  if (siteConfig.id === "bkgalabovo") {
-    return query(
-      getEventsCollection(),
-      where("startDate", "<", startStr),
-      orderBy("startDate", "desc")
-    );
-  }
-
   return query(
     getEventsCollection(),
     where("siteId", "==", siteConfig.id),
@@ -512,7 +485,7 @@ export const getPastEventsQuery = () => {
 
 export const getTournamentsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getTournamentsCollection());
+
   return query(
     getTournamentsCollection(),
     where("siteId", "==", siteConfig.id)
@@ -521,8 +494,7 @@ export const getTournamentsQuery = () => {
 
 export const getTournamentEntriesQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo")
-    return query(getTournamentEntriesCollection());
+
   return query(
     getTournamentEntriesCollection(),
     where("siteId", "==", siteConfig.id)
@@ -531,8 +503,7 @@ export const getTournamentEntriesQuery = () => {
 
 export const getTournamentMatchesQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo")
-    return query(getTournamentMatchesCollection());
+
   return query(
     getTournamentMatchesCollection(),
     where("siteId", "==", siteConfig.id)
@@ -545,7 +516,7 @@ export const getPricesCollection = () =>
 
 export const getPricesQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getPricesCollection());
+
   return query(getPricesCollection(), where("siteId", "==", siteConfig.id));
 };
 
@@ -554,7 +525,7 @@ export const getPriceHistoryCollection = () =>
 
 export const getPriceHistoryQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getPriceHistoryCollection());
+
   return query(
     getPriceHistoryCollection(),
     where("siteId", "==", siteConfig.id)
@@ -571,11 +542,10 @@ export const getSessionsQuery = () => {
 
 export const getClientPackagesQuery = (memberId?: string) => {
   const siteConfig = getSiteConfig();
-  let q = query(getClientPackagesCollection());
-
-  if (siteConfig.id !== "bkgalabovo") {
-    q = query(q, where("siteId", "==", siteConfig.id));
-  }
+  let q = query(
+    getClientPackagesCollection(),
+    where("siteId", "==", siteConfig.id)
+  );
 
   if (memberId) {
     q = query(q, where("memberId", "==", memberId));
@@ -608,7 +578,7 @@ export const getMemberAssessmentsQuery = () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getReservationsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getReservationsCollection());
+
   return query(
     getReservationsCollection(),
     where("siteId", "==", siteConfig.id)
@@ -618,7 +588,7 @@ const getReservationsQuery = () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getBlockedSlotsQuery = () => {
   const siteConfig = getSiteConfig();
-  if (siteConfig.id === "bkgalabovo") return query(getBlockedSlotsCollection());
+
   return query(
     getBlockedSlotsCollection(),
     where("siteId", "==", siteConfig.id)

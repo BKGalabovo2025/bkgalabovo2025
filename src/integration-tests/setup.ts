@@ -1,14 +1,22 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { vi } from "vitest";
+import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
 
 // Allow Server Actions to be imported in vitest
 vi.mock("server-only", () => ({}));
 
-// Initialize a real Firebase app pointing to the emulator for tests
-const app = initializeApp({ projectId: "bkgalabovo-test" });
-export const db = getFirestore(app);
-connectFirestoreEmulator(db, "127.0.0.1", 8081);
+// Initialize Test Environment to bypass security rules
+const testEnv = await initializeTestEnvironment({
+  projectId: "bkgalabovo-test",
+  firestore: { host: "127.0.0.1", port: 8081 },
+});
+
+// Create an authenticated context with admin privileges
+const authContext = testEnv.authenticatedContext("admin-user", {
+  admin: true,
+  allowedSites: { bkgalabovo: true, recoveryzone: true },
+});
+
+export const db = authContext.firestore();
 
 // Mock the app's firebase configuration to return our emulator-connected db
 vi.mock("@/lib/firebase", () => ({
@@ -19,14 +27,7 @@ vi.mock("@/lib/firebase", () => ({
 
 export const clearFirestore = async () => {
   try {
-    // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
-    const response = await fetch(
-      "http://127.0.0.1:8081/emulator/v1/projects/bkgalabovo-test/databases/(default)/documents",
-      { method: "DELETE" }
-    );
-    if (!response.ok) {
-      console.error("Failed to clear Firestore emulator");
-    }
+    await testEnv.clearFirestore();
   } catch (err) {
     console.error("Error clearing Firestore emulator:", err);
   }

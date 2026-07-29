@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import "./setup"; // Ensure vi.mock is applied
 import { clearFirestore, db } from "./setup";
-import { addMember, getAllMembers, getMemberById } from "@/services/member-service";
+import {
+  addMember,
+  getAllMembers,
+  getMemberById,
+} from "@/services/member-service";
 import { doc, setDoc } from "firebase/firestore";
 
 describe("Member Integration Tests (Emulator)", () => {
@@ -25,7 +29,7 @@ describe("Member Integration Tests (Emulator)", () => {
 
     // 2. Read back using the service (which uses docToMember Zod mapper internally)
     const member = await getMemberById(id);
-    
+
     expect(member).not.toBeNull();
     expect(member?.id).toBe(id);
     expect(member?.firstName).toBe("Integration");
@@ -36,19 +40,20 @@ describe("Member Integration Tests (Emulator)", () => {
 
   it("should fail Zod validation if reading directly from DB with invalid data", async () => {
     const invalidData = {
-      firstName: "Bad", // missing lastName, status, and siteId (required by schema)
+      firstName: "Bad", // missing lastName, status (required by schema)
+      siteId: "bkgalabovo", // Required by Firestore Rules
     };
 
-    // 1. Insert directly to DB bypassing the service validation
+    // Force insert without Zod schema validation
     const ref = doc(db, "members", "invalid-id");
     await setDoc(ref, invalidData);
 
     // 2. Try to read it using the service
     const members = await getAllMembers(true);
-    
+
     // The mapper should return null and filter it out, or throw depending on how getMembers maps it.
     // In our codebase, docToMember returns null on Zod failure, and getMembers uses .filter(Boolean)
-    const foundInvalid = members.find(m => m.id === "invalid-id");
+    const foundInvalid = members.find((m) => m.id === "invalid-id");
     expect(foundInvalid).toBeUndefined(); // The invalid member was successfully filtered out
   });
 });

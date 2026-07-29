@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import "./setup"; 
+import "./setup";
 import { clearFirestore, db } from "./setup";
 import { tournamentService } from "@/services/tournament-service";
 import { doc, setDoc } from "firebase/firestore";
@@ -18,7 +18,9 @@ describe("Tournament Integration Tests (Emulator)", () => {
       startDate: new Date("2026-09-01T10:00:00Z").toISOString(),
       endDate: new Date("2026-09-02T18:00:00Z").toISOString(),
       location: "Sofia",
-      categories: ["singles", "doubles"] as Array<"singles" | "doubles" | "mixed">,
+      categories: ["singles", "doubles"] as Array<
+        "singles" | "doubles" | "mixed"
+      >,
       matchFormatId: "best_of_3",
       countsForRanking: true,
       pointsMultiplier: 1,
@@ -32,7 +34,7 @@ describe("Tournament Integration Tests (Emulator)", () => {
 
     // 2. Read back using the service
     const tournaments = await tournamentService.getTournaments();
-    
+
     expect(tournaments).toHaveLength(1);
     const t = tournaments[0];
     expect(t.id).toBe(id);
@@ -42,7 +44,8 @@ describe("Tournament Integration Tests (Emulator)", () => {
 
   it("should filter out invalid tournaments directly inserted to DB", async () => {
     const invalidData = {
-      title: "Bad Tournament", 
+      title: "Bad Tournament",
+      siteId: "bkgalabovo",
       // missing status, startDate, endDate, etc.
     };
 
@@ -52,8 +55,8 @@ describe("Tournament Integration Tests (Emulator)", () => {
 
     // 2. Try to read it using the service
     const tournaments = await tournamentService.getTournaments();
-    
+
     // Zod mapper mapDocToTournament should fail and filter it out
-    expect(tournaments).toHaveLength(0); 
+    expect(tournaments).toHaveLength(0);
   });
 });
