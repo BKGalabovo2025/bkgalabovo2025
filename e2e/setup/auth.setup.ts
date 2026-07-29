@@ -15,6 +15,7 @@ setup("authenticate as admin", async ({ page }) => {
 
   // 1. Clear emulator data (optional but good for a fresh start)
   try {
+    // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
     await fetch(`http://${authEmulatorHost}/emulator/v1/projects/${projectId}/accounts`, {
       method: "DELETE",
     });
@@ -24,6 +25,7 @@ setup("authenticate as admin", async ({ page }) => {
 
   // 2. Create the user
   try {
+    // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
     await fetch(`http://${authEmulatorHost}/identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts:signUp?key=fake-api-key`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

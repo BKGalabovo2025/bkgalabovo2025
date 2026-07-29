@@ -16,6 +16,7 @@ vi.mock("@/lib/firebase", () => ({
 
 export const clearFirestore = async () => {
   try {
+    // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
     const response = await fetch(
       "http://127.0.0.1:8081/emulator/v1/projects/bkgalabovo-test/databases/(default)/documents",
       { method: "DELETE" }

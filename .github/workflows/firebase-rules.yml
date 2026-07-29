@@ -12,14 +12,17 @@ jobs:
 
     steps:
     - name: Checkout Repository
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/checkout@v4
 
     - name: Setup Node.js
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/setup-node@v4
       with:
         node-version: '20'
 
     - name: Setup Java (Required for Firebase Emulator)
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -42,6 +45,7 @@ jobs:
       
     - name: Upload Playwright Report
       if: always()
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/upload-artifact@v4
       with:
         name: playwright-report

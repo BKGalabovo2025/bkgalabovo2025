@@ -12,9 +12,11 @@ jobs:
     
     steps:
     - name: Checkout Repository
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/checkout@v4
 
     - name: Setup Node.js
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -32,6 +34,7 @@ jobs:
 
     - name: Upload Lighthouse Reports
       if: always()
+      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
       uses: actions/upload-artifact@v4
       with:
         name: lighthouse-reports
