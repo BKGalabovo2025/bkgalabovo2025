@@ -3,6 +3,7 @@ import * as priceService from "../price-service";
 import * as firestore from "firebase/firestore";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual: any = await importOriginal();
   return {
     ...actual,
@@ -49,7 +50,9 @@ describe("priceService", () => {
         },
       ],
     };
-    vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+    vi.mocked(firestore.getDocs).mockResolvedValue(
+      mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+    );
 
     const prices = await priceService.getAllPrices();
     expect(prices).toHaveLength(1);
@@ -59,16 +62,23 @@ describe("priceService", () => {
 
   it("updatePrice should update price and create history entry", async () => {
     const mockBatch = { update: vi.fn(), set: vi.fn(), commit: vi.fn() };
-    vi.mocked(firestore.writeBatch).mockReturnValue(mockBatch as any);
-    
+    vi.mocked(firestore.writeBatch).mockReturnValue(
+      mockBatch as unknown as ReturnType<typeof firestore.writeBatch>
+    );
+
     vi.mocked(firestore.getDoc).mockResolvedValue({
       exists: () => true,
       data: () => ({ value: 50 }),
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof firestore.getDoc>>);
 
     const mockUser = { uid: "user1", email: "test@test.com" };
 
-    await priceService.updatePrice("p1", 75, mockUser as any, "Test Update");
+    await priceService.updatePrice(
+      "p1",
+      75,
+      mockUser as unknown as Parameters<typeof priceService.updatePrice>[2],
+      "Test Update"
+    );
 
     expect(mockBatch.update).toHaveBeenCalledWith(
       expect.objectContaining({ id: "p1" }),
@@ -82,7 +92,7 @@ describe("priceService", () => {
         oldValue: 50,
         newValue: 75,
         userId: "user1",
-        notes: "Test Update"
+        notes: "Test Update",
       })
     );
 
@@ -91,16 +101,24 @@ describe("priceService", () => {
 
   it("updatePrice should throw if price does not exist", async () => {
     const mockBatch = { update: vi.fn(), set: vi.fn(), commit: vi.fn() };
-    vi.mocked(firestore.writeBatch).mockReturnValue(mockBatch as any);
-    
+    vi.mocked(firestore.writeBatch).mockReturnValue(
+      mockBatch as unknown as ReturnType<typeof firestore.writeBatch>
+    );
+
     vi.mocked(firestore.getDoc).mockResolvedValue({
       exists: () => false,
       data: () => undefined,
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof firestore.getDoc>>);
 
     const mockUser = { uid: "user1" };
 
-    await expect(priceService.updatePrice("p1", 75, mockUser as any)).rejects.toThrow();
+    await expect(
+      priceService.updatePrice(
+        "p1",
+        75,
+        mockUser as unknown as Parameters<typeof priceService.updatePrice>[2]
+      )
+    ).rejects.toThrow();
     expect(mockBatch.commit).not.toHaveBeenCalled();
   });
 });

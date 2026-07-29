@@ -4,6 +4,7 @@ import * as firestore from "firebase/firestore";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual: any = await importOriginal();
   return {
     ...actual,
@@ -36,10 +37,15 @@ describe("plannerService", () => {
     it("getExercises should query and return mapped exercises", async () => {
       const mockSnap = {
         docs: [
-          { id: "e1", data: () => ({ name: "Test Exercise", siteId: "site1" }) },
+          {
+            id: "e1",
+            data: () => ({ name: "Test Exercise", siteId: "site1" }),
+          },
         ],
       };
-      vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+      vi.mocked(firestore.getDocs).mockResolvedValue(
+        mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+      );
 
       const exercises = await plannerService.getExercises("site1");
       expect(exercises).toHaveLength(1);
@@ -49,15 +55,17 @@ describe("plannerService", () => {
 
     it("injectSeedExercises should batch set missing exercises", async () => {
       const mockBatch = { set: vi.fn(), commit: vi.fn() };
-      vi.mocked(firestore.writeBatch).mockReturnValue(mockBatch as any);
+      vi.mocked(firestore.writeBatch).mockReturnValue(
+        mockBatch as unknown as ReturnType<typeof firestore.writeBatch>
+      );
 
       // Mock getDocs so it appears one exercise already exists
       const mockSnap = {
-        docs: [
-          { data: () => ({ name: INITIAL_BWF_EXERCISES[0].name }) },
-        ],
+        docs: [{ data: () => ({ name: INITIAL_BWF_EXERCISES[0].name }) }],
       };
-      vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+      vi.mocked(firestore.getDocs).mockResolvedValue(
+        mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+      );
 
       const added = await plannerService.injectSeedExercises("site1");
 
@@ -72,7 +80,7 @@ describe("plannerService", () => {
         date: "2026-08-01",
         exercises: [],
         title: "Test Session",
-      } as any;
+      } as unknown as Parameters<typeof plannerService.addSession>[1];
 
       const id = await plannerService.addSession("site1", newSession);
       expect(id).toBe("mock-doc-id");
@@ -89,10 +97,18 @@ describe("plannerService", () => {
   describe("Attendance", () => {
     it("saveAttendanceBatch should write batch and commit", async () => {
       const mockBatch = { set: vi.fn(), commit: vi.fn() };
-      vi.mocked(firestore.writeBatch).mockReturnValue(mockBatch as any);
+      vi.mocked(firestore.writeBatch).mockReturnValue(
+        mockBatch as unknown as ReturnType<typeof firestore.writeBatch>
+      );
 
       await plannerService.saveAttendanceBatch("site1", "sess1", [
-        { memberId: "m1", date: "2026-08-01", rpe: 5, effort: 5, medicalStatus: "healthy" },
+        {
+          memberId: "m1",
+          date: "2026-08-01",
+          rpe: 5,
+          effort: 5,
+          medicalStatus: "healthy",
+        },
       ]);
 
       expect(mockBatch.set).toHaveBeenCalledTimes(1);
@@ -102,8 +118,10 @@ describe("plannerService", () => {
 
   describe("Settings", () => {
     it("getFocusTags should return default tags if empty", async () => {
-      vi.mocked(firestore.getDocs).mockResolvedValue({ empty: true } as any);
-      
+      vi.mocked(firestore.getDocs).mockResolvedValue({
+        empty: true,
+      } as unknown as Awaited<ReturnType<typeof firestore.getDocs>>);
+
       const tags = await plannerService.getFocusTags("site1");
       expect(tags).toContain("Clear");
       expect(tags).toContain("Сингъл");

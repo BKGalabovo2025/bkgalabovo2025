@@ -25,7 +25,9 @@ describe("mappers", () => {
         }),
       };
 
-      const result = docToMember(mockDoc as any);
+      const result = docToMember(
+        mockDoc as unknown as Parameters<typeof docToMember>[0]
+      );
       expect(result).not.toBeNull();
       expect(result?.name).toBe("Иван Иванов");
       expect(result?.id).toBe("m1");
@@ -62,7 +64,9 @@ describe("mappers", () => {
         }),
       };
 
-      const result = mapDocToTournament(mockDoc as any);
+      const result = mapDocToTournament(
+        mockDoc as unknown as Parameters<typeof mapDocToTournament>[0]
+      );
       expect(result).not.toBeNull();
       expect(result?.id).toBe("t1");
       expect(result?.title).toBe("Test T");

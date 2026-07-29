@@ -3,6 +3,7 @@ import * as assessmentService from "../assessment-service";
 import * as firestore from "firebase/firestore";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual: any = await importOriginal();
   return {
     ...actual,
@@ -39,10 +40,14 @@ describe("assessmentService", () => {
   it("getAssessmentsByMemberId should query and map documents", async () => {
     const mockSnap = {
       docs: [
-        { data: () => ({ memberId: "m1", totalScore: 80, date: "2026-08-01" }) },
+        {
+          data: () => ({ memberId: "m1", totalScore: 80, date: "2026-08-01" }),
+        },
       ],
     };
-    vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+    vi.mocked(firestore.getDocs).mockResolvedValue(
+      mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+    );
 
     const results = await assessmentService.getAssessmentsByMemberId("m1");
     expect(results).toHaveLength(1);
@@ -51,7 +56,9 @@ describe("assessmentService", () => {
   });
 
   it("addAssessment should add document with server timestamps and siteId", async () => {
-    vi.mocked(firestore.addDoc).mockResolvedValue({ id: "new-assessment-id" } as any);
+    vi.mocked(firestore.addDoc).mockResolvedValue({
+      id: "new-assessment-id",
+    } as unknown as Awaited<ReturnType<typeof firestore.addDoc>>);
 
     const data = {
       memberId: "m1",
@@ -59,7 +66,7 @@ describe("assessmentService", () => {
       testId: "t1",
       testName: "Beep Test",
       date: "2026-08-01",
-      ageGroupAtTest: "U19" as any,
+      ageGroupAtTest: "U19" as never,
       evaluatorId: "e1",
       results: {},
       totalScore: 90,
@@ -88,7 +95,9 @@ describe("assessmentService", () => {
         { data: () => ({ memberId: "m2", date: "2026-02-01" }) },
       ],
     };
-    vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+    vi.mocked(firestore.getDocs).mockResolvedValue(
+      mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+    );
 
     const results = await assessmentService.getAllAssessments("site1");
     expect(results[0].memberId).toBe("m2"); // 2026-02-01 should be first

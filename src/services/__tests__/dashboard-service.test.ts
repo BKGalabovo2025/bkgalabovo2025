@@ -28,16 +28,52 @@ describe("dashboardService", () => {
         { status: "active", registrationDate: "2026-08-10" },
         { status: "inactive", registrationDate: "2026-07-01" },
         { status: "active", registrationDate: "2026-06-01" },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any[];
 
       const sales = [
-        { status: "completed", isPaid: true, type: "service", totalAmount: 100, currency: "EUR", saleDate: "2026-08-10" },
-        { status: "completed", isPaid: true, type: "service", totalAmount: 50, currency: "EUR", saleDate: "2026-07-10" }, // previous 30 days
-        { status: "completed", isPaid: true, type: "service", totalAmount: 200, currency: "BGN", saleDate: "2026-08-01" },
-        { status: "pending", isPaid: false, type: "service", totalAmount: 10, currency: "EUR", saleDate: "2026-08-12" }, // unpaid
+        {
+          status: "completed",
+          isPaid: true,
+          type: "service",
+          totalAmount: 100,
+          currency: "EUR",
+          saleDate: "2026-08-10",
+        },
+        {
+          status: "completed",
+          isPaid: true,
+          type: "service",
+          totalAmount: 50,
+          currency: "EUR",
+          saleDate: "2026-07-10",
+        }, // previous 30 days
+        {
+          status: "completed",
+          isPaid: true,
+          type: "service",
+          totalAmount: 200,
+          currency: "BGN",
+          saleDate: "2026-08-01",
+        },
+        {
+          status: "pending",
+          isPaid: false,
+          type: "service",
+          totalAmount: 10,
+          currency: "EUR",
+          saleDate: "2026-08-12",
+        }, // unpaid
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any[];
 
-      const stats = getDashboardStats(members, sales, [{ id: "p1" } as any], [{} as any, {} as any]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const stats = getDashboardStats(
+        members,
+        sales,
+        [{ id: "p1" } as any],
+        [{} as any, {} as any]
+      );
 
       expect(stats.totalMembers).toBe(3);
       expect(stats.activeMembersCount).toBe(2);
@@ -59,18 +95,35 @@ describe("dashboardService", () => {
   describe("getRevenueTrendData", () => {
     it("should return last 6 months data", () => {
       const sales = [
-        { status: "completed", isPaid: true, type: "service", totalAmount: 100, saleDate: "2026-08-10" },
-        { status: "completed", isPaid: true, type: "service", totalAmount: 50, saleDate: "2026-07-10" },
+        {
+          status: "completed",
+          isPaid: true,
+          type: "service",
+          totalAmount: 100,
+          saleDate: "2026-08-10",
+        },
+        {
+          status: "completed",
+          isPaid: true,
+          type: "service",
+          totalAmount: 50,
+          saleDate: "2026-07-10",
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any[];
 
       const trends = getRevenueTrendData(sales);
       expect(trends).toHaveLength(6);
-      
-      const augName = new Date("2026-08-01").toLocaleString("default", { month: "short" });
-      const julName = new Date("2026-07-01").toLocaleString("default", { month: "short" });
 
-      const aug = trends.find(t => t.name === augName);
-      const jul = trends.find(t => t.name === julName);
+      const augName = new Date("2026-08-01").toLocaleString("default", {
+        month: "short",
+      });
+      const julName = new Date("2026-07-01").toLocaleString("default", {
+        month: "short",
+      });
+
+      const aug = trends.find((t) => t.name === augName);
+      const jul = trends.find((t) => t.name === julName);
 
       expect(aug?.revenue).toBe(100);
       expect(jul?.revenue).toBe(50);

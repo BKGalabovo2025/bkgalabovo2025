@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { docToProduct } from "../inventory-service";
 
 describe("inventoryService", () => {
@@ -8,7 +8,9 @@ describe("inventoryService", () => {
         id: "",
         exists: () => false,
       };
-      expect(docToProduct(mockDoc as any)).toBeNull();
+      expect(
+        docToProduct(mockDoc as unknown as Parameters<typeof docToProduct>[0])
+      ).toBeNull();
     });
 
     it("should return null if product name is missing", () => {
@@ -17,7 +19,9 @@ describe("inventoryService", () => {
         exists: () => true,
         data: () => ({ price: 10 }), // missing name
       };
-      expect(docToProduct(mockDoc as any)).toBeNull();
+      expect(
+        docToProduct(mockDoc as unknown as Parameters<typeof docToProduct>[0])
+      ).toBeNull();
     });
 
     it("should map valid product correctly", () => {
@@ -32,8 +36,10 @@ describe("inventoryService", () => {
           restockThreshold: 10,
         }),
       };
-      
-      const product = docToProduct(mockDoc as any);
+
+      const product = docToProduct(
+        mockDoc as unknown as Parameters<typeof docToProduct>[0]
+      );
       expect(product).not.toBeNull();
       expect(product?.name).toBe("Water");
       expect(product?.stock).toBe(50);

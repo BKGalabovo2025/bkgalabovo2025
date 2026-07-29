@@ -8,6 +8,7 @@ import {
 import * as firestore from "firebase/firestore";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual: any = await importOriginal();
   return {
     ...actual,
@@ -55,7 +56,9 @@ describe("Beep Test Logic", () => {
   });
 
   it("evaluateBadmintonScore should return Elite for high levels", () => {
-    expect(evaluateBadmintonScore(14, "Adults", "male")).toBe("Елитен състезател");
+    expect(evaluateBadmintonScore(14, "Adults", "male")).toBe(
+      "Елитен състезател"
+    );
   });
 
   it("evaluateBadmintonScore should return Poor for low levels", () => {
@@ -105,7 +108,9 @@ describe("beepTestService", () => {
         },
       ],
     };
-    vi.mocked(firestore.getDocs).mockResolvedValue(mockSnap as any);
+    vi.mocked(firestore.getDocs).mockResolvedValue(
+      mockSnap as unknown as Awaited<ReturnType<typeof firestore.getDocs>>
+    );
 
     const results = await beepTestService.getMemberResults("site1", "m1");
     expect(results).toHaveLength(1);

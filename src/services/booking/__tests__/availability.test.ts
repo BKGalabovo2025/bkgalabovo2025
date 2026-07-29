@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { calculateAvailability } from "../availability";
-import { Reservation } from "@/types/reservation";
 import { ResourceRequirements } from "@/types/booking.types";
 
 describe("booking availability", () => {
@@ -16,13 +15,17 @@ describe("booking availability", () => {
   };
 
   it("calculates availability slots within operating hours", () => {
-    const slots = calculateAvailability([], targetDate, siteInventory, { start: 8, end: 12 });
+    const slots = calculateAvailability([], targetDate, siteInventory, {
+      start: 8,
+      end: 12,
+    });
     expect(slots.length).toBeGreaterThan(0);
     expect(slots[0].isLocked).toBe(false);
     expect(slots[0].availableResources.compressors).toBe(2);
   });
 
   it("locks or reduces resources when reservations use resources", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockReservations: any[] = [
       {
         id: "res1",
@@ -44,9 +47,16 @@ describe("booking availability", () => {
       },
     ];
 
-    const slots = calculateAvailability(mockReservations, targetDate, siteInventory, { start: 8, end: 12 });
+    const slots = calculateAvailability(
+      mockReservations,
+      targetDate,
+      siteInventory,
+      { start: 8, end: 12 }
+    );
 
-    const reservedSlots = slots.filter((s) => s.availableResources.compressors === 0 || s.isLocked);
+    const reservedSlots = slots.filter(
+      (s) => s.availableResources.compressors === 0 || s.isLocked
+    );
     expect(reservedSlots.length).toBeGreaterThan(0);
   });
 });
