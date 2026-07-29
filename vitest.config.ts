@@ -16,8 +16,8 @@ export default defineConfig({
       "tmp",
       "scratch",
       // Requires Firebase Emulator — run separately with: npm run test:rules
-      "src/__tests__/firestore.rules.test.ts",
-      "src/integration-tests",
+      ...(process.env.TEST_ENV === "rules" ? [] : ["src/__tests__/firestore.rules.test.ts"]),
+      ...(process.env.TEST_ENV === "integration" ? [] : ["src/integration-tests"]),
     ],
     server: {
       deps: {
