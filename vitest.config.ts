@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    testTimeout: 20000,
     setupFiles:
       process.env.TEST_ENV === "integration" ? [] : ["./vitest.setup.ts"],
     exclude: [

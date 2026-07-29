@@ -2,6 +2,9 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { vi } from "vitest";
 
+// Allow Server Actions to be imported in vitest
+vi.mock("server-only", () => ({}));
+
 // Initialize a real Firebase app pointing to the emulator for tests
 const app = initializeApp({ projectId: "bkgalabovo-test" });
 export const db = getFirestore(app);

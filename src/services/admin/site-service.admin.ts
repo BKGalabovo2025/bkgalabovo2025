@@ -75,7 +75,7 @@ export const getSiteByIdAdmin = async (id: string): Promise<Site | null> => {
           ...t,
           id:
             t.id ||
-            t.name?.toLowerCase().replace(/\s+/g, "-") ||
+            t.name?.toLowerCase().replaceAll(" ", "-") ||
             `therapist-${idx}`,
         })
       ) as Therapist[],
