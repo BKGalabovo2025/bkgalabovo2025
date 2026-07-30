@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --cache",
     "lint:css": "stylelint \"src/**/*.css\" --config stylelint.config.cjs",
     "lint:css:fix": "stylelint \"src/**/*.css\" --config stylelint.config.cjs --fix",
     "lint:fix": "eslint . --fix",
