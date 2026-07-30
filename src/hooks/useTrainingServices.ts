@@ -4,10 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Sale } from "@/types";
 import { toast } from "sonner";
 import { useAppStore } from "@/store/use-app-store";
-import {
-  getTrainingServiceHistoryAction,
-  getTrainingServiceSalesAction,
-} from "@/lib/actions/training-services-server";
+import { getTrainingServiceHistoryAction } from "@/lib/actions/training-services-server";
+import { getServiceSalesAction } from "@/lib/actions/sales";
 
 export interface TrainingEvent {
   id: string;
@@ -37,11 +35,13 @@ export function useTrainingServices() {
     try {
       const [eventsRes, salesRes] = await Promise.all([
         getTrainingServiceHistoryAction(activeBranch),
-        getTrainingServiceSalesAction(activeBranch),
+        getServiceSalesAction("training_service", activeBranch),
       ]);
 
       if (eventsRes.success && eventsRes.data) {
-        setEvents(eventsRes.data.filter((e: unknown) => e !== null) as TrainingEvent[]);
+        setEvents(
+          eventsRes.data.filter((e: unknown) => e !== null) as TrainingEvent[]
+        );
       } else {
         throw new Error(eventsRes.error || "Failed to fetch events");
       }
@@ -53,7 +53,8 @@ export function useTrainingServices() {
       }
     } catch (err: unknown) {
       console.error("Error fetching training services data:", err);
-      const message = err instanceof Error ? err.message : "Грешка при зареждане на данни";
+      const message =
+        err instanceof Error ? err.message : "Грешка при зареждане на данни";
       setError(message);
       toast.error(message);
     } finally {

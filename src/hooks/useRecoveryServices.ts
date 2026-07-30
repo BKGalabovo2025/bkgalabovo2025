@@ -6,11 +6,11 @@ import { toast } from "sonner";
 
 import {
   getRecoveryServiceHistoryAction,
-  getRecoveryServiceSalesAction,
   getRecoveryReservationsAction,
   getRecoveryClientPackagesAction,
   getRecoveryClientsAction,
 } from "@/lib/actions/recovery-services-server";
+import { getServiceSalesAction } from "@/lib/actions/sales";
 
 export interface RecoveryEvent {
   id: string;
@@ -87,14 +87,16 @@ export function useRecoveryServices() {
       const [eventsRes, salesRes, resRes, pkgsRes, clientsRes] =
         await Promise.all([
           getRecoveryServiceHistoryAction(branchId),
-          getRecoveryServiceSalesAction(branchId),
+          getServiceSalesAction("recovery_service", branchId),
           getRecoveryReservationsAction(branchId),
           getRecoveryClientPackagesAction(branchId),
           getRecoveryClientsAction(branchId),
         ]);
 
       if (eventsRes.success && eventsRes.data) {
-        setEvents(eventsRes.data.filter((e: unknown) => e !== null) as RecoveryEvent[]);
+        setEvents(
+          eventsRes.data.filter((e: unknown) => e !== null) as RecoveryEvent[]
+        );
       }
       if (salesRes.success && salesRes.data) {
         setSales(salesRes.data);
@@ -110,7 +112,8 @@ export function useRecoveryServices() {
       }
     } catch (err: unknown) {
       console.error("Error fetching recovery services data:", err);
-      const message = err instanceof Error ? err.message : "Грешка при зареждане на данни";
+      const message =
+        err instanceof Error ? err.message : "Грешка при зареждане на данни";
       setError(message);
       toast.error(message);
     } finally {

@@ -40,7 +40,7 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import { exportToExcel, exportToPdf, type ExportRow } from "@/lib/export-utils";
+import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
 import { TournamentBracket } from "@/components/tournaments/TournamentBracket";
@@ -326,7 +326,7 @@ export default function TournamentDetailsClient({
   ) => {
     if (!tournament) return;
 
-    const rows: ExportRow[] = standings.map((s, idx) => ({
+    const rows = standings.map((s, idx) => ({
       position: idx + 1,
       name: s.name || getEntryNameById(s.entryId),
       played: s.played,
@@ -338,15 +338,49 @@ export default function TournamentDetailsClient({
       totalPoints: s.points,
     }));
 
+    const columns = [
+      { header: "#", key: "position", width: 5, align: "center" as const },
+      { header: "Участник", key: "name", width: 30, align: "left" as const },
+      {
+        header: "Изиграни",
+        key: "played",
+        width: 12,
+        align: "center" as const,
+      },
+      { header: "Победи", key: "wins", width: 10, align: "center" as const },
+      { header: "Загуби", key: "losses", width: 10, align: "center" as const },
+      {
+        header: "Т. Разлика",
+        key: "pointsRatio",
+        width: 15,
+        align: "center" as const,
+      },
+      {
+        header: "% Победи",
+        key: "winRate",
+        width: 12,
+        align: "center" as const,
+      },
+      {
+        header: "Точки",
+        key: "totalPoints",
+        width: 10,
+        align: "center" as const,
+      },
+    ];
+
     const options = {
       title: tournament.title,
       subtitle: `${formatDateShort(tournament.startDate)} - ${tournament.location}`,
-      category: getCategoryName(category),
-      rows,
+      metaData: `Категория: ${getCategoryName(category)}`,
+      columns,
+      data: rows,
+      filenamePrefix:
+        tournament.title.replace(/[^а-яА-Яa-zA-Z0-9]/g, "_") + "_класиране",
     };
 
-    if (formatType === "excel") await exportToExcel(options);
-    else await exportToPdf(options);
+    if (formatType === "excel") await generateExcelReport(options);
+    else await generatePdfReport(options);
   };
 
   const getEntryNameById = useCallback(
@@ -957,8 +991,7 @@ export default function TournamentDetailsClient({
                             className="h-8 gap-2 bg-green-600 hover:bg-green-700"
                             onClick={handleCompleteTournament}
                           >
-                            <CheckCircle2 className="size-4" /> Приключи
-                            турнира
+                            <CheckCircle2 className="size-4" /> Приключи турнира
                           </Button>
                         )}
                     </div>

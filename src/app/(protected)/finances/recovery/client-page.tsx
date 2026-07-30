@@ -9,13 +9,13 @@ import { PlusCircle, LayoutGrid, List } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/shared/data-table";
 import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
-import { RecoverySaleWizardDialog } from "@/components/finances/RecoverySaleWizardDialog";
+import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { useSWRConfig } from "swr";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatPrice } from "@/lib/currency";
 import { RecoveryHistory } from "@/components/finances/RecoveryHistory";
-import { RecoverySalesHistory } from "@/components/finances/RecoverySalesHistory";
+import { RecoverySalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
 import { RecoveryReservationsHistory } from "@/components/finances/RecoveryReservationsHistory";
 import { RecoveryClientPackages } from "@/components/finances/RecoveryClientPackages";
 import {
@@ -132,8 +132,8 @@ export default function RecoveryClientPage({
               onClick={() => router.push("/finances/recovery/new")}
               className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
             >
-              <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} />{" "}
-              Добави процедура
+              <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} /> Добави
+              процедура
             </Button>
           </div>
         </div>
@@ -193,8 +193,7 @@ export default function RecoveryClientPage({
               value="packages"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <PackageSearch className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Пакети
+              <PackageSearch className="mr-3 size-4" strokeWidth={1.5} /> Пакети
             </TabsTrigger>
             <TabsTrigger
               value="reservations"
@@ -213,8 +212,7 @@ export default function RecoveryClientPage({
               value="sales"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Продажби
+              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} /> Продажби
             </TabsTrigger>
           </TabsList>
 
@@ -330,8 +328,9 @@ export default function RecoveryClientPage({
         </TabsContent>
       </Tabs>
       {selectedSaleService && (
-        <RecoverySaleWizardDialog
-          service={selectedSaleService}
+        <UnifiedSaleWizardDialog
+          item={selectedSaleService}
+          mode="recovery"
           isOpen={!!selectedSaleService}
           onClose={() => setSelectedSaleService(null)}
           onSaleSuccess={() => {

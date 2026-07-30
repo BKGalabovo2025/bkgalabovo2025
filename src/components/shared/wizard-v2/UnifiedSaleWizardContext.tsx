@@ -12,11 +12,12 @@ import { toast } from "sonner";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 
-import { Service } from "@/app/(protected)/finances/services/service.types";
 import { Member, ScheduleEvent, Attendee } from "@/types";
 import { getAllMembers } from "@/services/member-service";
 import { getEventsByMemberId } from "@/services/schedule-service";
 import { executeTrainingSaleAction } from "@/lib/actions/services";
+import { executeGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
+import { createSaleAction } from "@/lib/actions/sales";
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 
@@ -39,24 +40,25 @@ export interface MonthAttendance {
   memberStats: Record<string, MemberAttendanceStats>;
 }
 
-export interface ServiceSaleWizardContextType {
-  // Props
-  service: Service;
-  serviceType: "recovery_service" | "training_service";
+export interface UnifiedSaleWizardContextType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  item: any; // Product | Service | GeneralService
+  mode: "product" | "general" | "training" | "recovery";
+
   isOpen: boolean;
   onClose: () => void;
   onSaleSuccess: () => void;
 
-  // Step state
   step: number;
   setStep: React.Dispatch<React.SetStateAction<number>>;
   totalSteps: number;
   displayStep: number;
+
   handleNextStep: () => void;
   handlePrevStep: () => void;
   handleClose: () => void;
 
-  // Client Selection State
+  // ── 1. Client Selection ──
   members: Member[];
   setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
   membersLoading: boolean;
@@ -68,8 +70,6 @@ export interface ServiceSaleWizardContextType {
   setIsGuestSale: React.Dispatch<React.SetStateAction<boolean>>;
   clientTypeTab: "member" | "guest";
   setClientTypeTab: React.Dispatch<React.SetStateAction<"member" | "guest">>;
-
-  // Quick guest form state
   showNewGuestForm: boolean;
   setShowNewGuestForm: React.Dispatch<React.SetStateAction<boolean>>;
   newGuestFirstName: string;
@@ -82,12 +82,11 @@ export interface ServiceSaleWizardContextType {
   setNewGuestEmail: React.Dispatch<React.SetStateAction<string>>;
   isSavingNewGuest: boolean;
   setIsSavingNewGuest: React.Dispatch<React.SetStateAction<boolean>>;
-
   filteredMembers: Member[];
   clientDisplayName: string;
   familyMembers: (Member | null)[];
 
-  // Attendance State
+  // ── 2. Attendance & Details (Only for Services) ──
   attendanceLoading: boolean;
   memberEvents: ScheduleEvent[];
   monthlyAttendance: MonthAttendance[];
@@ -95,7 +94,6 @@ export interface ServiceSaleWizardContextType {
   unpaidEvents: ScheduleEvent[];
   allUnpaidMonthsSelected: boolean;
 
-  // Billing & Payment State
   paymentMode: PaymentMode;
   setPaymentMode: React.Dispatch<React.SetStateAction<PaymentMode>>;
   selectedMonthKeys: string[];
@@ -103,38 +101,39 @@ export interface ServiceSaleWizardContextType {
   selectedEventIds: string[];
   setSelectedEventIds: React.Dispatch<React.SetStateAction<string[]>>;
 
+  // ── 3. Payment & Summary ──
   price: string;
   setPrice: React.Dispatch<React.SetStateAction<string>>;
+  quantity: string;
+  setQuantity: React.Dispatch<React.SetStateAction<string>>;
   paymentMethod: string;
   setPaymentMethod: React.Dispatch<React.SetStateAction<string>>;
   isPaid: boolean;
   setIsPaid: React.Dispatch<React.SetStateAction<boolean>>;
   note: string;
   setNote: React.Dispatch<React.SetStateAction<string>>;
-
-  totalAmount: number;
-  selectedMonthLabels: string[];
   saleDate: string;
   setSaleDate: React.Dispatch<React.SetStateAction<string>>;
+  totalAmount: number;
 
-  // Actions
+  selectedMonthLabels: string[];
   toggleEventSelection: (eventId: string) => void;
   toggleMonthSelection: (monthKey: string) => void;
-  handleExecuteSale: () => Promise<void>;
 
+  handleExecuteSale: () => Promise<void>;
   isProcessing: boolean;
   completedSaleId: string | null;
 }
 
-const ServiceSaleWizardContext = createContext<
-  ServiceSaleWizardContextType | undefined
+const UnifiedSaleWizardContext = createContext<
+  UnifiedSaleWizardContextType | undefined
 >(undefined);
 
-export const useServiceSaleWizard = () => {
-  const context = useContext(ServiceSaleWizardContext);
+export const useUnifiedSaleWizard = () => {
+  const context = useContext(UnifiedSaleWizardContext);
   if (!context) {
     throw new Error(
-      "useServiceSaleWizard must be used within ServiceSaleWizardProvider"
+      "useUnifiedSaleWizard must be used within UnifiedSaleWizardProvider"
     );
   }
   return context;
@@ -142,17 +141,17 @@ export const useServiceSaleWizard = () => {
 
 interface ProviderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  service: any;
-  serviceType: "recovery_service" | "training_service";
+  item: any; // Product | Service | GeneralService
+  mode: "product" | "general" | "training" | "recovery";
   isOpen: boolean;
   onClose: () => void;
   onSaleSuccess: () => void;
   children: React.ReactNode;
 }
 
-export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
-  service,
-  serviceType,
+export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
+  item,
+  mode,
   isOpen,
   onClose,
   onSaleSuccess,
@@ -181,13 +180,15 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
 
   // Billing config
   const isSubscriptionService =
-    service.type === "Абонамент" || service.type === "Годишен абонамент";
+    mode === "training" &&
+    (item.type === "Абонамент" || item.type === "Годишен абонамент");
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("subscription");
   const [selectedMonthKeys, setSelectedMonthKeys] = useState<string[]>([]);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
 
   // Payment details
-  const [price, setPrice] = useState(service.price.toString());
+  const [price, setPrice] = useState(item.price.toString());
+  const [quantity, setQuantity] = useState("1");
   const [paymentMethod, setPaymentMethod] = useState("В брой");
   const [isPaid, setIsPaid] = useState(true);
   const [note, setNote] = useState("");
@@ -220,7 +221,8 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
 
       // Reset state on open
       setStep(1);
-      setPrice(service.price.toString());
+      setPrice(item.price.toString());
+      setQuantity("1");
       setSelectedMember(null);
       setIsGuestSale(false);
       setCompletedSaleId(null);
@@ -238,13 +240,14 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
       setNewGuestEmail("");
       setIsSavingNewGuest(false);
     }
-  }, [isOpen, service, isSubscriptionService]);
+  }, [isOpen, item, isSubscriptionService]);
 
   const isFamilySubscription = useMemo(() => {
     return (
-      isSubscriptionService && service.name.toLowerCase().includes("семеен")
+      isSubscriptionService &&
+      (item.name || "").toLowerCase().includes("семеен")
     );
-  }, [isSubscriptionService, service.name]);
+  }, [isSubscriptionService, item.name]);
 
   const familyMembers = useMemo(() => {
     if (!selectedMember || !isFamilySubscription) return [selectedMember];
@@ -397,7 +400,11 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
       }
     }
 
-    if (step === 2 && !isGuestSale) {
+    if (
+      step === 2 &&
+      !isGuestSale &&
+      (mode === "training" || mode === "recovery")
+    ) {
       if (paymentMode === "subscription" && selectedMonthKeys.length === 0) {
         toast.error("Избор на месец", {
           description: "Моля, изберете поне един месец за плащане.",
@@ -509,6 +516,7 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
     return getPaidEventIds();
   };
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleExecuteSale = async () => {
     if (!idToken) return;
     setIsProcessing(true);
@@ -516,42 +524,42 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
 
     const customPrice = parseFloat(price);
     const qty = getSaleQuantity();
+    const clientName = isGuestSale
+      ? "Външен клиент"
+      : familyMembers.map((m) => `${m!.firstName} ${m!.lastName}`).join(", ");
 
-    try {
-      const clientName = isGuestSale
-        ? "Външен клиент"
-        : familyMembers.map((m) => `${m!.firstName} ${m!.lastName}`).join(", ");
+    const selectedLabels = monthlyAttendance
+      .filter((m) => selectedMonthKeys.includes(m.monthKey))
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+      .map((m) => m.monthLabel);
 
-      const selectedLabels = monthlyAttendance
-        .filter((m) => selectedMonthKeys.includes(m.monthKey))
-        .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
-        .map((m) => m.monthLabel);
+    const targetEventDates = getTargetEventDates();
 
-      const targetEventDates = getTargetEventDates();
+    const baseSaleData: Record<string, unknown> = {
+      siteId: activeBranch || "bkgalabovo",
+      memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
+      clientName: clientName,
+      saleDate: saleDate,
+      items: [
+        {
+          productId: item.id,
+          name: item.name,
+          quantity: qty,
+          price: customPrice,
+        },
+      ],
+      status: "completed",
+      isPaid: isPaid,
+      totalAmount: totalAmount,
+      currency: "EUR",
+      paymentMethod: paymentMethod,
+      note: note || "",
+      type: mode,
+    };
 
-      const baseSaleData: Record<string, unknown> = {
-        siteId: activeBranch || "bkgalabovo",
-        memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
-        clientName: clientName,
-        saleDate: saleDate,
-        items: [
-          {
-            productId: service.id,
-            name: service.name,
-            quantity: qty,
-            price: customPrice,
-          },
-        ],
-        status: "completed",
-        isPaid: isPaid,
-        totalAmount: totalAmount,
-        currency: "EUR",
-        paymentMethod: paymentMethod,
-        note: note || "",
-        type: serviceType,
-        targetEventDates: targetEventDates,
-        paidEventIds: getPaidEventIdsForSale(),
-      };
+    if (mode === "training" || mode === "recovery") {
+      baseSaleData.targetEventDates = targetEventDates;
+      baseSaleData.paidEventIds = getPaidEventIdsForSale();
 
       if (!isGuestSale) {
         baseSaleData.paymentMode = paymentMode;
@@ -566,15 +574,68 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
         baseSaleData.memberIdForAttendance = null;
         baseSaleData.memberIdsForAttendance = null;
       }
+    }
 
-      const saleData = baseSaleData;
+    const saleData = baseSaleData;
 
-      const result = await executeTrainingSaleAction(
-        idToken,
-        saleData,
-        service.name,
-        clientName
-      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any;
+    try {
+      if (mode === "product") {
+        result = await createSaleAction(idToken, {
+          siteId: activeBranch || "bkgalabovo",
+          memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
+          clientName: clientName,
+          items: [
+            {
+              productId: item.id,
+              name: item.name,
+              quantity: qty,
+              price: customPrice,
+            },
+          ],
+          totalAmount: totalAmount,
+          currency: "EUR",
+          paymentMethod: paymentMethod,
+          isPaid: isPaid,
+          status: "completed",
+          note: note || "",
+          saleDate: saleDate,
+        });
+        if (result.success && result.data) {
+          result.saleId = result.data.id;
+        }
+      } else if (mode === "general") {
+        result = await executeGeneralServiceSaleAction(
+          {
+            ...saleData,
+            type: "general_service",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any,
+          item.name,
+          clientName
+        );
+      } else if (mode === "recovery") {
+        result = await executeTrainingSaleAction(
+          idToken,
+          {
+            ...saleData,
+            type: "recovery_service",
+          },
+          item.name,
+          clientName
+        );
+      } else {
+        result = await executeTrainingSaleAction(
+          idToken,
+          {
+            ...saleData,
+            type: "training_service",
+          },
+          item.name,
+          clientName
+        );
+      }
 
       if (result.success && result.saleId) {
         setCompletedSaleId(result.saleId);
@@ -617,15 +678,16 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
     .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
     .map((m) => m.monthLabel);
 
-  const steps = isGuestSale
-    ? ["Клиент", "Плащане", "Преглед"]
-    : ["Клиент", "Присъствия", "Плащане", "Преглед"];
+  const steps =
+    isGuestSale || mode === "product" || mode === "general"
+      ? ["Клиент", "Плащане", "Преглед"]
+      : ["Клиент", "Присъствия", "Плащане", "Преглед"];
   const totalSteps = steps.length;
   const displayStep = Math.min(step, totalSteps);
 
-  const contextValue: ServiceSaleWizardContextType = {
-    service,
-    serviceType,
+  const contextValue: UnifiedSaleWizardContextType = {
+    item,
+    mode,
     isOpen,
     onClose,
     onSaleSuccess,
@@ -676,6 +738,8 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
     setSelectedEventIds,
     price,
     setPrice,
+    quantity,
+    setQuantity,
     paymentMethod,
     setPaymentMethod,
     isPaid,
@@ -694,8 +758,8 @@ export const ServiceSaleWizardProvider: React.FC<ProviderProps> = ({
   };
 
   return (
-    <ServiceSaleWizardContext.Provider value={contextValue}>
+    <UnifiedSaleWizardContext.Provider value={contextValue}>
       {children}
-    </ServiceSaleWizardContext.Provider>
+    </UnifiedSaleWizardContext.Provider>
   );
 };

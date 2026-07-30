@@ -1,6 +1,3 @@
- 
- 
- 
 "use client";
 
 import { useState, useEffect } from "react";
@@ -266,7 +263,7 @@ function ServiceCard({
                 alt={`${service.name} - ${idx + 1}`}
                 fill
                 sizes="(max-w-768px) 100vw, 33vw"
-                className={`absolute inset-0 object-cover transition-all duration-1000 group-hover:scale-110 ${
+                className={`absolute inset-0 object-contain p-4 transition-all duration-1000 group-hover:scale-110 ${
                   idx === activeImageIndex
                     ? "z-0 scale-100 opacity-100"
                     : "-z-10 scale-95 opacity-0"
@@ -382,10 +379,7 @@ function ServiceCard({
                 )}
                 {service.grantsApparel && (
                   <div className="flex items-center gap-3 text-xs text-zinc-500">
-                    <Shirt
-                      className="size-4 text-blue-400"
-                      strokeWidth={1.5}
-                    />
+                    <Shirt className="size-4 text-blue-400" strokeWidth={1.5} />
                     <span>Право на екипировка</span>
                   </div>
                 )}

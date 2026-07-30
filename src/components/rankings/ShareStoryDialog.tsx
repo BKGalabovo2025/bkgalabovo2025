@@ -24,14 +24,16 @@ export default function ShareStoryDialog({ topThree }: ShareStoryDialogProps) {
   const storyRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
-    if (!storyRef.current || !window.html2canvas) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!storyRef.current || !(window as any).html2canvas) {
       toast.error("Библиотеката за изображения се зарежда. Моля, изчакайте.");
       return;
     }
 
     try {
       setIsGenerating(true);
-      const canvas = await window.html2canvas(storyRef.current, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const canvas = await (window as any).html2canvas(storyRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: null,

@@ -12,7 +12,6 @@ import {
   FileDown,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-import Script from "next/script";
 import { toast } from "sonner";
 import Image from "next/image";
 import { clubInfo } from "@/config/club";
@@ -34,41 +33,6 @@ interface Service {
   apparelCondition?: string;
   apparelPaymentCount?: number;
   durationMinutes?: number;
-}
-
-// Declare global types for CDN-loaded libraries
-declare global {
-  interface Window {
-    jspdf: {
-      jsPDF: new (options?: {
-        orientation?: "portrait" | "landscape";
-        unit?: "mm" | "pt" | "in" | "cm";
-        format?: string | string[];
-      }) => {
-        getImageProperties: (data: string) => { width: number; height: number };
-        internal: { pageSize: { getWidth: () => number } };
-        addImage: (
-          data: string,
-          type: string,
-          x: number,
-          y: number,
-          w: number,
-          h: number
-        ) => void;
-        save: (filename: string) => void;
-      };
-    };
-    html2canvas: (
-      element: HTMLElement,
-      options?: {
-        scale?: number;
-        useCORS?: boolean;
-        logging?: boolean;
-        backgroundColor?: string | null;
-        onclone?: (doc: Document) => void;
-      }
-    ) => Promise<HTMLCanvasElement>;
-  }
 }
 
 // --- Helper Functions ---
@@ -127,135 +91,18 @@ export default function PrintClientPage({ service }: { service: Service }) {
     service.durationMinutes;
 
   const handleDownloadPDF = async () => {
-    if (!printableRef.current || !window.jspdf || !window.html2canvas) {
-      toast.error(
-        "Библиотеките за PDF все още се зареждат. Моля, опитайте след малко."
-      );
+    if (!printableRef.current) {
+      toast.error("Елементът за принтиране не е намерен.");
       return;
     }
 
     try {
       setIsGeneratingPDF(true);
-
-      let allCSS = "";
-      for (let i = 0; i < document.styleSheets.length; i++) {
-        const sheet = document.styleSheets[i];
-        try {
-          const rules = sheet.cssRules || sheet.rules;
-          for (let j = 0; j < rules.length; j++) {
-            allCSS += rules[j].cssText + "\n";
-          }
-        } catch {
-          // Игнорираме защитени с CORS външни стилове
-        }
-      }
-      const cleanCSS = allCSS
-        .replace(
-          /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "color: rgb(15, 23, 42)"
-        )
-        .replace(
-          /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "background-color: transparent"
-        )
-        .replace(
-          /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "border-color: rgb(203, 213, 225)"
-        )
-        .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-
-      const element = printableRef.current;
-
-      const canvas = await window.html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        onclone: (clonedDoc: Document) => {
-          const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
-          linkTags.forEach((link) => link.remove());
-
-          const styleEl = clonedDoc.createElement("style");
-          styleEl.textContent =
-            cleanCSS +
-            "\n" +
-            `
-            * {
-              font-family: Arial, Helvetica, sans-serif !important;
-              word-spacing: 2px !important;
-            }
-          `;
-          clonedDoc.head.appendChild(styleEl);
-
-          const styleTags = clonedDoc.querySelectorAll("style");
-          styleTags.forEach((style) => {
-            if (style.innerHTML) {
-              style.innerHTML = style.innerHTML
-                .replace(
-                  /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "color: rgb(15, 23, 42)"
-                )
-                .replace(
-                  /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "background-color: transparent"
-                )
-                .replace(
-                  /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "border-color: rgb(203, 213, 225)"
-                )
-                .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-            }
-          });
-
-          const allElements = clonedDoc.querySelectorAll("*");
-          allElements.forEach((el) => {
-            const styleAttr = el.getAttribute("style");
-            if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
-              el.setAttribute(
-                "style",
-                styleAttr
-                  .replace(
-                    /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "color: rgb(15, 23, 42)"
-                  )
-                  .replace(
-                    /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "background-color: transparent"
-                  )
-                  .replace(
-                    /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "border-color: rgb(203, 213, 225)"
-                  )
-                  .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
-              );
-            }
-          });
-        },
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new window.jspdf.jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = 297; // A4 height in mm
-      let imgWidth = pdfWidth;
-      let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      if (imgHeight > pageHeight) {
-        const ratio = pageHeight / imgHeight;
-        imgHeight = pageHeight;
-        imgWidth = imgWidth * ratio;
-      }
-
-      const x = (pdfWidth - imgWidth) / 2;
-      pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
-      pdf.save(`Service-${service.name.replace(/\s+/g, "_")}.pdf`);
-
+      const { generatePdfFromElement } = await import("@/lib/html-to-pdf");
+      await generatePdfFromElement(
+        printableRef.current,
+        `Service-${service.name.replace(/\s+/g, "_")}.pdf`
+      );
       toast.success("PDF файлът беше генериран успешно!");
     } catch (err) {
       console.error("Error generating PDF:", err);
@@ -267,15 +114,6 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
   return (
     <>
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-        strategy="lazyOnload"
-      />
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        strategy="lazyOnload"
-      />
-
       <style>{`
         @media print {
             @page {

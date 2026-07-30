@@ -226,7 +226,7 @@ const AthleteCardPage = () => {
   const fullName = `${member.firstName} ${member.lastName}`;
 
   return (
-    <div className="mx-auto min-h-screen max-w-[210mm] overflow-hidden bg-white p-0 font-serif">
+    <div className="mx-auto min-h-screen max-w-[210mm] overflow-hidden bg-white p-0 font-serif print:overflow-visible">
       {/* Non-printable header */}
       <div className="flex items-center justify-between border-b bg-slate-50 p-8 print:hidden">
         <Button

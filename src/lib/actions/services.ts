@@ -325,6 +325,32 @@ const RecoverySessionSchema = z.object({
     .default("collage"),
 });
 
+function parseRecoveryFormData(formData: FormData) {
+  const rawData = {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    price: formData.get("price"),
+    durationMinutes: formData.get("duration"),
+    category: formData.get("category"),
+    zones: formData.get("zones")?.toString().split(",").filter(Boolean) || [],
+    athleteCount: formData.get("athleteCount"),
+    numberOfDays: formData.get("numberOfDays"),
+    proceduresPerDay: formData.get("proceduresPerDay"),
+    sessionType: formData.get("sessionType"),
+    requiredResources: {
+      attachments: {
+        arms: formData.get("req_arms") || 0,
+        hips: formData.get("req_hips") || 0,
+        legs: formData.get("req_legs") || 0,
+      },
+      compressors: formData.get("req_compressors") || 0,
+    },
+    imageUrl: formData.get("imageUrl") || null,
+    imageDisplayMode: formData.get("imageDisplayMode") || "collage",
+  };
+  return RecoverySessionSchema.safeParse(rawData);
+}
+
 export async function createRecoverySession(
   idToken: string,
   _prevState: ServiceState,
@@ -335,30 +361,7 @@ export async function createRecoverySession(
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
-    const rawData = {
-      name: formData.get("name"),
-      description: formData.get("description"),
-      price: formData.get("price"),
-      durationMinutes: formData.get("duration"),
-      category: formData.get("category"),
-      zones: formData.get("zones")?.toString().split(",").filter(Boolean) || [],
-      athleteCount: formData.get("athleteCount"),
-      numberOfDays: formData.get("numberOfDays"),
-      proceduresPerDay: formData.get("proceduresPerDay"),
-      sessionType: formData.get("sessionType"),
-      requiredResources: {
-        attachments: {
-          arms: formData.get("req_arms") || 0,
-          hips: formData.get("req_hips") || 0,
-          legs: formData.get("req_legs") || 0,
-        },
-        compressors: formData.get("req_compressors") || 0,
-      },
-      imageUrl: formData.get("imageUrl") || null,
-      imageDisplayMode: formData.get("imageDisplayMode") || "collage",
-    };
-
-    const validatedFields = RecoverySessionSchema.safeParse(rawData);
+    const validatedFields = parseRecoveryFormData(formData);
     if (!validatedFields.success) {
       return {
         success: false,
@@ -415,30 +418,7 @@ export async function updateRecoverySession(
     const user = await getAuthUser(idToken);
     const adminDb = getAdminDb();
 
-    const rawData = {
-      name: formData.get("name"),
-      description: formData.get("description"),
-      price: formData.get("price"),
-      durationMinutes: formData.get("duration"),
-      category: formData.get("category"),
-      zones: formData.get("zones")?.toString().split(",").filter(Boolean) || [],
-      athleteCount: formData.get("athleteCount"),
-      numberOfDays: formData.get("numberOfDays"),
-      proceduresPerDay: formData.get("proceduresPerDay"),
-      sessionType: formData.get("sessionType"),
-      requiredResources: {
-        attachments: {
-          arms: formData.get("req_arms") || 0,
-          hips: formData.get("req_hips") || 0,
-          legs: formData.get("req_legs") || 0,
-        },
-        compressors: formData.get("req_compressors") || 0,
-      },
-      imageUrl: formData.get("imageUrl") || null,
-      imageDisplayMode: formData.get("imageDisplayMode") || "collage",
-    };
-
-    const validatedFields = RecoverySessionSchema.safeParse(rawData);
+    const validatedFields = parseRecoveryFormData(formData);
     if (!validatedFields.success) {
       return {
         success: false,

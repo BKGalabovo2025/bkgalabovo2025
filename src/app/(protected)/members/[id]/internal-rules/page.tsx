@@ -47,7 +47,7 @@ const InternalRulesPage = () => {
           </p>
         </div>
 
-        <div className="space-y-1.5 text-[8.8pt]">
+        <div className="space-y-1 text-[8pt] print:text-[8pt] print:leading-snug">
           <section>
             <h2 className="mb-0.5 font-bold underline">I. Общи положения</h2>
             <div className="space-y-0.5">

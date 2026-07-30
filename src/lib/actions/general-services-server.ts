@@ -48,7 +48,9 @@ export async function getGeneralServicesServerAction(activeBranch: string) {
     }
 
     const adminDb = getAdminDb();
-    let query: admin.firestore.Query = adminDb.collection("clubGeneralServices");
+    let query: admin.firestore.Query = adminDb.collection(
+      "clubGeneralServices"
+    );
 
     if (activeBranch && activeBranch !== "bkgalabovo") {
       query = query.where("siteId", "==", activeBranch);
@@ -66,7 +68,10 @@ export async function getGeneralServicesServerAction(activeBranch: string) {
     return { success: true, data: services };
   } catch (error: unknown) {
     console.error("Error getGeneralServicesServerAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Грешка при зареждане.",
+    };
   }
 }
 
@@ -87,7 +92,9 @@ export async function createGeneralServiceAction(
       createdBy: { userId: user.uid, userName: user.email || "Unknown" },
     };
 
-    const docRef = await adminDb.collection("clubGeneralServices").add(serviceData);
+    const docRef = await adminDb
+      .collection("clubGeneralServices")
+      .add(serviceData);
 
     const event: Omit<GeneralServiceEvent, "id"> = {
       siteId: data.siteId,
@@ -103,7 +110,10 @@ export async function createGeneralServiceAction(
     return { success: true, data: { id: docRef.id, ...serviceData } };
   } catch (error: unknown) {
     console.error("Error createGeneralServiceAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при създаване." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Грешка при създаване.",
+    };
   }
 }
 
@@ -124,7 +134,7 @@ export async function updateGeneralServiceAction(
     if (!docSnap.exists) {
       throw new Error("Услугата не е намерена.");
     }
-    
+
     const oldData = docSnap.data() as GeneralService;
 
     const updateData = {
@@ -152,7 +162,10 @@ export async function updateGeneralServiceAction(
     return { success: true };
   } catch (error: unknown) {
     console.error("Error updateGeneralServiceAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при редакция." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Грешка при редакция.",
+    };
   }
 }
 
@@ -170,7 +183,7 @@ export async function deleteGeneralServiceAction(id: string) {
     if (!docSnap.exists) {
       throw new Error("Услугата не е намерена.");
     }
-    
+
     const oldData = docSnap.data() as GeneralService;
 
     await docRef.delete();
@@ -189,7 +202,10 @@ export async function deleteGeneralServiceAction(id: string) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Error deleteGeneralServiceAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при изтриване." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Грешка при изтриване.",
+    };
   }
 }
 
@@ -199,44 +215,29 @@ export async function getGeneralServiceHistoryAction(activeBranch: string) {
     if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
-    let query: admin.firestore.Query = adminDb.collection("generalServiceHistory");
+    let query: admin.firestore.Query = adminDb.collection(
+      "generalServiceHistory"
+    );
 
     if (activeBranch && activeBranch !== "bkgalabovo") {
       query = query.where("siteId", "==", activeBranch);
     }
 
     const snapshot = await query.orderBy("createdAt", "desc").get();
-    const history = snapshot.docs.map((doc) => snapToData<GeneralServiceEvent>(doc));
+    const history = snapshot.docs.map((doc) =>
+      snapToData<GeneralServiceEvent>(doc)
+    );
 
     return { success: true, data: history };
   } catch (error: unknown) {
     console.error("Error getGeneralServiceHistoryAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане на история." };
-  }
-}
-
-export async function getGeneralServiceSalesAction(activeBranch: string) {
-  try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
-
-    const adminDb = getAdminDb();
-    let query: admin.firestore.Query = adminDb.collection("sales").where("type", "==", "general_service");
-
-    if (activeBranch && activeBranch !== "bkgalabovo") {
-      query = query.where("siteId", "==", activeBranch);
-    }
-
-    const snapshot = await query.get();
-    const sales = snapshot.docs
-      .map((doc) => snapToData<Sale>(doc))
-      .filter((s): s is Sale => s !== null)
-      .sort((a, b) => new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime());
-
-    return { success: true, data: sales };
-  } catch (error: unknown) {
-    console.error("Error getGeneralServiceSalesAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при зареждане на продажби." };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при зареждане на история.",
+    };
   }
 }
 
@@ -265,19 +266,19 @@ export async function executeGeneralServiceSaleAction(
     // 2. Създаване на събитие в историята на услугите
     const serviceId = saleData.items[0]?.productId;
     if (serviceId) {
-       const eventRef = adminDb.collection("generalServiceHistory").doc();
-       const historyEvent: Omit<GeneralServiceEvent, "id"> = {
-         siteId: saleData.siteId || "bkgalabovo",
-         serviceId: serviceId,
-         serviceName: serviceName,
-         createdAt: now,
-         type: "sale",
-         relatedSaleId: saleRef.id,
-         userId: user.uid,
-         userName: user.email || "Unknown",
-         clientName: clientName || "Неизвестен клиент",
-       };
-       batch.set(eventRef, historyEvent);
+      const eventRef = adminDb.collection("generalServiceHistory").doc();
+      const historyEvent: Omit<GeneralServiceEvent, "id"> = {
+        siteId: saleData.siteId || "bkgalabovo",
+        serviceId: serviceId,
+        serviceName: serviceName,
+        createdAt: now,
+        type: "sale",
+        relatedSaleId: saleRef.id,
+        userId: user.uid,
+        userName: user.email || "Unknown",
+        clientName: clientName || "Неизвестен клиент",
+      };
+      batch.set(eventRef, historyEvent);
     }
 
     await batch.commit();
@@ -285,7 +286,10 @@ export async function executeGeneralServiceSaleAction(
     return { success: true, saleId: saleRef.id };
   } catch (error: unknown) {
     console.error("Error executeGeneralServiceSaleAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при продажба." };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Грешка при продажба.",
+    };
   }
 }
 
@@ -306,7 +310,7 @@ export async function deleteGeneralServiceSaleAction(saleId: string) {
       .collection("generalServiceHistory")
       .where("relatedSaleId", "==", saleId)
       .get();
-      
+
     historySnapshot.docs.forEach((doc) => {
       batch.delete(doc.ref);
     });
@@ -316,6 +320,12 @@ export async function deleteGeneralServiceSaleAction(saleId: string) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Error deleteGeneralServiceSaleAction:", error);
-    return { success: false, error: error instanceof Error ? error.message : "Грешка при изтриване на продажба." };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при изтриване на продажба.",
+    };
   }
 }

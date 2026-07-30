@@ -18,11 +18,10 @@ import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/shared/data-table";
 import { ServiceMenu } from "@/components/finances/ServiceMenu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AddTrainingDialog } from "@/components/finances/AddTrainingDialog";
-import { EditTrainingDialog } from "@/components/finances/EditTrainingDialog";
-import { TrainingSaleWizardDialog } from "@/components/finances/TrainingSaleWizardDialog";
+import { UnifiedTrainingDialog } from "@/components/finances/UnifiedTrainingDialog";
+import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { TrainingHistory } from "@/components/finances/TrainingHistory";
-import { TrainingSalesHistory } from "@/components/finances/TrainingSalesHistory";
+import { TrainingSalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
 
 interface ServicesClientPageProps {
   data: Service[];
@@ -85,8 +84,7 @@ export default function ServicesClientPage({
               value="sales"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Продажби
+              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} /> Продажби
             </TabsTrigger>
           </TabsList>
 
@@ -216,13 +214,15 @@ export default function ServicesClientPage({
         </TabsContent>
       </Tabs>
 
-      <AddTrainingDialog
+      <UnifiedTrainingDialog
+        mode="add"
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onSuccess={handleSuccess}
       />
 
-      <EditTrainingDialog
+      <UnifiedTrainingDialog
+        mode="edit"
         service={editingService}
         isOpen={!!editingService}
         onClose={() => setEditingService(null)}
@@ -230,8 +230,9 @@ export default function ServicesClientPage({
       />
 
       {saleService && (
-        <TrainingSaleWizardDialog
-          service={saleService}
+        <UnifiedSaleWizardDialog
+          item={saleService}
+          mode="training"
           isOpen={!!saleService}
           onClose={() => setSaleService(null)}
           onSaleSuccess={() => {

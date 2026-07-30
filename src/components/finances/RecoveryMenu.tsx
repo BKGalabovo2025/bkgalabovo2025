@@ -2,7 +2,6 @@
 "use client";
 import React from "react";
 
-import Image from "next/image";
 import { ClubService } from "@/types";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +14,8 @@ import {
   Trash2,
   Clock,
   Users,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
+import { ImageGallery } from "@/components/shared/images/ImageGallery";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,102 +118,20 @@ const RecoveryCard = ({
     : [];
 
   const displayMode = (service as any).imageDisplayMode || "collage";
-  const [activeImgIndex, setActiveImgIndex] = React.useState(0);
-
-  // Auto-rotate for carousel
-  React.useEffect(() => {
-    if (displayMode !== "carousel" || images.length <= 1) return;
-    const interval = setInterval(() => {
-      setActiveImgIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [displayMode, images.length]);
-
-  const nextImg = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveImgIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImg = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
   const renderImages = () => {
-    if (images.length === 0) {
-      return (
-        <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-300 dark:bg-zinc-900 dark:text-zinc-800">
+    return (
+      <ImageGallery
+        images={images}
+        displayMode={displayMode}
+        altName={service.name}
+        fallbackIcon={
           <Activity
             className="size-12 text-cyan-500 opacity-30"
             strokeWidth={1}
           />
-          <span className="mt-2 text-[9px] font-semibold tracking-[0.2em] uppercase opacity-40">
-            ПРОЦЕДУРА
-          </span>
-        </div>
-      );
-    }
-    if (displayMode === "collage") {
-      return (
-        <div className="flex size-full">
-          {images.map((imgUrl: string, idx: number) => (
-            <div
-              key={imgUrl}
-              className="relative h-full overflow-hidden"
-              // eslint-disable-next-line react/forbid-dom-props
-              style={{ width: `${100 / images.length}%` }}
-            >
-              <Image
-                src={imgUrl}
-                alt={`${service.name} - ${idx + 1}`}
-                fill
-                sizes="(max-w-768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700 hover:scale-110"
-              />
-              {idx > 0 && (
-                <div className="absolute inset-y-0 left-0 z-10 w-px bg-white/30" />
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return (
-      <>
-        <Image
-          src={images[activeImgIndex]}
-          alt={`${service.name} - ${activeImgIndex + 1}`}
-          fill
-          sizes="(max-w-768px) 100vw, 33vw"
-          className="object-cover transition-transform duration-700"
-        />
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={prevImg}
-              className="absolute top-1/2 left-2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-white bg-white/60 text-zinc-700 opacity-0 shadow-xs backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-white"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <button
-              onClick={nextImg}
-              className="absolute top-1/2 right-2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-white bg-white/60 text-zinc-700 opacity-0 shadow-xs backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-white"
-            >
-              <ChevronRight size={14} />
-            </button>
-            <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
-              {images.map((_: any, i: number) => (
-                <div
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeImgIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </>
+        }
+        fallbackText="ПРОЦЕДУРА"
+      />
     );
   };
 

@@ -1,19 +1,10 @@
- 
- 
- 
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import { formatPrice } from "@/lib/currency";
 import { GeneralService } from "@/types";
-import {
-  Wrench,
-  Edit2,
-  Trash2,
-  ImageIcon,
-  Search,
-} from "lucide-react";
+import { Wrench, Edit2, Trash2, ImageIcon, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -29,21 +20,43 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
 import dynamic from "next/dynamic";
-const EditGeneralServiceDialog = dynamic(() => import("./EditGeneralServiceDialog").then(m => m.EditGeneralServiceDialog), { ssr: false });
-const GeneralServiceSaleWizardDialog = dynamic(() => import("./GeneralServiceSaleWizardDialog").then(m => m.GeneralServiceSaleWizardDialog), { ssr: false });
+const EditGeneralServiceDialog = dynamic(
+  () =>
+    import("./EditGeneralServiceDialog").then(
+      (m) => m.EditGeneralServiceDialog
+    ),
+  { ssr: false }
+);
+const UnifiedSaleWizardDialog = dynamic(
+  () =>
+    import("@/components/shared/wizard-v2/UnifiedSaleWizardDialog").then(
+      (m) => m.UnifiedSaleWizardDialog
+    ),
+  { ssr: false }
+);
 import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 import { toast } from "sonner";
-const ReservationDialog = dynamic(() => import("@/components/reservations/reservation-dialog").then(m => m.ReservationDialog), { ssr: false });
+const ReservationDialog = dynamic(
+  () =>
+    import("@/components/reservations/reservation-dialog").then(
+      (m) => m.ReservationDialog
+    ),
+  { ssr: false }
+);
 
 export function GeneralServiceList() {
   const { services, isLoading, refetch } = useGeneralServices();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedService, setSelectedService] = useState<GeneralService | null>(null);
-  
+  const [selectedService, setSelectedService] = useState<GeneralService | null>(
+    null
+  );
+
   // Dialog states
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSaleOpen, setIsSaleOpen] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState<GeneralService | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<GeneralService | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredServices = services.filter((service) =>
@@ -74,7 +87,10 @@ export function GeneralServiceList() {
     return (
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-64 animate-pulse rounded-5xl bg-zinc-100 dark:bg-zinc-900/50" />
+          <div
+            key={i}
+            className="h-64 animate-pulse rounded-5xl bg-zinc-100 dark:bg-zinc-900/50"
+          />
         ))}
       </div>
     );
@@ -109,11 +125,14 @@ export function GeneralServiceList() {
                     alt={service.name}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="object-contain p-4 transition-transform duration-1000 group-hover:scale-110"
                   />
                 ) : (
                   <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-200 dark:bg-zinc-900 dark:text-zinc-800">
-                    <ImageIcon className="mb-2 size-16 opacity-20" strokeWidth={1} />
+                    <ImageIcon
+                      className="mb-2 size-16 opacity-20"
+                      strokeWidth={1}
+                    />
                     <span className="text-[10px] font-medium tracking-[0.3em] uppercase opacity-40">
                       No Image
                     </span>
@@ -130,7 +149,10 @@ export function GeneralServiceList() {
                       setIsEditOpen(true);
                     }}
                   >
-                    <Edit2 className="size-4 text-zinc-600 dark:text-zinc-400" strokeWidth={1.5} />
+                    <Edit2
+                      className="size-4 text-zinc-600 dark:text-zinc-400"
+                      strokeWidth={1.5}
+                    />
                   </Button>
                   <Button
                     variant="secondary"
@@ -138,13 +160,20 @@ export function GeneralServiceList() {
                     className="size-10 rounded-xl border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
                     onClick={() => setServiceToDelete(service)}
                   >
-                    <Trash2 className="size-4 text-rose-500" strokeWidth={1.5} />
+                    <Trash2
+                      className="size-4 text-rose-500"
+                      strokeWidth={1.5}
+                    />
                   </Button>
                 </div>
 
                 <div className="absolute bottom-6 left-6">
                   <div className="rounded-xl border border-zinc-100 bg-white/80 px-4 py-2 text-[11px] font-medium tracking-widest text-zinc-900 uppercase backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-white">
-                    {{ fixed: "Фиксирана", per_hour: "На час", per_session: "На сесия" }[service.pricingUnit] || service.pricingUnit}
+                    {{
+                      fixed: "Фиксирана",
+                      per_hour: "На час",
+                      per_session: "На сесия",
+                    }[service.pricingUnit] || service.pricingUnit}
                   </div>
                 </div>
               </div>
@@ -171,7 +200,8 @@ export function GeneralServiceList() {
                     </span>
                   </div>
                   <div className="grid w-full grid-cols-2 gap-3">
-                    {service.name.toLowerCase().includes("наем на корт") || service.id.startsWith("court_rental") ? (
+                    {service.name.toLowerCase().includes("наем на корт") ||
+                    service.id.startsWith("court_rental") ? (
                       <ReservationDialog
                         onSave={refetch}
                         initialData={{
@@ -237,14 +267,19 @@ export function GeneralServiceList() {
         )}
       </div>
 
-      <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => !open && setServiceToDelete(null)}>
+      <AlertDialog
+        open={!!serviceToDelete}
+        onOpenChange={(open) => !open && setServiceToDelete(null)}
+      >
         <AlertDialogContent className="max-w-md rounded-5xl border-none bg-white p-10 shadow-2xl dark:bg-zinc-950">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl leading-tight font-light text-zinc-900 dark:text-white">
               Изтриване на услуга
             </AlertDialogTitle>
             <AlertDialogDescription className="mt-4 text-sm leading-relaxed font-light text-zinc-500">
-              Сигурни ли сте, че искате да изтриете услугата &quot;{serviceToDelete?.name}&quot;? Това действие не може да бъде отменено.
+              Сигурни ли сте, че искате да изтриете услугата &quot;
+              {serviceToDelete?.name}&quot;? Това действие не може да бъде
+              отменено.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-10 gap-3">
@@ -282,13 +317,14 @@ export function GeneralServiceList() {
       )}
 
       {isSaleOpen && selectedService && (
-        <GeneralServiceSaleWizardDialog
+        <UnifiedSaleWizardDialog
           isOpen={isSaleOpen}
           onClose={() => {
             setIsSaleOpen(false);
             setSelectedService(null);
           }}
-          service={selectedService}
+          item={selectedService}
+          mode="general"
           onSaleSuccess={() => {
             setIsSaleOpen(false);
             setSelectedService(null);

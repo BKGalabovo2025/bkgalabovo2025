@@ -6,14 +6,13 @@ import {
   Trophy,
   Activity,
   Package,
-  ChevronRight,
-  ChevronLeft,
   ShoppingBag,
   Zap,
   Clock,
   Users,
   Calendar,
 } from "lucide-react";
+import { ImageGallery } from "@/components/shared/images/ImageGallery";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,6 +34,16 @@ interface PublicCatalogTabsProps {
   recoveryServices?: any[];
   allowedTabs?: CatalogTab[];
 }
+
+const cleanUrl = (src: string) => {
+  if (!src) return src;
+  if (src.includes("\\public\\")) {
+    return "/" + src.split("\\public\\")[1].replace(/\\/g, "/");
+  } else if (src.includes("/public/")) {
+    return "/" + src.split("/public/")[1];
+  }
+  return src;
+};
 
 export default function PublicCatalogTabs({
   trainings,
@@ -233,27 +242,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   }, [item.imageUrl, item.name, item.zones]);
 
   const displayMode = item.imageDisplayMode || "collage";
-  const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Auto-rotate for carousel
-  React.useEffect(() => {
-    if (displayMode !== "carousel" || images.length <= 1) return;
-    const interval = setInterval(() => {
-      setActiveImgIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [displayMode, images.length]);
-
-  const nextImg = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveImgIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImg = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
 
   const getZonesDisplayText = () => {
     if (!item.zones) return null;
@@ -324,81 +313,15 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   };
 
   const renderImages = () => {
-    if (images.length === 0) {
-      return (
-        <div className="flex size-full flex-col items-center justify-center bg-zinc-900/40 text-zinc-700">
-          {getTabIcon(tab)}
-          <span className="mt-3 text-[9px] font-semibold tracking-widest uppercase opacity-40">
-            Няма снимка
-          </span>
-        </div>
-      );
-    }
-
-    if (displayMode === "collage") {
-      return (
-        <div className="flex size-full">
-          {images.map((imgUrl: string, idx: number) => (
-            <div
-              key={imgUrl}
-              className="relative h-full overflow-hidden"
-              // eslint-disable-next-line react/forbid-dom-props
-              style={{ width: `${100 / images.length}%` }}
-            >
-              <Image
-                src={imgUrl}
-                alt={`${item.name} - ${idx + 1}`}
-                fill
-                priority={true}
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              {idx > 0 && (
-                <div className="absolute inset-y-0 left-0 z-10 w-px bg-white/20" />
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
     return (
-      <>
-        <Image
-          src={images[activeImgIndex]}
-          alt={item.name}
-          sizes="(max-width: 768px) 100vw, 33vw"
-          priority={true}
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-          fill
-        />
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={prevImg}
-              className="absolute top-1/2 left-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={nextImg}
-              className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
-            >
-              <ChevronRight size={16} />
-            </button>
-            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
-              {images.map((_: any, i: number) => (
-                <div
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    activeImgIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/40"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </>
+      <ImageGallery
+        images={images}
+        displayMode={displayMode}
+        altName={item.name}
+        fallbackIcon={getTabIcon(tab)}
+        fallbackText="Няма снимка"
+        cleanUrlFn={cleanUrl}
+      />
     );
   };
 

@@ -22,10 +22,28 @@ import {
 import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import dynamic from "next/dynamic";
 
-const EditProductDialog = dynamic(() => import("@/components/inventory/EditProductDialog").then(m => m.EditProductDialog), { ssr: false });
-const ProductSaleWizardDialog = dynamic(() => import("@/components/inventory/ProductSaleWizardDialog").then(m => m.ProductSaleWizardDialog), { ssr: false });
-const InventoryHistory = dynamic(() => import("@/components/inventory/InventoryHistory"), { ssr: false });
-const InventorySalesHistory = dynamic(() => import("@/components/inventory/InventorySalesHistory"), { ssr: false });
+const EditProductDialog = dynamic(
+  () =>
+    import("@/components/inventory/EditProductDialog").then(
+      (m) => m.EditProductDialog
+    ),
+  { ssr: false }
+);
+const UnifiedSaleWizardDialog = dynamic(
+  () =>
+    import("@/components/shared/wizard-v2/UnifiedSaleWizardDialog").then(
+      (m) => m.UnifiedSaleWizardDialog
+    ),
+  { ssr: false }
+);
+const InventoryHistory = dynamic(
+  () => import("@/components/inventory/InventoryHistory"),
+  { ssr: false }
+);
+const InventorySalesHistory = dynamic(
+  () => import("@/components/inventory/InventorySalesHistory"),
+  { ssr: false }
+);
 import { useAuth } from "@/context/auth-context";
 import { formatPrice } from "@/lib/currency";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -145,8 +163,10 @@ const ProductList = () => {
               };
 
               const getStockClasses = () => {
-                if (isOutOfStock) return "bg-rose-500/10 border-rose-500/20 text-rose-500";
-                if (isLowStock) return "bg-amber-500/10 border-amber-500/20 text-amber-500";
+                if (isOutOfStock)
+                  return "bg-rose-500/10 border-rose-500/20 text-rose-500";
+                if (isLowStock)
+                  return "bg-amber-500/10 border-amber-500/20 text-amber-500";
                 return "bg-white/80 dark:bg-zinc-900/80 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-white";
               };
 
@@ -157,14 +177,27 @@ const ProductList = () => {
                 >
                   <div className="relative flex h-64 items-center justify-center overflow-hidden border-b border-zinc-50 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                     {product.imageUrl ? (
-                      <Image
-                        src={product.imageUrl}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        priority={true}
-                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                      />
+                      (() => {
+                        let src = product.imageUrl;
+                        // Defensive check for local system paths mistakenly saved in DB
+                        if (src.includes("\\public\\")) {
+                          src =
+                            "/" +
+                            src.split("\\public\\")[1].replace(/\\/g, "/");
+                        } else if (src.includes("/public/")) {
+                          src = "/" + src.split("/public/")[1];
+                        }
+                        return (
+                          <Image
+                            src={src}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            priority={true}
+                            className="object-contain p-4 transition-transform duration-1000 group-hover:scale-110"
+                          />
+                        );
+                      })()
                     ) : (
                       <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-200 dark:bg-zinc-900 dark:text-zinc-800">
                         <ImageIcon
@@ -322,13 +355,14 @@ const ProductList = () => {
       )}
 
       {isSaleOpen && saleProduct && (
-        <ProductSaleWizardDialog
+        <UnifiedSaleWizardDialog
+          item={saleProduct}
+          mode="product"
           isOpen={isSaleOpen}
           onClose={() => {
             setIsSaleOpen(false);
             setSaleProduct(null);
           }}
-          product={saleProduct}
           onSaleSuccess={() => {
             setIsSaleOpen(false);
             setSaleProduct(null);
@@ -351,7 +385,10 @@ function LowStockBanner() {
   );
 
   const getNamesString = (list: typeof products) => {
-    const names = list.map((p) => p.name).slice(0, 3).join(", ");
+    const names = list
+      .map((p) => p.name)
+      .slice(0, 3)
+      .join(", ");
     return list.length > 3 ? `${names} (+${list.length - 3})` : names;
   };
 
@@ -382,7 +419,9 @@ function LowStockBanner() {
         </div>
       )}
       <p className="ml-auto hidden text-[10px] font-medium text-zinc-500 sm:block dark:text-zinc-400">
-        {outOfStock.length > 0 ? getNamesString(outOfStock) : getNamesString(lowStock)}
+        {outOfStock.length > 0
+          ? getNamesString(outOfStock)
+          : getNamesString(lowStock)}
       </p>
     </div>
   );
@@ -431,8 +470,7 @@ export default function InventoryClient({
               value="inventory"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
             >
-              <LayoutGrid className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Наличност
+              <LayoutGrid className="mr-3 size-4" strokeWidth={1.5} /> Наличност
             </TabsTrigger>
             <TabsTrigger
               value="history"
@@ -444,8 +482,7 @@ export default function InventoryClient({
               value="sales"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Продажби
+              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} /> Продажби
             </TabsTrigger>
           </TabsList>
 

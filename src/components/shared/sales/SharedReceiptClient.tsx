@@ -14,10 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatPrice } from "@/lib/currency";
 import { formatFullName } from "@/lib/utils";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import { Member, ClubService, Sale, Family } from "@/types";
-
 
 interface ReceiptCopyProps {
   label: string;
@@ -471,130 +468,11 @@ export function SharedReceiptClient({
 
     try {
       setIsGeneratingPDF(true);
-
-      // 1. Събираме всички активни CSS правила от браузъра и премахваме lab/oklch
-      let allCSS = "";
-      for (let i = 0; i < document.styleSheets.length; i++) {
-        const sheet = document.styleSheets[i];
-        try {
-          const rules = sheet.cssRules || sheet.rules;
-          for (let j = 0; j < rules.length; j++) {
-            allCSS += rules[j].cssText + "\n";
-          }
-        } catch {
-          // Игнорираме защитени с CORS външни стилове
-        }
-      }
-      const cleanCSS = allCSS
-        .replace(
-          /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "color: rgb(15, 23, 42)"
-        )
-        .replace(
-          /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "background-color: transparent"
-        )
-        .replace(
-          /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-          "border-color: rgb(203, 213, 225)"
-        )
-        .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-
-      const element = receiptRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        onclone: (clonedDoc: Document) => {
-          // Премахваме оригиналните link stylesheets, за да не ги тегли html2canvas
-          const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
-          linkTags.forEach((link) => link.remove());
-
-          // Инжектираме пълния изчистен CSS (Tailwind класове)
-          const styleEl = clonedDoc.createElement("style");
-          styleEl.textContent =
-            cleanCSS +
-            "\n" +
-            `
-            * {
-              font-family: Arial, Helvetica, sans-serif !important;
-              word-spacing: 2px !important;
-            }
-          `;
-          clonedDoc.head.appendChild(styleEl);
-
-          // 2. Почистваме съществуващите style тагове
-          const styleTags = clonedDoc.querySelectorAll("style");
-          styleTags.forEach((style) => {
-            if (style.innerHTML) {
-              style.innerHTML = style.innerHTML
-                .replace(
-                  /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "color: rgb(15, 23, 42)"
-                )
-                .replace(
-                  /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "background-color: transparent"
-                )
-                .replace(
-                  /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                  "border-color: rgb(203, 213, 225)"
-                )
-                .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-            }
-          });
-
-          // 3. Почистваме inline стиловете на всички DOM елементи
-          const allElements = clonedDoc.querySelectorAll("*");
-          allElements.forEach((el) => {
-            const styleAttr = el.getAttribute("style");
-            if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
-              el.setAttribute(
-                "style",
-                styleAttr
-                  .replace(
-                    /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "color: rgb(15, 23, 42)"
-                  )
-                  .replace(
-                    /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "background-color: transparent"
-                  )
-                  .replace(
-                    /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                    "border-color: rgb(203, 213, 225)"
-                  )
-                  .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
-              );
-            }
-          });
-        },
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = 297; // A4 height in mm
-      let imgWidth = pdfWidth;
-      let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      if (imgHeight > pageHeight) {
-        const ratio = pageHeight / imgHeight;
-        imgHeight = pageHeight;
-        imgWidth = imgWidth * ratio;
-      }
-
-      const x = (pdfWidth - imgWidth) / 2;
-      pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
-      pdf.save(`receipt-${saleId.substring(0, 8)}.pdf`);
-
+      const { generatePdfFromElement } = await import("@/lib/html-to-pdf");
+      await generatePdfFromElement(
+        receiptRef.current,
+        `receipt-${saleId.substring(0, 8)}.pdf`
+      );
       toast.success("PDF документът е генериран успешно!");
     } catch (err) {
       console.error("PDF generation error:", err);
@@ -651,9 +529,23 @@ export function SharedReceiptClient({
               variant="outline"
               size="icon"
               className="size-12 rounded-2xl border-zinc-200 hover:bg-zinc-100"
-              onClick={() => window.location.href = backUrl}
+              onClick={() => (window.location.href = backUrl)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-arrow-left"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
             </Button>
             <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
               <BadgeCheck className="size-6 text-white" />

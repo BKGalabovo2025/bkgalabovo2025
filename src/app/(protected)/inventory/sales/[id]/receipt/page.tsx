@@ -1,4 +1,4 @@
-import { getReceiptDetailsServerAction } from "@/lib/actions/sales-server";
+import { getReceiptDetailsServerAction } from "@/lib/actions/sales";
 import ReceiptClientPage from "./ReceiptClientPage";
 import { PageHeader } from "@/components/layout/page-header";
 import { notFound } from "next/navigation";
@@ -16,7 +16,6 @@ export default async function ReceiptPage({ params }: PageProps) {
   if (!result.success || !result.data) {
     notFound();
   }
-
 
   return (
     <div className="space-y-8 pb-12 duration-500 animate-in fade-in">

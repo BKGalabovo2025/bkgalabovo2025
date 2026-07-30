@@ -1,5 +1,3 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -19,16 +17,16 @@ import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 import {
   updateGeneralServiceAction,
   getGeneralServiceHistoryAction,
-  getGeneralServiceSalesAction,
 } from "@/lib/actions/general-services-server";
+import { getServiceSalesAction } from "@/lib/actions/sales";
 import { useAppStore } from "@/store/use-app-store";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Wrench, Sparkles, Loader2 } from "lucide-react";
+import { Wrench, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllMembers } from "@/services/member-service";
-import { formatDateTimeDisplay } from "@/lib/date-utils";
-import { Badge } from "@/components/ui/badge";
+import { GenericSalesTab } from "@/components/shared/history-tabs/GenericSalesTab";
+import { GenericMovementsTab } from "@/components/shared/history-tabs/GenericMovementsTab";
 import { formatPrice } from "@/lib/currency";
 import {
   Select,
@@ -59,9 +57,13 @@ export const EditGeneralServiceDialog = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [pricingUnit, setPricingUnit] = useState<"fixed" | "per_hour" | "per_session">("fixed");
+  const [pricingUnit, setPricingUnit] = useState<
+    "fixed" | "per_hour" | "per_session"
+  >("fixed");
   const [performerName, setPerformerName] = useState("");
-  const [performerType, setPerformerType] = useState<"internal" | "external">("internal");
+  const [performerType, setPerformerType] = useState<"internal" | "external">(
+    "internal"
+  );
   const [imageUrl, setImageUrl] = useState("");
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -83,15 +85,22 @@ export const EditGeneralServiceDialog = ({
           const historyRes = await getGeneralServiceHistoryAction(activeBranch);
           if (historyRes.success && historyRes.data) {
             const filteredEvents = historyRes.data.filter(
-              (e): e is import("@/types").GeneralServiceEvent => e !== null && e.serviceId === service.id
+              (e): e is import("@/types").GeneralServiceEvent =>
+                e !== null && e.serviceId === service.id
             );
             setMovements(filteredEvents);
           }
 
           // Fetch sales
-          const salesRes = await getGeneralServiceSalesAction(activeBranch);
+          const salesRes = await getServiceSalesAction(
+            "general_service",
+            activeBranch
+          );
           if (salesRes.success && salesRes.data) {
-            const filteredSales = filterSalesForService(salesRes.data, service.id);
+            const filteredSales = filterSalesForService(
+              salesRes.data,
+              service.id
+            );
             setSales(filteredSales);
           }
 
@@ -185,7 +194,9 @@ export const EditGeneralServiceDialog = ({
       const result = await updateGeneralServiceAction(service.id, serviceData);
 
       if (result.success) {
-        toast.success("Успех!", { description: "Информацията е запазена успешно." });
+        toast.success("Успех!", {
+          description: "Информацията е запазена успешно.",
+        });
         onServiceUpdate();
         onClose();
       } else {
@@ -201,132 +212,36 @@ export const EditGeneralServiceDialog = ({
   };
 
   const renderMovementsContent = () => {
-    if (historyLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center space-y-4 py-20">
-          <Loader2 className="size-8 animate-spin text-amber-500 opacity-35" />
-          <p className="text-xs font-light text-zinc-400">
-            Зареждане на движения...
-          </p>
-        </div>
-      );
-    }
-    if (movements.length === 0) {
-      return (
-        <div className="py-20 text-center text-xs font-light text-zinc-400">
-          Няма записани движения за тази услуга.
-        </div>
-      );
-    }
     return (
-      <div className="space-y-3">
-        {movements.map((move) => {
-          return (
-            <div
-              key={move.id}
-              className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-400">
-                  {formatDateTimeDisplay(move.createdAt)}
-                </span>
-                <Badge
-                  className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${getEventBadgeClass(
-                    move.type
-                  )}`}
-                >
-                  {getEventLabel(move.type)}
-                </Badge>
-              </div>
-              {move.oldPrice !== undefined && move.newPrice !== undefined && (
-                <div className="flex items-center justify-between text-[11px] text-zinc-500">
-                  <span>Промяна на цена:</span>
-                  <span>
-                    {formatPrice(move.oldPrice)} &rarr; {formatPrice(move.newPrice)}
-                  </span>
-                </div>
-              )}
-              <div className="mt-1 text-right text-[10px] text-zinc-400/80">
-                Оператор: {move.userName}
-              </div>
+      <GenericMovementsTab
+        loading={historyLoading}
+        movements={movements}
+        emptyMessage="Няма записани движения за тази услуга."
+        getEventLabel={getEventLabel}
+        getEventBadgeClass={getEventBadgeClass}
+        renderDetails={(move) =>
+          move.oldPrice !== undefined && move.newPrice !== undefined ? (
+            <div className="flex items-center justify-between text-[11px] text-zinc-500">
+              <span>Промяна на цена:</span>
+              <span>
+                {formatPrice(move.oldPrice)} &rarr; {formatPrice(move.newPrice)}
+              </span>
             </div>
-          );
-        })}
-      </div>
+          ) : null
+        }
+      />
     );
   };
 
   const renderSalesContent = () => {
-    if (historyLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center space-y-4 py-20">
-          <Loader2 className="size-8 animate-spin text-emerald-500 opacity-35" />
-          <p className="text-xs font-light text-zinc-400">
-            Зареждане на продажби...
-          </p>
-        </div>
-      );
-    }
-    if (sales.length === 0) {
-      return (
-        <div className="py-20 text-center text-xs font-light text-zinc-400">
-          Няма записани продажби за тази услуга.
-        </div>
-      );
-    }
     return (
-      <div className="space-y-3">
-        {sales.map((sale) => {
-          const item = sale.items.find(
-            (i) => i.productId === service?.id
-          );
-          const memberName =
-            sale.memberId === "GUEST_EXTERNAL"
-              ? "Външен клиент"
-              : membersMap[sale.memberId] || "Зареден Член";
-          return (
-            <div
-              key={sale.id}
-              className="space-y-2 rounded-2xl border border-zinc-100/50 bg-zinc-50 p-4 text-xs dark:border-zinc-900 dark:bg-zinc-900/30"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-400">
-                  {new Date(sale.saleDate).toLocaleDateString(
-                    "bg-BG"
-                  )}
-                </span>
-                <Badge
-                  className={`rounded border-none px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-none ${
-                    sale.isPaid
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
-                      : "bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400"
-                  }`}
-                >
-                  {sale.isPaid ? "Платено" : "Неплатено"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-500">Клиент:</span>
-                <span className="font-semibold text-zinc-900 dark:text-white">
-                  {memberName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-500">Брой:</span>
-                <span className="font-medium">
-                  {item?.quantity || 1} бр.
-                </span>
-              </div>
-              <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1 dark:border-zinc-800/50">
-                <span className="text-zinc-500">Сума:</span>
-                <span className="font-bold text-emerald-500">
-                  {formatPrice(sale.totalAmount)}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <GenericSalesTab
+        loading={historyLoading}
+        sales={sales}
+        targetId={service?.id || ""}
+        membersMap={membersMap}
+        emptyMessage="Няма записани продажби за тази услуга."
+      />
     );
   };
 
@@ -357,7 +272,10 @@ export const EditGeneralServiceDialog = ({
 
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-name" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label
+                  htmlFor="edit-name"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
                   Име на услугата *
                 </Label>
                 <Input
@@ -372,7 +290,10 @@ export const EditGeneralServiceDialog = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-price" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <Label
+                    htmlFor="edit-price"
+                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                  >
                     Цена (EUR) *
                   </Label>
                   <Input
@@ -387,7 +308,10 @@ export const EditGeneralServiceDialog = ({
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-pricingUnit" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <Label
+                    htmlFor="edit-pricingUnit"
+                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                  >
                     Ценообразуване *
                   </Label>
                   <Select
@@ -409,7 +333,10 @@ export const EditGeneralServiceDialog = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-performerName" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <Label
+                    htmlFor="edit-performerName"
+                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                  >
                     Изпълнител *
                   </Label>
                   <Input
@@ -422,7 +349,10 @@ export const EditGeneralServiceDialog = ({
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-performerType" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <Label
+                    htmlFor="edit-performerType"
+                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                  >
                     Тип изпълнител *
                   </Label>
                   <Select
@@ -442,7 +372,10 @@ export const EditGeneralServiceDialog = ({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="edit-imageUrl" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label
+                  htmlFor="edit-imageUrl"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
                   Изображение URL (Снимка)
                 </Label>
                 <Input
@@ -456,7 +389,10 @@ export const EditGeneralServiceDialog = ({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="edit-description" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label
+                  htmlFor="edit-description"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
                   Описание
                 </Label>
                 <Textarea

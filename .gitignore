@@ -67,3 +67,7 @@ public/worker-*.js.map
 
 *.msi
 *.log
+
+# Local Java Installation
+/jdk/
+jdk.zip

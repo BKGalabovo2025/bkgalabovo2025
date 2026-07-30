@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BentoCard } from "@/components/ui/bento-card";
 import { GeneralServiceList } from "@/components/finances/GeneralServiceList";
 import { GeneralServiceHistory } from "@/components/finances/GeneralServiceHistory";
-import { GeneralServiceSalesHistory } from "@/components/finances/GeneralServiceSalesHistory";
+import { GeneralServiceSalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
 import { AddGeneralServiceDialog } from "@/components/finances/AddGeneralServiceDialog";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
 
@@ -68,8 +68,7 @@ export default function GeneralServicesClient({
               value="sales"
               className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} />{" "}
-              Продажби
+              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} /> Продажби
             </TabsTrigger>
           </TabsList>
 

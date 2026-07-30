@@ -9,45 +9,36 @@ import { Sparkles, Loader2, Receipt, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
 import { clubInfo } from "@/config/club";
-import { Member, ScheduleEvent } from "@/types";
-interface WizardStep4SharedProps {
-  step: number;
-  isGuestSale: boolean;
-  clientDisplayName: string;
-  service: { name: string; [key: string]: unknown } | null;
-  paymentMode: "subscription" | "individual";
-  selectedMonthKeys: string[];
-  selectedMonthLabels: string[];
-  selectedEventIds: string[];
-  paymentMethod: string;
-  isPaid: boolean;
-  note: string;
-  totalAmount: number;
-  completedSaleId: string | null;
-  selectedMember: Member | null;
-  memberEvents: ScheduleEvent[];
-  /** Term used in UI, e.g., "процедури" or "тренировки" */
-  itemNamePlural: string;
-}
+import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
-export const WizardStep4Shared = ({
-  step,
-  isGuestSale,
-  clientDisplayName,
-  service,
-  paymentMode,
-  selectedMonthKeys,
-  selectedMonthLabels,
-  selectedEventIds,
-  paymentMethod,
-  isPaid,
-  note,
-  totalAmount,
-  completedSaleId,
-  selectedMember,
-  memberEvents,
-  itemNamePlural,
-}: WizardStep4SharedProps) => {
+// eslint-disable-next-line sonarjs/cognitive-complexity
+export const UnifiedWizardStep4 = () => {
+  const {
+    item,
+    mode,
+    step,
+    isGuestSale,
+    clientDisplayName,
+    paymentMode,
+    selectedMonthKeys,
+    selectedMonthLabels,
+    selectedEventIds,
+    paymentMethod,
+    isPaid,
+    note,
+    totalAmount,
+    completedSaleId,
+    selectedMember,
+    memberEvents,
+  } = useUnifiedSaleWizard();
+
+  // eslint-disable-next-line sonarjs/no-nested-conditional
+  const itemNamePlural =
+    mode === "recovery"
+      ? "процедури"
+      : mode === "product"
+        ? "продукти"
+        : "услуги/тренировки";
   // If in processing step
   if (step === 5) {
     return (
@@ -103,18 +94,22 @@ export const WizardStep4Shared = ({
               </div>
             </div>
 
-            <div className="mb-3 flex items-start justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-2.5 text-[9px] dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div>
-                <p className="mb-0.5 text-[8px] font-bold tracking-widest text-zinc-400 uppercase">
-                  Получател
+            <div className="flex-1 space-y-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
+                  КЛИЕНТ
                 </p>
-                <p className="font-bold text-zinc-800 uppercase dark:text-zinc-200">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   {clientDisplayName}
                 </p>
               </div>
-              <div className="text-right text-zinc-600 dark:text-zinc-400">
-                <p className="mb-0.5 text-[8px] font-bold tracking-widest text-zinc-400 uppercase">
-                  Детайли за плащане
+
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
+                  УСЛУГА
+                </p>
+                <p className="mt-1 text-[11px] font-semibold text-zinc-900 dark:text-zinc-100">
+                  {item?.name}
                 </p>
                 <p className="font-bold">
                   Дата: {new Date().toLocaleDateString("bg-BG")} г.
@@ -148,7 +143,7 @@ export const WizardStep4Shared = ({
                 <tbody>
                   <tr className="border-b border-zinc-200 font-medium dark:border-zinc-800">
                     <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
-                      {service?.name}
+                      {item?.name}
                       {!isGuestSale &&
                         paymentMode === "subscription" &&
                         selectedMonthKeys.length > 0 &&
@@ -271,7 +266,7 @@ export const WizardStep4Shared = ({
         <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
           <span className="text-zinc-500">Услуга</span>
           <span className="font-bold text-zinc-900 dark:text-white">
-            {service?.name}
+            {item?.name}
           </span>
         </div>
         {!isGuestSale && (
@@ -296,7 +291,9 @@ export const WizardStep4Shared = ({
               )}
             {paymentMode === "individual" && selectedEventIds.length > 0 && (
               <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
-                <span className="text-zinc-500 capitalize">{itemNamePlural}</span>
+                <span className="text-zinc-500 capitalize">
+                  {itemNamePlural}
+                </span>
                 <span className="font-bold text-blue-600">
                   {selectedEventIds.length} {itemNamePlural}
                   {(() => {

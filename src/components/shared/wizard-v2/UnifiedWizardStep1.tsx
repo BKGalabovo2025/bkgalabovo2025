@@ -1,7 +1,6 @@
 "use client";
 
-import { useGeneralWizard } from "./GeneralWizardContext";
-import { User, Search, Check, PlusCircle, Loader2 } from "lucide-react";
+import { Check, Loader2, Search, PlusCircle, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,14 +10,41 @@ import { createMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 import { Member } from "@/types";
+import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
-export const GeneralWizardStep1 = () => {
+export function getMemberButtonClass(
+  isSelected: boolean,
+  clientTypeTab: "member" | "guest"
+): string {
+  const base =
+    "w-full text-left px-5 py-3.5 flex justify-between items-center transition-colors text-sm font-light";
+  if (!isSelected)
+    return `${base} hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200`;
+  if (clientTypeTab === "guest")
+    return `${base} bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300`;
+  return `${base} bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300`;
+}
+
+export function getMemberAvatarClass(
+  isSelected: boolean,
+  clientTypeTab: "member" | "guest"
+): string {
+  const base =
+    "h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-semibold shrink-0";
+  if (!isSelected) return `${base} bg-zinc-100 dark:bg-zinc-800 text-zinc-500`;
+  if (clientTypeTab === "guest") return `${base} bg-amber-500 text-white`;
+  return `${base} bg-emerald-500 text-white`;
+}
+
+// eslint-disable-next-line sonarjs/cognitive-complexity
+export const UnifiedWizardStep1 = () => {
   const {
     showNewGuestForm,
     setShowNewGuestForm,
     clientTypeTab,
     setClientTypeTab,
     setSelectedMember,
+    setIsGuestSale,
     newGuestFirstName,
     setNewGuestFirstName,
     newGuestLastName,
@@ -36,7 +62,8 @@ export const GeneralWizardStep1 = () => {
     selectedMember,
     setMembers,
     setStep,
-  } = useGeneralWizard();
+    mode,
+  } = useUnifiedSaleWizard();
 
   const { idToken } = useAuth();
   const { activeBranch } = useAppStore();
@@ -78,6 +105,7 @@ export const GeneralWizardStep1 = () => {
 
         setMembers((prev) => [newGuestObj, ...prev]);
         setSelectedMember(newGuestObj);
+        setIsGuestSale(true);
 
         toast.success("Успех!", {
           description: "Външният клиент беше регистриран и избран успешно.",
@@ -88,11 +116,14 @@ export const GeneralWizardStep1 = () => {
         setNewGuestLastName("");
         setNewGuestPhone("");
         setNewGuestEmail("");
-        setStep(2);
+        // Guests bypass Step 2 (Attendance) only if mode requires attendance
+        if (mode === "training" || mode === "recovery") {
+          setStep(3);
+        } else {
+          setStep(2);
+        }
       } else {
-        toast.error("Грешка при регистрация", {
-          description: result.message,
-        });
+        toast.error("Грешка при регистрация", { description: result.message });
       }
     } catch (err) {
       console.error("Error creating quick guest:", err);
@@ -102,33 +133,14 @@ export const GeneralWizardStep1 = () => {
     }
   };
 
-  const getTabClasses = (isActive: boolean) => {
-    return cn(
-      "flex-1 rounded-lg py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
-      isActive
-        ? "bg-white font-bold text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
-        : "text-zinc-500 hover:text-zinc-700"
-    );
-  };
-
-  const getMemberButtonClasses = (isSelected: boolean, isGuestTab: boolean) => {
-    if (!isSelected) return "hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200";
-    return isGuestTab 
-      ? "bg-amber-500/10 text-amber-950 dark:bg-amber-950/20 dark:text-amber-300"
-      : "bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300";
-  };
-
-  const getMemberAvatarClasses = (isSelected: boolean, isGuestTab: boolean) => {
-    if (!isSelected) return "bg-zinc-100 dark:bg-zinc-800 text-zinc-500";
-    return isGuestTab ? "bg-amber-500 text-white" : "bg-emerald-500 text-white";
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-900">
         <div className="flex items-center gap-2">
           <User className="size-4 text-emerald-500" strokeWidth={1.5} />
-          <h3 className="text-zinc-955 text-sm font-semibold dark:text-zinc-50">Избор на клиент</h3>
+          <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+            Избор на клиент
+          </h3>
         </div>
       </div>
 
@@ -140,7 +152,9 @@ export const GeneralWizardStep1 = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-zinc-500 uppercase">Име *</Label>
+              <Label className="text-[10px] font-bold text-zinc-500 uppercase">
+                Име *
+              </Label>
               <Input
                 placeholder="Име"
                 value={newGuestFirstName}
@@ -149,7 +163,9 @@ export const GeneralWizardStep1 = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-zinc-500 uppercase">Фамилия *</Label>
+              <Label className="text-[10px] font-bold text-zinc-500 uppercase">
+                Фамилия *
+              </Label>
               <Input
                 placeholder="Фамилия"
                 value={newGuestLastName}
@@ -161,7 +177,9 @@ export const GeneralWizardStep1 = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-zinc-500 uppercase">Телефон *</Label>
+              <Label className="text-[10px] font-bold text-zinc-500 uppercase">
+                Телефон *
+              </Label>
               <Input
                 placeholder="Телефон"
                 value={newGuestPhone}
@@ -170,7 +188,9 @@ export const GeneralWizardStep1 = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-zinc-500 uppercase">Имейл</Label>
+              <Label className="text-[10px] font-bold text-zinc-500 uppercase">
+                Имейл
+              </Label>
               <Input
                 placeholder="Имейл (по избор)"
                 value={newGuestEmail}
@@ -198,7 +218,9 @@ export const GeneralWizardStep1 = () => {
               onClick={handleRegisterGuest}
               className="rounded-xl bg-amber-500 text-xs text-white animate-in hover:bg-amber-600"
             >
-              {isSavingNewGuest && <Loader2 className="mr-1 size-3 animate-spin" />}
+              {isSavingNewGuest && (
+                <Loader2 className="mr-1 size-3 animate-spin" />
+              )}
               Регистрирай и избери
             </Button>
           </div>
@@ -211,8 +233,14 @@ export const GeneralWizardStep1 = () => {
               onClick={() => {
                 setClientTypeTab("member");
                 setSelectedMember(null);
+                setIsGuestSale(false);
               }}
-              className={getTabClasses(clientTypeTab === "member")}
+              className={cn(
+                "flex-1 rounded-lg py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
+                clientTypeTab === "member"
+                  ? "bg-white font-bold text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-700"
+              )}
             >
               Клубни членове
             </button>
@@ -221,8 +249,14 @@ export const GeneralWizardStep1 = () => {
               onClick={() => {
                 setClientTypeTab("guest");
                 setSelectedMember(null);
+                setIsGuestSale(true);
               }}
-              className={getTabClasses(clientTypeTab === "guest")}
+              className={cn(
+                "flex-1 rounded-lg py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
+                clientTypeTab === "guest"
+                  ? "bg-white font-bold text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-700"
+              )}
             >
               Външни клиенти (Гости)
             </button>
@@ -230,9 +264,16 @@ export const GeneralWizardStep1 = () => {
 
           <div className="flex gap-2">
             <div className="group relative flex-1">
-              <Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-emerald-500" strokeWidth={1.5} />
+              <Search
+                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400 transition-colors group-focus-within:text-emerald-500"
+                strokeWidth={1.5}
+              />
               <Input
-                placeholder={clientTypeTab === "guest" ? "Търсене на външен гост..." : "Търсене на член по име..."}
+                placeholder={
+                  clientTypeTab === "guest"
+                    ? "Търсене на външен гост..."
+                    : "Търсене на член по име..."
+                }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-11 rounded-xl border-zinc-200 pl-11 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
@@ -252,10 +293,12 @@ export const GeneralWizardStep1 = () => {
           {membersLoading ? (
             <div className="flex flex-col items-center justify-center space-y-4 py-16">
               <Loader2 className="size-8 animate-spin text-emerald-500 opacity-30" />
-              <p className="text-xs font-light text-zinc-400">Зареждане на списъка...</p>
+              <p className="text-xs font-light text-zinc-400">
+                Зареждане на списъка...
+              </p>
             </div>
           ) : (
-            <div className="custom-scrollbar max-h-55 divide-y divide-zinc-50 overflow-y-auto rounded-2xl border border-zinc-100 dark:divide-zinc-900 dark:border-zinc-900">
+            <div className="custom-scrollbar max-h-60 divide-y divide-zinc-50 overflow-y-auto rounded-2xl border border-zinc-100 dark:divide-zinc-900 dark:border-zinc-900">
               {filteredMembers.length === 0 ? (
                 <div className="p-8 text-center text-xs font-light text-zinc-400">
                   {clientTypeTab === "guest"
@@ -263,18 +306,29 @@ export const GeneralWizardStep1 = () => {
                     : "Няма намерени членове по този критерий."}
                 </div>
               ) : (
-                filteredMembers.map((member) => {
+                filteredMembers.map((member: Member) => {
                   const isSelected = selectedMember?.id === member.id;
-                  const isGuestTab = clientTypeTab === "guest";
+                  const buttonClass = getMemberButtonClass(
+                    isSelected,
+                    clientTypeTab
+                  );
+                  const avatarClass = getMemberAvatarClass(
+                    isSelected,
+                    clientTypeTab
+                  );
+
                   return (
                     <button
                       key={member.id}
                       type="button"
-                      onClick={() => setSelectedMember(member)}
-                      className={`flex w-full items-center justify-between px-5 py-3.5 text-left text-sm font-light transition-colors ${getMemberButtonClasses(isSelected, isGuestTab)}`}
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setIsGuestSale(member.isGuest || false);
+                      }}
+                      className={buttonClass}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-semibold", getMemberAvatarClasses(isSelected, isGuestTab))}>
+                        <div className={avatarClass}>
                           {member.firstName[0]}
                           {member.lastName[0]}
                         </div>
@@ -287,7 +341,16 @@ export const GeneralWizardStep1 = () => {
                           </span>
                         </div>
                       </div>
-                      {isSelected && <Check className={cn("size-4 shrink-0", isGuestTab ? "text-amber-500" : "text-emerald-500")} />}
+                      {isSelected && (
+                        <Check
+                          className={cn(
+                            "size-4 shrink-0",
+                            clientTypeTab === "guest"
+                              ? "text-amber-500"
+                              : "text-emerald-500"
+                          )}
+                        />
+                      )}
                     </button>
                   );
                 })

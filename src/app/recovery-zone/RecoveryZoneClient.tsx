@@ -358,6 +358,7 @@ export default function RecoveryZoneClient({
                     src="/zones/legs.webp"
                     alt="Приставки за крака"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
                   />
                 </div>
@@ -388,6 +389,7 @@ export default function RecoveryZoneClient({
                     src="/zones/pelvis.webp"
                     alt="Приставка за таз"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
                   />
                 </div>
@@ -418,6 +420,7 @@ export default function RecoveryZoneClient({
                     src="/zones/arm.png"
                     alt="Приставки за ръце"
                     fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
                   />
                 </div>
@@ -601,6 +604,7 @@ export default function RecoveryZoneClient({
                   src={hallImages[activeImage]}
                   alt="Recovery Zone Center"
                   fill
+                  sizes="(max-width: 1200px) 100vw, 1200px"
                   className="bg-zinc-950 object-contain"
                 />
               </motion.div>

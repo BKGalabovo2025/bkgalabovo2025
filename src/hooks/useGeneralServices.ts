@@ -7,14 +7,14 @@ import { useAppStore } from "@/store/use-app-store";
 import {
   getGeneralServicesServerAction,
   getGeneralServiceHistoryAction,
-  getGeneralServiceSalesAction,
 } from "@/lib/actions/general-services-server";
+import { getServiceSalesAction } from "@/lib/actions/sales";
 
 export function useGeneralServices() {
   const [services, setServices] = useState<GeneralService[]>([]);
   const [events, setEvents] = useState<GeneralServiceEvent[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { activeBranch } = useAppStore();
@@ -26,7 +26,7 @@ export function useGeneralServices() {
       const [servicesRes, eventsRes, salesRes] = await Promise.all([
         getGeneralServicesServerAction(activeBranch),
         getGeneralServiceHistoryAction(activeBranch),
-        getGeneralServiceSalesAction(activeBranch),
+        getServiceSalesAction("general_service", activeBranch),
       ]);
 
       if (servicesRes.success && servicesRes.data) {
@@ -36,7 +36,11 @@ export function useGeneralServices() {
       }
 
       if (eventsRes.success && eventsRes.data) {
-        setEvents(eventsRes.data.filter((e): e is import("@/types").GeneralServiceEvent => e !== null));
+        setEvents(
+          eventsRes.data.filter(
+            (e): e is import("@/types").GeneralServiceEvent => e !== null
+          )
+        );
       } else {
         throw new Error(eventsRes.error || "Failed to fetch events");
       }
@@ -48,7 +52,8 @@ export function useGeneralServices() {
       }
     } catch (err: unknown) {
       console.error("Error fetching general services data:", err);
-      const message = err instanceof Error ? err.message : "Грешка при зареждане на данни";
+      const message =
+        err instanceof Error ? err.message : "Грешка при зареждане на данни";
       setError(message);
       toast.error("Грешка при зареждане на данни");
     } finally {

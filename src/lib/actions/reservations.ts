@@ -275,7 +275,8 @@ async function checkRecoveryInventory(
   db: any,
   validated: any,
   startTime: any,
-  endTime: any
+  endTime: any,
+  ignoreReservationId?: string
 ): Promise<string | null> {
   if (validated.siteId !== "recoveryzone" || !validated.usedResources)
     return null;
@@ -301,6 +302,7 @@ async function checkRecoveryInventory(
     usedHips = 0;
 
   overlappingRes.docs.forEach((doc: any) => {
+    if (ignoreReservationId && doc.id === ignoreReservationId) return;
     const res = doc.data();
     if (res.endTime > startTime && res.usedResources) {
       usedComp += res.usedResources.compressors || 0;

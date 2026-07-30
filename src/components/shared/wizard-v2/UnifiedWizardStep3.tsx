@@ -1,22 +1,26 @@
 "use client";
 
-import { useTrainingWizard } from "./TrainingWizardContext";
+import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 import {
   CreditCard,
   Banknote,
   Smartphone,
   Check,
   AlertCircle,
+  Hash,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-export const TrainingWizardStep3 = () => {
+export const UnifiedWizardStep3 = () => {
   const {
+    mode,
     price,
     setPrice,
+    quantity,
+    setQuantity,
     paymentMethod,
     setPaymentMethod,
     isPaid,
@@ -25,7 +29,9 @@ export const TrainingWizardStep3 = () => {
     setNote,
     saleDate,
     setSaleDate,
-  } = useTrainingWizard();
+  } = useUnifiedSaleWizard();
+
+  const showQuantity = mode === "product" || mode === "general";
 
   return (
     <div className="space-y-6">
@@ -37,22 +43,46 @@ export const TrainingWizardStep3 = () => {
       </div>
 
       <div className="grid gap-5">
-        <div className="grid gap-2">
-          <Label
-            htmlFor="sale-price"
-            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-          >
-            Сума (EUR) *
-          </Label>
-          <Input
-            id="sale-price"
-            type="number"
-            min="0"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="h-11 rounded-xl border-zinc-200"
-          />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label
+              htmlFor="sale-price"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
+              Сума (EUR) *
+            </Label>
+            <Input
+              id="sale-price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="h-11 rounded-xl border-zinc-200"
+            />
+          </div>
+          {showQuantity && (
+            <div className="grid gap-2">
+              <Label
+                htmlFor="sale-qty"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
+                Количество *
+              </Label>
+              <div className="relative">
+                <Hash className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  id="sale-qty"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="h-11 rounded-xl border-zinc-200 pl-9"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-2">
@@ -106,53 +136,49 @@ export const TrainingWizardStep3 = () => {
               className={cn(
                 "flex flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition-all",
                 !isPaid
-                  ? "border-rose-500 bg-rose-500 text-white"
+                  ? "border-amber-500 bg-amber-500 text-white"
                   : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
               )}
             >
               <AlertCircle className="size-4" strokeWidth={2} />
-              Неплатено (Дълг)
+              Висящо (Дълг)
             </button>
           </div>
         </div>
 
-        {isPaid && (
-          <div className="grid gap-2">
-            <Label
-              htmlFor="sale-date"
-              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-            >
-              Дата на плащане *
-            </Label>
-            <Input
-              id="sale-date"
-              type="date"
-              value={
-                saleDate ? new Date(saleDate).toISOString().split("T")[0] : ""
-              }
-              onChange={(e) => {
-                if (e.target.value) {
-                  setSaleDate(new Date(e.target.value).toISOString());
-                }
-              }}
-              className="h-11 rounded-xl border-zinc-200"
-            />
-          </div>
-        )}
+        <div className="grid gap-2">
+          <Label
+            htmlFor="sale-date"
+            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+          >
+            Дата на продажба
+          </Label>
+          <Input
+            id="sale-date"
+            type="date"
+            value={saleDate ? saleDate.substring(0, 10) : ""}
+            onChange={(e) =>
+              setSaleDate(
+                e.target.value ? new Date(e.target.value).toISOString() : ""
+              )
+            }
+            className="h-11 rounded-xl border-zinc-200"
+          />
+        </div>
 
         <div className="grid gap-2">
           <Label
             htmlFor="sale-note"
             className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
           >
-            Допълнителна бележка (по желание)
+            Бележка (по избор)
           </Label>
           <Textarea
             id="sale-note"
+            placeholder="Въведете допълнителна информация..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="h-20 resize-none rounded-xl border-zinc-200"
-            placeholder="Въведете бележка..."
+            className="min-h-20 resize-none rounded-xl border-zinc-200"
           />
         </div>
       </div>

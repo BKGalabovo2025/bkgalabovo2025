@@ -57,10 +57,7 @@ import {
   Edit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  exportFinancialToExcel,
-  exportFinancialToPdf,
-} from "@/lib/export-utils";
+import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { formatDateInput, formatDateShort } from "@/lib/date-utils";
 import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/context/auth-context";
@@ -278,12 +275,27 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     type: "Продажба",
                     amount: s.totalAmount,
                   }));
-                  exportFinancialToExcel({
+                  const columns = [
+                    { header: "Дата", key: "date", width: 15 },
+                    { header: "Член", key: "member", width: 35 },
+                    { header: "Тип", key: "type", width: 20 },
+                    {
+                      header: "Сума (лв.)",
+                      key: "amount",
+                      width: 15,
+                      align: "right" as const,
+                      isCurrency: true,
+                    },
+                  ];
+                  generateExcelReport({
                     title: "Финансов Отчет",
                     subtitle: "Бадминтон Клуб Гълъбово",
-                    period: `${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
-                    rows: exportData,
-                    total: data.total,
+                    metaData: `Период: ${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
+                    columns,
+                    data: exportData,
+                    totalLabel: "ОБЩО:",
+                    totalValue: data.total,
+                    filenamePrefix: "Financial_Report",
                   });
                   logAuditAction(
                     "export_financial_report",
@@ -304,12 +316,27 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     type: "Продажба",
                     amount: s.totalAmount,
                   }));
-                  exportFinancialToPdf({
+                  const columns = [
+                    { header: "Дата", key: "date", width: 15 },
+                    { header: "Член", key: "member", width: 35 },
+                    { header: "Тип", key: "type", width: 20 },
+                    {
+                      header: "Сума (лв.)",
+                      key: "amount",
+                      width: 15,
+                      align: "right" as const,
+                      isCurrency: true,
+                    },
+                  ];
+                  generatePdfReport({
                     title: "Финансов Отчет",
                     subtitle: "Бадминтон Клуб Гълъбово",
-                    period: `${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
-                    rows: exportData,
-                    total: data.total,
+                    metaData: `Период: ${dateFrom ? formatDateShort(dateFrom.toISOString()) : "Начало"} - ${dateTo ? formatDateShort(dateTo.toISOString()) : "Край"}`,
+                    columns,
+                    data: exportData,
+                    totalLabel: "ОБЩО:",
+                    totalValue: data.total,
+                    filenamePrefix: "Financial_Report",
                   });
                   logAuditAction(
                     "export_financial_report",
