@@ -11,7 +11,6 @@ import { formatPrice } from "@/lib/currency";
 import { clubInfo } from "@/config/club";
 import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export const UnifiedWizardStep4 = () => {
   const {
     item,
@@ -32,13 +31,12 @@ export const UnifiedWizardStep4 = () => {
     memberEvents,
   } = useUnifiedSaleWizard();
 
-  // eslint-disable-next-line sonarjs/no-nested-conditional
-  const itemNamePlural =
-    mode === "recovery"
-      ? "процедури"
-      : mode === "product"
-        ? "продукти"
-        : "услуги/тренировки";
+  let itemNamePlural = "услуги/тренировки";
+  if (mode === "recovery") {
+    itemNamePlural = "процедури";
+  } else if (mode === "product") {
+    itemNamePlural = "продукти";
+  }
   // If in processing step
   if (step === 5) {
     return (
