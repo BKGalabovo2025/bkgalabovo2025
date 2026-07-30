@@ -66,7 +66,7 @@ const LoginPage = () => {
           href="/"
           className="mb-8 inline-flex items-center gap-2 text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase transition-colors hover:text-zinc-950"
         >
-          <ArrowLeft size={14} strokeWidth={1.5} /> Обратно към началото
+          <ArrowLeft size={14} strokeWidth={1.5} /> Обратно към порталите
         </Link>
 
         <BentoCard className="rounded-4xl border-zinc-100 bg-white p-10 shadow-none">
@@ -151,13 +151,13 @@ const LoginPage = () => {
 
           <div className="mt-10 border-t border-zinc-50 pt-8 text-center">
             <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-              Система за управление на спортни клубове
+              Система за управление на спортен клуб и възстановителен център
             </p>
           </div>
         </BentoCard>
 
         <p className="mt-8 text-center text-[10px] font-medium tracking-[0.4em] text-zinc-300 uppercase">
-          v2.1.0 • Secure Infrastructure
+          © 2026 БК Гълъбово & Recovery Zone by ZM
         </p>
       </div>
     </div>
