@@ -186,7 +186,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
           <span className="font-light">Неактивни:</span>
-          <span className="font-bold text-rose-600 dark:text-rose-400">
+          <span className="font-bold text-rose-700 dark:text-rose-400">
             {stats?.inactiveMembersCount ?? 0}
           </span>
         </div>
@@ -223,7 +223,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               </div>
               <div className="flex items-center justify-between text-[11px] leading-tight">
                 <span className="font-light">Състезания:</span>
-                <span className="font-bold text-rose-600 dark:text-rose-400">
+                <span className="font-bold text-rose-700 dark:text-rose-400">
                   {stats?.todayCompetitionsCount ?? 0}
                 </span>
               </div>
