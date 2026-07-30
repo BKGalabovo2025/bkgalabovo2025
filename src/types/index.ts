@@ -1,5 +1,6 @@
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
+export * from "./business-trip.types";
 export { type SignedDeclaration } from "./declaration.types";
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
@@ -185,11 +186,7 @@ type PaymentHistoryItem = {
  * Defines the types of schedule events.
  */
 export type ScheduleEventType =
-  | "training"
-  | "competition"
-  | "camp"
-  | "event"
-  | "other";
+  "training" | "competition" | "camp" | "event" | "other";
 
 export type Attendee = {
   memberId: string; // If guest, might be empty or some ID like "guest"
