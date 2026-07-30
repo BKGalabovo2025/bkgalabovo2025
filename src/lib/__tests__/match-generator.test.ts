@@ -16,7 +16,7 @@ describe("generateBergerMatches", () => {
     const entries = [{ id: "p1" }, { id: "p2" }] as TournamentEntry[];
     const matches = generateBergerMatches("t1", "singles", entries);
 
-    expect(matches.length).toBe(1);
+    expect(matches).toHaveLength(1);
     expect(matches[0].player1EntryId).toBe("p1");
     expect(matches[0].player2EntryId).toBe("p2");
     expect(matches[0].round).toBe(1);
@@ -32,7 +32,7 @@ describe("generateBergerMatches", () => {
 
     // При 3-ма играчи се добавя 1 фиктивен "BYE" -> 4 участника -> 3 кръга.
     // Един играч на кръг почива. Общо 3 реални мача.
-    expect(matches.length).toBe(3);
+    expect(matches).toHaveLength(3);
 
     // Уверяваме се, че фиктивният играч BYE не присъства в генерираните реални мачове
     matches.forEach((m) => {
@@ -52,9 +52,9 @@ describe("generateBergerMatches", () => {
     const matches = generateBergerMatches("t1", "singles", entries);
 
     // 4 играчи -> 3 кръга по 2 мача = 6 мача общо
-    expect(matches.length).toBe(6);
-    expect(matches.filter((m) => m.round === 1).length).toBe(2);
-    expect(matches.filter((m) => m.round === 2).length).toBe(2);
-    expect(matches.filter((m) => m.round === 3).length).toBe(2);
+    expect(matches).toHaveLength(6);
+    expect(matches.filter((m) => m.round === 1)).toHaveLength(2);
+    expect(matches.filter((m) => m.round === 2)).toHaveLength(2);
+    expect(matches.filter((m) => m.round === 3)).toHaveLength(2);
   });
 });

@@ -7,11 +7,11 @@ import Page from "./page";
 
 describe("Home Page", () => {
   it("renders correctly", () => {
-    render(
+    const { container } = render(
       <LanguageProvider>
         <Page />
       </LanguageProvider>
     );
-    expect(true).toBe(true);
+    expect(container).toBeDefined();
   });
 });

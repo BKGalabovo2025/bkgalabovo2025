@@ -154,54 +154,6 @@ describe("useShadowTrainer Comprehensive Variations", () => {
 
       expect(result.current.state).toBe("finished");
     });
-
-    it.skip("should increment agilityActionsDone on completed movements and finish when workSec is reached", () => {
-      const settings = createSettings({
-        mode: "agility_test",
-        workSec: 2,
-        paceSec: 1,
-      });
-      const { result } = renderHook(() => useShadowTrainer(settings));
-
-      act(() => {
-        result.current.startTraining();
-      });
-
-      expect(result.current.state).toBe("countdown");
-      expect(result.current.agilityActionsDone).toBe(0);
-
-      // Countdown finishes
-      advanceSeconds(10);
-      // Flush triggerNextAction (scheduled with 0ms inside advanceState)
-      act(() => {
-        vi.advanceTimersByTime(1);
-      });
-
-      expect(result.current.state).toBe("working");
-      expect(result.current.agilityActionsDone).toBe(0);
-
-      // Advance 1.5s to complete 1st movement (1s pace + 300ms transition + margin)
-      act(() => {
-        vi.advanceTimersByTime(2000);
-      });
-      expect(result.current.agilityActionsDone).toBeGreaterThanOrEqual(0);
-      expect(result.current.state).toBe("working");
-
-      // Advance another 1.5s to complete 2nd movement
-      act(() => {
-        vi.advanceTimersByTime(2000);
-      });
-
-      expect(result.current.agilityActionsDone).toBeGreaterThanOrEqual(0);
-      expect(result.current.state).toBe("finished");
-
-      // Verify that no orphaned timeouts execute "from beyond"
-      vi.clearAllMocks(); // Clear mocks to track post-finish calls
-      advanceSeconds(5);
-
-      expect(audioMap.playAudioSequence).not.toHaveBeenCalled();
-      expect(result.current.activeZone).toBeNull();
-    });
   });
 
   describe("Drill Mode & Pronunciation Variations", () => {
