@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import ExercisesClient from "./exercises-client";
 
 export const metadata: Metadata = {

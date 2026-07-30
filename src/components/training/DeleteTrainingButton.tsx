@@ -1,12 +1,13 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { deleteTrainingSessionAction } from "@/lib/actions/trainings";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface Props {
   trainingId: string;

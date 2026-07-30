@@ -1,36 +1,36 @@
 "use client";
 
+import { format, getYear } from "date-fns";
+import { bg } from "date-fns/locale";
 import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
   useMemo,
+  useState,
 } from "react";
-import { mutate } from "swr";
 import { toast } from "sonner";
-import { format, getYear } from "date-fns";
-import { bg } from "date-fns/locale";
+import { mutate } from "swr";
 
-import { Member, ScheduleEvent, Attendee } from "@/types";
-import { getAllMembers } from "@/services/member-service";
-import { getEventsByMemberId } from "@/services/schedule-service";
-import { executeTrainingSaleAction } from "@/lib/actions/services";
+import { useAuth } from "@/context/auth-context";
 import { executeGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
 import { createSaleAction } from "@/lib/actions/sales";
-import { useAuth } from "@/context/auth-context";
+import { executeTrainingSaleAction } from "@/lib/actions/services";
+import { getAllMembers } from "@/services/member-service";
+import { getEventsByMemberId } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
+import { Attendee, Member, ScheduleEvent } from "@/types";
 
-export type PaymentMode = "subscription" | "individual";
+type PaymentMode = "subscription" | "individual";
 
-export interface MemberAttendanceStats {
+interface MemberAttendanceStats {
   memberId: string;
   firstName: string;
   paidCount: number;
   unpaidCount: number;
 }
 
-export interface MonthAttendance {
+interface MonthAttendance {
   monthKey: string;
   monthLabel: string;
   year: number;
@@ -40,7 +40,7 @@ export interface MonthAttendance {
   memberStats: Record<string, MemberAttendanceStats>;
 }
 
-export interface UnifiedSaleWizardContextType {
+interface UnifiedSaleWizardContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   item: any; // Product | Service | GeneralService
   mode: "product" | "general" | "training" | "recovery";

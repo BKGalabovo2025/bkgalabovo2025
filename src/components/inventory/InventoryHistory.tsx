@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getInventoryEvents } from "@/services/inventory-service";
-import { InventoryEvent } from "@/types";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
 import { formatDateTimeDisplay } from "@/lib/date-utils";
+import { getInventoryEvents } from "@/services/inventory-service";
+import { InventoryEvent } from "@/types";
 
 const InventoryHistory = () => {
   const [events, setEvents] = useState<InventoryEvent[]>([]);

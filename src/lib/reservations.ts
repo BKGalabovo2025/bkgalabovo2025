@@ -1,16 +1,17 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
-  query,
-  where,
-  Timestamp,
-  deleteDoc,
   onSnapshot,
+  query,
+  Timestamp,
+  where,
 } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
+
 import { getSiteConfig } from "@/config/sites";
-import { Reservation, BlockedSlot } from "@/types/reservation";
+import { getDb } from "@/lib/firebase";
+import { BlockedSlot, Reservation } from "@/types/reservation";
 
 const db = getDb();
 const reservationsCollection = collection(db, "reservations");

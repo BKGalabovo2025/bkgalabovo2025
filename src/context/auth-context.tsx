@@ -1,22 +1,23 @@
 "use client";
 
 import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  ReactNode,
-} from "react";
-import {
   onIdTokenChanged,
-  User,
   signOut as firebaseSignOut,
+  User,
 } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import { getFirebaseAuth } from "@/lib/firebase";
 
 interface AuthContextType {
   user: User | null;

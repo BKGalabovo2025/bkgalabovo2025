@@ -1,5 +1,6 @@
 ﻿/* eslint-disable sonarjs/no-nested-conditional */
-import { getDocs, getFirestore, collection } from "firebase/firestore";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+
 import { getClubServicesCollection } from "@/lib/firebase-collections";
 import { ClubService } from "@/types";
 
@@ -57,4 +58,3 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
     return [];
   }
 };
-

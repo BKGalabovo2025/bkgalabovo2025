@@ -1,32 +1,33 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useFamily } from "@/hooks/useFamily";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PageHeader } from "@/components/layout/page-header";
-import { BentoCard } from "@/components/ui/bento-card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Contact as FamilyIcon,
+  Check,
   ChevronRight,
+  Contact as FamilyIcon,
+  Loader2,
+  Pencil,
+  PlusCircle,
   User,
   X,
-  Loader2,
-  PlusCircle,
-  Pencil,
-  Check,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AddMemberToFamilyDialog } from "@/components/families/AddMemberToFamilyDialog";
-import { removeMemberFromFamilyAction } from "@/lib/actions/families";
-import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { updateFamilyNameAction } from "@/lib/actions/families";
-import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+import { AddMemberToFamilyDialog } from "@/components/families/AddMemberToFamilyDialog";
+import { PageHeader } from "@/components/layout/page-header";
 import { MemberSalesHistory } from "@/components/members/member-sales-history";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
+import { useFamily } from "@/hooks/useFamily";
+import { removeMemberFromFamilyAction } from "@/lib/actions/families";
+import { updateFamilyNameAction } from "@/lib/actions/families";
 
 const FamilyDetailsPage = () => {
   const params = useParams();

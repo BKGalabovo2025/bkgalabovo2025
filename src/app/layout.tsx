@@ -1,11 +1,13 @@
+import "./globals.css";
+
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import { Toaster } from "sonner";
+
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
-import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Analytics } from "@vercel/analytics/next";
 
 const fontSans = Inter({
   subsets: ["latin", "cyrillic"],

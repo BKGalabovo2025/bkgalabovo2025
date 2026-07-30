@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import BeepTestClient from "./beep-test-client";
 
 export const metadata: Metadata = {

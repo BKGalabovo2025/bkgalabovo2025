@@ -1,10 +1,11 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { CheckCircle2, Clock, Layers, Save, Target, Zap } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Save, Clock, Target, Layers, Zap } from "lucide-react";
 import { ShadowSettings } from "@/hooks/useShadowTrainer";
 
 interface ShadowReportFormProps {

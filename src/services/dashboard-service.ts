@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-nested-conditional */
-import { Member, Sale, Product, ScheduleEvent } from "@/types";
+import { Member, Product, Sale, ScheduleEvent } from "@/types";
 
 type TotalRevenue = {
   [key: string]: number; // e.g. { EUR: 50.00 }

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import AssessmentsClient from "./assessments-client";
 
 export const metadata: Metadata = {

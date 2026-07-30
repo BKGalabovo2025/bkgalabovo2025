@@ -1,17 +1,18 @@
 import {
-  getDocs,
-  doc,
-  getDoc,
-  DocumentSnapshot,
-  Timestamp,
-  query,
-  where,
-  updateDoc,
   deleteDoc,
+  doc,
+  DocumentSnapshot,
+  getDoc,
+  getDocs,
+  query,
+  Timestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
-import { Sale } from "@/types";
-import { getSalesQuery, getSalesCollection } from "@/lib/firebase-collections";
+
 import { getSiteConfig } from "@/config/sites";
+import { getSalesCollection, getSalesQuery } from "@/lib/firebase-collections";
+import { Sale } from "@/types";
 
 export const docToSale = (doc: DocumentSnapshot): Sale | null => {
   if (!doc.id || !doc.exists()) {

@@ -1,9 +1,11 @@
 "use client";
 
-import { BlockedSlot } from "@/types/reservation";
-import { cn } from "@/lib/utils";
 import { Clock, Lock, Pencil, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { BlockedSlot } from "@/types/reservation";
+
 import { BlockSlotDialog } from "./block-slot-dialog";
 
 interface AgendaBlockedItemProps {
@@ -29,12 +31,19 @@ export function AgendaBlockedItem({
         <div className="flex items-center gap-2 text-primary">
           <Clock className="size-4" strokeWidth={2.5} />
           <span className="text-sm font-black tracking-tight">
-            {startTime.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+            {startTime.toLocaleTimeString("bg-BG", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </span>
         </div>
         <div className="h-px w-4 bg-zinc-200 md:hidden dark:bg-zinc-800" />
         <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-          до {endTime.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+          до{" "}
+          {endTime.toLocaleTimeString("bg-BG", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </span>
       </div>
 
@@ -49,10 +58,14 @@ export function AgendaBlockedItem({
             <span
               className={cn(
                 "leading-tight font-bold",
-                effectiveBranch === "bkgalabovo" ? "text-sm whitespace-nowrap" : "text-[11px]"
+                effectiveBranch === "bkgalabovo"
+                  ? "text-sm whitespace-nowrap"
+                  : "text-[11px]"
               )}
             >
-              {slot.courtIds.length > 0 ? `Корт ${slot.courtIds.join(", ")}` : "Всички кортове"}
+              {slot.courtIds.length > 0
+                ? `Корт ${slot.courtIds.join(", ")}`
+                : "Всички кортове"}
             </span>
           </div>
 
@@ -85,7 +98,7 @@ export function AgendaBlockedItem({
             <Pencil className="size-4 text-zinc-400" />
           </Button>
         </BlockSlotDialog>
-        
+
         <Button
           variant="ghost"
           size="icon"

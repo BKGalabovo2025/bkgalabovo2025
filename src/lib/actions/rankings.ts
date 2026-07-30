@@ -1,10 +1,10 @@
 "use server";
 import "server-only";
 
-import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { getAllMembersServer } from "@/services/member-service.server";
-import { RankingEntry } from "@/types/ranking.types";
+import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { Member } from "@/types/member.types";
+import { RankingEntry } from "@/types/ranking.types";
 
 function getPeriodFilter(
   period: string

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-import { getSaleById } from "@/services/sales-service";
-import { updateSaleAction } from "@/lib/actions/sales";
+import {
+  SaleFormManager,
+  SaleItem,
+} from "@/components/shared/sales/SaleFormManager";
 import { useAuth } from "@/context/auth-context";
-import { SaleFormManager, SaleItem } from "@/components/shared/sales/SaleFormManager";
+import { updateSaleAction } from "@/lib/actions/sales";
+import { getSaleById } from "@/services/sales-service";
 import { Sale } from "@/types";
-import { Loader2 } from "lucide-react";
 
 export interface SharedEditSaleProps {
   saleId: string;
@@ -57,7 +60,12 @@ export function SharedEditSale({
     fetchInitialData();
   }, [saleId, router, cancelUrl]);
 
-  const handleUpdateSale = async ({ cart, memberId, status, totalAmount }: {
+  const handleUpdateSale = async ({
+    cart,
+    memberId,
+    status,
+    totalAmount,
+  }: {
     cart: SaleItem[];
     memberId: string;
     status: Sale["status"];
@@ -78,7 +86,10 @@ export function SharedEditSale({
       });
 
       if (result.success) {
-        if (initialSale?.memberId && initialSale.memberId !== "GUEST_EXTERNAL") {
+        if (
+          initialSale?.memberId &&
+          initialSale.memberId !== "GUEST_EXTERNAL"
+        ) {
           mutate(initialSale.memberId);
         }
         if (

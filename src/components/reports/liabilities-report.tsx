@@ -2,9 +2,27 @@
 
 "use client";
 
+import {
+  AlertCircle,
+  Download,
+  Filter,
+  Loader2,
+  Mail,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
-import { Member } from "@/types";
-import { generateLiabilityReport } from "@/services/report-service";
+
+import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,26 +31,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BentoCard } from "@/components/ui/bento-card";
-import {
-  Loader2,
-  Download,
-  Filter,
-  AlertCircle,
-  Users,
-  Mail,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { exportToCSV } from "@/lib/export-utils";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { generateLiabilityReport } from "@/services/report-service";
+import { Member } from "@/types";
 
 interface LiabilitiesReportProps {
   initialUnpaidMembers: Member[];

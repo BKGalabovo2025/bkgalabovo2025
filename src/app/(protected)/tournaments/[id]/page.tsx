@@ -1,10 +1,12 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
-import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
-import { Member } from "@/types/member.types";
 import { getAllMembersServer } from "@/services/member-service.server";
+import { Member } from "@/types/member.types";
+import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
+
 import TournamentDetailsClient, {
   InitialTournamentData,
 } from "./TournamentDetailsClient";
@@ -97,7 +99,7 @@ export async function generateMetadata({
   const categoryMap: Record<string, string> = {
     singles: "Единично",
     doubles: "Двойки",
-    mixed: "Смесени"
+    mixed: "Смесени",
   };
 
   const categoryNames = (tournament.categories || [])

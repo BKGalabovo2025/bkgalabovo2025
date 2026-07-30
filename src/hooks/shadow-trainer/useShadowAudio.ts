@@ -1,11 +1,13 @@
 import { useCallback, useMemo } from "react";
+
 import {
+  isAudioPlaying,
   playAudio,
   playAudioSequence,
-  stopAudio,
   shadowAudioManager,
-  isAudioPlaying,
+  stopAudio,
 } from "@/lib/shadow-training/audio-map";
+
 import { ShadowPlayer } from "./types";
 
 export function useShadowAudio() {

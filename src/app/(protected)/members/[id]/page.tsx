@@ -1,9 +1,11 @@
 import { Metadata } from "next";
-import { getMemberProfileDataServerAction } from "@/lib/actions/members";
+
 import { PageHeader } from "@/components/layout/page-header";
-import { formatFullName } from "@/lib/utils";
-import MemberProfileClient from "./MemberProfileClient";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getMemberProfileDataServerAction } from "@/lib/actions/members";
+import { formatFullName } from "@/lib/utils";
+
+import MemberProfileClient from "./MemberProfileClient";
 
 export const dynamic = "force-dynamic";
 

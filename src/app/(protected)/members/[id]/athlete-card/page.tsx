@@ -1,15 +1,15 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import { useMemberProfile } from "@/hooks/useMemberProfile";
-import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft, Download, Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { ArrowLeft, Download, Loader2, Printer } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
+import { Button } from "@/components/ui/button";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { Member } from "@/types/member.types";
 
 const AthleteCard = ({ member }: { member: Member }) => {

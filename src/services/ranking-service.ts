@@ -1,19 +1,17 @@
- 
 import { getDocs, query, where } from "firebase/firestore";
-import { RankingEntry } from "@/types/ranking.types";
-import {
-  mapDocToTournament,
-  mapDocToEntry,
-  mapDocToMatch,
-} from "@/lib/tournament-mapper";
 
 import {
-  getTournamentsQuery,
   getTournamentEntriesQuery,
   getTournamentMatchesQuery,
+  getTournamentsQuery,
 } from "@/lib/firebase-collections";
-
 import { computeRankingsCore } from "@/lib/ranking-utils";
+import {
+  mapDocToEntry,
+  mapDocToMatch,
+  mapDocToTournament,
+} from "@/lib/tournament-mapper";
+import { RankingEntry } from "@/types/ranking.types";
 
 // ─────────────────────────────────────────────────────────────────
 // Основна функция за ранглиста
@@ -44,12 +42,18 @@ export async function computeGlobalRankings(dateFilter?: {
 
   const fetchTournamentData = async (tournamentId: string) => {
     const entriesSnap = await getDocs(
-      query(getTournamentEntriesQuery(), where("tournamentId", "==", tournamentId))
+      query(
+        getTournamentEntriesQuery(),
+        where("tournamentId", "==", tournamentId)
+      )
     );
     const entries = entriesSnap.docs.map(mapDocToEntry);
 
     const matchesSnap = await getDocs(
-      query(getTournamentMatchesQuery(), where("tournamentId", "==", tournamentId))
+      query(
+        getTournamentMatchesQuery(),
+        where("tournamentId", "==", tournamentId)
+      )
     );
     const matches = matchesSnap.docs.map(mapDocToMatch);
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+
+import { formatPrice } from "@/lib/currency";
+
 import { DataTableRowActions } from "./DataTableRowActions";
 import { Service } from "./service.types";
-import { formatPrice } from "@/lib/currency";
 
 export const columns: ColumnDef<Service>[] = [
   {

@@ -1,17 +1,18 @@
 "use client";
 
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { Eye, FileText, Loader2 } from "lucide-react";
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { FileText, Loader2, Eye } from "lucide-react";
-import { getDb } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getDb } from "@/lib/firebase";
 
 interface ViewDeclarationButtonProps {
   reservationId: string;

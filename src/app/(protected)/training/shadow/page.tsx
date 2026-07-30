@@ -1,7 +1,8 @@
-import { ShadowWizard } from "@/components/training/ShadowWizard";
-import { getAllMembersServer } from "@/services/member-service.server";
 import Link from "next/link";
+
+import { ShadowWizard } from "@/components/training/ShadowWizard";
 import { Button } from "@/components/ui/button";
+import { getAllMembersServer } from "@/services/member-service.server";
 
 export const metadata = {
   title: "Shadow Training | BK Galabovo",

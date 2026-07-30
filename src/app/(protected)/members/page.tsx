@@ -1,10 +1,12 @@
 export const dynamic = "force-dynamic";
 
-import { Member } from "@/types";
-import { getAllMembersServer } from "@/services/member-service.server";
-import MembersClient from "./MembersClient";
 import { Suspense } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAllMembersServer } from "@/services/member-service.server";
+import { Member } from "@/types";
+
+import MembersClient from "./MembersClient";
 
 export default async function MembersPage() {
   let members: Member[] = [];

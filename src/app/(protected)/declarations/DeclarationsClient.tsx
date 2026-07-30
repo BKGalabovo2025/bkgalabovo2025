@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { Printer, FileText, Search, User, Clock, Trash2 } from "lucide-react";
-import { getDb } from "@/lib/firebase";
-import { collection, getDocs, query, deleteDoc, doc } from "firebase/firestore";
-import { SignedDeclaration } from "@/types";
-import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
+import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
+import { Clock, FileText, Printer, Search, Trash2, User } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getDb } from "@/lib/firebase";
+import { SignedDeclaration } from "@/types";
 
 export default function DeclarationsClient() {
   const [declarations, setDeclarations] = useState<SignedDeclaration[]>([]);

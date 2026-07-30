@@ -1,39 +1,39 @@
 "use client";
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import * as React from "react";
 import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import {
-  Home,
-  Users,
-  LogOut,
-  ListTree,
+  Activity,
+  BarChart,
   Calendar,
   CalendarCheck,
-  BarChart,
-  Trophy,
-  Medal,
-  Settings,
-  PanelLeft,
-  Zap,
-  Target,
-  Dumbbell,
   CalendarRange,
-  Activity,
+  Dumbbell,
   FileSignature,
+  Home,
+  ListTree,
+  LogOut,
+  Medal,
+  PanelLeft,
+  Settings,
+  Target,
+  Trophy,
+  Users,
+  Zap,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import * as React from "react";
 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 

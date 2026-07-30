@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { getAdminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
+
+import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +14,17 @@ const getLastActivityDate = async (
   let lastActivityDate = new Date(0);
 
   if (data.registrationDate) {
-    if (typeof (data.registrationDate as { toDate?: () => Date })?.toDate === "function") {
-      lastActivityDate = (data.registrationDate as { toDate: () => Date }).toDate();
+    if (
+      typeof (data.registrationDate as { toDate?: () => Date })?.toDate ===
+      "function"
+    ) {
+      lastActivityDate = (
+        data.registrationDate as { toDate: () => Date }
+      ).toDate();
     } else {
-      lastActivityDate = new Date(data.registrationDate as string | number | Date);
+      lastActivityDate = new Date(
+        data.registrationDate as string | number | Date
+      );
     }
   }
 
@@ -91,7 +99,12 @@ const processMembersBatch = async (
     const currentStatus = data.status || "active";
 
     const lastActivityDate = await getLastActivityDate(adminDb, memberId, data);
-    const { newStatus, note } = processMemberStatus(currentStatus, lastActivityDate, thirtyDaysAgo, formatDateTime);
+    const { newStatus, note } = processMemberStatus(
+      currentStatus,
+      lastActivityDate,
+      thirtyDaysAgo,
+      formatDateTime
+    );
 
     if (newStatus === "inactive" && currentStatus === "active") {
       deactivatedCount++;

@@ -1,11 +1,12 @@
 "use server";
 import "server-only";
 
+import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getAdminDb } from "@/lib/firebase-admin";
+
 import { getAuthUser } from "@/lib/auth-utils";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 const GeneralServiceSchema = z.object({
   name: z.string().min(2, "Името трябва да е поне 2 символа."),

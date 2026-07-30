@@ -1,20 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { useRouter } from "next/navigation";
-import { Sale } from "@/types";
-import { formatPrice } from "@/lib/currency";
-
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  CheckCircle2,
+  Edit2,
+  Eye,
+  Loader2,
+  MoreVertical,
+  Receipt,
+  Trash2,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,14 +23,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  MoreVertical,
-  Receipt,
-  Eye,
-  Edit2,
-  Trash2,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatPrice } from "@/lib/currency";
+import { Sale } from "@/types";
 
 export interface SharedSalesHistoryProps {
   title: string;

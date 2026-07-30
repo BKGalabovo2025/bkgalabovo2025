@@ -1,12 +1,13 @@
 "use client";
 
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+import { MemberForm } from "@/components/members/member-form";
+import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { updateMemberAction } from "@/lib/actions/members";
-import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import { MemberForm } from "@/components/members/member-form";
-import { Loader2, AlertCircle } from "lucide-react";
 import { Member } from "@/types/member.types";
 
 type MemberFormValues = Omit<

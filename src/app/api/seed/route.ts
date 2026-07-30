@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
-import { plannerService } from "@/services/planner-service";
-import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { collection, doc, writeBatch } from "firebase/firestore";
+import { NextResponse } from "next/server";
+
+import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { db } from "@/lib/firebase";
+import { plannerService } from "@/services/planner-service";
 
 export async function GET() {
   try {

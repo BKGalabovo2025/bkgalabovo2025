@@ -1,17 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { toast } from "sonner";
-import { Product, InventoryEvent, Sale } from "@/types";
-import { restockProductAction, adjustProductStockAction, updateProductAction } from "@/lib/actions/inventory";
+
 import { useAuth } from "@/context/auth-context";
+import {
+  adjustProductStockAction,
+  restockProductAction,
+  updateProductAction,
+} from "@/lib/actions/inventory";
 import { getInventoryEvents } from "@/services/inventory-service";
-import { getSales } from "@/services/sales-service";
 import { getAllMembers } from "@/services/member-service";
+import { getSales } from "@/services/sales-service";
+import { InventoryEvent, Product, Sale } from "@/types";
 
 interface EditProductContextType {
   product: Product | null;
-  
+
   // Product info states
   name: string;
   setName: React.Dispatch<React.SetStateAction<string>>;
@@ -39,7 +51,7 @@ interface EditProductContextType {
   handleUpdateInfo: () => Promise<void>;
   handleRestock: () => Promise<void>;
   handleAdjustment: () => Promise<void>;
-  
+
   // History and Tab states
   activeTab: string;
   setActiveTab: React.Dispatch<React.SetStateAction<string>>;
@@ -51,7 +63,9 @@ interface EditProductContextType {
   onClose: () => void;
 }
 
-const EditProductContext = createContext<EditProductContextType | undefined>(undefined);
+const EditProductContext = createContext<EditProductContextType | undefined>(
+  undefined
+);
 
 interface EditProductProviderProps {
   children: ReactNode;
@@ -96,13 +110,20 @@ export const EditProductProvider = ({
       const [allEvents, allSales, membersData] = await Promise.all([
         getInventoryEvents(),
         getSales(),
-        getAllMembers()
+        getAllMembers(),
       ]);
 
       const filteredEvents = allEvents.filter((e) => e.productId === productId);
-      setMovements(filteredEvents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setMovements(
+        filteredEvents.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
 
-      const filteredSales = allSales.filter((s) => s.items?.some((i) => i.productId === productId));
+      const filteredSales = allSales.filter((s) =>
+        s.items?.some((i) => i.productId === productId)
+      );
       setSales(filteredSales);
 
       const map: Record<string, string> = {};
@@ -137,13 +158,17 @@ export const EditProductProvider = ({
   const handleUpdateInfo = async () => {
     if (!product || !idToken) return;
     if (!name.trim() || !category.trim() || !price) {
-      toast.error("Грешка", { description: "Моля, попълнете всички задължителни полета." });
+      toast.error("Грешка", {
+        description: "Моля, попълнете всички задължителни полета.",
+      });
       return;
     }
 
     const priceVal = parseFloat(price);
     if (isNaN(priceVal) || priceVal < 0) {
-      toast.error("Грешка", { description: "Моля, въведете валидна, неотрицателна цена." });
+      toast.error("Грешка", {
+        description: "Моля, въведете валидна, неотрицателна цена.",
+      });
       return;
     }
 
@@ -155,10 +180,16 @@ export const EditProductProvider = ({
         price: priceVal,
         description,
         imageUrl,
-        restockThreshold: restockThreshold ? parseInt(restockThreshold, 10) : null,
+        restockThreshold: restockThreshold
+          ? parseInt(restockThreshold, 10)
+          : null,
       };
 
-      const result = await updateProductAction(product.id, idToken, productData);
+      const result = await updateProductAction(
+        product.id,
+        idToken,
+        productData
+      );
 
       if (result.success) {
         toast.success("Успех!", { description: result.message });
@@ -168,7 +199,9 @@ export const EditProductProvider = ({
         toast.error("Грешка", { description: result.message });
       }
     } catch (error) {
-      toast.error("Грешка при актуализация", { description: (error as Error).message });
+      toast.error("Грешка при актуализация", {
+        description: (error as Error).message,
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -178,7 +211,10 @@ export const EditProductProvider = ({
     if (!product || !restockAmount || !idToken) return;
     const amount = parseInt(restockAmount, 10);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Грешка", { description: "Моля, въведете валидно положително число за презареждане." });
+      toast.error("Грешка", {
+        description:
+          "Моля, въведете валидно положително число за презареждане.",
+      });
       return;
     }
 
@@ -194,7 +230,9 @@ export const EditProductProvider = ({
         toast.error("Грешка", { description: result.message });
       }
     } catch (error) {
-      toast.error("Грешка при презареждане", { description: (error as Error).message });
+      toast.error("Грешка при презареждане", {
+        description: (error as Error).message,
+      });
     } finally {
       setIsProcessing(false);
       setRestockAmount("");
@@ -206,19 +244,28 @@ export const EditProductProvider = ({
     const amount = parseInt(adjustmentAmount, 10);
 
     if (isNaN(amount) || amount === 0) {
-      toast.error("Грешка", { description: "Моля, въведете валидно, ненулево число за корекция." });
+      toast.error("Грешка", {
+        description: "Моля, въведете валидно, ненулево число за корекция.",
+      });
       return;
     }
 
     if (amount < 0 && !adjustmentNotes) {
-      toast.error("Грешка", { description: "При отписване на количества, бележката е задължителна." });
+      toast.error("Грешка", {
+        description: "При отписване на количества, бележката е задължителна.",
+      });
       return;
     }
 
     setIsProcessing(true);
     try {
       const newStock = product.stock + amount;
-      const result = await adjustProductStockAction(product.id, idToken, newStock, adjustmentNotes);
+      const result = await adjustProductStockAction(
+        product.id,
+        idToken,
+        newStock,
+        adjustmentNotes
+      );
 
       if (result.success) {
         toast.success("Успех!", { description: result.message });
@@ -228,7 +275,9 @@ export const EditProductProvider = ({
         toast.error("Грешка", { description: result.message });
       }
     } catch (error) {
-      toast.error("Грешка при корекция", { description: (error as Error).message });
+      toast.error("Грешка при корекция", {
+        description: (error as Error).message,
+      });
     } finally {
       setIsProcessing(false);
       setAdjustmentAmount("");
@@ -238,31 +287,50 @@ export const EditProductProvider = ({
 
   const contextValue: EditProductContextType = {
     product,
-    name, setName,
-    category, setCategory,
-    price, setPrice,
-    imageUrl, setImageUrl,
-    restockThreshold, setRestockThreshold,
-    description, setDescription,
-    restockAmount, setRestockAmount,
-    adjustmentAmount, setAdjustmentAmount,
-    adjustmentNotes, setAdjustmentNotes,
+    name,
+    setName,
+    category,
+    setCategory,
+    price,
+    setPrice,
+    imageUrl,
+    setImageUrl,
+    restockThreshold,
+    setRestockThreshold,
+    description,
+    setDescription,
+    restockAmount,
+    setRestockAmount,
+    adjustmentAmount,
+    setAdjustmentAmount,
+    adjustmentNotes,
+    setAdjustmentNotes,
     isProcessing,
     handleUpdateInfo,
     handleRestock,
     handleAdjustment,
-    activeTab, setActiveTab,
-    movements, sales, membersMap, historyLoading,
-    onClose
+    activeTab,
+    setActiveTab,
+    movements,
+    sales,
+    membersMap,
+    historyLoading,
+    onClose,
   };
 
-  return <EditProductContext.Provider value={contextValue}>{children}</EditProductContext.Provider>;
+  return (
+    <EditProductContext.Provider value={contextValue}>
+      {children}
+    </EditProductContext.Provider>
+  );
 };
 
 export const useEditProduct = () => {
   const context = useContext(EditProductContext);
   if (!context) {
-    throw new Error("useEditProduct must be used within an EditProductProvider");
+    throw new Error(
+      "useEditProduct must be used within an EditProductProvider"
+    );
   }
   return context;
 };

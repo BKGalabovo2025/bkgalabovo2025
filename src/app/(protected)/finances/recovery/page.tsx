@@ -1,6 +1,6 @@
+import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { ClubService } from "@/types";
-import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 
 export const dynamic = "force-dynamic";
 

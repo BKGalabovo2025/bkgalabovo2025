@@ -1,25 +1,26 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
-import { Price } from "@/types/index";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import { updatePrice } from "@/services/price-service";
-import { Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { updatePrice } from "@/services/price-service";
+import { Price } from "@/types/index";
 
 interface EditPriceDialogProps {
   isOpen: boolean;

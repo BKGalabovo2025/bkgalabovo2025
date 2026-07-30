@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { onSnapshot, doc, updateDoc, increment } from "firebase/firestore";
+import { doc, increment, onSnapshot, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+
 import { db } from "@/lib/firebase";
-import { ClientPackage } from "@/types";
 import { getClientPackagesQuery } from "@/lib/firebase-collections";
 import { useAppStore } from "@/store/use-app-store";
+import { ClientPackage } from "@/types";
 
 export function usePackages(memberId?: string) {
   const [packages, setPackages] = useState<ClientPackage[]>([]);

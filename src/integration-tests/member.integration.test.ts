@@ -1,12 +1,15 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import "./setup"; // Ensure vi.mock is applied
-import { clearFirestore, db } from "./setup";
+
+import { doc, setDoc } from "firebase/firestore";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   addMember,
   getAllMembers,
   getMemberById,
 } from "@/services/member-service";
-import { doc, setDoc } from "firebase/firestore";
+
+import { clearFirestore, db } from "./setup";
 
 describe("Member Integration Tests (Emulator)", () => {
   beforeEach(async () => {

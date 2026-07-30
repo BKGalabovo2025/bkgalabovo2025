@@ -1,7 +1,8 @@
 // This component is designed specifically for printing.
 import React from "react";
-import { ScheduleEvent, Member, ScheduleEventType } from "@/types";
+
 import { formatDateTimeDisplay } from "@/lib/date-utils";
+import { Member, ScheduleEvent, ScheduleEventType } from "@/types";
 
 // Removed local formatDate as we use the centralized one.
 

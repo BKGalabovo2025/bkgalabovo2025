@@ -1,26 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { useProductsWithCache } from "@/hooks/useProductsWithCache";
-import { Product } from "@/types";
 import {
+  AlertTriangle,
   Edit,
-  Trash2,
+  History,
   ImageIcon,
+  LayoutGrid,
   Loader2,
   Package,
-  History,
-  Search,
-  Plus,
-  LayoutGrid,
-  ShoppingBag,
-  AlertTriangle,
   PackageX,
+  Plus,
+  Search,
+  ShoppingBag,
+  Trash2,
 } from "lucide-react";
-import { useInventoryEvents } from "@/hooks/useInventoryEvents";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { useInventoryEvents } from "@/hooks/useInventoryEvents";
+import { useProductsWithCache } from "@/hooks/useProductsWithCache";
+import { Product } from "@/types";
 
 const EditProductDialog = dynamic(
   () =>
@@ -44,13 +45,7 @@ const InventorySalesHistory = dynamic(
   () => import("@/components/inventory/InventorySalesHistory"),
   { ssr: false }
 );
-import { useAuth } from "@/context/auth-context";
-import { formatPrice } from "@/lib/currency";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/layout/page-header";
-import { BentoCard } from "@/components/ui/bento-card";
-import { Input } from "@/components/ui/input";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +57,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/auth-context";
+import { formatPrice } from "@/lib/currency";
 
 const ProductList = () => {
   const { products, isLoading, error, deleteProduct } = useProductsWithCache();

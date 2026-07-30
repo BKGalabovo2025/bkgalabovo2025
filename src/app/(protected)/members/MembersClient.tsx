@@ -1,8 +1,43 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import {
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Filter,
+  Mail,
+  MoreVertical,
+  PlusCircle,
+  Search,
+  Trash2,
+  UserCheck,
+  UserCog,
+  UserMinus,
+  UserPlus,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { Activity, Contact as FamilyIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { CreateFamilyDialog } from "@/components/families/CreateFamilyDialog";
+import { RecoveryClientsList } from "@/components/finances/RecoveryClientsList";
+import { PageHeader } from "@/components/layout/page-header";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -12,49 +47,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { BentoCard } from "@/components/ui/bento-card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PageHeader } from "@/components/layout/page-header";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  PlusCircle,
-  Search,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  UserCheck,
-  UserMinus,
-  Mail,
-  Calendar,
-  Download,
-  MoreVertical,
-  CheckCircle,
-  XCircle,
-  Trash2,
-  UserCog,
-  UserPlus,
-} from "lucide-react";
-import { cn, getAgeGroup, getValidAvatarUrl } from "@/lib/utils";
-import { exportToCSV } from "@/lib/export-utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/auth-context";
+import { useFamilies } from "@/hooks/useFamilies";
 import {
   bulkUpdateMemberStatusAction,
   deleteMemberAction,
 } from "@/lib/actions/members";
-import { CreateFamilyDialog } from "@/components/families/CreateFamilyDialog";
-import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFamilies } from "@/hooks/useFamilies";
-import { Contact as FamilyIcon, Activity } from "lucide-react";
-import { RecoveryClientsList } from "@/components/finances/RecoveryClientsList";
+import { exportToCSV } from "@/lib/export-utils";
+import { cn, getAgeGroup, getValidAvatarUrl } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 
 const ITEMS_PER_PAGE = 12;
@@ -132,7 +133,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       .filter((member) => {
         // Оставяме само клубните членове
         const isRegular =
-          member.isClubMember || (!member.isGuest && member.memberType === "regular");
+          member.isClubMember ||
+          (!member.isGuest && member.memberType === "regular");
         if (!isRegular) return false;
 
         const matchesSearch =
@@ -266,8 +268,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   const stats = useMemo(() => {
     // Club members = has isClubMember flag OR old memberType="regular" (and not a guest-only)
     const clubMembers = members.filter(
-      (m) => m.isClubMember === true || 
-        (m.memberType === "regular" && !m.isGuest)
+      (m) =>
+        m.isClubMember === true || (m.memberType === "regular" && !m.isGuest)
     );
     return {
       total: clubMembers.length,
@@ -404,7 +406,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     <div className="mx-auto max-w-7xl space-y-6 px-3 pb-12 duration-500 animate-in fade-in sm:space-y-8 sm:px-6 lg:px-8">
       <PageHeader
         title={isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
-        description={isRecoveryBranch ? "Управление на профили, здравни досиета и статуси на клиентите." : "Управление на профили, членски карти и статуси на спортистите."}
+        description={
+          isRecoveryBranch
+            ? "Управление на профили, здравни досиета и статуси на клиентите."
+            : "Управление на профили, членски карти и статуси на спортистите."
+        }
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Членове" },
@@ -499,10 +505,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
             <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
               <div className="shrink-0 rounded-2xl bg-emerald-500/5 p-3.5 text-emerald-600 sm:p-4">
-                <UserCheck
-                  className="size-5 sm:size-6"
-                  strokeWidth={1.5}
-                />
+                <UserCheck className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
@@ -516,10 +519,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
             <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
               <div className="shrink-0 rounded-2xl bg-rose-500/5 p-3.5 text-rose-600 sm:p-4">
-                <UserMinus
-                  className="size-5 sm:size-6"
-                  strokeWidth={1.5}
-                />
+                <UserMinus className="size-5 sm:size-6" strokeWidth={1.5} />
               </div>
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
@@ -898,10 +898,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           >
                             <div className="flex items-center gap-3">
                               <Avatar className="size-8 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                                <AvatarImage 
-                                  src={getValidAvatarUrl(member.avatarUrl)} 
-                                  alt={`${member.firstName} ${member.lastName}`} 
-                                  className="object-cover" 
+                                <AvatarImage
+                                  src={getValidAvatarUrl(member.avatarUrl)}
+                                  alt={`${member.firstName} ${member.lastName}`}
+                                  className="object-cover"
                                 />
                                 <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-medium text-zinc-600 transition-all duration-300 group-hover:bg-zinc-950 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400">
                                   {member.firstName[0]}
@@ -1031,10 +1031,10 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     <div className="mb-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="size-10 shrink-0 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                          <AvatarImage 
-                            src={getValidAvatarUrl(member.avatarUrl)} 
-                            alt={`${member.firstName} ${member.lastName}`} 
-                            className="object-cover" 
+                          <AvatarImage
+                            src={getValidAvatarUrl(member.avatarUrl)}
+                            alt={`${member.firstName} ${member.lastName}`}
+                            className="object-cover"
                           />
                           <AvatarFallback className="flex items-center justify-center rounded-xl bg-zinc-100 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                             {member.firstName[0]}

@@ -2,10 +2,11 @@
 
 "use client";
 
+import { Minus, Trophy } from "lucide-react";
 import { useMemo } from "react";
-import { Match } from "@/types/tournament.types";
+
 import { cn } from "@/lib/utils";
-import { Trophy, Minus } from "lucide-react";
+import { Match } from "@/types/tournament.types";
 
 interface TournamentBracketProps {
   matches: Match[];

@@ -1,9 +1,10 @@
-import { getDocs, DocumentSnapshot, Timestamp } from "firebase/firestore";
+import { DocumentSnapshot, getDocs, Timestamp } from "firebase/firestore";
+
 import {
-  getProductsQuery,
   getInventoryEventsQuery,
+  getProductsQuery,
 } from "@/lib/firebase-collections";
-import { Product, InventoryEvent } from "@/types";
+import { InventoryEvent, Product } from "@/types";
 
 export const docToProduct = (doc: DocumentSnapshot): Product | null => {
   if (!doc.id || !doc.exists()) {

@@ -1,10 +1,8 @@
- 
- 
- 
 /// <reference types="@testing-library/jest-dom" />
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
 import { Badge } from "../badge";
-import { describe, it, expect } from "vitest";
 
 describe("Badge Component", () => {
   it("renders the badge with correct text", () => {

@@ -1,13 +1,14 @@
 import {
   collection,
+  deleteDoc,
   doc,
-  setDoc,
   getDocs,
   query,
-  where,
   serverTimestamp,
-  deleteDoc,
+  setDoc,
+  where,
 } from "firebase/firestore";
+
 import { getDb } from "@/lib/firebase";
 import { BeepTestResult } from "@/types/beep-test.types";
 

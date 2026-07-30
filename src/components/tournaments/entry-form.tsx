@@ -1,22 +1,13 @@
- 
- 
- 
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TournamentEntrySchema } from "@/types/tournament.types";
+import { Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -25,10 +16,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Save, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
-import { Checkbox } from "@/components/ui/checkbox";
+import { TournamentEntrySchema } from "@/types/tournament.types";
 
 type EntryFormValues = z.input<typeof TournamentEntrySchema>;
 

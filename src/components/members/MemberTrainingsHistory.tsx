@@ -1,17 +1,17 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getTrainingSessionsForMemberAction } from "@/lib/actions/trainings";
-import { useAuth } from "@/context/auth-context";
 import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { Zap, Medal } from "lucide-react";
-import { TrainingSession } from "@/types/training.types";
+import { Medal, Zap } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/auth-context";
+import { getTrainingSessionsForMemberAction } from "@/lib/actions/trainings";
+import { TrainingSession } from "@/types/training.types";
 
 interface Props {
   memberId: string;

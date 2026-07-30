@@ -1,16 +1,26 @@
- 
- 
- 
 "use client";
 
+import {
+  Camera,
+  Info,
+  Loader2,
+  Save,
+  Settings,
+  Trash,
+  Users,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import { useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { useState, useRef } from "react";
+import { toast } from "sonner";
+
 import { Service } from "@/app/(protected)/finances/services/service.types";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -19,21 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BentoCard } from "@/components/ui/bento-card";
-import {
-  Loader2,
-  Save,
-  X,
-  Info,
-  Users,
-  Settings,
-  Camera,
-  Trash,
-} from "lucide-react";
-import Image from "next/image";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { uploadFile } from "@/services/storage-service";
-import { toast } from "sonner";
 
 const localImages = [
   {

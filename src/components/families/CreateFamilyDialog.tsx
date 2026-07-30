@@ -1,12 +1,11 @@
- 
- 
- 
 "use client";
 
+import { Loader2, PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/auth-context";
-import { createFamilyAction } from "@/lib/actions/families";
 import { toast } from "sonner";
+
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Loader2 } from "lucide-react";
-import { BentoCard } from "@/components/ui/bento-card";
+import { useAuth } from "@/context/auth-context";
+import { createFamilyAction } from "@/lib/actions/families";
 
 export const CreateFamilyDialog = () => {
   const { user } = useAuth();

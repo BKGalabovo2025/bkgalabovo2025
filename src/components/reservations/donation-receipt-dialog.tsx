@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Printer, Mail, Loader2, BadgeCheck, Scissors } from "lucide-react";
+import { format } from "date-fns";
+import { bg } from "date-fns/locale";
+import { BadgeCheck, Loader2, Mail, Printer, Scissors } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,18 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { clubInfo } from "@/config/club";
-import { Reservation } from "@/types/reservation";
-import { formatPrice } from "@/lib/currency";
-import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
 import {
-  sendDonationReceiptEmailAction,
   getPackageReservationsAction,
+  sendDonationReceiptEmailAction,
 } from "@/lib/actions/reservations";
-import { format } from "date-fns";
-import { bg } from "date-fns/locale";
+import { formatPrice } from "@/lib/currency";
+import { Reservation } from "@/types/reservation";
 
 function getClientDisplayName(reservation: Reservation) {
   if (reservation.client2Name || reservation.client2Zone) {
@@ -50,9 +51,7 @@ const DocumentCopy = ({
   const isRecovery = reservation.siteId === "recoveryzone";
 
   return (
-    <div
-      className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm"
-    >
+    <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
       <div className="flex h-full flex-col">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px]">
@@ -85,9 +84,9 @@ const DocumentCopy = ({
           {reservation.client2Phone
             ? `${reservation.clientPhone} / ${reservation.client2Phone}`
             : reservation.clientPhone || "непосочен"}
-          ) в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще
-          бъдат използвани изцяло за поддържане на материално-техническата
-          база (МТО) на клуба и неговите уставни цели
+          ) в полза на СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“. Дарените средства ще бъдат
+          използвани изцяло за поддържане на материално-техническата база (МТО)
+          на клуба и неговите уставни цели
           {isRecovery
             ? ", включително развитие на възстановителния център Recovery zone by ZM"
             : ", включително развитие на детско-юношеската школа по бадминтон"}
@@ -169,8 +168,7 @@ const DocumentCopy = ({
           <div className="flex-1">
             <div className="h-px w-full bg-zinc-300" />
             <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              Дарител:{" "}
-              {getClientDisplayName(reservation)}
+              Дарител: {getClientDisplayName(reservation)}
             </p>
           </div>
         </div>

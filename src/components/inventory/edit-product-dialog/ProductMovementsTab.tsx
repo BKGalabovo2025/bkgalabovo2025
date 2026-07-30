@@ -1,7 +1,8 @@
 "use client";
 
-import { useEditProduct } from "./EditProductContext";
 import { GenericMovementsTab } from "@/components/shared/history-tabs/GenericMovementsTab";
+
+import { useEditProduct } from "./EditProductContext";
 
 const getEventLabel = (type: string) => {
   switch (type) {

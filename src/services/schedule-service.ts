@@ -1,14 +1,15 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 import {
+  DocumentSnapshot,
   getDocs,
   query,
-  where,
-  DocumentSnapshot,
   QueryDocumentSnapshot,
+  where,
 } from "firebase/firestore";
-import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
+
 import { toISOStringOrUndefined } from "@/lib/date-utils";
 import { getEventsQuery } from "@/lib/firebase-collections";
+import { Attendee, ScheduleEvent, ScheduleEventType } from "@/types";
 
 export const docToScheduleEvent = (
   doc: DocumentSnapshot | QueryDocumentSnapshot

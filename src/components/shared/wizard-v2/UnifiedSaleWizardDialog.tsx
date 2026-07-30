@@ -1,14 +1,17 @@
 "use client";
 
+import { ArrowLeft, ArrowRight, Loader2, X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogDescription,
   DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { X, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 import {
   UnifiedSaleWizardProvider,
   useUnifiedSaleWizard,
@@ -17,7 +20,6 @@ import { UnifiedWizardStep1 } from "./UnifiedWizardStep1";
 import { UnifiedWizardStep2 } from "./UnifiedWizardStep2";
 import { UnifiedWizardStep3 } from "./UnifiedWizardStep3";
 import { UnifiedWizardStep4 } from "./UnifiedWizardStep4";
-import { cn } from "@/lib/utils";
 
 const UnifiedSaleWizardContent = () => {
   const {

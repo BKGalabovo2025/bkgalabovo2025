@@ -1,13 +1,12 @@
- 
-
 "use client";
 
 import React from "react";
-import { ScheduleEvent } from "@/types";
+
 import {
   EventDialogForm,
   toLocalISOString,
 } from "@/components/shared/schedule/EventDialogForm";
+import { ScheduleEvent } from "@/types";
 
 interface EditEventDialogProps {
   isOpen: boolean;
@@ -43,7 +42,14 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         location: event.location ?? "",
         description: event.description ?? "",
       }}
-      onSubmit={async ({ title, startDate, endDate, type, location, description }) => {
+      onSubmit={async ({
+        title,
+        startDate,
+        endDate,
+        type,
+        location,
+        description,
+      }) => {
         await onUpdateEvent(event.id, {
           title,
           startDate,

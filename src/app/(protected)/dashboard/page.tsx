@@ -1,10 +1,12 @@
-import DashboardClient, { DashboardData } from "./DashboardClient";
-import { Metadata } from "next";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cookies } from "next/headers";
-import { getDashboardDataServerAction } from "@/lib/actions/dashboard";
 import { AlertTriangle, Database, RefreshCw } from "lucide-react";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
+import { Suspense } from "react";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { getDashboardDataServerAction } from "@/lib/actions/dashboard";
+
+import DashboardClient, { DashboardData } from "./DashboardClient";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +80,11 @@ export default async function DashboardPage() {
 
   // Pre-fetch the dashboard data on the server — errors are handled gracefully
   const result = await getDashboardDataServerAction(activeBranch);
-  const res = result as { success: boolean; data?: DashboardData; error?: string };
+  const res = result as {
+    success: boolean;
+    data?: DashboardData;
+    error?: string;
+  };
   const initialData = res.success && res.data ? res.data : null;
   const errorMessage = !res.success ? res.error : null;
 

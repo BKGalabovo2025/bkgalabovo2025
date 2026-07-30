@@ -1,14 +1,16 @@
 import {
+  act,
+  fireEvent,
   render,
   screen,
-  fireEvent,
-  act,
   waitFor,
 } from "@testing-library/react";
 import { toast } from "sonner";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ShadowWizard } from "../ShadowWizard";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import * as trainingsActions from "@/lib/actions/trainings";
+
+import { ShadowWizard } from "../ShadowWizard";
 
 // Mock router
 const mockPush = vi.fn();

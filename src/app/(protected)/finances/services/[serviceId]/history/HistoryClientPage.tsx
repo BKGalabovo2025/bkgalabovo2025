@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { getDb } from "@/lib/firebase";
 import {
   collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
   doc,
   getDoc,
+  getDocs,
+  orderBy,
+  query,
   Timestamp,
+  where,
 } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { getDb } from "@/lib/firebase";
 
 // --- Types ---
 interface Service {

@@ -1,5 +1,6 @@
-import { getAdminAuth } from "@/lib/firebase-admin";
 import { cookies } from "next/headers";
+
+import { getAdminAuth } from "@/lib/firebase-admin";
 
 // removed top-level call to prevent module evaluation crashes
 

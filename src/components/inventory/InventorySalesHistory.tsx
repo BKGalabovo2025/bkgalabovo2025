@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getSales } from "@/services/sales-service";
-import { getAllMembers } from "@/services/member-service";
-import { Sale, Member } from "@/types";
-import { toast } from "sonner";
-import { deleteSaleAction } from "@/lib/actions/sales";
 import { getAuth } from "firebase/auth";
-import { SharedSalesHistory } from "@/components/shared/sales/SharedSalesHistory";
 import { Package } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { SharedSalesHistory } from "@/components/shared/sales/SharedSalesHistory";
+import { deleteSaleAction } from "@/lib/actions/sales";
+import { getAllMembers } from "@/services/member-service";
+import { getSales } from "@/services/sales-service";
+import { Member, Sale } from "@/types";
 
 const InventorySalesHistory = () => {
   const [sales, setSales] = useState<Sale[]>([]);

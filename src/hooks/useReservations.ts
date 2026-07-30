@@ -1,18 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
 import {
-  collection,
-  query,
-  where,
-  onSnapshot,
   addDoc,
-  updateDoc,
+  collection,
   doc,
+  onSnapshot,
   orderBy,
+  query,
   Timestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { getDb } from "@/lib/firebase";
 import { Reservation } from "@/types/reservation";
-import { toast } from "sonner";
 
 export const useReservations = (siteId?: string, date?: Date) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);

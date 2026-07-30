@@ -1,6 +1,8 @@
 "use client";
 
+import { Phone } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+
 import { BentoCard } from "@/components/ui/bento-card";
 import {
   FormControl,
@@ -10,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Phone } from "lucide-react";
 
 import { MemberFormValues } from "./member-form-types";
 

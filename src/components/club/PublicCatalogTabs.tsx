@@ -1,29 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useMemo } from "react";
 import {
-  Trophy,
   Activity,
+  Calendar,
+  Clock,
   Package,
   ShoppingBag,
-  Zap,
-  Clock,
+  Trophy,
   Users,
-  Calendar,
+  Zap,
 } from "lucide-react";
+import { Eye } from "lucide-react";
+import Image from "next/image";
+import React, { useMemo, useState } from "react";
+
 import { ImageGallery } from "@/components/shared/images/ImageGallery";
-import { BentoCard } from "@/components/ui/bento-card";
 import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import Image from "next/image";
-import { Eye } from "lucide-react";
 
 type CatalogTab = "trainings" | "general" | "products" | "recovery";
 

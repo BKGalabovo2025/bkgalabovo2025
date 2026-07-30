@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { Sale } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { deleteSaleAction, updateSaleAction } from "@/lib/actions/sales";
 import {
   getSales,
   getSalesByMemberId,
   getSalesByMemberIds,
 } from "@/services/sales-service";
-import { useAuth } from "@/context/auth-context";
-import { deleteSaleAction, updateSaleAction } from "@/lib/actions/sales";
+import { Sale } from "@/types";
 
 export const useSales = (memberIdOrIds?: string | string[]) => {
   const [sales, setSales] = useState<Sale[]>([]);

@@ -1,7 +1,8 @@
 "use client";
 
-import { Sale } from "@/types";
-import { TableCell, TableRow } from "@/components/ui/table";
+import { MoreHorizontal } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,10 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { Sale } from "@/types";
 
 export interface StatusDetails {
   text: string;

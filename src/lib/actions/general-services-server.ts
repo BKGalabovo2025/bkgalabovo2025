@@ -2,8 +2,9 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
-import { getAdminDb } from "@/lib/firebase-admin";
+
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 
 function snapToData<T>(

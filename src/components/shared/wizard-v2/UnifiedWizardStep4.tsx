@@ -5,10 +5,12 @@
  * They were 96% identical, only differing by terminology ("процедури" vs "тренировки").
  */
 
-import { Sparkles, Loader2, Receipt, Printer } from "lucide-react";
+import { Loader2, Printer, Receipt, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/currency";
 import { clubInfo } from "@/config/club";
+import { formatPrice } from "@/lib/currency";
+
 import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
 export const UnifiedWizardStep4 = () => {

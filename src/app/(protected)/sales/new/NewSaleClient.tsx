@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useAuth } from "@/context/auth-context";
 
+import {
+  SaleFormManager,
+  SaleItem,
+} from "@/components/shared/sales/SaleFormManager";
+import { useAuth } from "@/context/auth-context";
 import { createSaleAction } from "@/lib/actions/sales";
-import { SaleFormManager, SaleItem } from "@/components/shared/sales/SaleFormManager";
 import { Sale } from "@/types";
 
 export default function NewSaleClient() {
@@ -18,7 +21,12 @@ export default function NewSaleClient() {
   const { idToken } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateSale = async ({ cart, memberId, status, totalAmount }: {
+  const handleCreateSale = async ({
+    cart,
+    memberId,
+    status,
+    totalAmount,
+  }: {
     cart: SaleItem[];
     memberId: string;
     status: Sale["status"];

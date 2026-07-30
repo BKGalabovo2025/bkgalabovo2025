@@ -1,23 +1,21 @@
- 
- 
- 
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { createProductAction } from "@/lib/actions/inventory";
-import { useAuth } from "@/context/auth-context";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/auth-context";
+import { createProductAction } from "@/lib/actions/inventory";
 
 interface AddProductDialogProps {
   isOpen: boolean;

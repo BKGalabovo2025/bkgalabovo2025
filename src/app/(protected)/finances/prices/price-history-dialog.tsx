@@ -2,22 +2,23 @@
 
 "use client";
 
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Price, PriceHistory } from "@/types/index";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { getPriceHistory } from "@/services/price-service";
-import { formatPrice } from "@/lib/currency";
-import { Loader2, ArrowRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatPrice } from "@/lib/currency";
+import { getPriceHistory } from "@/services/price-service";
+import { Price, PriceHistory } from "@/types/index";
 
 interface PriceHistoryDialogProps {
   isOpen: boolean;
@@ -78,9 +79,7 @@ export function PriceHistoryDialog({
                   <p className="text-sm text-muted-foreground">
                     {new Date(entry.timestamp).toLocaleString("bg-BG")}
                   </p>
-                  <p className="font-medium">
-                    Променено от: {entry.userName}
-                  </p>
+                  <p className="font-medium">Променено от: {entry.userName}</p>
                 </div>
                 <div className="flex items-center space-x-2 font-mono text-lg">
                   <span className="text-red-600">
@@ -116,9 +115,7 @@ export function PriceHistoryDialog({
             стока.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          {renderContent()}
-        </div>
+        <div className="py-4">{renderContent()}</div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Затвори</Button>

@@ -1,20 +1,23 @@
-import { useState, useEffect, useMemo } from "react";
+import { doc, DocumentSnapshot, getDoc } from "firebase/firestore";
+import { useEffect, useMemo, useState } from "react";
+
 import { getDb } from "@/lib/firebase";
-import { doc, getDoc, DocumentSnapshot } from "firebase/firestore";
 import { ClubService } from "@/types";
 
-const docToClubService = (doc: DocumentSnapshot): ClubService => ({
-  id: doc.id,
-  ...doc.data(),
-}) as ClubService;
-import { useReservations } from "./useReservations";
-import { getSiteById } from "@/services/site-service";
-import { Site } from "@/types/site.types";
+const docToClubService = (doc: DocumentSnapshot): ClubService =>
+  ({
+    id: doc.id,
+    ...doc.data(),
+  }) as ClubService;
 import {
   calculateAvailability,
   isServiceAvailableAcrossSlots,
 } from "@/services/booking/availability";
+import { getSiteById } from "@/services/site-service";
 import { ResourceRequirements } from "@/types/booking.types";
+import { Site } from "@/types/site.types";
+
+import { useReservations } from "./useReservations";
 
 export const useAvailability = (
   siteId: string | undefined,

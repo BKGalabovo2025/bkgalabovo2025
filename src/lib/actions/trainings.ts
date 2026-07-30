@@ -1,20 +1,23 @@
 "use server";
 import "server-only";
 
-import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
-import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
-import { TrainingSession } from "@/types/training.types";
-import { serverCache } from "@/lib/server-cache";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const ShadowDetailsSchema = z.object({
-  setsCompleted: z.number().min(0, "Completed sets cannot be negative"),
-  totalSets: z.number().min(1, "Total sets must be at least 1"),
-  workTimeSec: z.number().min(0, "Work time cannot be negative"),
-  restTimeSec: z.number().min(0, "Rest time cannot be negative"),
-}).passthrough();
+import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
+import { TrainingSession } from "@/types/training.types";
+
+const ShadowDetailsSchema = z
+  .object({
+    setsCompleted: z.number().min(0, "Completed sets cannot be negative"),
+    totalSets: z.number().min(1, "Total sets must be at least 1"),
+    workTimeSec: z.number().min(0, "Work time cannot be negative"),
+    restTimeSec: z.number().min(0, "Rest time cannot be negative"),
+  })
+  .passthrough();
 
 export async function createTrainingSessionAction(
   idToken: string,
@@ -26,7 +29,9 @@ export async function createTrainingSessionAction(
       if (!parsed.success) {
         return {
           success: false,
-          error: "Невалидни данни за тренировката: " + parsed.error.issues[0].message,
+          error:
+            "Невалидни данни за тренировката: " +
+            parsed.error.issues[0].message,
         };
       }
     }

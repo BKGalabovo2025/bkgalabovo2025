@@ -1,6 +1,8 @@
 "use client";
 
+import { Check, FileText } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+
 import { BentoCard } from "@/components/ui/bento-card";
 import {
   FormControl,
@@ -19,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Simple visual checkbox that avoids Radix compose-refs React 19 bug

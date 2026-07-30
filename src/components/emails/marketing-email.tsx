@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Body,
   Container,
@@ -7,7 +8,6 @@ import {
   Preview,
   Text,
 } from "react-email";
-import * as React from "react";
 
 export interface MarketingEmailProps {
   memberName?: string;
@@ -18,7 +18,9 @@ export const MarketingEmail: React.FC<MarketingEmailProps> = ({
   messageText,
 }) => {
   // Use a generic preview text (first 50 chars of the message or default)
-  const previewText = messageText ? messageText.substring(0, 50) + "..." : "Съобщение от БК Гълъбово";
+  const previewText = messageText
+    ? messageText.substring(0, 50) + "..."
+    : "Съобщение от БК Гълъбово";
 
   return (
     <Html>
@@ -27,9 +29,9 @@ export const MarketingEmail: React.FC<MarketingEmailProps> = ({
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Съобщение от БК Гълъбово</Heading>
-          
+
           <Text style={textBlock}>
-            {messageText.split('\n').map((line, i) => (
+            {messageText.split("\n").map((line, i) => (
               <React.Fragment key={i}>
                 {line}
                 <br />
@@ -38,7 +40,8 @@ export const MarketingEmail: React.FC<MarketingEmailProps> = ({
           </Text>
 
           <Text style={footer}>
-            Това е автоматично съобщение. Моля, не отговаряйте директно на този имейл.
+            Това е автоматично съобщение. Моля, не отговаряйте директно на този
+            имейл.
           </Text>
         </Container>
       </Body>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Price } from "@/types/index";
+
 import { DataTable } from "@/components/shared/data-table";
+import { Price } from "@/types/index";
+
 import { columns } from "./columns";
 import { EditPriceDialog } from "./edit-price-dialog";
 import { PriceHistoryDialog } from "./price-history-dialog";

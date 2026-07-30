@@ -1,16 +1,28 @@
 /* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-duplicated-branches */
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  AlertTriangle,
+  CalendarRange,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Info,
+  Loader2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,31 +32,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getBWFIntervals, getSkillLevel } from "@/lib/planner-utils";
+import { getAgeGroup } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { getAllMembers } from "@/services/member-service";
+import { plannerService } from "@/services/planner-service";
+import { getEventsForPeriod } from "@/services/schedule-service";
+import { useAppStore } from "@/store/use-app-store";
+import { Member, ScheduleEvent } from "@/types";
 import {
   Exercise,
-  TrainingMode,
   LocationType,
   PlannerSession,
+  TrainingMode,
 } from "@/types/planner.types";
-import { plannerService } from "@/services/planner-service";
-import { useAppStore } from "@/store/use-app-store";
-import { getEventsForPeriod } from "@/services/schedule-service";
-import { getAllMembers } from "@/services/member-service";
-import { ScheduleEvent, Member } from "@/types";
-import { getAgeGroup } from "@/lib/utils";
-import { getSkillLevel, getBWFIntervals } from "@/lib/planner-utils";
-import {
-  Loader2,
-  CalendarRange,
-  CheckCircle2,
-  ChevronRight,
-  Clock,
-  AlertTriangle,
-  Info,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;

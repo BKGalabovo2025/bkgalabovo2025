@@ -1,15 +1,15 @@
 "use client";
 
-
-import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Calendar as CalendarIcon,
   ChevronRight,
   Share2,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import { toast } from "sonner";
+
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 
 interface EventSlot {

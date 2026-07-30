@@ -1,26 +1,19 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
+
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronDown, Star } from "lucide-react";
+import { useState } from "react";
 import {
-  useForm,
-  SubmitHandler,
   ControllerRenderProps,
+  SubmitHandler,
+  useForm,
   UseFormReturn,
 } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  TournamentSchema,
-  Tournament,
-  MATCH_FORMAT_PRESETS,
-} from "@/types/tournament.types";
 import { z } from "zod";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-
-import { Textarea } from "@/components/ui/textarea";
-
 import {
   Form,
   FormControl,
@@ -29,9 +22,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Star, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import {
+  MATCH_FORMAT_PRESETS,
+  Tournament,
+  TournamentSchema,
+} from "@/types/tournament.types";
 
 const CATEGORIES = [
   { id: "singles", label: "Единично" },
@@ -394,10 +392,7 @@ export function TournamentForm({
               <FormItem className="flex flex-row items-center justify-between rounded-4xl border border-zinc-100 bg-zinc-50/50 p-8 md:col-span-2 dark:border-zinc-900 dark:bg-zinc-900/30">
                 <div className="space-y-1">
                   <FormLabel className="flex items-center gap-3 text-base font-light text-zinc-900 dark:text-white">
-                    <Star
-                      className="size-5 text-amber-400"
-                      strokeWidth={1.5}
-                    />
+                    <Star className="size-5 text-amber-400" strokeWidth={1.5} />
                     Ранглиста
                   </FormLabel>
                   <p className="text-[11px] font-medium tracking-wider text-zinc-400 uppercase">
@@ -474,12 +469,26 @@ export function TournamentForm({
                             ? "border-primary/20 bg-primary/5 text-primary"
                             : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:bg-zinc-50"
                         )}
-                        onClick={() => handleCategoryToggle(item.id, field.value, field.onChange, isChecked)}
+                        onClick={() =>
+                          handleCategoryToggle(
+                            item.id,
+                            field.value,
+                            field.onChange,
+                            isChecked
+                          )
+                        }
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={(e) => handleCategoryToggle(item.id, field.value, field.onChange, !e.target.checked)}
+                          onChange={(e) =>
+                            handleCategoryToggle(
+                              item.id,
+                              field.value,
+                              field.onChange,
+                              !e.target.checked
+                            )
+                          }
                           onClick={(e) => e.stopPropagation()}
                           className="size-5 cursor-pointer rounded border-zinc-300 accent-zinc-950"
                         />

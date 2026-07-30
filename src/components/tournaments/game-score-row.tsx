@@ -1,6 +1,7 @@
 "use client";
 
-import { Minus, Plus, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Minus, Plus, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface GameScore {

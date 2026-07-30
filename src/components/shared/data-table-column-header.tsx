@@ -1,10 +1,8 @@
 /* eslint-disable sonarjs/no-nested-conditional */
- 
- 
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react";
-import { Column } from "@tanstack/react-table";
 
-import { cn } from "@/lib/utils";
+import { Column } from "@tanstack/react-table";
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface DataTableColumnHeaderProps<
   TData,

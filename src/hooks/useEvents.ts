@@ -1,33 +1,34 @@
-import { useState, useEffect, useCallback } from "react";
 import {
-  onSnapshot,
-  doc,
-  setDoc,
-  deleteDoc,
-  writeBatch,
-  Timestamp,
   addDoc,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  setDoc,
+  Timestamp,
+  writeBatch,
 } from "firebase/firestore";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { toISOStringOrUndefined } from "@/lib/date-utils";
 import { getDb } from "@/lib/firebase";
 import {
   getEventsCollection,
+  getPastEventsQuery,
   getTodayEventsQuery,
   getUpcomingEventsQuery,
-  getPastEventsQuery,
 } from "@/lib/firebase-collections";
-import { docToScheduleEvent } from "@/services/schedule-service";
-import { toISOStringOrUndefined } from "@/lib/date-utils";
-import { ScheduleEvent, Member, Attendee } from "@/types";
-import { toast } from "sonner";
-import { getAllMembers } from "@/services/member-service";
 import { formatFullName } from "@/lib/utils";
+import { getAllMembers } from "@/services/member-service";
+import { docToScheduleEvent } from "@/services/schedule-service";
+import { Attendee, Member, ScheduleEvent } from "@/types";
 
 type NewEvent = Omit<ScheduleEvent, "id">;
 
-import { useAppStore } from "@/store/use-app-store";
+import { useAuth } from "@/context/auth-context";
 import { invalidateDashboardCacheAction } from "@/lib/actions/dashboard";
 import { updateAttendeesAction } from "@/lib/actions/events";
-import { useAuth } from "@/context/auth-context";
+import { useAppStore } from "@/store/use-app-store";
 
 /**
  * Smart-streaming events hook.

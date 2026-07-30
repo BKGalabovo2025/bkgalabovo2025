@@ -1,25 +1,26 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { Reservation, BlockedSlot } from "@/types/reservation";
+import { Clock, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { useAuth } from "@/context/auth-context";
 import {
-  subscribeToReservationsForDay,
-  subscribeToBlockedSlotsForDay,
-} from "@/lib/reservations";
-import {
-  deleteReservationAction,
   deleteBlockedSlotAction,
+  deleteReservationAction,
   markReservationAsPaidAction,
 } from "@/lib/actions/reservations";
-import { Loader2, Clock } from "lucide-react";
-import { toast } from "sonner";
-import { useAppStore } from "@/store/use-app-store";
-import { useAuth } from "@/context/auth-context";
+import {
+  subscribeToBlockedSlotsForDay,
+  subscribeToReservationsForDay,
+} from "@/lib/reservations";
 import { getAllRecoveryServices } from "@/services/club-service";
+import { useAppStore } from "@/store/use-app-store";
 import { ClubService } from "@/types";
+import { BlockedSlot, Reservation } from "@/types/reservation";
 
-import { AgendaReservationItem } from "./agenda-reservation-item";
 import { AgendaBlockedItem } from "./agenda-blocked-item";
+import { AgendaReservationItem } from "./agenda-reservation-item";
 
 interface AgendaViewProps {
   date: Date;

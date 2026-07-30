@@ -1,28 +1,30 @@
 "use client";
 
-import { Member, Sale } from "@/types";
-import { Family } from "@/hooks/useMemberProfile";
-import { checkIsMemberOverdue } from "@/lib/membership-utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import {
-  getAgeGroup,
-  getValidAvatarUrl,
-  getInitials,
-  formatFullName,
-} from "@/lib/utils";
 import { ArrowLeft, Pencil } from "lucide-react";
-import { updateMemberAction } from "@/lib/actions/members";
-import { useAuth } from "@/context/auth-context";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
-import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/auth-context";
+import { Family } from "@/hooks/useMemberProfile";
+import { updateMemberAction } from "@/lib/actions/members";
+import { checkIsMemberOverdue } from "@/lib/membership-utils";
+import { cn } from "@/lib/utils";
+import {
+  formatFullName,
+  getAgeGroup,
+  getInitials,
+  getValidAvatarUrl,
+} from "@/lib/utils";
+import { Member, Sale } from "@/types";
+
 import { MemberAssessmentsTab } from "./tabs/MemberAssessmentsTab";
+import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
+import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
 
 const MemberSalesHistory = dynamic(
   () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),

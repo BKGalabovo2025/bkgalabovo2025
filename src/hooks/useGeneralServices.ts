@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAppStore } from "@/store/use-app-store";
+
 import {
-  getGeneralServicesServerAction,
   getGeneralServiceHistoryAction,
+  getGeneralServicesServerAction,
 } from "@/lib/actions/general-services-server";
 import { getServiceSalesAction } from "@/lib/actions/sales";
+import { useAppStore } from "@/store/use-app-store";
+import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 
 export function useGeneralServices() {
   const [services, setServices] = useState<GeneralService[]>([]);

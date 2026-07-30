@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/sidebar";
-import { Toaster } from "react-hot-toast";
 import Image from "next/image";
-import { useAppStore } from "@/store/use-app-store";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
+
+import { AppSidebar } from "@/components/layout/sidebar";
 import { UserNav } from "@/components/layout/user-nav";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/auth-context";
+import { useAppStore } from "@/store/use-app-store";
 
 function GlobalHeader() {
   const { activeBranch, setActiveBranch } = useAppStore();
@@ -29,7 +30,8 @@ function GlobalHeader() {
       title: "RECOVERY ZONE",
       subtitle: "by ZM",
       color: "emerald",
-      activeClasses: "border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20",
+      activeClasses:
+        "border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20",
     },
   ];
 

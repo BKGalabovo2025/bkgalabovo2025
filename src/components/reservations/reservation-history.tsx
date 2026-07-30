@@ -1,7 +1,10 @@
 "use client";
 
-import { useReservations } from "@/hooks/useReservations";
-import { useAppStore } from "@/store/use-app-store";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,21 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { useReservations } from "@/hooks/useReservations";
 import {
   deleteReservationAction,
   markReservationAsPaidAction,
 } from "@/lib/actions/reservations";
 import { getAllRecoveryServices } from "@/services/club-service";
-import {
-  ReservationHistoryTableRow,
-  ReservationHistoryMobileCard,
-} from "./ReservationHistoryTableRow";
+import { useAppStore } from "@/store/use-app-store";
 import { ClubService } from "@/types";
+
+import {
+  ReservationHistoryMobileCard,
+  ReservationHistoryTableRow,
+} from "./ReservationHistoryTableRow";
 
 interface ReservationHistoryProps {
   onViewInCalendar: (date: Date) => void;

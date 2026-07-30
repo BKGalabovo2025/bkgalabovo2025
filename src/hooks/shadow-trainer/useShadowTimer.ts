@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { TrainerState, ShadowSettings } from "./types";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { ShadowSettings, TrainerState } from "./types";
 
 interface TimerOptions {
   state: TrainerState;

@@ -1,14 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  ZONE_NAMES,
-  ZONES_ARRAY,
-  getRandomZoneForMode,
   getRandomShotForZone,
-  ZoneId,
+  getRandomZoneForMode,
   playAudio,
   playAudioSequence,
-  stopAudio,
   shadowAudioManager,
+  stopAudio,
+  ZONE_NAMES,
+  ZoneId,
+  ZONES_ARRAY,
 } from "../audio-map";
 
 describe("Shadow Training Audio Map & Helpers", () => {

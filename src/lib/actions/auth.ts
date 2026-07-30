@@ -1,8 +1,9 @@
 "use server";
 import "server-only";
 
-import { getAdminAuth } from "@/lib/firebase-admin";
 import { cookies } from "next/headers";
+
+import { getAdminAuth } from "@/lib/firebase-admin";
 
 export async function loginAction(email: string, password: string) {
   try {

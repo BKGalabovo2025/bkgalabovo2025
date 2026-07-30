@@ -1,18 +1,20 @@
 "use client";
 
-import useSWR from "swr";
 import {
+  collection,
   doc,
   getDoc,
-  collection,
+  getDocs,
   query,
   where,
-  getDocs,
 } from "firebase/firestore";
+import useSWR from "swr";
+
 import { db } from "@/lib/firebase";
-import { Family } from "./useFamilies";
-import { Member } from "@/types";
 import { docToMember } from "@/services/member-service";
+import { Member } from "@/types";
+
+import { Family } from "./useFamilies";
 
 interface FamilyData {
   family: Family | null;

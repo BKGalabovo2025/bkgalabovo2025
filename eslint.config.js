@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import sonarjs from "eslint-plugin-sonarjs";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import tailwind from "eslint-plugin-tailwindcss";
-
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 export default tseslint.config(
   {
     ignores: [
@@ -65,7 +65,12 @@ export default tseslint.config(
         version: "19.2.6",
       },
     },
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
     rules: {
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "@typescript-eslint/no-unused-vars": [

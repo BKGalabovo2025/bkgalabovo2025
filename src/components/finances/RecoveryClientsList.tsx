@@ -1,15 +1,13 @@
- 
- 
- 
 "use client";
 
+import { Activity, Calendar, FileText, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Activity, Plus, Trash2, Calendar, FileText } from "lucide-react";
-import { useAuth } from "@/context/auth-context";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
 import { deleteMemberAction } from "@/lib/actions/members";
 import { Member } from "@/types";
 
@@ -23,7 +21,9 @@ export function RecoveryClientsList({
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const recoveryClients = members.filter((m) => m.isRecoveryMember || m.memberType === "recovery");
+  const recoveryClients = members.filter(
+    (m) => m.isRecoveryMember || m.memberType === "recovery"
+  );
 
   const handleDeleteMember = async (
     e: React.MouseEvent,
@@ -75,8 +75,8 @@ export function RecoveryClientsList({
               Относно Клиенти Възстановяване
             </p>
             <p className="text-xs leading-relaxed font-light text-zinc-500">
-              Това са клиенти, които имат профил във Възстановителната зона. 
-              Те могат да бъдат и външни лица, и клубни членове. Тук се съхранява 
+              Това са клиенти, които имат профил във Възстановителната зона. Те
+              могат да бъдат и външни лица, и клубни членове. Тук се съхранява
               тяхното досие със здравна информация и история на процедурите.
             </p>
           </div>

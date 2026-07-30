@@ -1,12 +1,13 @@
 "use server";
 import "server-only";
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
 
-import { getAdminDb } from "@/lib/firebase-admin";
-import { getAuthUser } from "@/lib/auth-utils";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
+
+import { getAuthUser } from "@/lib/auth-utils";
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity */
+import { getAdminDb } from "@/lib/firebase-admin";
 import { Attendee } from "@/types";
 
 async function findMatchingSaleForAttendee(

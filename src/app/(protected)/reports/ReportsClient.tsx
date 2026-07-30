@@ -1,16 +1,17 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, RefreshCw, Users, Wallet } from "lucide-react";
+
+import { PageHeader } from "@/components/layout/page-header";
+import AttendanceReport from "@/components/reports/attendance-report";
 import FinancialReport from "@/components/reports/financial-report";
 import LiabilitiesReport from "@/components/reports/liabilities-report";
 import RestockReport from "@/components/reports/restock-report";
-import AttendanceReport from "@/components/reports/attendance-report";
-import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
-import { BarChart3, Users, Wallet, RefreshCw } from "lucide-react";
-import { Member, Product } from "@/types";
-import type { AttendanceReportItem } from "@/services/report-service";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FinancialReportData } from "@/lib/actions/reports";
+import type { AttendanceReportItem } from "@/services/report-service";
+import { Member, Product } from "@/types";
 
 interface ReportsClientProps {
   initialFinancialData: FinancialReportData;

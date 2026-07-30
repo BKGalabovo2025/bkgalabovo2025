@@ -1,27 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Service } from "./service.types";
-import { columns } from "./columns";
-import { DataTableRowActions } from "./DataTableRowActions";
-import { PageHeader } from "@/components/layout/page-header";
-import { BentoCard } from "@/components/ui/bento-card";
-import { Button } from "@/components/ui/button";
 import {
-  PlusCircle,
+  History,
   LayoutGrid,
   List,
-  History,
+  PlusCircle,
   ShoppingBag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/shared/data-table";
+import { useState } from "react";
+
 import { ServiceMenu } from "@/components/finances/ServiceMenu";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UnifiedTrainingDialog } from "@/components/finances/UnifiedTrainingDialog";
-import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { TrainingHistory } from "@/components/finances/TrainingHistory";
 import { TrainingSalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
+import { UnifiedTrainingDialog } from "@/components/finances/UnifiedTrainingDialog";
+import { PageHeader } from "@/components/layout/page-header";
+import { DataTable } from "@/components/shared/data-table";
+import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { columns } from "./columns";
+import { DataTableRowActions } from "./DataTableRowActions";
+import { Service } from "./service.types";
 
 interface ServicesClientPageProps {
   data: Service[];

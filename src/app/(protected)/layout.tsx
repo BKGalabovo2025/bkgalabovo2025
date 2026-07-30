@@ -1,6 +1,7 @@
+import { redirect } from "next/navigation";
+
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 
-import { redirect } from "next/navigation";
 import ProtectedLayoutClient from "./ProtectedLayoutClient";
 
 export const dynamic = "force-dynamic";

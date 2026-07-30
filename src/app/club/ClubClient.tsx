@@ -1,33 +1,32 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Script from "next/script";
-import Link from "next/link";
-import Image from "next/image";
-import { Site } from "@/types/site.types";
-
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Trophy,
-  Target,
-  Users,
+  ArrowRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Mail,
   MapPin,
   Phone,
-  Mail,
-  ChevronRight,
-  ChevronLeft,
-  CalendarDays,
-  ArrowRight,
+  Target,
+  Trophy,
+  Users,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import Script from "next/script";
+import { useEffect, useRef, useState } from "react";
+
 import {
+  FacebookIcon,
   InstagramIcon,
   YoutubeIcon,
-  FacebookIcon,
 } from "@/components/icons/social-icons";
-import { motion, AnimatePresence } from "framer-motion";
-
-import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
-import { PublicNav } from "@/components/layout/public-nav";
 import { PublicFooter } from "@/components/layout/public-footer";
+import { PublicNav } from "@/components/layout/public-nav";
+import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
+import { Site } from "@/types/site.types";
 
 type EventSlot = {
   id: string;
@@ -407,17 +406,17 @@ export default function ClubClient({
 
                       {/* Events for this date */}
                       <div className="space-y-3">
-                    {events.map((event, i) => (
-                      <PublicEventCard
-                        key={event.id}
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        event={event as any}
-                        groupIdx={groupIdx}
-                        i={i}
-                        showAdminLinks={false}
-                      />
-                    ))}
-                  </div>
+                        {events.map((event, i) => (
+                          <PublicEventCard
+                            key={event.id}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            event={event as any}
+                            groupIdx={groupIdx}
+                            i={i}
+                            showAdminLinks={false}
+                          />
+                        ))}
+                      </div>
                     </motion.div>
                   ))}
                 </div>

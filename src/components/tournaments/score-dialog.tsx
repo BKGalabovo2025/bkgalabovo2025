@@ -1,21 +1,23 @@
 "use client";
 
+import { AlertCircle, Plus, Trophy } from "lucide-react";
 import { useState } from "react";
-import {
-  Match,
-  MatchFormatPreset,
-  isValidGameScore,
-  getMatchFormat,
-} from "@/types/tournament.types";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Trophy, AlertCircle, Plus } from "lucide-react";
+import {
+  getMatchFormat,
+  isValidGameScore,
+  Match,
+  MatchFormatPreset,
+} from "@/types/tournament.types";
+
 import { GameScoreRow } from "./game-score-row";
 
 interface GameScore {
@@ -98,7 +100,8 @@ export function ScoreDialog({
 
   const allGamesValid = gameValidations.every((v) => v === null || v.valid);
 
-  const matchOver = wins.p1 >= fmt.gamesNeededToWin || wins.p2 >= fmt.gamesNeededToWin;
+  const matchOver =
+    wins.p1 >= fmt.gamesNeededToWin || wins.p2 >= fmt.gamesNeededToWin;
 
   let autoWinnerId = null;
   if (wins.p1 >= fmt.gamesNeededToWin) {
@@ -224,7 +227,8 @@ export function ScoreDialog({
 
         {/* Формат */}
         <div className="rounded-md border bg-muted/50 px-3 py-1.5 text-center text-xs text-muted-foreground">
-          📋 Формат: <span className="font-medium text-foreground">{fmt.label}</span>
+          📋 Формат:{" "}
+          <span className="font-medium text-foreground">{fmt.label}</span>
         </div>
 
         <div className="space-y-5 py-2">

@@ -1,22 +1,19 @@
- 
- 
- 
 "use client";
 
-import { GeneralService } from "@/types";
+import {
+  Clock,
+  Edit,
+  ExternalLink,
+  MoreHorizontal,
+  ShieldCheck,
+  Trash2,
+  User,
+  Wrench,
+} from "lucide-react";
+import { toast } from "sonner";
+
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/currency";
-import {
-  Wrench,
-  User,
-  Clock,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  ExternalLink,
-  ShieldCheck,
-} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/auth-context";
 import { deleteGeneralService } from "@/lib/actions/general-services";
-import { toast } from "sonner";
+import { formatPrice } from "@/lib/currency";
+import { GeneralService } from "@/types";
 
 interface GeneralServiceMenuProps {
   services: GeneralService[];
@@ -158,7 +156,10 @@ export function GeneralServiceMenu({
               EUR
             </span>
             <span className="ml-2 text-xs font-light text-zinc-300 lowercase">
-              / {{ fixed: "услуга", per_hour: "час", per_session: "сесия" }[service.pricingUnit] || "услуга"}
+              /{" "}
+              {{ fixed: "услуга", per_hour: "час", per_session: "сесия" }[
+                service.pricingUnit
+              ] || "услуга"}
             </span>
           </div>
         </BentoCard>

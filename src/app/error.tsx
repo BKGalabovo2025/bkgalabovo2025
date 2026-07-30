@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { AlertCircle, RotateCcw, Home } from "lucide-react";
+import { AlertCircle, Home, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
+
 import { logSystemError } from "@/lib/actions/error-logging";
 
 export default function GlobalError({

@@ -1,6 +1,3 @@
- 
- 
- 
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -110,10 +107,10 @@ TableCaption.displayName = "TableCaption";
 
 export {
   Table,
-  TableHeader,
   TableBody,
+  TableCell,
   TableFooter,
   TableHead,
+  TableHeader,
   TableRow,
-  TableCell,
 };

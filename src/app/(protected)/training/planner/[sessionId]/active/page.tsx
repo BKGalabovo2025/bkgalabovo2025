@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import ActiveSessionClient from "./active-session-client";
 
 export const metadata: Metadata = {

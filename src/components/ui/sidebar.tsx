@@ -1,9 +1,10 @@
 "use client";
-import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
+import { Menu, X } from "lucide-react";
+import * as React from "react";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
 import { useAppStore } from "@/store/use-app-store";
 
 const SidebarContext = React.createContext<{

@@ -2,18 +2,26 @@
 
 "use client";
 
-import React, { useState, useId, useEffect } from "react";
+import {
+  AlignLeft,
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Loader2,
+  MapPin,
+} from "lucide-react";
+import React, { useEffect, useId, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,20 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScheduleEventType } from "@/types";
-import {
-  Loader2,
-  ArrowRight,
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  AlignLeft,
-} from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { ScheduleEventType } from "@/types";
 
 // ── Shared constants ──────────────────────────────────────────────────────────
 
-export const eventTypeTranslations: Record<ScheduleEventType, string> = {
+const eventTypeTranslations: Record<ScheduleEventType, string> = {
   training: "Тренировка",
   competition: "Състезание",
   camp: "Лагер",
@@ -206,7 +207,14 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
     setError(null);
     setIsSubmitting(true);
     try {
-      await onSubmit({ title, startDate, endDate, type, location, description });
+      await onSubmit({
+        title,
+        startDate,
+        endDate,
+        type,
+        location,
+        description,
+      });
       handleClose();
     } catch (err) {
       setError("Възникна грешка. Моля опитайте отново.");
@@ -254,8 +262,8 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     i === step
                       ? "bg-zinc-950 dark:bg-white"
                       : i < step
-                      ? "bg-zinc-950/30 dark:bg-white/30"
-                      : "bg-zinc-100 dark:bg-zinc-800"
+                        ? "bg-zinc-950/30 dark:bg-white/30"
+                        : "bg-zinc-100 dark:bg-zinc-800"
                   )}
                 />
               ))}

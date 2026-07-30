@@ -1,18 +1,20 @@
 "use client";
 
-import { Check, Loader2, Search, PlusCircle, User } from "lucide-react";
+import { Check, Loader2, PlusCircle, Search, User } from "lucide-react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { createMemberAction } from "@/lib/actions/members";
 import { useAuth } from "@/context/auth-context";
+import { createMemberAction } from "@/lib/actions/members";
+import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 import { Member } from "@/types";
+
 import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
-export function getMemberButtonClass(
+function getMemberButtonClass(
   isSelected: boolean,
   clientTypeTab: "member" | "guest"
 ): string {
@@ -25,7 +27,7 @@ export function getMemberButtonClass(
   return `${base} bg-emerald-50 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-300`;
 }
 
-export function getMemberAvatarClass(
+function getMemberAvatarClass(
   isSelected: boolean,
   clientTypeTab: "member" | "guest"
 ): string {

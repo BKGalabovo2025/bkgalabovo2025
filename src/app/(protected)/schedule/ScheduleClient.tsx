@@ -1,26 +1,27 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useEvents } from "@/hooks/useEvents";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
-  PlusCircle,
-  Repeat,
-  Loader2,
-  Filter,
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle,
-  CalendarDays,
-  Calendar as CalendarIcon,
-  Plus,
-  ShieldAlert,
+  Filter,
   History,
   LayoutGrid,
+  Loader2,
+  Plus,
+  PlusCircle,
+  Repeat,
+  ShieldAlert,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
 import { PrintableEvent } from "@/components/schedule/PrintableEvent";
+import { Button } from "@/components/ui/button";
+import { useEvents } from "@/hooks/useEvents";
 
 const CreateEventDialog = dynamic(
   () =>
@@ -54,7 +55,10 @@ const MonthlyScheduleDialog = dynamic(
   () => import("@/components/schedule/MonthlyScheduleDialog"),
   { ssr: false }
 );
-import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
+import { toast } from "sonner";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { EventListItem } from "@/components/schedule/EventListItem";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,8 +69,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   Select,
   SelectContent,
@@ -74,11 +77,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EventListItem } from "@/components/schedule/EventListItem";
-import { PageHeader } from "@/components/layout/page-header";
-import { BentoCard } from "@/components/ui/bento-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
+import { Attendee, Member, ScheduleEvent, ScheduleEventType } from "@/types";
 
 // Reservations components
 const AgendaView = dynamic(

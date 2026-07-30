@@ -2,26 +2,28 @@
 
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  User,
-  Clock,
-  MapPin,
-  Eye,
   Activity,
   CheckCircle2,
+  Clock,
+  Eye,
   FileText,
+  MapPin,
   Pencil,
   Trash2,
+  User,
 } from "lucide-react";
-import { Reservation } from "@/types";
-import { ReservationDialog } from "./reservation-dialog";
-import { DonationReceiptDialog } from "./donation-receipt-dialog";
+import { PenTool } from "lucide-react";
+
 import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
 import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
-import { PenTool } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Reservation } from "@/types";
+
+import { DonationReceiptDialog } from "./donation-receipt-dialog";
+import { ReservationDialog } from "./reservation-dialog";
 
 export interface ReservationData {
   id: string;

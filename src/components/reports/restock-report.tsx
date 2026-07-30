@@ -1,13 +1,15 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useState } from "react";
-import { Product } from "@/types";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   Table,
@@ -17,9 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/export-utils";
+import { Product } from "@/types";
 
 interface RestockReportProps {
   initialProducts: Product[];

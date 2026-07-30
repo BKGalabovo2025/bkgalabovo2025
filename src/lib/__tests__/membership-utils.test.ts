@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { checkIsMemberOverdue } from "../membership-utils";
+import { describe, expect, it } from "vitest";
+
 import type { Member, Sale } from "@/types";
+
+import { checkIsMemberOverdue } from "../membership-utils";
 
 describe("membership-utils - checkIsMemberOverdue", () => {
   const mockMember = {

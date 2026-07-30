@@ -1,9 +1,10 @@
 "use client";
 
-import { BentoCard } from "@/components/ui/bento-card";
-import { AlertCircle, Bell, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Reminder } from "@/types";
+import { AlertCircle, ArrowRight, Bell, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+import { BentoCard } from "@/components/ui/bento-card";
+import { Reminder } from "@/types";
 
 interface DashboardNotificationsProps {
   reminders: Reminder[];

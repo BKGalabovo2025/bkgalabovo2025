@@ -1,31 +1,30 @@
-import {
-  Tournament,
-  TournamentEntry,
-  Match,
-  TournamentSchema,
-} from "@/types/tournament.types";
-import { Timestamp, serverTimestamp } from "firebase/firestore";
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 import {
-  mapDocToTournament,
   mapDocToEntry,
   mapDocToMatch,
+  mapDocToTournament,
 } from "@/mappers/tournament.mapper";
-
 import {
-  fetchTournaments,
-  fetchTournamentById,
-  insertTournament,
-  updateTournamentDoc,
-  deleteTournamentDoc,
-  fetchTournamentEntries,
-  insertTournamentEntry,
-  deleteTournamentEntryDoc,
-  fetchTournamentMatches,
-  insertMatchesBatch,
   deleteMatchesByTournamentBatch,
+  deleteTournamentDoc,
+  deleteTournamentEntryDoc,
+  fetchTournamentById,
+  fetchTournamentEntries,
+  fetchTournamentMatches,
+  fetchTournaments,
+  insertMatchesBatch,
+  insertTournament,
+  insertTournamentEntry,
   updateMatchDoc,
+  updateTournamentDoc,
 } from "@/repositories/tournament.repository";
+import {
+  Match,
+  Tournament,
+  TournamentEntry,
+  TournamentSchema,
+} from "@/types/tournament.types";
 
 export const tournamentService = {
   /**

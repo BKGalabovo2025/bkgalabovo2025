@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, afterEach, type Mock } from "vitest";
-import { getAllClubServices } from "../club-service";
 import { DocumentSnapshot, getDocs } from "firebase/firestore";
+import { afterEach, describe, expect, it, type Mock, vi } from "vitest";
+
+import { getAllClubServices } from "../club-service";
 
 // Mock firebase collections
 vi.mock("@/lib/firebase-collections", () => ({

@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { generateBergerMatches } from "../match-generator";
+import { describe, expect, it } from "vitest";
+
 import { TournamentEntry } from "@/types/tournament.types";
+
+import { generateBergerMatches } from "../match-generator";
 
 describe("generateBergerMatches", () => {
   it("трябва да връща празен масив при 0 или 1 играч", () => {

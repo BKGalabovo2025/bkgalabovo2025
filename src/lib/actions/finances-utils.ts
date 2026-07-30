@@ -1,4 +1,5 @@
 import "server-only";
+
 import { Sale } from "@/types";
 
 type CategoryRevenue = {

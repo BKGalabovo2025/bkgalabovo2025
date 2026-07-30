@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
-import { ServiceSchema } from "../finances/services/service.types";
-import { ClubService } from "@/types";
 import { serverCache } from "@/lib/server-cache";
+import { ClubService } from "@/types";
+
+import { ServiceSchema } from "../finances/services/service.types";
 import CatalogsClient from "./CatalogsClient";
 
 export const dynamic = "force-dynamic";

@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { tournamentService } from "../tournament-service";
-import * as tournamentRepo from "@/repositories/tournament.repository";
 import { Timestamp } from "firebase/firestore";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import * as tournamentRepo from "@/repositories/tournament.repository";
+
+import { tournamentService } from "../tournament-service";
 
 vi.mock("@/repositories/tournament.repository", () => ({
   fetchTournaments: vi.fn(),

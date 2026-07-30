@@ -1,31 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
+  ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Mail,
+  MapPin,
+  Menu,
+  Phone,
   Trophy,
   Users,
-  MapPin,
-  Phone,
-  Mail,
-  ChevronRight,
-  ChevronLeft,
-  ArrowRight,
-  Clock,
-  ChevronDown,
-  Menu,
   X,
-  AlertTriangle,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+
 import {
+  FacebookIcon,
   InstagramIcon,
   YoutubeIcon,
-  FacebookIcon,
 } from "@/components/icons/social-icons";
-import { motion, AnimatePresence } from "framer-motion";
 import { TeamSection } from "@/components/recovery/TeamSection";
-
 import { Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {

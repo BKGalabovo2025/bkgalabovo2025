@@ -5,21 +5,22 @@
  * Those had 89%+ identical EventCard implementations — extracted here to avoid duplication.
  */
 
-import { useState } from "react";
-import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Clock,
-  MapPin,
-  ChevronRight,
-  Printer,
-  Info,
   ChevronDown,
+  ChevronRight,
+  Clock,
+  Info,
   Mail,
+  MapPin,
+  Printer,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useState } from "react";
+
 import { formatEventDateRange } from "@/lib/date-utils";
 
-export interface PublicEventSlot {
+interface PublicEventSlot {
   id: string;
   title: string;
   startTime: string;

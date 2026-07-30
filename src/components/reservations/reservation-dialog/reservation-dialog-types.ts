@@ -1,6 +1,7 @@
-import * as z from "zod";
 import { UseFormReturn } from "react-hook-form";
-import { ClubService, Reservation, Member } from "@/types";
+import * as z from "zod";
+
+import { ClubService, Member, Reservation } from "@/types";
 import { Site } from "@/types/site.types";
 
 export const reservationSchema = z.object({

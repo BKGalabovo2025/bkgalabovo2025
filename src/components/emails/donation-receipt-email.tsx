@@ -1,15 +1,16 @@
 import * as React from "react";
-import { Text, Section, Row, Column, Hr } from "react-email";
+import { Column, Hr, Row, Section, Text } from "react-email";
+
 import {
+  detailsContainer,
+  detailsLabel,
+  detailsLabelCol,
+  detailsRow,
+  detailsValue,
+  detailsValueCol,
+  divider,
   EmailLayoutShared,
   paragraph,
-  detailsContainer,
-  detailsRow,
-  detailsLabelCol,
-  detailsValueCol,
-  detailsLabel,
-  detailsValue,
-  divider,
 } from "./EmailLayoutShared";
 
 export interface DonationReceiptEmailProps {

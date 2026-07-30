@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,13 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/auth-context";
+import { addAssessment } from "@/services/assessment-service";
+import { getAllMembers } from "@/services/member-service";
 import { BadmintonTest } from "@/types/assessment.types";
 import { Member } from "@/types/member.types";
-import { getAllMembers } from "@/services/member-service";
-import { addAssessment } from "@/services/assessment-service";
-import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
 
 interface ConductTestDialogProps {
   test: BadmintonTest | null;
@@ -297,9 +298,7 @@ export default function ConductTestDialog({
               disabled={isSubmitting || participants.length === 0}
               className="bg-indigo-600 text-white hover:bg-indigo-700"
             >
-              {isSubmitting && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
+              {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
               Запази резултатите
             </Button>
           </div>

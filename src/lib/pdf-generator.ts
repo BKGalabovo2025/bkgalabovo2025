@@ -1,5 +1,5 @@
-import { PDFDocument, rgb } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, rgb } from "pdf-lib";
 
 export async function fillDeclarationPdf(data: {
   name: string;
@@ -9,16 +9,16 @@ export async function fillDeclarationPdf(data: {
   parentSignatureUrl?: string;
 }): Promise<string> {
   // Fetch the original blank PDF
-  const existingPdfBytes = await fetch('/declaration/Декларация за информирано съгласие BG ENG.pdf').then((res) =>
-    res.arrayBuffer()
-  );
+  const existingPdfBytes = await fetch(
+    "/declaration/Декларация за информирано съгласие BG ENG.pdf"
+  ).then((res) => res.arrayBuffer());
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
   // Register fontkit
   pdfDoc.registerFontkit(fontkit);
 
   // Load custom Cyrillic font
-  const fontUrl = '/fonts/Roboto-Regular.ttf';
+  const fontUrl = "/fonts/Roboto-Regular.ttf";
   const fontBytesRes = await fetch(fontUrl);
   const fontBytes = await fontBytesRes.arrayBuffer();
   const customFont = await pdfDoc.embedFont(fontBytes);
@@ -64,7 +64,9 @@ export async function fillDeclarationPdf(data: {
   // Main Signature
   if (data.signatureUrl) {
     try {
-      const sigImageBytes = await fetch(data.signatureUrl).then((res) => res.arrayBuffer());
+      const sigImageBytes = await fetch(data.signatureUrl).then((res) =>
+        res.arrayBuffer()
+      );
       const sigImage = await pdfDoc.embedPng(sigImageBytes);
       const sigDims = sigImage.scale(0.25); // slightly smaller to fit well
       page.drawImage(sigImage, {
@@ -81,7 +83,9 @@ export async function fillDeclarationPdf(data: {
   // Parent Signature
   if (data.parentSignatureUrl) {
     try {
-      const parentSigImageBytes = await fetch(data.parentSignatureUrl).then((res) => res.arrayBuffer());
+      const parentSigImageBytes = await fetch(data.parentSignatureUrl).then(
+        (res) => res.arrayBuffer()
+      );
       const parentSigImage = await pdfDoc.embedPng(parentSigImageBytes);
       const parentSigDims = parentSigImage.scale(0.25);
       page.drawImage(parentSigImage, {
@@ -96,6 +100,8 @@ export async function fillDeclarationPdf(data: {
   }
 
   const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
+  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
+    type: "application/pdf",
+  });
   return URL.createObjectURL(blob);
 }

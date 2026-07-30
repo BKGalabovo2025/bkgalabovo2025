@@ -4,14 +4,6 @@ import { render } from "react-email";
 import { z } from "zod";
 
 import {
-  ReminderEmail,
-  ReminderEmailProps,
-} from "@/components/emails/reminder-email";
-import {
-  ReservationConfirmationEmail,
-  ReservationConfirmationEmailProps,
-} from "@/components/emails/reservation-confirmation-email";
-import {
   DeactivatedEmail,
   DeactivatedEmailProps,
 } from "@/components/emails/deactivated-email";
@@ -19,12 +11,22 @@ import {
   MarketingEmail,
   MarketingEmailProps,
 } from "@/components/emails/marketing-email";
+import {
+  ReminderEmail,
+  ReminderEmailProps,
+} from "@/components/emails/reminder-email";
+import {
+  ReservationConfirmationEmail,
+  ReservationConfirmationEmailProps,
+} from "@/components/emails/reservation-confirmation-email";
 import { ensureAdmin } from "@/lib/auth-utils";
 
 // Define the data types for each email template
 type EmailTemplateData = {
   reminder: ReminderEmailProps;
-  reservationConfirmation: ReservationConfirmationEmailProps & { isRecoveryZone?: boolean };
+  reservationConfirmation: ReservationConfirmationEmailProps & {
+    isRecoveryZone?: boolean;
+  };
   deactivated: DeactivatedEmailProps;
   marketing: MarketingEmailProps;
 };
@@ -52,7 +54,7 @@ const templates = {
       const formattedEndTime = new Date(endTime).toLocaleString("bg-BG", {
         timeStyle: "short",
       });
-      
+
       if (isRecoveryZone) {
         return `Здравейте, ${clientName}. Вашата резервация във възстановителния център е потвърдена. Детайли: ${courtId}, от ${formattedStartTime} до ${formattedEndTime} ч.`;
       }
@@ -79,7 +81,12 @@ const templates = {
 const EmailSchema = z.object({
   to: z.string().email(),
   subject: z.string().min(1),
-  template: z.enum(["reminder", "reservationConfirmation", "deactivated", "marketing"]),
+  template: z.enum([
+    "reminder",
+    "reservationConfirmation",
+    "deactivated",
+    "marketing",
+  ]),
   data: z.record(z.string(), z.any()), // Keep z.any() here for validation flexibility, but we will use the typed data below
 });
 

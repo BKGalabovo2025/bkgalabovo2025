@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSales } from "@/hooks/useSales";
-import { mutate } from "swr";
 import { Loader2, MoreHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { mutate } from "swr";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,10 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { useSales } from "@/hooks/useSales";
 import { formatPrice } from "@/lib/currency";
-import { MemberSalesHistoryTableRow } from "./MemberSalesHistoryTableRow";
+import { cn } from "@/lib/utils";
+
 import { MemberSalesHistoryMobileCard } from "./MemberSalesHistoryMobileCard";
+import { MemberSalesHistoryTableRow } from "./MemberSalesHistoryTableRow";
 
 function getSaleItemsList(sale: import("@/types").Sale) {
   return sale.items

@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  Calendar,
+  CheckCheck,
+  CreditCard,
+  FilePenLine,
+  Hash,
+  Loader2,
+  Receipt,
+  ShoppingCart,
+  Trash2,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { deleteSale, getSaleById, updateSale } from "@/services/sales-service";
-import { getMemberById } from "@/services/member-service";
-import { Sale, Member } from "@/types";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/currency";
 import { mutate } from "swr";
 
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,21 +29,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  User,
-  ShoppingCart,
-  Trash2,
-  CheckCheck,
-  FilePenLine,
-  Receipt,
-  Calendar,
-  Hash,
-  CreditCard,
-} from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/currency";
+import { getMemberById } from "@/services/member-service";
+import { deleteSale, getSaleById, updateSale } from "@/services/sales-service";
+import { Member, Sale } from "@/types";
 
 export interface SharedSaleDetailsProps {
   saleId: string;

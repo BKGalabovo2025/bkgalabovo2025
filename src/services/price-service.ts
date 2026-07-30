@@ -1,25 +1,26 @@
 // src/services/price-service.ts
 
+import { User } from "firebase/auth";
 import {
-  getDocs,
   doc,
-  writeBatch,
-  getDoc,
-  query,
-  orderBy,
-  where,
   DocumentSnapshot,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  where,
+  writeBatch,
 } from "firebase/firestore";
+
+import { getSiteConfig } from "@/config/sites";
+import { getDb } from "@/lib/firebase";
 import {
-  getPricesCollection,
-  getPricesQuery,
   getPriceHistoryCollection,
   getPriceHistoryQuery,
+  getPricesCollection,
+  getPricesQuery,
 } from "@/lib/firebase-collections";
-import { getDb } from "@/lib/firebase";
-import { getSiteConfig } from "@/config/sites";
 import { Price, PriceHistory } from "@/types/index";
-import { User } from "firebase/auth";
 
 // --- Converters ---
 

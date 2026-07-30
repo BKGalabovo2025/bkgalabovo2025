@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
+
 import { getOverdueMembers } from "@/services/reminder-service.server";
 
 // No longer need React, render, or the email component here.
@@ -58,7 +59,12 @@ export async function POST(request: Request) {
     let failedCount = 0;
 
     const dispatchEmail = async (
-      member: { id: string; email?: string | null; firstName?: string; lastName?: string },
+      member: {
+        id: string;
+        email?: string | null;
+        firstName?: string;
+        lastName?: string;
+      },
       memberName: string
     ) => {
       if (!member.email) {
@@ -104,12 +110,14 @@ export async function POST(request: Request) {
       } catch (emailError) {
         if (emailError instanceof Error) {
           console.error(
-            "FAILURE: Failed to dispatch email for %s. Reason:", memberName,
+            "FAILURE: Failed to dispatch email for %s. Reason:",
+            memberName,
             emailError.message
           );
         } else {
           console.error(
-            "FAILURE: An unknown error occurred while dispatching email for %s.", memberName
+            "FAILURE: An unknown error occurred while dispatching email for %s.",
+            memberName
           );
         }
         failedCount++;

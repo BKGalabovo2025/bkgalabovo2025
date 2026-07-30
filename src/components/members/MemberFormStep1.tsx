@@ -1,6 +1,8 @@
 "use client";
 
+import { Activity, Check, User, Users } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+
 import { BentoCard } from "@/components/ui/bento-card";
 import {
   FormControl,
@@ -17,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Users, Activity, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Simple visual checkbox that avoids Radix compose-refs React 19 bug
@@ -47,8 +48,8 @@ function VisualCheckbox({
   );
 }
 
-import { MemberFormValues } from "./member-form-types";
 import { DateSelectorField } from "./DateSelectorField";
+import { MemberFormValues } from "./member-form-types";
 
 interface MemberFormStep1Props {
   form: UseFormReturn<MemberFormValues>;

@@ -1,15 +1,16 @@
 "use client";
 
+import { History, Plus, ShoppingBag, Wrench } from "lucide-react";
 import { useState } from "react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { Plus, Wrench, History, ShoppingBag } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BentoCard } from "@/components/ui/bento-card";
-import { GeneralServiceList } from "@/components/finances/GeneralServiceList";
-import { GeneralServiceHistory } from "@/components/finances/GeneralServiceHistory";
-import { GeneralServiceSalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
+
 import { AddGeneralServiceDialog } from "@/components/finances/AddGeneralServiceDialog";
+import { GeneralServiceHistory } from "@/components/finances/GeneralServiceHistory";
+import { GeneralServiceList } from "@/components/finances/GeneralServiceList";
+import { GeneralServiceSalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
+import { PageHeader } from "@/components/layout/page-header";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
 
 interface GeneralServicesClientProps {

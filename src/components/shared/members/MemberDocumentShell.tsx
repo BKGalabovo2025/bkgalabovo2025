@@ -5,9 +5,10 @@
  * Encapsulates: back/print toolbar, document wrapper, ОТ: section, footer, print styles.
  */
 
+import { ArrowLeft, Printer } from "lucide-react";
 import React from "react";
+
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
 
 interface MemberDocumentShellProps {
   /** Called when the Back button is clicked */

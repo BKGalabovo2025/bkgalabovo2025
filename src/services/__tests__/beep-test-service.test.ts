@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { beepTestService } from "../beep-test-service";
+import * as firestore from "firebase/firestore";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   calculateVO2Max,
-  getTotalShuttles,
   evaluateBadmintonScore,
+  getTotalShuttles,
 } from "@/lib/beep-test-norms";
-import * as firestore from "firebase/firestore";
+
+import { beepTestService } from "../beep-test-service";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

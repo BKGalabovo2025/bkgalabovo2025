@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { AgendaView } from "@/components/reservations/agenda-view";
-import { ReservationDialog } from "@/components/reservations/reservation-dialog";
-import { BlockSlotDialog } from "@/components/reservations/block-slot-dialog";
-import { PageHeader } from "@/components/layout/page-header";
-import { BentoCard } from "@/components/ui/bento-card";
 import {
+  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Plus,
   ShieldAlert,
 } from "lucide-react";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReservationHistory } from "@/components/reservations/reservation-history";
 import { History, LayoutGrid } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { AgendaView } from "@/components/reservations/agenda-view";
+import { BlockSlotDialog } from "@/components/reservations/block-slot-dialog";
+import { ReservationDialog } from "@/components/reservations/reservation-dialog";
+import { ReservationHistory } from "@/components/reservations/reservation-history";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore } from "@/store/use-app-store";
 
 const COURT_COUNT = 6;
@@ -27,7 +27,6 @@ export default function ReservationsClient() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-     
     setMounted(true);
   }, []);
 

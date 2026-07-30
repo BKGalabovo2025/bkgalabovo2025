@@ -1,24 +1,25 @@
 "use client";
 
-import React from "react";
-import { Member } from "@/types";
-import { cn, formatFullName, getInitials } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  BarChart2,
+  Building,
+  Calendar,
+  Contact,
+  FileText,
+  Home,
   Mail,
   Phone,
-  Calendar,
-  Users,
-  Building,
-  Home,
   PhoneCall,
-  BarChart2,
   Stethoscope,
-  Contact,
   Trophy,
-  FileText,
+  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import React from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn, formatFullName, getInitials } from "@/lib/utils";
+import { Member } from "@/types";
 
 interface MemberPersonalTabProps {
   member: Member;
@@ -31,7 +32,12 @@ interface MemberPersonalTabProps {
 
 // ── Pure label helpers (no nested ternaries) ──────────────────────────────────────
 
-function getMemberTypeLabel(member: { memberType?: string | null; isClubMember?: boolean; isRecoveryMember?: boolean; isGuest?: boolean }): string {
+function getMemberTypeLabel(member: {
+  memberType?: string | null;
+  isClubMember?: boolean;
+  isRecoveryMember?: boolean;
+  isGuest?: boolean;
+}): string {
   const roles: string[] = [];
   if (member.isClubMember) roles.push("Клубен член");
   if (member.isRecoveryMember) roles.push("Член на зоната");
@@ -49,7 +55,9 @@ function getGenderLabel(gender: string | null | undefined): string | null {
   return null;
 }
 
-function getSkillLevelLabel(skillLevel: string | null | undefined): string | null {
+function getSkillLevelLabel(
+  skillLevel: string | null | undefined
+): string | null {
   if (skillLevel === "beginner") return "Начинаещ";
   if (skillLevel === "intermediate") return "Средно напреднал";
   if (skillLevel === "advanced") return "Напреднал";
@@ -117,10 +125,18 @@ export const MemberPersonalTab = ({
   return (
     <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <div className="grid grid-cols-1 gap-x-16 gap-y-2 md:grid-cols-2">
-        <InfoRow icon={Contact} label="Тип клиент" value={getMemberTypeLabel(member)} />
+        <InfoRow
+          icon={Contact}
+          label="Тип клиент"
+          value={getMemberTypeLabel(member)}
+        />
         <InfoRow icon={Mail} label="Имейл" value={member.email} />
         <InfoRow icon={Phone} label="Телефон" value={member.phone} />
-        <InfoRow icon={PhoneCall} label="Тип на телефона" value={formatPhoneType(member.phoneType)} />
+        <InfoRow
+          icon={PhoneCall}
+          label="Тип на телефона"
+          value={formatPhoneType(member.phoneType)}
+        />
         <InfoRow
           icon={Phone}
           label="Спешен контакт"
@@ -130,10 +146,26 @@ export const MemberPersonalTab = ({
               : null
           }
         />
-        <InfoRow icon={Calendar} label="Дата на раждане" value={formattedBirthDate} />
-        <InfoRow icon={BarChart2} label="Възрастова група" value={member.ageGroup || ageGroup} />
-        <InfoRow icon={Users} label="Пол" value={getGenderLabel(member.gender)} />
-        <InfoRow icon={Trophy} label="Ниво на умения" value={getSkillLevelLabel(member.skillLevel)} />
+        <InfoRow
+          icon={Calendar}
+          label="Дата на раждане"
+          value={formattedBirthDate}
+        />
+        <InfoRow
+          icon={BarChart2}
+          label="Възрастова група"
+          value={member.ageGroup || ageGroup}
+        />
+        <InfoRow
+          icon={Users}
+          label="Пол"
+          value={getGenderLabel(member.gender)}
+        />
+        <InfoRow
+          icon={Trophy}
+          label="Ниво на умения"
+          value={getSkillLevelLabel(member.skillLevel)}
+        />
         <div className="md:col-span-2">
           <div className="my-6 h-px bg-zinc-50" />
         </div>
@@ -147,11 +179,7 @@ export const MemberPersonalTab = ({
           label="Училище"
           value={member.educationInstitution}
         />
-        <InfoRow
-          icon={Users}
-          label="Екипировка"
-          value={member.apparelSize}
-        />
+        <InfoRow icon={Users} label="Екипировка" value={member.apparelSize} />
         <InfoRow icon={Home} label="Адрес" value={member.address} />
 
         {member.healthConditionNotes && (

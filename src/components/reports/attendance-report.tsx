@@ -3,15 +3,22 @@
 // src/components/reports/attendance-report.tsx
 "use client";
 
+import {
+  Activity,
+  Calendar,
+  Download,
+  Filter,
+  Loader2,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  generateAttendanceReport,
-  AttendanceReportItem,
-} from "@/services/report-service";
 import {
   Table,
   TableBody,
@@ -23,15 +30,9 @@ import {
 import { formatDateInput } from "@/lib/date-utils";
 import { exportToCSV } from "@/lib/export-utils";
 import {
-  Loader2,
-  Download,
-  Filter,
-  Calendar,
-  Users,
-  Activity,
-  Trophy,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+  AttendanceReportItem,
+  generateAttendanceReport,
+} from "@/services/report-service";
 
 interface AttendanceReportProps {
   initialReportData: AttendanceReportItem[];
@@ -115,8 +116,7 @@ const AttendanceReport = ({
           <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-3">
               <Label className="ml-1 flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-                <Calendar className="size-3.5" strokeWidth={1.5} /> Начална
-                дата
+                <Calendar className="size-3.5" strokeWidth={1.5} /> Начална дата
               </Label>
               <Input
                 type="date"
@@ -127,8 +127,7 @@ const AttendanceReport = ({
             </div>
             <div className="space-y-3">
               <Label className="ml-1 flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-                <Calendar className="size-3.5" strokeWidth={1.5} /> Крайна
-                дата
+                <Calendar className="size-3.5" strokeWidth={1.5} /> Крайна дата
               </Label>
               <Input
                 type="date"

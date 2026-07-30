@@ -1,10 +1,35 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
-import dynamic from "next/dynamic";
-const TournamentForm = dynamic(() => import("@/components/tournaments/tournament-form").then(m => m.TournamentForm), { ssr: false });
+const TournamentForm = dynamic(
+  () =>
+    import("@/components/tournaments/tournament-form").then(
+      (m) => m.TournamentForm
+    ),
+  { ssr: false }
+);
+import {
+  Calendar,
+  CheckCircle2,
+  LayoutList,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Trophy,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,25 +37,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { formatDateShort } from "@/lib/date-utils";
-import {
-  Trophy,
-  Calendar,
-  MapPin,
-  Plus,
-  Users,
-  LayoutList,
-  Pencil,
-  Trash2,
-  CheckCircle2,
-  Search,
-} from "lucide-react";
-import Link from "next/link";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { BentoCard } from "@/components/ui/bento-card";
-import { PageHeader } from "@/components/layout/page-header";
+import { formatDateShort } from "@/lib/date-utils";
 
 interface TournamentsClientProps {
   initialTournaments: Tournament[];

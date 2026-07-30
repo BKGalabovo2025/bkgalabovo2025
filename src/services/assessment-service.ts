@@ -1,19 +1,20 @@
 import {
-  getDocs,
-  query,
-  serverTimestamp,
-  orderBy,
+  addDoc,
+  CollectionReference,
   deleteDoc,
   doc,
-  CollectionReference,
-  addDoc,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
   where,
 } from "firebase/firestore";
+
+import { getSiteConfig } from "@/config/sites";
 import {
   getMemberAssessmentsCollection,
   getMemberAssessmentsQuery,
 } from "@/lib/firebase-collections";
-import { getSiteConfig } from "@/config/sites";
 import { MemberAssessment } from "@/types/assessment.types";
 
 export const getAssessmentsByMemberId = async (

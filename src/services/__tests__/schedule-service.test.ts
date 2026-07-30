@@ -1,9 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { docToScheduleEvent, getEventsForPeriod, getEventsByMemberId } from "../schedule-service";
 import { DocumentSnapshot, QueryDocumentSnapshot } from "firebase/firestore";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  docToScheduleEvent,
+  getEventsByMemberId,
+  getEventsForPeriod,
+} from "../schedule-service";
 
 vi.mock("firebase/firestore", async () => {
-  const actual = await vi.importActual<typeof import("firebase/firestore")>("firebase/firestore");
+  const actual =
+    await vi.importActual<typeof import("firebase/firestore")>(
+      "firebase/firestore"
+    );
   return {
     ...actual,
     getDocs: vi.fn(),
@@ -23,7 +31,11 @@ describe("schedule-service", () => {
 
   describe("docToScheduleEvent", () => {
     it("returns null if doc does not exist or has no id", () => {
-      const mockDoc = { id: "", exists: () => false, data: () => ({}) } as unknown as DocumentSnapshot;
+      const mockDoc = {
+        id: "",
+        exists: () => false,
+        data: () => ({}),
+      } as unknown as DocumentSnapshot;
       expect(docToScheduleEvent(mockDoc)).toBeNull();
     });
 

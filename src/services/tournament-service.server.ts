@@ -1,7 +1,8 @@
 import "server-only";
+
 import { getAdminDb } from "@/lib/firebase-admin";
-import { Tournament } from "@/types/tournament.types";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
+import { Tournament } from "@/types/tournament.types";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 

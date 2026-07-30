@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+
+import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { formatFullName } from "@/lib/utils";
-import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
 
 const TerminationRequestPage = () => {
   const params = useParams();

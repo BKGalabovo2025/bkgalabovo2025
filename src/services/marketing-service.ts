@@ -1,12 +1,13 @@
 import {
-  collection,
   addDoc,
+  collection,
   getDocs,
-  query,
-  where,
   orderBy,
+  query,
   serverTimestamp,
+  where,
 } from "firebase/firestore";
+
 import { db } from "@/lib/firebase";
 import { MarketingLog, MarketingLogFormData } from "@/types/marketing.types";
 

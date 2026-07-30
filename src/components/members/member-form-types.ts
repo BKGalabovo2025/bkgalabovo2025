@@ -1,5 +1,6 @@
-import { MemberSchema } from "@/types/member.types";
 import { z } from "zod";
+
+import { MemberSchema } from "@/types/member.types";
 
 export const MemberFormSchema = MemberSchema.omit({
   id: true,

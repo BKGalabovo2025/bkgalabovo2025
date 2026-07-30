@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAppStore } from "@/store/use-app-store";
-import { plannerService } from "@/services/planner-service";
-import { Exercise } from "@/types/planner.types";
+import { Download, Dumbbell, Loader2, MapPin, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Dumbbell, MapPin, Download, Loader2 } from "lucide-react";
-import ExerciseFormDialog from "./exercise-form-dialog";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
-import { toast } from "sonner";
+import { plannerService } from "@/services/planner-service";
+import { useAppStore } from "@/store/use-app-store";
+import { Exercise } from "@/types/planner.types";
+
+import ExerciseFormDialog from "./exercise-form-dialog";
 
 export default function ExercisesClient() {
   const { activeBranch } = useAppStore();

@@ -1,8 +1,9 @@
 "use client";
 
-import { formatPrice } from "@/lib/currency";
+import { CircleDollarSign, CreditCard, TrendingUp } from "lucide-react";
+
 import { BentoCard } from "@/components/ui/bento-card";
-import { TrendingUp, CreditCard, CircleDollarSign } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 interface DailyRevenueTrend {
   date: string;
@@ -82,10 +83,7 @@ export default function FinancesDashboardCharts({
         <BentoCard className="flex h-44 flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-8 shadow-none transition-all duration-300 hover:shadow-xl hover:shadow-zinc-100">
           <div className="flex items-start justify-between">
             <div className="rounded-2xl bg-amber-50 p-3">
-              <TrendingUp
-                className="size-6 text-amber-600"
-                strokeWidth={1.5}
-              />
+              <TrendingUp className="size-6 text-amber-600" strokeWidth={1.5} />
             </div>
             <div className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold tracking-wider text-amber-600 uppercase">
               Средно на чек

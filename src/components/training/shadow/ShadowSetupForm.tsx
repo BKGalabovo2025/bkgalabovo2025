@@ -1,21 +1,22 @@
 "use client";
 
-import { ShadowSettings, ShadowPlayer } from "@/hooks/useShadowTrainer";
+import {
+  Mic,
+  Play,
+  RotateCcw,
+  Settings2,
+  Star,
+  Target,
+  Users,
+  Zap,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Play,
-  Users,
-  Settings2,
-  RotateCcw,
-  Mic,
-  Target,
-  Zap,
-  Star,
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ShadowPlayer, ShadowSettings } from "@/hooks/useShadowTrainer";
 
 interface ShadowSetupFormProps {
   initialMembers: ShadowPlayer[];

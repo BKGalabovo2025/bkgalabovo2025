@@ -1,9 +1,11 @@
- 
- 
- 
 "use client";
 
+import { Loader2, Search, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,14 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserPlus, Search, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { addMemberToFamilyAction } from "@/lib/actions/families";
-import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
 
 interface AddMemberToFamilyDialogProps {
   familyId: string;

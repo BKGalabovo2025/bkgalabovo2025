@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { CheckCheck, Loader2, PenLine, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2, PenLine, Trash2, CheckCheck } from "lucide-react";
 
 interface SignatureDialogProps {
   open: boolean;

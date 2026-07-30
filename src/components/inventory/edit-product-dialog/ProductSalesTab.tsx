@@ -1,7 +1,8 @@
 "use client";
 
-import { useEditProduct } from "./EditProductContext";
 import { GenericSalesTab } from "@/components/shared/history-tabs/GenericSalesTab";
+
+import { useEditProduct } from "./EditProductContext";
 
 export const ProductSalesTab = () => {
   const { historyLoading, sales, product, membersMap } = useEditProduct();

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { History, Boxes, Briefcase } from "lucide-react";
-import SalesClient from "@/app/(protected)/sales/SalesClient";
-import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Boxes, Briefcase, History } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { Sale, Member } from "@/types";
+import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
+import SalesClient from "@/app/(protected)/sales/SalesClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Member, Sale } from "@/types";
 
 interface FinancesClientProps {
   initialSales: Sale[];

@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Activity, ListTree, Package, Wrench } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListTree, Wrench, Activity, Package } from "lucide-react";
-import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
+import { useEffect, useState } from "react";
+
 import GeneralServicesClient from "@/app/(protected)/finances/general-services/GeneralServicesClient";
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
+import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
+import { Service } from "@/app/(protected)/finances/services/service.types";
 import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore } from "@/store/use-app-store";
 import { ClubService } from "@/types";
-import { Service } from "@/app/(protected)/finances/services/service.types";
 
 interface CatalogsClientProps {
   services: Service[];

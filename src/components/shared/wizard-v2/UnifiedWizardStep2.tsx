@@ -5,24 +5,26 @@
  * These were 100% identical in both wizards — extracted here to avoid duplication.
  */
 
-import { CalendarDays, Check, CheckSquare } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { formatPrice } from "@/lib/currency";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { ScheduleEvent, Member } from "@/types";
+import { CalendarDays, Check, CheckSquare } from "lucide-react";
+
+import { Label } from "@/components/ui/label";
+import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { Member, ScheduleEvent } from "@/types";
+
 import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
 
 // MonthAttendance is identical in both contexts — define it once here
-export interface MonthAttendanceStat {
+interface MonthAttendanceStat {
   memberId: string;
   firstName: string;
   paidCount: number;
   unpaidCount: number;
 }
 
-export interface MonthAttendance {
+interface MonthAttendance {
   monthKey: string;
   monthLabel: string;
   year?: number;
@@ -120,7 +122,7 @@ interface SubscriptionProps {
   price: string | number;
 }
 
-export const WizardStep2Subscription = ({
+const WizardStep2Subscription = ({
   selectedMember,
   monthlyAttendance,
   unpaidMonths,
@@ -329,7 +331,7 @@ interface IndividualProps {
   eventLabel?: string;
 }
 
-export const WizardStep2Individual = ({
+const WizardStep2Individual = ({
   selectedMember,
   unpaidEvents,
   selectedEventIds,
@@ -427,189 +429,6 @@ export const WizardStep2Individual = ({
           Избрани: {selectedEventIds.length} {eventLabel}
         </div>
       )}
-    </div>
-  );
-};
-
-export interface WizardStep2WrapperProps {
-  selectedMember: Member;
-
-  paymentMode: "subscription" | "individual";
-  setPaymentMode: (mode: "subscription" | "individual") => void;
-  attendanceLoading: boolean;
-  monthlyAttendance: MonthAttendance[];
-  unpaidMonths: MonthAttendance[];
-  selectedMonthKeys: string[];
-  setSelectedMonthKeys: React.Dispatch<React.SetStateAction<string[]>>;
-  allUnpaidMonthsSelected: boolean;
-  toggleMonthSelection: (monthKey: string) => void;
-  price: string | number;
-  unpaidEvents: ScheduleEvent[];
-  selectedEventIds: string[];
-  setSelectedEventIds: React.Dispatch<React.SetStateAction<string[]>>;
-  toggleEventSelection: (eventId: string) => void;
-  eventLabel: string;
-}
-
-export const WizardStep2Wrapper = ({
-  selectedMember,
-
-  paymentMode,
-  setPaymentMode,
-  attendanceLoading,
-  monthlyAttendance,
-  unpaidMonths,
-  selectedMonthKeys,
-  setSelectedMonthKeys,
-  allUnpaidMonthsSelected,
-  toggleMonthSelection,
-  price,
-  unpaidEvents,
-  selectedEventIds,
-  setSelectedEventIds,
-  toggleEventSelection,
-  eventLabel,
-}: WizardStep2WrapperProps) => {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
-        <CalendarDays className="size-4 text-emerald-500" strokeWidth={1.5} />
-        <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-          Присъствия и период
-        </h3>
-      </div>
-
-      <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2.5 dark:border-emerald-900/30 dark:bg-emerald-950/20">
-        <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-emerald-500 text-[9px] font-bold text-white">
-          {selectedMember.firstName[0]}
-          {selectedMember.lastName[0]}
-        </div>
-        <span className="text-sm font-medium text-emerald-900 dark:text-emerald-300">
-          {selectedMember.firstName} {selectedMember.lastName}
-        </span>
-        <div className="ml-auto rounded-full border-none bg-emerald-100 px-2 py-0 text-[8px] text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-          Услуга
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-xs font-bold tracking-widest text-zinc-700 uppercase dark:text-zinc-300">
-          Тип плащане
-        </Label>
-        <div className="flex gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
-          <button
-            type="button"
-            onClick={() => setPaymentMode("subscription")}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[10px] font-semibold tracking-widest uppercase transition-all",
-              paymentMode === "subscription"
-                ? "bg-white text-emerald-700 shadow-sm dark:bg-zinc-800"
-                : "text-zinc-500 hover:text-zinc-700"
-            )}
-          >
-            {/* Hardcoded icon to match <Calendar /> usage */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-3.5"
-            >
-              <path d="M8 2v4"></path>
-              <path d="M16 2v4"></path>
-              <rect width="18" height="18" x="3" y="4" rx="2"></rect>
-              <path d="M3 10h18"></path>
-            </svg>
-            Абонамент (Месец)
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMode("individual")}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[10px] font-semibold tracking-widest uppercase transition-all",
-              paymentMode === "individual"
-                ? "bg-white text-blue-700 shadow-sm dark:bg-zinc-800"
-                : "text-zinc-500 hover:text-zinc-700"
-            )}
-          >
-            {/* Hardcoded icon to match <CreditCard /> usage */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-3.5"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-              <line x1="2" x2="22" y1="10" y2="10"></line>
-            </svg>
-            Еднократно
-          </button>
-        </div>
-      </div>
-
-      {(() => {
-        if (attendanceLoading) {
-          return (
-            <div className="flex flex-col items-center justify-center gap-3 py-12">
-              {/* Loader2 */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-7 animate-spin text-emerald-500 opacity-40"
-              >
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-              </svg>
-              <p className="text-xs font-light text-zinc-400">
-                Зареждане на присъствията...
-              </p>
-            </div>
-          );
-        }
-
-        if (paymentMode === "subscription") {
-          return (
-            <WizardStep2Subscription
-              selectedMember={selectedMember}
-              monthlyAttendance={monthlyAttendance}
-              unpaidMonths={unpaidMonths}
-              selectedMonthKeys={selectedMonthKeys}
-              setSelectedMonthKeys={setSelectedMonthKeys}
-              allUnpaidMonthsSelected={allUnpaidMonthsSelected}
-              toggleMonthSelection={toggleMonthSelection}
-              price={price}
-            />
-          );
-        }
-
-        return (
-          <WizardStep2Individual
-            selectedMember={selectedMember}
-            unpaidEvents={unpaidEvents}
-            selectedEventIds={selectedEventIds}
-            setSelectedEventIds={setSelectedEventIds}
-            toggleEventSelection={toggleEventSelection}
-            eventLabel={eventLabel}
-          />
-        );
-      })()}
     </div>
   );
 };

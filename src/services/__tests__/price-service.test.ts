@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as priceService from "../price-service";
 import * as firestore from "firebase/firestore";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import * as priceService from "../price-service";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

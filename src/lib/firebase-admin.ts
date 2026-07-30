@@ -151,4 +151,4 @@ const getAdminStorage = () => {
   return adminStorage;
 };
 
-export { getAdminDb, getAdminAuth, getAdminStorage };
+export { getAdminAuth, getAdminDb, getAdminStorage };

@@ -3,9 +3,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Price } from "@/types/index";
-import { formatPrice } from "@/lib/currency";
+import { Edit, History, MoreHorizontal } from "lucide-react";
+
 import { DataTableColumnHeader } from "@/components/shared/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,8 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, History, Edit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { formatPrice } from "@/lib/currency";
+import { Price } from "@/types/index";
 
 interface ColumnsProps {
   onEdit: (price: Price) => void;

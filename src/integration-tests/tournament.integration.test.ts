@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import "./setup";
-import { clearFirestore, db } from "./setup";
-import { tournamentService } from "@/services/tournament-service";
+
 import { doc, setDoc } from "firebase/firestore";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { tournamentService } from "@/services/tournament-service";
+
+import { clearFirestore, db } from "./setup";
 
 describe("Tournament Integration Tests (Emulator)", () => {
   beforeEach(async () => {

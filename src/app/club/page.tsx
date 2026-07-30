@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
 import fs from "fs";
+import type { Metadata } from "next";
 import path from "path";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
+
 import ClubClient from "./ClubClient";
 
 export const metadata: Metadata = {

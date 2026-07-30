@@ -1,8 +1,20 @@
 "use client";
 
+import {
+  Activity,
+  Calendar,
+  CalendarRange,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Loader2,
+  User,
+} from "lucide-react";
 import React from "react";
 import * as z from "zod";
-import { Form } from "@/components/ui/form";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,26 +22,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Loader2,
-  ChevronRight,
-  ChevronLeft,
-  CalendarRange,
-  Calendar,
-  User,
-  ClipboardCheck,
-  CheckCircle2,
-  Activity,
-} from "lucide-react";
-import { Reservation } from "@/types";
+import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { Reservation } from "@/types";
 
+import { reservationSchema } from "./reservation-dialog/reservation-dialog-types";
 import {
   ReservationDialogProvider,
   useReservationDialog,
 } from "./reservation-dialog/ReservationDialogContext";
-import { reservationSchema } from "./reservation-dialog/reservation-dialog-types";
 import { ReservationStep1Time } from "./reservation-dialog/ReservationStep1Time";
 import { ReservationStep2Package } from "./reservation-dialog/ReservationStep2Package";
 import { ReservationStep3Details } from "./reservation-dialog/ReservationStep3Details";

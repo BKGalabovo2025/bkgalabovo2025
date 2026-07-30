@@ -1,22 +1,23 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
+  orderBy,
+  query,
   setDoc,
   updateDoc,
-  deleteDoc,
-  query,
   where,
-  orderBy,
   writeBatch,
 } from "firebase/firestore";
+
+import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { db } from "@/lib/firebase";
 import {
   Exercise,
   PlannerSession,
   SessionAttendance,
 } from "@/types/planner.types";
-import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 
 const EXERCISES_COLLECTION = "exercises";
 const SESSIONS_COLLECTION = "planner_sessions";

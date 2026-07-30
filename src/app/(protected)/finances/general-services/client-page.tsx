@@ -1,11 +1,12 @@
 "use client";
 
+import { PlusCircle } from "lucide-react";
 import { useState } from "react";
+
+import { GeneralServiceDialog } from "@/components/finances/GeneralServiceDialog";
+import { GeneralServiceMenu } from "@/components/finances/GeneralServiceMenu";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { GeneralServiceMenu } from "@/components/finances/GeneralServiceMenu";
-import { GeneralServiceDialog } from "@/components/finances/GeneralServiceDialog";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
 import { GeneralService } from "@/types";
 

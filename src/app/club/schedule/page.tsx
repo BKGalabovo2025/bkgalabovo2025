@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+
 import { getAdminDb } from "@/lib/firebase-admin";
+
 import ScheduleClient from "./ScheduleClient";
 
 export const metadata: Metadata = {

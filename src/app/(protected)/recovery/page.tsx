@@ -1,36 +1,29 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
+import { Timestamp } from "firebase/firestore";
 import {
-  Calendar as CalendarIcon,
-  Clock,
-  User,
   Activity,
   AlertCircle,
+  Calendar as CalendarIcon,
   ChevronRight,
+  Clock,
+  User,
 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
-import { Timestamp } from "firebase/firestore";
-import { useAppStore } from "@/store/use-app-store";
-import { useMembers } from "@/hooks/useMembers";
-import { useReservations } from "@/hooks/useReservations";
-import { useAvailability } from "@/hooks/useAvailability";
-import { usePackages } from "@/hooks/usePackages";
-import { getAllClubServices } from "@/services/club-service";
-import { ClubService } from "@/types";
-
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -39,9 +32,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAvailability } from "@/hooks/useAvailability";
+import { useMembers } from "@/hooks/useMembers";
+import { usePackages } from "@/hooks/usePackages";
+import { useReservations } from "@/hooks/useReservations";
+import { cn } from "@/lib/utils";
+import { getAllClubServices } from "@/services/club-service";
+import { useAppStore } from "@/store/use-app-store";
+import { ClubService } from "@/types";
 
 export default function RecoveryPage() {
   const { activeBranch, setActiveBranch } = useAppStore();
@@ -81,7 +80,9 @@ export default function RecoveryPage() {
   // Load services on mount
   React.useEffect(() => {
     getAllClubServices().then((data: ClubService[]) => {
-      const bookingServices = data.filter((s: ClubService) => s.requiresBooking);
+      const bookingServices = data.filter(
+        (s: ClubService) => s.requiresBooking
+      );
       setServices(bookingServices);
       if (bookingServices.length > 0 && !selectedServiceId) {
         setSelectedServiceId(bookingServices[0].id);
@@ -165,8 +166,8 @@ export default function RecoveryPage() {
               Възстановителната зона не е активна
             </h3>
             <p className="max-w-sm text-muted-foreground">
-              За избрания обект ({activeBranch}) в момента няма
-              конфигурирана активна възстановителна зона.
+              За избрания обект ({activeBranch}) в момента няма конфигурирана
+              активна възстановителна зона.
             </p>
           </div>
         </div>

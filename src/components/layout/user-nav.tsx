@@ -1,8 +1,10 @@
- 
- 
- 
 "use client";
 
+import { LogOut, Settings, Shield, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +15,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { User, Settings, LogOut, Shield } from "lucide-react";
 
 export function UserNav() {
   const { user, logout } = useAuth();

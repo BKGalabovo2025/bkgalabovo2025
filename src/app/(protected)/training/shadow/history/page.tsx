@@ -1,19 +1,19 @@
+import { format } from "date-fns";
+import { ChevronLeft, Trophy, Zap } from "lucide-react";
+import Link from "next/link";
+
+import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getGlobalTrainingSessionsAction } from "@/lib/actions/trainings";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { TrainingSession } from "@/types/training.types";
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from "@/components/ui/card";
-import { format } from "date-fns";
-import { Zap, Trophy, ChevronLeft } from "lucide-react";
-import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "Shadow Training History | BK Galabovo",

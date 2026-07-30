@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   addDoc,
-  onSnapshot,
-  doc,
-  updateDoc,
   deleteDoc,
+  doc,
+  onSnapshot,
+  updateDoc,
 } from "firebase/firestore";
+import { useEffect, useState } from "react";
+
 import { db } from "@/lib/firebase";
-import { Member } from "@/types/member.types";
 import {
-  getMembersQuery,
   getMembersCollection,
+  getMembersQuery,
 } from "@/lib/firebase-collections";
 import { useAppStore } from "@/store/use-app-store";
+import { Member } from "@/types/member.types";
 
 export function useMembers() {
   const [members, setMembers] = useState<Member[]>([]);

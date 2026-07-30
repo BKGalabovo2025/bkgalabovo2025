@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Loader2, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -19,15 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { plannerService } from "@/services/planner-service";
+import { useAppStore } from "@/store/use-app-store";
 import {
   Exercise,
   ExerciseCategory,
   LocationType,
 } from "@/types/planner.types";
-import { plannerService } from "@/services/planner-service";
-import { useAppStore } from "@/store/use-app-store";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Trash2 } from "lucide-react";
 
 interface Props {
   exercise: Exercise | null;

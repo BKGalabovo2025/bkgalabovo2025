@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+
 import { GenericDeclarationPage } from "@/components/members/generic-declaration-page";
 
 const ParticipationTravelPage = () => {

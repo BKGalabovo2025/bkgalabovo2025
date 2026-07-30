@@ -1,23 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  Calendar,
+  Clock,
+  CreditCard,
+  Edit,
+  MoreHorizontal,
+  Shirt,
+  Trash2,
+  UserCheck,
+  Users,
+  Zap,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { Service } from "@/app/(protected)/finances/services/service.types";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/currency";
-import Image from "next/image";
-import {
-  CreditCard,
-  Zap,
-  Calendar,
-  UserCheck,
-  Shirt,
-  Users,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Clock,
-} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/auth-context";
 import { deleteClubService } from "@/lib/actions/services";
-import { toast } from "sonner";
+import { formatPrice } from "@/lib/currency";
 
 interface ServiceMenuProps {
   services: Service[];

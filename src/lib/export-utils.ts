@@ -5,7 +5,7 @@
 // ──────────────────────────────────────────────
 // ОБЩИ ТИПОВЕ ЗА ЕКСПОРТ
 // ──────────────────────────────────────────────
-export interface ExportColumn {
+interface ExportColumn {
   header: string;
   key: string;
   width?: number; // Ширина за Excel (напр. 15)

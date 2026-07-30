@@ -1,26 +1,27 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Member, SignedDeclaration } from "@/types";
-import { getSignedDeclarationsQuery } from "@/lib/firebase-collections";
-import { getDocs, deleteDoc, doc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { deleteDoc, doc, getDocs } from "firebase/firestore";
 import {
-  FileText,
-  Printer,
-  UserMinus,
-  ScrollText,
   AlertTriangle,
   CheckCircle,
-  ShieldCheck,
   ClipboardCheck,
-  Stethoscope,
   Contact,
-  Trash2,
+  FileText,
   LucideIcon,
+  Printer,
+  ScrollText,
+  ShieldCheck,
+  Stethoscope,
+  Trash2,
+  UserMinus,
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { getDb } from "@/lib/firebase";
+import { getSignedDeclarationsQuery } from "@/lib/firebase-collections";
+import { cn } from "@/lib/utils";
+import { Member, SignedDeclaration } from "@/types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -108,10 +109,7 @@ const DocumentRow = ({
           className="h-10 flex-1 rounded-lg border-zinc-100 px-4 text-[9px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-950 hover:text-white sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none"
           onClick={onPrint}
         >
-          <Printer
-            className="mr-2 size-3.5 sm:size-4"
-            strokeWidth={1.5}
-          />
+          <Printer className="mr-2 size-3.5 sm:size-4" strokeWidth={1.5} />
           Печат
         </Button>
         <Button
@@ -273,8 +271,11 @@ export const MemberDocumentsTab = ({
   useEffect(() => {
     async function fetchDeclarations() {
       const snapshot = await getDocs(getSignedDeclarationsQuery(member.id));
-      const list = snapshot.docs.map(d => d.data() as SignedDeclaration);
-      list.sort((a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime());
+      const list = snapshot.docs.map((d) => d.data() as SignedDeclaration);
+      list.sort(
+        (a, b) =>
+          new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
+      );
       setDeclarations(list);
     }
     fetchDeclarations();
@@ -289,10 +290,12 @@ export const MemberDocumentsTab = ({
     updateDocumentStatus(field, isCompleted ? "cancel" : "submit");
 
   const handleDeleteDeclaration = async (id: string) => {
-    if (window.confirm("Сигурни ли сте, че искате да изтриете тази декларация?")) {
+    if (
+      window.confirm("Сигурни ли сте, че искате да изтриете тази декларация?")
+    ) {
       try {
         await deleteDoc(doc(getDb(), "member_declarations", id));
-        setDeclarations(prev => prev.filter(d => d.id !== id));
+        setDeclarations((prev) => prev.filter((d) => d.id !== id));
         // Note: Ideally, we should also trigger an update of the member's hasSignedDeclaration status
         // but that requires updating the reservation or member record which is handled separately.
         // For now, this cleanly removes it from the list and DB.
@@ -441,18 +444,30 @@ export const MemberDocumentsTab = ({
 
       {declarations.length > 0 && (
         <div className="mt-12 border-t border-zinc-100 pt-8">
-          <h3 className="mb-6 text-lg font-bold text-zinc-900">Подписани Декларации (Recovery Zone)</h3>
+          <h3 className="mb-6 text-lg font-bold text-zinc-900">
+            Подписани Декларации (Recovery Zone)
+          </h3>
           <div className="space-y-4">
             {declarations.map((decl) => (
-              <div key={decl.id} className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:flex-row sm:items-center sm:p-6">
+              <div
+                key={decl.id}
+                className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:flex-row sm:items-center sm:p-6"
+              >
                 <div className="flex items-center gap-4">
                   <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
                     <CheckCircle className="size-5" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h4 className="mb-1 text-sm font-bold text-zinc-900">Декларация за информирано съгласие</h4>
+                    <h4 className="mb-1 text-sm font-bold text-zinc-900">
+                      Декларация за информирано съгласие
+                    </h4>
                     <p className="text-xs text-zinc-500">
-                      Подписана на: {new Date(decl.signedAt).toLocaleDateString("bg-BG")} в {new Date(decl.signedAt).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+                      Подписана на:{" "}
+                      {new Date(decl.signedAt).toLocaleDateString("bg-BG")} в{" "}
+                      {new Date(decl.signedAt).toLocaleTimeString("bg-BG", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -460,7 +475,9 @@ export const MemberDocumentsTab = ({
                   <Button
                     variant="outline"
                     className="h-10 flex-1 rounded-xl border-zinc-200 px-6 text-xs font-medium transition-all hover:bg-zinc-950 hover:text-white sm:flex-none"
-                    onClick={() => window.open(`/print-declaration/${decl.id}`, "_blank")}
+                    onClick={() =>
+                      window.open(`/print-declaration/${decl.id}`, "_blank")
+                    }
                   >
                     <Printer className="mr-2 size-4" strokeWidth={1.5} />
                     Печат

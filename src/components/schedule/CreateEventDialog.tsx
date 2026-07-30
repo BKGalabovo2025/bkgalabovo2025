@@ -1,21 +1,18 @@
- 
-
 "use client";
 
 import React from "react";
-import { ScheduleEvent } from "@/types";
+
 import {
   EventDialogForm,
-  getDefaultStartTime,
   getDefaultEndTime,
+  getDefaultStartTime,
 } from "@/components/shared/schedule/EventDialogForm";
+import { ScheduleEvent } from "@/types";
 
 interface CreateEventDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddEvent: (
-    newEvent: Omit<ScheduleEvent, "id" | "color">
-  ) => Promise<void>;
+  onAddEvent: (newEvent: Omit<ScheduleEvent, "id" | "color">) => Promise<void>;
 }
 
 export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
@@ -36,7 +33,14 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
         startDate: defaultStart,
         endDate: getDefaultEndTime(defaultStart),
       }}
-      onSubmit={async ({ title, startDate, endDate, type, location, description }) => {
+      onSubmit={async ({
+        title,
+        startDate,
+        endDate,
+        type,
+        location,
+        description,
+      }) => {
         await onAddEvent({
           title,
           startDate,

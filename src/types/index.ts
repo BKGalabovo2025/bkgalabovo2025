@@ -1,12 +1,9 @@
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
+export { type SignedDeclaration } from "./declaration.types";
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
-export { type Reservation, type BlockedSlot } from "./reservation";
-export {
-  type DeclarationTemplate,
-  type SignedDeclaration,
-} from "./declaration.types";
+export { type BlockedSlot, type Reservation } from "./reservation";
 
 export type Family = {
   id: string;

@@ -1,6 +1,7 @@
 "use client";
 
-import { Sale } from "@/types";
+import { MoreHorizontal, Receipt } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,9 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Receipt, MoreHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { Sale } from "@/types";
+
 import { StatusDetails } from "./MemberSalesHistoryTableRow";
 
 interface MemberSalesHistoryMobileCardProps {

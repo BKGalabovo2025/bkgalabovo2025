@@ -1,16 +1,17 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { loginAction } from "@/lib/actions/auth";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
-import { BentoCard } from "@/components/ui/bento-card";
-import Link from "next/link";
+import { loginAction } from "@/lib/actions/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");

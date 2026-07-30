@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import {
-  Printer,
   AlertCircle,
-  FileDown,
   BadgeCheck,
+  FileDown,
+  Printer,
   Scissors,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { clubInfo } from "@/config/club";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatPrice } from "@/lib/currency";
 import { formatFullName } from "@/lib/utils";
-import { toast } from "sonner";
-import { Member, ClubService, Sale, Family } from "@/types";
+import { ClubService, Family, Member, Sale } from "@/types";
 
 interface ReceiptCopyProps {
   label: string;

@@ -1,29 +1,30 @@
 "use client";
 
+import { ColumnDef } from "@tanstack/react-table";
+import { LayoutGrid, List, PlusCircle } from "lucide-react";
+import {
+  CalendarDays,
+  History,
+  PackageSearch,
+  ShoppingBag,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ClubService } from "@/types";
+import { useSWRConfig } from "swr";
+
+import { RecoveryClientPackages } from "@/components/finances/RecoveryClientPackages";
+import { RecoveryHistory } from "@/components/finances/RecoveryHistory";
+import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
+import { RecoveryReservationsHistory } from "@/components/finances/RecoveryReservationsHistory";
+import { RecoverySalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
 import { PageHeader } from "@/components/layout/page-header";
+import { DataTable } from "@/components/shared/data-table";
+import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, LayoutGrid, List } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/shared/data-table";
-import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
-import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
-import { useSWRConfig } from "swr";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ColumnDef } from "@tanstack/react-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatPrice } from "@/lib/currency";
-import { RecoveryHistory } from "@/components/finances/RecoveryHistory";
-import { RecoverySalesHistory } from "@/components/finances/UnifiedServiceSalesHistory";
-import { RecoveryReservationsHistory } from "@/components/finances/RecoveryReservationsHistory";
-import { RecoveryClientPackages } from "@/components/finances/RecoveryClientPackages";
-import {
-  History,
-  ShoppingBag,
-  CalendarDays,
-  PackageSearch,
-} from "lucide-react";
+import { ClubService } from "@/types";
 
 interface RecoveryClientPageProps {
   data: ClubService[];

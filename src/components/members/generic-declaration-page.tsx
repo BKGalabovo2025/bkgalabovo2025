@@ -1,18 +1,19 @@
 "use client";
 
+import { ArrowLeft, Loader2, PenLine, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemberProfile } from "@/hooks/useMemberProfile";
-import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft, PenLine, Loader2 } from "lucide-react";
-import { formatFullName } from "@/lib/utils";
 import { useState } from "react";
-import { SignatureDialog } from "@/components/members/signature-dialog";
-import { updateMemberAction } from "@/lib/actions/members";
-import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
+
+import { SignatureDialog } from "@/components/members/signature-dialog";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
+import { updateMemberAction } from "@/lib/actions/members";
+import { formatFullName } from "@/lib/utils";
 import { Member } from "@/types";
 
-export type DeclarationPrefix =
+type DeclarationPrefix =
   | "signedDeclaration"
   | "travelDeclaration"
   | "safetyDeclaration";

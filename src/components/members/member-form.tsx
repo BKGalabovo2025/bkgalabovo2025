@@ -1,20 +1,19 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Member } from "@/types/member.types";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Save, X, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAppStore } from "@/store/use-app-store";
+import { Member } from "@/types/member.types";
 
+import { MemberFormSchema, MemberFormValues } from "./member-form-types";
 import { MemberFormStep1 } from "./MemberFormStep1";
 import { MemberFormStep2 } from "./MemberFormStep2";
 import { MemberFormStep3 } from "./MemberFormStep3";
-
-import { MemberFormSchema, MemberFormValues } from "./member-form-types";
 
 interface MemberFormProps {
   onSave: (data: MemberFormValues) => Promise<void>;

@@ -1,5 +1,7 @@
-import { getAdminDb } from "@/lib/firebase-admin";
 import { notFound } from "next/navigation";
+
+import { getAdminDb } from "@/lib/firebase-admin";
+
 import PrintClientPage from "./PrintClientPage";
 
 // --- Type Definition (includes ALL possible fields) ---

@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateLiabilityReport } from "../report-service";
-import * as memberService from "../member-service";
-import * as salesService from "../sales-service";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { Member } from "@/types";
+
+import * as memberService from "../member-service";
+import { generateLiabilityReport } from "../report-service";
+import * as salesService from "../sales-service";
 
 // Mock the services that the report service depends on
 vi.mock("../member-service");

@@ -1,23 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   AUDIO_PATHS,
-  ZoneId,
-  getRandomZoneForMode,
   getRandomShotForZone,
+  getRandomZoneForMode,
+  ZoneId,
 } from "@/lib/shadow-training/audio-map";
-import { useShadowAudio } from "./shadow-trainer/useShadowAudio";
-import { useShadowTimer } from "./shadow-trainer/useShadowTimer";
+
 import {
+  ShadowPlayer,
   ShadowSettings,
   TrainerState,
   VisualPhase,
-  ShadowPlayer,
   WakeLockSentinel,
 } from "./shadow-trainer/types";
+import { useShadowAudio } from "./shadow-trainer/useShadowAudio";
+import { useShadowTimer } from "./shadow-trainer/useShadowTimer";
 
-export type { ShadowSettings, TrainerState, VisualPhase, ShadowPlayer };
+export type { ShadowPlayer, ShadowSettings, TrainerState, VisualPhase };
 
 // ─── Pure helper functions ─────────
 

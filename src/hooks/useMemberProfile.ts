@@ -1,8 +1,9 @@
 "use client";
 
 import useSWR from "swr";
-import { Member, ScheduleEvent, Sale } from "@/types";
+
 import { getMemberProfileDataServerAction } from "@/lib/actions/members";
+import { Member, Sale, ScheduleEvent } from "@/types";
 
 export interface Family {
   id: string;

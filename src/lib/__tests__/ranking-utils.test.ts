@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { getPlacementPoints, calcTournamentStandings } from "../ranking-utils";
-import { TournamentEntry, Match } from "@/types/tournament.types";
+import { describe, expect, it } from "vitest";
+
+import { Match, TournamentEntry } from "@/types/tournament.types";
+
+import { calcTournamentStandings, getPlacementPoints } from "../ranking-utils";
 
 describe("ranking-utils", () => {
   describe("getPlacementPoints", () => {

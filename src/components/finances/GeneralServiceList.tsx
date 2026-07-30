@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Edit2, ImageIcon, Search, Trash2, Wrench } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { formatPrice } from "@/lib/currency";
-import { GeneralService } from "@/types";
-import { Wrench, Edit2, Trash2, ImageIcon, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { BentoCard } from "@/components/ui/bento-card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
-import dynamic from "next/dynamic";
+import { formatPrice } from "@/lib/currency";
+import { GeneralService } from "@/types";
 const EditGeneralServiceDialog = dynamic(
   () =>
     import("./EditGeneralServiceDialog").then(
@@ -34,8 +35,9 @@ const UnifiedSaleWizardDialog = dynamic(
     ),
   { ssr: false }
 );
-import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 import { toast } from "sonner";
+
+import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 const ReservationDialog = dynamic(
   () =>
     import("@/components/reservations/reservation-dialog").then(

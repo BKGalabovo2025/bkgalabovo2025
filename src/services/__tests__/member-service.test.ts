@@ -1,22 +1,24 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
-  docToMember,
-  addMember,
-  updateMember,
-  deleteMember,
-  calculateAgeGroup,
-} from "../member-service";
-import {
-  DocumentSnapshot,
-  Timestamp,
   addDoc,
-  updateDoc,
+  CollectionReference,
   deleteDoc,
   doc,
-  CollectionReference,
   DocumentReference,
+  DocumentSnapshot,
+  Timestamp,
+  updateDoc,
 } from "firebase/firestore";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Member, MemberFormData } from "@/types/member.types";
+
+import {
+  addMember,
+  calculateAgeGroup,
+  deleteMember,
+  docToMember,
+  updateMember,
+} from "../member-service";
 
 const mockCollectionRef = {} as CollectionReference;
 const mockDocRef = {} as DocumentReference;

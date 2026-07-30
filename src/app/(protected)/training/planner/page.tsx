@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import PlannerClient from "./planner-client";
 
 export const metadata: Metadata = {

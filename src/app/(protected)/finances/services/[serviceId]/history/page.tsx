@@ -1,5 +1,6 @@
-import HistoryClientPage from "./HistoryClientPage";
 import { notFound } from "next/navigation";
+
+import HistoryClientPage from "./HistoryClientPage";
 
 // --- Page Component (React Server Component) ---
 

@@ -1,21 +1,22 @@
 import {
-  getDocs,
+  addDoc,
+  CollectionReference,
+  deleteDoc,
   doc,
   getDoc,
-  query,
+  getDocs,
   limit,
   orderBy,
-  deleteDoc,
-  CollectionReference,
-  addDoc,
+  query,
   updateDoc,
 } from "firebase/firestore";
+
 import {
   getMembersCollection,
   getMembersQuery,
 } from "@/lib/firebase-collections";
-import { Member } from "@/types/member.types";
 import { docToMember } from "@/mappers/member.mapper";
+import { Member } from "@/types/member.types";
 
 /**
  * Fetches a single member by their ID from Firestore.

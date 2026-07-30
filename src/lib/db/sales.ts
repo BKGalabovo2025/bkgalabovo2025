@@ -1,8 +1,9 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from "firebase-admin";
+
 import { getAdminDb } from "@/lib/firebase-admin";
-import { Sale } from "@/types";
 import { serverCache } from "@/lib/server-cache";
+import { Sale } from "@/types";
 
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
@@ -68,4 +69,3 @@ export async function getCachedSalesForBranch(
     30000 // 30 seconds TTL
   );
 }
-

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { createMemberAction } from "@/lib/actions/members";
-import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
+
 import { MemberForm } from "@/components/members/member-form";
+import { useAuth } from "@/context/auth-context";
+import { createMemberAction } from "@/lib/actions/members";
 import { Member } from "@/types/member.types";
 
 type MemberFormValues = Omit<

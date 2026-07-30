@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { calculateFinancesOverview } from "../finances-utils";
+import { describe, expect, it } from "vitest";
+
 import type { Sale } from "@/types";
+
+import { calculateFinancesOverview } from "../finances-utils";
 
 describe("finances-utils", () => {
   it("calculates overview for paid sales and ignores cancelled or unpaid records", () => {
@@ -14,7 +16,9 @@ describe("finances-utils", () => {
         status: "completed",
         isPaid: true,
         totalAmount: 100,
-        items: [{ productId: "p1", name: "Абонамент", quantity: 1, price: 100 }],
+        items: [
+          { productId: "p1", name: "Абонамент", quantity: 1, price: 100 },
+        ],
       },
       {
         id: "sale-2",
@@ -22,7 +26,9 @@ describe("finances-utils", () => {
         status: "completed",
         isPaid: true,
         totalAmount: 50,
-        items: [{ productId: "p2", name: "Възстановяване", quantity: 1, price: 50 }],
+        items: [
+          { productId: "p2", name: "Възстановяване", quantity: 1, price: 50 },
+        ],
       },
       {
         id: "sale-3",
@@ -66,7 +72,9 @@ describe("finances-utils", () => {
         status: "completed",
         isPaid: true,
         totalAmount: 100,
-        items: [{ productId: "p1", name: "Нещо друго", quantity: 1, price: 100 }],
+        items: [
+          { productId: "p1", name: "Нещо друго", quantity: 1, price: 100 },
+        ],
       },
     ] as Sale[];
 

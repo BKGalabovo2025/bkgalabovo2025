@@ -1,6 +1,7 @@
-import { vi, describe, it, expect } from "vitest";
+import { DocumentData, getDocs, QuerySnapshot } from "firebase/firestore";
+import { describe, expect, it, vi } from "vitest";
+
 import { computeGlobalRankings } from "../services/ranking-service";
-import { getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
 
 // Mocking firebase-collections
 vi.mock("@/lib/firebase-collections", () => ({

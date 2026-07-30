@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+
+import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { formatFullName } from "@/lib/utils";
-import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
 
 const MembershipApplicationPage = () => {
   const params = useParams();
@@ -59,16 +60,17 @@ const MembershipApplicationPage = () => {
           <p className="flex gap-3">
             <span className="shrink-0">☐</span>
             <span>
-              Декларирам, че съм запознат/а с Вътрешния правилник на клуба и
-              се съгласявам с него.
+              Декларирам, че съм запознат/а с Вътрешния правилник на клуба и се
+              съгласявам с него.
             </span>
           </p>
           <p className="flex gap-3">
             <span className="shrink-0">☐</span>
             <span>
               Запознат/а съм, че при желание за прекратяване на членството е
-              необходимо подаване на &quot;Молба за прекратяване на членство&quot; и
-              връщане на предоставена клубна екипировка (ако има дадена такава).
+              необходимо подаване на &quot;Молба за прекратяване на
+              членство&quot; и връщане на предоставена клубна екипировка (ако
+              има дадена такава).
             </span>
           </p>
         </div>

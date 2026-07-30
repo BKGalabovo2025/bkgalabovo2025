@@ -1,9 +1,10 @@
 "use client";
 
+import { ArrowLeft, Printer } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useMemberProfile } from "@/hooks/useMemberProfile";
+
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { formatFullName } from "@/lib/utils";
 
 const MedicalCertificatePage = () => {

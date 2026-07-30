@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { docToMember, calculateAgeGroup } from "../member.mapper";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { calculateAgeGroup, docToMember } from "../member.mapper";
 import { mapDocToTournament } from "../tournament.mapper";
 
 describe("mappers", () => {

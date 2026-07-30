@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import { Therapist } from "@/types/site.types";
 import { Phone } from "lucide-react";
+import Image from "next/image";
+import React from "react";
+
 import { cn } from "@/lib/utils";
+import { Therapist } from "@/types/site.types";
 
 interface TeamSectionProps {
   therapists: Therapist[];

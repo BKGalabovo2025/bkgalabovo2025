@@ -1,7 +1,7 @@
 "use client";
 
-import { useRecoveryServices } from "@/hooks/useRecoveryServices";
 import { SharedEventHistory } from "@/components/shared/sales/SharedEventHistory";
+import { useRecoveryServices } from "@/hooks/useRecoveryServices";
 
 export function RecoveryHistory() {
   const { events, isLoading } = useRecoveryServices();

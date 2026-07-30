@@ -1,21 +1,19 @@
- 
- 
- 
 "use client";
 
-import { useEffect, useState } from "react";
-import { getSessionsQuery, RecoverySession } from "@/lib/firebase-collections";
-import { onSnapshot, query, orderBy } from "firebase/firestore";
+import { onSnapshot, orderBy, query } from "firebase/firestore";
 import {
   Activity,
-  Clock,
-  Users,
-  ChevronDown,
   Check,
-  Target,
-  Zap,
+  ChevronDown,
+  Clock,
   Info,
+  Target,
+  Users,
+  Zap,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { getSessionsQuery, RecoverySession } from "@/lib/firebase-collections";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -57,7 +55,7 @@ export function SessionsSection() {
 
   const getDurationLabel = (session: RecoverySession) => {
     const duration = session.durationMinutes || session.duration;
-    
+
     // ONLY VIP sessions get the split label
     if (duration === 45 && session.sessionType === "VIP") {
       return "15 мин + 30 мин";
@@ -218,14 +216,16 @@ export function SessionsSection() {
                               <Target size={12} /> Целеви зони
                             </h4>
                             <div className="flex flex-wrap gap-2">
-                              {Array.from(new Set(session.zones || [])).map((zone, idx) => (
-                                <span
-                                  key={idx}
-                                  className="rounded-xl border border-white/5 bg-zinc-800 px-4 py-1.5 text-[10px] font-medium tracking-widest text-zinc-300 uppercase"
-                                >
-                                  {zone}
-                                </span>
-                              ))}
+                              {Array.from(new Set(session.zones || [])).map(
+                                (zone, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="rounded-xl border border-white/5 bg-zinc-800 px-4 py-1.5 text-[10px] font-medium tracking-widest text-zinc-300 uppercase"
+                                  >
+                                    {zone}
+                                  </span>
+                                )
+                              )}
                             </div>
                           </div>
                         )}

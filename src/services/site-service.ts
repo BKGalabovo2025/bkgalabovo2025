@@ -1,11 +1,12 @@
 import {
   collection,
-  getDocs,
   doc,
   getDoc,
+  getDocs,
   query,
   setDoc,
 } from "firebase/firestore";
+
 import { getDb } from "@/lib/firebase";
 import { Site, Therapist } from "@/types/site.types";
 

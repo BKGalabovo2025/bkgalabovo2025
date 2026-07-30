@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Sale } from "@/types";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAppStore } from "@/store/use-app-store";
-import { getTrainingServiceHistoryAction } from "@/lib/actions/training-services-server";
+
 import { getServiceSalesAction } from "@/lib/actions/sales";
+import { getTrainingServiceHistoryAction } from "@/lib/actions/training-services-server";
+import { useAppStore } from "@/store/use-app-store";
+import { Sale } from "@/types";
 
 export interface TrainingEvent {
   id: string;

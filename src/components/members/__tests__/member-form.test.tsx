@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemberForm } from "../member-form";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { Member } from "@/types/member.types";
+
+import { MemberForm } from "../member-form";
 
 // Mock the app store
 vi.mock("@/store/use-app-store", () => ({

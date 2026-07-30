@@ -3,25 +3,57 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
 import {
-  FinancialReportData,
-  generateFinancialReportAction,
-} from "@/lib/actions/reports";
-import { logAuditAction } from "@/lib/actions/audit";
+  Calendar as CalendarIcon,
+  ChevronDown,
+  Download,
+  Edit,
+  Eye,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  Loader2,
+  MoreVertical,
+  PieChart as PieChartIcon,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -31,49 +63,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-import {
-  FileSpreadsheet,
-  FileText,
-  ChevronDown,
-  Download,
-  TrendingUp,
-  PieChart as PieChartIcon,
-  Calendar as CalendarIcon,
-  Filter,
-  Loader2,
-  MoreVertical,
-  Trash2,
-  Eye,
-  Edit,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
-import { formatDateInput, formatDateShort } from "@/lib/date-utils";
-import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/context/auth-context";
-import { deleteSaleAction } from "@/lib/actions/sales";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { logAuditAction } from "@/lib/actions/audit";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from "recharts";
+  FinancialReportData,
+  generateFinancialReportAction,
+} from "@/lib/actions/reports";
+import { deleteSaleAction } from "@/lib/actions/sales";
+import { formatPrice } from "@/lib/currency";
+import { formatDateInput, formatDateShort } from "@/lib/date-utils";
+import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 interface FinancialReportProps {
   initialData: FinancialReportData;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+
 import { SharedEditSale } from "@/components/shared/sales/SharedEditSale";
 
 export default function EditSaleClient() {

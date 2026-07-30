@@ -1,8 +1,9 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { formatDateTimeDisplay } from "@/lib/date-utils";
+
 import { Badge } from "@/components/ui/badge";
+import { formatDateTimeDisplay } from "@/lib/date-utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface GenericMovementsTabProps {

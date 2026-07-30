@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { CheckedState } from "@radix-ui/react-checkbox";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { updateClubService } from "@/lib/actions/services";
-import { useAuth } from "@/context/auth-context";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -17,12 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckedState } from "@radix-ui/react-checkbox";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { Price } from "@/types";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/auth-context";
+import { updateClubService } from "@/lib/actions/services";
 import { formatPrice } from "@/lib/currency";
+import { Price } from "@/types";
 
 // --- Types ---
 interface Service {

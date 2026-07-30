@@ -1,9 +1,28 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback, useRef } from "react";
-import { RankingEntry } from "@/types/ranking.types";
+import {
+  Award,
+  Calendar,
+  Loader2,
+  Star,
+  TrendingUp,
+  Trophy,
+  Users,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+
+import { PageHeader } from "@/components/layout/page-header";
+import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BentoCard } from "@/components/ui/bento-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,28 +31,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Trophy,
-  TrendingUp,
-  Star,
-  Users,
-  Award,
-  Calendar,
-  Loader2,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useRouter, useSearchParams } from "next/navigation";
-import { BentoCard } from "@/components/ui/bento-card";
-import { PageHeader } from "@/components/layout/page-header";
-import { cn } from "@/lib/utils";
-import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { refreshRankingsAction } from "@/lib/actions/rankings";
+import { cn } from "@/lib/utils";
+import { RankingEntry } from "@/types/ranking.types";
 
 const CATEGORY_TABS = [
   { id: "all", label: "Общо" },

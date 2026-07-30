@@ -1,4 +1,5 @@
 import { DocumentSnapshot } from "firebase/firestore";
+
 import { Member, MemberSchema } from "@/types/member.types";
 
 /**

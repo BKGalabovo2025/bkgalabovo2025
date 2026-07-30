@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
 import { onSnapshot } from "firebase/firestore";
-import { Product } from "@/types";
-import { docToProduct } from "@/services/inventory-service";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+
 import {
   deleteProductAction,
   getProductsServerAction,
 } from "@/lib/actions/inventory";
-
 import { getProductsQuery } from "@/lib/firebase-collections";
+import { docToProduct } from "@/services/inventory-service";
 import { useAppStore } from "@/store/use-app-store";
+import { Product } from "@/types";
 
 /**
  * Products hook with server-side caching (1-min TTL).

@@ -1,9 +1,10 @@
 // src/app/(protected)/finances/prices/page.tsx
 export const dynamic = "force-dynamic";
 
-import { getAllPrices } from "@/services/price-service";
-import { PricesClientPage } from "./client-page";
 import { PageHeader } from "@/components/layout/page-header";
+import { getAllPrices } from "@/services/price-service";
+
+import { PricesClientPage } from "./client-page";
 
 export default async function PricesPage() {
   const prices = await getAllPrices();

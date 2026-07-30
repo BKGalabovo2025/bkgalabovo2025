@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminStorage } from "@/lib/firebase-admin";
+
 import { getAuthUser } from "@/lib/auth-utils";
+import { getAdminStorage } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {

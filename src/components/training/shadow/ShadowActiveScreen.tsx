@@ -1,23 +1,25 @@
 "use client";
 
-import { CourtVisualizer } from "../CourtVisualizer";
+import {
+  Activity,
+  Pause,
+  Play,
+  RotateCcw,
+  Square,
+  Target,
+  Timer,
+  Zap,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Play,
-  Square,
-  Pause,
-  Activity,
-  RotateCcw,
-  Zap,
-  Timer,
-  Target,
-} from "lucide-react";
-import {
-  ShadowSettings,
   ShadowPlayer,
+  ShadowSettings,
   useShadowTrainer,
 } from "@/hooks/useShadowTrainer";
+
+import { CourtVisualizer } from "../CourtVisualizer";
 
 interface ShadowActiveScreenProps {
   trainer: ReturnType<typeof useShadowTrainer>;
@@ -227,8 +229,7 @@ export function ShadowActiveScreen({
                   className="col-span-2 h-20 rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-[0_0_40px_rgba(var(--primary),0.3)] hover:bg-primary/90 md:h-24 md:text-3xl"
                   onClick={trainer.startTraining}
                 >
-                  <Play className="mr-3 size-8 md:mr-4 md:size-10" />{" "}
-                  СТАРТ
+                  <Play className="mr-3 size-8 md:mr-4 md:size-10" /> СТАРТ
                 </Button>
               ) : (
                 <>
@@ -247,8 +248,7 @@ export function ShadowActiveScreen({
                       className="h-20 rounded-2xl bg-yellow-500 text-xl font-black text-yellow-950 hover:bg-yellow-600 md:h-24 md:text-2xl"
                       onClick={trainer.pauseTraining}
                     >
-                      <Pause className="mr-2 size-6 md:mr-3 md:size-8" />{" "}
-                      ПАУЗА
+                      <Pause className="mr-2 size-6 md:mr-3 md:size-8" /> ПАУЗА
                     </Button>
                   )}
                   <Button
@@ -257,8 +257,7 @@ export function ShadowActiveScreen({
                     className="h-20 rounded-2xl text-xl font-black md:h-24 md:text-2xl"
                     onClick={() => trainer.stopTraining()}
                   >
-                    <Square className="mr-2 size-6 md:mr-3 md:size-8" />{" "}
-                    СТОП
+                    <Square className="mr-2 size-6 md:mr-3 md:size-8" /> СТОП
                   </Button>
                 </>
               )}

@@ -1,9 +1,7 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 
-import * as React from "react";
 import {
   ColumnDef,
-  SortingState,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -12,9 +10,14 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
+import * as React from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -23,10 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import "./setup";
-import { clearFirestore, db } from "./setup";
+
 import { doc, setDoc } from "firebase/firestore";
-import { docToProduct } from "@/services/inventory-service";
-import { getProductsQuery } from "@/lib/firebase-collections";
 import { getDocs } from "firebase/firestore";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { getProductsQuery } from "@/lib/firebase-collections";
+import { docToProduct } from "@/services/inventory-service";
+
+import { clearFirestore, db } from "./setup";
 
 describe("Inventory Integration Tests (Emulator)", () => {
   beforeEach(async () => {

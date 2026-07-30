@@ -1,6 +1,7 @@
 import { ClubService } from "@/types";
 import { Site } from "@/types/site.types";
-import { ReservationFormValues, PackageDay } from "../reservation-dialog-types";
+
+import { PackageDay, ReservationFormValues } from "../reservation-dialog-types";
 
 interface ZoneAttachments {
   legs: number;

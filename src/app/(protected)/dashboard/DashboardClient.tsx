@@ -1,34 +1,34 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { useLanguage } from "@/context/language-context";
-import { BentoCard } from "@/components/ui/bento-card";
-import { PageHeader } from "@/components/layout/page-header";
-import { DashboardNotifications } from "@/components/dashboard/dashboard-notifications";
-import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
 import {
-  Users,
-  Calendar,
-  TrendingUp,
   AlertCircle,
   ArrowUpRight,
-  RefreshCw,
+  Calendar,
   CheckCircle2,
+  RefreshCw,
   Sparkles,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
+import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
+import { DashboardNotifications } from "@/components/dashboard/dashboard-notifications";
+import { PageHeader } from "@/components/layout/page-header";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/currency";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/auth-context";
+import { useLanguage } from "@/context/language-context";
 import {
   getDashboardDataServerAction,
   invalidateDashboardCacheAction,
 } from "@/lib/actions/dashboard";
-import { Reminder } from "@/types";
-
+import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
+import { Reminder } from "@/types";
 
 interface DashboardEvent {
   id: string;

@@ -1,6 +1,4 @@
- 
- 
- 
+import * as React from "react";
 import {
   Body,
   Container,
@@ -10,7 +8,6 @@ import {
   Preview,
   Text,
 } from "react-email";
-import * as React from "react";
 
 export interface DeactivatedEmailProps {
   memberName?: string;

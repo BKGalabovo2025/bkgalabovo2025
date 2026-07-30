@@ -1,6 +1,8 @@
 "use client";
 
+import { MapPin, Tag, Type } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
+
 import {
   FormField,
   FormItem,
@@ -8,8 +10,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { MapPin, Type, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import { MonthlyScheduleFormData } from "./monthly-schedule-types";
 
 interface MonthlyScheduleStep1Props {

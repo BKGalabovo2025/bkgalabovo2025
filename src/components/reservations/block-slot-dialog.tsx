@@ -1,17 +1,15 @@
- 
- 
- 
 "use client";
 
-import React, { useState, useEffect } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { toast } from "sonner";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
   Dialog,
   DialogContent,
@@ -30,16 +28,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { BlockedSlot } from "@/types/reservation";
-import { useAppStore } from "@/store/use-app-store";
 import {
   createBlockedSlotAction,
   updateBlockedSlotAction,
 } from "@/lib/actions/reservations";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/use-app-store";
+import { BlockedSlot } from "@/types/reservation";
 
 const blockSlotSchema = z
   .object({

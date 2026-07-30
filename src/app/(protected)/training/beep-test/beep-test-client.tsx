@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useAppStore } from "@/store/use-app-store";
-import { getAllMembers } from "@/services/member-service";
-import { beepTestService } from "@/services/beep-test-service";
-import { Member } from "@/types/member.types";
-import { BeepTestPeriod, BadmintonScore } from "@/types/beep-test.types";
+import { format } from "date-fns";
+import { bg } from "date-fns/locale";
 import {
-  calculateVO2Max,
-  evaluateBadmintonScore,
-  getTotalShuttles,
-} from "@/lib/beep-test-norms";
-import { useBeepTestEngine } from "@/hooks/useBeepTestEngine";
+  CheckCircle2,
+  Loader2,
+  Pause,
+  Play,
+  RotateCcw,
+  Save,
+  Square,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,24 +26,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Loader2,
-  Play,
-  Pause,
-  Square,
-  RotateCcw,
-  Save,
-  CheckCircle2,
-  Trash2,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { getAgeGroup } from "@/lib/utils";
-import Link from "next/link";
-import { format } from "date-fns";
-import { bg } from "date-fns/locale";
-import { BeepTestResult } from "@/types/beep-test.types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBeepTestEngine } from "@/hooks/useBeepTestEngine";
+import {
+  calculateVO2Max,
+  evaluateBadmintonScore,
+  getTotalShuttles,
+} from "@/lib/beep-test-norms";
+import { getAgeGroup } from "@/lib/utils";
+import { beepTestService } from "@/services/beep-test-service";
+import { getAllMembers } from "@/services/member-service";
+import { useAppStore } from "@/store/use-app-store";
+import { BadmintonScore, BeepTestPeriod } from "@/types/beep-test.types";
+import { BeepTestResult } from "@/types/beep-test.types";
+import { Member } from "@/types/member.types";
 
 const PERIODS: BeepTestPeriod[] = [
   "Предсезонна подготовка (Август-Септември)",

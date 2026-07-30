@@ -1,38 +1,21 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { deleteSaleAction } from "@/lib/actions/sales";
-import { formatPrice } from "@/lib/currency";
-import { Sale, Member } from "@/types";
-import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  PlusCircle,
   AlertTriangle,
-  MoreVertical,
-  Trash2,
-  ShoppingCart,
-  Receipt,
-  User,
   Calendar,
+  Loader2,
+  MoreVertical,
+  PlusCircle,
+  Receipt,
+  ShoppingCart,
+  Trash2,
+  User,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { PageHeader } from "@/components/layout/page-header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,10 +26,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { PageHeader } from "@/components/layout/page-header";
+import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAuth } from "@/context/auth-context";
+import { deleteSaleAction } from "@/lib/actions/sales";
+import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { Member, Sale } from "@/types";
 
 interface SalesClientProps {
   initialSales: Sale[];
@@ -152,14 +153,11 @@ export default function SalesClient({
         </div>
       );
     }
-    
+
     if (error) {
       return (
         <div className="flex flex-col items-center py-32 text-center text-rose-500">
-          <AlertTriangle
-            className="mb-6 size-10 opacity-30"
-            strokeWidth={1}
-          />
+          <AlertTriangle className="mb-6 size-10 opacity-30" strokeWidth={1} />
           <p className="text-sm font-light tracking-widest uppercase">
             {error || "An error occurred while loading the sales."}
           </p>
@@ -254,10 +252,7 @@ export default function SalesClient({
                           className="cursor-pointer rounded-xl p-3 font-medium text-rose-500 focus:bg-rose-50 focus:text-rose-600"
                           onSelect={() => setSaleToDelete(sale.id)}
                         >
-                          <Trash2
-                            className="mr-3 size-4"
-                            strokeWidth={1.5}
-                          />
+                          <Trash2 className="mr-3 size-4" strokeWidth={1.5} />
                           <span className="text-[11px] tracking-widest uppercase">
                             Изтрий
                           </span>

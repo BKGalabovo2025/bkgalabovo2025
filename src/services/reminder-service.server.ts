@@ -1,11 +1,12 @@
 import "server-only";
-import { Member, Sale } from "@/types";
-import { checkIsMemberOverdue } from "@/lib/membership-utils";
+
+import { getAdminDb } from "@/lib/firebase-admin";
 import {
   getMembersCollection,
   getSalesCollection,
 } from "@/lib/firebase-collections";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { checkIsMemberOverdue } from "@/lib/membership-utils";
+import { Member, Sale } from "@/types";
 
 /**
  * Finds members with overdue payments (unpaid sales) by fetching fresh data from the database.
@@ -15,7 +16,9 @@ import { getAdminDb } from "@/lib/firebase-admin";
 export const getOverdueMembers = async (): Promise<Member[]> => {
   try {
     const adminDb = getAdminDb();
-    const membersCollectionRef = adminDb.collection(getMembersCollection().path);
+    const membersCollectionRef = adminDb.collection(
+      getMembersCollection().path
+    );
     const salesCollectionRef = adminDb.collection(getSalesCollection().path);
 
     const [membersSnapshot, salesSnapshot] = await Promise.all([
@@ -35,11 +38,17 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
 
     const membersWithOverduePayments = activeMembers.filter((member) => {
       // Find other active members in the same family to check family dues
-      const familyMembers = member.familyId 
-        ? activeMembers.filter((m) => m.familyId === member.familyId && m.id !== member.id)
+      const familyMembers = member.familyId
+        ? activeMembers.filter(
+            (m) => m.familyId === member.familyId && m.id !== member.id
+          )
         : [];
-      
-      const overdueCheck = checkIsMemberOverdue(member, familyMembers, allSales);
+
+      const overdueCheck = checkIsMemberOverdue(
+        member,
+        familyMembers,
+        allSales
+      );
       return overdueCheck.isOverdue;
     });
 

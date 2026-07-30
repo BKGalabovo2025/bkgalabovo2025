@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 

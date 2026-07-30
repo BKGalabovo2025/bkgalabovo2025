@@ -1,5 +1,5 @@
-import { Tournament, TournamentEntry, Match } from "@/types/tournament.types";
 import { PlayerRanking, RankingEntry } from "@/types/ranking.types";
+import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
 const PLACEMENT_POINTS: Record<number, number> = {
   1: 100,
@@ -76,7 +76,7 @@ export async function computeRankingsCore(
 
   for (const tourn of tournaments) {
     if (!tourn.id) continue;
-    
+
     const multiplier = tourn.pointsMultiplier ?? 1;
     const { entries, matches } = await fetchTournamentData(tourn.id);
 

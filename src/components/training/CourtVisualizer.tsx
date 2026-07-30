@@ -1,8 +1,8 @@
 "use client";
 
+import { VisualPhase } from "@/hooks/shadow-trainer/types";
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 import { cn } from "@/lib/utils";
-import { VisualPhase } from "@/hooks/shadow-trainer/types";
 
 interface CourtVisualizerProps {
   activeZone?: ZoneId | null;

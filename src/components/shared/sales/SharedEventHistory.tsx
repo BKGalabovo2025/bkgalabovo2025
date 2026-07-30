@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
+import { Edit2, History, PlusCircle, ShoppingCart, Trash2 } from "lucide-react";
+import { useState } from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -11,17 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatPrice } from "@/lib/currency";
-import { History, PlusCircle, Edit2, Trash2, ShoppingCart } from "lucide-react";
 
-export interface ServiceHistoryEvent {
+interface ServiceHistoryEvent {
   id: string;
   createdAt: string | Date;
   serviceName: string;
@@ -269,11 +270,13 @@ export function SharedEventHistory({
               <div className="mt-1 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-100">
                 {event.serviceName}
               </div>
-              {showExtendedColumns && event.type === "sale" && event.clientName && (
-                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
-                  Клиент: {event.clientName}
-                </div>
-              )}
+              {showExtendedColumns &&
+                event.type === "sale" &&
+                event.clientName && (
+                  <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">
+                    Клиент: {event.clientName}
+                  </div>
+                )}
               {showExtendedColumns &&
                 event.type === "update" &&
                 event.oldPrice !== undefined &&

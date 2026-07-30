@@ -1,20 +1,20 @@
-import { Member } from "@/types/member.types";
-import { getSiteConfig } from "@/config/sites";
-import { Timestamp, serverTimestamp } from "firebase/firestore";
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 
+import { getSiteConfig } from "@/config/sites";
 // Import from new architectural layers
-import { docToMember, calculateAgeGroup } from "@/mappers/member.mapper";
+import { calculateAgeGroup, docToMember } from "@/mappers/member.mapper";
 import {
-  fetchMemberById,
-  fetchAllMembers,
   createMemberDocument,
-  updateMemberDocument,
   deleteMemberDocument,
+  fetchAllMembers,
+  fetchMemberById,
   fetchRawMemberData,
+  updateMemberDocument,
 } from "@/repositories/member.repository";
+import { Member } from "@/types/member.types";
 
 // Re-export for backwards compatibility if any external code relies on them
-export { docToMember, calculateAgeGroup };
+export { calculateAgeGroup, docToMember };
 
 let membersCache: Member[] | null = null;
 let lastFetchTime = 0;
@@ -154,7 +154,7 @@ export const updateMember = async (
  */
 export const deleteMember = async (id: string): Promise<void> => {
   await deleteMemberDocument(id);
-  
+
   // Clear cache
   membersCache = null;
 };

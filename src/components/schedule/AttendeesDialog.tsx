@@ -2,21 +2,22 @@
 
 "use client";
 
-import React, { useState, useMemo, useId, useEffect } from "react";
+import { Check, Loader2, Search } from "lucide-react";
+import React, { useEffect, useId, useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Member, ScheduleEvent, Attendee } from "@/types";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Search, Check } from "lucide-react";
 import { formatFullName } from "@/lib/utils";
+import { Attendee, Member, ScheduleEvent } from "@/types";
 
 interface AttendeesDialogProps {
   isOpen: boolean;

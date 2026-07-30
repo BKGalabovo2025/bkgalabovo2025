@@ -1,7 +1,9 @@
-import { getReceiptDetailsServerAction } from "@/lib/actions/sales";
-import ReceiptClientPage from "./ReceiptClientPage";
-import { PageHeader } from "@/components/layout/page-header";
 import { notFound } from "next/navigation";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { getReceiptDetailsServerAction } from "@/lib/actions/sales";
+
+import ReceiptClientPage from "./ReceiptClientPage";
 
 export const dynamic = "force-dynamic";
 

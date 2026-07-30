@@ -1,43 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@/context/auth-context";
-import { marketingService } from "@/services/marketing-service";
-
-import { Reservation } from "@/types/reservation";
-import { ClubService } from "@/types";
-import { cn } from "@/lib/utils";
-import { formatPrice } from "@/lib/currency";
 import {
-  Clock,
-  User,
   Activity,
-  Phone,
-  Tag,
   CheckCircle2,
+  Clock,
+  Copy,
   FileText,
-  Pencil,
-  Trash2,
-  Send,
+  Loader2,
   Mail,
   MessageCircle,
-  Copy,
-  Loader2,
+  Pencil,
+  Phone,
+  Send,
+  Tag,
+  Trash2,
+  User,
 } from "lucide-react";
+import { PenTool } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
+import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { ReservationDialog } from "./reservation-dialog";
+import { useAuth } from "@/context/auth-context";
+import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { marketingService } from "@/services/marketing-service";
+import { ClubService } from "@/types";
+import { Reservation } from "@/types/reservation";
+
 import { DonationReceiptDialog } from "./donation-receipt-dialog";
-import { DeclarationSignDialog } from "@/components/declarations/DeclarationSignDialog";
-import { toast } from "sonner";
-import { ViewDeclarationButton } from "@/components/declarations/ViewDeclarationButton";
-import { PenTool } from "lucide-react";
+import { ReservationDialog } from "./reservation-dialog";
 
 interface AgendaReservationItemProps {
   reservation: Reservation;

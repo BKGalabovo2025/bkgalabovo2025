@@ -1,10 +1,11 @@
 "use server";
 import "server-only";
 
+import { cookies } from "next/headers";
+
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAllMembersServer } from "@/services/member-service.server";
-import { cookies } from "next/headers";
-import { Sale, Member } from "@/types";
+import { Member, Sale } from "@/types";
 
 export interface FinancialReportData {
   total: number;

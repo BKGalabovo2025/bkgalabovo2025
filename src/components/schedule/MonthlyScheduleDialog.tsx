@@ -1,16 +1,16 @@
- 
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { eachDayOfInterval, endOfMonth, getDay } from "date-fns";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import MonthlyScheduleForm from "./monthly-schedule-form";
 import { ScheduleEvent } from "@/types";
-import { endOfMonth, eachDayOfInterval, getDay } from "date-fns";
+
+import MonthlyScheduleForm from "./monthly-schedule-form";
 
 export default function MonthlyScheduleDialog({
   isOpen,

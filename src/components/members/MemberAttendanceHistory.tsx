@@ -1,34 +1,32 @@
- 
- 
- 
 "use client";
 
-import { useMemo } from "react";
-import useSWR from "swr";
-import { ScheduleEvent, Attendee, ScheduleEventType } from "@/types";
-import { getEventsByMemberId } from "@/services/schedule-service";
-import { Badge } from "@/components/ui/badge";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
-import { formatTimeRange } from "@/lib/date-utils";
 import {
   CalendarIcon,
-  Trophy,
-  Dumbbell,
-  Tent,
-  PartyPopper,
-  HelpCircle,
   CalendarX,
-  Loader2,
-  Clock,
-  MapPin,
   CheckCircle2,
-  XCircle,
+  Clock,
   CreditCard,
+  Dumbbell,
+  HelpCircle,
+  Loader2,
+  MapPin,
+  PartyPopper,
   Receipt,
+  Tent,
+  Trophy,
+  XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import useSWR from "swr";
+
+import { Badge } from "@/components/ui/badge";
+import { formatTimeRange } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { getEventsByMemberId } from "@/services/schedule-service";
+import { Attendee, ScheduleEvent, ScheduleEventType } from "@/types";
 
 interface MemberAttendanceHistoryProps {
   memberId: string;
@@ -360,9 +358,7 @@ function MemberAttendanceEventCard({
               saleId &&
               "cursor-pointer transition-opacity hover:opacity-80"
           )}
-          title={
-            payStatus === "paid" && saleId ? "Към разписката" : undefined
-          }
+          title={payStatus === "paid" && saleId ? "Към разписката" : undefined}
           onClick={(e) => {
             if (payStatus === "paid" && saleId) {
               e.stopPropagation();
@@ -383,10 +379,7 @@ function MemberAttendanceEventCard({
           )}
           {payStatus === "paid" && payType === "individual" && (
             <div className="flex w-fit items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1">
-              <CreditCard
-                className="size-3 text-blue-500"
-                strokeWidth={2}
-              />
+              <CreditCard className="size-3 text-blue-500" strokeWidth={2} />
               <span className="text-[9px] font-semibold tracking-widest text-blue-700 uppercase">
                 Платено – Еднократно
               </span>
@@ -405,10 +398,7 @@ function MemberAttendanceEventCard({
           )}
           {(payStatus === "unpaid" || !payStatus) && (
             <div className="flex w-fit items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1">
-              <XCircle
-                className="size-3 text-rose-500"
-                strokeWidth={2}
-              />
+              <XCircle className="size-3 text-rose-500" strokeWidth={2} />
               <span className="text-[9px] font-semibold tracking-widest text-rose-700 uppercase">
                 {payStatus === "unpaid" ? "Неплатено (Дълг)" : "Неплатено"}
               </span>
@@ -416,10 +406,7 @@ function MemberAttendanceEventCard({
           )}
           {payDate && payStatus === "paid" && (
             <div className="mt-1 flex items-center gap-1">
-              <Receipt
-                className="size-2.5 text-zinc-300"
-                strokeWidth={1.5}
-              />
+              <Receipt className="size-2.5 text-zinc-300" strokeWidth={1.5} />
               <span className="text-[8px] font-light text-zinc-400">
                 Платено на: {new Date(payDate).toLocaleDateString("bg-BG")}
                 {saleId && (

@@ -1,11 +1,19 @@
 "use client";
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Activity, Clock, User } from "lucide-react";
-import { useReservationDialog } from "./ReservationDialogContext";
+
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+
+import { useReservationDialog } from "./ReservationDialogContext";
 
 export const ReservationStep4Review = () => {
   const {
@@ -44,13 +52,19 @@ export const ReservationStep4Review = () => {
                 {!isRecoveryZone ? "Избран Корт" : "Избрана Услуга"}
               </p>
               <p className="truncate text-sm font-bold text-zinc-900 dark:text-white">
-                {!isRecoveryZone ? `Корт № ${courtId}` : services.find((s) => s.id === serviceId)?.name || "Услуга"}
+                {!isRecoveryZone
+                  ? `Корт № ${courtId}`
+                  : services.find((s) => s.id === serviceId)?.name || "Услуга"}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">Обща Сума</p>
-            <p className="text-xl font-black tracking-tight text-primary">{formatPrice(price)}</p>
+            <p className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">
+              Обща Сума
+            </p>
+            <p className="text-xl font-black tracking-tight text-primary">
+              {formatPrice(price)}
+            </p>
           </div>
         </div>
 
@@ -62,8 +76,15 @@ export const ReservationStep4Review = () => {
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               {startTime?.toLocaleDateString("bg-BG")}
               <br />
-              {startTime?.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} -{" "}
-              {endTime?.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+              {startTime?.toLocaleTimeString("bg-BG", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              -{" "}
+              {endTime?.toLocaleTimeString("bg-BG", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </p>
           </div>
           <div className="space-y-1">
@@ -74,7 +95,11 @@ export const ReservationStep4Review = () => {
               {clientName}
               <br />
               {clientPhone}
-              {clientEmail && <span className="block text-[10px] opacity-60">{clientEmail}</span>}
+              {clientEmail && (
+                <span className="block text-[10px] opacity-60">
+                  {clientEmail}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -84,7 +109,9 @@ export const ReservationStep4Review = () => {
             <p className="flex items-center gap-1 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
               <Activity className="size-3" /> Избрана Зона
             </p>
-            <p className="text-sm font-bold tracking-wider text-cyan-600 uppercase">{selectedZone}</p>
+            <p className="text-sm font-bold tracking-wider text-cyan-600 uppercase">
+              {selectedZone}
+            </p>
           </div>
         )}
       </div>
@@ -97,7 +124,9 @@ export const ReservationStep4Review = () => {
               {isEditMode ? "Статус на плащане" : "Плащане при създаване?"}
             </h4>
             <p className="mt-1 text-[10px] font-bold tracking-tight text-zinc-400 uppercase">
-              {isEditMode ? "Промяна на статуса на плащане" : "Маркирайте резервацията като платена веднага"}
+              {isEditMode
+                ? "Промяна на статуса на плащане"
+                : "Маркирайте резервацията като платена веднага"}
             </p>
           </div>
           <button
@@ -109,7 +138,9 @@ export const ReservationStep4Review = () => {
             }}
             className={cn(
               "relative h-6 w-12 rounded-full p-1 transition-all duration-300 focus:outline-none",
-              form.watch("status") === "paid" ? "bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-800"
+              form.watch("status") === "paid"
+                ? "bg-emerald-500"
+                : "bg-zinc-200 dark:bg-zinc-800"
             )}
           >
             <div
@@ -176,7 +207,8 @@ export const ReservationStep4Review = () => {
                   Изпрати потвърждение
                 </FormLabel>
                 <p className="text-[10px] font-bold tracking-tight text-zinc-400 uppercase">
-                  Системата автоматично ще изпрати имейл с детайли за резервацията
+                  Системата автоматично ще изпрати имейл с детайли за
+                  резервацията
                 </p>
               </div>
               <FormControl>

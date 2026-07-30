@@ -1,21 +1,23 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+
+import { checkRecoveryInventoryAction } from "@/lib/actions/reservations";
 import { ClubService } from "@/types";
 import { Site } from "@/types/site.types";
+
 import {
+  PackageDay,
   ReservationFormValues,
   Step,
-  PackageDay,
 } from "../reservation-dialog-types";
 import {
-  detectPackageInfo,
-  buildZoneResources,
   buildPackageDays,
-  toUtcIso,
+  buildZoneResources,
   checkWorkingHoursLogic,
+  detectPackageInfo,
+  toUtcIso,
 } from "./utils";
-import { checkRecoveryInventoryAction } from "@/lib/actions/reservations";
 
 export function useReservationNavigation(
   form: UseFormReturn<ReservationFormValues>,

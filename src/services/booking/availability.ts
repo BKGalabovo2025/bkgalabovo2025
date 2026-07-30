@@ -1,6 +1,6 @@
+import { ClubService } from "@/types";
 import { AttachmentType, ResourceRequirements } from "@/types/booking.types";
 import { Reservation } from "@/types/reservation";
-import { ClubService } from "@/types";
 
 const DEFAULT_INVENTORY: ResourceRequirements = {
   attachments: {

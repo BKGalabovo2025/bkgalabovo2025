@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/context/auth-context";
-import { toast } from "sonner";
 import {
-  useShadowTrainer,
-  ShadowSettings,
   ShadowPlayer,
+  ShadowSettings,
+  useShadowTrainer,
 } from "@/hooks/useShadowTrainer";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
 import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
+import type { TrainingSession } from "@/types/training.types";
 
-// Import the new split components
-import { ShadowSetupForm } from "./shadow/ShadowSetupForm";
 import { ShadowActiveScreen } from "./shadow/ShadowActiveScreen";
 import { ShadowReportForm } from "./shadow/ShadowReportForm";
-import type { TrainingSession } from "@/types/training.types";
+// Import the new split components
+import { ShadowSetupForm } from "./shadow/ShadowSetupForm";
 
 interface Props {
   initialMembers?: ShadowPlayer[];

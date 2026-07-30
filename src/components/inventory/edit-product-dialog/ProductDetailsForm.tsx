@@ -1,20 +1,28 @@
 "use client";
 
-import { useEditProduct } from "./EditProductContext";
 import { Sparkles } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+import { useEditProduct } from "./EditProductContext";
 
 export const ProductDetailsForm = () => {
   const {
-    name, setName,
-    category, setCategory,
-    price, setPrice,
-    imageUrl, setImageUrl,
-    restockThreshold, setRestockThreshold,
-    description, setDescription,
+    name,
+    setName,
+    category,
+    setCategory,
+    price,
+    setPrice,
+    imageUrl,
+    setImageUrl,
+    restockThreshold,
+    setRestockThreshold,
+    description,
+    setDescription,
     isProcessing,
     handleUpdateInfo,
   } = useEditProduct();
@@ -23,12 +31,17 @@ export const ProductDetailsForm = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
         <Sparkles className="size-4 text-primary" strokeWidth={2} />
-        <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Информация за продукта</h3>
+        <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+          Информация за продукта
+        </h3>
       </div>
 
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="edit-name" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+          <Label
+            htmlFor="edit-name"
+            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+          >
             Име на артикула *
           </Label>
           <Input
@@ -42,7 +55,10 @@ export const ProductDetailsForm = () => {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="edit-category" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+          <Label
+            htmlFor="edit-category"
+            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+          >
             Категория *
           </Label>
           <Input
@@ -57,7 +73,10 @@ export const ProductDetailsForm = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="edit-price" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <Label
+              htmlFor="edit-price"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
               Цена (EUR) *
             </Label>
             <Input
@@ -72,7 +91,10 @@ export const ProductDetailsForm = () => {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="edit-threshold" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <Label
+              htmlFor="edit-threshold"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
               Минимален праг (бр.)
             </Label>
             <Input
@@ -88,7 +110,10 @@ export const ProductDetailsForm = () => {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="edit-image" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+          <Label
+            htmlFor="edit-image"
+            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+          >
             Изображение URL (Снимка)
           </Label>
           <Input
@@ -102,7 +127,10 @@ export const ProductDetailsForm = () => {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="edit-description" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+          <Label
+            htmlFor="edit-description"
+            className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+          >
             Описание
           </Label>
           <Textarea

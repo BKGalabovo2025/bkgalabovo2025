@@ -1,23 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useId } from "react";
+import { Check, Hotel, Loader2, Pill, Plus, Search, Tent } from "lucide-react";
+import React, { useEffect, useId, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Search, Check, Plus, Tent, Hotel, Pill } from "lucide-react";
-import { Member, ScheduleEvent, Attendee } from "@/types";
-import { formatFullName } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { formatFullName } from "@/lib/utils";
+import { Attendee, Member, ScheduleEvent } from "@/types";
 
 interface CampManagerDialogProps {
   isOpen: boolean;

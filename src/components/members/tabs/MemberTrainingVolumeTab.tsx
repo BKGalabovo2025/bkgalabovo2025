@@ -1,22 +1,23 @@
 "use client";
 
+import { Activity, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAppStore } from "@/store/use-app-store";
-import { plannerService } from "@/services/planner-service";
-import { SessionAttendance, PlannerSession } from "@/types/planner.types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Activity } from "lucide-react";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { plannerService } from "@/services/planner-service";
+import { useAppStore } from "@/store/use-app-store";
+import { PlannerSession, SessionAttendance } from "@/types/planner.types";
 
 interface Props {
   memberId: string;

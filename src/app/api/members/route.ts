@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+
+import { ensureAdmin } from "@/lib/auth-utils";
 import { addMember } from "@/services/member-service";
 import { Member } from "@/types";
-import { ensureAdmin } from "@/lib/auth-utils";
 
 // Тип за данните, необходими за създаване на нов член
 type NewMemberData = Pick<

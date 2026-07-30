@@ -1,27 +1,28 @@
 "use client";
 
-import React from "react";
-import { ScheduleEvent, Member, ScheduleEventType, Attendee } from "@/types";
-import { Button } from "@/components/ui/button";
 import {
+  Ban,
+  Calendar as CalendarIcon,
   Edit,
+  Printer,
+  RotateCcw,
+  Tag,
   Trash2,
   Users,
-  Printer,
-  Calendar as CalendarIcon,
-  Tag,
-  Ban,
-  RotateCcw,
 } from "lucide-react";
+import React from "react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatFullName, getInitials } from "@/lib/utils";
 import { formatEventDateRange } from "@/lib/date-utils";
+import { formatFullName, getInitials } from "@/lib/utils";
+import { Attendee, Member, ScheduleEvent, ScheduleEventType } from "@/types";
 
 interface EventListItemProps {
   event: ScheduleEvent;

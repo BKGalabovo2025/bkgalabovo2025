@@ -1,9 +1,11 @@
-import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
+import { Metadata } from "next";
+
 import { getAllMembersServer } from "@/services/member-service.server";
+import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { Member } from "@/types/member.types";
 import { RankingEntry } from "@/types/ranking.types";
+
 import RankingsClient from "./RankingsClient";
-import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 

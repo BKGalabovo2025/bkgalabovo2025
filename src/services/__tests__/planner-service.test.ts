@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { plannerService } from "../planner-service";
 import * as firestore from "firebase/firestore";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
+
+import { plannerService } from "../planner-service";
 
 vi.mock("firebase/firestore", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

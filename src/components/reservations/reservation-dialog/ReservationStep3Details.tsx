@@ -1,16 +1,18 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+
 import { useReservationDialog } from "./ReservationDialogContext";
 
 export const ReservationStep3Details = () => {
@@ -281,7 +283,9 @@ export const ReservationStep3Details = () => {
                         ))}
                       {members.filter(
                         (m) =>
-                          m.name?.toLowerCase().includes(searchTerm2.toLowerCase()) ||
+                          m.name
+                            ?.toLowerCase()
+                            .includes(searchTerm2.toLowerCase()) ||
                           (m.phone && m.phone.includes(searchTerm2))
                       ).length === 0 && (
                         <div className="p-3 text-center text-xs text-zinc-400">

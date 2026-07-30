@@ -1,5 +1,7 @@
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
+
+import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+
 import DeclarationsClient from "./DeclarationsClient";
 
 export const dynamic = "force-dynamic";

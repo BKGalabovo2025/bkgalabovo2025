@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { MemberDetailsCard } from "@/components/members/member-details-card";
-import { Member, Sale, ScheduleEvent } from "@/types";
-import { Family } from "@/hooks/useMemberProfile";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
+import { Family } from "@/hooks/useMemberProfile";
+import { Member, Sale, ScheduleEvent } from "@/types";
 
 interface MemberProfileClientProps {
   memberId: string;

@@ -1,4 +1,5 @@
 import { Trophy } from "lucide-react";
+
 import { Site } from "@/types/site.types";
 
 export function PublicFooter({

@@ -1,6 +1,7 @@
-import { Suspense } from "react";
-import ScheduleClient from "./ScheduleClient";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
+
+import ScheduleClient from "./ScheduleClient";
 
 export const dynamic = "force-dynamic";
 

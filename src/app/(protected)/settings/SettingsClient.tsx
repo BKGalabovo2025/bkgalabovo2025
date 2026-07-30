@@ -1,57 +1,58 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { useAuth } from "@/context/auth-context";
-import { BentoCard } from "@/components/ui/bento-card";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Settings,
-  Shield,
-  Palette,
-  User,
-  Save,
-  Lock,
-  Mail,
-  Globe,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
+import {
+  Activity,
   Building2,
   Camera,
   CheckCircle2,
-  Activity,
   Clock,
-  Loader2,
-  RefreshCw,
-  MapPin,
-  Phone,
-  Users,
-  Plus,
-  Trash2,
   Eye,
   EyeOff,
+  Globe,
+  Loader2,
+  Lock,
+  Mail,
+  MapPin,
+  Palette,
+  Phone,
+  Plus,
+  RefreshCw,
+  Save,
+  Settings,
+  Shield,
+  Trash2,
+  User,
+  Users,
 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+
 import {
+  FacebookIcon,
   InstagramIcon,
   YoutubeIcon,
-  FacebookIcon,
 } from "@/components/icons/social-icons";
-import { toast } from "react-hot-toast";
-import { getAllSites, updateSite } from "@/services/site-service";
-import { Site, Therapist } from "@/types/site.types";
+import { PageHeader } from "@/components/layout/page-header";
+import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/auth-context";
 import { getAuditLogsAction } from "@/lib/actions/audit";
 import { AuditLog } from "@/lib/audit-logger";
 import { getFirebaseAuth } from "@/lib/firebase";
-import {
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
+import { getAllSites, updateSite } from "@/services/site-service";
+import { Site, Therapist } from "@/types/site.types";
 
 export default function SettingsClient() {
   const { user } = useAuth();
@@ -431,8 +432,7 @@ export default function SettingsClient() {
                 value="branding"
                 className="w-full justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
               >
-                <Palette className="mr-4 size-5" strokeWidth={1.5} />{" "}
-                Брандиране
+                <Palette className="mr-4 size-5" strokeWidth={1.5} /> Брандиране
               </TabsTrigger>
               <TabsTrigger
                 value="security"
@@ -890,10 +890,7 @@ export default function SettingsClient() {
                             variant="outline"
                             className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900"
                           >
-                            <Camera
-                              className="mr-3 size-4"
-                              strokeWidth={1.5}
-                            />{" "}
+                            <Camera className="mr-3 size-4" strokeWidth={1.5} />{" "}
                             Промени Лого
                           </Button>
                           <p className="text-[11px] font-light tracking-wide text-zinc-400 uppercase">
@@ -977,10 +974,7 @@ export default function SettingsClient() {
                             variant="outline"
                             className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900"
                           >
-                            <Camera
-                              className="mr-3 size-4"
-                              strokeWidth={1.5}
-                            />{" "}
+                            <Camera className="mr-3 size-4" strokeWidth={1.5} />{" "}
                             Промени Лого
                           </Button>
                           <p className="text-[11px] font-light tracking-wide text-zinc-400 uppercase">

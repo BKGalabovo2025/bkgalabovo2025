@@ -1,6 +1,21 @@
 "use client";
 
+import {
+  collection,
+  doc,
+  getDocs,
+  increment,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import React, { useRef, useState } from "react";
+import SignatureCanvas from "react-signature-canvas";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -8,25 +23,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import SignatureCanvas from "react-signature-canvas";
-import { toast } from "sonner";
-import { getDb } from "@/lib/firebase";
-import {
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  increment,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { Reservation } from "@/types/reservation";
 import { getSiteConfig } from "@/config/sites";
+import { getDb } from "@/lib/firebase";
+import { Reservation } from "@/types/reservation";
 
 interface DeclarationSignDialogProps {
   reservation: Reservation;

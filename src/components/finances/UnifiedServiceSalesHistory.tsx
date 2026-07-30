@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ShoppingBag, Dumbbell, ShoppingCart } from "lucide-react";
+import { Dumbbell, ShoppingBag, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+import { SharedSalesHistory } from "@/components/shared/sales/SharedSalesHistory";
 import { useAuth } from "@/context/auth-context";
+import { useGeneralServices } from "@/hooks/useGeneralServices";
+import { useRecoveryServices } from "@/hooks/useRecoveryServices";
+import { useTrainingServices } from "@/hooks/useTrainingServices";
+import { deleteGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
+import { deleteSaleAction } from "@/lib/actions/sales";
 import { getAllMembers } from "@/services/member-service";
 import { Member, Sale } from "@/types";
-import { SharedSalesHistory } from "@/components/shared/sales/SharedSalesHistory";
-import { deleteSaleAction } from "@/lib/actions/sales";
-import { deleteGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
 
-import { useGeneralServices } from "@/hooks/useGeneralServices";
-import { useTrainingServices } from "@/hooks/useTrainingServices";
-import { useRecoveryServices } from "@/hooks/useRecoveryServices";
-
-export type ServiceType = "general" | "training" | "recovery";
+type ServiceType = "general" | "training" | "recovery";
 
 interface UnifiedProps {
   serviceType: ServiceType;

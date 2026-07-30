@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 
 interface DebugReservation {
@@ -31,6 +32,9 @@ export async function GET() {
       }));
     return NextResponse.json(res);
   } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { getDocs } from "firebase/firestore";
-import { InventoryEvent } from "@/types";
+import { useEffect, useState } from "react";
+
 import { getInventoryEventsQuery } from "@/lib/firebase-collections";
 import { useAppStore } from "@/store/use-app-store";
+import { InventoryEvent } from "@/types";
 
 export function useInventoryEvents() {
   const [events, setEvents] = useState<InventoryEvent[]>([]);

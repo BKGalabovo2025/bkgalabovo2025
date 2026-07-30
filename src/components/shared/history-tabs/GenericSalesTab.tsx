@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/currency";
 import { Sale } from "@/types";

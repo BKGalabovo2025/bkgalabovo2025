@@ -1,35 +1,36 @@
 /* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useAppStore } from "@/store/use-app-store";
-import { plannerService } from "@/services/planner-service";
-import { getAllMembers } from "@/services/member-service";
 import {
-  PlannerSession,
-  SessionAttendance,
-  Exercise,
-} from "@/types/planner.types";
-import { Member } from "@/types/member.types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Play,
-  Pause,
-  Save,
-  Loader2,
-  ArrowLeft,
   Activity,
+  ArrowLeft,
+  Loader2,
+  Pause,
+  Play,
+  Save,
+  SkipForward,
   Target,
   Timer,
-  SkipForward,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { getAllMembers } from "@/services/member-service";
+import { plannerService } from "@/services/planner-service";
+import { useAppStore } from "@/store/use-app-store";
+import { Member } from "@/types/member.types";
+import {
+  Exercise,
+  PlannerSession,
+  SessionAttendance,
+} from "@/types/planner.types";
 
 interface Props {
   sessionId: string;

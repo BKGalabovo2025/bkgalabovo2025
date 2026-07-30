@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getAdminDb } from "@/lib/firebase-admin";
-import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import Link from "next/link";
+
+import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 export const metadata: Metadata = {
   title: "Каталог | Recovery Zone by ZM",

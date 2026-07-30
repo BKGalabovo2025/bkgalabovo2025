@@ -1,46 +1,46 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-
-import React, { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
-  MessageCircle,
-  Search,
-  CheckSquare,
-  Square,
   AlertCircle,
-  Send,
-  Loader2,
+  CheckSquare,
   List,
-  Target,
-  Phone,
+  Loader2,
   Mail,
+  MessageCircle,
+  Phone,
+  Search,
+  Send,
+  Square,
+  Target,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
-  SelectGroup,
-  SelectLabel,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { marketingService } from "@/services/marketing-service";
-import { MarketingLog } from "@/types/marketing.types";
-import { useAppStore } from "@/store/use-app-store";
-import { useAuth } from "@/context/auth-context";
 import { getEventsForPeriod } from "@/services/schedule-service";
 import { tournamentService } from "@/services/tournament-service";
+import { useAppStore } from "@/store/use-app-store";
+import { MarketingLog } from "@/types/marketing.types";
 
 export default function MarketingClient() {
   const { activeBranch } = useAppStore();
@@ -67,7 +67,9 @@ export default function MarketingClient() {
 
   const [channel, setChannel] = useState<"whatsapp" | "email">("whatsapp");
   const [emailSubject, setEmailSubject] = useState("");
-  const [systemTemplate, setSystemTemplate] = useState<"reminder" | "deactivated" | "reservationConfirmation" | null>(null);
+  const [systemTemplate, setSystemTemplate] = useState<
+    "reminder" | "deactivated" | "reservationConfirmation" | null
+  >(null);
 
   const searchParams = useSearchParams();
   const [resDate, setResDate] = useState("");
@@ -75,8 +77,15 @@ export default function MarketingClient() {
   const [resEndTime, setResEndTime] = useState("");
   const [resLocation, setResLocation] = useState("");
 
-  const loadSystemReservation = (date: string, start: string, end: string, loc: string) => {
-    setMessageTemplate(`Здравейте, {ИМЕ}!\n\nУспешно запазихте час на ${date} от ${start} до ${end} за ${loc}.\nОчакваме Ви!`);
+  const loadSystemReservation = (
+    date: string,
+    start: string,
+    end: string,
+    loc: string
+  ) => {
+    setMessageTemplate(
+      `Здравейте, {ИМЕ}!\n\nУспешно запазихте час на ${date} от ${start} до ${end} за ${loc}.\nОчакваме Ви!`
+    );
     setEmailSubject("Потвърждение за резервация");
     setSystemTemplate("reservationConfirmation");
   };
@@ -87,39 +96,47 @@ export default function MarketingClient() {
       setChannel("email");
       const dateStr = searchParams?.get("date");
       const endStr = searchParams?.get("end");
-      
+
       let parsedDate = "";
       let parsedStart = "";
       let parsedEnd = "";
       const parsedLoc = searchParams?.get("loc") || "";
-      
+
       if (dateStr) {
         const d = new Date(dateStr);
         parsedDate = d.toLocaleDateString("bg-BG");
-        parsedStart = d.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+        parsedStart = d.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         setResDate(parsedDate);
         setResStartTime(parsedStart);
       }
       if (endStr) {
-        parsedEnd = new Date(endStr).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+        parsedEnd = new Date(endStr).toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         setResEndTime(parsedEnd);
       }
       if (parsedLoc) {
         setResLocation(parsedLoc);
       }
-      
+
       const clientId = searchParams?.get("clientId");
       if (clientId) {
-        setSelectedIds(prev => new Set(prev).add(clientId));
+        setSelectedIds((prev) => new Set(prev).add(clientId));
       }
-      
+
       loadSystemReservation(parsedDate, parsedStart, parsedEnd, parsedLoc);
     }
   }, [searchParams]);
 
   useEffect(() => {
     if (systemTemplate === "reservationConfirmation") {
-      setMessageTemplate(`Здравейте, {ИМЕ}!\n\nУспешно запазихте час на ${resDate} от ${resStartTime} до ${resEndTime} за ${resLocation}.\nОчакваме Ви!`);
+      setMessageTemplate(
+        `Здравейте, {ИМЕ}!\n\nУспешно запазихте час на ${resDate} от ${resStartTime} до ${resEndTime} за ${resLocation}.\nОчакваме Ви!`
+      );
     }
   }, [resDate, resStartTime, resEndTime, resLocation, systemTemplate]);
 
@@ -171,11 +188,15 @@ export default function MarketingClient() {
   };
 
   const toggleAll = () => {
-    const validMembers = filteredMembers.filter(m => 
-      channel === "whatsapp" ? !!m.phone && m.phone.length > 5 : !!m.email && m.email.includes("@")
+    const validMembers = filteredMembers.filter((m) =>
+      channel === "whatsapp"
+        ? !!m.phone && m.phone.length > 5
+        : !!m.email && m.email.includes("@")
     );
-    
-    const allValidSelected = validMembers.every(m => selectedIds.has(m.id)) && validMembers.length > 0;
+
+    const allValidSelected =
+      validMembers.every((m) => selectedIds.has(m.id)) &&
+      validMembers.length > 0;
 
     if (allValidSelected) {
       setSelectedIds(new Set());
@@ -189,8 +210,10 @@ export default function MarketingClient() {
     const member = members.find((m) => m.id === memberId);
     if (!member || !user) return;
 
-    if (channel === "whatsapp" && (!member.phone || member.phone.length < 5)) return;
-    if (channel === "email" && (!member.email || !member.email.includes("@"))) return;
+    if (channel === "whatsapp" && (!member.phone || member.phone.length < 5))
+      return;
+    if (channel === "email" && (!member.email || !member.email.includes("@")))
+      return;
 
     setSendingId(member.id);
     try {
@@ -217,7 +240,10 @@ export default function MarketingClient() {
         let cleanPhone = member.phone!.replace(/\s+/g, "");
         if (cleanPhone.startsWith("0")) {
           cleanPhone = "359" + cleanPhone.substring(1);
-        } else if (!cleanPhone.startsWith("+") && !cleanPhone.startsWith("359")) {
+        } else if (
+          !cleanPhone.startsWith("+") &&
+          !cleanPhone.startsWith("359")
+        ) {
           cleanPhone = "359" + cleanPhone;
         }
         cleanPhone = cleanPhone.replace("+", "");
@@ -244,7 +270,7 @@ export default function MarketingClient() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             to: member.email,
@@ -253,19 +279,27 @@ export default function MarketingClient() {
             data: {
               memberName: member.firstName || member.name,
               messageText: finalMsg,
-              ...(systemTemplate === "reservationConfirmation" ? {
-                clientName: member.firstName || member.name,
-                startTime: resDate && resStartTime ? `${resDate}T${resStartTime}:00` : new Date().toISOString(),
-                endTime: resDate && resEndTime ? `${resDate}T${resEndTime}:00` : new Date().toISOString(),
-                courtId: resLocation || "Не е посочено"
-              } : {})
+              ...(systemTemplate === "reservationConfirmation"
+                ? {
+                    clientName: member.firstName || member.name,
+                    startTime:
+                      resDate && resStartTime
+                        ? `${resDate}T${resStartTime}:00`
+                        : new Date().toISOString(),
+                    endTime:
+                      resDate && resEndTime
+                        ? `${resDate}T${resEndTime}:00`
+                        : new Date().toISOString(),
+                    courtId: resLocation || "Не е посочено",
+                  }
+                : {}),
             },
           }),
         });
 
         if (!response.ok) {
-           const errData = await response.json().catch(()=>({}));
-           throw new Error(errData.error || "Грешка при изпращане на имейл");
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Грешка при изпращане на имейл");
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -333,13 +367,17 @@ export default function MarketingClient() {
   };
 
   const loadSystemReminder = () => {
-    setMessageTemplate(`Здравейте, {ИМЕ}.\n\nНапомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово.\nМоля, свържете се с нас за повече информация.`);
+    setMessageTemplate(
+      `Здравейте, {ИМЕ}.\n\nНапомняме Ви за просрочено плащане към Бадминтон Клуб Гълъбово.\nМоля, свържете се с нас за повече информация.`
+    );
     setEmailSubject("Напомняне за плащане");
     setSystemTemplate("reminder");
   };
 
   const loadSystemDeactivated = () => {
-    setMessageTemplate(`Здравейте, {ИМЕ}.\n\nУведомяваме Ви, че тъй като нямате активен или платен абонамент през последните 30 дни, статусът на Вашия профил в Бадминтон Клуб Гълъбово е автоматично променен на неактивен (inactive).\n\nЗа да възстановите активния си статус и да продължите да ползвате услугите на клуба, е необходимо да заплатите нов абонамент.\n\nС уважение,\nЕкипът на Бадминтон Клуб Гълъбово`);
+    setMessageTemplate(
+      `Здравейте, {ИМЕ}.\n\nУведомяваме Ви, че тъй като нямате активен или платен абонамент през последните 30 дни, статусът на Вашия профил в Бадминтон Клуб Гълъбово е автоматично променен на неактивен (inactive).\n\nЗа да възстановите активния си статус и да продължите да ползвате услугите на клуба, е необходимо да заплатите нов абонамент.\n\nС уважение,\nЕкипът на Бадминтон Клуб Гълъбово`
+    );
     setEmailSubject("Известие за изтекло членство");
     setSystemTemplate("deactivated");
   };
@@ -375,188 +413,271 @@ export default function MarketingClient() {
             <Card className="rounded-3xl border-border/50 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl font-bold">
-                  <MessageCircle className="size-5 text-primary" /> Създаване на съобщение
+                  <MessageCircle className="size-5 text-primary" /> Създаване на
+                  съобщение
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-
                 <div className="flex w-fit rounded-xl bg-muted p-1">
-                   <button 
-                     onClick={() => setChannel("whatsapp")}
-                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === 'whatsapp' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                   >
-                     <Phone className="size-4 text-emerald-500" /> WhatsApp
-                   </button>
-                   <button 
-                     onClick={() => setChannel("email")}
-                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === 'email' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                   >
-                     <Mail className="size-4 text-primary" /> Имейл
-                   </button>
+                  <button
+                    onClick={() => setChannel("whatsapp")}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === "whatsapp" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <Phone className="size-4 text-emerald-500" /> WhatsApp
+                  </button>
+                  <button
+                    onClick={() => setChannel("email")}
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${channel === "email" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <Mail className="size-4 text-primary" /> Имейл
+                  </button>
                 </div>
-                
+
                 {channel === "email" && (
                   <div className="space-y-1">
-                    <Input 
-                      placeholder="Тема (Subject)..." 
+                    <Input
+                      placeholder="Тема (Subject)..."
                       value={emailSubject}
                       onChange={(e) => setEmailSubject(e.target.value)}
                       disabled={!!systemTemplate}
                       className="h-12 rounded-xl border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
                     />
                     {systemTemplate && (
-                      <p className="ml-2 text-xs text-muted-foreground">Темата е автоматична за системни съобщения.</p>
+                      <p className="ml-2 text-xs text-muted-foreground">
+                        Темата е автоматична за системни съобщения.
+                      </p>
                     )}
                   </div>
                 )}
 
-              <div className="space-y-6">
-                <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
-                  <div className="mt-0.5 rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
-                    <AlertCircle className="size-4" />
-                  </div>
-                  <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-100">
-                    Използвайте{" "}
-                    <code className="rounded border border-blue-200 bg-white px-1.5 py-0.5 font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
-                      {"{ИМЕ}"}
-                    </code>{" "}
-                    където искате системата автоматично да постави малкото име на получателя.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-foreground">
-                      Готови шаблони
-                    </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setMessageTemplate("");
-                        setEmailSubject("");
-                        setSystemTemplate(null);
-                      }}
-                      className="h-8 text-xs text-muted-foreground hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/30"
-                    >
-                      Изчисти полетата
-                    </Button>
-                  </div>
-                  
-                  <Select
-                    value=""
-                    onValueChange={(val) => {
-                      if (!val) return;
-                      const [type, id] = val.split(":");
-                      if (type === "training") {
-                        const ev = events.find((e) => e.id === id);
-                        loadTrainingTemplate(ev);
-                        setSystemTemplate(null);
-                      } else if (type === "tournament") {
-                        const t = tournaments.find((t) => t.id === id);
-                        loadTournamentTemplate(t);
-                        setSystemTemplate(null);
-                      } else if (type === "competition") {
-                        const c = events.find((e) => e.id === id);
-                        loadCompetitionTemplate(c);
-                        setSystemTemplate(null);
-                      } else if (type === "reminder") {
-                        loadSystemReminder();
-                      } else if (type === "deactivated") {
-                        loadSystemDeactivated();
-                      } else if (type === "reservationConfirmation") {
-                        loadSystemReservation(resDate, resStartTime, resEndTime, resLocation);
-                      } else if (type === "recovery") {
-                        loadRecoveryTemplate();
-                        setSystemTemplate(null);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="h-11 w-full rounded-xl border-border bg-background text-foreground focus:ring-primary">
-                      <SelectValue placeholder="Изберете готов шаблон за зареждане..." />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-75">
-                      <SelectGroup>
-                        <SelectLabel className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Системни Известия</SelectLabel>
-                        <SelectItem value="reservationConfirmation:">Потвърждение за резервация</SelectItem>
-                        <SelectItem value="reminder:">Напомняне за плащане</SelectItem>
-                        <SelectItem value="deactivated:">Известие за неактивен профил</SelectItem>
-                      </SelectGroup>
-                      
-                      {events.filter(e => e.type === "training").length > 0 && (
-                        <SelectGroup>
-                          <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Тренировки</SelectLabel>
-                          {events.filter(e => e.type === "training").map((ev) => (
-                            <SelectItem key={`training:${ev.id}`} value={`training:${ev.id}`}>
-                              {ev.title} ({format(new Date(ev.startDate), "dd.MM", { locale: bg })})
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      )}
-
-                      {(events.filter(e => e.type === "competition").length > 0 || tournaments.length > 0) && (
-                        <SelectGroup>
-                          <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Състезания и Турнири</SelectLabel>
-                          {events.filter(e => e.type === "competition").map((c) => (
-                            <SelectItem key={`competition:${c.id}`} value={`competition:${c.id}`}>
-                              {c.title} ({format(new Date(c.startDate), "dd.MM", { locale: bg })})
-                            </SelectItem>
-                          ))}
-                          {tournaments.map((t) => (
-                            <SelectItem key={`tournament:${t.id}`} value={`tournament:${t.id}`}>
-                              {t.title}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      )}
-
-                      <SelectGroup>
-                        <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Други</SelectLabel>
-                        <SelectItem value="recovery:">Отстъпка за възстановяване</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-4">
-                  {systemTemplate === "reservationConfirmation" && channel === "email" ? (
-                    <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 md:grid-cols-2">
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Дата</label>
-                        <Input type="date" value={resDate} onChange={e => setResDate(e.target.value)} className="bg-background" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Корт / Процедура</label>
-                        <Input value={resLocation} onChange={e => setResLocation(e.target.value)} placeholder="напр. Корт 1" className="bg-background" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Начален час</label>
-                        <Input type="time" value={resStartTime} onChange={e => setResStartTime(e.target.value)} className="bg-background" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Краен час</label>
-                        <Input type="time" value={resEndTime} onChange={e => setResEndTime(e.target.value)} className="bg-background" />
-                      </div>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
+                    <div className="mt-0.5 rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
+                      <AlertCircle className="size-4" />
                     </div>
-                  ) : null}
+                    <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-100">
+                      Използвайте{" "}
+                      <code className="rounded border border-blue-200 bg-white px-1.5 py-0.5 font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                        {"{ИМЕ}"}
+                      </code>{" "}
+                      където искате системата автоматично да постави малкото име
+                      на получателя.
+                    </p>
+                  </div>
 
-                  <div className="space-y-1">
-                    <Textarea
-                    value={messageTemplate}
-                    onChange={(e) => setMessageTemplate(e.target.value)}
-                    placeholder="Въведете вашия текст тук... Здравей, {ИМЕ}!"
-                    disabled={!!systemTemplate && channel === "email"}
-                    className="min-h-50 resize-y rounded-xl border-border bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                  />
-                  {systemTemplate && channel === "email" && (
-                    <p className="ml-2 text-xs text-rose-500">Това поле е заключено, защото системният шаблон за имейл има вграден дизайн.</p>
-                  )}
-                  {systemTemplate && channel === "whatsapp" && (
-                     <p className="ml-2 text-xs text-primary">Текстът на системното съобщение е зареден за изпращане по WhatsApp.</p>
-                  )}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-foreground">
+                        Готови шаблони
+                      </h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setMessageTemplate("");
+                          setEmailSubject("");
+                          setSystemTemplate(null);
+                        }}
+                        className="h-8 text-xs text-muted-foreground hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/30"
+                      >
+                        Изчисти полетата
+                      </Button>
+                    </div>
+
+                    <Select
+                      value=""
+                      onValueChange={(val) => {
+                        if (!val) return;
+                        const [type, id] = val.split(":");
+                        if (type === "training") {
+                          const ev = events.find((e) => e.id === id);
+                          loadTrainingTemplate(ev);
+                          setSystemTemplate(null);
+                        } else if (type === "tournament") {
+                          const t = tournaments.find((t) => t.id === id);
+                          loadTournamentTemplate(t);
+                          setSystemTemplate(null);
+                        } else if (type === "competition") {
+                          const c = events.find((e) => e.id === id);
+                          loadCompetitionTemplate(c);
+                          setSystemTemplate(null);
+                        } else if (type === "reminder") {
+                          loadSystemReminder();
+                        } else if (type === "deactivated") {
+                          loadSystemDeactivated();
+                        } else if (type === "reservationConfirmation") {
+                          loadSystemReservation(
+                            resDate,
+                            resStartTime,
+                            resEndTime,
+                            resLocation
+                          );
+                        } else if (type === "recovery") {
+                          loadRecoveryTemplate();
+                          setSystemTemplate(null);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-11 w-full rounded-xl border-border bg-background text-foreground focus:ring-primary">
+                        <SelectValue placeholder="Изберете готов шаблон за зареждане..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-75">
+                        <SelectGroup>
+                          <SelectLabel className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Системни Известия
+                          </SelectLabel>
+                          <SelectItem value="reservationConfirmation:">
+                            Потвърждение за резервация
+                          </SelectItem>
+                          <SelectItem value="reminder:">
+                            Напомняне за плащане
+                          </SelectItem>
+                          <SelectItem value="deactivated:">
+                            Известие за неактивен профил
+                          </SelectItem>
+                        </SelectGroup>
+
+                        {events.filter((e) => e.type === "training").length >
+                          0 && (
+                          <SelectGroup>
+                            <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                              Тренировки
+                            </SelectLabel>
+                            {events
+                              .filter((e) => e.type === "training")
+                              .map((ev) => (
+                                <SelectItem
+                                  key={`training:${ev.id}`}
+                                  value={`training:${ev.id}`}
+                                >
+                                  {ev.title} (
+                                  {format(new Date(ev.startDate), "dd.MM", {
+                                    locale: bg,
+                                  })}
+                                  )
+                                </SelectItem>
+                              ))}
+                          </SelectGroup>
+                        )}
+
+                        {(events.filter((e) => e.type === "competition")
+                          .length > 0 ||
+                          tournaments.length > 0) && (
+                          <SelectGroup>
+                            <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                              Състезания и Турнири
+                            </SelectLabel>
+                            {events
+                              .filter((e) => e.type === "competition")
+                              .map((c) => (
+                                <SelectItem
+                                  key={`competition:${c.id}`}
+                                  value={`competition:${c.id}`}
+                                >
+                                  {c.title} (
+                                  {format(new Date(c.startDate), "dd.MM", {
+                                    locale: bg,
+                                  })}
+                                  )
+                                </SelectItem>
+                              ))}
+                            {tournaments.map((t) => (
+                              <SelectItem
+                                key={`tournament:${t.id}`}
+                                value={`tournament:${t.id}`}
+                              >
+                                {t.title}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
+
+                        <SelectGroup>
+                          <SelectLabel className="mt-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Други
+                          </SelectLabel>
+                          <SelectItem value="recovery:">
+                            Отстъпка за възстановяване
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-4">
+                    {systemTemplate === "reservationConfirmation" &&
+                    channel === "email" ? (
+                      <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Дата
+                          </label>
+                          <Input
+                            type="date"
+                            value={resDate}
+                            onChange={(e) => setResDate(e.target.value)}
+                            className="bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Корт / Процедура
+                          </label>
+                          <Input
+                            value={resLocation}
+                            onChange={(e) => setResLocation(e.target.value)}
+                            placeholder="напр. Корт 1"
+                            className="bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Начален час
+                          </label>
+                          <Input
+                            type="time"
+                            value={resStartTime}
+                            onChange={(e) => setResStartTime(e.target.value)}
+                            className="bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Краен час
+                          </label>
+                          <Input
+                            type="time"
+                            value={resEndTime}
+                            onChange={(e) => setResEndTime(e.target.value)}
+                            className="bg-background"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="space-y-1">
+                      <Textarea
+                        value={messageTemplate}
+                        onChange={(e) => setMessageTemplate(e.target.value)}
+                        placeholder="Въведете вашия текст тук... Здравей, {ИМЕ}!"
+                        disabled={!!systemTemplate && channel === "email"}
+                        className="min-h-50 resize-y rounded-xl border-border bg-background p-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                      />
+                      {systemTemplate && channel === "email" && (
+                        <p className="ml-2 text-xs text-rose-500">
+                          Това поле е заключено, защото системният шаблон за
+                          имейл има вграден дизайн.
+                        </p>
+                      )}
+                      {systemTemplate && channel === "whatsapp" && (
+                        <p className="ml-2 text-xs text-primary">
+                          Текстът на системното съобщение е зареден за изпращане
+                          по WhatsApp.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
               </CardContent>
             </Card>
 
@@ -565,7 +686,8 @@ export default function MarketingClient() {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-xl font-bold">
-                    <Target className="size-5 text-primary" /> Избор на получатели
+                    <Target className="size-5 text-primary" /> Избор на
+                    получатели
                   </CardTitle>
                   <Badge
                     variant="secondary"
@@ -605,19 +727,19 @@ export default function MarketingClient() {
                     </div>
                   ) : (
                     filteredMembers.map((member) => {
-                      const canSend = channel === "whatsapp" 
-                        ? Boolean(member.phone && member.phone.length > 5) 
-                        : Boolean(member.email && member.email.includes("@"));
-                        
-                      const contactInfo = channel === "whatsapp" 
-                        ? member.phone 
-                        : member.email;
+                      const canSend =
+                        channel === "whatsapp"
+                          ? Boolean(member.phone && member.phone.length > 5)
+                          : Boolean(member.email && member.email.includes("@"));
 
-                      const reason = channel === "whatsapp" 
-                        ? "Няма телефон"
-                        : "Няма имейл";
+                      const contactInfo =
+                        channel === "whatsapp" ? member.phone : member.email;
 
-                      let itemClass = "hover:bg-muted border border-transparent";
+                      const reason =
+                        channel === "whatsapp" ? "Няма телефон" : "Няма имейл";
+
+                      let itemClass =
+                        "hover:bg-muted border border-transparent";
                       if (!canSend) {
                         itemClass = "opacity-50 bg-muted/50";
                       } else if (selectedIds.has(member.id)) {
@@ -625,56 +747,65 @@ export default function MarketingClient() {
                       }
 
                       return (
-                      <div
-                        key={member.id}
-                        className={`flex items-center justify-between rounded-xl p-3 transition-all ${itemClass}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            disabled={!canSend}
-                            onClick={() => canSend && toggleMember(member.id)}
-                            className={`shrink-0 transition-colors ${canSend ? "cursor-pointer text-muted-foreground hover:text-primary" : "cursor-not-allowed text-muted-foreground/30"}`}
-                          >
-                            {selectedIds.has(member.id) && canSend ? (
-                              <CheckSquare size={18} className="text-primary" />
-                            ) : (
-                              <Square size={18} />
-                            )}
-                          </button>
-                          <div className="flex flex-col">
-                            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                              {member.name}
-                              {!canSend && (
-                                <Badge variant="outline" className="h-4 border-rose-500/30 bg-rose-500/10 py-0 text-[10px] font-medium text-rose-500">
-                                  {reason}
-                                </Badge>
+                        <div
+                          key={member.id}
+                          className={`flex items-center justify-between rounded-xl p-3 transition-all ${itemClass}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <button
+                              disabled={!canSend}
+                              onClick={() => canSend && toggleMember(member.id)}
+                              className={`shrink-0 transition-colors ${canSend ? "cursor-pointer text-muted-foreground hover:text-primary" : "cursor-not-allowed text-muted-foreground/30"}`}
+                            >
+                              {selectedIds.has(member.id) && canSend ? (
+                                <CheckSquare
+                                  size={18}
+                                  className="text-primary"
+                                />
+                              ) : (
+                                <Square size={18} />
                               )}
-                            </span>
-                            <span className="font-mono text-xs text-muted-foreground">
-                              {contactInfo || "-"}
-                            </span>
+                            </button>
+                            <div className="flex flex-col">
+                              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                {member.name}
+                                {!canSend && (
+                                  <Badge
+                                    variant="outline"
+                                    className="h-4 border-rose-500/30 bg-rose-500/10 py-0 text-[10px] font-medium text-rose-500"
+                                  >
+                                    {reason}
+                                  </Badge>
+                                )}
+                              </span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {contactInfo || "-"}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {selectedIds.has(member.id) && canSend && (
-                          <Button
-                            size="sm"
-                            disabled={
-                              !messageTemplate.trim() || sendingId === member.id || (channel === "email" && !emailSubject.trim())
-                            }
-                            onClick={() => handleSendToMember(member.id)}
-                            className="h-8 shrink-0 gap-1.5"
-                          >
-                            {sendingId === member.id ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                              <Send className="size-3.5" />
-                            )}
-                            Изпрати
-                          </Button>
-                        )}
-                      </div>
-                    )})
+                          {selectedIds.has(member.id) && canSend && (
+                            <Button
+                              size="sm"
+                              disabled={
+                                !messageTemplate.trim() ||
+                                sendingId === member.id ||
+                                (channel === "email" && !emailSubject.trim())
+                              }
+                              onClick={() => handleSendToMember(member.id)}
+                              className="h-8 shrink-0 gap-1.5"
+                            >
+                              {sendingId === member.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Send className="size-3.5" />
+                              )}
+                              Изпрати
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </CardContent>

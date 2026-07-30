@@ -1,8 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
+import {
+  CheckCircle2,
+  Loader2,
+  MoreVertical,
+  PackageSearch,
+  Plus,
+  Trash2,
+  XCircle,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -11,26 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRecoveryServices } from "@/hooks/useRecoveryServices";
-import {
-  PackageSearch,
-  CheckCircle2,
-  XCircle,
-  MoreVertical,
-  Trash2,
-  Loader2,
-  Plus,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/auth-context";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useRecoveryServices } from "@/hooks/useRecoveryServices";
 import { deleteRecoveryPackageAction } from "@/lib/actions/recovery-services-server";
 
 export function RecoveryClientPackages() {
@@ -293,10 +294,7 @@ export function RecoveryClientPackages() {
                       )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-40 rounded-xl"
-                  >
+                  <DropdownMenuContent align="end" className="w-40 rounded-xl">
                     <DropdownMenuItem
                       onClick={() => handleDelete(pkg.id)}
                       className="flex cursor-pointer items-center gap-2 text-xs font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"

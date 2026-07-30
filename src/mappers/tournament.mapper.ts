@@ -1,10 +1,11 @@
-import {
-  Tournament,
-  TournamentSchema,
-  TournamentEntry,
-  Match,
-} from "@/types/tournament.types";
 import type { DocumentSnapshot } from "firebase/firestore";
+
+import {
+  Match,
+  Tournament,
+  TournamentEntry,
+  TournamentSchema,
+} from "@/types/tournament.types";
 
 type FirestoreDate = { toDate?: () => Date } | Date | string | null | undefined;
 

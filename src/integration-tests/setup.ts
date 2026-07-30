@@ -1,5 +1,5 @@
-import { vi } from "vitest";
 import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
+import { vi } from "vitest";
 
 // Allow Server Actions to be imported in vitest
 vi.mock("server-only", () => ({}));

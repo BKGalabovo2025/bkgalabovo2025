@@ -8,11 +8,13 @@ export const metadata: Metadata = {
     "Всички организирани турнири по бадминтон от БК Гълъбово — активни, приключили и предстоящи. Класирания, схеми и резултати.",
 };
 
-import { Tournament } from "@/types/tournament.types";
-import TournamentsClient from "./TournamentsClient";
 import { Suspense } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTournamentsServer } from "@/services/tournament-service.server";
+import { Tournament } from "@/types/tournament.types";
+
+import TournamentsClient from "./TournamentsClient";
 
 export default async function TournamentsPage() {
   let tournaments: Tournament[] = [];

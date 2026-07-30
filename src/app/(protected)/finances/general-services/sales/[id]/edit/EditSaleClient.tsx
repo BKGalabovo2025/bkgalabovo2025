@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+
 import { SharedEditSale } from "@/components/shared/sales/SharedEditSale";
 
 export default function EditSaleClient() {
@@ -15,7 +16,10 @@ export default function EditSaleClient() {
       breadcrumbs={[
         { label: "Начало", href: "/dashboard" },
         { label: "Клубни услуги", href: "/finances/general-services" },
-        { label: "Детайли", href: `/finances/general-services/sales/${saleId}` },
+        {
+          label: "Детайли",
+          href: `/finances/general-services/sales/${saleId}`,
+        },
         { label: "Редакция" },
       ]}
     />

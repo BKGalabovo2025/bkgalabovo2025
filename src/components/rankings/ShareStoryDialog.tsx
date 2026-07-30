@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useRef, forwardRef } from "react";
-import { RankingEntry } from "@/types/ranking.types";
+import { Download, Loader2, Share2, Trophy } from "lucide-react";
+import Script from "next/script";
+import { forwardRef, useRef, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Share2, Download, Loader2, Trophy } from "lucide-react";
-import { toast } from "sonner";
-import Script from "next/script";
+import { RankingEntry } from "@/types/ranking.types";
 
 interface ShareStoryDialogProps {
   topThree: RankingEntry[];

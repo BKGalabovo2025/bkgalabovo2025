@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { calculateAvailability } from "../availability";
+import { describe, expect, it } from "vitest";
+
 import { ResourceRequirements } from "@/types/booking.types";
+
+import { calculateAvailability } from "../availability";
 
 describe("booking availability", () => {
   const targetDate = new Date("2026-08-01T12:00:00.000Z");

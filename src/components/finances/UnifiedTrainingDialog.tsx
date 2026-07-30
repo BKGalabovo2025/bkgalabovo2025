@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { Service } from "@/app/(protected)/finances/services/service.types";
+import { ServiceForm } from "@/components/finances/ServiceForm";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { createClubService, updateClubService } from "@/lib/actions/services";
 import { useAuth } from "@/context/auth-context";
-import { ServiceForm } from "@/components/finances/ServiceForm";
-import { Service } from "@/app/(protected)/finances/services/service.types";
+import { createClubService, updateClubService } from "@/lib/actions/services";
 
 interface UnifiedTrainingDialogProps {
   mode: "add" | "edit";

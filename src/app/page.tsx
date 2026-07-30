@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
 import {
-  Trophy,
   ArrowRight,
-  ShieldCheck,
-  Lock,
   ChevronRight,
+  Lock,
+  ShieldCheck,
+  Trophy,
 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { useAuth } from "@/context/auth-context";
 
 export default function HomePage() {
   const router = useRouter();

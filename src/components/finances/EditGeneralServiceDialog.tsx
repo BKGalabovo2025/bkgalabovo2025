@@ -1,33 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { Sparkles, Wrench } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { GenericMovementsTab } from "@/components/shared/history-tabs/GenericMovementsTab";
+import { GenericSalesTab } from "@/components/shared/history-tabs/GenericSalesTab";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
-import {
-  updateGeneralServiceAction,
-  getGeneralServiceHistoryAction,
-} from "@/lib/actions/general-services-server";
-import { getServiceSalesAction } from "@/lib/actions/sales";
-import { useAppStore } from "@/store/use-app-store";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Wrench, Sparkles } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllMembers } from "@/services/member-service";
-import { GenericSalesTab } from "@/components/shared/history-tabs/GenericSalesTab";
-import { GenericMovementsTab } from "@/components/shared/history-tabs/GenericMovementsTab";
-import { formatPrice } from "@/lib/currency";
 import {
   Select,
   SelectContent,
@@ -35,6 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  getGeneralServiceHistoryAction,
+  updateGeneralServiceAction,
+} from "@/lib/actions/general-services-server";
+import { getServiceSalesAction } from "@/lib/actions/sales";
+import { formatPrice } from "@/lib/currency";
+import { getAllMembers } from "@/services/member-service";
+import { useAppStore } from "@/store/use-app-store";
+import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 
 function filterSalesForService(sales: Sale[], serviceId: string) {
   return sales.filter((s) => s.items?.some((i) => i.productId === serviceId));

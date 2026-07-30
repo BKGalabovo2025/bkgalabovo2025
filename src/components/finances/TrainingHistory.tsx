@@ -1,7 +1,7 @@
 "use client";
 
-import { useTrainingServices } from "@/hooks/useTrainingServices";
 import { SharedEventHistory } from "@/components/shared/sales/SharedEventHistory";
+import { useTrainingServices } from "@/hooks/useTrainingServices";
 
 export function TrainingHistory() {
   const { events, isLoading } = useTrainingServices();
