@@ -97,6 +97,12 @@ export const BusinessTripSchema = z.object({
   status: BusinessTripStatusEnum.default("draft"),
   /** Официална дата на Заповедта (може да се редактира ръчно в диалога) */
   orderDate: z.string().datetime().optional(),
+  signatures: z
+    .object({
+      coach: z.string().optional(), // Base64 PNG image
+      chairman: z.string().optional(), // Base64 PNG image
+    })
+    .optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });

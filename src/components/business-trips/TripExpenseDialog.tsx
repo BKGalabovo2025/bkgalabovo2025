@@ -7,6 +7,7 @@ import { FileUp, Loader2, Save } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import Tesseract from "tesseract.js";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ export function TripExpenseDialog({
   onSuccess,
 }: TripExpenseDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isOcrRunning, setIsOcrRunning] = useState(false);
 
   const form = useForm<any>({
     resolver: zodResolver(FormSchema) as any,
@@ -125,6 +127,75 @@ export function TripExpenseDialog({
     const bgnValue = Number(e.target.value);
     if (!isNaN(bgnValue)) {
       form.setValue("amountEUR", convertBgnToEur(bgnValue));
+    }
+  };
+
+  // Tesseract OCR parser
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+
+    // Check if it's an image
+    if (!file.type.startsWith("image/")) return;
+
+    setIsOcrRunning(true);
+    const ocrToast = toast.loading("Сканиране с изкуствен интелект (OCR)...");
+
+    try {
+      const result = await Tesseract.recognize(file, "bul+eng", {
+        logger: (m) => {
+          if (m.status === "recognizing text" && m.progress > 0) {
+            // Optional: could update toast message with progress
+          }
+        },
+      });
+
+      const text = result.data.text.toUpperCase();
+      console.log("OCR Extracted Text:\n", text);
+
+      // Search for amounts like ОБЩО: 125.50 or TOTAL: 125.50 or СУМА: 125.50
+      const lines = text.split("\\n");
+      let maxAmount = 0;
+
+      for (const line of lines) {
+        if (
+          line.includes("ОБЩО") ||
+          line.includes("СУМА") ||
+          line.includes("TOTAL") ||
+          line.includes("EUR") ||
+          line.includes("BGN") ||
+          line.includes("ЛВ")
+        ) {
+          // Extract numbers (e.g. 125.50, 125,50)
+          const matches = line.match(/\\d+[.,]\\d{2}/g);
+          if (matches) {
+            for (const match of matches) {
+              const num = parseFloat(match.replace(",", "."));
+              if (num > maxAmount) maxAmount = num;
+            }
+          }
+        }
+      }
+
+      if (maxAmount > 0) {
+        toast.success(
+          `OCR: Намерена е сума ${maxAmount} лв. Моля, проверете!`,
+          { id: ocrToast }
+        );
+        // Automatically assume BGN for BG receipts, so convert to EUR
+        form.setValue("amountEUR", convertBgnToEur(maxAmount));
+      } else {
+        toast.info(
+          "OCR: Не успяхме да открием сумата. Моля, въведете я ръчно.",
+          { id: ocrToast }
+        );
+      }
+    } catch (e) {
+      console.error("OCR Error", e);
+      toast.error("Грешка при сканиране на бележката.", { id: ocrToast });
+    } finally {
+      setIsOcrRunning(false);
     }
   };
 
@@ -297,11 +368,19 @@ export function TripExpenseDialog({
                         <Input
                           type="file"
                           accept="image/*,.pdf"
-                          onChange={(e) => onChange(e.target.files)}
+                          capture="environment"
+                          onChange={(e) => {
+                            onChange(e.target.files);
+                            handleFileUpload(e.target.files);
+                          }}
                           {...field}
                           className="file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
                         />
-                        <FileUp className="size-5 text-zinc-400" />
+                        {isOcrRunning ? (
+                          <Loader2 className="size-5 animate-spin text-blue-500" />
+                        ) : (
+                          <FileUp className="size-5 text-zinc-400" />
+                        )}
                       </div>
                     </FormControl>
                     <FormDescription className="text-[10px]">

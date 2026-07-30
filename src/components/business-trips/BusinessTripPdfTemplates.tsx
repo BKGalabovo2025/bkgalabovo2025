@@ -405,7 +405,15 @@ export function BusinessTripPdfTemplates({
 
         <div style={{ textAlign: "center", marginTop: "30pt" }}>
           <p style={{ fontWeight: "bold" }}>ПРЕДСЕДАТЕЛ:</p>
-          <p>/ {mol} /</p>
+          {trip.signatures?.chairman ? (
+            <img
+              src={trip.signatures.chairman}
+              alt="signature"
+              style={{ height: "40pt", marginTop: "4pt" }}
+            />
+          ) : (
+            <p>/ {mol} /</p>
+          )}
         </div>
       </div>
 
@@ -618,8 +626,30 @@ export function BusinessTripPdfTemplates({
             <p>Изготвил: .................................</p>
             <p style={{ fontSize: "8pt" }}>/ длъжност, име и фамилия /</p>
           </div>
-          <p>Изплатил: .................................</p>
-          <p>Проверил: .................................</p>
+          <div>
+            <p>Изплатил (Председател):</p>
+            {trip.signatures?.chairman ? (
+              <img
+                src={trip.signatures.chairman}
+                alt="signature"
+                style={{ height: "30pt" }}
+              />
+            ) : (
+              <p>.................................</p>
+            )}
+          </div>
+          <div>
+            <p>Получил (Командирован):</p>
+            {trip.signatures?.coach ? (
+              <img
+                src={trip.signatures.coach}
+                alt="signature"
+                style={{ height: "30pt" }}
+              />
+            ) : (
+              <p>.................................</p>
+            )}
+          </div>
         </div>
         <p style={{ marginTop: "10pt", fontSize: "9pt" }}>
           гр. Гълъбово &nbsp;&nbsp;&nbsp; {fmtDate(trip.endDate)} г.
@@ -645,7 +675,23 @@ export function BusinessTripPdfTemplates({
           >
             <p>Одобрявам</p>
             <p>Председател:</p>
-            <p>/ {mol} /</p>
+            {trip.signatures?.chairman ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginTop: "4pt",
+                }}
+              >
+                <img
+                  src={trip.signatures.chairman}
+                  alt="signature"
+                  style={{ height: "40pt" }}
+                />
+              </div>
+            ) : (
+              <p>/ {mol} /</p>
+            )}
           </div>
           <p
             style={{
@@ -764,7 +810,18 @@ export function BusinessTripPdfTemplates({
             }}
           >
             <p>гр. Гълъбово &nbsp;&nbsp; .............. {yearStr} г.</p>
-            <p>подпис: ......................</p>
+            <div>
+              <p>подпис (Отчел):</p>
+              {trip.signatures?.coach ? (
+                <img
+                  src={trip.signatures.coach}
+                  alt="signature"
+                  style={{ height: "30pt", marginTop: "4pt" }}
+                />
+              ) : (
+                <p>......................</p>
+              )}
+            </div>
           </div>
         </div>
       )}

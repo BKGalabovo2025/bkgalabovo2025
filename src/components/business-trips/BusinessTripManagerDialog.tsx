@@ -1,11 +1,19 @@
 "use client";
 
-import { FileDown, Pencil, Plus, ShieldAlert, Trash2, UserPlus } from "lucide-react";
+import {
+  FileDown,
+  Pencil,
+  Plus,
+  ShieldAlert,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
+import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +49,9 @@ export function BusinessTripManagerDialog({
   // Редакция
   const [tripToEdit, setTripToEdit] = useState<BusinessTrip | null>(null);
   // Изтриване — ид на командировката, която чака потвърждение
-  const [tripPendingDelete, setTripPendingDelete] = useState<string | null>(null);
+  const [tripPendingDelete, setTripPendingDelete] = useState<string | null>(
+    null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [selectedTripForPdf, setSelectedTripForPdf] =
@@ -49,6 +59,13 @@ export function BusinessTripManagerDialog({
   const [selectedTripForExpense, setSelectedTripForExpense] = useState<
     string | null
   >(null);
+
+  // Digital Signatures
+  const [signaturePadOpen, setSignaturePadOpen] = useState(false);
+  const [signatureRole, setSignatureRole] = useState<
+    "coach" | "chairman" | null
+  >(null);
+  const [signatureTripId, setSignatureTripId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -98,10 +115,9 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-statement-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
-          m.generatePdfFromElement(
-            el,
-            `Ведомост_${trip.title}`
-          ).finally(() => setIsGeneratingPdf(false));
+          m.generatePdfFromElement(el, `Ведомост_${trip.title}`).finally(() =>
+            setIsGeneratingPdf(false)
+          );
         });
       } else {
         setIsGeneratingPdf(false);
@@ -116,10 +132,9 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-fuel-report-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
-          m.generatePdfFromElement(
-            el,
-            `Отчет_Гориво_${trip.title}`
-          ).finally(() => setIsGeneratingPdf(false));
+          m.generatePdfFromElement(el, `Отчет_Гориво_${trip.title}`).finally(
+            () => setIsGeneratingPdf(false)
+          );
         });
       } else {
         setIsGeneratingPdf(false);
@@ -139,6 +154,25 @@ export function BusinessTripManagerDialog({
       toast.error("Грешка при изтриването.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleSaveSignature = async (base64: string) => {
+    if (!signatureTripId || !signatureRole) return;
+    try {
+      const trip = businessTrips.find((t) => t.id === signatureTripId);
+      if (!trip) return;
+
+      const newSignatures = { ...trip.signatures, [signatureRole]: base64 };
+      await businessTripService.updateTrip(signatureTripId, {
+        signatures: newSignatures,
+      });
+
+      toast.success("Подписът е запазен успешно!");
+      loadData();
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при запазване на подписа.");
     }
   };
 
@@ -221,9 +255,34 @@ export function BusinessTripManagerDialog({
                           onClick={() => handlePrintFuelReport(trip)}
                           disabled={isGeneratingPdf}
                         >
-                          <FileDown className="mr-2 size-4" /> Отчет гориво (PDF)
+                          <FileDown className="mr-2 size-4" /> Отчет гориво
+                          (PDF)
                         </Button>
                       )}
+                      {/* Подписи */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSignatureTripId(trip.id!);
+                          setSignatureRole("coach");
+                          setSignaturePadOpen(true);
+                        }}
+                      >
+                        <Pencil className="mr-2 size-4" /> Подпиши
+                        (Командирован)
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSignatureTripId(trip.id!);
+                          setSignatureRole("chairman");
+                          setSignaturePadOpen(true);
+                        }}
+                      >
+                        <Pencil className="mr-2 size-4" /> Подпиши (Председател)
+                      </Button>
                       {/* Редакция */}
                       <Button
                         variant="ghost"
@@ -248,7 +307,8 @@ export function BusinessTripManagerDialog({
                       <div className="col-span-full flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950">
                         <Trash2 className="size-4 shrink-0 text-red-500" />
                         <p className="flex-1 text-red-700 dark:text-red-300">
-                          Сигурни ли сте? Това ще изтрие командировката завинаги от базата данни.
+                          Сигурни ли сте? Това ще изтрие командировката завинаги
+                          от базата данни.
                         </p>
                         <Button
                           size="sm"
@@ -302,7 +362,9 @@ export function BusinessTripManagerDialog({
       {tripToEdit && (
         <CreateBusinessTripDialog
           open={!!tripToEdit}
-          onOpenChange={(v) => { if (!v) setTripToEdit(null); }}
+          onOpenChange={(v) => {
+            if (!v) setTripToEdit(null);
+          }}
           event={event}
           membersDict={membersDict}
           initialData={tripToEdit}
@@ -317,8 +379,18 @@ export function BusinessTripManagerDialog({
         <TripExpenseDialog
           open={isExpenseDialogOpen}
           onOpenChange={setIsExpenseDialogOpen}
-          tripId={selectedTripForExpense}
-          siteId={"bkgalabovo"}
+          tripId={selectedTripForExpense!}
+          siteId="bkgalabovo" // Hardcoded active branch for now, or fetch from context
+          onSuccess={loadData}
+        />
+      )}
+
+      {signaturePadOpen && (
+        <SignaturePadDialog
+          open={signaturePadOpen}
+          onOpenChange={setSignaturePadOpen}
+          title={`Подпис: ${signatureRole === "coach" ? "Командирован" : "Председател"}`}
+          onSave={handleSaveSignature}
         />
       )}
     </>
