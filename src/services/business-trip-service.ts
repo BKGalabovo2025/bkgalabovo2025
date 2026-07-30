@@ -65,6 +65,25 @@ export const businessTripService = {
     })) as BusinessTrip[];
   },
 
+  async getTripsByEventId(eventId: string): Promise<BusinessTrip[]> {
+    const q = query(
+      collection(db, TRIPS_COLLECTION),
+      where("eventId", "==", eventId)
+    );
+
+    const snapshot = await getDocs(q);
+    // Fetch and sort locally since we don't have a composite index for eventId + startDate yet
+    const trips = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as BusinessTrip[];
+
+    return trips.sort(
+      (a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  },
+
   async getTripById(id: string): Promise<BusinessTrip | null> {
     const docRef = doc(db, TRIPS_COLLECTION, id);
     const snapshot = await getDoc(docRef);
