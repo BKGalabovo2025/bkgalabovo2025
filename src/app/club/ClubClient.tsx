@@ -661,21 +661,22 @@ export default function ClubClient({
                   </span>
                 </a>
 
-                {clubSite?.youtube && (
-                  <a
-                    href={clubSite.youtube}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-red-500 hover:bg-black hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-                  >
-                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-red-500/30 group-hover/social:bg-red-500/10 group-hover/social:text-red-500">
-                      <YoutubeIcon size={24} />
-                    </div>
-                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
-                      YouTube
-                    </span>
-                  </a>
-                )}
+                <a
+                  href={
+                    clubSite?.youtube ||
+                    "https://www.youtube.com/channel/UCkwXJM3aWkNrcDh5aIyCPRw"
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-red-500 hover:bg-black hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                >
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-red-500/30 group-hover/social:bg-red-500/10 group-hover/social:text-red-500">
+                    <YoutubeIcon size={24} />
+                  </div>
+                  <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
+                    YouTube
+                  </span>
+                </a>
               </div>
 
               {/* Instagram Feed Widget (Lazy Loaded) */}
