@@ -185,7 +185,7 @@ export default function HomePage() {
                   href="/club"
                   className="group/btn flex items-center justify-between rounded-xl bg-zinc-800 px-5 py-4 text-sm font-medium text-white transition-all duration-300 hover:bg-blue-600"
                 >
-                  <span>Към сайта на клуба</span>
+                  <span>Към бадминтон клуба</span>
                   <ChevronRight
                     size={18}
                     className="transition-transform group-hover/btn:translate-x-1"
