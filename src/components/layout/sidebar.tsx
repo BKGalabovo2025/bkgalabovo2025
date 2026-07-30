@@ -2,6 +2,7 @@
 import {
   Activity,
   BarChart,
+  Briefcase,
   Calendar,
   CalendarCheck,
   CalendarRange,
@@ -261,6 +262,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <BarChart size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Отчети</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/accounting")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/accounting"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Briefcase size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Счетоводство</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
