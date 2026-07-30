@@ -11,10 +11,9 @@ import {
   Trophy,
   UserPlus,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-
 
 import { PageHeader } from "@/components/layout/page-header";
 import { EntryForm } from "@/components/tournaments/entry-form";
@@ -41,13 +40,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateShort } from "@/lib/date-utils";
 import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
-
 import { generateBergerMatches } from "@/lib/match-generator";
 import { cn } from "@/lib/utils";
-
 import { getAllMembers } from "@/services/member-service";
 import { tournamentService } from "@/services/tournament-service";
-
 import { Member } from "@/types/member.types";
 import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
@@ -66,7 +62,6 @@ export default function TournamentDetailsClient({
   initialData: InitialTournamentData;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [tournament, setTournament] = useState<Tournament | null>(
     initialData.tournament

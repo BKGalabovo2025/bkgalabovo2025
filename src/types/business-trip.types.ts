@@ -120,10 +120,10 @@ export const TripExpenseSchema = z.object({
 // ---------------------------------------------------------
 // TypeScript Типове (Types)
 // ---------------------------------------------------------
-type TransportType = z.infer<typeof TransportTypeEnum>;
-type ExpenseType = z.infer<typeof ExpenseTypeEnum>;
-type BusinessTripStatus = z.infer<typeof BusinessTripStatusEnum>;
-type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
-type TripFinancials = z.infer<typeof TripFinancialsSchema>;
+export type TransportType = z.infer<typeof TransportTypeEnum>;
+export type ExpenseType = z.infer<typeof ExpenseTypeEnum>;
+export type BusinessTripStatus = z.infer<typeof BusinessTripStatusEnum>;
+export type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
+export type TripFinancials = z.infer<typeof TripFinancialsSchema>;
 export type BusinessTrip = z.infer<typeof BusinessTripSchema>;
 export type TripExpense = z.infer<typeof TripExpenseSchema>;

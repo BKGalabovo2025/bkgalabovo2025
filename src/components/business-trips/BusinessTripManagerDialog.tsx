@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
-import { BusinessTrip } from "@/types/business-trip.types";
-import { Member } from "@/types/member.types";
-import { ScheduleEvent } from "@/types/index";
 import { getAllMembers } from "@/services/member-service";
+import { BusinessTrip } from "@/types/business-trip.types";
+import { ScheduleEvent } from "@/types/index";
+import { Member } from "@/types/member.types";
 
 export function BusinessTripManagerDialog({
   open,
@@ -177,7 +177,7 @@ export function BusinessTripManagerDialog({
                 {businessTrips.map((trip) => (
                   <div
                     key={trip.id}
-                    className="flex flex-col gap-4 rounded-xl border border-zinc-100 p-5 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-4 rounded-xl border border-zinc-100 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800"
                   >
                     <div>
                       <p className="font-medium">{trip.title}</p>

@@ -278,7 +278,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="rounded-xl border-zinc-100 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-blue-600">
+                    <p className="text-[10px] font-bold tracking-widest text-blue-600 uppercase">
                       Командировки
                     </p>
                   </TooltipContent>

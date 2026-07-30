@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getSiteConfig } from "@/config/sites";
 import { formatDateShort } from "@/lib/date-utils";
 import { generatePdfFromElement } from "@/lib/html-to-pdf";
 import { businessTripService } from "@/services/business-trip-service";
@@ -48,7 +49,6 @@ import {
   TripExpense,
 } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
-import { getSiteConfig } from "@/config/sites";
 
 export default function AccountingClient() {
   const site = getSiteConfig();

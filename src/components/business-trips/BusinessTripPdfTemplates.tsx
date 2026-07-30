@@ -8,8 +8,8 @@ import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
 import { BusinessTrip } from "@/types/business-trip.types";
-import { Member } from "@/types/member.types";
 import { ScheduleEvent } from "@/types/index";
+import { Member } from "@/types/member.types";
 
 interface BusinessTripPdfTemplatesProps {
   trip: BusinessTrip | null;

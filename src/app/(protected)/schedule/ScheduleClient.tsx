@@ -302,15 +302,6 @@ export default function ScheduleClient() {
     setEditDialogOpen(true);
   };
 
-  const openAttendeesDialog = (event: ScheduleEvent) => {
-    setSelectedEvent(event);
-    if (event.type === "camp") {
-      setCampManagerOpen(true);
-    } else {
-      setAttendeesDialogOpen(true);
-    }
-  };
-
   const closeAttendeesDialog = () => {
     setAttendeesDialogOpen(false);
     if (searchParams.get("eventId")) {

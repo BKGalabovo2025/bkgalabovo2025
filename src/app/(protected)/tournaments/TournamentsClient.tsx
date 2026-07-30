@@ -14,7 +14,6 @@ const TournamentForm = dynamic(
 );
 import {
   Calendar,
-  Car,
   CheckCircle2,
   LayoutList,
   MapPin,

@@ -38,8 +38,8 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip, BusinessTripSchema } from "@/types/business-trip.types";
-import { Member } from "@/types/member.types";
 import { ScheduleEvent } from "@/types/index";
+import { Member } from "@/types/member.types";
 
 // Ние разширяваме базовата схема с полета, които съществуват само в UI формата
 const FormSchema = BusinessTripSchema.extend({
@@ -113,7 +113,7 @@ export function CreateBusinessTripDialog({
           transportType: "club_paid",
           expensesCoverage: "food_and_sleep",
           financials: {
-            perDiemRateEUR: 20.45,
+            perDiemRateEUR: 22,
             accommodationRateEUR: 0,
             entryFeeEUR: 0,
             isCommercialActivity: false,
@@ -132,9 +132,9 @@ export function CreateBusinessTripDialog({
   useEffect(() => {
     let baseRate = 0;
     if (coverage === "food_only" || coverage === "transport_and_food") {
-      baseRate = 10.23; // ~20 BGN
+      baseRate = 11; // 50% без нощувка (Наредба 2026)
     } else if (coverage === "food_and_sleep" || coverage === "transport_food_sleep") {
-      baseRate = 20.45; // ~40 BGN
+      baseRate = 22; // С нощувка (Наредба 2026)
     }
     form.setValue("financials.perDiemRateEUR", baseRate);
   }, [coverage, form]);
