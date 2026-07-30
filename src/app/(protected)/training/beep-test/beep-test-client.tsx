@@ -704,7 +704,7 @@ export default function BeepTestClient() {
           size="lg"
           onClick={handleFinishAndSave}
           disabled={isSaving}
-          className="w-full max-w-md rounded-xl bg-zinc-950 text-white shadow-xl hover:bg-zinc-800"
+          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800"
         >
           {isSaving ? (
             <Loader2 className="mr-2 size-5 animate-spin" />

@@ -312,7 +312,7 @@ export const MemberDetailsCard = ({
 
       <Tabs defaultValue="personal" className="w-full">
         <div className="group relative">
-          <TabsList className="mb-8 flex h-auto w-full flex-wrap gap-1 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-1.5">
+          <TabsList className="no-scrollbar mb-8 flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-2xl border border-zinc-100 bg-zinc-50/50 p-1.5 md:flex-wrap md:overflow-visible">
             <TabsTrigger
               value="personal"
               className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"

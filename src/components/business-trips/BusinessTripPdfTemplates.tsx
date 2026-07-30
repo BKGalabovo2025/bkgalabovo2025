@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react/forbid-dom-props */
 /* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @next/next/no-img-element */
 
 import { differenceInCalendarDays, format } from "date-fns";
 import { bg } from "date-fns/locale";

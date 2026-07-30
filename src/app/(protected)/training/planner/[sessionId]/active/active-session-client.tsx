@@ -378,7 +378,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                   <Button
                     size="lg"
                     onClick={() => toggleTimerPause()}
-                    className="bg-white text-zinc-950 hover:bg-zinc-200"
+                    className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200"
                   >
                     <Pause className="size-5" />
                   </Button>
@@ -388,12 +388,17 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                     size="lg"
                     variant="outline"
                     onClick={skipInterval}
-                    className="border-white/20 hover:bg-white/10"
+                    className="min-h-14 border-white/20 text-lg hover:bg-white/10"
                   >
                     <SkipForward className="mr-2 size-5" /> Пропусни
                   </Button>
                 )}
-                <Button size="lg" variant="destructive" onClick={stopExercise}>
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  onClick={stopExercise}
+                  className="min-h-14 text-lg"
+                >
                   Затвори
                 </Button>
               </div>
@@ -425,7 +430,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                     <Button
                       size="sm"
                       onClick={() => startExercise(ex)}
-                      className="bg-indigo-600 hover:bg-indigo-500"
+                      className="min-h-12 bg-indigo-600 px-6 text-sm hover:bg-indigo-500"
                     >
                       <Play className="mr-1 size-4" /> Старт
                     </Button>
@@ -627,7 +632,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
           size="lg"
           onClick={handleFinish}
           disabled={isSaving}
-          className="w-full max-w-md rounded-xl bg-zinc-950 text-white shadow-xl hover:bg-zinc-800"
+          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800"
         >
           {isSaving ? (
             <Loader2 className="mr-2 size-5 animate-spin" />
