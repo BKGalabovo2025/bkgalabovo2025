@@ -225,7 +225,10 @@ export function BusinessTripPdfTemplates({
   const dTotalBGNpp = eurToBgn(dTotalEURpp);
   const aTotalEURpp = accomEUR * numNights;
   const aTotalBGNpp = eurToBgn(aTotalEURpp);
-  const ppTotalEUR = dTotalEURpp + aTotalEURpp;
+  const entryEUR = trip.financials.entryFeeEUR ?? 0;
+  const hasEntryFee = entryEUR > 0;
+
+  const ppTotalEUR = dTotalEURpp + aTotalEURpp + entryEUR;
   const ppTotalBGN = eurToBgn(ppTotalEUR);
   const grandEUR = totalPeople * ppTotalEUR;
   const grandBGN = eurToBgn(grandEUR);
@@ -250,7 +253,7 @@ export function BusinessTripPdfTemplates({
   if (hasPerDiem) secs.push("diem");
   secs.push("transport");
   if (hasAccom) secs.push("accom");
-  secs.push("entry");
+  if (hasEntryFee) secs.push("entry");
   const sn = (s: string) => secs.indexOf(s) + 1;
 
   const mol = site.contact.mol || "М. Георгиева";
