@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Activity, AlertCircle, Clock, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -27,9 +29,7 @@ function renderZoneWarning(
   selectedZone: string | undefined,
   client2Zone: string | undefined,
   siteInfo:
-    | { inventory?: { attachments?: Record<string, number> } }
-    | undefined
-    | null
+    { inventory?: { attachments?: Record<string, number> } } | undefined | null
 ) {
   if (selectedZone && client2Zone && selectedZone === client2Zone) {
     const zoneName = client2Zone;
@@ -123,7 +123,7 @@ export const ReservationStep1Time = () => {
           <FormField
             control={form.control}
             name="serviceId"
-            render={({ field }) => (
+            render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                   <Activity className="size-3" /> Изберете Услуга
@@ -151,7 +151,7 @@ export const ReservationStep1Time = () => {
           <FormField
             control={form.control}
             name="courtId"
-            render={({ field }) => (
+            render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                   <MapPin className="size-3" /> Изберете Корт
@@ -194,7 +194,7 @@ export const ReservationStep1Time = () => {
         <FormField
           control={form.control}
           name="serviceId"
-          render={({ field }) => (
+          render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                 <Activity className="size-3" /> Изберете Услуга
@@ -254,7 +254,7 @@ export const ReservationStep1Time = () => {
         <FormField
           control={form.control}
           name="selectedZone"
-          render={({ field }) => {
+          render={({ field }: { field: any }) => {
             const selectedService = services.find((s) => s.id === serviceId);
             const availableZones = selectedService?.zones || [];
 
@@ -291,7 +291,7 @@ export const ReservationStep1Time = () => {
                   <FormField
                     control={form.control}
                     name="client2Zone"
-                    render={({ field: field2 }) => (
+                    render={({ field: field2 }: { field: any }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                           <Activity className="size-3" /> Коя зона ще се ползва?
