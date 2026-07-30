@@ -23,11 +23,13 @@ import { cn } from "@/lib/utils";
 
 import { useReservationDialog } from "./ReservationDialogContext";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderZoneWarning(
   selectedZone: string | undefined,
   client2Zone: string | undefined,
-  siteInfo: any
+  siteInfo:
+    | { inventory?: { attachments?: Record<string, number> } }
+    | undefined
+    | null
 ) {
   if (selectedZone && client2Zone && selectedZone === client2Zone) {
     const zoneName = client2Zone;
@@ -38,10 +40,7 @@ function renderZoneWarning(
     } else if (z === "РЪЦЕ") {
       key = "arms";
     }
-    const maxQty =
-      siteInfo?.inventory?.attachments?.[
-        key as keyof typeof siteInfo.inventory.attachments
-      ] || 0;
+    const maxQty = siteInfo?.inventory?.attachments?.[key] || 0;
     if (maxQty < 2) {
       return (
         <p className="mt-2 rounded-lg bg-red-500/10 p-2 text-[11px] font-medium text-red-500">
