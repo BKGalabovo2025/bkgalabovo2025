@@ -44,11 +44,11 @@ import { Member } from "@/types/member.types";
 // Ние разширяваме базовата схема с полета, които съществуват само в UI формата
 const FormSchema = BusinessTripSchema.extend({
   expensesCoverage: z.enum([
-    "transport_only", 
-    "food_only", 
-    "food_and_sleep", 
-    "transport_and_food", 
-    "transport_food_sleep"
+    "transport_only",
+    "food_only",
+    "food_and_sleep",
+    "transport_and_food",
+    "transport_food_sleep",
   ]),
 });
 
@@ -88,18 +88,21 @@ export function CreateBusinessTripDialog({
     (m: Member) => m.isCoach
   );
 
+  const getInitialExpensesCoverage = () => {
+    if (!initialData) return "food_and_sleep";
+    const rate = initialData.financials.perDiemRateEUR ?? 0;
+    if (rate > 15) return "food_and_sleep";
+    if (rate > 0) return "food_only";
+    return "transport_only";
+  };
+
   const form = useForm<any>({
     resolver: zodResolver(FormSchema) as any,
     defaultValues: initialData
       ? {
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
-          expensesCoverage:
-            (initialData.financials.perDiemRateEUR ?? 0) > 15
-              ? "food_and_sleep"
-              : (initialData.financials.perDiemRateEUR ?? 0) > 0
-              ? "food_only"
-              : "transport_only",
+          expensesCoverage: getInitialExpensesCoverage(),
         }
       : {
           siteId: "bkgalabovo",
@@ -133,7 +136,10 @@ export function CreateBusinessTripDialog({
     let baseRate = 0;
     if (coverage === "food_only" || coverage === "transport_and_food") {
       baseRate = 11; // 50% без нощувка (Наредба 2026)
-    } else if (coverage === "food_and_sleep" || coverage === "transport_food_sleep") {
+    } else if (
+      coverage === "food_and_sleep" ||
+      coverage === "transport_food_sleep"
+    ) {
       baseRate = 22; // С нощувка (Наредба 2026)
     }
     form.setValue("financials.perDiemRateEUR", baseRate);
@@ -148,7 +154,9 @@ export function CreateBusinessTripDialog({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const selectedCoach = coachOptions.find((c: Member) => c.id === values.coachId);
+      const selectedCoach = coachOptions.find(
+        (c: Member) => c.id === values.coachId
+      );
       const coachName = selectedCoach
         ? `${selectedCoach.firstName} ${selectedCoach.lastName}`
         : user?.displayName || "Неизвестен";
@@ -188,7 +196,9 @@ export function CreateBusinessTripDialog({
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Редактиране на Командировка" : "Генериране на Командировка"}
+            {isEditMode
+              ? "Редактиране на Командировка"
+              : "Генериране на Командировка"}
           </DialogTitle>
           <DialogDescription>
             Системата автоматично извлече данните от турнира. Моля, прегледайте
@@ -357,9 +367,7 @@ export function CreateBusinessTripDialog({
                         <SelectItem value="transport_only">
                           Само транспорт
                         </SelectItem>
-                        <SelectItem value="food_only">
-                          Само храна
-                        </SelectItem>
+                        <SelectItem value="food_only">Само храна</SelectItem>
                         <SelectItem value="food_and_sleep">
                           Храна + Нощувки
                         </SelectItem>
@@ -488,7 +496,8 @@ export function CreateBusinessTripDialog({
                       />
                     </FormControl>
                     <FormDescription className="text-[10px]">
-                      Тази дата ще се отпечата в заглавието «ЗАПОВЕД № ... / дата». По закон тя трябва да е ПРЕДИ събитието.
+                      Тази дата ще се отпечата в заглавието «ЗАПОВЕД № ... /
+                      дата». По закон тя трябва да е ПРЕДИ събитието.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -500,23 +509,20 @@ export function CreateBusinessTripDialog({
                 <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                   <div className="space-y-1 text-xs">
-                    <p className="font-semibold">
-                      Юридическо несъответствие!
-                    </p>
+                    <p className="font-semibold">Юридическо несъответствие!</p>
                     <p>
                       Датата на заповедта (
                       {watchedOrderDate
-                        ? new Date(watchedOrderDate).toLocaleDateString(
-                            "bg-BG"
-                          )
-                        : "—"})
-                      {" "}е СЛЕД датата на събитието (
-                      {new Date(event.startDate).toLocaleDateString("bg-BG")})
-                      . По Наредбата за командировките, заповедта трябва да бъде издадена{" "}
-                      <strong>преди</strong> започването на пътуването.
+                        ? new Date(watchedOrderDate).toLocaleDateString("bg-BG")
+                        : "—"}
+                      ) е СЛЕД датата на събитието (
+                      {new Date(event.startDate).toLocaleDateString("bg-BG")}) .
+                      По Наредбата за командировките, заповедта трябва да бъде
+                      издадена <strong>преди</strong> започването на пътуването.
                     </p>
                     <p className="text-amber-600 dark:text-amber-400">
-                      Можете да продължите запазването, но документът за тази командировка може да не бъде приет от счетоводството.
+                      Можете да продължите запазването, но документът за тази
+                      командировка може да не бъде приет от счетоводството.
                     </p>
                   </div>
                 </div>

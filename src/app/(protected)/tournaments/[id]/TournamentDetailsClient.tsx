@@ -5,7 +5,6 @@ import {
   Download,
   FileDown,
   Pencil,
-  Plus,
   ShieldAlert,
   Trash2,
   Trophy,
@@ -74,13 +73,10 @@ export default function TournamentDetailsClient({
     initialData.membersDict
   );
 
-
-
   const [mounted, setMounted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [activeTab, setActiveTab] = useState("participants");
@@ -123,7 +119,6 @@ export default function TournamentDetailsClient({
 
       setMatches(matchesData);
       setMembersDict(dict);
-
     } catch (error) {
       console.error(error);
       toast.error("Грешка при зареждане на данните");
@@ -246,8 +241,6 @@ export default function TournamentDetailsClient({
     },
     [membersDict]
   );
-
-
 
   const getCategoryName = (cat: string) => {
     switch (cat) {
@@ -423,7 +416,6 @@ export default function TournamentDetailsClient({
         ]}
       >
         <div className="flex items-center gap-2">
-
           <Button
             variant="outline"
             onClick={() => setIsEditDialogOpen(true)}
@@ -449,7 +441,6 @@ export default function TournamentDetailsClient({
             />
           </DialogContent>
         </Dialog>
-
 
         {/* Диалог за редактиране на турнира */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -502,8 +493,6 @@ export default function TournamentDetailsClient({
               Резултати
             </TabsTrigger>
           </TabsList>
-
-
 
           <TabsContent value="participants" className="mt-6">
             <BentoCard>
@@ -1159,7 +1148,6 @@ export default function TournamentDetailsClient({
             })}
           </TabsContent>
         </Tabs>
-
       </div>
     </div>
   );
