@@ -15,9 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
-import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
-import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { EntryForm } from "@/components/tournaments/entry-form";
 import { ScoreDialog } from "@/components/tournaments/score-dialog";
@@ -43,13 +41,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateShort } from "@/lib/date-utils";
 import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
-import { generatePdfFromElement } from "@/lib/html-to-pdf";
+
 import { generateBergerMatches } from "@/lib/match-generator";
 import { cn } from "@/lib/utils";
-import { businessTripService } from "@/services/business-trip-service";
+
 import { getAllMembers } from "@/services/member-service";
 import { tournamentService } from "@/services/tournament-service";
-import { BusinessTrip } from "@/types/business-trip.types";
+
 import { Member } from "@/types/member.types";
 import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
@@ -81,20 +79,13 @@ export default function TournamentDetailsClient({
     initialData.membersDict
   );
 
-  const [businessTrips, setBusinessTrips] = useState<BusinessTrip[]>([]);
-  const [showBgnInPdf] = useState(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [selectedTripForExpense, setSelectedTripForExpense] = useState<
-    string | null
-  >(null);
 
   const [mounted, setMounted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isTripDialogOpen, setIsTripDialogOpen] = useState(false);
+
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [activeTab, setActiveTab] = useState("participants");
@@ -138,22 +129,15 @@ export default function TournamentDetailsClient({
       setMatches(matchesData);
       setMembersDict(dict);
 
-      const tripsData =
-        await businessTripService.getTripsByEventId(tournamentId);
-      setBusinessTrips(tripsData);
     } catch (error) {
       console.error(error);
       toast.error("Грешка при зареждане на данните");
     }
   }, [tournamentId, router]);
 
-  // Re-fetch after mutations
   useEffect(() => {
     setMounted(true);
-    if (searchParams.get("createTrip") === "true") {
-      setIsTripDialogOpen(true);
-    }
-  }, [searchParams]);
+  }, []);
 
   const handleGenerateMatches = async () => {
     if (!tournament) return;
@@ -268,51 +252,7 @@ export default function TournamentDetailsClient({
     [membersDict]
   );
 
-  const [selectedTripForPdf, setSelectedTripForPdf] =
-    useState<BusinessTrip | null>(null);
 
-  const handlePrintOrder = async (trip: BusinessTrip) => {
-    setSelectedTripForPdf(trip);
-    setIsGeneratingPdf(true);
-
-    // Allow React to render the hidden template with the selected trip
-    setTimeout(async () => {
-      try {
-        const el = document.getElementById("pdf-order-template");
-        if (el) {
-          const tripIdStr = trip.id ? trip.id.substring(0, 6) : "draft";
-          await generatePdfFromElement(el, `Zapoved_${tripIdStr}.pdf`);
-          toast.success("Заповедта е генерирана!");
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error("Грешка при генериране на PDF");
-      } finally {
-        setIsGeneratingPdf(false);
-      }
-    }, 100);
-  };
-
-  const handlePrintWaybill = async (trip: BusinessTrip) => {
-    setSelectedTripForPdf(trip);
-    setIsGeneratingPdf(true);
-
-    setTimeout(async () => {
-      try {
-        const el = document.getElementById("pdf-waybill-template");
-        if (el) {
-          const tripIdStr = trip.id ? trip.id.substring(0, 6) : "draft";
-          await generatePdfFromElement(el, `PatenList_${tripIdStr}.pdf`);
-          toast.success("Пътният лист е генериран!");
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error("Грешка при генериране на PDF");
-      } finally {
-        setIsGeneratingPdf(false);
-      }
-    }, 100);
-  };
 
   const getCategoryName = (cat: string) => {
     switch (cat) {
@@ -488,13 +428,7 @@ export default function TournamentDetailsClient({
         ]}
       >
         <div className="flex items-center gap-2">
-          <Button
-            variant="default"
-            onClick={() => setIsTripDialogOpen(true)}
-            className="rounded-xl bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-          >
-            🚗 Създай Командировка
-          </Button>
+
           <Button
             variant="outline"
             onClick={() => setIsEditDialogOpen(true)}
@@ -521,17 +455,6 @@ export default function TournamentDetailsClient({
           </DialogContent>
         </Dialog>
 
-        {/* Диалог за Командировка */}
-        {isTripDialogOpen && (
-          <CreateBusinessTripDialog
-            open={isTripDialogOpen}
-            onOpenChange={setIsTripDialogOpen}
-            tournament={tournament}
-            entries={entries}
-            membersDict={membersDict}
-            onSuccess={() => console.log("Success")}
-          />
-        )}
 
         {/* Диалог за редактиране на турнира */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -583,89 +506,9 @@ export default function TournamentDetailsClient({
             >
               Резултати
             </TabsTrigger>
-            <TabsTrigger
-              value="trips"
-              className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-            >
-              Командировки ({businessTrips.length})
-            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="trips" className="mt-6">
-            <BentoCard>
-              <div className="flex flex-row items-center justify-between border-b border-zinc-100/50 p-8">
-                <div>
-                  <h3 className="text-lg font-medium text-zinc-900">
-                    Командировки
-                  </h3>
-                  <p className="mt-1 text-sm font-light text-zinc-400">
-                    Управление на пътуванията и разходите
-                  </p>
-                </div>
-                <Button
-                  onClick={() => setIsTripDialogOpen(true)}
-                  className="rounded-xl bg-blue-600 text-white shadow-none hover:bg-blue-700"
-                >
-                  <UserPlus className="mr-2 size-4" /> Създай нова
-                </Button>
-              </div>
-              <div className="p-8">
-                {businessTrips.length === 0 ? (
-                  <div className="py-12 text-center text-muted-foreground">
-                    <ShieldAlert className="mx-auto mb-3 size-8 opacity-50" />
-                    <p>Няма създадени командировки за този турнир.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {businessTrips.map((trip) => (
-                      <div
-                        key={trip.id}
-                        className="flex items-center justify-between rounded-lg border p-4"
-                      >
-                        <div>
-                          <p className="font-medium">{trip.title}</p>
-                          <p className="text-sm text-zinc-500">
-                            До: {trip.destination} (
-                            {formatDateShort(trip.startDate)} -{" "}
-                            {formatDateShort(trip.endDate)})
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedTripForExpense(trip.id!);
-                              setIsExpenseDialogOpen(true);
-                            }}
-                          >
-                            <Plus className="mr-2 size-4" /> Разход
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintOrder(trip)}
-                            disabled={isGeneratingPdf}
-                          >
-                            <FileDown className="mr-2 size-4" /> Заповед (PDF)
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintWaybill(trip)}
-                            disabled={isGeneratingPdf}
-                          >
-                            <FileDown className="mr-2 size-4" /> Пътен лист
-                            (PDF)
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </BentoCard>
-          </TabsContent>
+
 
           <TabsContent value="participants" className="mt-6">
             <BentoCard>
@@ -1321,22 +1164,7 @@ export default function TournamentDetailsClient({
             })}
           </TabsContent>
         </Tabs>
-        <BusinessTripPdfTemplates
-          trip={selectedTripForPdf}
-          tournament={tournament}
-          entries={entries}
-          membersDict={membersDict}
-          showBgn={showBgnInPdf}
-        />
 
-        {isExpenseDialogOpen && selectedTripForExpense && (
-          <TripExpenseDialog
-            open={isExpenseDialogOpen}
-            onOpenChange={setIsExpenseDialogOpen}
-            tripId={selectedTripForExpense}
-            siteId={"default"}
-          />
-        )}
       </div>
     </div>
   );

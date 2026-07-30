@@ -55,6 +55,13 @@ const MonthlyScheduleDialog = dynamic(
   () => import("@/components/schedule/MonthlyScheduleDialog"),
   { ssr: false }
 );
+const BusinessTripManagerDialog = dynamic(
+  () =>
+    import("@/components/business-trips/BusinessTripManagerDialog").then(
+      (m) => m.BusinessTripManagerDialog
+    ),
+  { ssr: false }
+);
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -159,6 +166,7 @@ export default function ScheduleClient() {
   const [isCampManagerOpen, setCampManagerOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isMonthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
+  const [isTripsDialogOpen, setTripsDialogOpen] = useState(false);
 
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(
     null
@@ -485,7 +493,18 @@ export default function ScheduleClient() {
             membersMap={membersMap}
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
-            openAttendeesDialog={openAttendeesDialog}
+            openAttendeesDialog={(e) => {
+              setSelectedEvent(e);
+              if (e.type === "camp") {
+                setCampManagerOpen(true);
+              } else {
+                setAttendeesDialogOpen(true);
+              }
+            }}
+            onManageTrips={(e) => {
+              setSelectedEvent(e);
+              setTripsDialogOpen(true);
+            }}
             onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
@@ -502,7 +521,18 @@ export default function ScheduleClient() {
             membersMap={membersMap}
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
-            openAttendeesDialog={openAttendeesDialog}
+            openAttendeesDialog={(e) => {
+              setSelectedEvent(e);
+              if (e.type === "camp") {
+                setCampManagerOpen(true);
+              } else {
+                setAttendeesDialogOpen(true);
+              }
+            }}
+            onManageTrips={(e) => {
+              setSelectedEvent(e);
+              setTripsDialogOpen(true);
+            }}
             onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
@@ -520,7 +550,18 @@ export default function ScheduleClient() {
             membersMap={membersMap}
             openEditDialog={openEditDialog}
             openDeleteDialog={openDeleteDialog}
-            openAttendeesDialog={openAttendeesDialog}
+            openAttendeesDialog={(e) => {
+              setSelectedEvent(e);
+              if (e.type === "camp") {
+                setCampManagerOpen(true);
+              } else {
+                setAttendeesDialogOpen(true);
+              }
+            }}
+            onManageTrips={(e) => {
+              setSelectedEvent(e);
+              setTripsDialogOpen(true);
+            }}
             onToggleCancel={handleToggleCancel}
             triggerPrint={triggerPrint}
             currentPage={currentPage}
@@ -686,7 +727,7 @@ export default function ScheduleClient() {
                 <Filter className="size-4 text-zinc-400" strokeWidth={1.5} />
               </div>
               <Select
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFilterType(value as ScheduleEventType | "all")
                 }
                 defaultValue="all"
@@ -860,6 +901,13 @@ export default function ScheduleClient() {
         onClose={() => setMonthlyDialogOpen(false)}
         onGenerate={handleGenerateMonthly}
       />
+      {selectedEvent && (
+        <BusinessTripManagerDialog
+          open={isTripsDialogOpen}
+          onOpenChange={setTripsDialogOpen}
+          event={selectedEvent}
+        />
+      )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="max-w-md rounded-4xl border-none bg-white p-10 shadow-none dark:bg-zinc-950">
@@ -900,6 +948,7 @@ interface EventsListProps {
   openEditDialog: (event: ScheduleEvent) => void;
   openDeleteDialog: (id: string) => void;
   openAttendeesDialog: (event: ScheduleEvent) => void;
+  onManageTrips: (event: ScheduleEvent) => void;
   onToggleCancel: (eventId: string, currentStatus: boolean) => void;
   triggerPrint: (event: ScheduleEvent) => void;
   currentPage: number;
@@ -917,6 +966,7 @@ function EventsList({
   openEditDialog,
   openDeleteDialog,
   openAttendeesDialog,
+  onManageTrips,
   onToggleCancel,
   triggerPrint,
   currentPage,
@@ -967,6 +1017,7 @@ function EventsList({
                   onEdit={openEditDialog}
                   onDelete={openDeleteDialog}
                   onManageAttendees={openAttendeesDialog}
+                  onManageTrips={onManageTrips}
                   onToggleCancel={onToggleCancel}
                   onPrint={triggerPrint}
                 />

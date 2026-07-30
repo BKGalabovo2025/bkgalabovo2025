@@ -17,7 +17,12 @@ service cloud.firestore {
     function hasAccessToSite(siteId) {
       return request.auth != null && 
              request.auth.token.allowedSites != null && 
+             siteId != null &&
              siteId in request.auth.token.allowedSites;
+    }
+
+    function checkResourceSiteAccess() {
+      return ('siteId' in resource.data) ? hasAccessToSite(resource.data.siteId) : hasAccessToSite('bkgalabovo');
     }
 
     // 1. Колекции с достъп за четене от логнати потребители и писане от админи със SiteId
@@ -26,26 +31,41 @@ service cloud.firestore {
         'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
         'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
         'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
-        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history'
-      ] && hasAccessToSite(resource.data.siteId);
+        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+        'business_trips', 'trip_expenses'
+      ] && checkResourceSiteAccess();
 
-      allow write: if isAdmin() && hasValidSiteId() && collection in [
+      allow create, update: if isAdmin() && hasValidSiteId() && collection in [
         'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
         'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
         'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
-        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history'
+        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+        'business_trips', 'trip_expenses'
       ] && hasAccessToSite(request.resource.data.siteId);
+
+      allow delete: if isAdmin() && collection in [
+        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+        'business_trips', 'trip_expenses'
+      ] && checkResourceSiteAccess();
 
       // 2. Колекции с достъп за четене и писане само от админи със SiteId
       allow read: if isAdmin() && collection in [
         'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
         'client_packages', 'clients', 'reviews', 'config'
-      ] && hasAccessToSite(resource.data.siteId);
+      ] && checkResourceSiteAccess();
 
-      allow write: if isAdmin() && hasValidSiteId() && collection in [
+      allow create, update: if isAdmin() && hasValidSiteId() && collection in [
         'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
         'client_packages', 'clients', 'reviews', 'config'
       ] && hasAccessToSite(request.resource.data.siteId);
+
+      allow delete: if isAdmin() && collection in [
+        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+        'client_packages', 'clients', 'reviews', 'config'
+      ] && checkResourceSiteAccess();
 
       // 3. Колекции за администратори без изискване за SiteId (глобални)
       allow read, write: if isAdmin() && collection in ['settings', 'families'];
@@ -65,12 +85,12 @@ service cloud.firestore {
 
     // Изрично позволени под-колекции (wildcard paths), защитаваме ги и тях със siteId
     match /{path=**}/reservations/{docId} {
-      allow read: if request.auth != null && hasAccessToSite(resource.data.siteId);
+      allow read: if request.auth != null && checkResourceSiteAccess();
       allow write: if isAdmin() && hasValidSiteId() && hasAccessToSite(request.resource.data.siteId);
     }
 
     match /{path=**}/blockedSlots/{docId} {
-      allow read: if request.auth != null && hasAccessToSite(resource.data.siteId);
+      allow read: if request.auth != null && checkResourceSiteAccess();
       allow write: if isAdmin() && hasValidSiteId() && hasAccessToSite(request.resource.data.siteId);
     }
 

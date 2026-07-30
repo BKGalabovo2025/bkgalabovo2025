@@ -120,7 +120,7 @@
     "cross-env": "^10.1.0",
     "dependency-cruiser": "^17.4.3",
     "eslint": "^10.3.0",
-    "eslint-config-next": "^16.2.7",
+    "eslint-config-next": "^16.2.11",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-sonarjs": "^4.0.3",

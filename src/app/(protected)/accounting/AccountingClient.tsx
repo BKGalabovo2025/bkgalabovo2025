@@ -14,6 +14,7 @@ import {
   FileDown,
   Pizza,
   Printer,
+  Ticket,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -47,8 +48,10 @@ import {
   TripExpense,
 } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
+import { getSiteConfig } from "@/config/sites";
 
 export default function AccountingClient() {
+  const site = getSiteConfig();
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [expenses, setExpenses] = useState<Record<string, TripExpense[]>>({});
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
@@ -65,7 +68,7 @@ export default function AccountingClient() {
     "all" | "draft" | "approved" | "completed"
   >("all");
 
-  const siteId = "default"; // Ideally from context
+  const siteId = "bkgalabovo"; // Ideally from context
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,6 +141,7 @@ export default function AccountingClient() {
     let totalAccommodation = 0;
     let totalFuelAndTransport = 0;
     let totalOther = 0;
+    let totalEntryFees = 0;
 
     filteredTrips.forEach((trip) => {
       // Trip level static costs
@@ -168,19 +172,22 @@ export default function AccountingClient() {
         else if (ex.expenseType === "accommodation")
           totalAccommodation += ex.amountEUR;
         else if (ex.expenseType === "food")
-          totalPerDiem += ex.amountEUR; // Additional food
+          totalPerDiem += ex.amountEUR;
+        else if (ex.expenseType === "entry_fee")
+          totalEntryFees += ex.amountEUR;
         else totalOther += ex.amountEUR;
       });
     });
 
     const totalEur =
-      totalPerDiem + totalAccommodation + totalFuelAndTransport + totalOther;
+      totalPerDiem + totalAccommodation + totalFuelAndTransport + totalOther + totalEntryFees;
 
     return {
       totalKM,
       totalPerDiem,
       totalAccommodation,
       totalFuelAndTransport,
+      totalEntryFees,
       totalOther,
       totalEur,
       totalBgn: convertEurToBgn(totalEur),
@@ -380,7 +387,7 @@ export default function AccountingClient() {
       </BentoCard>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <BentoCard className="border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:border-blue-900/30 dark:from-blue-950/20 dark:to-indigo-950/20">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-blue-100 p-2.5 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
@@ -446,6 +453,22 @@ export default function AccountingClient() {
               </p>
               <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
                 €{kpis.totalPerDiem.toFixed(2)}
+              </h4>
+            </div>
+          </div>
+        </BentoCard>
+
+        <BentoCard className="p-6">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="rounded-full bg-pink-100 p-2.5 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">
+              <Ticket className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-zinc-500">
+                Такси участие
+              </p>
+              <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
+                €{kpis.totalEntryFees.toFixed(2)}
               </h4>
             </div>
           </div>
@@ -566,9 +589,11 @@ export default function AccountingClient() {
         >
           <div className="mb-8 text-center">
             <h1 className="text-xl font-bold uppercase">
-              Бадминтон Клуб Гълъбово
+              {site.shortName}
             </h1>
-            <p className="text-sm">Град Гълъбово, Булстат: 176735165</p>
+            <p className="text-sm">
+              {site.contact.address} &nbsp;|&nbsp; БУЛСТАТ: {site.bulstat}
+            </p>
           </div>
 
           <div className="mb-10 text-center">

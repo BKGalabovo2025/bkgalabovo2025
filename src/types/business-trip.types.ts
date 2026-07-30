@@ -4,7 +4,7 @@ import { z } from "zod";
  * Currency utilities (Bulgaria uses EUR in 2026)
  * Fixed exchange rate: 1 EUR = 1.95583 BGN
  */
-export const EUR_BGN_EXCHANGE_RATE = 1.95583;
+const EUR_BGN_EXCHANGE_RATE = 1.95583;
 
 export const convertEurToBgn = (eur: number): number => {
   return Number((eur * EUR_BGN_EXCHANGE_RATE).toFixed(2));
@@ -21,7 +21,7 @@ export const convertBgnToEur = (bgn: number): number => {
 /**
  * Вид на транспорта
  */
-export const TransportTypeEnum = z.enum([
+const TransportTypeEnum = z.enum([
   "club_paid", // Клубен/Нает транспорт (с фактура на името на клуба)
   "free", // Безплатен (напр. от организатор, спонсор, родител)
   "fuel_only", // Лично МПС, плаща се само гориво (по Пътен лист)
@@ -31,18 +31,19 @@ export const TransportTypeEnum = z.enum([
 /**
  * Вид на разхода (Фактура/Касов бон)
  */
-export const ExpenseTypeEnum = z.enum([
+const ExpenseTypeEnum = z.enum([
   "fuel", // Гориво
   "transport", // Транспорт (билети, такси)
   "accommodation", // Нощувки (Квартирни)
   "food", // Храна (допълнителна извън дневните)
+  "entry_fee", // Входна такса за турнир
   "other", // Други (материали, екипировка)
 ]);
 
 /**
  * Статус на командировката
  */
-export const BusinessTripStatusEnum = z.enum([
+const BusinessTripStatusEnum = z.enum([
   "draft", // Чернова (в процес на създаване/одобрение)
   "approved", // Одобрена и активна
   "completed", // Приключена и отчетена към счетоводството
@@ -55,7 +56,7 @@ export const BusinessTripStatusEnum = z.enum([
 /**
  * Информация за МПС (използва се за Пътен лист)
  */
-export const VehicleInfoSchema = z.object({
+const VehicleInfoSchema = z.object({
   brand: z.string().optional(),
   regNumber: z.string().optional(),
   fuelNorm: z.number().min(0).optional(), // Разходна норма (л/100 км)
@@ -65,10 +66,11 @@ export const VehicleInfoSchema = z.object({
 /**
  * Финансови параметри (Законови ставки за дневни и квартирни в EUR)
  */
-export const TripFinancialsSchema = z.object({
+const TripFinancialsSchema = z.object({
   perDiemRateEUR: z.number().min(0), // Стандартни дневни пари (по закон)
   perDiemOverrideEUR: z.number().min(0).optional(), // Ръчна корекция (хибриден подход) - ако клубът реши друга сума
   accommodationRateEUR: z.number().min(0), // Квартирни пари в Евро
+  entryFeeEUR: z.number().min(0).optional(), // Входна такса за турнир
   isCommercialActivity: z.boolean(), // Стопанска (true) или Нестопанска (false) дейност
 });
 
@@ -86,11 +88,15 @@ export const BusinessTripSchema = z.object({
   coachId: z
     .string()
     .min(1, "Изберете командировано лице (треньор/ръководител)"),
+  coachName: z.string().optional(),
+  coachRole: z.string().optional(),
   participantsIds: z.array(z.string()).default([]), // Списък с IDs на избраните състезатели
   transportType: TransportTypeEnum,
   vehicle: VehicleInfoSchema.optional(),
   financials: TripFinancialsSchema,
   status: BusinessTripStatusEnum.default("draft"),
+  /** Официална дата на Заповедта (може да се редактира ръчно в диалога) */
+  orderDate: z.string().datetime().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });
@@ -114,10 +120,10 @@ export const TripExpenseSchema = z.object({
 // ---------------------------------------------------------
 // TypeScript Типове (Types)
 // ---------------------------------------------------------
-export type TransportType = z.infer<typeof TransportTypeEnum>;
-export type ExpenseType = z.infer<typeof ExpenseTypeEnum>;
-export type BusinessTripStatus = z.infer<typeof BusinessTripStatusEnum>;
-export type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
-export type TripFinancials = z.infer<typeof TripFinancialsSchema>;
+type TransportType = z.infer<typeof TransportTypeEnum>;
+type ExpenseType = z.infer<typeof ExpenseTypeEnum>;
+type BusinessTripStatus = z.infer<typeof BusinessTripStatusEnum>;
+type VehicleInfo = z.infer<typeof VehicleInfoSchema>;
+type TripFinancials = z.infer<typeof TripFinancialsSchema>;
 export type BusinessTrip = z.infer<typeof BusinessTripSchema>;
 export type TripExpense = z.infer<typeof TripExpenseSchema>;

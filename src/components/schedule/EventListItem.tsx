@@ -3,6 +3,7 @@
 import {
   Ban,
   Calendar as CalendarIcon,
+  Car,
   Edit,
   Printer,
   RotateCcw,
@@ -32,6 +33,7 @@ interface EventListItemProps {
   onManageAttendees: (event: ScheduleEvent) => void;
   onPrint: (event: ScheduleEvent) => void;
   onToggleCancel: (eventId: string, currentStatus: boolean) => void;
+  onManageTrips?: (event: ScheduleEvent) => void;
   membersMap?: Record<string, Member>;
 }
 
@@ -55,6 +57,7 @@ export const EventListItem = React.memo<EventListItemProps>(
     onManageAttendees,
     onPrint,
     onToggleCancel,
+    onManageTrips,
     membersMap,
   }) => {
     const { translation, color } = eventTypeDetails[event.type] || {
@@ -254,6 +257,33 @@ export const EventListItem = React.memo<EventListItemProps>(
                   </p>
                 </TooltipContent>
               </Tooltip>
+
+              {(event.type === "competition" || event.type === "camp") && onManageTrips && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="group/btn size-12 rounded-2xl transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onManageTrips(event);
+                      }}
+                      aria-label={`Управление на командировки за ${event.title}`}
+                    >
+                      <Car
+                        className="size-5 text-zinc-400 transition-colors group-hover/btn:text-blue-600"
+                        strokeWidth={1.5}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="rounded-xl border-zinc-100 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-blue-600">
+                      Командировки
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
 
               <Tooltip>
                 <TooltipTrigger asChild>

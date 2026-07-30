@@ -148,7 +148,7 @@ export function TripExpenseDialog({
               <FormField
                 control={form.control as any}
                 name="expenseType"
-                render={({ field }) => (
+                render={({ field }: { field: any }) => (
                   <FormItem>
                     <FormLabel>Вид на разхода</FormLabel>
                     <Select
@@ -170,6 +170,9 @@ export function TripExpenseDialog({
                         </SelectItem>
                         <SelectItem value="food">
                           Храна (Извън дневни)
+                        </SelectItem>
+                        <SelectItem value="entry_fee">
+                          Входна такса за турнир
                         </SelectItem>
                         <SelectItem value="other">Други</SelectItem>
                       </SelectContent>
@@ -202,7 +205,7 @@ export function TripExpenseDialog({
               <FormField
                 control={form.control as any}
                 name="amountEUR"
-                render={({ field }) => (
+                render={({ field }: any) => (
                   <FormItem>
                     <FormLabel>Сума (EUR €)</FormLabel>
                     <FormControl>
@@ -233,7 +236,7 @@ export function TripExpenseDialog({
               <FormField
                 control={form.control as any}
                 name="documentDate"
-                render={({ field }) => (
+                render={({ field }: any) => (
                   <FormItem>
                     <FormLabel>Дата на фактурата</FormLabel>
                     <FormControl>
@@ -256,7 +259,7 @@ export function TripExpenseDialog({
               <FormField
                 control={form.control as any}
                 name="supplierName"
-                render={({ field }) => (
+                render={({ field }: any) => (
                   <FormItem className="col-span-2">
                     <FormLabel>
                       Име на доставчик (Хотел, Бензиностанция и др.)
@@ -272,7 +275,7 @@ export function TripExpenseDialog({
               <FormField
                 control={form.control as any}
                 name="documentNumber"
-                render={({ field }) => (
+                render={({ field }: any) => (
                   <FormItem className="col-span-2">
                     <FormLabel>№ на Фактура / Касов бон</FormLabel>
                     <FormControl>

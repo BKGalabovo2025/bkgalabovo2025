@@ -32,21 +32,30 @@ export const businessTripService = {
   async createTrip(data: Omit<BusinessTrip, "id">): Promise<string> {
     const validatedData = BusinessTripSchema.omit({ id: true }).parse({
       ...data,
+      // Официална дата на заповедта: ако потребителят я е определил ръчно, използваме нея; иначе вземаме сегашната
+      orderDate: data.orderDate || new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
+    // Firebase не приема undefined стойности, затова ги изчистваме
+    const sanitizedData = JSON.parse(JSON.stringify(validatedData));
+
     const docRef = await addDoc(
       collection(db, TRIPS_COLLECTION),
-      validatedData
+      sanitizedData
     );
     return docRef.id;
   },
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {
     const docRef = doc(db, TRIPS_COLLECTION, id);
+    
+    // Firebase не приема undefined стойности, затова ги изчистваме
+    const sanitizedData = JSON.parse(JSON.stringify(data));
+    
     await updateDoc(docRef, {
-      ...data,
+      ...sanitizedData,
       updatedAt: new Date().toISOString(),
     });
   },
@@ -65,9 +74,10 @@ export const businessTripService = {
     })) as BusinessTrip[];
   },
 
-  async getTripsByEventId(eventId: string): Promise<BusinessTrip[]> {
+  async getTripsByEventId(eventId: string, siteId: string = "bkgalabovo"): Promise<BusinessTrip[]> {
     const q = query(
       collection(db, TRIPS_COLLECTION),
+      where("siteId", "==", siteId),
       where("eventId", "==", eventId)
     );
 
@@ -93,7 +103,25 @@ export const businessTripService = {
   },
 
   async deleteTrip(id: string): Promise<void> {
-    // В реално приложение тук трябва да изтрием и разходите към командировката
+    // 0. Извличаме командировката първо, за да вземем нейния siteId.
+    // Това е нужно, защото Firestore Security Rules (Rules are not filters)
+    // изискват заявката към trip_expenses да включва siteId, за да разрешат list(getDocs).
+    const trip = await this.getTripById(id);
+    if (!trip) return;
+
+    // 1. Изтриваме всички разходи, свързани с командировката
+    const expensesQuery = query(
+      collection(db, EXPENSES_COLLECTION),
+      where("tripId", "==", id),
+      where("siteId", "==", trip.siteId) // Ключово за преминаване през Security Rules!
+    );
+    const expensesSnapshot = await getDocs(expensesQuery);
+    const deleteExpensesPromises = expensesSnapshot.docs.map((expDoc) =>
+      deleteDoc(doc(db, EXPENSES_COLLECTION, expDoc.id))
+    );
+    await Promise.all(deleteExpensesPromises);
+
+    // 2. Изтриваме самата командировка
     await deleteDoc(doc(db, TRIPS_COLLECTION, id));
   },
 
