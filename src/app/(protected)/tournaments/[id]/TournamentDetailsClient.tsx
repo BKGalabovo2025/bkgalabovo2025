@@ -10,10 +10,11 @@ import {
   Trophy,
   UserPlus,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { EntryForm } from "@/components/tournaments/entry-form";
 import { ScoreDialog } from "@/components/tournaments/score-dialog";
@@ -61,6 +62,7 @@ export default function TournamentDetailsClient({
   initialData: InitialTournamentData;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [tournament, setTournament] = useState<Tournament | null>(
     initialData.tournament
@@ -77,6 +79,7 @@ export default function TournamentDetailsClient({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isTripDialogOpen, setIsTripDialogOpen] = useState(false);
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [activeTab, setActiveTab] = useState("participants");
@@ -128,7 +131,10 @@ export default function TournamentDetailsClient({
   // Re-fetch after mutations
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (searchParams.get("createTrip") === "true") {
+      setIsTripDialogOpen(true);
+    }
+  }, [searchParams]);
 
   const handleGenerateMatches = async () => {
     if (!tournament) return;
@@ -416,13 +422,22 @@ export default function TournamentDetailsClient({
           { label: tournament.title },
         ]}
       >
-        <Button
-          variant="outline"
-          onClick={() => setIsEditDialogOpen(true)}
-          className="rounded-xl border-slate-200 shadow-sm"
-        >
-          <Pencil className="mr-2 size-4" /> Редактирай турнира
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="default"
+            onClick={() => setIsTripDialogOpen(true)}
+            className="rounded-xl bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+          >
+            🚗 Създай Командировка
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsEditDialogOpen(true)}
+            className="rounded-xl border-slate-200 shadow-sm"
+          >
+            <Pencil className="mr-2 size-4" /> Редактирай
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="space-y-6">
@@ -440,6 +455,18 @@ export default function TournamentDetailsClient({
             />
           </DialogContent>
         </Dialog>
+
+        {/* Диалог за Командировка */}
+        {isTripDialogOpen && (
+          <CreateBusinessTripDialog
+            open={isTripDialogOpen}
+            onOpenChange={setIsTripDialogOpen}
+            tournament={tournament}
+            entries={entries}
+            membersDict={membersDict}
+            onSuccess={() => console.log("Success")}
+          />
+        )}
 
         {/* Диалог за редактиране на турнира */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

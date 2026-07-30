@@ -14,6 +14,7 @@ const TournamentForm = dynamic(
 );
 import {
   Calendar,
+  Car,
   CheckCircle2,
   LayoutList,
   MapPin,
@@ -422,6 +423,16 @@ function TournamentCard({
           </Link>
         </Button>
         <div className="flex gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="size-12 rounded-xl border-zinc-100 bg-blue-50/50 text-blue-600 transition-all hover:border-blue-200 hover:bg-blue-100 dark:border-zinc-800 dark:bg-blue-900/30"
+          >
+            <Link href={`/tournaments/${tournament.id}?createTrip=true`}>
+              <Car className="size-4" strokeWidth={1.5} />
+            </Link>
+          </Button>
           <Button
             variant="outline"
             size="icon"

@@ -6,6 +6,7 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -83,6 +84,9 @@ if (isTestEnv) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const auth = isTestEnv ? ({} as any) : getAuth(app);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const storage = isTestEnv ? ({} as any) : getStorage(app);
+
 // Connect to emulators in development if requested
 if (
   typeof window !== "undefined" &&
@@ -121,4 +125,4 @@ if (
 const getDb = () => db;
 const getFirebaseAuth = () => auth;
 
-export { db, getDb, getFirebaseAuth };
+export { db, getDb, getFirebaseAuth, storage };
