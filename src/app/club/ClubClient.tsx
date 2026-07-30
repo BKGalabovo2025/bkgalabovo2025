@@ -610,51 +610,57 @@ export default function ClubClient({
                 Последвайте ни в мрежите
               </h3>
               <div className="relative z-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {clubSite?.facebook && (
-                  <a
-                    href={clubSite.facebook}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-500 hover:bg-black hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]"
-                  >
-                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-500/30 group-hover/social:bg-blue-500/10 group-hover/social:text-blue-500">
-                      <FacebookIcon size={24} />
-                    </div>
-                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
-                      Facebook
-                    </span>
-                  </a>
-                )}
-                {clubSite?.facebookGroup && (
-                  <a
-                    href={clubSite.facebookGroup}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-400 hover:bg-black hover:shadow-[0_0_20px_rgba(96,165,250,0.3)]"
-                  >
-                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-400/30 group-hover/social:bg-blue-400/10 group-hover/social:text-blue-400">
-                      <Users size={24} />
-                    </div>
-                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
-                      Група
-                    </span>
-                  </a>
-                )}
-                {clubSite?.instagram && (
-                  <a
-                    href={clubSite.instagram}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-pink-500 hover:bg-black hover:shadow-[0_0_20px_rgba(236,72,153,0.3)]"
-                  >
-                    <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-pink-500/30 group-hover/social:bg-pink-500/10 group-hover/social:text-pink-500">
-                      <InstagramIcon size={24} />
-                    </div>
-                    <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
-                      Instagram
-                    </span>
-                  </a>
-                )}
+                <a
+                  href={
+                    clubSite?.facebook ||
+                    "https://www.facebook.com/badmintongalabovo/"
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-500 hover:bg-black hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                >
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-500/30 group-hover/social:bg-blue-500/10 group-hover/social:text-blue-500">
+                    <FacebookIcon size={24} />
+                  </div>
+                  <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
+                    Facebook
+                  </span>
+                </a>
+
+                <a
+                  href={
+                    clubSite?.facebookGroup ||
+                    "https://www.facebook.com/groups/645571089477573/?ref=pages_profile_groups_tab&source_id=261837657240190"
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-blue-400 hover:bg-black hover:shadow-[0_0_20px_rgba(96,165,250,0.3)]"
+                >
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-blue-400/30 group-hover/social:bg-blue-400/10 group-hover/social:text-blue-400">
+                    <Users size={24} />
+                  </div>
+                  <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
+                    Група
+                  </span>
+                </a>
+
+                <a
+                  href={
+                    clubSite?.instagram ||
+                    "https://www.instagram.com/badminton.galabovo/"
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group/social flex items-center gap-4 rounded-3xl border border-zinc-800/80 bg-zinc-950/50 p-5 shadow-none transition-all hover:border-pink-500 hover:bg-black hover:shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+                >
+                  <div className="flex size-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors group-hover/social:border-pink-500/30 group-hover/social:bg-pink-500/10 group-hover/social:text-pink-500">
+                    <InstagramIcon size={24} />
+                  </div>
+                  <span className="text-lg font-medium text-zinc-300 transition-colors group-hover/social:text-white">
+                    Instagram
+                  </span>
+                </a>
+
                 {clubSite?.youtube && (
                   <a
                     href={clubSite.youtube}
@@ -670,15 +676,6 @@ export default function ClubClient({
                     </span>
                   </a>
                 )}
-
-                {!clubSite?.facebook &&
-                  !clubSite?.facebookGroup &&
-                  !clubSite?.instagram &&
-                  !clubSite?.youtube && (
-                    <p className="col-span-2 py-4 text-center text-sm text-zinc-400">
-                      Очаквайте скоро нашите социални мрежи.
-                    </p>
-                  )}
               </div>
 
               {/* Instagram Feed Widget (Lazy Loaded) */}
