@@ -505,7 +505,17 @@ export default function AccountingClient() {
         }
       }
 
-      const content = await zip.generateAsync({ type: "blob" });
+      if (Object.keys(zip.files).length === 0) {
+        toast.error("Не бяха намерени документи за архивиране.");
+        setIsZipping(false);
+        return;
+      }
+
+      const content = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      });
       saveAs(
         content,
         `Счетоводен_Пакет_${format(selectedMonth, "MM_yyyy")}.zip`
