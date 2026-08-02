@@ -1329,36 +1329,9 @@ export function BusinessTripPdfTemplates({
                 {i + 1}. {p.name}
               </p>
             ))}
-          {/* Добавяме празни редове за допълване до 5 */}
-          {Array.from({
-            length: Math.max(
-              0,
-              5 -
-                allPeople.filter(
-                  (p) => p.role !== "Треньор" && p.role !== "Ръководител"
-                ).length
-            ),
-          }).map((_, i) => (
-            <p key={`empty-${i}`} style={{ margin: "4pt 0" }}>
-              {allPeople.filter(
-                (p) => p.role !== "Треньор" && p.role !== "Ръководител"
-              ).length +
-                i +
-                1}
-              . ........................................................
-            </p>
-          ))}
         </div>
 
-        <div
-          style={{
-            border: "1px solid #cbd5e1",
-            borderRadius: "8px",
-            padding: "12pt",
-            backgroundColor: "#f8fafc",
-            marginBottom: "20pt",
-          }}
-        >
+        <div style={{ marginBottom: "20pt" }}>
           <p
             style={{
               fontWeight: "700",
