@@ -4,7 +4,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileUp, Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import Tesseract from "tesseract.js";
@@ -40,6 +40,7 @@ import { businessTripService } from "@/services/business-trip-service";
 import {
   convertBgnToEur,
   convertEurToBgn,
+  TripExpense,
   TripExpenseSchema,
 } from "@/types/business-trip.types";
 
@@ -54,6 +55,7 @@ export interface TripExpenseDialogProps {
   onOpenChange: (open: boolean) => void;
   tripId: string;
   siteId: string;
+  expenseToEdit?: TripExpense | null;
   onSuccess?: () => void;
 }
 
@@ -62,6 +64,7 @@ export function TripExpenseDialog({
   onOpenChange,
   tripId,
   siteId,
+  expenseToEdit,
   onSuccess,
 }: TripExpenseDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -81,8 +84,37 @@ export function TripExpenseDialog({
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      if (expenseToEdit) {
+        form.reset({
+          tripId: expenseToEdit.tripId,
+          siteId: expenseToEdit.siteId,
+          expenseType: expenseToEdit.expenseType,
+          amountEUR: expenseToEdit.amountEUR,
+          supplierName: expenseToEdit.supplierName || "",
+          documentNumber: expenseToEdit.documentNumber || "",
+          documentDate: expenseToEdit.documentDate || new Date().toISOString(),
+          attachmentUrl: expenseToEdit.attachmentUrl || "",
+        });
+      } else {
+        form.reset({
+          tripId,
+          siteId,
+          expenseType: "fuel",
+          amountEUR: 0,
+          supplierName: "",
+          documentNumber: "",
+          documentDate: new Date().toISOString(),
+          attachmentUrl: "",
+        });
+      }
+    }
+  }, [open, expenseToEdit, form, tripId, siteId]);
+
   const amountEUR = form.watch("amountEUR");
   const equivalentBGN = amountEUR ? convertEurToBgn(amountEUR) : 0;
+  const isFuel = form.watch("expenseType") === "fuel";
 
   const onSubmit = async (values: FormValues) => {
     setIsUploading(true);
@@ -105,12 +137,20 @@ export function TripExpenseDialog({
         }
       }
 
-      await businessTripService.addExpense({
-        ...values,
-        attachmentUrl: finalAttachmentUrl,
-      } as any);
+      if (expenseToEdit && expenseToEdit.id) {
+        await businessTripService.updateExpense(expenseToEdit.id, {
+          ...values,
+          attachmentUrl: finalAttachmentUrl,
+        } as any);
+        toast.success("Разходът е обновен успешно!");
+      } else {
+        await businessTripService.addExpense({
+          ...values,
+          attachmentUrl: finalAttachmentUrl,
+        } as any);
+        toast.success("Разходът е добавен успешно!");
+      }
 
-      toast.success("Разходът е добавен успешно!");
       onSuccess?.();
       onOpenChange(false);
       form.reset();
@@ -203,10 +243,13 @@ export function TripExpenseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Добавяне на Разход / Фактура</DialogTitle>
+          <DialogTitle>
+            {expenseToEdit ? "Редактиране на разход" : "Добавяне на разход"}
+          </DialogTitle>
           <DialogDescription>
-            Прикачете фактури, касови бележки или билети. Всички суми се пазят в
-            Евро (€), но можете да използвате калкулатора за лева (BGN).
+            {expenseToEdit
+              ? "Променете данните за разхода по-долу."
+              : "Въведете детайли за направен разход по време на командировката (гориво, нощувка или др.)"}
           </DialogDescription>
         </DialogHeader>
 
@@ -254,12 +297,18 @@ export function TripExpenseDialog({
               />
 
               <div className="space-y-2">
-                <FormLabel>Бърз калкулатор (BGN лв.)</FormLabel>
+                <FormLabel>
+                  {isFuel
+                    ? "Цена за 1 литър (Бърз калкулатор в BGN)"
+                    : "Бърз калкулатор (BGN лв.)"}
+                </FormLabel>
                 <div className="relative">
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="Ако бележката е в лева..."
+                    placeholder={
+                      isFuel ? "Напр. 2.65" : "Ако бележката е в лева..."
+                    }
                     onChange={handleBgnInput}
                     value={equivalentBGN || ""}
                     className="border-blue-200 bg-blue-50/30 pr-12 text-blue-900 dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100"
@@ -278,7 +327,9 @@ export function TripExpenseDialog({
                 name="amountEUR"
                 render={({ field }: any) => (
                   <FormItem>
-                    <FormLabel>Сума (EUR €)</FormLabel>
+                    <FormLabel>
+                      {isFuel ? "Цена за 1 литър (EUR €)" : "Сума (EUR €)"}
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -295,9 +346,24 @@ export function TripExpenseDialog({
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription className="text-[10px]">
-                      Сумата, която ще се запази (≈ {equivalentBGN.toFixed(2)}{" "}
-                      лв).
+                    <FormDescription className="text-[11px]">
+                      {(() => {
+                        if (isFuel) {
+                          return `Сумата, която ще се запази (≈ ${equivalentBGN.toFixed(2)} лв).`;
+                        }
+                        const t = form.watch("expenseType");
+                        if (t === "accommodation" || t === "entry_fee") {
+                          return (
+                            <span className="mt-2 block rounded bg-blue-50 p-2 leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                              💡 <strong>Съвет:</strong> Ако въведете{" "}
+                              <strong>0</strong>, системата автоматично ще вземе
+                              общата сума от първоначалните ви настройки в
+                              Заповедта (Нареждането).
+                            </span>
+                          );
+                        }
+                        return `Сумата, която ще се запази (≈ ${equivalentBGN.toFixed(2)} лв).`;
+                      })()}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

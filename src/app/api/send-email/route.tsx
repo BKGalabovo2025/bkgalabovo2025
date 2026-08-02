@@ -88,6 +88,15 @@ const EmailSchema = z.object({
     "marketing",
   ]),
   data: z.record(z.string(), z.any()), // Keep z.any() here for validation flexibility, but we will use the typed data below
+  attachments: z
+    .array(
+      z.object({
+        filename: z.string(),
+        content: z.string(),
+        encoding: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 async function renderEmailTemplate<T extends keyof EmailTemplateData>(
@@ -145,7 +154,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { to, subject, template, data } = result.data;
+    const { to, subject, template, data, attachments } = result.data;
 
     console.log(
       `[send-email] Received request for: ${to}, template: ${template}`
@@ -190,6 +199,7 @@ export async function POST(request: Request) {
       subject: subject,
       html: html,
       text: text,
+      attachments: attachments,
     };
 
     console.log(`[send-email] Attempting to send email via Gmail to: ${to}`);

@@ -50,10 +50,10 @@ export const businessTripService = {
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {
     const docRef = doc(db, TRIPS_COLLECTION, id);
-    
+
     // Firebase не приема undefined стойности, затова ги изчистваме
     const sanitizedData = JSON.parse(JSON.stringify(data));
-    
+
     await updateDoc(docRef, {
       ...sanitizedData,
       updatedAt: new Date().toISOString(),
@@ -74,7 +74,10 @@ export const businessTripService = {
     })) as BusinessTrip[];
   },
 
-  async getTripsByEventId(eventId: string, siteId: string = "bkgalabovo"): Promise<BusinessTrip[]> {
+  async getTripsByEventId(
+    eventId: string,
+    siteId: string = "bkgalabovo"
+  ): Promise<BusinessTrip[]> {
     const q = query(
       collection(db, TRIPS_COLLECTION),
       where("siteId", "==", siteId),
@@ -158,6 +161,14 @@ export const businessTripService = {
 
   async deleteExpense(id: string): Promise<void> {
     await deleteDoc(doc(db, EXPENSES_COLLECTION, id));
+  },
+
+  async updateExpense(id: string, data: Partial<TripExpense>): Promise<void> {
+    const validatedData = TripExpenseSchema.partial().parse(data);
+    await updateDoc(doc(db, EXPENSES_COLLECTION, id), {
+      ...validatedData,
+      updatedAt: new Date().toISOString(),
+    });
   },
 
   // ---------------------------------------------

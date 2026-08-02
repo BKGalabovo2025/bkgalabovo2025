@@ -61,6 +61,7 @@ const VehicleInfoSchema = z.object({
   regNumber: z.string().optional(),
   fuelNorm: z.number().min(0).optional(), // Разходна норма (л/100 км)
   distanceKm: z.number().min(0).optional(), // Разстояние в км (ръчно въвеждане за сега, готово за API)
+  fuelType: z.string().optional(), // Вид гориво (напр. бензин А-95, дизелово гориво, газ)
 });
 
 /**
@@ -97,12 +98,16 @@ export const BusinessTripSchema = z.object({
   status: BusinessTripStatusEnum.default("draft"),
   /** Официална дата на Заповедта (може да се редактира ръчно в диалога) */
   orderDate: z.string().datetime().optional(),
+  usDecision: z.string().optional(), // Решение на УС № ... от ...
   signatures: z
     .object({
       coach: z.string().optional(), // Base64 PNG image
       chairman: z.string().optional(), // Base64 PNG image
     })
     .optional(),
+  orderDownloadedAt: z.string().datetime().optional(),
+  statementDownloadedAt: z.string().datetime().optional(),
+  fuelDownloadedAt: z.string().datetime().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });

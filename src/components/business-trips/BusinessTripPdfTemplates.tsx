@@ -2,31 +2,30 @@
 /* eslint-disable react/forbid-dom-props */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable sonarjs/cognitive-complexity */
 
 import { differenceInCalendarDays, format } from "date-fns";
 import { bg } from "date-fns/locale";
 import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
-import { BusinessTrip } from "@/types/business-trip.types";
+import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
-import { Tournament, TournamentEntry } from "@/types/tournament.types";
 
 interface BusinessTripPdfTemplatesProps {
-  trip: BusinessTrip | null;
-  tournament: Tournament | null;
-  event: ScheduleEvent | null;
-  entries: TournamentEntry[];
+  trip: BusinessTrip;
+  event: ScheduleEvent;
   membersDict: Record<string, Member>;
-  showBgn: boolean;
+  expenses: TripExpense[];
+  showBgn?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const EUR_BGN = 1.95583;
 
 // ─── Currency helpers ─────────────────────────────────────────────────────────
-const fmtEUR = (eur: number) => `€${eur.toFixed(2)}`;
+const fmtEUR = (eur: number) => `€${eur.toFixed(2)} EUR`;
 const eurToBgn = (eur: number) => eur * EUR_BGN;
 const roundEUR = (eur: number) => Math.round(eur);
 
@@ -84,93 +83,106 @@ function convertNumberToWords(n: number): string {
   if (n < 100) {
     const o = n % 10;
     const tensStr = _tens[Math.floor(n / 10)];
-    if (o !== 0) {
-      return `${tensStr} и ${_ones[o]}`;
-    }
-    return tensStr;
+    return o !== 0 ? `${tensStr} и ${_ones[o]}` : tensStr;
   }
   if (n < 1000) {
     const r = n % 100;
     const hundStr = _hund[Math.floor(n / 100)];
     if (r !== 0) {
-      return `${hundStr} ${convertNumberToWords(r)}`;
+      return r <= 20 || r % 10 === 0
+        ? `${hundStr} и ${convertNumberToWords(r)}`
+        : `${hundStr} ${convertNumberToWords(r)}`;
     }
     return hundStr;
   }
   const th = Math.floor(n / 1000);
   const r = n % 1000;
-  let ts = `${convertNumberToWords(th)} хиляди`;
+  let ts = "";
   if (th === 1) ts = "хиляда";
   else if (th === 2) ts = "две хиляди";
+  if (!ts) ts = `${convertNumberToWords(th)} хиляди`;
   if (r !== 0) {
-    return `${ts} ${convertNumberToWords(r)}`;
+    return r <= 20 || (r < 100 && r % 10 === 0) || r % 100 === 0
+      ? `${ts} и ${convertNumberToWords(r)}`
+      : `${ts} ${convertNumberToWords(r)}`;
   }
   return ts;
 }
 
-function numToWordsBG(amount: number): string {
-  if (amount <= 0) return "нула лева";
+function numToWordsBG(amount: number, isEur: boolean = false): string {
+  if (amount <= 0) return isEur ? "нула евро" : "нула лева";
   const i = Math.floor(amount);
   const c = Math.round((amount - i) * 100);
-  const w = convertNumberToWords(i) || "нула";
-  const bw = i === 1 ? "лев" : "лева";
-  if (c === 0) {
-    return `${w} ${bw}`;
+
+  let w = convertNumberToWords(i) || "нула";
+
+  if (isEur && i % 1000 < 10) {
+    if (i % 10 === 1 && i % 100 !== 11) w = w.replace(/един$/, "едно");
+    else if (i % 10 === 2 && i % 100 !== 12) w = w.replace(/два$/, "две");
   }
-  return `${w} ${bw} и ${c} стотинки`;
+
+  const getBGNWord = (num: number) => (num === 1 ? "лев" : "лева");
+  const getBGNCoins = (num: number) => (num === 1 ? "стотинка" : "стотинки");
+  const getEURCoins = (num: number) => (num === 1 ? "цент" : "цента");
+
+  const bw = isEur ? "евро" : getBGNWord(i);
+  const cw = isEur ? getEURCoins(c) : getBGNCoins(c);
+
+  return `${w} ${bw} и ${c} ${cw}`;
 }
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 const PAGE_A4: React.CSSProperties = {
   width: "210mm",
   minHeight: "297mm",
-  fontFamily: "Times New Roman,Times,serif",
-  fontSize: "11pt",
-  lineHeight: 1.6,
-  color: "#000",
+  fontFamily:
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontSize: "10pt",
+  lineHeight: 1.5,
+  color: "#1e293b",
   backgroundColor: "#fff",
-  padding: "18mm 18mm 18mm 22mm",
+  padding: "12mm 15mm 12mm 15mm",
   boxSizing: "border-box",
 };
 const PAGE_LAND: React.CSSProperties = {
   width: "297mm",
   minHeight: "210mm",
-  fontFamily: "Times New Roman,Times,serif",
+  fontFamily:
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSize: "9pt",
   lineHeight: 1.4,
-  color: "#000",
+  color: "#1e293b",
   backgroundColor: "#fff",
-  padding: "12mm 10mm 12mm 12mm",
+  padding: "10mm",
   boxSizing: "border-box",
 };
 const TH: React.CSSProperties = {
-  border: "1px solid #000",
-  padding: "3px 4px",
+  border: "1px solid #cbd5e1",
+  padding: "4pt 4pt",
   textAlign: "center",
-  fontWeight: "bold",
+  fontWeight: "600",
   verticalAlign: "middle",
   fontSize: "8pt",
+  backgroundColor: "#f8fafc",
+  color: "#0f172a",
 };
 const TD: React.CSSProperties = {
-  border: "1px solid #000",
-  padding: "3px 4px",
+  border: "1px solid #cbd5e1",
+  padding: "4pt 4pt",
   verticalAlign: "middle",
   fontSize: "8pt",
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export function BusinessTripPdfTemplates({
   trip,
   event,
   membersDict,
+  expenses = [],
 }: BusinessTripPdfTemplatesProps) {
   if (!trip || !event) return null;
 
   const site = getSiteConfig();
 
-  // People
   const coach = membersDict[trip.coachId];
   const coachName =
     trip.coachName ||
@@ -190,11 +202,8 @@ export function BusinessTripPdfTemplates({
   ];
   const totalPeople = allPeople.length;
 
-  // Dates
   const fmtDate = (d?: string) => {
-    if (!d) {
-      return "—";
-    }
+    if (!d) return "—";
     try {
       return format(new Date(d), "dd.MM.yyyy", { locale: bg });
     } catch {
@@ -205,9 +214,7 @@ export function BusinessTripPdfTemplates({
   const endD = new Date(trip.endDate);
   const numDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
   const numNights = Math.max(0, differenceInCalendarDays(endD, startD));
-  const yearStr = format(startD, "yyyy");
 
-  // Financials
   const perDiemEUR = roundEUR(
     trip.financials.perDiemOverrideEUR || trip.financials.perDiemRateEUR
   );
@@ -215,24 +222,78 @@ export function BusinessTripPdfTemplates({
   const hasPerDiem = perDiemEUR > 0;
   const accomEUR = trip.financials.accommodationRateEUR ?? 0;
   const accomBGN = eurToBgn(accomEUR);
-  const hasAccom = accomEUR > 0 && numNights > 0;
   const hasFuel = trip.transportType === "fuel_only";
   const fuelNorm = trip.vehicle?.fuelNorm ?? 0;
   const distKm = trip.vehicle?.distanceKm ?? 0;
+
+  const eventLabel =
+    (
+      {
+        competition: "състезание",
+        camp: "лагер-сбор",
+        training: "тренировка",
+        event: "мероприятие",
+      } as Record<string, string>
+    )[event?.type] || "";
+  const cleanTitle = trip.title.replace(/^[Кк]омандировка:\s*/u, "");
+  const isSameDay = differenceInCalendarDays(endD, startD) === 0;
+  const yearStr = format(startD, "yyyy");
+  const dateRangeStr = isSameDay
+    ? `на ${format(startD, "dd.MM.yyyy")} г.`
+    : `от ${format(startD, "dd.MM.yyyy")} г. до ${format(endD, "dd.MM.yyyy")} г.`;
+  const titleWithLabel = eventLabel
+    ? `${eventLabel} - ${cleanTitle}, ${dateRangeStr} в ${trip.destination}`
+    : `${cleanTitle}, ${dateRangeStr} в ${trip.destination}`;
+
   const totalLiters =
     distKm > 0 && fuelNorm > 0 ? (distKm / 100) * fuelNorm : 0;
+  const fuelExpenses = expenses.filter((e) => e.expenseType === "fuel");
+  const avgPricePerLiterEUR =
+    fuelExpenses.length > 0
+      ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+        fuelExpenses.length
+      : 0;
+  const roundedPricePerLiterBGN =
+    Math.round(eurToBgn(avgPricePerLiterEUR) * 100) / 100;
+  const avgPricePerLiterBGN = eurToBgn(avgPricePerLiterEUR);
+  const finalFuelBGN = totalLiters * roundedPricePerLiterBGN;
+  const finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+
+  const entryEUR = trip.financials.entryFeeEUR ?? 0;
 
   const dTotalEURpp = perDiemEUR * numDays;
-  const dTotalBGNpp = eurToBgn(dTotalEURpp);
-  const aTotalEURpp = accomEUR * numNights;
-  const aTotalBGNpp = eurToBgn(aTotalEURpp);
-  const entryEUR = trip.financials.entryFeeEUR ?? 0;
-  const hasEntryFee = entryEUR > 0;
+  const accomExpenses = expenses.filter(
+    (e) => e.expenseType === "accommodation"
+  );
+  const actualAccomTotalEUR = accomExpenses.reduce(
+    (sum, e) =>
+      sum +
+      (e.amountEUR > 0 ? e.amountEUR : accomEUR * numNights * totalPeople),
+    0
+  );
+  const aTotalEURpp =
+    actualAccomTotalEUR > 0
+      ? actualAccomTotalEUR / totalPeople
+      : accomEUR * numNights;
+  const hasAccom = (accomEUR > 0 && numNights > 0) || actualAccomTotalEUR > 0;
 
-  const ppTotalEUR = dTotalEURpp + aTotalEURpp + entryEUR;
-  const ppTotalBGN = eurToBgn(ppTotalEUR);
-  const grandEUR = totalPeople * ppTotalEUR;
-  const grandBGN = eurToBgn(grandEUR);
+  const dTotalBGNppRounded = Math.round(eurToBgn(dTotalEURpp) * 100) / 100;
+  const aTotalBGNppRounded = Math.round(eurToBgn(aTotalEURpp) * 100) / 100;
+  const ppTotalBGNRounded = dTotalBGNppRounded + aTotalBGNppRounded;
+
+  const ppTotalEUR = dTotalEURpp + aTotalEURpp;
+  const transportExpenses = expenses.filter(
+    (e) => e.expenseType === "transport"
+  );
+  const baseTransportEUR = transportExpenses.reduce(
+    (sum, e) => sum + e.amountEUR,
+    0
+  );
+  const transportTotalEUR = baseTransportEUR + finalFuelEUR;
+  const transportTotalBGN = eurToBgn(baseTransportEUR) + finalFuelBGN;
+
+  const grandEUR = totalPeople * ppTotalEUR + transportTotalEUR;
+  const grandBGN = totalPeople * ppTotalBGNRounded + transportTotalBGN;
 
   const orderNum = trip.id ? trip.id.substring(0, 6).toUpperCase() : "______";
   const orderDate = fmtDate(trip.orderDate || trip.createdAt || trip.startDate);
@@ -249,225 +310,350 @@ export function BusinessTripPdfTemplates({
   };
   const tShort = transportShort[trip.transportType] ?? trip.transportType;
 
-  // Section numbering for НАРЕЖДАНЕ
-  const secs: string[] = [];
-  if (hasPerDiem) secs.push("diem");
-  secs.push("transport");
-  if (hasAccom) secs.push("accom");
-  if (hasEntryFee) secs.push("entry");
+  const secs = [
+    hasPerDiem && "diem",
+    "transport",
+    hasAccom && "accom",
+    "entry",
+  ].filter(Boolean);
   const sn = (s: string) => secs.indexOf(s) + 1;
-
   const mol = site.contact.mol || "М. Георгиева";
 
   return (
     <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-      {/* ══════════════════════════════════════════════════════
-          DOC 1: НАРЕЖДАНЕ ЗА КОМАНДИРОВКА
-      ══════════════════════════════════════════════════════ */}
       <div id="pdf-order-template" style={PAGE_A4}>
-        <div style={{ textAlign: "center", marginBottom: "10pt" }}>
-          <p style={{ fontWeight: "bold", fontSize: "14pt" }}>
-            „{site.shortName.toUpperCase()}"
-          </p>
-          {site.bulstat && (
-            <p style={{ fontSize: "9pt" }}>
-              БУЛСТАТ: {site.bulstat} | {site.contact.address}
-            </p>
-          )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #e2e8f0",
+            paddingBottom: "10pt",
+            marginBottom: "12pt",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{ height: "45pt", objectFit: "contain" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "14pt",
+                  margin: 0,
+                  color: "#0f172a",
+                }}
+              >
+                „{site.shortName.toUpperCase()}"
+              </p>
+              {site.bulstat && (
+                <p
+                  style={{
+                    fontSize: "9pt",
+                    margin: "2pt 0 0 0",
+                    color: "#64748b",
+                  }}
+                >
+                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-
-        <div style={{ textAlign: "center", marginBottom: "16pt" }}>
+        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
           <p
             style={{
-              fontWeight: "bold",
+              fontWeight: "800",
               fontSize: "13pt",
-              letterSpacing: "5px",
+              letterSpacing: "4px",
+              margin: 0,
             }}
           >
             Н А Р Е Ж Д А Н Е
           </p>
-          <p style={{ fontSize: "12pt" }}>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
             № {orderNum} / {orderDate} г.
           </p>
         </div>
-
-        <p style={{ marginBottom: "10pt" }}>
+        <p style={{ marginBottom: "8pt", textAlign: "justify" }}>
           На основание Наредбата за командировките в страната и Държавния
           спортен календар на Б Ф Бадминтон,
         </p>
-
         <p
           style={{
             textAlign: "center",
-            fontWeight: "bold",
-            fontSize: "13pt",
-            marginBottom: "12pt",
+            fontWeight: "700",
+            fontSize: "12pt",
+            marginBottom: "10pt",
             letterSpacing: "3px",
+            color: "#0f172a",
           }}
         >
           К О М А Н Д И Р О В А М:
         </p>
-
-        <p style={{ marginBottom: "4pt" }}>
-          До гр. <strong>{destCity}</strong> и обратно на
+        <p style={{ marginBottom: "8pt", lineHeight: "1.5" }}>
+          До <strong style={{ color: "#0f172a" }}>{destCity}</strong> и обратно
+          до гр. Гълъбово, за участие в:{" "}
+          <strong style={{ color: "#0f172a" }}>{trip.title}</strong> (
+          {fmtDate(trip.startDate)}
+          {trip.startDate !== trip.endDate ? ` - ${fmtDate(trip.endDate)}` : ""}
+          ), на следните служебни лица:
         </p>
         <div
-          style={{
-            borderTop: "1px solid #000",
-            borderBottom: "1px solid #000",
-            padding: "2pt 0",
-            marginBottom: "4pt",
-          }}
-        >
-          <p style={{ textAlign: "center", fontSize: "10pt" }}>
-            следните служебни лица:
-          </p>
-        </div>
-
-        <div
-          style={{ marginLeft: "24pt", marginBottom: "18pt", marginTop: "6pt" }}
+          style={{ marginLeft: "16pt", marginBottom: "16pt", marginTop: "4pt" }}
         >
           {allPeople.map((p, i) => (
             <div
               key={i}
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "5pt",
+                alignItems: "center",
+                padding: "3pt 0",
               }}
             >
-              <span>
-                {i + 1}.&nbsp;&nbsp;{p.name}
-              </span>
-              <span style={{ minWidth: "90pt" }}>— {p.role.toLowerCase()}</span>
+              <span style={{ width: "24pt", color: "#475569" }}>{i + 1}.</span>
+              <strong
+                style={{ fontWeight: "600", width: "180pt", color: "#0f172a" }}
+              >
+                {p.name}
+              </strong>
+              <span style={{ color: "#64748b" }}>— {p.role.toLowerCase()}</span>
             </div>
           ))}
         </div>
-
-        <p style={{ marginBottom: "10pt" }}>
-          На групата от <strong>{totalPeople}</strong> / ........... / човека да
-          се осигурят средства, както следва:
+        <p style={{ marginBottom: "6pt" }}>
+          На групата от <strong>{totalPeople}</strong>{" "}
+          {totalPeople === 1 ? "човек" : "човека"} да се осигурят средства,
+          както следва:
         </p>
-
         {hasPerDiem && (
-          <p style={{ marginBottom: "8pt" }}>
-            {sn("diem")}. Дневни на <strong>{totalPeople}</strong> / ...........
-            / човека по <strong>{perDiemBGN.toFixed(2)}</strong> /
-            ............... / лв. ({fmtEUR(perDiemEUR)}) за{" "}
-            <strong>{numDays}</strong> / .......... / дни.
+          <p style={{ marginBottom: "4pt" }}>
+            {sn("diem")}. Дневни на <strong>{totalPeople}</strong>{" "}
+            {totalPeople === 1 ? "човек" : "човека"} по{" "}
+            <strong>{perDiemBGN.toFixed(2)} лв.</strong> ({fmtEUR(perDiemEUR)})
+            за <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
           </p>
         )}
-
         {hasFuel ? (
-          <p style={{ marginBottom: "8pt" }}>
+          <p style={{ marginBottom: "4pt" }}>
             {sn("transport")}. Пътуването да се извърши с: лек автомобил
             <br />
             &nbsp;&nbsp;&nbsp;&nbsp;а/ лично МПС, вид лек, марка{" "}
-            <strong>{trip.vehicle?.brand || "........................"}</strong>
-            , рег. №{" "}
-            <strong>
-              {trip.vehicle?.regNumber || "........................"}
-            </strong>
-            , с разход на <strong>{fuelNorm > 0 ? fuelNorm : "......."}</strong>{" "}
-            л/100 км., с цена ......... лв. / л.
+            <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
+            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, с
+            разход на <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км.</strong>{" "}
+            (срещу фактура)
           </p>
         ) : (
-          <p style={{ marginBottom: "8pt" }}>
+          <p style={{ marginBottom: "4pt" }}>
             {sn("transport")}. Пътуването да се извърши с:{" "}
-            <strong>{tShort}</strong>.
+            <strong>{tShort}</strong> (срещу фактура или билет).
           </p>
         )}
-
         {hasAccom && (
-          <p style={{ marginBottom: "8pt" }}>
-            {sn("accom")}. Нощувки — <strong>{totalPeople}</strong> / .........
-            / човека по <strong>{accomBGN.toFixed(2)}</strong> / ............. /
-            лв. ({fmtEUR(accomEUR)}) за <strong>{numNights}</strong> /
-            ........... / нощи.
+          <p style={{ marginBottom: "4pt" }}>
+            {sn("accom")}. Нощувки — <strong>{totalPeople}</strong>{" "}
+            {totalPeople === 1 ? "човек" : "човека"}{" "}
+            {trip.financials.accommodationRateEUR > 0 ? (
+              <>
+                по <strong>{accomBGN.toFixed(2)} лв.</strong> (
+                {fmtEUR(accomEUR)}) (срещу фактура){" "}
+              </>
+            ) : (
+              <>(срещу фактура) </>
+            )}{" "}
+            за <strong>{numNights}</strong> {numNights === 1 ? "нощ" : "нощи"}.
           </p>
         )}
-
-        {trip.financials.entryFeeEUR ? (
-          <p style={{ marginBottom: "8pt" }}>
-            {sn("entry")}. Входни такси за участие —{" "}
-            <strong>{eurToBgn(trip.financials.entryFeeEUR).toFixed(2)}</strong>{" "}
-            / ............. / лв. ({fmtEUR(trip.financials.entryFeeEUR)}).
-          </p>
-        ) : (
-          <p style={{ marginBottom: "8pt" }}>
-            {sn("entry")}. Входни такси за участие (ако има).
-          </p>
-        )}
-
-        <p style={{ marginTop: "14pt", marginBottom: "20pt" }}>
+        <p style={{ marginBottom: "4pt" }}>
+          {sn("entry")}. Входни такси за участие (срещу фактура, ако има).
+        </p>
+        <p
+          style={{
+            marginTop: "12pt",
+            marginBottom: "20pt",
+            fontSize: "11pt",
+            fontWeight: "600",
+            color: "#0f172a",
+          }}
+        >
           Разходите за командировката са за сметка на „{site.shortName}" гр.
           Гълъбово.
         </p>
-
-        <div style={{ textAlign: "center", marginTop: "30pt" }}>
-          <p style={{ fontWeight: "bold" }}>ПРЕДСЕДАТЕЛ:</p>
-          {trip.signatures?.chairman ? (
-            <img
-              src={trip.signatures.chairman}
-              alt="signature"
-              style={{ height: "40pt", marginTop: "4pt" }}
-            />
-          ) : (
-            <p>/ {mol} /</p>
-          )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "24pt",
+            gap: "20pt",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "10pt",
+              textAlign: "center",
+              minHeight: "60pt",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "9pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Подпис на Командирования
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "50pt",
+              }}
+            >
+              {trip.signatures?.coach ? (
+                <img
+                  src={trip.signatures.coach}
+                  alt="signature"
+                  style={{ height: "45pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              / {coachName} /
+            </p>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "10pt",
+              textAlign: "center",
+              minHeight: "60pt",
+              backgroundColor: "#f8fafc",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "9pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Печат и Подпис на Председателя
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "50pt",
+              }}
+            >
+              {trip.signatures?.chairman ? (
+                <img
+                  src={trip.signatures.chairman}
+                  alt="signature"
+                  style={{ height: "45pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              / {mol} /
+            </p>
+          </div>
         </div>
       </div>
-
-      {/* ══════════════════════════════════════════════════════
-          DOC 2: ВЕДОМОСТ (landscape A4)
-      ══════════════════════════════════════════════════════ */}
       <div id="pdf-statement-template" style={PAGE_LAND}>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            marginBottom: "6pt",
+            borderBottom: "2px solid #e2e8f0",
+            paddingBottom: "8pt",
+            marginBottom: "8pt",
           }}
         >
-          <div>
-            <p style={{ fontWeight: "bold", fontSize: "11pt" }}>
-              „{site.shortName.toUpperCase()}"&nbsp;&nbsp; гр. ГЪЛЪБОВО
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{ height: "35pt", objectFit: "contain" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "11pt",
+                  margin: 0,
+                  color: "#0f172a",
+                }}
+              >
+                „{site.shortName.toUpperCase()}"
+              </p>
+              {site.bulstat && (
+                <p
+                  style={{
+                    fontSize: "8pt",
+                    margin: "2pt 0 0 0",
+                    color: "#64748b",
+                  }}
+                >
+                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                </p>
+              )}
+            </div>
           </div>
           <div
-            style={{ textAlign: "right", fontSize: "8pt", maxWidth: "200pt" }}
+            style={{ textAlign: "right", fontSize: "8pt", color: "#475569" }}
           >
-            <p>
-              Спортна проява: <strong>{event.title}</strong>
+            <p style={{ margin: 0 }}>
+              Спортна проява:{" "}
+              <strong style={{ color: "#0f172a" }}>{event.title}</strong>
             </p>
-            <p>
-              Състояла се на {fmtDate(trip.startDate)} г. до{" "}
-              {fmtDate(trip.endDate)} г. в гр. {destCity}
+            <p style={{ margin: "2pt 0" }}>
+              От {fmtDate(trip.startDate)} г. до {fmtDate(trip.endDate)} г. в{" "}
+              {destCity}
             </p>
-            <p>
+            <p style={{ margin: 0 }}>
               Нареждане № {orderNum} от {orderDate} г.
             </p>
           </div>
         </div>
-
-        <div style={{ marginBottom: "6pt" }}>
+        <div style={{ marginBottom: "6pt", textAlign: "center" }}>
           <p
             style={{
-              fontWeight: "bold",
+              fontWeight: "800",
               fontSize: "13pt",
-              letterSpacing: "3px",
+              letterSpacing: "4px",
+              margin: 0,
+              color: "#0f172a",
             }}
           >
             В Е Д О М О С Т
           </p>
-          <p style={{ fontSize: "9pt" }}>за командировъчни пари</p>
-          <p style={{ fontSize: "9pt" }}>
-            изплатени за времето от {fmtDate(trip.startDate)} г. до{" "}
-            {fmtDate(trip.endDate)} г.
-          </p>
         </div>
-
         <table
           style={{
             width: "100%",
@@ -481,41 +667,39 @@ export function BusinessTripPdfTemplates({
                 №
               </th>
               <th rowSpan={2} style={{ ...TH, width: "85pt" }}>
-                Име, презиме и фамилия
+                Име
               </th>
               <th rowSpan={2} style={{ ...TH, width: "48pt" }}>
                 Длъжност
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "65pt" }}>
-                Маршрут на пътуването
-              </th>
-              <th rowSpan={2} style={{ ...TH, width: "52pt" }}>
-                Превозно средство
+              <th rowSpan={2} style={{ ...TH, width: "85pt" }}>
+                Маршрут
               </th>
               <th colSpan={2} style={TH}>
-                Пътни пари лв. и (EUR)
+                Пътни пари
               </th>
               <th colSpan={3} style={TH}>
                 Дневни пари
               </th>
-              <th colSpan={2} style={TH}>
+              <th colSpan={3} style={TH}>
                 Кв. пари
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "52pt" }}>
-                Обща сума за получаване лв. и (EUR)
+              <th rowSpan={2} style={{ ...TH, width: "65pt" }}>
+                Общо
               </th>
               <th rowSpan={2} style={{ ...TH, width: "48pt" }}>
-                Подпис на получателя
+                Подпис
               </th>
             </tr>
             <tr>
-              <th style={{ ...TH, width: "28pt" }}>за отиване</th>
-              <th style={{ ...TH, width: "28pt" }}>за връщане</th>
-              <th style={{ ...TH, width: "22pt" }}>брой дни</th>
-              <th style={{ ...TH, width: "38pt" }}>за 1 ден лв.(EUR)</th>
-              <th style={{ ...TH, width: "42pt" }}>сума лв.(EUR)</th>
-              <th style={{ ...TH, width: "22pt" }}>брой нощ.</th>
-              <th style={{ ...TH, width: "42pt" }}>сума лв.(EUR)</th>
+              <th style={{ ...TH, width: "28pt" }}>отиване</th>
+              <th style={{ ...TH, width: "28pt" }}>връщане</th>
+              <th style={{ ...TH, width: "22pt" }}>дни</th>
+              <th style={{ ...TH, width: "38pt" }}>за 1 ден</th>
+              <th style={{ ...TH, width: "42pt" }}>сума</th>
+              <th style={{ ...TH, width: "22pt" }}>нощ</th>
+              <th style={{ ...TH, width: "38pt" }}>за 1 нощ</th>
+              <th style={{ ...TH, width: "42pt" }}>сума</th>
             </tr>
           </thead>
           <tbody>
@@ -524,200 +708,339 @@ export function BusinessTripPdfTemplates({
                 <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
                 <td style={TD}>{p.name}</td>
                 <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
-                <td style={{ ...TD, textAlign: "center", fontSize: "7pt" }}>
-                  {routeLabel}
+                <td style={{ ...TD, textAlign: "center" }}>{routeLabel}</td>
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {i === 0 && transportTotalBGN > 0
+                    ? (transportTotalBGN / 2).toFixed(2)
+                    : ""}
                 </td>
-                <td style={{ ...TD, textAlign: "center", fontSize: "7pt" }}>
-                  {tShort}
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {i === 0 && transportTotalBGN > 0
+                    ? (transportTotalBGN / 2).toFixed(2)
+                    : ""}
                 </td>
-                <td style={{ ...TD, textAlign: "center" }}></td>
-                <td style={{ ...TD, textAlign: "center" }}></td>
                 <td style={{ ...TD, textAlign: "center" }}>
                   {hasPerDiem ? numDays : "—"}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
-                  {hasPerDiem
-                    ? `${perDiemBGN.toFixed(2)} (${fmtEUR(perDiemEUR)})`
-                    : "—"}
+                  {hasPerDiem ? `${perDiemBGN.toFixed(2)} лв.` : "—"}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
-                  {hasPerDiem
-                    ? `${dTotalBGNpp.toFixed(2)} (€${dTotalEURpp.toFixed(2)})`
-                    : "—"}
+                  {hasPerDiem ? `${dTotalBGNppRounded.toFixed(2)} лв.` : "—"}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
                   {hasAccom ? numNights : "—"}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
                   {hasAccom
-                    ? `${aTotalBGNpp.toFixed(2)} (€${aTotalEURpp.toFixed(2)})`
+                    ? `${(aTotalBGNppRounded / (numNights || 1)).toFixed(2)} лв.`
                     : "—"}
                 </td>
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {hasAccom ? `${aTotalBGNppRounded.toFixed(2)} лв.` : "—"}
+                </td>
                 <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {ppTotalBGN > 0
-                    ? `${ppTotalBGN.toFixed(2)} лв. (€${ppTotalEUR.toFixed(2)})`
-                    : "—"}
+                  {(
+                    ppTotalBGNRounded + (i === 0 ? transportTotalBGN : 0)
+                  ).toFixed(2)}{" "}
+                  лв.
                 </td>
                 <td style={TD}>&nbsp;</td>
               </tr>
             ))}
-            {Array.from({ length: Math.max(0, 15 - allPeople.length) }).map(
-              (_, i) => (
-                <tr key={`e${i}`}>
-                  <td style={{ ...TD, textAlign: "center" }}>
-                    {allPeople.length + i + 1}.
-                  </td>
-                  {Array.from({ length: 13 }).map((__, j) => (
-                    <td key={j} style={{ ...TD, height: "14pt" }}>
-                      &nbsp;
-                    </td>
-                  ))}
-                </tr>
-              )
-            )}
-            <tr style={{ fontWeight: "bold" }}>
-              <td
-                colSpan={4}
-                style={{ ...TD, textAlign: "center", fontWeight: "bold" }}
-              >
-                Всичко:
-              </td>
-              <td style={TD}></td>
-              <td style={TD}></td>
-              <td style={TD}></td>
-              <td style={TD}></td>
-              <td style={TD}></td>
-              <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem && grandBGN > 0
-                  ? `${(totalPeople * dTotalBGNpp).toFixed(2)} (€${(totalPeople * dTotalEURpp).toFixed(2)})`
-                  : ""}
-              </td>
-              <td style={TD}></td>
-              <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom && grandBGN > 0
-                  ? `${(totalPeople * aTotalBGNpp).toFixed(2)} (€${(totalPeople * aTotalEURpp).toFixed(2)})`
-                  : ""}
-              </td>
-              <td style={{ ...TD, textAlign: "center" }}>
-                {grandBGN > 0
-                  ? `${grandBGN.toFixed(2)} лв. (€${grandEUR.toFixed(2)})`
-                  : ""}
-              </td>
-              <td style={TD}></td>
-            </tr>
           </tbody>
         </table>
-
-        <p style={{ fontSize: "9pt", marginBottom: "8pt" }}>
+        <p style={{ fontSize: "9pt" }}>
           <strong>Словом: </strong>
           {grandBGN > 0
-            ? `${numToWordsBG(grandBGN)} (${fmtEUR(grandEUR)})`
-            : ".............................................................................................."}
+            ? `${numToWordsBG(grandBGN, false)} (${numToWordsBG(grandEUR, true)})`
+            : "...................."}
         </p>
-
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             marginTop: "16pt",
-            fontSize: "9pt",
+            gap: "20pt",
           }}
         >
-          <div>
-            <p>Изготвил: .................................</p>
-            <p style={{ fontSize: "8pt" }}>/ длъжност, име и фамилия /</p>
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "6px",
+              padding: "8pt",
+              textAlign: "center",
+              position: "relative",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "8pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Получил (Командирован)
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "40pt",
+              }}
+            >
+              {trip.signatures?.coach ? (
+                <img
+                  src={trip.signatures.coach}
+                  alt="signature"
+                  style={{ height: "35pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p
+              style={{
+                fontSize: "8pt",
+                margin: 0,
+                marginTop: "6pt",
+                color: "#94a3b8",
+              }}
+            >
+              / {coachName} /
+            </p>
           </div>
-          <div>
-            <p>Изплатил (Председател):</p>
-            {trip.signatures?.chairman ? (
-              <img
-                src={trip.signatures.chairman}
-                alt="signature"
-                style={{ height: "30pt" }}
-              />
-            ) : (
-              <p>.................................</p>
-            )}
-          </div>
-          <div>
-            <p>Получил (Командирован):</p>
-            {trip.signatures?.coach ? (
-              <img
-                src={trip.signatures.coach}
-                alt="signature"
-                style={{ height: "30pt" }}
-              />
-            ) : (
-              <p>.................................</p>
-            )}
+
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "6px",
+              padding: "8pt",
+              textAlign: "center",
+              position: "relative",
+              backgroundColor: "#f8fafc",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "600",
+                fontSize: "8pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Изплатил (Председател)
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "40pt",
+              }}
+            >
+              {trip.signatures?.chairman ? (
+                <img
+                  src={trip.signatures.chairman}
+                  alt="signature"
+                  style={{ height: "35pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p
+              style={{
+                fontSize: "8pt",
+                margin: 0,
+                marginTop: "6pt",
+                color: "#94a3b8",
+              }}
+            >
+              / {mol} /
+            </p>
           </div>
         </div>
-        <p style={{ marginTop: "10pt", fontSize: "9pt" }}>
-          гр. Гълъбово &nbsp;&nbsp;&nbsp; {fmtDate(trip.endDate)} г.
-        </p>
+
+        {(() => {
+          const nonFuelExpenses = expenses.filter(
+            (e) => e.expenseType !== "fuel"
+          );
+          if (nonFuelExpenses.length === 0) return null;
+
+          return (
+            <div
+              style={{
+                marginTop: "20pt",
+                fontSize: "9pt",
+                borderTop: "1px dashed #cbd5e1",
+                paddingTop: "10pt",
+              }}
+            >
+              <p style={{ fontWeight: "600", marginBottom: "6pt" }}>
+                Приложени разходооправдателни документи (извън гориво):
+              </p>
+              {nonFuelExpenses.map((exp, idx) => {
+                const docDate = exp.documentDate
+                  ? format(new Date(exp.documentDate), "dd.MM.yyyy")
+                  : "............";
+
+                const getExpenseTypeLabel = (t: string) => {
+                  if (t === "transport") return "Транспорт";
+                  if (t === "accommodation") return "Нощувки";
+                  if (t === "entry_fee") return "Входна такса";
+                  if (t === "food") return "Храна";
+                  return "Друг разход";
+                };
+
+                const typeLabel = getExpenseTypeLabel(exp.expenseType);
+                let finalExpAmount = exp.amountEUR;
+                if (exp.expenseType === "entry_fee" && exp.amountEUR === 0) {
+                  finalExpAmount = entryEUR;
+                } else if (
+                  exp.expenseType === "accommodation" &&
+                  exp.amountEUR === 0
+                ) {
+                  finalExpAmount = totalPeople * accomEUR * numNights;
+                }
+
+                return (
+                  <p key={idx} style={{ margin: "2pt 0" }}>
+                    {idx + 1}. {typeLabel} —{" "}
+                    {exp.documentNumber
+                      ? `Фактура/Бон № ${exp.documentNumber}`
+                      : "Документ № ...................."}{" "}
+                    от {docDate} г. на стойност {finalExpAmount} EUR
+                  </p>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* ══════════════════════════════════════════════════════
           DOC 3: ОТЧЕТ ЗА ГОРИВО (само за fuel_only)
       ══════════════════════════════════════════════════════ */}
       {hasFuel && (
-        <div id="pdf-fuel-report-template" style={PAGE_A4}>
-          <div style={{ textAlign: "center", marginBottom: "10pt" }}>
-            <p style={{ fontWeight: "bold", fontSize: "14pt" }}>
-              „{site.shortName.toUpperCase()}"
-            </p>
-          </div>
+        <div id="pdf-fuel-report-template" style={PAGE_LAND}>
           <div
             style={{
-              textAlign: "right",
-              marginBottom: "14pt",
-              fontSize: "11pt",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "2px solid #e2e8f0",
+              paddingBottom: "10pt",
+              marginBottom: "12pt",
             }}
           >
-            <p>Одобрявам</p>
-            <p>Председател:</p>
-            {trip.signatures?.chairman ? (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginTop: "4pt",
-                }}
-              >
+            <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{ height: "45pt", objectFit: "contain" }}
+              />
+              <div>
+                <p
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "14pt",
+                    margin: 0,
+                    color: "#0f172a",
+                  }}
+                >
+                  „{site.shortName.toUpperCase()}"
+                </p>
+                {site.bulstat && (
+                  <p
+                    style={{
+                      fontSize: "9pt",
+                      margin: "2pt 0 0 0",
+                      color: "#64748b",
+                    }}
+                  >
+                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "9pt",
+                marginRight: "100pt",
+              }}
+            >
+              <p style={{ fontWeight: "600", margin: 0, color: "#0f172a" }}>
+                ОДОБРЯВАМ
+              </p>
+              <p style={{ margin: "2pt 0 4pt 0", color: "#475569" }}>
+                Председател:
+              </p>
+              {trip.signatures?.chairman ? (
                 <img
                   src={trip.signatures.chairman}
                   alt="signature"
-                  style={{ height: "40pt" }}
+                  style={{ height: "35pt", objectFit: "contain" }}
                 />
-              </div>
-            ) : (
-              <p>/ {mol} /</p>
-            )}
+              ) : (
+                <p style={{ margin: 0 }}>/ {mol} /</p>
+              )}
+            </div>
           </div>
           <p
             style={{
               textAlign: "center",
-              letterSpacing: "3px",
-              fontWeight: "bold",
-              marginBottom: "6pt",
+              fontWeight: "800",
+              fontSize: "16pt",
+              letterSpacing: "4px",
+              marginBottom: "4pt",
+              color: "#0f172a",
             }}
           >
-            О Т Ч Е Т за м. {format(startD, "MMMM yyyy", { locale: bg })} г.
+            ОТЧЕТ
+          </p>
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "11pt",
+              margin: "0 0 10pt 0",
+              color: "#475569",
+            }}
+          >
+            към Нареждане № {orderNum} от {orderDate} г.
           </p>
           <p style={{ marginBottom: "4pt" }}>
             От <strong>{coachName}</strong>,&nbsp; длъжност{" "}
             <strong>{coachRole}</strong>
           </p>
-          <p style={{ marginBottom: "18pt" }}>
-            За разход на бензин А-.......... / дизелово гориво, газ / за личен
-            лек автомобил, марка/ модел{" "}
-            <strong>{trip.vehicle?.brand || "........................"}</strong>
-            ,&nbsp; рег. №{" "}
+          <p style={{ marginBottom: "18pt", lineHeight: "1.5" }}>
+            За разход на{" "}
             <strong>
-              {trip.vehicle?.regNumber || "........................"}
-            </strong>
-            , използван за служебни цели — състезания, лагер-сборове, тренировки
-            и др. съгласно решение на УС № ..... от ....... {yearStr} г.
+              {trip.vehicle?.fuelType ||
+                "бензин А-.......... / дизелово гориво, газ"}
+            </strong>{" "}
+            за личен лек автомобил, марка/ модел{" "}
+            <strong>{trip.vehicle?.brand || "неопределена"}</strong>
+            ,&nbsp; рег. №{" "}
+            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>,
+            използван за служебни цели — <strong>{titleWithLabel}</strong>
+            {trip.usDecision ? (
+              <>
+                {" "}
+                съгласно решение на УС <strong>{trip.usDecision}</strong>
+              </>
+            ) : null}
           </p>
           <table
             style={{
@@ -760,20 +1083,17 @@ export function BusinessTripPdfTemplates({
                 <td style={{ ...TD, textAlign: "center" }}>
                   {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
                 </td>
-                <td style={{ ...TD, textAlign: "center" }}>&nbsp;</td>
-                <td style={{ ...TD, textAlign: "center" }}>&nbsp;</td>
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {avgPricePerLiterBGN > 0
+                    ? `${avgPricePerLiterBGN.toFixed(2)} лв. (€${avgPricePerLiterEUR.toFixed(2)})`
+                    : ""}
+                </td>
+                <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
+                  {finalFuelBGN > 0
+                    ? `${finalFuelBGN.toFixed(2)} лв. (€${finalFuelEUR.toFixed(2)})`
+                    : ""}
+                </td>
               </tr>
-              {[2, 3, 4, 5, 6].map((n) => (
-                <tr key={n}>
-                  <td style={{ ...TD, textAlign: "center" }}>{n}.</td>
-                  <td style={{ ...TD, height: "18pt" }}>&nbsp;</td>
-                  {[0, 1, 2, 3, 4].map((j) => (
-                    <td key={j} style={TD}>
-                      &nbsp;
-                    </td>
-                  ))}
-                </tr>
-              ))}
               <tr style={{ fontWeight: "bold" }}>
                 <td colSpan={2} style={{ ...TD, textAlign: "center" }}>
                   ВСИЧКО:
@@ -786,42 +1106,110 @@ export function BusinessTripPdfTemplates({
                   {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
                 </td>
                 <td style={TD}>&nbsp;</td>
-                <td style={TD}>&nbsp;</td>
+                <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
+                  {finalFuelBGN > 0
+                    ? `${finalFuelBGN.toFixed(2)} лв. (€${finalFuelEUR.toFixed(2)})`
+                    : ""}
+                </td>
               </tr>
             </tbody>
           </table>
           <div style={{ fontSize: "10pt", marginBottom: "16pt" }}>
-            <p>
-              Приложение: фискален бон &nbsp;&nbsp; №
-              ........................... / ............ {yearStr} г.
-            </p>
-            <p style={{ paddingLeft: "118pt" }}>
-              № ........................... / ............ {yearStr} г.
-            </p>
-            <p style={{ paddingLeft: "118pt" }}>
-              № ........................... / ............ {yearStr} г.
-            </p>
+            {(() => {
+              const fuelExpenses = expenses.filter(
+                (e) => e.expenseType === "fuel"
+              );
+              if (fuelExpenses.length > 0) {
+                return fuelExpenses.map((exp, idx) => {
+                  const docDate = exp.documentDate
+                    ? format(new Date(exp.documentDate), "dd.MM.yyyy")
+                    : "............";
+                  return (
+                    <p
+                      key={idx}
+                      style={{ paddingLeft: idx === 0 ? "0" : "118pt" }}
+                    >
+                      {idx === 0 ? "Приложение: фискален бон    № " : "№ "}
+                      {exp.documentNumber ||
+                        "..........................."} / {docDate} г.
+                    </p>
+                  );
+                });
+              }
+              // Fallback to 3 empty lines if no fuel expenses found
+              return (
+                <>
+                  <p>
+                    Приложение: фискален бон &nbsp;&nbsp; №
+                    ........................... / ............ {yearStr} г.
+                  </p>
+                  <p style={{ paddingLeft: "118pt" }}>
+                    № ........................... / ............ {yearStr} г.
+                  </p>
+                  <p style={{ paddingLeft: "118pt" }}>
+                    № ........................... / ............ {yearStr} г.
+                  </p>
+                </>
+              );
+            })()}
           </div>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
+              alignItems: "center",
               marginTop: "20pt",
-              fontSize: "11pt",
             }}
           >
-            <p>гр. Гълъбово &nbsp;&nbsp; .............. {yearStr} г.</p>
-            <div>
-              <p>подпис (Отчел):</p>
-              {trip.signatures?.coach ? (
-                <img
-                  src={trip.signatures.coach}
-                  alt="signature"
-                  style={{ height: "30pt", marginTop: "4pt" }}
-                />
-              ) : (
-                <p>......................</p>
-              )}
+            <div style={{ flex: 1, fontSize: "11pt", color: "#475569" }}>
+              <p>гр. Гълъбово &nbsp;&nbsp; .............. {yearStr} г.</p>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                maxWidth: "250pt",
+                border: "1px solid #cbd5e1",
+                borderRadius: "8px",
+                padding: "10pt",
+                textAlign: "center",
+                backgroundColor: "#f8fafc",
+              }}
+            >
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "9pt",
+                  margin: 0,
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                }}
+              >
+                Подпис (Отчел)
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "50pt",
+                }}
+              >
+                {trip.signatures?.coach ? (
+                  <img
+                    src={trip.signatures.coach}
+                    alt="signature"
+                    style={{ height: "45pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span style={{ color: "#cbd5e1" }}>
+                    ..................................
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+                / {coachName} /
+              </p>
             </div>
           </div>
         </div>

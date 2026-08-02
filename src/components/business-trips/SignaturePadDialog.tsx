@@ -76,7 +76,7 @@ export function SignaturePadDialog({
               Изчисти
             </Button>
             <div className="text-xs text-zinc-400">
-              След запазване, подписът не може да се редактира
+              След запазване, можете да изчистите подписа от менюто.
             </div>
           </div>
         </div>

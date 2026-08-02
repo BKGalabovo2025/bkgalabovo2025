@@ -12,9 +12,17 @@ export async function loginAction(email: string, password: string) {
       return { success: false, error: "Firebase API Key липсва на сървъра." };
     }
 
+    const useEmulator =
+      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
+    const authHost =
+      process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
+    const baseUrl = useEmulator
+      ? `http://${authHost}/identitytoolkit.googleapis.com/v1`
+      : "https://identitytoolkit.googleapis.com/v1";
+
     // Call Firebase Auth REST API to sign in the user
     const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      `${baseUrl}/accounts:signInWithPassword?key=${apiKey}`,
       {
         method: "POST",
         headers: {

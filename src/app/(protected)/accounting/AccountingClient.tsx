@@ -2,27 +2,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/forbid-dom-props */
 
-import { format, parseISO, startOfMonth } from "date-fns";
+import {
+  differenceInDays,
+  endOfMonth,
+  format,
+  parseISO,
+  startOfMonth,
+} from "date-fns";
 import { bg } from "date-fns/locale";
 import ExcelJS from "exceljs";
+import { getDocs } from "firebase/firestore";
 import {
   Bed,
   Calculator,
   Car,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Eye,
   FileDown,
+  Mail,
   Pizza,
-  Printer,
   Ticket,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -39,15 +55,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getSiteConfig } from "@/config/sites";
+import { useAuth } from "@/context/auth-context";
 import { formatDateShort } from "@/lib/date-utils";
+import { getEventsQuery } from "@/lib/firebase-collections";
 import { generatePdfFromElement } from "@/lib/html-to-pdf";
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
+import { docToScheduleEvent } from "@/services/schedule-service";
 import {
   BusinessTrip,
   convertEurToBgn,
   TripExpense,
 } from "@/types/business-trip.types";
+import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
 
 export default function AccountingClient() {
@@ -55,7 +75,16 @@ export default function AccountingClient() {
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [expenses, setExpenses] = useState<Record<string, TripExpense[]>>({});
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const { user } = useAuth();
+
+  // Modal states
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(
+    null
+  );
+  const [isTripManagerOpen, setIsTripManagerOpen] = useState(false);
 
   // Filters
   const [selectedMonth, setSelectedMonth] = useState<Date>(
@@ -84,6 +113,13 @@ export default function AccountingClient() {
         });
         setMembersDict(dict);
 
+        // Fetch events so we can map trips to their events for editing
+        const snapshot = await getDocs(getEventsQuery());
+        const evts = snapshot.docs
+          .map(docToScheduleEvent)
+          .filter(Boolean) as ScheduleEvent[];
+        setEvents(evts);
+
         // Fetch all expenses for all trips... this might be heavy, but it's an admin view.
         // We can optimize by fetching only for filtered trips later.
         const expensesMap: Record<string, TripExpense[]> = {};
@@ -104,6 +140,36 @@ export default function AccountingClient() {
     };
     fetchData();
   }, [siteId]);
+
+  const loadData = async () => {
+    // Only refresh trips and expenses to reflect edits/deletions quickly
+    try {
+      const fetchedTrips = await businessTripService.getTrips(siteId);
+      setTrips(fetchedTrips);
+
+      const expensesMap: Record<string, TripExpense[]> = {};
+      for (const trip of fetchedTrips) {
+        if (trip.id) {
+          expensesMap[trip.id] = await businessTripService.getExpensesByTrip(
+            trip.id
+          );
+        }
+      }
+      setExpenses(expensesMap);
+    } catch (e) {
+      console.error("Error refreshing data after edit", e);
+    }
+  };
+
+  const handleManageTrip = (trip: BusinessTrip) => {
+    const ev = events.find((e) => e.id === trip.eventId);
+    if (!ev) {
+      toast.error("Събитието не е намерено. Моля, презаредете страницата.");
+      return;
+    }
+    setSelectedEvent(ev);
+    setIsTripManagerOpen(true);
+  };
 
   // Derived state (filtered data)
   const filteredTrips = useMemo(() => {
@@ -144,43 +210,86 @@ export default function AccountingClient() {
     let totalEntryFees = 0;
 
     filteredTrips.forEach((trip) => {
-      // Trip level static costs
-      totalPerDiem +=
-        (trip.financials.perDiemOverrideEUR || trip.financials.perDiemRateEUR) *
-        1; // Assuming 1 day per diem initially. Accurate calculation requires days diff.
+      const sDate = parseISO(trip.startDate);
+      const eDate = parseISO(trip.endDate);
+      const numDays = differenceInDays(eDate, sDate) + 1;
+      const numNights = Math.max(0, numDays - 1);
+      const numPeople = (trip.participantsIds?.length || 0) + 1;
 
-      // Wait, actual logic for per diem was already requested to be simplified to whatever is in the override.
-      // Let's just sum the fixed costs if there are any. Actually the requirements said "Expenses mapped from TripExpense collection".
+      const calcPerDiem = trip.financials.perDiemRateEUR * numDays * numPeople;
+      const calcAccom =
+        trip.financials.accommodationRateEUR * numNights * numPeople;
+      const calcEntry = trip.financials.entryFeeEUR || 0;
+      let calcFuel = 0;
 
-      // Let's recalculate accurately based on expenses collection AND vehicle info.
       if (trip.vehicle && trip.vehicle.distanceKm) {
         totalKM += trip.vehicle.distanceKm;
         if (trip.vehicle.fuelNorm) {
-          // Fuel calculated from norm if no explicit receipt exists? No, we should use the expenses.
-          // But if they haven't uploaded an expense, do we count the vehicle norm? Yes, for the report.
-          const fuelCost =
-            (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35; // Hardcode default 1.35
-          totalFuelAndTransport += fuelCost;
+          calcFuel =
+            (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35; // Default 1.35
         }
       }
 
-      // Add actual uploaded expenses
       const tripExp = expenses[trip.id!] || [];
+      let expPerDiem = 0,
+        expAccom = 0,
+        expEntry = 0,
+        expOther = 0;
+
+      const fuelExpenses = tripExp.filter((e) => e.expenseType === "fuel");
+      const transportExpenses = tripExp.filter(
+        (e) => e.expenseType === "transport"
+      );
+
+      const avgPricePerLiterEUR =
+        fuelExpenses.length > 0
+          ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+            fuelExpenses.length
+          : 0;
+
+      let finalFuelEUR = calcFuel;
+      if (
+        fuelExpenses.length > 0 &&
+        trip.vehicle &&
+        trip.vehicle.distanceKm &&
+        trip.vehicle.fuelNorm
+      ) {
+        const totalLiters =
+          (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+        const avgPricePerLiterBGN = avgPricePerLiterEUR * 1.95583;
+        const roundedPricePerLiterBGN =
+          Math.round(avgPricePerLiterBGN * 100) / 100;
+        const finalFuelBGN = totalLiters * roundedPricePerLiterBGN;
+        finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+      }
+
+      const expTransport = transportExpenses.reduce(
+        (sum, e) => sum + e.amountEUR,
+        0
+      );
+
       tripExp.forEach((ex) => {
-        if (ex.expenseType === "fuel" || ex.expenseType === "transport")
-          totalFuelAndTransport += ex.amountEUR;
-        else if (ex.expenseType === "accommodation")
-          totalAccommodation += ex.amountEUR;
-        else if (ex.expenseType === "food")
-          totalPerDiem += ex.amountEUR;
-        else if (ex.expenseType === "entry_fee")
-          totalEntryFees += ex.amountEUR;
-        else totalOther += ex.amountEUR;
+        if (ex.expenseType === "accommodation") expAccom += ex.amountEUR;
+        else if (ex.expenseType === "food") expPerDiem += ex.amountEUR;
+        else if (ex.expenseType === "entry_fee") expEntry += ex.amountEUR;
+        else if (ex.expenseType !== "fuel" && ex.expenseType !== "transport")
+          expOther += ex.amountEUR;
       });
+
+      totalPerDiem += expPerDiem > 0 ? expPerDiem : calcPerDiem;
+      totalAccommodation += expAccom > 0 ? expAccom : calcAccom;
+      totalEntryFees += expEntry > 0 ? expEntry : calcEntry;
+      totalFuelAndTransport +=
+        (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) + expTransport;
+      totalOther += expOther;
     });
 
     const totalEur =
-      totalPerDiem + totalAccommodation + totalFuelAndTransport + totalOther + totalEntryFees;
+      totalPerDiem +
+      totalAccommodation +
+      totalFuelAndTransport +
+      totalOther +
+      totalEntryFees;
 
     return {
       totalKM,
@@ -281,6 +390,7 @@ export default function AccountingClient() {
   };
 
   const handlePrintProtocol = async () => {
+    setIsGeneratingPdf(true);
     toast.info("Генериране на PDF протокол...");
     setTimeout(async () => {
       const el = document.getElementById("pdf-protocol-template");
@@ -290,6 +400,81 @@ export default function AccountingClient() {
           `Protokol_${format(selectedMonth, "MM_yyyy")}.pdf`
         );
         toast.success("Протоколът е генериран успешно!");
+      }
+      setIsGeneratingPdf(false);
+    }, 100);
+  };
+
+  const handlePreviewProtocol = () => {
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      const el = document.getElementById("pdf-protocol-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          m.previewPdfFromElement(el, "portrait").finally(() =>
+            setIsGeneratingPdf(false)
+          );
+        });
+      } else {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
+  };
+
+  const handleEmailProtocol = () => {
+    const email = window.prompt(
+      "Моля, въведете имейл адрес, на който да изпратим документа:",
+      user?.email || "bkgalabovo2014@gmail.com"
+    );
+    if (!email) return;
+
+    setIsGeneratingPdf(true);
+    toast.info("Подготовка на имейл...");
+    setTimeout(() => {
+      const el = document.getElementById("pdf-protocol-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          m.getPdfBase64FromElement(el, "portrait")
+            .then(async (base64Data) => {
+              const filename = `Protokol_${format(selectedMonth, "MM_yyyy")}.pdf`;
+              const attachmentContent = base64Data.split(",")[1] || base64Data;
+
+              const token = await user?.getIdToken();
+
+              const res = await fetch("/api/send-email", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                  to: email,
+                  subject: `Месечен приемо-предавателен протокол (${format(selectedMonth, "MM.yyyy")})`,
+                  template: "marketing",
+                  data: {
+                    messageText: `Прикачен е месечният приемо-предавателен протокол от ${site.shortName} за отчетен месец ${format(selectedMonth, "MM.yyyy")}.`,
+                  },
+                  attachments: [
+                    {
+                      filename,
+                      content: attachmentContent,
+                      encoding: "base64",
+                    },
+                  ],
+                }),
+              });
+
+              if (!res.ok) throw new Error("Failed to send email");
+              toast.success("Протоколът е изпратен успешно!");
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Възникна грешка при изпращането.");
+            })
+            .finally(() => setIsGeneratingPdf(false));
+        });
+      } else {
+        setIsGeneratingPdf(false);
       }
     }, 100);
   };
@@ -320,13 +505,42 @@ export default function AccountingClient() {
           >
             <FileDown className="mr-2 size-4" /> Експорт (Excel)
           </Button>
-          <Button
-            variant="default"
-            onClick={handlePrintProtocol}
-            className="rounded-xl bg-zinc-950 text-white shadow-sm hover:bg-zinc-800"
-          >
-            <Printer className="mr-2 size-4" /> Печат Протокол (PDF)
-          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="default"
+                disabled={isGeneratingPdf}
+                className="rounded-xl bg-zinc-950 text-white shadow-sm hover:bg-zinc-800"
+              >
+                {isGeneratingPdf ? "Зареждане..." : "Печат Протокол (PDF)"}
+                <ChevronDown className="ml-2 size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                onClick={handlePreviewProtocol}
+                className="cursor-pointer"
+              >
+                <Eye className="mr-2 size-4" />
+                <span>Преглед на протокол</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handlePrintProtocol}
+                className="cursor-pointer"
+              >
+                <FileDown className="mr-2 size-4" />
+                <span>Изтегли PDF</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleEmailProtocol}
+                className="cursor-pointer"
+              >
+                <Mail className="mr-2 size-4" />
+                <span>Изпрати по имейл</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </PageHeader>
 
@@ -464,9 +678,7 @@ export default function AccountingClient() {
               <Ticket className="size-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-500">
-                Такси участие
-              </p>
+              <p className="text-sm font-medium text-zinc-500">Такси участие</p>
               <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
                 €{kpis.totalEntryFees.toFixed(2)}
               </h4>
@@ -493,13 +705,14 @@ export default function AccountingClient() {
                 <TableHead>Статус</TableHead>
                 <TableHead className="text-right">Сума (EUR)</TableHead>
                 <TableHead className="text-right">Документи</TableHead>
+                <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTrips.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="py-8 text-center text-zinc-500"
                   >
                     Няма намерени записи за този период.
@@ -513,18 +726,110 @@ export default function AccountingClient() {
                     : "Неизвестен";
 
                   let total = 0;
-                  if (
-                    trip.vehicle &&
-                    trip.vehicle.distanceKm &&
-                    trip.vehicle.fuelNorm
-                  ) {
-                    total +=
+                  const sDate = parseISO(trip.startDate);
+                  const eDate = parseISO(trip.endDate);
+                  const numDays = Math.max(
+                    1,
+                    differenceInDays(eDate, sDate) + 1
+                  );
+                  const numNights = Math.max(0, numDays - 1);
+                  const numPeople = (trip.participantsIds?.length || 0) + 1;
+
+                  const calcPerDiem =
+                    trip.financials.perDiemRateEUR * numDays * numPeople;
+                  const calcAccom =
+                    trip.financials.accommodationRateEUR *
+                    numNights *
+                    numPeople;
+                  const calcEntry = trip.financials.entryFeeEUR || 0;
+                  let calcFuel = 0;
+
+                  if (trip.vehicle?.distanceKm && trip.vehicle?.fuelNorm) {
+                    calcFuel =
                       (trip.vehicle.distanceKm / 100) *
                       trip.vehicle.fuelNorm *
                       1.35;
                   }
+
                   const tripExps = expenses[trip.id!] || [];
-                  tripExps.forEach((ex) => (total += ex.amountEUR));
+                  let expPerDiem = 0,
+                    expAccom = 0,
+                    expEntry = 0,
+                    expOther = 0;
+
+                  const fuelExpenses = tripExps.filter(
+                    (e) => e.expenseType === "fuel"
+                  );
+                  const transportExpenses = tripExps.filter(
+                    (e) => e.expenseType === "transport"
+                  );
+
+                  const avgPricePerLiterEUR =
+                    fuelExpenses.length > 0
+                      ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+                        fuelExpenses.length
+                      : 0;
+
+                  let finalFuelEUR = calcFuel;
+                  if (
+                    fuelExpenses.length > 0 &&
+                    trip.vehicle?.distanceKm &&
+                    trip.vehicle?.fuelNorm
+                  ) {
+                    const totalLiters =
+                      (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+                    const finalFuelBGN =
+                      totalLiters *
+                      (Math.round(avgPricePerLiterEUR * 1.95583 * 100) / 100);
+                    finalFuelEUR =
+                      finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+                  }
+
+                  const expTransport = transportExpenses.reduce(
+                    (sum, e) => sum + e.amountEUR,
+                    0
+                  );
+
+                  tripExps.forEach((ex) => {
+                    if (ex.expenseType === "accommodation")
+                      expAccom += ex.amountEUR;
+                    else if (ex.expenseType === "food")
+                      expPerDiem += ex.amountEUR;
+                    else if (ex.expenseType === "entry_fee")
+                      expEntry += ex.amountEUR;
+                    else if (
+                      ex.expenseType !== "fuel" &&
+                      ex.expenseType !== "transport"
+                    )
+                      expOther += ex.amountEUR;
+                  });
+
+                  total =
+                    (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
+                    (expAccom > 0 ? expAccom : calcAccom) +
+                    (expEntry > 0 ? expEntry : calcEntry) +
+                    (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
+                    expTransport +
+                    expOther;
+
+                  const getStatusVariant = (s: string) => {
+                    if (s === "approved") return "default";
+                    if (s === "completed") return "secondary";
+                    return "outline";
+                  };
+
+                  const getStatusClass = (s: string) => {
+                    if (s === "completed")
+                      return "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
+                    return "";
+                  };
+
+                  const getStatusText = (s: string) => {
+                    if (s === "draft") return "Чернова";
+                    if (s === "approved") return "Одобрена";
+                    if (s === "completed") return "Отчетена";
+                    return s;
+                  };
 
                   return (
                     <TableRow key={trip.id}>
@@ -551,8 +856,11 @@ export default function AccountingClient() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="capitalize">
-                          {trip.status}
+                        <Badge
+                          variant={getStatusVariant(trip.status || "")}
+                          className={`capitalize ${getStatusClass(trip.status || "")}`}
+                        >
+                          {getStatusText(trip.status || "")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-bold">
@@ -566,6 +874,15 @@ export default function AccountingClient() {
                         ) : (
                           <span className="text-sm text-zinc-400">-</span>
                         )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleManageTrip(trip)}
+                        >
+                          Управление
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -585,51 +902,166 @@ export default function AccountingClient() {
             width: "210mm",
             minHeight: "297mm",
             fontFamily: "Arial, sans-serif",
+            fontSize: "10pt",
+            color: "#000",
+            lineHeight: "1.5",
           }}
         >
-          <div className="mb-8 text-center">
-            <h1 className="text-xl font-bold uppercase">
-              {site.shortName}
-            </h1>
-            <p className="text-sm">
-              {site.contact.address} &nbsp;|&nbsp; БУЛСТАТ: {site.bulstat}
-            </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "2px solid #e2e8f0",
+              paddingBottom: "10pt",
+              marginBottom: "12pt",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{ height: "45pt", objectFit: "contain" }}
+              />
+              <div>
+                <p
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "14pt",
+                    margin: 0,
+                    color: "#0f172a",
+                    textAlign: "left",
+                  }}
+                >
+                  &bdquo;{site.shortName.toUpperCase()}&ldquo;
+                </p>
+                {site.bulstat && (
+                  <p
+                    style={{
+                      fontSize: "9pt",
+                      margin: "2pt 0 0 0",
+                      color: "#64748b",
+                      textAlign: "left",
+                    }}
+                  >
+                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold">
+          <div style={{ textAlign: "center", margin: "20pt 0" }}>
+            <h2 style={{ fontSize: "14pt", fontWeight: "bold" }}>
               МЕСЕЧЕН ПРИЕМО-ПРЕДАВАТЕЛЕН ПРОТОКОЛ
             </h2>
-            <p className="text-lg">
+            <p style={{ fontSize: "11pt", marginTop: "4pt" }}>
               За отчитане на транспортни и командировъчни разходи
             </p>
-            <p className="text-md mt-2">
+            <p
+              style={{ fontSize: "11pt", marginTop: "8pt", fontWeight: "bold" }}
+            >
               Отчетен месец:{" "}
-              <span className="font-bold capitalize">
+              <span style={{ textTransform: "capitalize" }}>
                 {format(selectedMonth, "MMMM yyyy", { locale: bg })}
               </span>
             </p>
           </div>
 
-          <p className="mb-4">
-            Днес, {format(new Date(), "dd.MM.yyyy")} г., се състави настоящият
-            протокол за предаване на оригинални финансово-счетоводни документи
-            (фактури, билети, пътни листи), отразяващи направените разходи за
-            командировки през месец{" "}
+          <p
+            style={{
+              fontSize: "11pt",
+              marginBottom: "16pt",
+              textIndent: "20pt",
+              textAlign: "justify",
+            }}
+          >
+            Днес, {format(endOfMonth(selectedMonth), "dd.MM.yyyy")} г., се
+            състави настоящият приемо-предавателен протокол, удостоверяващ
+            предаването на първични счетоводни документи (фактури, фискални
+            бонове, билети и др.), ведно с прилежащите им Заповеди за
+            командировки, Пътни листи и отчети, доказващи извършените разходи за
+            дейността на клуба през месец{" "}
             {format(selectedMonth, "MMMM yyyy", { locale: bg })}.
           </p>
 
-          <table className="mt-6 w-full border-collapse border border-black text-sm">
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "10pt",
+              marginBottom: "20pt",
+            }}
+          >
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-black p-2">№</th>
-                <th className="border border-black p-2">
+              <tr>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  №
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "left",
+                  }}
+                >
                   Командировка / Събитие
                 </th>
-                <th className="border border-black p-2">Водач / Треньор</th>
-                <th className="border border-black p-2">Вид дейност</th>
-                <th className="border border-black p-2">Документи (бр.)</th>
-                <th className="border border-black p-2">Сума (EUR)</th>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "left",
+                  }}
+                >
+                  Водач / Треньор
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  Вид дейност
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  Документи (бр.)
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    backgroundColor: "#f8fafc",
+                    fontWeight: "bold",
+                    textAlign: "right",
+                  }}
+                >
+                  Сума (EUR)
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -639,73 +1071,222 @@ export default function AccountingClient() {
                   ? `${coach.firstName} ${coach.lastName}`
                   : "Неизвестен";
                 let total = 0;
+                const sDate = parseISO(trip.startDate);
+                const eDate = parseISO(trip.endDate);
+                const numDays = differenceInDays(eDate, sDate) + 1;
+                const numNights = Math.max(0, numDays - 1);
+                const numPeople = (trip.participantsIds?.length || 0) + 1;
+
+                const calcPerDiem =
+                  trip.financials.perDiemRateEUR * numDays * numPeople;
+                const calcAccom =
+                  trip.financials.accommodationRateEUR * numNights * numPeople;
+                const calcEntry = trip.financials.entryFeeEUR || 0;
+                let calcFuel = 0;
+
                 if (
                   trip.vehicle &&
                   trip.vehicle.distanceKm &&
                   trip.vehicle.fuelNorm
                 ) {
-                  total +=
+                  calcFuel =
                     (trip.vehicle.distanceKm / 100) *
                     trip.vehicle.fuelNorm *
                     1.35;
                 }
+
                 const tripExps = expenses[trip.id!] || [];
-                tripExps.forEach((ex) => (total += ex.amountEUR));
+                let expPerDiem = 0,
+                  expAccom = 0,
+                  expEntry = 0,
+                  expOther = 0;
+
+                const fuelExpenses = tripExps.filter(
+                  (e) => e.expenseType === "fuel"
+                );
+                const transportExpenses = tripExps.filter(
+                  (e) => e.expenseType === "transport"
+                );
+
+                const avgPricePerLiterEUR =
+                  fuelExpenses.length > 0
+                    ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+                      fuelExpenses.length
+                    : 0;
+
+                let finalFuelEUR = calcFuel;
+                if (
+                  fuelExpenses.length > 0 &&
+                  trip.vehicle &&
+                  trip.vehicle.distanceKm &&
+                  trip.vehicle.fuelNorm
+                ) {
+                  const totalLiters =
+                    (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+                  const avgPricePerLiterBGN = avgPricePerLiterEUR * 1.95583;
+                  const roundedPricePerLiterBGN =
+                    Math.round(avgPricePerLiterBGN * 100) / 100;
+                  const finalFuelBGN = totalLiters * roundedPricePerLiterBGN;
+                  finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+                }
+
+                const expTransport = transportExpenses.reduce(
+                  (sum, e) => sum + e.amountEUR,
+                  0
+                );
+
+                tripExps.forEach((ex) => {
+                  if (ex.expenseType === "accommodation")
+                    expAccom += ex.amountEUR;
+                  else if (ex.expenseType === "food")
+                    expPerDiem += ex.amountEUR;
+                  else if (ex.expenseType === "entry_fee")
+                    expEntry += ex.amountEUR;
+                  else if (
+                    ex.expenseType !== "fuel" &&
+                    ex.expenseType !== "transport"
+                  )
+                    expOther += ex.amountEUR;
+                });
+
+                total =
+                  (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
+                  (expAccom > 0 ? expAccom : calcAccom) +
+                  (expEntry > 0 ? expEntry : calcEntry) +
+                  (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
+                  expTransport +
+                  expOther;
 
                 return (
                   <tr key={trip.id}>
-                    <td className="border border-black p-2 text-center">
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                        textAlign: "center",
+                      }}
+                    >
                       {idx + 1}
                     </td>
-                    <td className="border border-black p-2">{trip.title}</td>
-                    <td className="border border-black p-2">{coachName}</td>
-                    <td className="border border-black p-2">
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                      }}
+                    >
+                      {trip.title}, от {format(sDate, "dd.MM.yyyy")} до{" "}
+                      {format(eDate, "dd.MM.yyyy")} в {trip.destination}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                      }}
+                    >
+                      {coachName}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                        textAlign: "center",
+                      }}
+                    >
                       {trip.financials.isCommercialActivity
                         ? "Стопанска"
                         : "Нестопанска"}
                     </td>
-                    <td className="border border-black p-2 text-center">
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                        textAlign: "center",
+                      }}
+                    >
                       {tripExps.length + (trip.vehicle?.distanceKm ? 1 : 0)}
                     </td>
-                    <td className="border border-black p-2 text-right">
+                    <td
+                      style={{
+                        border: "1px solid #0f172a",
+                        padding: "6pt 8pt",
+                        textAlign: "right",
+                      }}
+                    >
                       €{total.toFixed(2)}
                     </td>
                   </tr>
                 );
               })}
-              <tr className="bg-gray-50 font-bold">
-                <td colSpan={5} className="border border-black p-2 text-right">
+              <tr style={{ fontWeight: "bold" }}>
+                <td
+                  colSpan={5}
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    textAlign: "right",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
                   ОБЩО ЗА МЕСЕЦА (EUR):
                 </td>
-                <td className="border border-black p-2 text-right">
+                <td
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    textAlign: "right",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
                   €{kpis.totalEur.toFixed(2)}
                 </td>
               </tr>
-              <tr className="bg-gray-50 font-bold">
-                <td colSpan={5} className="border border-black p-2 text-right">
+              <tr style={{ fontWeight: "bold" }}>
+                <td
+                  colSpan={5}
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    textAlign: "right",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
                   РАВНОСМЕТКА В ЛЕВА (BGN):
                 </td>
-                <td className="border border-black p-2 text-right">
+                <td
+                  style={{
+                    border: "1px solid #0f172a",
+                    padding: "6pt 8pt",
+                    textAlign: "right",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
                   {kpis.totalBgn.toFixed(2)} лв.
                 </td>
               </tr>
             </tbody>
           </table>
 
-          <div className="mt-8">
-            <p className="font-bold">
-              Декларирам, че всички описани разходи са извършени във връзка с
-              дейността на клуба и съпътстващите ги документи отговарят на
-              нормативните изисквания (вкл. Заповеди за командировка и Пътни
-              листи).
-            </p>
-          </div>
+          <p
+            style={{
+              fontSize: "11pt",
+              textIndent: "20pt",
+              textAlign: "justify",
+              marginBottom: "40pt",
+            }}
+          >
+            Долуподписаният Председател на {site.name} декларира, че отразените
+            в протокола разходи са реално извършени, свързани са изцяло с
+            основната дейност на сдружението и приложените към тях
+            разходооправдателни документи отговарят на изискванията на Закона за
+            счетоводството (ЗСч) и ЗКПО. Всички командировъчни разходи са
+            оформени съгласно Наредбата за командировките в страната (НКС).
+          </p>
 
           <div className="mt-24 flex justify-between px-10">
             <div className="text-center">
-              <p className="mb-10">ПРЕДАЛ (Управител):</p>
+              <p className="mb-8 font-bold">ПРЕДАЛ (Председател):</p>
               <p>.......................................</p>
-              <p className="text-xs">(подпис)</p>
+              <p className="text-xs text-gray-500">(подпис)</p>
             </div>
             <div className="text-center">
               <p className="mb-10">ПРИЕЛ (Счетоводител):</p>
@@ -715,6 +1296,20 @@ export default function AccountingClient() {
           </div>
         </div>
       </div>
+
+      {/* Reused Trip Manager Dialog from Schedule route */}
+      {selectedEvent && (
+        <BusinessTripManagerDialog
+          event={selectedEvent}
+          open={isTripManagerOpen}
+          onOpenChange={(open) => {
+            setIsTripManagerOpen(open);
+            if (!open) {
+              loadData(); // refresh table if they edited/deleted anything
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

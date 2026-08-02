@@ -50,6 +50,8 @@ const FormSchema = BusinessTripSchema.extend({
     "transport_and_food",
     "transport_food_sleep",
   ]),
+  hasEntryFee: z.boolean().default(false),
+  entryFeePerPersonEUR: z.number().min(0).optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -103,6 +105,11 @@ export function CreateBusinessTripDialog({
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
           expensesCoverage: getInitialExpensesCoverage(),
+          hasEntryFee: !!initialData.financials.entryFeeEUR,
+          entryFeePerPersonEUR:
+            initialData.financials.entryFeeEUR && participantsCount > 0
+              ? initialData.financials.entryFeeEUR / participantsCount
+              : 0,
         }
       : {
           siteId: "bkgalabovo",
@@ -126,11 +133,14 @@ export function CreateBusinessTripDialog({
           },
           status: "draft",
           orderDate: new Date().toISOString(),
+          hasEntryFee: false,
+          entryFeePerPersonEUR: 0,
         },
   });
 
   // Наблюдаваме промяната във "Покрити разходи", за да преизчислим дневните пари
   const coverage = form.watch("expensesCoverage");
+  const transportType = form.watch("transportType");
 
   useEffect(() => {
     let baseRate = 0;
@@ -169,6 +179,12 @@ export function CreateBusinessTripDialog({
           coachName,
           coachRole,
           orderDate: values.orderDate,
+          financials: {
+            ...values.financials,
+            entryFeeEUR: values.hasEntryFee
+              ? (values.entryFeePerPersonEUR || 0) * participantsCount
+              : 0,
+          },
         } as any);
         toast.success("Командировката е актуализирана успешно!");
       } else {
@@ -179,6 +195,12 @@ export function CreateBusinessTripDialog({
           coachRole,
           siteId: values.siteId || "default",
           orderDate: values.orderDate,
+          financials: {
+            ...values.financials,
+            entryFeeEUR: values.hasEntryFee
+              ? (values.entryFeePerPersonEUR || 0) * participantsCount
+              : 0,
+          },
         } as any);
         toast.success("Командировката е създадена успешно като чернова!");
       }
@@ -234,6 +256,24 @@ export function CreateBusinessTripDialog({
                     <FormLabel>Място на провеждане (Дестинация)</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control as any}
+                name="usDecision"
+                render={({ field }: any) => (
+                  <FormItem>
+                    <FormLabel>Решение на УС (за Отчета)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Напр. № 12 от 15.03"
+                        {...field}
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -345,6 +385,97 @@ export function CreateBusinessTripDialog({
                   </FormItem>
                 )}
               />
+
+              {transportType === "fuel_only" && (
+                <>
+                  <FormField
+                    control={form.control as any}
+                    name="vehicle.brand"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Марка МПС</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Напр. Toyota"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control as any}
+                    name="vehicle.regNumber"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Рег. номер</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Напр. CB1234AB"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control as any}
+                    name="vehicle.fuelNorm"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Разход (л/100км)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            placeholder="Напр. 6.5"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control as any}
+                    name="vehicle.fuelType"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Вид гориво</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Изберете" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="бензин А-95">
+                              бензин А-95
+                            </SelectItem>
+                            <SelectItem value="дизелово гориво">
+                              дизелово гориво
+                            </SelectItem>
+                            <SelectItem value="газ">газ (LPG)</SelectItem>
+                            <SelectItem value="метан">метан (CNG)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
@@ -404,9 +535,10 @@ export function CreateBusinessTripDialog({
                         }
                       />
                     </FormControl>
-                    <FormDescription className="text-[10px]">
-                      Оставете празно за законовата сума (€
-                      {form.watch("financials.perDiemRateEUR")}).
+                    <FormDescription className="mt-2 rounded bg-blue-50 p-2 text-[11px] leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                      💡 Оставете празно, за да се ползва сумата по закон (€
+                      {form.watch("financials.perDiemRateEUR")}). Това е сумата{" "}
+                      <strong>НА ЧОВЕК за 1 ДЕН</strong>.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -415,10 +547,10 @@ export function CreateBusinessTripDialog({
 
               <FormField
                 control={form.control as any}
-                name="financials.entryFeeEUR"
+                name="financials.accommodationRateEUR"
                 render={({ field }: any) => (
                   <FormItem>
-                    <FormLabel>Входна такса (EUR)</FormLabel>
+                    <FormLabel>Квартирни пари (за 1 нощувка в EUR)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -433,38 +565,134 @@ export function CreateBusinessTripDialog({
                         }
                       />
                     </FormControl>
-                    <FormDescription className="text-[10px]">
-                      Ако има такса за участие.
+                    <FormDescription className="mt-2 rounded bg-blue-50 p-2 text-[11px] leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                      💡 Тук се въвежда цена{" "}
+                      <strong>НА ЧОВЕК за 1 нощувка</strong>. Ако знаете само
+                      общата сума за всички, най-лесно е да въведете{" "}
+                      <strong>0</strong> тук, а да добавите общата сума накрая
+                      като &quot;Разход&quot; (Фактура).
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control as any}
+                name="hasEntryFee"
+                render={({ field }: any) => (
+                  <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Входна такса</FormLabel>
+                      <FormDescription>
+                        Маркирайте, ако клубът поема таксите за участие
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("hasEntryFee") && (
+                <FormField
+                  control={form.control as any}
+                  name="entryFeePerPersonEUR"
+                  render={({ field }: any) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Входна такса за 1 състезател (EUR)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Напр. 15.00"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : 0
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription className="text-[11px]">
+                        Смята се автоматично: {field.value || 0} EUR ×{" "}
+                        {participantsCount} състезатели =
+                        <strong className="ml-1 text-emerald-600">
+                          Общо{" "}
+                          {((field.value || 0) * participantsCount).toFixed(2)}{" "}
+                          EUR
+                        </strong>
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
-            <FormField
-              control={form.control as any}
-              name="financials.isCommercialActivity"
-              render={({ field }: any) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Стопанска дейност
-                    </FormLabel>
-                    <FormDescription>
-                      Отбележете, ако събитието е свързано с реклама, наеми или
-                      друга стопанска дейност.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control as any}
+                name="financials.isCommercialActivity"
+                render={({ field }: any) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        Стопанска дейност
+                      </FormLabel>
+                      <FormDescription>
+                        Отбележете, ако събитието е свързано с реклама, наеми
+                        или друга стопанска дейност.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control as any}
+                name="status"
+                render={({ field }: any) => (
+                  <FormItem className="rounded-lg border p-4">
+                    <div className="mb-2 space-y-0.5">
+                      <FormLabel className="text-base">
+                        Статус на командировката
+                      </FormLabel>
+                      <FormDescription>
+                        За вътрешно проследяване
+                      </FormDescription>
+                    </div>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Изберете статус" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Чернова</SelectItem>
+                        <SelectItem value="approved">Одобрена</SelectItem>
+                        <SelectItem value="completed">Отчетена</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* ── Дата на Заповедта ── */}
             <div className="space-y-3 rounded-lg border border-dashed p-4">

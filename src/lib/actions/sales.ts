@@ -725,7 +725,7 @@ export async function getServiceSalesAction(
 
     return { success: true, data: sales };
   } catch (error: unknown) {
-    console.error(`Error getServiceSalesAction [${serviceType}]:`, error);
+    console.error("Error getServiceSalesAction [%s]:", serviceType, error);
     return {
       success: false,
       error:
