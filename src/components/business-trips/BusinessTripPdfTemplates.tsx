@@ -1316,7 +1316,7 @@ export function BusinessTripPdfTemplates({
             color: "#0f172a",
           }}
         >
-          📝 СПИСЪК НА УЧАСТНИЦИТЕ
+          СПИСЪК НА УЧАСТНИЦИТЕ
         </p>
 
         <table
@@ -1329,13 +1329,9 @@ export function BusinessTripPdfTemplates({
           <thead>
             <tr>
               <th style={{ ...TH, width: "24pt" }}>№</th>
-              <th style={{ ...TH, textAlign: "left" }}>
-                Три имена на участника
-              </th>
-              <th style={{ ...TH, width: "100pt" }}>Длъжност / Роля</th>
-              <th style={{ ...TH, width: "120pt" }}>
-                Възрастова група / Категория
-              </th>
+              <th style={{ ...TH, textAlign: "left" }}>Име и фамилия</th>
+              <th style={{ ...TH, width: "100pt" }}>Роля</th>
+              <th style={{ ...TH, width: "120pt" }}>Подпис</th>
             </tr>
           </thead>
           <tbody>
@@ -1384,11 +1380,10 @@ export function BusinessTripPdfTemplates({
               color: "#0f172a",
             }}
           >
-            🛡️ УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
+            УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
           </p>
           <p style={{ margin: "4pt 0" }}>
-            Общ брой присъствали лица: <strong>{totalPeople}</strong> (буквом:{" "}
-            {numToWordsBG(totalPeople, false).replace(" лева", "")})
+            Общ брой присъствали лица: <strong>{totalPeople}</strong>
           </p>
           <p style={{ margin: "4pt 0" }}>от които:</p>
           <ul style={{ margin: "4pt 0 4pt 20pt", padding: 0 }}>
@@ -1400,15 +1395,13 @@ export function BusinessTripPdfTemplates({
                     (p) => p.role === "Треньор" || p.role === "Ръководител"
                   ).length
                 }
-              </strong>{" "}
-              бр.
+              </strong>
             </li>
             <li>
               Състезатели:{" "}
               <strong>
                 {allPeople.filter((p) => p.role === "Състезател").length}
-              </strong>{" "}
-              бр.
+              </strong>
             </li>
           </ul>
         </div>
@@ -1454,23 +1447,19 @@ export function BusinessTripPdfTemplates({
               paddingLeft: "20pt",
             }}
           >
-            <p style={{ margin: "0 0 4pt 0", fontWeight: "600" }}>
-              Главен съдия / Организатор на турнира:
-            </p>
-            <p
-              style={{
-                margin: "0 0 16pt 0",
-                fontSize: "8pt",
-                color: "#64748b",
-              }}
-            >
-              (опционално – за потвърждение от федерацията/домакина)
+            <p style={{ margin: "0 0 16pt 0", fontWeight: "600" }}>
+              Главен съдия / Клуб Домакин / или Организатор:
             </p>
             <p style={{ margin: "0 0 20pt 0" }}>
               Подпис: ............................................
             </p>
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: "0 0 4pt 0" }}>
               Печат: ............................................
+            </p>
+            <p style={{ margin: 0, fontSize: "8pt", color: "#64748b" }}>
+              (печат се поставя само ако се подписва от клуба домакин или
+              представител на организацията. Ако главният съдия удостоверява
+              списъка, не е нужен печат)
             </p>
           </div>
         </div>
