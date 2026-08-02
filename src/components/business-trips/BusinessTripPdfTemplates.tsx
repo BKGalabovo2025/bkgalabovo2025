@@ -1335,31 +1335,42 @@ export function BusinessTripPdfTemplates({
             </tr>
           </thead>
           <tbody>
-            {allPeople.map((p, i) => (
-              <tr key={i}>
-                <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
-                <td style={{ ...TD, fontWeight: "500" }}>{p.name}</td>
-                <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
-                <td style={{ ...TD, textAlign: "center", color: "#64748b" }}>
-                  {p.role === "Треньор" || p.role === "Ръководител"
-                    ? "—"
-                    : "...................."}
+            {allPeople
+              .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
+              .map((p, i) => (
+                <tr key={i}>
+                  <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
+                  <td style={{ ...TD, fontWeight: "500" }}>{p.name}</td>
+                  <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
+                  <td style={{ ...TD, textAlign: "center", color: "#64748b" }}>
+                    ....................
+                  </td>
+                </tr>
+              ))}
+            {/* Добавяме празни редове, ако участниците са по-малко от 5, за да изглежда като бланка */}
+            {Array.from({
+              length: Math.max(
+                0,
+                5 -
+                  allPeople.filter(
+                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+                  ).length
+              ),
+            }).map((_, i) => (
+              <tr key={`empty-${i}`}>
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {allPeople.filter(
+                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+                  ).length +
+                    i +
+                    1}
+                  .
                 </td>
+                <td style={TD}>&nbsp;</td>
+                <td style={TD}>&nbsp;</td>
+                <td style={TD}>&nbsp;</td>
               </tr>
             ))}
-            {/* Добавяме празни редове, ако участниците са по-малко от 5, за да изглежда като бланка */}
-            {Array.from({ length: Math.max(0, 5 - allPeople.length) }).map(
-              (_, i) => (
-                <tr key={`empty-${i}`}>
-                  <td style={{ ...TD, textAlign: "center" }}>
-                    {allPeople.length + i + 1}.
-                  </td>
-                  <td style={TD}>&nbsp;</td>
-                  <td style={TD}>&nbsp;</td>
-                  <td style={TD}>&nbsp;</td>
-                </tr>
-              )
-            )}
           </tbody>
         </table>
 
