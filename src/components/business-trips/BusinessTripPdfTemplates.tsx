@@ -1262,7 +1262,7 @@ export function BusinessTripPdfTemplates({
           </div>
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
+        <div style={{ textAlign: "center", marginBottom: "16pt" }}>
           <p
             style={{
               fontWeight: "800",
@@ -1272,24 +1272,31 @@ export function BusinessTripPdfTemplates({
               color: "#0f172a",
             }}
           >
-            ПРИСЪСТВЕН ЛИСТ
+            С П И С Ъ К
+          </p>
+          <p
+            style={{
+              fontSize: "11pt",
+              marginTop: "4pt",
+              color: "#0f172a",
+              fontWeight: "600",
+            }}
+          >
+            на състезателите от „БАДМИНТОН КЛУБ ГЪЛЪБОВО“
           </p>
           <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
-            за проведено спортно мероприятие / командировка
+            участници на{" "}
+            <strong style={{ color: "#0f172a" }}>
+              {event.title || trip.title}
+            </strong>
+          </p>
+          <p style={{ fontSize: "11pt", marginTop: "2pt", color: "#475569" }}>
+            {fmtDate(trip.startDate)} г. - {fmtDate(trip.endDate)} г. —{" "}
+            {destCity}
           </p>
         </div>
 
         <div style={{ marginBottom: "16pt", lineHeight: "1.6" }}>
-          <p>
-            <strong>Спортна проява:</strong> {event.title || trip.title}
-          </p>
-          <p>
-            <strong>Период на провеждане:</strong> от {fmtDate(trip.startDate)}{" "}
-            г. до {fmtDate(trip.endDate)} г.
-          </p>
-          <p>
-            <strong>Място на провеждане:</strong> {destCity}
-          </p>
           <p>
             <strong>Организатор:</strong>{" "}
             {trip.organizer ||
