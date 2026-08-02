@@ -442,14 +442,20 @@ export default function AccountingClient() {
       for (let i = 0; i < filteredTrips.length; i++) {
         const trip = filteredTrips[i];
         const tId = trip.id;
-        const tripFolder = zip.folder(`Командировка_${i + 1}_${trip.title}`);
+
+        // Sanitize trip title to avoid Windows ZIP invalid folder names (remove slashes, colons, etc.)
+        const safeTitle = (trip.title || "Командировка")
+          .replace(/[<>:"\/\\|?*]+/g, "-")
+          .trim();
+
+        const tripFolder = zip.folder(`Командировка_${i + 1}_${safeTitle}`);
         if (!tripFolder) continue;
 
         // Order
         const orderEl = document.getElementById(`pdf-order-template-${tId}`);
         if (orderEl) {
           const blob = await getPdfBlobFromElement(orderEl, "portrait");
-          tripFolder.file(`01_Заповед_${trip.title}.pdf`, blob);
+          tripFolder.file(`01_Заповед_${safeTitle}.pdf`, blob);
         }
 
         // Statement
@@ -458,14 +464,14 @@ export default function AccountingClient() {
         );
         if (statementEl) {
           const blob = await getPdfBlobFromElement(statementEl, "portrait");
-          tripFolder.file(`02_Ведомост_${trip.title}.pdf`, blob);
+          tripFolder.file(`02_Ведомост_${safeTitle}.pdf`, blob);
         }
 
         // Attendance
         const attEl = document.getElementById(`pdf-attendance-template-${tId}`);
         if (attEl) {
           const blob = await getPdfBlobFromElement(attEl, "portrait");
-          tripFolder.file(`03_Присъствен_лист_${trip.title}.pdf`, blob);
+          tripFolder.file(`03_Присъствен_лист_${safeTitle}.pdf`, blob);
         }
 
         // Fuel (if exists)
@@ -474,7 +480,7 @@ export default function AccountingClient() {
         );
         if (fuelEl) {
           const blob = await getPdfBlobFromElement(fuelEl, "portrait");
-          tripFolder.file(`04_Пътен_лист_${trip.title}.pdf`, blob);
+          tripFolder.file(`04_Пътен_лист_${safeTitle}.pdf`, blob);
         }
 
         // Attachments
@@ -1456,7 +1462,6 @@ export default function AccountingClient() {
       >
         {filteredTrips.map((trip) => {
           const tripEvent = events.find((e) => e.id === trip.eventId);
-          if (!tripEvent) return null;
           return (
             <BusinessTripPdfTemplates
               key={trip.id}

@@ -15,7 +15,7 @@ import { Member } from "@/types/member.types";
 
 interface BusinessTripPdfTemplatesProps {
   trip: BusinessTrip;
-  event: ScheduleEvent;
+  event?: ScheduleEvent;
   membersDict: Record<string, Member>;
   expenses: TripExpense[];
   showBgn?: boolean;
@@ -181,7 +181,7 @@ export function BusinessTripPdfTemplates({
   expenses = [],
   idSuffix = "",
 }: BusinessTripPdfTemplatesProps) {
-  if (!trip || !event) return null;
+  if (!trip) return null;
 
   const site = getSiteConfig();
 
@@ -237,7 +237,7 @@ export function BusinessTripPdfTemplates({
         training: "тренировка",
         event: "мероприятие",
       } as Record<string, string>
-    )[event?.type] || "";
+    )[event?.type || ""] || "";
   const cleanTitle = trip.title.replace(/^[Кк]омандировка:\s*/u, "");
   const isSameDay = differenceInCalendarDays(endD, startD) === 0;
   const yearStr = format(startD, "yyyy");
@@ -633,7 +633,9 @@ export function BusinessTripPdfTemplates({
           >
             <p style={{ margin: 0 }}>
               Спортна проява:{" "}
-              <strong style={{ color: "#0f172a" }}>{event.title}</strong>
+              <strong style={{ color: "#0f172a" }}>
+                {event?.title || trip.title}
+              </strong>
             </p>
             <p style={{ margin: "2pt 0" }}>
               От {fmtDate(trip.startDate)} г. до {fmtDate(trip.endDate)} г. в{" "}
@@ -1289,7 +1291,7 @@ export function BusinessTripPdfTemplates({
           <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
             участници на{" "}
             <strong style={{ color: "#0f172a" }}>
-              {event.title || trip.title}
+              {event?.title || trip.title}
             </strong>
           </p>
           <p style={{ fontSize: "11pt", marginTop: "2pt", color: "#475569" }}>
