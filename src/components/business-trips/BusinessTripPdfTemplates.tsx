@@ -19,6 +19,7 @@ interface BusinessTripPdfTemplatesProps {
   membersDict: Record<string, Member>;
   expenses: TripExpense[];
   showBgn?: boolean;
+  idSuffix?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -178,6 +179,7 @@ export function BusinessTripPdfTemplates({
   event,
   membersDict,
   expenses = [],
+  idSuffix = "",
 }: BusinessTripPdfTemplatesProps) {
   if (!trip || !event) return null;
 
@@ -322,7 +324,7 @@ export function BusinessTripPdfTemplates({
 
   return (
     <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-      <div id="pdf-order-template" style={PAGE_A4}>
+      <div id={`pdf-order-template${idSuffix}`} style={PAGE_A4}>
         <div
           style={{
             display: "flex",
@@ -585,7 +587,7 @@ export function BusinessTripPdfTemplates({
           </div>
         </div>
       </div>
-      <div id="pdf-statement-template" style={PAGE_LAND}>
+      <div id={`pdf-statement-template${idSuffix}`} style={PAGE_LAND}>
         <div
           style={{
             display: "flex",
@@ -934,7 +936,7 @@ export function BusinessTripPdfTemplates({
           DOC 3: ОТЧЕТ ЗА ГОРИВО (само за fuel_only)
       ══════════════════════════════════════════════════════ */}
       {hasFuel && (
-        <div id="pdf-fuel-report-template" style={PAGE_LAND}>
+        <div id={`pdf-fuel-report-template${idSuffix}`} style={PAGE_LAND}>
           <div
             style={{
               display: "flex",
@@ -1219,7 +1221,7 @@ export function BusinessTripPdfTemplates({
       {/* ══════════════════════════════════════════════════════
           DOC 4: ПРИСЪСТВЕН ЛИСТ (ATTENDANCE)
       ══════════════════════════════════════════════════════ */}
-      <div id="pdf-attendance-template" style={PAGE_A4}>
+      <div id={`pdf-attendance-template${idSuffix}`} style={PAGE_A4}>
         <div
           style={{
             display: "flex",

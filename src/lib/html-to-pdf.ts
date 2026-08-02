@@ -267,6 +267,133 @@ export async function getPdfBase64FromElement(
 }
 
 /**
+ * Generates a PDF from an HTML element and returns it as a Blob.
+ * This is useful for adding the PDF to a ZIP archive.
+ */
+export async function getPdfBlobFromElement(
+  element: HTMLElement,
+  orientation: "portrait" | "landscape" = "portrait"
+): Promise<Blob> {
+  let allCSS = "";
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    const sheet = document.styleSheets[i];
+    try {
+      const rules = sheet.cssRules || sheet.rules;
+      for (let j = 0; j < rules.length; j++) {
+        allCSS += rules[j].cssText + "\n";
+      }
+    } catch {
+      // Ignore CORS
+    }
+  }
+
+  const cleanCSS = allCSS
+    .replace(
+      /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+      "color: rgb(15, 23, 42)"
+    )
+    .replace(
+      /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+      "background-color: transparent"
+    )
+    .replace(
+      /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+      "border-color: rgb(203, 213, 225)"
+    )
+    .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: "#ffffff",
+    onclone: (clonedDoc: Document) => {
+      const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
+      linkTags.forEach((link) => link.remove());
+
+      const styleEl = clonedDoc.createElement("style");
+      styleEl.textContent =
+        cleanCSS +
+        "\n" +
+        `
+        * {
+          font-family: Arial, Helvetica, sans-serif !important;
+          word-spacing: 2px !important;
+        }
+      `;
+      clonedDoc.head.appendChild(styleEl);
+
+      const styleTags = clonedDoc.querySelectorAll("style");
+      styleTags.forEach((style) => {
+        if (style.innerHTML) {
+          style.innerHTML = style.innerHTML
+            .replace(
+              /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+              "color: rgb(15, 23, 42)"
+            )
+            .replace(
+              /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+              "background-color: transparent"
+            )
+            .replace(
+              /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+              "border-color: rgb(203, 213, 225)"
+            )
+            .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
+        }
+      });
+
+      const allElements = clonedDoc.querySelectorAll("*");
+      allElements.forEach((el) => {
+        const styleAttr = el.getAttribute("style");
+        if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
+          el.setAttribute(
+            "style",
+            styleAttr
+              .replace(
+                /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                "color: rgb(15, 23, 42)"
+              )
+              .replace(
+                /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                "background-color: transparent"
+              )
+              .replace(
+                /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
+                "border-color: rgb(203, 213, 225)"
+              )
+              .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
+          );
+        }
+      });
+    },
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({
+    orientation,
+    unit: "mm",
+    format: "a4",
+  });
+
+  const imgProps = pdf.getImageProperties(imgData);
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = orientation === "landscape" ? 210 : 297;
+  let imgWidth = pdfWidth;
+  let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  if (imgHeight > pageHeight) {
+    const ratio = pageHeight / imgHeight;
+    imgHeight = pageHeight;
+    imgWidth = imgWidth * ratio;
+  }
+
+  const x = (pdfWidth - imgWidth) / 2;
+  pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
+  return pdf.output("blob");
+}
+
+/**
  * Generates a PDF from an HTML element and opens it in a new browser tab for preview.
  */
 export async function previewPdfFromElement(

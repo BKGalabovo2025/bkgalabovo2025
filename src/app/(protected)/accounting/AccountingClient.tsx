@@ -11,7 +11,9 @@ import {
 } from "date-fns";
 import { bg } from "date-fns/locale";
 import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import { getDocs } from "firebase/firestore";
+import JSZip from "jszip";
 import {
   Bed,
   Calculator,
@@ -29,6 +31,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
+import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -58,7 +61,10 @@ import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
 import { formatDateShort } from "@/lib/date-utils";
 import { getEventsQuery } from "@/lib/firebase-collections";
-import { generatePdfFromElement } from "@/lib/html-to-pdf";
+import {
+  generatePdfFromElement,
+  getPdfBlobFromElement,
+} from "@/lib/html-to-pdf";
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
 import { docToScheduleEvent } from "@/services/schedule-service";
@@ -78,6 +84,7 @@ export default function AccountingClient() {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
   const { user } = useAuth();
 
   // Modal states
@@ -405,6 +412,107 @@ export default function AccountingClient() {
     }, 100);
   };
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  const handleDownloadAll = async () => {
+    if (filteredTrips.length === 0) {
+      toast.error("Няма командировки за този месец.");
+      return;
+    }
+
+    setIsZipping(true);
+    toast.info("Генериране на пакета с документи... Моля, изчакайте.");
+
+    try {
+      const zip = new JSZip();
+
+      // 1. Generate Monthly Protocol
+      const protocolEl = document.getElementById("pdf-protocol-template");
+      if (protocolEl) {
+        const protocolBlob = await getPdfBlobFromElement(
+          protocolEl,
+          "portrait"
+        );
+        zip.file(
+          `Месечен_протокол_${format(selectedMonth, "MM_yyyy")}.pdf`,
+          protocolBlob
+        );
+      }
+
+      // 2. Loop through all filtered trips to generate their PDFs
+      for (let i = 0; i < filteredTrips.length; i++) {
+        const trip = filteredTrips[i];
+        const tId = trip.id;
+        const tripFolder = zip.folder(`Командировка_${i + 1}_${trip.title}`);
+        if (!tripFolder) continue;
+
+        // Order
+        const orderEl = document.getElementById(`pdf-order-template-${tId}`);
+        if (orderEl) {
+          const blob = await getPdfBlobFromElement(orderEl, "portrait");
+          tripFolder.file(`01_Заповед_${trip.title}.pdf`, blob);
+        }
+
+        // Statement
+        const statementEl = document.getElementById(
+          `pdf-statement-template-${tId}`
+        );
+        if (statementEl) {
+          const blob = await getPdfBlobFromElement(statementEl, "portrait");
+          tripFolder.file(`02_Ведомост_${trip.title}.pdf`, blob);
+        }
+
+        // Attendance
+        const attEl = document.getElementById(`pdf-attendance-template-${tId}`);
+        if (attEl) {
+          const blob = await getPdfBlobFromElement(attEl, "portrait");
+          tripFolder.file(`03_Присъствен_лист_${trip.title}.pdf`, blob);
+        }
+
+        // Fuel (if exists)
+        const fuelEl = document.getElementById(
+          `pdf-fuel-report-template-${tId}`
+        );
+        if (fuelEl) {
+          const blob = await getPdfBlobFromElement(fuelEl, "portrait");
+          tripFolder.file(`04_Пътен_лист_${trip.title}.pdf`, blob);
+        }
+
+        // Attachments
+        const tripExps = expenses[tId!] || [];
+        for (let j = 0; j < tripExps.length; j++) {
+          const exp = tripExps[j];
+          if (exp.attachmentUrl) {
+            try {
+              const response = await fetch(exp.attachmentUrl);
+              const blob = await response.blob();
+              // Determine extension
+              let ext = "pdf";
+              if (blob.type.includes("image")) {
+                ext = blob.type.split("/")[1] || "png";
+              }
+              const filename = `05_Фактура_${exp.expenseType}_${exp.documentNumber || j + 1}.${ext}`;
+              tripFolder.file(filename, blob);
+            } catch (err) {
+              console.error("Failed to fetch attachment:", err);
+            }
+          }
+        }
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(
+        content,
+        `Счетоводен_Пакет_${format(selectedMonth, "MM_yyyy")}.zip`
+      );
+      toast.success("Пакетът беше изтеглен успешно!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Грешка при генерирането на пакета.");
+    } finally {
+      setIsZipping(false);
+    }
+  };
+
   const handlePreviewProtocol = () => {
     setIsGeneratingPdf(true);
     setTimeout(() => {
@@ -504,6 +612,15 @@ export default function AccountingClient() {
             className="rounded-xl border-slate-200"
           >
             <FileDown className="mr-2 size-4" /> Експорт (Excel)
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadAll}
+            disabled={isZipping || filteredTrips.length === 0}
+            className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200"
+          >
+            <FileDown className="mr-2 size-4" />
+            {isZipping ? "Генериране..." : "Изтегли пълен пакет (ZIP)"}
           </Button>
 
           <DropdownMenu>
@@ -1326,6 +1443,32 @@ export default function AccountingClient() {
           }}
         />
       )}
+
+      {/* Hidden Templates for ZIP Generation */}
+      <div
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "-9999px",
+          opacity: 0,
+          pointerEvents: "none",
+        }}
+      >
+        {filteredTrips.map((trip) => {
+          const tripEvent = events.find((e) => e.id === trip.eventId);
+          if (!tripEvent) return null;
+          return (
+            <BusinessTripPdfTemplates
+              key={trip.id}
+              trip={trip}
+              event={tripEvent}
+              membersDict={membersDict}
+              expenses={expenses[trip.id!] || []}
+              idSuffix={`-${trip.id}`}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
