@@ -1065,6 +1065,7 @@ export default function AccountingClient() {
               </tr>
             </thead>
             <tbody>
+              {/* eslint-disable-next-line sonarjs/cognitive-complexity */}
               {filteredTrips.map((trip, idx) => {
                 const coach = membersDict[trip.coachId];
                 const coachName = coach
@@ -1203,7 +1204,22 @@ export default function AccountingClient() {
                         textAlign: "center",
                       }}
                     >
-                      {tripExps.length + (trip.vehicle?.distanceKm ? 1 : 0)}
+                      {3 + (trip.vehicle?.distanceKm ? 1 : 0) + tripExps.length}
+                      <div
+                        style={{
+                          fontSize: "7pt",
+                          color: "#64748b",
+                          marginTop: "2pt",
+                          lineHeight: "1.2",
+                        }}
+                      >
+                        (Заповед, Ведомост, Присъств. лист
+                        {trip.vehicle?.distanceKm ? ", Отчет гориво" : ""}
+                        {tripExps.length > 0
+                          ? `, +${tripExps.length} разх. док.`
+                          : ""}
+                        )
+                      </div>
                     </td>
                     <td
                       style={{
