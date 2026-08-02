@@ -110,6 +110,7 @@ export const BusinessTripSchema = z.object({
   orderDownloadedAt: z.string().datetime().optional(),
   statementDownloadedAt: z.string().datetime().optional(),
   fuelDownloadedAt: z.string().datetime().optional(),
+  attendanceDownloadedAt: z.string().datetime().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });

@@ -233,6 +233,12 @@ export function BusinessTripManagerDialog({
           m.generatePdfFromElement(el, `Присъствен_Лист_${trip.title}`).finally(
             () => {
               setIsGeneratingPdf(false);
+              businessTripService
+                .updateTrip(trip.id!, {
+                  attendanceDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
             }
           );
         });
@@ -551,30 +557,56 @@ export function BusinessTripManagerDialog({
                       {/* Присъствен лист */}
                       <div className="flex items-center">
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.attendanceDownloadedAt
+                              ? "secondary"
+                              : "outline"
+                          }
                           size="icon"
                           title="Преглед"
-                          className="size-8 rounded-r-none border-r-0 px-0"
+                          className={
+                            trip.attendanceDownloadedAt
+                              ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-r-none border-r-0 px-0"
+                          }
                           onClick={() => handlePreviewPdf(trip, "attendance")}
                           disabled={isGeneratingPdf || isSendingEmail}
                         >
                           <Eye className="size-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.attendanceDownloadedAt
+                              ? "secondary"
+                              : "outline"
+                          }
                           size="sm"
                           onClick={() => handlePrintAttendance(trip)}
                           disabled={isGeneratingPdf || isSendingEmail}
-                          className="rounded-none border-x-0"
+                          className={
+                            trip.attendanceDownloadedAt
+                              ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "rounded-none border-x-0"
+                          }
                         >
                           <FileDown className="mr-2 size-4" />
-                          Присъствен лист
+                          {trip.attendanceDownloadedAt
+                            ? `Присъствен лист (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                            : "Присъствен лист (PDF)"}
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.attendanceDownloadedAt
+                              ? "secondary"
+                              : "outline"
+                          }
                           size="icon"
                           title="Изпрати по имейл"
-                          className="size-8 rounded-l-none px-0"
+                          className={
+                            trip.attendanceDownloadedAt
+                              ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-l-none px-0"
+                          }
                           onClick={() => handleEmailPdf(trip, "attendance")}
                           disabled={isGeneratingPdf || isSendingEmail}
                         >
