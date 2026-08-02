@@ -1319,60 +1319,36 @@ export function BusinessTripPdfTemplates({
           СПИСЪК НА УЧАСТНИЦИТЕ
         </p>
 
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "20pt",
-          }}
+        <div
+          style={{ marginBottom: "20pt", lineHeight: "1.8", fontSize: "11pt" }}
         >
-          <thead>
-            <tr>
-              <th style={{ ...TH, width: "24pt" }}>№</th>
-              <th style={{ ...TH, textAlign: "left" }}>Име и фамилия</th>
-              <th style={{ ...TH, width: "100pt" }}>Роля</th>
-              <th style={{ ...TH, width: "120pt" }}>Подпис</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allPeople
-              .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
-              .map((p, i) => (
-                <tr key={i}>
-                  <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
-                  <td style={{ ...TD, fontWeight: "500" }}>{p.name}</td>
-                  <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
-                  <td style={{ ...TD, textAlign: "center", color: "#64748b" }}>
-                    ....................
-                  </td>
-                </tr>
-              ))}
-            {/* Добавяме празни редове, ако участниците са по-малко от 5, за да изглежда като бланка */}
-            {Array.from({
-              length: Math.max(
-                0,
-                5 -
-                  allPeople.filter(
-                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
-                  ).length
-              ),
-            }).map((_, i) => (
-              <tr key={`empty-${i}`}>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {allPeople.filter(
-                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
-                  ).length +
-                    i +
-                    1}
-                  .
-                </td>
-                <td style={TD}>&nbsp;</td>
-                <td style={TD}>&nbsp;</td>
-                <td style={TD}>&nbsp;</td>
-              </tr>
+          {allPeople
+            .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
+            .map((p, i) => (
+              <p key={i} style={{ margin: "4pt 0" }}>
+                {i + 1}. {p.name}
+              </p>
             ))}
-          </tbody>
-        </table>
+          {/* Добавяме празни редове за допълване до 5 */}
+          {Array.from({
+            length: Math.max(
+              0,
+              5 -
+                allPeople.filter(
+                  (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+                ).length
+            ),
+          }).map((_, i) => (
+            <p key={`empty-${i}`} style={{ margin: "4pt 0" }}>
+              {allPeople.filter(
+                (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+              ).length +
+                i +
+                1}
+              . ........................................................
+            </p>
+          ))}
+        </div>
 
         <div
           style={{
