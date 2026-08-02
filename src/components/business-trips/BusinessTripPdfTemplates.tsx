@@ -1220,11 +1220,54 @@ export function BusinessTripPdfTemplates({
           DOC 4: ПРИСЪСТВЕН ЛИСТ (ATTENDANCE)
       ══════════════════════════════════════════════════════ */}
       <div id="pdf-attendance-template" style={PAGE_A4}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #e2e8f0",
+            paddingBottom: "10pt",
+            marginBottom: "12pt",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{ height: "45pt", objectFit: "contain" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "14pt",
+                  margin: 0,
+                  color: "#0f172a",
+                }}
+              >
+                „{site.shortName.toUpperCase()}"
+              </p>
+              {site.bulstat && (
+                <p
+                  style={{
+                    fontSize: "9pt",
+                    margin: "2pt 0 0 0",
+                    color: "#64748b",
+                  }}
+                >
+                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div style={{ textAlign: "center", marginBottom: "14pt" }}>
           <p
             style={{
               fontWeight: "800",
-              fontSize: "13pt",
+              fontSize: "14pt",
+              letterSpacing: "2px",
               margin: 0,
               color: "#0f172a",
             }}
