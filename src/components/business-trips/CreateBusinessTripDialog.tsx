@@ -252,10 +252,46 @@ export function CreateBusinessTripDialog({
                 control={form.control as any}
                 name="destination"
                 render={({ field }: any) => (
-                  <FormItem>
+                  <FormItem className="col-span-2 sm:col-span-1">
                     <FormLabel>Място на провеждане (Дестинация)</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control as any}
+                name="organizer"
+                render={({ field }: any) => (
+                  <FormItem className="col-span-2 sm:col-span-1">
+                    <FormLabel>Организатор (напр. БФ Бадминтон)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Организатор..."
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control as any}
+                name="hostClub"
+                render={({ field }: any) => (
+                  <FormItem className="col-span-2 sm:col-span-1">
+                    <FormLabel>Клуб домакин</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Клуб домакин..."
+                        {...field}
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

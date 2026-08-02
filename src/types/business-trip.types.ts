@@ -89,6 +89,8 @@ export const BusinessTripSchema = z.object({
   coachId: z
     .string()
     .min(1, "Изберете командировано лице (треньор/ръководител)"),
+  organizer: z.string().optional(),
+  hostClub: z.string().optional(),
   coachName: z.string().optional(),
   coachRole: z.string().optional(),
   participantsIds: z.array(z.string()).default([]), // Списък с IDs на избраните състезатели

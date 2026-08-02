@@ -1288,11 +1288,16 @@ export function BusinessTripPdfTemplates({
             г. до {fmtDate(trip.endDate)} г.
           </p>
           <p>
-            <strong>Място на провеждане:</strong> гр./с. {destCity}, обект:
-            ..................................
+            <strong>Място на провеждане:</strong> {destCity}
           </p>
           <p>
-            <strong>Организатор / Клуб:</strong> {site.name}
+            <strong>Организатор:</strong>{" "}
+            {trip.organizer ||
+              "..............................................."}
+          </p>
+          <p>
+            <strong>Клуб домакин:</strong>{" "}
+            {trip.hostClub || "..............................................."}
           </p>
         </div>
 

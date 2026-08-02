@@ -1,12 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx", "scripts/**/*.ts"],
-  "ignore": [
-    "src/style.css",
-    "scripts/**/*.cjs",
-    "scripts/**/*.mjs",
-    "src/components/ui/**/*.stories.tsx"
+  "entry": [
+    "src/app/api/**/*.ts",
+    "src/app/**/*.tsx",
+    "scripts/**/*.ts",
+    "e2e/**/*.ts"
   ],
+  "ignore": ["src/style.css", "scripts/**/*.cjs", "scripts/**/*.mjs"],
   "next": {
     "entry": [
       "src/app/api/**/*.ts",
