@@ -194,10 +194,11 @@ export function BusinessTripPdfTemplates({
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
   const allPeople = [
-    { name: coachName, role: coachRole },
+    { name: coachName, role: coachRole, member: coach },
     ...partMembers.map((m) => ({
       name: `${m.firstName} ${m.lastName}`,
       role: m.isCoach ? "Треньор" : "Състезател",
+      member: m,
     })),
   ];
   const totalPeople = allPeople.length;
@@ -1214,6 +1215,211 @@ export function BusinessTripPdfTemplates({
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════════════
+          DOC 4: ПРИСЪСТВЕН ЛИСТ (ATTENDANCE)
+      ══════════════════════════════════════════════════════ */}
+      <div id="pdf-attendance-template" style={PAGE_A4}>
+        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
+          <p
+            style={{
+              fontWeight: "800",
+              fontSize: "13pt",
+              margin: 0,
+              color: "#0f172a",
+            }}
+          >
+            ПРИСЪСТВЕН ЛИСТ
+          </p>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+            за проведено спортно мероприятие / командировка
+          </p>
+        </div>
+
+        <div style={{ marginBottom: "16pt", lineHeight: "1.6" }}>
+          <p>
+            <strong>Спортна проява:</strong> {event.title || trip.title}
+          </p>
+          <p>
+            <strong>Период на провеждане:</strong> от {fmtDate(trip.startDate)}{" "}
+            г. до {fmtDate(trip.endDate)} г.
+          </p>
+          <p>
+            <strong>Място на провеждане:</strong> гр./с. {destCity}, обект:
+            ..................................
+          </p>
+          <p>
+            <strong>Организатор / Клуб:</strong> {site.name}
+          </p>
+        </div>
+
+        <p
+          style={{
+            fontWeight: "700",
+            fontSize: "11pt",
+            marginBottom: "8pt",
+            color: "#0f172a",
+          }}
+        >
+          📝 СПИСЪК НА УЧАСТНИЦИТЕ
+        </p>
+
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginBottom: "20pt",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ ...TH, width: "24pt" }}>№</th>
+              <th style={{ ...TH, textAlign: "left" }}>
+                Три имена на участника
+              </th>
+              <th style={{ ...TH, width: "100pt" }}>Длъжност / Роля</th>
+              <th style={{ ...TH, width: "120pt" }}>
+                Възрастова група / Категория
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {allPeople.map((p, i) => (
+              <tr key={i}>
+                <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
+                <td style={{ ...TD, fontWeight: "500" }}>{p.name}</td>
+                <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
+                <td style={{ ...TD, textAlign: "center", color: "#64748b" }}>
+                  {p.role === "Треньор" || p.role === "Ръководител"
+                    ? "—"
+                    : "...................."}
+                </td>
+              </tr>
+            ))}
+            {/* Добавяме празни редове, ако участниците са по-малко от 5, за да изглежда като бланка */}
+            {Array.from({ length: Math.max(0, 5 - allPeople.length) }).map(
+              (_, i) => (
+                <tr key={`empty-${i}`}>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {allPeople.length + i + 1}.
+                  </td>
+                  <td style={TD}>&nbsp;</td>
+                  <td style={TD}>&nbsp;</td>
+                  <td style={TD}>&nbsp;</td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+
+        <div
+          style={{
+            border: "1px solid #cbd5e1",
+            borderRadius: "8px",
+            padding: "12pt",
+            backgroundColor: "#f8fafc",
+            marginBottom: "20pt",
+          }}
+        >
+          <p
+            style={{
+              fontWeight: "700",
+              fontSize: "10pt",
+              marginBottom: "8pt",
+              color: "#0f172a",
+            }}
+          >
+            🛡️ УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
+          </p>
+          <p style={{ margin: "4pt 0" }}>
+            Общ брой присъствали лица: <strong>{totalPeople}</strong> (буквом:{" "}
+            {numToWordsBG(totalPeople, false).replace(" лева", "")})
+          </p>
+          <p style={{ margin: "4pt 0" }}>от които:</p>
+          <ul style={{ margin: "4pt 0 4pt 20pt", padding: 0 }}>
+            <li>
+              Треньорски състав / Ръководители:{" "}
+              <strong>
+                {
+                  allPeople.filter(
+                    (p) => p.role === "Треньор" || p.role === "Ръководител"
+                  ).length
+                }
+              </strong>{" "}
+              бр.
+            </li>
+            <li>
+              Състезатели:{" "}
+              <strong>
+                {allPeople.filter((p) => p.role === "Състезател").length}
+              </strong>{" "}
+              бр.
+            </li>
+          </ul>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "30pt",
+          }}
+        >
+          <div>
+            <p style={{ margin: "0 0 4pt 0" }}>
+              Дата: {fmtDate(trip.endDate || trip.startDate)} г.
+            </p>
+            <p style={{ margin: 0 }}>гр. Гълъбово</p>
+            <div style={{ marginTop: "16pt" }}>
+              <p style={{ margin: "0 0 4pt 0", fontWeight: "600" }}>
+                Ръководител на групата / Треньор:
+              </p>
+              <p style={{ margin: "0 0 20pt 0" }}>Име и фамилия: {coachName}</p>
+              <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <span style={{ marginRight: "10pt" }}>Подпис:</span>
+                {trip.signatures?.coach ? (
+                  <img
+                    src={trip.signatures.coach}
+                    alt="signature"
+                    style={{ height: "40pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span style={{ color: "#cbd5e1" }}>
+                    ..................................
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: "250pt",
+              borderLeft: "2px dashed #cbd5e1",
+              paddingLeft: "20pt",
+            }}
+          >
+            <p style={{ margin: "0 0 4pt 0", fontWeight: "600" }}>
+              Главен съдия / Организатор на турнира:
+            </p>
+            <p
+              style={{
+                margin: "0 0 16pt 0",
+                fontSize: "8pt",
+                color: "#64748b",
+              }}
+            >
+              (опционално – за потвърждение от федерацията/домакина)
+            </p>
+            <p style={{ margin: "0 0 20pt 0" }}>
+              Подпис: ............................................
+            </p>
+            <p style={{ margin: 0 }}>
+              Печат: ............................................
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

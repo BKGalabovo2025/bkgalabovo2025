@@ -172,7 +172,7 @@ export function BusinessTripManagerDialog({
 
   const handlePreviewPdf = (
     trip: BusinessTrip,
-    type: "order" | "statement" | "fuel"
+    type: "order" | "statement" | "fuel" | "attendance"
   ) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
@@ -181,6 +181,7 @@ export function BusinessTripManagerDialog({
       let elId = "pdf-fuel-report-template";
       if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
+      else if (type === "attendance") elId = "pdf-attendance-template";
 
       const el = document.getElementById(elId);
       if (el) {
@@ -222,9 +223,28 @@ export function BusinessTripManagerDialog({
     }, 100);
   };
 
+  const handlePrintAttendance = (trip: BusinessTrip) => {
+    setIsGeneratingPdf(true);
+    setSelectedTripForPdf(trip);
+    setTimeout(() => {
+      const el = document.getElementById("pdf-attendance-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          m.generatePdfFromElement(el, `Присъствен_Лист_${trip.title}`).finally(
+            () => {
+              setIsGeneratingPdf(false);
+            }
+          );
+        });
+      } else {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
+  };
+
   const handleEmailPdf = (
     trip: BusinessTrip,
-    type: "order" | "statement" | "fuel"
+    type: "order" | "statement" | "fuel" | "attendance"
   ) => {
     const email = window.prompt(
       "Моля, въведете имейл адрес, на който да изпратим документа:",
@@ -239,6 +259,7 @@ export function BusinessTripManagerDialog({
       let elId = "pdf-fuel-report-template";
       if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
+      else if (type === "attendance") elId = "pdf-attendance-template";
 
       const el = document.getElementById(elId);
       if (el) {
@@ -251,6 +272,8 @@ export function BusinessTripManagerDialog({
               if (type === "order") filename = `Нареждане_${trip.title}.pdf`;
               else if (type === "statement")
                 filename = `Ведомост_${trip.title}.pdf`;
+              else if (type === "attendance")
+                filename = `Присъствен_Лист_${trip.title}.pdf`;
 
               const attachmentContent = base64Data.split(",")[1] || base64Data; // Extract pure base64
 
@@ -524,6 +547,41 @@ export function BusinessTripManagerDialog({
                           <Mail className="size-4" />
                         </Button>
                       </div>
+
+                      {/* Присъствен лист */}
+                      <div className="flex items-center">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Преглед"
+                          className="size-8 rounded-r-none border-r-0 px-0"
+                          onClick={() => handlePreviewPdf(trip, "attendance")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrintAttendance(trip)}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                          className="rounded-none border-x-0"
+                        >
+                          <FileDown className="mr-2 size-4" />
+                          Присъствен лист
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Изпрати по имейл"
+                          className="size-8 rounded-l-none px-0"
+                          onClick={() => handleEmailPdf(trip, "attendance")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Mail className="size-4" />
+                        </Button>
+                      </div>
+
                       {trip.transportType === "fuel_only" && (
                         <div className="flex items-center">
                           <Button
