@@ -98,6 +98,16 @@ function initializeFirebaseAdmin() {
       initialized = true;
     } else if (tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
       initialized = true;
+    } else if (
+      process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+      process.env.FIRESTORE_EMULATOR_HOST ||
+      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
+    ) {
+      resolvedAdmin.initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID || "bkgalabovo-test",
+      });
+      initialized = true;
+      console.log("Firebase Admin SDK initialized in EMULATOR mode.");
     }
 
     if (!initialized) {
