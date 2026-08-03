@@ -768,9 +768,15 @@ export default function AccountingClient() {
               </h4>
             </div>
           </div>
-          <p className="text-xs text-zinc-400">
-            Вкл. {kpis.totalKM} изминати км
-          </p>
+          <div className="mt-4 flex flex-col gap-1">
+            <p className="text-xs text-zinc-400">
+              Вкл. {kpis.totalKM} изминати км
+            </p>
+            <p className="text-xs font-medium text-orange-600/80">
+              Равносметка:{" "}
+              {convertEurToBgn(kpis.totalFuelAndTransport).toFixed(2)} BGN
+            </p>
+          </div>
         </BentoCard>
 
         <BentoCard className="p-6">
@@ -787,6 +793,10 @@ export default function AccountingClient() {
               </h4>
             </div>
           </div>
+          <p className="mt-4 text-xs font-medium text-purple-600/80">
+            Равносметка: {convertEurToBgn(kpis.totalAccommodation).toFixed(2)}{" "}
+            BGN
+          </p>
         </BentoCard>
 
         <BentoCard className="p-6">
@@ -803,6 +813,9 @@ export default function AccountingClient() {
               </h4>
             </div>
           </div>
+          <p className="mt-4 text-xs font-medium text-emerald-600/80">
+            Равносметка: {convertEurToBgn(kpis.totalPerDiem).toFixed(2)} BGN
+          </p>
         </BentoCard>
 
         <BentoCard className="p-6">
@@ -817,6 +830,9 @@ export default function AccountingClient() {
               </h4>
             </div>
           </div>
+          <p className="mt-4 text-xs font-medium text-pink-600/80">
+            Равносметка: {convertEurToBgn(kpis.totalEntryFees).toFixed(2)} BGN
+          </p>
         </BentoCard>
       </div>
 
