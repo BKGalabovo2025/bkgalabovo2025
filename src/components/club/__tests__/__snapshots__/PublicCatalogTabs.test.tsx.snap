@@ -46,7 +46,11 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
               d="M6 9H4.5a1 1 0 0 1 0-5H6"
             />
           </svg>
-          Тренировки
+           
+          <span>
+            Тренировки
+          </span>
+           
         </button>
         <button
           class="flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
@@ -68,7 +72,11 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
               d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
             />
           </svg>
-          Клубни Услуги
+           
+          <span>
+            Клубни Услуги
+          </span>
+           
         </button>
         <button
           class="flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
@@ -99,7 +107,11 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
               d="m7.5 4.27 9 5.15"
             />
           </svg>
-          Магазин
+           
+          <span>
+            Магазин
+          </span>
+           
         </button>
         <button
           class="flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
@@ -121,7 +133,11 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
               d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
             />
           </svg>
-          Възстановяване
+           
+          <span>
+            Възстановяване
+          </span>
+           
         </button>
       </div>
     </div>
@@ -154,7 +170,9 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
       <p
         class="text-sm font-light"
       >
-        Няма намерени артикули.
+        <span>
+          Няма намерени артикули.
+        </span>
       </p>
     </div>
   </div>
