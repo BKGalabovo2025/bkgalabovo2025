@@ -6,7 +6,12 @@
     "scripts/**/*.ts",
     "e2e/**/*.ts"
   ],
-  "ignore": ["src/style.css", "scripts/**/*.cjs", "scripts/**/*.mjs"],
+  "ignore": [
+    "src/style.css",
+    "scripts/**/*.cjs",
+    "scripts/**/*.mjs",
+    "update_translations.cjs"
+  ],
   "next": {
     "entry": [
       "src/app/api/**/*.ts",
