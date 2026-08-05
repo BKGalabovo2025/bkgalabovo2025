@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { useAuth } from "@/context/auth-context";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { useAuth } from "@/context/auth-context";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -112,7 +112,7 @@ export default function HomePage() {
           </div>
 
           <div className="hidden h-6 w-px bg-zinc-800 md:block" />
-          
+
           <GoogleTranslateWidget />
 
           <Link
@@ -209,7 +209,7 @@ export default function HomePage() {
                   alt="Recovery Zone by ZM Logo"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-contain transition-all duration-500 rounded-2xl group-hover:scale-105"
+                  className="rounded-2xl object-contain transition-all duration-500 group-hover:scale-105"
                   priority={true}
                 />
               </div>

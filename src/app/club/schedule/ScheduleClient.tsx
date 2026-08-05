@@ -10,8 +10,8 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 
 interface EventSlot {
   id: string;

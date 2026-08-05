@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -12,7 +14,6 @@ import {
   Zap,
 } from "lucide-react";
 import { Eye } from "lucide-react";
-import Image from "next/image";
 import React, { useMemo, useState } from "react";
 
 import { ImageGallery } from "@/components/shared/images/ImageGallery";
@@ -114,10 +115,10 @@ export default function PublicCatalogTabs({
     return filtered.sort((a, b) => {
       const catA = (a.category || a.type || "").toLowerCase();
       const catB = (b.category || b.type || "").toLowerCase();
-      
+
       if (catA < catB) return -1;
       if (catA > catB) return 1;
-      
+
       const priceA = a.price || 0;
       const priceB = b.price || 0;
       return priceA - priceB;
@@ -146,7 +147,9 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Trophy size={16} className="sm:size-4" /> {t("Тренировки", "Trainings", lang)} </button>
+              <Trophy size={16} className="sm:size-4" />{" "}
+              {t("Тренировки", "Trainings", lang)}{" "}
+            </button>
           )}
           {allowedTabs.includes("general") && (
             <button
@@ -157,7 +160,9 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Activity size={16} className="sm:size-4" /> {t("Клубни Услуги", "Club Services", lang)} </button>
+              <Activity size={16} className="sm:size-4" />{" "}
+              {t("Клубни Услуги", "Club Services", lang)}{" "}
+            </button>
           )}
           {allowedTabs.includes("products") && (
             <button
@@ -168,7 +173,9 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Package size={16} className="sm:size-4" /> {t("Магазин", "Shop", lang)} </button>
+              <Package size={16} className="sm:size-4" />{" "}
+              {t("Магазин", "Shop", lang)}{" "}
+            </button>
           )}
           {allowedTabs.includes("recovery") && (
             <button
@@ -179,7 +186,9 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Zap size={16} className="sm:size-4" /> {t("Възстановяване", "Recovery", lang)} </button>
+              <Zap size={16} className="sm:size-4" />{" "}
+              {t("Възстановяване", "Recovery", lang)}{" "}
+            </button>
           )}
         </div>
       </div>
@@ -187,7 +196,10 @@ export default function PublicCatalogTabs({
       {/* Category Pills */}
       {categories.length > 2 && (
         <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase"> {t("Категория:", "Category:", lang)} </span>
+          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+            {" "}
+            {t("Категория:", "Category:", lang)}{" "}
+          </span>
           {categories.map((cat) => (
             <button
               key={cat}
@@ -208,7 +220,12 @@ export default function PublicCatalogTabs({
       {filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
-            <CatalogCard key={item.id} item={item} tab={activeTab} lang={lang} />
+            <CatalogCard
+              key={item.id}
+              item={item}
+              tab={activeTab}
+              lang={lang}
+            />
           ))}
         </div>
       ) : (
@@ -217,7 +234,9 @@ export default function PublicCatalogTabs({
             className="mb-3 size-10 text-zinc-700"
             strokeWidth={1.5}
           />
-          <p className="text-sm font-light">{t("Няма намерени артикули.", "No items found.", lang)}</p>
+          <p className="text-sm font-light">
+            {t("Няма намерени артикули.", "No items found.", lang)}
+          </p>
         </div>
       )}
     </div>
@@ -225,7 +244,11 @@ export default function PublicCatalogTabs({
 }
 
 function t(bg: string, en: string, lang: string) {
-  return lang === "en" ? <span className="notranslate">{en}</span> : <span>{bg}</span>;
+  return lang === "en" ? (
+    <span className="notranslate">{en}</span>
+  ) : (
+    <span>{bg}</span>
+  );
 }
 
 function renderTranslatedText(text: string | null | undefined, lang: string) {
@@ -233,35 +256,53 @@ function renderTranslatedText(text: string | null | undefined, lang: string) {
   const parts = text.split(/(ТАЗ|РЪЦЕ|КРАКА|Таз|Ръце|Крака|таз|ръце|крака)/g);
   return parts.map((part, index) => {
     const lower = part.toLowerCase();
-    
+
     if (["таз", "ръце", "крака"].includes(lower)) {
       let enWord = "";
       if (lower === "таз") enWord = "PELVIS";
       if (lower === "ръце") enWord = "ARMS";
       if (lower === "крака") enWord = "LEGS";
-      
+
       if (lang === "en") {
         const prevPart = index > 0 ? parts[index - 1] : "";
         const nextPart = index < parts.length - 1 ? parts[index + 1] : "";
-        
+
         let prefix = "";
         let suffix = "";
-        
+
         // Only add space if the original Bulgarian text had a space right next to the word
         if (prevPart.match(/[\s\xA0]$/)) prefix = " ";
         if (nextPart.match(/^[\s\xA0]/)) suffix = " ";
-        
-        return <span key={index} className="notranslate">{prefix}{enWord}{suffix}</span>;
+
+        return (
+          <span key={index} className="notranslate">
+            {prefix}
+            {enWord}
+            {suffix}
+          </span>
+        );
       }
-      
-      return <span key={index} className="notranslate">{part}</span>;
+
+      return (
+        <span key={index} className="notranslate">
+          {part}
+        </span>
+      );
     }
-    
+
     return <span key={index}>{part}</span>;
   });
 }
 
-function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: string }) {
+function CatalogCard({
+  item,
+  tab,
+  lang,
+}: {
+  item: any;
+  tab: CatalogTab;
+  lang: string;
+}) {
   const images = useMemo(() => {
     if (!item.imageUrl) {
       // Default fallback images for specific zones
@@ -313,16 +354,26 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
 
       if (isOutOfStock) {
         return (
-          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none"> {t("Изчерпан", "Out of stock", lang)} </Badge>
+          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none">
+            {" "}
+            {t("Изчерпан", "Out of stock", lang)}{" "}
+          </Badge>
         );
       }
       if (isLowStock) {
         return (
-          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none"> {t("Ограничен", "Low stock", lang)} ({item.stock} {t("бр.", "pcs.", lang)}) </Badge>
+          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none">
+            {" "}
+            {t("Ограничен", "Low stock", lang)} ({item.stock}{" "}
+            {t("бр.", "pcs.", lang)}){" "}
+          </Badge>
         );
       }
       return (
-        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none"> {t("В наличност", "In stock", lang)} </Badge>
+        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none">
+          {" "}
+          {t("В наличност", "In stock", lang)}{" "}
+        </Badge>
       );
     }
 
@@ -401,8 +452,12 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
           </h2>
           <p className="mt-3 line-clamp-3 min-h-14 text-xs leading-relaxed font-light text-zinc-400">
             <span>
-              {renderTranslatedText(item.description, lang) || 
-               t("Няма предоставено описание за този артикул.", "No description provided for this item.", lang)}
+              {renderTranslatedText(item.description, lang) ||
+                t(
+                  "Няма предоставено описание за този артикул.",
+                  "No description provided for this item.",
+                  lang
+                )}
             </span>
           </p>
 
@@ -424,49 +479,81 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
           {/* Features */}
           <div className="mt-4 space-y-3 border-t border-zinc-800/50 pt-4">
             <div className="flex flex-wrap gap-4 pt-1">
-            {(() => {
-              const dur = Number(item.duration || item.durationMinutes);
-              if (!dur) return null;
-              const nameLower = (item.name || "").toLowerCase();
-              const isExclusive = nameLower.includes("exclusive") || nameLower.includes("ексклузивн");
-              const displayDur = (isExclusive && dur === 45) ? "15 + 30" : dur;
-              
-              let colorClass = "text-zinc-300";
-              let iconClass = "text-zinc-500";
-              if (dur === 15) { colorClass = "text-teal-400"; iconClass = "text-teal-500"; }
-              else if (dur === 30) { colorClass = "text-blue-400"; iconClass = "text-blue-500"; }
-              else if (dur >= 45) { colorClass = "text-fuchsia-400"; iconClass = "text-fuchsia-500"; }
+              {(() => {
+                const dur = Number(item.duration || item.durationMinutes);
+                if (!dur) return null;
+                const nameLower = (item.name || "").toLowerCase();
+                const isExclusive =
+                  nameLower.includes("exclusive") ||
+                  nameLower.includes("ексклузивн");
+                const displayDur = isExclusive && dur === 45 ? "15 + 30" : dur;
 
-              return (
-                <div className={`flex items-center gap-1.5 text-xs ${colorClass}`}>
-                  <Clock className={`size-3.5 ${iconClass}`} strokeWidth={1.5} />
-                  <span>{displayDur} {t("минути", "minutes", lang)}</span>
+                let colorClass = "text-zinc-300";
+                let iconClass = "text-zinc-500";
+                if (dur === 15) {
+                  colorClass = "text-teal-400";
+                  iconClass = "text-teal-500";
+                } else if (dur === 30) {
+                  colorClass = "text-blue-400";
+                  iconClass = "text-blue-500";
+                } else if (dur >= 45) {
+                  colorClass = "text-fuchsia-400";
+                  iconClass = "text-fuchsia-500";
+                }
+
+                return (
+                  <div
+                    className={`flex items-center gap-1.5 text-xs ${colorClass}`}
+                  >
+                    <Clock
+                      className={`size-3.5 ${iconClass}`}
+                      strokeWidth={1.5}
+                    />
+                    <span>
+                      {displayDur} {t("минути", "minutes", lang)}
+                    </span>
+                  </div>
+                );
+              })()}
+              {item.athleteCount && (
+                <div
+                  className={`flex items-center gap-1.5 text-xs ${item.athleteCount >= 2 ? "text-amber-400" : "text-zinc-300"}`}
+                >
+                  <Users
+                    className={`size-3.5 ${item.athleteCount >= 2 ? "text-amber-500" : "text-zinc-500"}`}
+                    strokeWidth={1.5}
+                  />
+                  <span>
+                    {item.athleteCount} {t("спортисти", "athletes", lang)}
+                  </span>
                 </div>
-              );
-            })()}
-            {item.athleteCount && (
-              <div className={`flex items-center gap-1.5 text-xs ${item.athleteCount >= 2 ? 'text-amber-400' : 'text-zinc-300'}`}>
-                <Users className={`size-3.5 ${item.athleteCount >= 2 ? 'text-amber-500' : 'text-zinc-500'}`} strokeWidth={1.5} />
-                <span>{item.athleteCount} {t("спортисти", "athletes", lang)}</span>
-              </div>
-            )}
-            {(item.numberOfDays || 1) >= 1 && (
-              <div className={`flex items-center gap-1.5 text-xs ${
-                (item.numberOfDays || 1) >= 3 ? 'text-emerald-400' : 
-                (item.numberOfDays || 1) === 2 ? 'text-sky-400' : 
-                'text-zinc-300'
-              }`}>
-                <Calendar className={`size-3.5 ${
-                  (item.numberOfDays || 1) >= 3 ? 'text-emerald-500' : 
-                  (item.numberOfDays || 1) === 2 ? 'text-sky-500' : 
-                  'text-zinc-500'
-                }`} strokeWidth={1.5} />
-                <span>
-                  {item.numberOfDays || 1} {t("дни", "days", lang)} / {item.proceduresPerDay || 1}{" "}
-                  процедури на ден
-                </span>
-              </div>
-            )}
+              )}
+              {(item.numberOfDays || 1) >= 1 && (
+                <div
+                  className={`flex items-center gap-1.5 text-xs ${
+                    (item.numberOfDays || 1) >= 3
+                      ? "text-emerald-400"
+                      : (item.numberOfDays || 1) === 2
+                        ? "text-sky-400"
+                        : "text-zinc-300"
+                  }`}
+                >
+                  <Calendar
+                    className={`size-3.5 ${
+                      (item.numberOfDays || 1) >= 3
+                        ? "text-emerald-500"
+                        : (item.numberOfDays || 1) === 2
+                          ? "text-sky-500"
+                          : "text-zinc-500"
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  <span>
+                    {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
+                    {item.proceduresPerDay || 1} процедури на ден
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -474,9 +561,16 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
         {/* Bottom Pricing & Details bar */}
         <div className="mt-6 flex items-end justify-between border-t border-zinc-800/80 pt-5">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase"> {t("Цена", "Price", lang)} </span>
+            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase">
+              {" "}
+              {t("Цена", "Price", lang)}{" "}
+            </span>
             <span className="text-xl font-medium tracking-tight text-white">
-              {item.price > 0 ? `${item.price.toFixed(2)} EUR` : lang === "en" ? "On request" : "По заявка"}
+              {item.price > 0
+                ? `${item.price.toFixed(2)} EUR`
+                : lang === "en"
+                  ? "On request"
+                  : "По заявка"}
             </span>
           </div>
 
@@ -506,7 +600,9 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
               fallbackText={lang === "en" ? "No image" : "Няма снимка"}
             />
             <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-            <div className="pointer-events-none absolute top-4 left-4">{renderBadges()}</div>
+            <div className="pointer-events-none absolute top-4 left-4">
+              {renderBadges()}
+            </div>
           </div>
 
           <div className="relative -mt-16 p-6 md:p-8">
@@ -520,7 +616,9 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
                     <span>
                       {item.price > 0
                         ? item.price.toFixed(2) + " EUR"
-                        : lang === "en" ? "On request" : "По заявка"}
+                        : lang === "en"
+                          ? "On request"
+                          : "По заявка"}
                     </span>
                   </div>
                   {(() => {
@@ -549,7 +647,9 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
                         >
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                         </svg>
-                        <span>{t("Запиши се / Заяви", "Book / Request", lang)}</span>
+                        <span>
+                          {t("Запиши се / Заяви", "Book / Request", lang)}
+                        </span>
                       </a>
                     );
                   })()}
@@ -564,91 +664,121 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
                   const dur = Number(item.duration || item.durationMinutes);
                   if (!dur) return null;
                   const nameLower = (item.name || "").toLowerCase();
-                  const isExclusive = nameLower.includes("exclusive") || nameLower.includes("ексклузивн");
-                  const displayDur = (isExclusive && dur === 45) ? "15 + 30" : dur;
-                  
+                  const isExclusive =
+                    nameLower.includes("exclusive") ||
+                    nameLower.includes("ексклузивн");
+                  const displayDur =
+                    isExclusive && dur === 45 ? "15 + 30" : dur;
+
                   let badgeClass = "border-zinc-700 bg-zinc-900 text-zinc-300";
-                  if (dur === 15) badgeClass = "border-teal-900/50 bg-teal-950/40 text-teal-400";
-                  else if (dur === 30) badgeClass = "border-blue-900/50 bg-blue-950/40 text-blue-400";
-                  else if (dur >= 45) badgeClass = "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
+                  if (dur === 15)
+                    badgeClass =
+                      "border-teal-900/50 bg-teal-950/40 text-teal-400";
+                  else if (dur === 30)
+                    badgeClass =
+                      "border-blue-900/50 bg-blue-950/40 text-blue-400";
+                  else if (dur >= 45)
+                    badgeClass =
+                      "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
 
                   return (
-                    <Badge variant="outline" className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}>
+                    <Badge
+                      variant="outline"
+                      className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}
+                    >
                       <span>
-                        {t("Продължителност: ", "Duration: ", lang)}{displayDur} {t("мин", "min", lang)}
+                        {t("Продължителност: ", "Duration: ", lang)}
+                        {displayDur} {t("мин", "min", lang)}
                       </span>
                     </Badge>
                   );
                 })()}
                 {item.athleteCount && (
-                    <Badge
-                      variant="outline"
-                      className={`rounded-md px-3 py-1 text-xs ${
-                        item.athleteCount >= 2 
-                          ? 'border-amber-900/50 bg-amber-950/40 text-amber-400' 
-                          : 'border-zinc-700 bg-zinc-900 text-zinc-300'
-                      }`}
-                    >
-                      <span>
-                        {t("Капацитет: ", "Capacity: ", lang)}{item.athleteCount} {t("спортисти", "athletes", lang)}
-                      </span>
-                    </Badge>
-                  )}
-                  {(item.numberOfDays || 1) >= 1 && (
-                    <Badge
-                      variant="outline"
-                      className={`rounded-md px-3 py-1 text-xs ${
-                        (item.numberOfDays || 1) >= 3 
-                          ? 'border-emerald-900/50 bg-emerald-950/40 text-emerald-400' : 
-                        (item.numberOfDays || 1) === 2 
-                          ? 'border-sky-900/50 bg-sky-950/40 text-sky-400' : 
-                        'border-zinc-700 bg-zinc-900 text-zinc-300'
-                      }`}
-                    >
-                      <span>
-                        {item.numberOfDays || 1} {t("дни", "days", lang)} / {" "}
-                        {item.proceduresPerDay || 1} {t("процедури на ден", "procedures per day", lang)}
-                      </span>
-                    </Badge>
-                  )}
-                  {item.zones && (
-                    <Badge
-                      variant="outline"
-                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                    >
-                      <span>{renderTranslatedText(getZonesDisplayText(), lang)}</span>
-                    </Badge>
-                  )}
-                </div>
-
+                  <Badge
+                    variant="outline"
+                    className={`rounded-md px-3 py-1 text-xs ${
+                      item.athleteCount >= 2
+                        ? "border-amber-900/50 bg-amber-950/40 text-amber-400"
+                        : "border-zinc-700 bg-zinc-900 text-zinc-300"
+                    }`}
+                  >
+                    <span>
+                      {t("Капацитет: ", "Capacity: ", lang)}
+                      {item.athleteCount} {t("спортисти", "athletes", lang)}
+                    </span>
+                  </Badge>
+                )}
+                {(item.numberOfDays || 1) >= 1 && (
+                  <Badge
+                    variant="outline"
+                    className={`rounded-md px-3 py-1 text-xs ${
+                      (item.numberOfDays || 1) >= 3
+                        ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
+                        : (item.numberOfDays || 1) === 2
+                          ? "border-sky-900/50 bg-sky-950/40 text-sky-400"
+                          : "border-zinc-700 bg-zinc-900 text-zinc-300"
+                    }`}
+                  >
+                    <span>
+                      {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
+                      {item.proceduresPerDay || 1}{" "}
+                      {t("процедури на ден", "procedures per day", lang)}
+                    </span>
+                  </Badge>
+                )}
+                {item.zones && (
+                  <Badge
+                    variant="outline"
+                    className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                  >
+                    <span>
+                      {renderTranslatedText(getZonesDisplayText(), lang)}
+                    </span>
+                  </Badge>
+                )}
+              </div>
 
               {/* Resources */}
               {item.requiredResources && (
                 <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
-                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">{t("Ресурси", "Resources", lang)}</h4>
+                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                    {t("Ресурси", "Resources", lang)}
+                  </h4>
                   <div className="flex flex-wrap gap-4">
                     {(item.requiredResources.compressors ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-emerald-400" />
-                        <span>{item.requiredResources.compressors} {t("компресора", "compressors", lang)}</span>
+                        <span>
+                          {item.requiredResources.compressors}{" "}
+                          {t("компресора", "compressors", lang)}
+                        </span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-blue-400" />
-                        <span>{item.requiredResources.attachments?.arms} {renderTranslatedText("РЪЦЕ", lang)}</span>
+                        <span>
+                          {item.requiredResources.attachments?.arms}{" "}
+                          {renderTranslatedText("РЪЦЕ", lang)}
+                        </span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-cyan-400" />
-                        <span>{item.requiredResources.attachments?.legs} {renderTranslatedText("КРАКА", lang)}</span>
+                        <span>
+                          {item.requiredResources.attachments?.legs}{" "}
+                          {renderTranslatedText("КРАКА", lang)}
+                        </span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-purple-400" />
-                        <span>{item.requiredResources.attachments?.hips} {renderTranslatedText("ТАЗ", lang)}</span>
+                        <span>
+                          {item.requiredResources.attachments?.hips}{" "}
+                          {renderTranslatedText("ТАЗ", lang)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -658,7 +788,11 @@ function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: st
               <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
                 <span>
                   {renderTranslatedText(item.description, lang) ||
-                    t("Няма предоставено описание за този артикул.", "No description provided for this item.", lang)}
+                    t(
+                      "Няма предоставено описание за този артикул.",
+                      "No description provided for this item.",
+                      lang
+                    )}
                 </span>
               </DialogDescription>
             </div>

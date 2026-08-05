@@ -6,8 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Site } from "@/types/site.types";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { Site } from "@/types/site.types";
 
 export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
