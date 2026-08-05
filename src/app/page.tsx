@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
+import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -111,6 +112,8 @@ export default function HomePage() {
           </div>
 
           <div className="hidden h-6 w-px bg-zinc-800 md:block" />
+          
+          <GoogleTranslateWidget />
 
           <Link
             href="/login"
@@ -161,17 +164,15 @@ export default function HomePage() {
               onMouseLeave={() => setHovered(null)}
             >
               <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="relative mb-8 size-16">
-                <div className="absolute inset-0 rounded-2xl border border-blue-600/20 bg-blue-600/10 transition-all duration-500 group-hover:bg-blue-600" />
-                <div className="absolute inset-0 flex items-center justify-center p-3">
-                  <Image
-                    src="/logo.png"
-                    alt="Бадминтон Клуб Гълъбово Logo"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-contain p-2 transition-all duration-500 group-hover:brightness-0 group-hover:invert"
-                  />
-                </div>
+              <div className="relative mb-8 size-20 overflow-hidden rounded-full drop-shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                <Image
+                  src="/icons/LOGO.jpg"
+                  alt="Бадминтон Клуб Гълъбово Logo"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain transition-all duration-500 group-hover:scale-105"
+                  priority={true}
+                />
               </div>
               <h2 className="mb-3 text-2xl font-medium text-white">
                 Бадминтон клуб Гълъбово
@@ -202,17 +203,15 @@ export default function HomePage() {
               onMouseLeave={() => setHovered(null)}
             >
               <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="relative mb-8 size-16">
-                <div className="absolute inset-0 rounded-2xl border border-emerald-600/20 bg-emerald-600/10 transition-all duration-500 group-hover:bg-emerald-500" />
-                <div className="absolute inset-0 flex items-center justify-center p-3">
-                  <Image
-                    src="/1.png"
-                    alt="Recovery Zone by ZM Logo"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-contain p-2 transition-all duration-500 group-hover:brightness-0 group-hover:invert"
-                  />
-                </div>
+              <div className="relative mb-8 h-20 w-32 drop-shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                <Image
+                  src="/1.png"
+                  alt="Recovery Zone by ZM Logo"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain transition-all duration-500 rounded-2xl group-hover:scale-105"
+                  priority={true}
+                />
               </div>
               <h2 className="mb-3 text-2xl font-medium text-white">
                 Recovery Zone by ZM

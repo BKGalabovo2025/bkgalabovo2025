@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Site } from "@/types/site.types";
+import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 
 export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,7 +18,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
         <Link href="/club" className="flex items-center gap-2">
           <div className="relative size-8 overflow-hidden rounded-lg border border-blue-400/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
-              src="/logo.png"
+              src="/icons/LOGO.jpg"
               alt="Logo"
               width={24}
               height={24}
@@ -76,15 +77,18 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
           </Link>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="p-2 text-white md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-4">
+          <GoogleTranslateWidget />
+          {/* Mobile Menu Toggle */}
+          <button
+            className="p-2 text-white md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Dropdown */}

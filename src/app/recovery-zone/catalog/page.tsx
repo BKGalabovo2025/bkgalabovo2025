@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
+import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export const metadata: Metadata = {
@@ -81,8 +82,9 @@ export default async function RecoveryCatalogPage() {
         <span className="text-sm font-medium tracking-widest text-emerald-400 uppercase drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
           Каталог
         </span>
-        <div className="w-20"></div>
-        {/* Spacer */}
+        <div className="flex items-center gap-4">
+          <GoogleTranslateWidget />
+        </div>
       </nav>
 
       {/* Main Content */}

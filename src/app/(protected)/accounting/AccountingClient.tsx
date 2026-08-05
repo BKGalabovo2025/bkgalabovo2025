@@ -1069,7 +1069,7 @@ export default function AccountingClient() {
             <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/logo.png"
+                src="/icons/LOGO.jpg"
                 alt="Logo"
                 style={{ height: "45pt", objectFit: "contain" }}
               />

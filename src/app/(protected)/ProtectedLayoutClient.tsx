@@ -18,7 +18,7 @@ function GlobalHeader() {
   const sites = [
     {
       id: "bkgalabovo",
-      logo: "/logo.png",
+      logo: "/icons/LOGO.jpg",
       title: "Бадминтон Клуб",
       subtitle: "Гълъбово",
       color: "blue",

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   FacebookIcon,
@@ -26,6 +26,7 @@ import {
   YoutubeIcon,
 } from "@/components/icons/social-icons";
 import { TeamSection } from "@/components/recovery/TeamSection";
+import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {
@@ -47,6 +48,7 @@ export default function RecoveryZoneClient({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
+  const [lang, setLang] = useState("bg");
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -57,6 +59,13 @@ export default function RecoveryZoneClient({
       (prev) => (prev - 1 + hallImages.length) % hallImages.length
     );
   };
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
+      if (match && match[1] === "en") setLang("en");
+    }
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
@@ -132,13 +141,16 @@ export default function RecoveryZoneClient({
             </Link>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            className="p-2 text-white md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex items-center gap-4">
+            <GoogleTranslateWidget />
+            {/* Mobile Menu Toggle */}
+            <button
+              className="p-2 text-white md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Dropdown */}
@@ -339,7 +351,7 @@ export default function RecoveryZoneClient({
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
             <h2 className="mb-6 text-3xl font-light tracking-tight md:text-5xl">
-              Нашите приставки и тяхното приложение
+              {lang === 'en' ? <span className="notranslate">Our recovery attachments and their application</span> : "Нашите приставки и тяхното приложение"}
             </h2>
           </div>
 
@@ -360,6 +372,7 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
+                    priority={true}
                   />
                 </div>
               </div>
@@ -391,12 +404,13 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
+                    priority={true}
                   />
                 </div>
               </div>
               <div className="p-8">
                 <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  ТАЗ
+                  {lang === 'en' ? <span className="notranslate">PELVIS</span> : "ТАЗ"}
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-400">
                   Обхваща долната част на гърба, таза, хълбоците и седалищните
@@ -422,18 +436,22 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
+                    priority={true}
                   />
                 </div>
               </div>
               <div className="p-8">
                 <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  РЪЦЕ
+                  {lang === 'en' ? <span className="notranslate">ARMS</span> : "РЪЦЕ"}
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-400">
-                  Обхващат зоните от китките до раменете. Изключително полезни
-                  за бадминтонисти, тенисисти, плувци и фитнес трениращи, при
-                  които ръцете са подложени на постоянен стрес, както и за хора,
-                  работещи пред компютър.
+                  {lang === 'en' ? (
+                    <span className="notranslate">
+                      Covers the areas from the wrists to the shoulders. Extremely useful for badminton players, tennis players, swimmers, and fitness enthusiasts whose arms are subjected to constant stress, as well as for people working in front of a computer.
+                    </span>
+                  ) : (
+                    "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър."
+                  )}
                 </p>
               </div>
             </motion.div>

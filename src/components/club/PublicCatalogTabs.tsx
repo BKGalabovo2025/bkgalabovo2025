@@ -58,6 +58,14 @@ export default function PublicCatalogTabs({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [lang, setLang] = useState("bg");
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
+      if (match && match[1] === "en") setLang("en");
+    }
+  }, []);
 
   // Determine active dataset
   const activeDataset = useMemo(() => {
@@ -90,7 +98,7 @@ export default function PublicCatalogTabs({
   // Filter items by search query and category
   const filteredItems = useMemo(() => {
     if (!activeDataset) return [];
-    return activeDataset.filter((item) => {
+    const filtered = activeDataset.filter((item) => {
       const matchesSearch =
         item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description &&
@@ -101,6 +109,18 @@ export default function PublicCatalogTabs({
         selectedCategory === "all" || itemCat === selectedCategory;
 
       return matchesSearch && matchesCategory;
+    });
+
+    return filtered.sort((a, b) => {
+      const catA = (a.category || a.type || "").toLowerCase();
+      const catB = (b.category || b.type || "").toLowerCase();
+      
+      if (catA < catB) return -1;
+      if (catA > catB) return 1;
+      
+      const priceA = a.price || 0;
+      const priceB = b.price || 0;
+      return priceA - priceB;
     });
   }, [activeDataset, searchQuery, selectedCategory]);
 
@@ -126,9 +146,7 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Trophy size={16} className="sm:size-4" />
-              Тренировки
-            </button>
+              <Trophy size={16} className="sm:size-4" /> {t("Тренировки", "Trainings", lang)} </button>
           )}
           {allowedTabs.includes("general") && (
             <button
@@ -139,9 +157,7 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Activity size={16} className="sm:size-4" />
-              Клубни Услуги
-            </button>
+              <Activity size={16} className="sm:size-4" /> {t("Клубни Услуги", "Club Services", lang)} </button>
           )}
           {allowedTabs.includes("products") && (
             <button
@@ -152,9 +168,7 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Package size={16} className="sm:size-4" />
-              Магазин
-            </button>
+              <Package size={16} className="sm:size-4" /> {t("Магазин", "Shop", lang)} </button>
           )}
           {allowedTabs.includes("recovery") && (
             <button
@@ -165,9 +179,7 @@ export default function PublicCatalogTabs({
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Zap size={16} className="sm:size-4" />
-              Възстановяване
-            </button>
+              <Zap size={16} className="sm:size-4" /> {t("Възстановяване", "Recovery", lang)} </button>
           )}
         </div>
       </div>
@@ -175,9 +187,7 @@ export default function PublicCatalogTabs({
       {/* Category Pills */}
       {categories.length > 2 && (
         <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
-            Категория:
-          </span>
+          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase"> {t("Категория:", "Category:", lang)} </span>
           {categories.map((cat) => (
             <button
               key={cat}
@@ -188,7 +198,7 @@ export default function PublicCatalogTabs({
                   : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
               }`}
             >
-              {cat === "all" ? "Всички" : cat}
+              {cat === "all" ? t("Всички", "All", lang) : cat}
             </button>
           ))}
         </div>
@@ -198,7 +208,7 @@ export default function PublicCatalogTabs({
       {filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
-            <CatalogCard key={item.id} item={item} tab={activeTab} />
+            <CatalogCard key={item.id} item={item} tab={activeTab} lang={lang} />
           ))}
         </div>
       ) : (
@@ -207,14 +217,51 @@ export default function PublicCatalogTabs({
             className="mb-3 size-10 text-zinc-700"
             strokeWidth={1.5}
           />
-          <p className="text-sm font-light">Няма намерени артикули.</p>
+          <p className="text-sm font-light">{t("Няма намерени артикули.", "No items found.", lang)}</p>
         </div>
       )}
     </div>
   );
 }
 
-function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
+function t(bg: string, en: string, lang: string) {
+  return lang === "en" ? <span className="notranslate">{en}</span> : <span>{bg}</span>;
+}
+
+function renderTranslatedText(text: string | null | undefined, lang: string) {
+  if (!text) return null;
+  const parts = text.split(/(ТАЗ|РЪЦЕ|КРАКА|Таз|Ръце|Крака|таз|ръце|крака)/g);
+  return parts.map((part, index) => {
+    const lower = part.toLowerCase();
+    
+    if (["таз", "ръце", "крака"].includes(lower)) {
+      let enWord = "";
+      if (lower === "таз") enWord = "PELVIS";
+      if (lower === "ръце") enWord = "ARMS";
+      if (lower === "крака") enWord = "LEGS";
+      
+      if (lang === "en") {
+        const prevPart = index > 0 ? parts[index - 1] : "";
+        const nextPart = index < parts.length - 1 ? parts[index + 1] : "";
+        
+        let prefix = "";
+        let suffix = "";
+        
+        // Only add space if the original Bulgarian text had a space right next to the word
+        if (prevPart.match(/[\s\xA0]$/)) prefix = " ";
+        if (nextPart.match(/^[\s\xA0]/)) suffix = " ";
+        
+        return <span key={index} className="notranslate">{prefix}{enWord}{suffix}</span>;
+      }
+      
+      return <span key={index} className="notranslate">{part}</span>;
+    }
+    
+    return <span key={index}>{part}</span>;
+  });
+}
+
+function CatalogCard({ item, tab, lang }: { item: any; tab: CatalogTab; lang: string }) {
   const images = useMemo(() => {
     if (!item.imageUrl) {
       // Default fallback images for specific zones
@@ -246,13 +293,15 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const getZonesDisplayText = () => {
+    const zonesStr = lang === "en" ? "Zones" : "Зони";
+    const choiceStr = lang === "en" ? "Zone of choice" : "Зона по избор";
     if (!item.zones) return null;
     if (Array.isArray(item.zones)) {
       if (item.zones.length === 3)
-        return `Зона по избор (${item.zones.join(", ")})`;
-      return `Зони: ${item.zones.join(", ")}`;
+        return `${choiceStr} (${item.zones.join(", ")})`;
+      return `${zonesStr}: ${item.zones.join(", ")}`;
     }
-    return `Зони: ${item.zones}`;
+    return `${zonesStr}: ${item.zones}`;
   };
 
   // Badges logic depending on the item type
@@ -264,22 +313,16 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
       if (isOutOfStock) {
         return (
-          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none">
-            Изчерпан
-          </Badge>
+          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none"> {t("Изчерпан", "Out of stock", lang)} </Badge>
         );
       }
       if (isLowStock) {
         return (
-          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none">
-            Ограничен ({item.stock} бр.)
-          </Badge>
+          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none"> {t("Ограничен", "Low stock", lang)} ({item.stock} {t("бр.", "pcs.", lang)}) </Badge>
         );
       }
       return (
-        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none">
-          В наличност
-        </Badge>
+        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none"> {t("В наличност", "In stock", lang)} </Badge>
       );
     }
 
@@ -307,10 +350,10 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
   };
 
   const getTabLabel = (currentTab: string) => {
-    if (currentTab === "trainings") return "Тренировка";
-    if (currentTab === "general") return "Услуга";
-    if (currentTab === "recovery") return "Възстановяване";
-    return "Магазин";
+    if (currentTab === "trainings") return t("Тренировка", "Training", lang);
+    if (currentTab === "general") return t("Услуга", "Service", lang);
+    if (currentTab === "recovery") return t("Възстановяване", "Recovery", lang);
+    return t("Магазин", "Shop", lang);
   };
 
   const renderImages = () => {
@@ -354,10 +397,13 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
             </div>
           )}
           <h2 className="flex min-h-10 items-center text-base leading-snug font-semibold text-white transition-colors duration-300 group-hover:text-blue-400">
-            {item.name}
+            <span>{renderTranslatedText(item.name, lang)}</span>
           </h2>
           <p className="mt-3 line-clamp-3 min-h-14 text-xs leading-relaxed font-light text-zinc-400">
-            {item.description || "Няма предоставено описание за този артикул."}
+            <span>
+              {renderTranslatedText(item.description, lang) || 
+               t("Няма предоставено описание за този артикул.", "No description provided for this item.", lang)}
+            </span>
           </p>
 
           {/* Zones */}
@@ -368,7 +414,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                 if (!zText) return null;
                 return (
                   <span className="rounded-full border border-cyan-900/50 bg-cyan-950/40 px-3 py-1 text-[10px] font-medium tracking-wider text-cyan-400 uppercase">
-                    {zText}
+                    {renderTranslatedText(zText, lang)}
                   </span>
                 );
               })()}
@@ -377,38 +423,60 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
           {/* Features */}
           <div className="mt-4 space-y-3 border-t border-zinc-800/50 pt-4">
-            {(item.duration || item.durationMinutes) && (
-              <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Clock className="size-4 text-zinc-500" strokeWidth={1.5} />
-                <span>{item.duration || item.durationMinutes} минути</span>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-4 pt-1">
+            {(() => {
+              const dur = Number(item.duration || item.durationMinutes);
+              if (!dur) return null;
+              const nameLower = (item.name || "").toLowerCase();
+              const isExclusive = nameLower.includes("exclusive") || nameLower.includes("ексклузивн");
+              const displayDur = (isExclusive && dur === 45) ? "15 + 30" : dur;
+              
+              let colorClass = "text-zinc-300";
+              let iconClass = "text-zinc-500";
+              if (dur === 15) { colorClass = "text-teal-400"; iconClass = "text-teal-500"; }
+              else if (dur === 30) { colorClass = "text-blue-400"; iconClass = "text-blue-500"; }
+              else if (dur >= 45) { colorClass = "text-fuchsia-400"; iconClass = "text-fuchsia-500"; }
+
+              return (
+                <div className={`flex items-center gap-1.5 text-xs ${colorClass}`}>
+                  <Clock className={`size-3.5 ${iconClass}`} strokeWidth={1.5} />
+                  <span>{displayDur} {t("минути", "minutes", lang)}</span>
+                </div>
+              );
+            })()}
             {item.athleteCount && (
-              <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Users className="size-4 text-zinc-500" strokeWidth={1.5} />
-                <span>{item.athleteCount} спортисти</span>
+              <div className={`flex items-center gap-1.5 text-xs ${item.athleteCount >= 2 ? 'text-amber-400' : 'text-zinc-300'}`}>
+                <Users className={`size-3.5 ${item.athleteCount >= 2 ? 'text-amber-500' : 'text-zinc-500'}`} strokeWidth={1.5} />
+                <span>{item.athleteCount} {t("спортисти", "athletes", lang)}</span>
               </div>
             )}
             {(item.numberOfDays || 1) >= 1 && (
-              <div className="flex items-center gap-3 text-xs text-zinc-400">
-                <Calendar className="size-4 text-zinc-500" strokeWidth={1.5} />
+              <div className={`flex items-center gap-1.5 text-xs ${
+                (item.numberOfDays || 1) >= 3 ? 'text-emerald-400' : 
+                (item.numberOfDays || 1) === 2 ? 'text-sky-400' : 
+                'text-zinc-300'
+              }`}>
+                <Calendar className={`size-3.5 ${
+                  (item.numberOfDays || 1) >= 3 ? 'text-emerald-500' : 
+                  (item.numberOfDays || 1) === 2 ? 'text-sky-500' : 
+                  'text-zinc-500'
+                }`} strokeWidth={1.5} />
                 <span>
-                  {item.numberOfDays || 1} дни / {item.proceduresPerDay || 1}{" "}
+                  {item.numberOfDays || 1} {t("дни", "days", lang)} / {item.proceduresPerDay || 1}{" "}
                   процедури на ден
                 </span>
               </div>
             )}
+            </div>
           </div>
         </div>
 
         {/* Bottom Pricing & Details bar */}
         <div className="mt-6 flex items-end justify-between border-t border-zinc-800/80 pt-5">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase">
-              Цена
-            </span>
+            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase"> {t("Цена", "Price", lang)} </span>
             <span className="text-xl font-medium tracking-tight text-white">
-              {item.price > 0 ? `${item.price.toFixed(2)} EUR` : "По заявка"}
+              {item.price > 0 ? `${item.price.toFixed(2)} EUR` : lang === "en" ? "On request" : "По заявка"}
             </span>
           </div>
 
@@ -430,35 +498,30 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="overflow-hidden border-zinc-800 bg-zinc-950 p-0 sm:max-w-150">
           <div className="relative h-64 w-full bg-black">
-            {images.length > 0 ? (
-              <Image
-                src={images[0]}
-                alt={item.name}
-                fill
-                className="object-cover opacity-80"
-              />
-            ) : (
-              <div className="flex size-full items-center justify-center bg-zinc-900/40 text-zinc-700">
-                <span className="text-[10px] font-semibold tracking-widest uppercase">
-                  Няма снимка
-                </span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-            <div className="absolute top-4 left-4">{renderBadges()}</div>
+            <ImageGallery
+              images={images}
+              displayMode="carousel"
+              altName={item.name}
+              fallbackIcon={<Package className="size-8 opacity-40" />}
+              fallbackText={lang === "en" ? "No image" : "Няма снимка"}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute top-4 left-4">{renderBadges()}</div>
           </div>
 
           <div className="relative -mt-16 p-6 md:p-8">
             <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-2xl backdrop-blur-xl">
               <DialogHeader>
                 <DialogTitle className="mb-2 text-2xl leading-tight font-bold text-white">
-                  {item.name}
+                  <span>{renderTranslatedText(item.name, lang)}</span>
                 </DialogTitle>
                 <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div className="text-xl font-medium tracking-tight text-blue-400">
-                    {item.price > 0
-                      ? item.price.toFixed(2) + " EUR"
-                      : "По заявка"}
+                    <span>
+                      {item.price > 0
+                        ? item.price.toFixed(2) + " EUR"
+                        : lang === "en" ? "On request" : "По заявка"}
+                    </span>
                   </div>
                   {(() => {
                     const pricePart =
@@ -486,7 +549,7 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                         >
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                         </svg>
-                        Запиши се / Заяви
+                        <span>{t("Запиши се / Заяви", "Book / Request", lang)}</span>
                       </a>
                     );
                   })()}
@@ -496,36 +559,56 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
 
             <div className="custom-scrollbar max-h-75 space-y-6 overflow-y-auto pr-2">
               {/* Additional Metadata */}
-              {(item.duration ||
-                item.durationMinutes ||
-                item.zones ||
-                item.athleteCount ||
-                (item.numberOfDays || 1) >= 1) && (
-                <div className="flex flex-wrap gap-2">
-                  {(item.duration || item.durationMinutes) && (
-                    <Badge
-                      variant="outline"
-                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                    >
-                      Продължителност: {item.duration || item.durationMinutes}{" "}
-                      мин
+              <div className="flex flex-wrap gap-2">
+                {(() => {
+                  const dur = Number(item.duration || item.durationMinutes);
+                  if (!dur) return null;
+                  const nameLower = (item.name || "").toLowerCase();
+                  const isExclusive = nameLower.includes("exclusive") || nameLower.includes("ексклузивн");
+                  const displayDur = (isExclusive && dur === 45) ? "15 + 30" : dur;
+                  
+                  let badgeClass = "border-zinc-700 bg-zinc-900 text-zinc-300";
+                  if (dur === 15) badgeClass = "border-teal-900/50 bg-teal-950/40 text-teal-400";
+                  else if (dur === 30) badgeClass = "border-blue-900/50 bg-blue-950/40 text-blue-400";
+                  else if (dur >= 45) badgeClass = "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
+
+                  return (
+                    <Badge variant="outline" className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}>
+                      <span>
+                        {t("Продължителност: ", "Duration: ", lang)}{displayDur} {t("мин", "min", lang)}
+                      </span>
                     </Badge>
-                  )}
-                  {item.athleteCount && (
+                  );
+                })()}
+                {item.athleteCount && (
                     <Badge
                       variant="outline"
-                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                      className={`rounded-md px-3 py-1 text-xs ${
+                        item.athleteCount >= 2 
+                          ? 'border-amber-900/50 bg-amber-950/40 text-amber-400' 
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-300'
+                      }`}
                     >
-                      Капацитет: {item.athleteCount} спортисти
+                      <span>
+                        {t("Капацитет: ", "Capacity: ", lang)}{item.athleteCount} {t("спортисти", "athletes", lang)}
+                      </span>
                     </Badge>
                   )}
                   {(item.numberOfDays || 1) >= 1 && (
                     <Badge
                       variant="outline"
-                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                      className={`rounded-md px-3 py-1 text-xs ${
+                        (item.numberOfDays || 1) >= 3 
+                          ? 'border-emerald-900/50 bg-emerald-950/40 text-emerald-400' : 
+                        (item.numberOfDays || 1) === 2 
+                          ? 'border-sky-900/50 bg-sky-950/40 text-sky-400' : 
+                        'border-zinc-700 bg-zinc-900 text-zinc-300'
+                      }`}
                     >
-                      {item.numberOfDays || 1} дни /{" "}
-                      {item.proceduresPerDay || 1} процедури на ден
+                      <span>
+                        {item.numberOfDays || 1} {t("дни", "days", lang)} / {" "}
+                        {item.proceduresPerDay || 1} {t("процедури на ден", "procedures per day", lang)}
+                      </span>
                     </Badge>
                   )}
                   {item.zones && (
@@ -533,41 +616,39 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
                       variant="outline"
                       className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
-                      {getZonesDisplayText()}
+                      <span>{renderTranslatedText(getZonesDisplayText(), lang)}</span>
                     </Badge>
                   )}
                 </div>
-              )}
+
 
               {/* Resources */}
               {item.requiredResources && (
                 <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
-                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
-                    Ресурси
-                  </h4>
+                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">{t("Ресурси", "Resources", lang)}</h4>
                   <div className="flex flex-wrap gap-4">
                     {(item.requiredResources.compressors ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-emerald-400" />
-                        {item.requiredResources.compressors} компресора
+                        <span>{item.requiredResources.compressors} {t("компресора", "compressors", lang)}</span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-blue-400" />
-                        {item.requiredResources.attachments?.arms} РЪЦЕ
+                        <span>{item.requiredResources.attachments?.arms} {renderTranslatedText("РЪЦЕ", lang)}</span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-cyan-400" />
-                        {item.requiredResources.attachments?.legs} КРАКА
+                        <span>{item.requiredResources.attachments?.legs} {renderTranslatedText("КРАКА", lang)}</span>
                       </div>
                     )}
                     {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <span className="size-1.5 rounded-full bg-purple-400" />
-                        {item.requiredResources.attachments?.hips} ТАЗ
+                        <span>{item.requiredResources.attachments?.hips} {renderTranslatedText("ТАЗ", lang)}</span>
                       </div>
                     )}
                   </div>
@@ -575,8 +656,10 @@ function CatalogCard({ item, tab }: { item: any; tab: CatalogTab }) {
               )}
 
               <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                {item.description ||
-                  "Няма предоставено описание за този артикул."}
+                <span>
+                  {renderTranslatedText(item.description, lang) ||
+                    t("Няма предоставено описание за този артикул.", "No description provided for this item.", lang)}
+                </span>
               </DialogDescription>
             </div>
           </div>

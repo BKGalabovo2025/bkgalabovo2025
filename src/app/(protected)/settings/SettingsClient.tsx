@@ -878,7 +878,7 @@ export default function SettingsClient() {
                       <div className="flex items-center gap-8 rounded-2xl border border-dashed border-zinc-100 bg-zinc-50/30 p-8 dark:border-zinc-800 dark:bg-zinc-900/30">
                         <div className="flex size-28 items-center justify-center overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-none">
                           <Image
-                            src="/logo.png"
+                            src="/icons/LOGO.jpg"
                             alt="BKG Logo"
                             width={80}
                             height={80}
@@ -1722,7 +1722,7 @@ export default function SettingsClient() {
                       />
                     ) : (
                       <Image
-                        src="/logo.png"
+                        src="/icons/LOGO.jpg"
                         alt="Club Logo"
                         fill
                         className="object-contain p-6 opacity-80"

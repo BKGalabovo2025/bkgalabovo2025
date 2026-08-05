@@ -11,6 +11,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
+import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 
 interface EventSlot {
   id: string;
@@ -112,7 +113,9 @@ export default function ScheduleClient({ schedule }: Props) {
         <span className="text-sm font-bold tracking-widest text-blue-400 uppercase">
           Календар
         </span>
-        <div className="w-24" />
+        <div className="flex items-center gap-4">
+          <GoogleTranslateWidget />
+        </div>
       </nav>
 
       <main className="px-6 pt-28 pb-32">

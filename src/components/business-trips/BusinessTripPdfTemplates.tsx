@@ -337,7 +337,7 @@ export function BusinessTripPdfTemplates({
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
             <img
-              src="/logo.png"
+              src="/icons/LOGO.jpg"
               alt="Logo"
               style={{ height: "45pt", objectFit: "contain" }}
             />
@@ -600,7 +600,7 @@ export function BusinessTripPdfTemplates({
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
             <img
-              src="/logo.png"
+              src="/icons/LOGO.jpg"
               alt="Logo"
               style={{ height: "35pt", objectFit: "contain" }}
             />
@@ -951,7 +951,7 @@ export function BusinessTripPdfTemplates({
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
               <img
-                src="/logo.png"
+                src="/icons/LOGO.jpg"
                 alt="Logo"
                 style={{ height: "45pt", objectFit: "contain" }}
               />
@@ -1236,7 +1236,7 @@ export function BusinessTripPdfTemplates({
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
             <img
-              src="/logo.png"
+              src="/icons/LOGO.jpg"
               alt="Logo"
               style={{ height: "45pt", objectFit: "contain" }}
             />

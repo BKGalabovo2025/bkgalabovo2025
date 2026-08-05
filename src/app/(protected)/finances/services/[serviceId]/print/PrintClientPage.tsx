@@ -173,7 +173,7 @@ export default function PrintClientPage({ service }: { service: Service }) {
             <div className="flex items-center">
               <div className="relative mr-6 size-16">
                 <Image
-                  src="/logo.png"
+                  src="/icons/LOGO.jpg"
                   alt="Logo"
                   fill
                   sizes="100vw"

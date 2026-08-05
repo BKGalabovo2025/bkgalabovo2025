@@ -43,7 +43,7 @@ export default async function ClubMainPage() {
     "@context": "https://schema.org",
     "@type": "SportsClub",
     name: "Бадминтон Клуб Гълъбово",
-    image: "https://bkgalabovo2025.vercel.app/logo.png",
+    image: "https://bkgalabovo2025.vercel.app/icons/LOGO.jpg",
     "@id": "https://bkgalabovo2025.vercel.app/club",
     url: "https://bkgalabovo2025.vercel.app/club",
     telephone: "+359899388338",
