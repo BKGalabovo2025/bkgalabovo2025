@@ -309,3 +309,20 @@ a[href*="elfsight.com"] {
   color: #fff !important;
   background-color: #2563eb !important;
 }
+
+/* --- Google Translate Overrides --- */
+.goog-text-highlight,
+html.translated-ltr font {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.goog-tooltip {
+  display: none !important;
+}
+
+html.translated-ltr .lang-bg {
+  display: none !important;
+}
+html.translated-ltr .lang-en {
+  display: inline-block !important;
+}

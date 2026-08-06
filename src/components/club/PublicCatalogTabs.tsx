@@ -17,6 +17,7 @@ import { Eye } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import { ImageGallery } from "@/components/shared/images/ImageGallery";
+import { Translate } from "@/components/shared/Translate";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import {
@@ -59,14 +60,7 @@ export default function PublicCatalogTabs({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [lang, setLang] = useState("bg");
-
-  React.useEffect(() => {
-    if (typeof document !== "undefined") {
-      const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
-      if (match && match[1] === "en") setLang("en");
-    }
-  }, []);
+  const lang = "bg";
 
   // Determine active dataset
   const activeDataset = useMemo(() => {
@@ -243,15 +237,11 @@ export default function PublicCatalogTabs({
   );
 }
 
-function t(bg: string, en: string, lang: string) {
-  return lang === "en" ? (
-    <span className="notranslate">{en}</span>
-  ) : (
-    <span>{bg}</span>
-  );
+function t(bg: string, en: string, _lang?: string) {
+  return <Translate bg={bg} en={en} />;
 }
 
-function renderTranslatedText(text: string | null | undefined, lang: string) {
+function renderTranslatedText(text: string | null | undefined, _lang?: string) {
   if (!text) return null;
   const parts = text.split(/(ТАЗ|РЪЦЕ|КРАКА|Таз|Ръце|Крака|таз|ръце|крака)/g);
   return parts.map((part, index) => {
@@ -263,30 +253,21 @@ function renderTranslatedText(text: string | null | undefined, lang: string) {
       if (lower === "ръце") enWord = "ARMS";
       if (lower === "крака") enWord = "LEGS";
 
-      if (lang === "en") {
-        const prevPart = index > 0 ? parts[index - 1] : "";
-        const nextPart = index < parts.length - 1 ? parts[index + 1] : "";
+      const prevPart = index > 0 ? parts[index - 1] : "";
+      const nextPart = index < parts.length - 1 ? parts[index + 1] : "";
 
-        let prefix = "";
-        let suffix = "";
+      let prefix = "";
+      let suffix = "";
 
-        // Only add space if the original Bulgarian text had a space right next to the word
-        if (prevPart.match(/[\s\xA0]$/)) prefix = " ";
-        if (nextPart.match(/^[\s\xA0]/)) suffix = " ";
-
-        return (
-          <span key={index} className="notranslate">
-            {prefix}
-            {enWord}
-            {suffix}
-          </span>
-        );
-      }
+      if (prevPart.match(/[\s\xA0]$/)) prefix = " ";
+      if (nextPart.match(/^[\s\xA0]/)) suffix = " ";
 
       return (
-        <span key={index} className="notranslate">
-          {part}
-        </span>
+        <React.Fragment key={index}>
+          {prefix}
+          <Translate bg={part} en={enWord} />
+          {suffix}
+        </React.Fragment>
       );
     }
 

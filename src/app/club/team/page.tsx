@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
+import { Translate } from "@/components/shared/Translate";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { calculateAgeGroup } from "@/services/member-service";
@@ -298,6 +299,7 @@ export default async function TeamPage() {
                           src={getValidImageSrc(coach.image)}
                           alt={coach.name}
                           fill
+                          sizes="160px"
                           className="object-cover"
                         />
                       ) : (
@@ -310,7 +312,15 @@ export default async function TeamPage() {
                       {coach.name}
                     </h3>
                     <p className="mb-6 text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
-                      {coach.role || "Треньор"}
+                      <Translate
+                        bg={coach.role || "Треньор"}
+                        en={
+                          (coach.role || "Треньор").trim().toLowerCase() ===
+                          "председател и треньор"
+                            ? "President and Coach"
+                            : undefined
+                        }
+                      />
                     </p>
                     {coach.bio && (
                       <p className="mb-6 text-sm leading-relaxed text-zinc-400">

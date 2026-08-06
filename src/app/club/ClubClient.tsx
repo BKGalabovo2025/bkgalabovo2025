@@ -26,6 +26,7 @@ import {
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
+import { Translate } from "@/components/shared/Translate";
 import { Site } from "@/types/site.types";
 
 type EventSlot = {
@@ -225,11 +226,27 @@ export default function ClubClient({
 
             <div className="relative z-10 space-y-8 text-center md:text-left">
               <p className="text-lg leading-relaxed font-light text-zinc-300 md:text-xl">
-                СНЦ „Бадминтон клуб Гълъбово“ е сдружение с нестопанска цел,
-                създадено през{" "}
-                <span className="font-medium text-white">2014 г.</span> Нашата
-                основна цел е да създадем професионална и същевременно
-                приятелска среда за развитие на този динамичен спорт.
+                <Translate
+                  bg={
+                    <>
+                      СНЦ „Бадминтон клуб Гълъбово“ е сдружение с нестопанска
+                      цел, създадено през{" "}
+                      <span className="font-medium text-white">2014 г.</span>{" "}
+                      Нашата основна цел е да създадем професионална и
+                      същевременно приятелска среда за развитие на този
+                      динамичен спорт.
+                    </>
+                  }
+                  en={
+                    <>
+                      The non-profit association &quot;Badminton Club
+                      Galabovo&quot; was established in{" "}
+                      <span className="font-medium text-white">2014</span>. Our
+                      main goal is to create a professional and friendly
+                      environment for the development of this dynamic sport.
+                    </>
+                  }
+                />
               </p>
 
               <div className="mx-auto h-px w-16 bg-gradient-to-r from-blue-500 to-transparent md:mx-0" />
