@@ -47,8 +47,15 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
             />
           </svg>
            
-          <span>
+          <span
+            class="lang-bg"
+          >
             Тренировки
+          </span>
+          <span
+            class="lang-en notranslate hidden"
+          >
+            Trainings
           </span>
            
         </button>
@@ -73,8 +80,15 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
             />
           </svg>
            
-          <span>
+          <span
+            class="lang-bg"
+          >
             Клубни Услуги
+          </span>
+          <span
+            class="lang-en notranslate hidden"
+          >
+            Club Services
           </span>
            
         </button>
@@ -108,8 +122,15 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
             />
           </svg>
            
-          <span>
+          <span
+            class="lang-bg"
+          >
             Магазин
+          </span>
+          <span
+            class="lang-en notranslate hidden"
+          >
+            Shop
           </span>
            
         </button>
@@ -134,8 +155,15 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
             />
           </svg>
            
-          <span>
+          <span
+            class="lang-bg"
+          >
             Възстановяване
+          </span>
+          <span
+            class="lang-en notranslate hidden"
+          >
+            Recovery
           </span>
            
         </button>
@@ -170,8 +198,15 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
       <p
         class="text-sm font-light"
       >
-        <span>
+        <span
+          class="lang-bg"
+        >
           Няма намерени артикули.
+        </span>
+        <span
+          class="lang-en notranslate hidden"
+        >
+          No items found.
         </span>
       </p>
     </div>
