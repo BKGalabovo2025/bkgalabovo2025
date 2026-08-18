@@ -199,7 +199,11 @@ export type Attendee = {
 
   // Camp-specific fields
   campDepositPaid?: number;
+  campDepositSaleId?: string;
   campRemainderPaid?: number;
+  campRemainderSaleId?: string;
+  campInsurancePaid?: number;
+  campInsuranceSaleId?: string;
   campPriceOverride?: number;
   campMedicalProvided?: boolean;
   campRoom?: string;
@@ -226,6 +230,7 @@ export type ScheduleEvent = {
 
   // Camp-specific fields
   totalCampPrice?: number;
+  campInsurancePrice?: number;
 };
 
 // =================================================================

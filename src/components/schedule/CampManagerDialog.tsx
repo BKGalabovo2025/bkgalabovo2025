@@ -1,6 +1,16 @@
 "use client";
 
-import { Check, Hotel, Loader2, Pill, Plus, Search, Tent } from "lucide-react";
+import {
+  Check,
+  FileText,
+  Hotel,
+  Loader2,
+  Pill,
+  Plus,
+  Search,
+  Tent,
+} from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -47,6 +57,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     {}
   );
   const [totalCampPrice, setTotalCampPrice] = useState<number>(0);
+  const [campInsurancePrice, setCampInsurancePrice] = useState<number>(0);
   const [guestNameInput, setGuestNameInput] = useState("");
 
   useEffect(() => {
@@ -60,6 +71,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
         });
       setAttendeesMap(map);
       setTotalCampPrice(event.totalCampPrice || 0);
+      setCampInsurancePrice(event.campInsurancePrice || 0);
     }
   }, [event, isOpen]);
 
@@ -136,12 +148,90 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     toast.success("Остатъкът е маркиран като платен");
   };
 
+  const handleInsurancePayment = async (id: string) => {
+    if (!event || !user) return;
+    const attendee = attendeesMap[id];
+    if (!attendee) return;
+
+    if (campInsurancePrice <= 0) return;
+
+    const currentInsurance = attendee.campInsurancePaid || 0;
+    updateAttendeeField(
+      id,
+      "campInsurancePaid",
+      currentInsurance + campInsurancePrice
+    );
+    toast.success("Застраховката е маркирана като платена");
+  };
+
+  const handleIssueDocument = async (
+    id: string,
+    type: "deposit" | "remainder" | "insurance"
+  ) => {
+    if (!event || !user) return;
+    const attendee = attendeesMap[id];
+    if (!attendee) return;
+
+    setIsSubmitting(true);
+    let amount = 0;
+    let label = "";
+
+    if (type === "deposit") {
+      amount = attendee.campDepositPaid || 0;
+      label = "Капаро";
+    } else if (type === "remainder") {
+      amount = attendee.campRemainderPaid || 0;
+      label = "Остатък";
+    } else if (type === "insurance") {
+      amount = attendee.campInsurancePaid || 0;
+      label = "Застраховка";
+    }
+
+    if (amount <= 0) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const { createCampFeeSaleAction } = await import("@/lib/actions/sales");
+      const res = await createCampFeeSaleAction(
+        event.id,
+        event.title || "Лагер",
+        attendee.memberId,
+        attendee.name,
+        amount,
+        label
+      );
+
+      if (res.success && res.saleId) {
+        if (type === "deposit")
+          updateAttendeeField(id, "campDepositSaleId", res.saleId);
+        else if (type === "remainder")
+          updateAttendeeField(id, "campRemainderSaleId", res.saleId);
+        else if (type === "insurance")
+          updateAttendeeField(id, "campInsuranceSaleId", res.saleId);
+
+        toast.success(`Документът за ${label.toLowerCase()} е издаден`);
+      } else {
+        toast.error(res.error || "Грешка при издаване на документ");
+      }
+    } catch (error) {
+      console.error("Error issuing document:", error);
+      toast.error("Неочаквана грешка");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!event) return;
     setIsSubmitting(true);
     try {
-      if (totalCampPrice !== (event.totalCampPrice || 0)) {
-        await onUpdateEvent(event.id, { totalCampPrice });
+      if (
+        totalCampPrice !== (event.totalCampPrice || 0) ||
+        campInsurancePrice !== (event.campInsurancePrice || 0)
+      ) {
+        await onUpdateEvent(event.id, { totalCampPrice, campInsurancePrice });
       }
 
       const attendeesList = Object.values(attendeesMap);
@@ -201,15 +291,28 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
           <div className="mt-6 flex flex-col items-end justify-between gap-4 sm:flex-row">
             <div className="w-full space-y-1.5 sm:w-1/3">
               <label className="text-xs font-semibold tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
-                Обща цена (EUR)
+                Обща цена / Застраховка
               </label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={totalCampPrice || ""}
-                onChange={(e) => setTotalCampPrice(Number(e.target.value))}
-                className="font-mono"
-              />
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Цена"
+                  value={totalCampPrice || ""}
+                  onChange={(e) => setTotalCampPrice(Number(e.target.value))}
+                  className="w-1/2 font-mono"
+                  title="Обща цена (EUR)"
+                />
+                <Input
+                  type="number"
+                  placeholder="Застраховка"
+                  value={campInsurancePrice || ""}
+                  onChange={(e) =>
+                    setCampInsurancePrice(Number(e.target.value))
+                  }
+                  className="w-1/2 font-mono"
+                  title="Цена Застраховка (EUR)"
+                />
+              </div>
             </div>
 
             <div className="flex w-full gap-2 sm:w-2/3">
@@ -414,6 +517,31 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                               <span className="font-mono text-sm font-medium text-emerald-600">
                                 {deposit} €
                               </span>
+                              {attendee.campDepositSaleId ? (
+                                <Link
+                                  href={`/sales/${attendee.campDepositSaleId}/receipt`}
+                                  target="_blank"
+                                  className="ml-2 text-blue-500 hover:text-blue-600"
+                                  title="Виж разписка"
+                                >
+                                  <FileText className="size-4" />
+                                </Link>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="ml-2 size-5 rounded-full text-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                                  onClick={() =>
+                                    handleIssueDocument(
+                                      attendee.memberId,
+                                      "deposit"
+                                    )
+                                  }
+                                  title="Издай разписка"
+                                >
+                                  <FileText className="size-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -468,6 +596,31 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                 <span className="font-mono text-sm font-medium text-emerald-600">
                                   Платен
                                 </span>
+                                {attendee.campRemainderSaleId ? (
+                                  <Link
+                                    href={`/sales/${attendee.campRemainderSaleId}/receipt`}
+                                    target="_blank"
+                                    className="ml-2 text-blue-500 hover:text-blue-600"
+                                    title="Виж разписка"
+                                  >
+                                    <FileText className="size-4" />
+                                  </Link>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="ml-2 size-5 rounded-full text-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                                    onClick={() =>
+                                      handleIssueDocument(
+                                        attendee.memberId,
+                                        "remainder"
+                                      )
+                                    }
+                                    title="Издай разписка"
+                                  >
+                                    <FileText className="size-3" />
+                                  </Button>
+                                )}
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -495,6 +648,79 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                   className="h-6 px-2 text-[10px]"
                                   onClick={() =>
                                     handleRemainderPayment(attendee.memberId)
+                                  }
+                                >
+                                  Доплати
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Insurance */}
+                        {campInsurancePrice > 0 && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-zinc-500">
+                              Застраховка:
+                            </span>
+                            {attendee.campInsurancePaid &&
+                            attendee.campInsurancePaid > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-sm font-medium text-emerald-600">
+                                  Платена
+                                </span>
+                                {attendee.campInsuranceSaleId ? (
+                                  <Link
+                                    href={`/sales/${attendee.campInsuranceSaleId}/receipt`}
+                                    target="_blank"
+                                    className="ml-2 text-blue-500 hover:text-blue-600"
+                                    title="Виж разписка"
+                                  >
+                                    <FileText className="size-4" />
+                                  </Link>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="ml-2 size-5 rounded-full text-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                                    onClick={() =>
+                                      handleIssueDocument(
+                                        attendee.memberId,
+                                        "insurance"
+                                      )
+                                    }
+                                    title="Издай разписка"
+                                  >
+                                    <FileText className="size-3" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-5 rounded-full text-rose-400 hover:bg-rose-50 hover:text-rose-600"
+                                  onClick={() =>
+                                    updateAttendeeField(
+                                      attendee.memberId,
+                                      "campInsurancePaid",
+                                      0
+                                    )
+                                  }
+                                  title="Изчисти застраховката (Внимание: Не изтрива плащането от Отчети)"
+                                >
+                                  &times;
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-sm font-medium text-rose-500">
+                                  {campInsurancePrice} €
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 px-2 text-[10px]"
+                                  onClick={() =>
+                                    handleInsurancePayment(attendee.memberId)
                                   }
                                 >
                                   Доплати

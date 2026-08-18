@@ -755,3 +755,64 @@ export async function getServiceSalesAction(
     };
   }
 }
+
+export async function createCampFeeSaleAction(
+  eventId: string,
+  eventTitle: string,
+  memberId: string,
+  memberName: string,
+  amount: number,
+  feeTypeLabel: string
+) {
+  try {
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Неоторизиран достъп.");
+
+    const adminDb = getAdminDb();
+    const now = new Date().toISOString();
+
+    const saleRef = adminDb.collection("sales").doc();
+    const newSale = {
+      siteId: "bkgalabovo",
+      memberId: memberId,
+      clientName: memberName,
+      saleDate: now,
+      createdAt: now,
+      type: "camp_fee",
+      currency: "EUR",
+      isPaid: true,
+      paymentMethod: "В брой",
+      status: "completed",
+      totalAmount: amount,
+      items: [
+        {
+          id: `item-${Date.now()}`,
+          productId: eventId,
+          name: `${eventTitle} - ${feeTypeLabel}`,
+          price: amount,
+          quantity: 1,
+          total: amount,
+        },
+      ],
+      createdBy: { uid: user.uid, email: user.email },
+    };
+
+    await saleRef.set(newSale);
+
+    revalidatePath("/sales");
+    revalidatePath("/club/team");
+    revalidatePath("/members");
+    serverCache.invalidatePattern("sales:");
+
+    return { success: true, saleId: saleRef.id };
+  } catch (error: unknown) {
+    console.error("Error createCampFeeSaleAction:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при създаване на документ за лагер.",
+    };
+  }
+}
