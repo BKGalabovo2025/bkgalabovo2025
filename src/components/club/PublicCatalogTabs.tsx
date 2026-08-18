@@ -277,7 +277,7 @@ function renderTranslatedText(text: string | null | undefined, _lang?: string) {
 
 const shouldShowPrice = (item: any, currentTab: string) => {
   if (currentTab === "products") return false;
-  if (currentTab === "trainings") {
+  if (currentTab === "general") {
     const nameLower = (item.name || "").toLowerCase();
     return (
       nameLower.includes("наем на корт") || nameLower.includes("court rental")
