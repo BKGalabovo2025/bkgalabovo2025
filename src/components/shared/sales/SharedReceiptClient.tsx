@@ -387,12 +387,6 @@ const StandardReceipt = ({
           </table>
         </div>
 
-        {/* Unified Legal / Accounting Statement */}
-        <div className="mt-4 border-t border-zinc-100 pt-3 text-center text-[7px] text-zinc-400">
-          Документът е издаден съгласно чл. 7, ал. 1 от Закона за
-          счетоводството.
-        </div>
-
         {/* Signatures */}
         <div className="mt-4 flex justify-between gap-12 text-zinc-500">
           <div className="flex-1">

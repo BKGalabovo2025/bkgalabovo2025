@@ -473,6 +473,27 @@ export async function deleteSaleAction(
       await generalBatch.commit();
     }
 
+    // 6. Delete associated service history events
+    const historyBatch = adminDb.batch();
+
+    const serviceHistorySnapshot = await adminDb
+      .collection("serviceHistory")
+      .where("relatedSaleId", "==", id)
+      .get();
+    serviceHistorySnapshot.docs.forEach((doc: any) => {
+      historyBatch.delete(doc.ref);
+    });
+
+    const generalServiceHistorySnapshot = await adminDb
+      .collection("generalServiceHistory")
+      .where("relatedSaleId", "==", id)
+      .get();
+    generalServiceHistorySnapshot.docs.forEach((doc: any) => {
+      historyBatch.delete(doc.ref);
+    });
+
+    await historyBatch.commit();
+
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");

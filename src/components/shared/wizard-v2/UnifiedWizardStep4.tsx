@@ -205,11 +205,6 @@ export const UnifiedWizardStep4 = () => {
               </div>
             )}
 
-            <div className="mt-4 border-t border-zinc-100 pt-3 text-center text-[7px] text-zinc-400 dark:border-zinc-800">
-              Документът е издаден съгласно чл. 7, ал. 1 от Закона за
-              счетоводството.
-            </div>
-
             <div className="mt-4 flex justify-between gap-12 text-zinc-500">
               <div className="flex-1">
                 <div className="h-px w-full bg-zinc-300 dark:bg-zinc-800" />
