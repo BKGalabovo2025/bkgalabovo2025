@@ -509,7 +509,7 @@ function CatalogCard({
                   </span>
                 </div>
               )}
-              {(item.numberOfDays || 1) >= 1 && (
+              {tab === "recovery" && (
                 <div
                   className={`flex items-center gap-1.5 text-xs ${
                     (item.numberOfDays || 1) >= 3
@@ -689,7 +689,7 @@ function CatalogCard({
                     </span>
                   </Badge>
                 )}
-                {(item.numberOfDays || 1) >= 1 && (
+                {tab === "recovery" && (
                   <Badge
                     variant="outline"
                     className={`rounded-md px-3 py-1 text-xs ${
