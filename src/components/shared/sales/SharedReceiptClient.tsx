@@ -585,7 +585,7 @@ export function SharedReceiptClient({
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             <ReceiptCopy
-              label="Екземпляр за клиента"
+              label="Екземпляр за получателя"
               sale={sale}
               member={member}
               relatedMember={relatedMember}

@@ -200,6 +200,18 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
   const { idToken } = useAuth();
   const { activeBranch } = useAppStore();
 
+  // When a sale item is set, determine initial mode
+  useEffect(() => {
+    if (
+      item &&
+      mode === "training" &&
+      !isSubscriptionService &&
+      !("isPackage" in item && item.isPackage)
+    ) {
+      setPaymentMode("individual");
+    }
+  }, [item, mode, isSubscriptionService]);
+
   // Load members
   useEffect(() => {
     if (isOpen) {

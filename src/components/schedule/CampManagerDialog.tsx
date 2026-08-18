@@ -123,13 +123,39 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     });
   };
 
+  const updateAttendeeFieldAndSave = async <K extends keyof Attendee>(
+    id: string,
+    field: K,
+    value: Attendee[K]
+  ) => {
+    if (!event) return;
+    const attendee = attendeesMap[id];
+    if (!attendee) return;
+
+    const newAttendee = { ...attendee, [field]: value };
+    const newMap = { ...attendeesMap, [id]: newAttendee };
+
+    setAttendeesMap(newMap);
+
+    try {
+      await onUpdateAttendees(event.id, Object.values(newMap));
+    } catch (err) {
+      console.error("Failed to auto-save attendee update:", err);
+      toast.error("Възникна грешка при автоматичното запазване");
+    }
+  };
+
   const handleDepositPayment = async (id: string, amount: number) => {
     if (!event || !user) return;
     const attendee = attendeesMap[id];
     if (!attendee) return;
 
     const currentDeposit = attendee.campDepositPaid || 0;
-    updateAttendeeField(id, "campDepositPaid", currentDeposit + amount);
+    await updateAttendeeFieldAndSave(
+      id,
+      "campDepositPaid",
+      currentDeposit + amount
+    );
     toast.success("Капарото е маркирано като платено");
   };
 
@@ -144,7 +170,11 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     if (remainder <= 0) return;
 
     const currentRemainder = attendee.campRemainderPaid || 0;
-    updateAttendeeField(id, "campRemainderPaid", currentRemainder + remainder);
+    await updateAttendeeFieldAndSave(
+      id,
+      "campRemainderPaid",
+      currentRemainder + remainder
+    );
     toast.success("Остатъкът е маркиран като платен");
   };
 
@@ -156,7 +186,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     if (campInsurancePrice <= 0) return;
 
     const currentInsurance = attendee.campInsurancePaid || 0;
-    updateAttendeeField(
+    await updateAttendeeFieldAndSave(
       id,
       "campInsurancePaid",
       currentInsurance + campInsurancePrice
@@ -205,11 +235,19 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
 
       if (res.success && res.saleId) {
         if (type === "deposit")
-          updateAttendeeField(id, "campDepositSaleId", res.saleId);
+          await updateAttendeeFieldAndSave(id, "campDepositSaleId", res.saleId);
         else if (type === "remainder")
-          updateAttendeeField(id, "campRemainderSaleId", res.saleId);
+          await updateAttendeeFieldAndSave(
+            id,
+            "campRemainderSaleId",
+            res.saleId
+          );
         else if (type === "insurance")
-          updateAttendeeField(id, "campInsuranceSaleId", res.saleId);
+          await updateAttendeeFieldAndSave(
+            id,
+            "campInsuranceSaleId",
+            res.saleId
+          );
 
         toast.success(`Документът за ${label.toLowerCase()} е издаден`);
       } else {
