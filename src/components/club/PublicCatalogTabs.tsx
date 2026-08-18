@@ -275,6 +275,17 @@ function renderTranslatedText(text: string | null | undefined, _lang?: string) {
   });
 }
 
+const shouldShowPrice = (item: any, currentTab: string) => {
+  if (currentTab === "products") return false;
+  if (currentTab === "trainings") {
+    const nameLower = (item.name || "").toLowerCase();
+    return (
+      nameLower.includes("наем на корт") || nameLower.includes("court rental")
+    );
+  }
+  return true;
+};
+
 function CatalogCard({
   item,
   tab,
@@ -547,11 +558,11 @@ function CatalogCard({
               {t("Цена", "Price", lang)}{" "}
             </span>
             <span className="text-xl font-medium tracking-tight text-white">
-              {item.price > 0
+              {shouldShowPrice(item, tab) && item.price > 0
                 ? `${item.price.toFixed(2)} EUR`
                 : lang === "en"
-                  ? "On request"
-                  : "По заявка"}
+                  ? "Ask for price"
+                  : "Попитайте за цена"}
             </span>
           </div>
 
@@ -595,16 +606,16 @@ function CatalogCard({
                 <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div className="text-xl font-medium tracking-tight text-blue-400">
                     <span>
-                      {item.price > 0
+                      {shouldShowPrice(item, tab) && item.price > 0
                         ? item.price.toFixed(2) + " EUR"
                         : lang === "en"
-                          ? "On request"
-                          : "По заявка"}
+                          ? "Ask for price"
+                          : "Попитайте за цена"}
                     </span>
                   </div>
                   {(() => {
                     const pricePart =
-                      item.price > 0
+                      shouldShowPrice(item, tab) && item.price > 0
                         ? " (" + item.price.toFixed(2) + " EUR)"
                         : "";
                     const waMsg = encodeURIComponent(
