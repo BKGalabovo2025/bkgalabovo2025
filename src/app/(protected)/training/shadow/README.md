@@ -19,7 +19,8 @@ graph TD
 ```
 
 ### 1.1. Компоненти и отговорности
-1. **Сървърен компонент ([page.tsx](file:///d:/FIREBASE%20STUDIO/bkgalabovo2025/src/app/(protected)/training/shadow/page.tsx))**:
+
+1. **Сървърен компонент ([page.tsx](<file:///d:/FIREBASE%20STUDIO/bkgalabovo2025/src/app/(protected)/training/shadow/page.tsx>))**:
    - Извлича списъка с клубни членове от Firestore (`getAllMembersServer()`).
    - Подава списъка като начално състояние (`initialMembers`) на интерактивния съветник.
 2. **Многостъпков съветник ([ShadowWizard.tsx](file:///d:/FIREBASE%20STUDIO/bkgalabovo2025/src/components/training/ShadowWizard.tsx))**:
@@ -40,17 +41,22 @@ graph TD
 ## 2. Ключови логически процеси и алгоритми
 
 ### 2.1. Изчисление на времето с Delta Time (Защита от Timer Drift)
+
 Обикновеният `setInterval(..., 1000)` в JavaScript страда от забавяния под влияние на натоварването на процесора или фоновите процеси в браузъра. Модулът решава това чрез измерване на реално изтеклите милисекунди:
+
 ```typescript
 const now = Date.now();
 const deltaMs = now - lastTick;
 lastTick = now;
 accumulatedMs += deltaMs;
 ```
+
 Това гарантира, че таймерът и аудио сигналите остават напълно синхронизирани с реалното астрономическо време.
 
 ### 2.2. Прецизна синхронизация в Скоростния тест (Agility Test)
+
 За разлика от стандартния режим, Скоростният тест изисква броене нагоре (хронометър) и спиране точно при достигане на целевия брой движения (напр. 20):
+
 1. **Защита от ранно задействане**: Когато таймерът се нулира при преход от `countdown` към `working`, се използва предпазният флаг `isAgilityWorking`. Той не позволява на проверката `prev <= 1` (използвана при обратно броене) погрешно да спре теста при старт от `0`.
 2. **Синхронен преход към Край**:
    ```typescript
@@ -65,6 +71,7 @@ accumulatedMs += deltaMs;
 3. **Правилно отчитане на движенията**: Броячът се инкрементира при завършване на всяка pace-секунда, вместо предварително при самото зареждане на тренировъчния екран.
 
 ### 2.3. Mobile-First оптимизации
+
 - **Screen Wake Lock API**: Предотвратява заспиването на екрана на мобилните телефони и таблети, докато устройството е поставено пред играча на корта:
   ```typescript
   wakeLockRef.current = await navigator.wakeLock.request("screen");
@@ -78,15 +85,17 @@ accumulatedMs += deltaMs;
 Всички компоненти и куки в модула се тестват автоматично чрез **Vitest** и **React Testing Library**. Тестовата матрица покрива 100% от критичните пътища:
 
 ### 3.1. Тестове на визуализатора (`CourtVisualizer.test.tsx`)
+
 - `renders correctly with no active zone`: Проверява дали кортът се рендира без никакви активни (`bg-primary/80`) класове.
 - `highlights the frontForehand zone correctly`: Проверява дали при команда за преден форхенд се осветява секторът, съдържащ надпис „Форхенд“.
 - `highlights the backBackhand zone correctly`: Проверява дали задният бекхенд маркира сектор с надпис „Бекхенд“.
 - `treats overhead as backLeft zone`: Валидира корекцията в терминологията, проверявайки че при `overhead` активната осветена зона съдържа надпис „Бекхенд“ (Заден ляв сектор).
 
 ### 3.2. Тестове на тренировъчната кука (`useShadowTrainer.test.ts`)
+
 - `should initialize in idle state`: Уверява се, че първоначалното състояние е `"idle"` и броячите са занулени.
 - `runs countdown then switches to working and plays commands`: Симулира преминаване през 10-секундната подготовка и преход към работа.
-- `should start and cycle with randomized pace values`: Тества съвместимостта на логиката при променливо темпо в режим *Ghost Match*.
+- `should start and cycle with randomized pace values`: Тества съвместимостта на логиката при променливо темпо в режим _Ghost Match_.
 - `should allow stopping agility test successfully`: Проверява ръчното прекратяване на теста чрез метод `stopTraining()`.
 - `should increment agilityActionsDone on completed movements and finish when workSec is reached`: Проверява пълния жизнен цикъл на Скоростния тест:
   - Проследява, че по време на Countdown `agilityActionsDone` остава `0`.
@@ -99,6 +108,7 @@ accumulatedMs += deltaMs;
 - `Pause, Resume, Stop and Wake Lock`: Следи жизнения цикъл на Wake Lock – дали се заявява при Старт/Продължи и дали се освобождава при Пауза/Стоп.
 
 ### 3.3. Тестове на съветника (`ShadowWizard.test.tsx`)
+
 - `guides user through all 5 steps of the wizard and starts training`: Симулира потребителското преминаване през екраните и натискането на „СТАРТ“.
 - `allows saving a completed session and warns if elapsed time is less than 10 seconds`: Проверява за изскачащ прозорец (confirm) при опита за запис на твърде къса сесия в базата.
 - `allows closing without saving, resetting to step 1`: Потвърждава, че новата опция „Затвори без запис“ изчиства състоянието и връща потребителя в началото на съветника.

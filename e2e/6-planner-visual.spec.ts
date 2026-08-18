@@ -17,12 +17,12 @@ test.describe("Planner Visual Tests", () => {
   test("visually compares the main schedule view", async ({ page }) => {
     // Navigate to the planner (schedule)
     await page.goto("/schedule");
-    
+
     // Wait for the main elements to load (e.g. tabs, page header)
     await expect(page.locator("h1:has-text('График')")).toBeVisible();
-    
+
     // Wait for loading spinners to disappear
-    await expect(page.locator('.animate-spin')).toHaveCount(0);
+    await expect(page.locator(".animate-spin")).toHaveCount(0);
 
     // Optional: wait a bit for any layout shifts/animations to finish
     await page.waitForTimeout(1000);
@@ -30,10 +30,10 @@ test.describe("Planner Visual Tests", () => {
     // Take a component-level screenshot of the main content area (to ignore header/sidebar if any)
     // The main wrapper in /schedule/page.tsx is <main className="pb-12">
     const scheduleComponent = page.locator("main");
-    
+
     // Assert visual comparison
     await expect(scheduleComponent).toHaveScreenshot("schedule-main-view.png", {
-      // 5% max threshold is defined globally in playwright.config.ts, 
+      // 5% max threshold is defined globally in playwright.config.ts,
       // but we can also set mask properties here if needed (e.g. to mask dynamically generated IDs)
     });
   });

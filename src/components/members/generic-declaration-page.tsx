@@ -14,9 +14,7 @@ import { formatFullName } from "@/lib/utils";
 import { Member } from "@/types";
 
 type DeclarationPrefix =
-  | "signedDeclaration"
-  | "travelDeclaration"
-  | "safetyDeclaration";
+  "signedDeclaration" | "travelDeclaration" | "safetyDeclaration";
 
 interface GenericDeclarationPageProps {
   memberId: string;
@@ -51,8 +49,7 @@ export const GenericDeclarationPage = ({
   const existingSignatureUrl =
     signatureUrl ||
     ((member as Record<string, unknown>)[`${prefix}SignatureUrl`] as
-      | string
-      | null) ||
+      string | null) ||
     null;
 
   const handleSignatureSave = async (file: File) => {

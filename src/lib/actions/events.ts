@@ -141,8 +141,7 @@ export async function updateAttendeesAction(
               paymentStatus: "paid" as const,
               paymentType: (((matchedSale as Record<string, unknown>)
                 .paymentMode as string) || "subscription") as
-                | "subscription"
-                | "individual",
+                "subscription" | "individual",
               paymentDate: nowIso,
               saleId: matchedSale.id,
             };

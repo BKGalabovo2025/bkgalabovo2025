@@ -34,9 +34,7 @@ export async function computeGlobalRankingsServer(dateFilter?: {
     if (dateFilter) {
       tournaments = tournaments.filter((t) => {
         const rawDate = t.startDate as unknown as
-          | { toDate: () => Date }
-          | string
-          | Date;
+          { toDate: () => Date } | string | Date;
         const tDate =
           typeof (rawDate as { toDate?: () => Date }).toDate === "function"
             ? (rawDate as { toDate: () => Date }).toDate()

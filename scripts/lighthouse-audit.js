@@ -9,7 +9,7 @@ dotenv.config({ path: ".env.local" });
 
 const pages = [
   { url: "http://localhost:3001/club", name: "club" },
-  { url: "http://localhost:3001/schedule", name: "schedule" }
+  { url: "http://localhost:3001/schedule", name: "schedule" },
 ];
 
 async function getSessionCookie() {
@@ -25,23 +25,26 @@ async function getSessionCookie() {
   const serviceAccount = JSON.parse(serviceAccountStr);
   if (!admin.apps.length) {
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
+      credential: admin.credential.cert(serviceAccount),
     });
   }
 
   console.log(`Getting UID for ${adminEmail}...`);
   const userRecord = await admin.auth().getUserByEmail(adminEmail);
-  
+
   console.log("Generating custom token...");
   const customToken = await admin.auth().createCustomToken(userRecord.uid);
 
   console.log("Exchanging for ID token...");
-  const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: customToken, returnSecureToken: true })
-  });
-  
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+    }
+  );
+
   const data = await res.json();
   if (!data.idToken) {
     throw new Error("Failed to get ID token: " + JSON.stringify(data));
@@ -51,9 +54,9 @@ async function getSessionCookie() {
   const sessionRes = await fetch("http://localhost:3001/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idToken: data.idToken })
+    body: JSON.stringify({ idToken: data.idToken }),
   });
-  
+
   const setCookieHeader = sessionRes.headers.get("set-cookie");
   if (!setCookieHeader) {
     throw new Error("No set-cookie header received from local server");
@@ -95,7 +98,9 @@ async function run() {
   }
 
   console.log("\n--- Step 3: Running audits ---");
-  const extraHeaders = sessionCookie ? `--extra-headers="{\\"Cookie\\":\\"${sessionCookie}\\"}"` : "";
+  const extraHeaders = sessionCookie
+    ? `--extra-headers="{\\"Cookie\\":\\"${sessionCookie}\\"}"`
+    : "";
 
   for (const page of pages) {
     console.log(`\nAuditing ${page.name.toUpperCase()}...`);

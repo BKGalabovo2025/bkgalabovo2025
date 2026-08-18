@@ -52,7 +52,7 @@ async function migrateMemberRoles() {
       const data = doc.data();
       const updates: any = {};
 
-      // If they already have the new flags mapped and verified, we could technically skip, 
+      // If they already have the new flags mapped and verified, we could technically skip,
       // but let's ensure old memberType is properly mapped for everyone who doesn't have it.
       if (data.memberType) {
         if (data.memberType === "regular" && data.isClubMember !== true) {
@@ -70,7 +70,7 @@ async function migrateMemberRoles() {
         batch.update(doc.ref, updates);
         batchCount++;
         updatedCount++;
-        
+
         if (batchCount >= 500) {
           await batch.commit();
           batch = adminDb.batch();
@@ -86,7 +86,6 @@ async function migrateMemberRoles() {
     console.log(
       `  ✅ Миграцията завърши: обновени ${updatedCount}, пропуснати ${skippedCount} (вече имат правилни флагове).`
     );
-
   } catch (error) {
     console.error("\n❌ Грешка при миграция:", error);
     process.exit(1);

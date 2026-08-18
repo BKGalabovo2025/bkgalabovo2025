@@ -2,42 +2,42 @@ name: Lighthouse CI Performance Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   lighthouse-audit:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout Repository
-      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
-      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout Repository
+        # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-    - name: Setup Node.js
-      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-      with:
-        node-version: '20'
+      - name: Setup Node.js
+        # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Install Dependencies
+        run: npm install
 
-    - name: Run Lighthouse Audit
-      # Passing required environment variables as secrets for the custom script
-      env:
-        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
-        EMAIL_USER: ${{ secrets.EMAIL_USER }}
-      run: npm run lighthouse
+      - name: Run Lighthouse Audit
+        # Passing required environment variables as secrets for the custom script
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        run: npm run lighthouse
 
-    - name: Upload Lighthouse Reports
-      if: always()
-      # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: lighthouse-reports
-        path: .lighthouse-reports/
-        retention-days: 30
+      - name: Upload Lighthouse Reports
+        if: always()
+        # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouse-reports/
+          retention-days: 30

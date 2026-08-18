@@ -1,54 +1,42 @@
 {
-    "compilerOptions":  {
-                            "target":  "ESNext",
-                            "lib":  [
-                                        "dom",
-                                        "dom.iterable",
-                                        "esnext"
-                                    ],
-                            "allowJs":  true,
-                            "skipLibCheck":  true,
-                            "strict":  true,
-                            "strictNullChecks":  true,
-                            "noImplicitAny":  true,
-                            "noImplicitThis":  true,
-                            "alwaysStrict":  true,
-                            "noEmit":  true,
-                            "esModuleInterop":  true,
-                            "module":  "esnext",
-                            "moduleResolution":  "bundler",
-                            "resolveJsonModule":  true,
-                            "isolatedModules":  true,
-                            "jsx":  "react-jsx",
-                            "allowImportingTsExtensions":  true,
-                            "incremental":  true,
-                            "forceConsistentCasingInFileNames":  true,
-                            "noUnusedLocals":  false,
-                            "noUnusedParameters":  true,
-                            "plugins":  [
-                                            {
-                                                "name":  "next"
-                                            }
-                                        ],
-                            "paths":  {
-                                          "@/*":  [
-                                                      "./src/*"
-                                                  ]
-                                      },
-                            "types":  [
-                                          "vitest/globals",
-                                          "@testing-library/jest-dom"
-                                      ]
-                        },
-    "include":  [
-                    "next-env.d.ts",
-                    "**/*.ts",
-                    "**/*.tsx",
-                    ".next/types/**/*.ts",
-                    ".next/dev/types/**/*.ts"
-                ],
-    "exclude":  [
-                    "node_modules",
-                    "bkgalabovo2025"
-                ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "bkgalabovo2025"]
 }

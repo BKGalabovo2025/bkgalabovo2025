@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: "chromium",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
         // Use the auth state saved during setup for all tests
         storageState: "e2e/.auth/user.json",
@@ -46,7 +46,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "cross-env NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 npm run dev -- -p 9001",
+    command:
+      "cross-env NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 npm run dev -- -p 9001",
     url: "http://localhost:9001",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

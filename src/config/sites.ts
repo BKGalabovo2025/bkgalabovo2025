@@ -34,7 +34,7 @@ const SITES: Record<string, SiteConfig> = {
   },
   recoveryzone: {
     id: "recoveryzone",
-    name: 'Recovery zone by ZM',
+    name: "Recovery zone by ZM",
     shortName: "recoveryzone",
     themeColor: "#065f46",
     contact: {

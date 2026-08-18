@@ -12,7 +12,7 @@ test.describe("Tournaments Flow", () => {
 
     const tourneyName = `E2E Open ${Date.now()}`;
     await page.fill('input[name="title"]', tourneyName);
-    
+
     // Status selection
     await page.click('button[role="combobox"]:has-text("Предстоящ")'); // Assuming default is "Предстоящ" or we click the select placeholder
     // If it's already selected by default, we can just skip or select "Отворена регистрация"
@@ -22,11 +22,13 @@ test.describe("Tournaments Flow", () => {
     await page.fill('input[name="startDate"]', "2026-10-01");
     await page.fill('input[name="endDate"]', "2026-10-02");
     await page.fill('input[name="location"]', "Гълъбово Арена");
-    
+
     await page.click('button[type="submit"]:has-text("Запази")');
 
     // Wait for creation and card to appear
-    await expect(page.locator(`text=${tourneyName}`)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator(`text=${tourneyName}`)).toBeVisible({
+      timeout: 10000,
+    });
 
     // Open tournament details
     await page.click(`text=${tourneyName}`);
@@ -34,7 +36,9 @@ test.describe("Tournaments Flow", () => {
 
     // Register a dummy participant (if the UI allows manual adding from admin)
     // Depending on the exact UI, there might be a "Добави участник" button
-    const addParticipantBtn = page.locator('button:has-text("Добави участник")');
+    const addParticipantBtn = page.locator(
+      'button:has-text("Добави участник")'
+    );
     if (await addParticipantBtn.isVisible()) {
       await addParticipantBtn.click();
       // Select a member from dropdown or enter name

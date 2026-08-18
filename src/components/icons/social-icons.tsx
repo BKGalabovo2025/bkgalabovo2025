@@ -1,6 +1,3 @@
- 
- 
- 
 /**
  * Simple inline SVG social media icons for use where lucide-react
  * does not provide brand icons.

@@ -3,7 +3,6 @@ import { bg } from "date-fns/locale";
 
 export type DateInput = Date | string | number;
 
-
 /**
  * Detailed date and time format.
  * Example: "5 май 2026 г., 15:30 ч."
@@ -27,9 +26,7 @@ export const formatDateInput = (date: DateInput | undefined) => {
 /**
  * ISO date-time string for datetime-local form inputs (yyyy-MM-ddTHH:mm).
  */
-export const formatDateTimeLocal = (
-  date: DateInput | undefined
-) => {
+export const formatDateTimeLocal = (date: DateInput | undefined) => {
   if (!date) return "";
   const d = new Date(date);
   if (!isValid(d)) return "";
@@ -72,10 +69,7 @@ export const formatDateShort = (date: DateInput) => {
  * If same day: "05 май 2026, 15:30 - 16:30 ч."
  * If different days: "05 май 2026, 15:30 ч. - 06 май 2026, 16:30 ч."
  */
-export const formatTimeRange = (
-  start: DateInput,
-  end: DateInput
-) => {
+export const formatTimeRange = (start: DateInput, end: DateInput) => {
   const s = new Date(start);
   const e = new Date(end);
 
@@ -95,10 +89,7 @@ export const formatTimeRange = (
  * Same day: "23.06.2026 (вт) | 16:00 — 17:30"
  * Multi-day: "27.06.2026 (сб) 09:30 — 28.06.2026 (нд) 16:30"
  */
-export const formatEventDateRange = (
-  start: DateInput,
-  end: DateInput
-) => {
+export const formatEventDateRange = (start: DateInput, end: DateInput) => {
   const s = new Date(start);
   const e = new Date(end);
 

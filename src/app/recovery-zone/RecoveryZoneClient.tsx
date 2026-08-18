@@ -351,7 +351,13 @@ export default function RecoveryZoneClient({
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
             <h2 className="mb-6 text-3xl font-light tracking-tight md:text-5xl">
-              {lang === 'en' ? <span className="notranslate">Our recovery attachments and their application</span> : "Нашите приставки и тяхното приложение"}
+              {lang === "en" ? (
+                <span className="notranslate">
+                  Our recovery attachments and their application
+                </span>
+              ) : (
+                "Нашите приставки и тяхното приложение"
+              )}
             </h2>
           </div>
 
@@ -410,7 +416,11 @@ export default function RecoveryZoneClient({
               </div>
               <div className="p-8">
                 <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  {lang === 'en' ? <span className="notranslate">PELVIS</span> : "ТАЗ"}
+                  {lang === "en" ? (
+                    <span className="notranslate">PELVIS</span>
+                  ) : (
+                    "ТАЗ"
+                  )}
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-400">
                   Обхваща долната част на гърба, таза, хълбоците и седалищните
@@ -442,12 +452,20 @@ export default function RecoveryZoneClient({
               </div>
               <div className="p-8">
                 <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  {lang === 'en' ? <span className="notranslate">ARMS</span> : "РЪЦЕ"}
+                  {lang === "en" ? (
+                    <span className="notranslate">ARMS</span>
+                  ) : (
+                    "РЪЦЕ"
+                  )}
                 </h3>
                 <p className="text-sm leading-relaxed text-zinc-400">
-                  {lang === 'en' ? (
+                  {lang === "en" ? (
                     <span className="notranslate">
-                      Covers the areas from the wrists to the shoulders. Extremely useful for badminton players, tennis players, swimmers, and fitness enthusiasts whose arms are subjected to constant stress, as well as for people working in front of a computer.
+                      Covers the areas from the wrists to the shoulders.
+                      Extremely useful for badminton players, tennis players,
+                      swimmers, and fitness enthusiasts whose arms are subjected
+                      to constant stress, as well as for people working in front
+                      of a computer.
                     </span>
                   ) : (
                     "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър."

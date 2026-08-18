@@ -422,7 +422,6 @@ function TournamentCard({
           </Link>
         </Button>
         <div className="flex gap-2">
-
           <Button
             variant="outline"
             size="icon"

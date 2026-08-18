@@ -262,6 +262,7 @@ function ServiceCard({
                 key={imgUrl}
                 src={imgUrl}
                 alt={`${service.name} - ${idx + 1}`}
+                priority={idx === 0}
                 fill
                 sizes="(max-w-768px) 100vw, 33vw"
                 className={`absolute inset-0 object-contain p-4 transition-all duration-1000 group-hover:scale-110 ${

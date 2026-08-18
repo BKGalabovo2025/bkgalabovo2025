@@ -7,12 +7,7 @@ export interface ShadowPlayer {
 export type VisualPhase = "idle" | "split_step" | "shot" | "center";
 
 export type TrainerState =
-  | "idle"
-  | "countdown"
-  | "working"
-  | "resting"
-  | "finished"
-  | "paused";
+  "idle" | "countdown" | "working" | "resting" | "finished" | "paused";
 
 export interface ShadowSettings {
   mode: "standard" | "ghost_match" | "agility_test";

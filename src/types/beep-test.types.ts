@@ -5,11 +5,7 @@ export type BeepTestPeriod =
   | "Специален Лагер";
 
 export type BadmintonScore =
-  | "Лош"
-  | "Среден"
-  | "Добър"
-  | "Отличен"
-  | "Елитен състезател";
+  "Лош" | "Среден" | "Добър" | "Отличен" | "Елитен състезател";
 
 export interface BeepTestResult {
   id: string;

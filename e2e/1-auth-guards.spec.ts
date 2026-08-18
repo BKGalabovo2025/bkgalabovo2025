@@ -4,16 +4,20 @@ import { test, expect } from "@playwright/test";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("Auth Guards & Routing", () => {
-  test("unauthenticated user is redirected to /login when accessing protected route", async ({ page }) => {
+  test("unauthenticated user is redirected to /login when accessing protected route", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
     // Should be redirected to login
     await expect(page).toHaveURL(/.*\/login/);
-    
+
     await page.goto("/members");
     await expect(page).toHaveURL(/.*\/login/);
   });
 
-  test("can login with valid credentials and reach dashboard", async ({ page }) => {
+  test("can login with valid credentials and reach dashboard", async ({
+    page,
+  }) => {
     // We can use the admin credentials created in setup
     await page.goto("/login");
     await page.fill('input[type="email"]', "admin@bkgalabovo.com");

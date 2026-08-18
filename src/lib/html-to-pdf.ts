@@ -2,18 +2,14 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
 /**
- * Generates a PDF from an HTML element using html2canvas and jsPDF.
+ * Shared helper to create a jsPDF instance from an HTML element.
  * This function also cleans up unsupported CSS colors (oklch, lab)
  * which cause html2canvas to crash or render incorrectly.
- *
- * @param element The HTML element to convert to PDF
- * @param filename The name of the resulting PDF file
  */
-export async function generatePdfFromElement(
+async function createPdf(
   element: HTMLElement,
-  filename: string,
   orientation: "portrait" | "landscape" = "portrait"
-): Promise<void> {
+): Promise<jsPDF> {
   // 1. Gather all active CSS rules and remove unsupported colors
   let allCSS = "";
   for (let i = 0; i < document.styleSheets.length; i++) {
@@ -136,6 +132,22 @@ export async function generatePdfFromElement(
 
   const x = (pdfWidth - imgWidth) / 2;
   pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
+
+  return pdf;
+}
+
+/**
+ * Generates a PDF from an HTML element using html2canvas and jsPDF.
+ *
+ * @param element The HTML element to convert to PDF
+ * @param filename The name of the resulting PDF file
+ */
+export async function generatePdfFromElement(
+  element: HTMLElement,
+  filename: string,
+  orientation: "portrait" | "landscape" = "portrait"
+): Promise<void> {
+  const pdf = await createPdf(element, orientation);
   pdf.save(filename);
 }
 
@@ -147,122 +159,7 @@ export async function getPdfBase64FromElement(
   element: HTMLElement,
   orientation: "portrait" | "landscape" = "portrait"
 ): Promise<string> {
-  let allCSS = "";
-  for (let i = 0; i < document.styleSheets.length; i++) {
-    const sheet = document.styleSheets[i];
-    try {
-      const rules = sheet.cssRules || sheet.rules;
-      for (let j = 0; j < rules.length; j++) {
-        allCSS += rules[j].cssText + "\n";
-      }
-    } catch {
-      // Ignore CORS
-    }
-  }
-
-  const cleanCSS = allCSS
-    .replace(
-      /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "color: rgb(15, 23, 42)"
-    )
-    .replace(
-      /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "background-color: transparent"
-    )
-    .replace(
-      /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "border-color: rgb(203, 213, 225)"
-    )
-    .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-    onclone: (clonedDoc: Document) => {
-      const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
-      linkTags.forEach((link) => link.remove());
-
-      const styleEl = clonedDoc.createElement("style");
-      styleEl.textContent =
-        cleanCSS +
-        "\n" +
-        `
-        * {
-          font-family: Arial, Helvetica, sans-serif !important;
-          word-spacing: 2px !important;
-        }
-      `;
-      clonedDoc.head.appendChild(styleEl);
-
-      const styleTags = clonedDoc.querySelectorAll("style");
-      styleTags.forEach((style) => {
-        if (style.innerHTML) {
-          style.innerHTML = style.innerHTML
-            .replace(
-              /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "color: rgb(15, 23, 42)"
-            )
-            .replace(
-              /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "background-color: transparent"
-            )
-            .replace(
-              /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "border-color: rgb(203, 213, 225)"
-            )
-            .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-        }
-      });
-
-      const allElements = clonedDoc.querySelectorAll("*");
-      allElements.forEach((el) => {
-        const styleAttr = el.getAttribute("style");
-        if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
-          el.setAttribute(
-            "style",
-            styleAttr
-              .replace(
-                /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "color: rgb(15, 23, 42)"
-              )
-              .replace(
-                /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "background-color: transparent"
-              )
-              .replace(
-                /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "border-color: rgb(203, 213, 225)"
-              )
-              .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
-          );
-        }
-      });
-    },
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({
-    orientation,
-    unit: "mm",
-    format: "a4",
-  });
-
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = orientation === "landscape" ? 210 : 297;
-  let imgWidth = pdfWidth;
-  let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  if (imgHeight > pageHeight) {
-    const ratio = pageHeight / imgHeight;
-    imgHeight = pageHeight;
-    imgWidth = imgWidth * ratio;
-  }
-
-  const x = (pdfWidth - imgWidth) / 2;
-  pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
+  const pdf = await createPdf(element, orientation);
   return pdf.output("datauristring");
 }
 
@@ -274,122 +171,7 @@ export async function getPdfBlobFromElement(
   element: HTMLElement,
   orientation: "portrait" | "landscape" = "portrait"
 ): Promise<Blob> {
-  let allCSS = "";
-  for (let i = 0; i < document.styleSheets.length; i++) {
-    const sheet = document.styleSheets[i];
-    try {
-      const rules = sheet.cssRules || sheet.rules;
-      for (let j = 0; j < rules.length; j++) {
-        allCSS += rules[j].cssText + "\n";
-      }
-    } catch {
-      // Ignore CORS
-    }
-  }
-
-  const cleanCSS = allCSS
-    .replace(
-      /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "color: rgb(15, 23, 42)"
-    )
-    .replace(
-      /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "background-color: transparent"
-    )
-    .replace(
-      /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "border-color: rgb(203, 213, 225)"
-    )
-    .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-    onclone: (clonedDoc: Document) => {
-      const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
-      linkTags.forEach((link) => link.remove());
-
-      const styleEl = clonedDoc.createElement("style");
-      styleEl.textContent =
-        cleanCSS +
-        "\n" +
-        `
-        * {
-          font-family: Arial, Helvetica, sans-serif !important;
-          word-spacing: 2px !important;
-        }
-      `;
-      clonedDoc.head.appendChild(styleEl);
-
-      const styleTags = clonedDoc.querySelectorAll("style");
-      styleTags.forEach((style) => {
-        if (style.innerHTML) {
-          style.innerHTML = style.innerHTML
-            .replace(
-              /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "color: rgb(15, 23, 42)"
-            )
-            .replace(
-              /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "background-color: transparent"
-            )
-            .replace(
-              /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "border-color: rgb(203, 213, 225)"
-            )
-            .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-        }
-      });
-
-      const allElements = clonedDoc.querySelectorAll("*");
-      allElements.forEach((el) => {
-        const styleAttr = el.getAttribute("style");
-        if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
-          el.setAttribute(
-            "style",
-            styleAttr
-              .replace(
-                /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "color: rgb(15, 23, 42)"
-              )
-              .replace(
-                /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "background-color: transparent"
-              )
-              .replace(
-                /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "border-color: rgb(203, 213, 225)"
-              )
-              .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
-          );
-        }
-      });
-    },
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({
-    orientation,
-    unit: "mm",
-    format: "a4",
-  });
-
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = orientation === "landscape" ? 210 : 297;
-  let imgWidth = pdfWidth;
-  let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  if (imgHeight > pageHeight) {
-    const ratio = pageHeight / imgHeight;
-    imgHeight = pageHeight;
-    imgWidth = imgWidth * ratio;
-  }
-
-  const x = (pdfWidth - imgWidth) / 2;
-  pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
+  const pdf = await createPdf(element, orientation);
   return pdf.output("blob");
 }
 
@@ -400,127 +182,7 @@ export async function previewPdfFromElement(
   element: HTMLElement,
   orientation: "portrait" | "landscape" = "portrait"
 ): Promise<void> {
-  // Re-use logic to create jsPDF instance
-  // We can just rely on the existing getPdfBase64FromElement logic to create the base64,
-  // then convert it to blob, but it's cleaner to just extract the jsPDF creation if we wanted to.
-  // For simplicity, we will copy the logic to return a blob directly.
-  let allCSS = "";
-  for (let i = 0; i < document.styleSheets.length; i++) {
-    const sheet = document.styleSheets[i];
-    try {
-      const rules = sheet.cssRules || sheet.rules;
-      for (let j = 0; j < rules.length; j++) {
-        allCSS += rules[j].cssText + "\n";
-      }
-    } catch {
-      // Ignore CORS
-    }
-  }
-
-  const cleanCSS = allCSS
-    .replace(
-      /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "color: rgb(15, 23, 42)"
-    )
-    .replace(
-      /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "background-color: transparent"
-    )
-    .replace(
-      /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "border-color: rgb(203, 213, 225)"
-    )
-    .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-    onclone: (clonedDoc: Document) => {
-      const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
-      linkTags.forEach((link) => link.remove());
-
-      const styleEl = clonedDoc.createElement("style");
-      styleEl.textContent =
-        cleanCSS +
-        "\n" +
-        `
-        * {
-          font-family: Arial, Helvetica, sans-serif !important;
-          word-spacing: 2px !important;
-        }
-      `;
-      clonedDoc.head.appendChild(styleEl);
-
-      const styleTags = clonedDoc.querySelectorAll("style");
-      styleTags.forEach((style) => {
-        if (style.innerHTML) {
-          style.innerHTML = style.innerHTML
-            .replace(
-              /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "color: rgb(15, 23, 42)"
-            )
-            .replace(
-              /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "background-color: transparent"
-            )
-            .replace(
-              /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "border-color: rgb(203, 213, 225)"
-            )
-            .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit");
-        }
-      });
-
-      const allElements = clonedDoc.querySelectorAll("*");
-      allElements.forEach((el) => {
-        const styleAttr = el.getAttribute("style");
-        if (styleAttr && /(?:lab|oklch|lch|oklab)/i.test(styleAttr)) {
-          el.setAttribute(
-            "style",
-            styleAttr
-              .replace(
-                /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "color: rgb(15, 23, 42)"
-              )
-              .replace(
-                /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "background-color: transparent"
-              )
-              .replace(
-                /border-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "border-color: rgb(203, 213, 225)"
-              )
-              .replace(/(?:lab|oklch|lch|oklab)\([^)]+\)/gi, "inherit")
-          );
-        }
-      });
-    },
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({
-    orientation,
-    unit: "mm",
-    format: "a4",
-  });
-
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = orientation === "landscape" ? 210 : 297;
-  let imgWidth = pdfWidth;
-  let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  if (imgHeight > pageHeight) {
-    const ratio = pageHeight / imgHeight;
-    imgHeight = pageHeight;
-    imgWidth = imgWidth * ratio;
-  }
-
-  const x = (pdfWidth - imgWidth) / 2;
-  pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
-
+  const pdf = await createPdf(element, orientation);
   const blob = pdf.output("blob");
   const blobUrl = URL.createObjectURL(blob);
   window.open(blobUrl, "_blank");

@@ -1,7 +1,10 @@
 import {
   collection,
+  CollectionReference,
+  DocumentData,
   FirestoreDataConverter,
   orderBy,
+  Query,
   query,
   where,
 } from "firebase/firestore";
@@ -27,170 +30,48 @@ import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
 import { getDb } from "./firebase";
 
-const memberConverter: FirestoreDataConverter<Member> = {
-  toFirestore: (member) => {
-    const { ...data } = member;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Member;
-  },
-};
+function createConverter<T>(
+  defaultSiteId: string = "bkgalabovo"
+): FirestoreDataConverter<T> {
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    toFirestore: (item: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...data } = item;
+      return { ...data, siteId: getSiteConfig().id };
+    },
+    fromFirestore: (snapshot, options) => {
+      const data = snapshot.data(options);
+      return {
+        id: snapshot.id,
+        siteId: data.siteId || defaultSiteId,
+        ...data,
+      } as unknown as T;
+    },
+  };
+}
 
-const saleConverter: FirestoreDataConverter<Sale> = {
-  toFirestore: (sale) => {
-    const { ...data } = sale;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Sale;
-  },
-};
+const memberConverter = createConverter<Member>();
 
-const clubServiceConverter: FirestoreDataConverter<ClubService> = {
-  toFirestore: (service) => {
-    const { ...data } = service;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as ClubService;
-  },
-};
+const saleConverter = createConverter<Sale>();
 
-const productConverter: FirestoreDataConverter<Product> = {
-  toFirestore: (product) => {
-    const { ...data } = product;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Product;
-  },
-};
+const clubServiceConverter = createConverter<ClubService>();
 
-const inventoryEventConverter: FirestoreDataConverter<InventoryEvent> = {
-  toFirestore: (event) => {
-    const { ...data } = event;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as InventoryEvent;
-  },
-};
+const productConverter = createConverter<Product>();
 
-const tournamentConverter: FirestoreDataConverter<Tournament> = {
-  toFirestore: (tournament) => {
-    const { ...data } = tournament;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Tournament;
-  },
-};
+const inventoryEventConverter = createConverter<InventoryEvent>();
 
-const entryConverter: FirestoreDataConverter<TournamentEntry> = {
-  toFirestore: (entry) => {
-    const { ...data } = entry;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as TournamentEntry;
-  },
-};
+const tournamentConverter = createConverter<Tournament>();
 
-const matchConverter: FirestoreDataConverter<Match> = {
-  toFirestore: (match) => {
-    const { ...data } = match;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Match;
-  },
-};
+const entryConverter = createConverter<TournamentEntry>();
 
-const generalServiceConverter: FirestoreDataConverter<GeneralService> = {
-  toFirestore: (service) => {
-    const { ...data } = service;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as GeneralService;
-  },
-};
+const matchConverter = createConverter<Match>();
 
-const memberAssessmentConverter: FirestoreDataConverter<MemberAssessment> = {
-  toFirestore: (assessment) => {
-    const { ...data } = assessment;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as MemberAssessment;
-  },
-};
+const generalServiceConverter = createConverter<GeneralService>();
 
-const priceConverter: FirestoreDataConverter<Price> = {
-  toFirestore: (price) => {
-    const { ...data } = price;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Price;
-  },
-};
+const memberAssessmentConverter = createConverter<MemberAssessment>();
+
+const priceConverter = createConverter<Price>();
 
 export interface RecoverySession {
   id: string;
@@ -243,100 +124,17 @@ const sessionConverter: FirestoreDataConverter<RecoverySession> = {
   },
 };
 
-const priceHistoryConverter: FirestoreDataConverter<PriceHistory> = {
-  toFirestore: (history) => {
-    const { ...data } = history;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as PriceHistory;
-  },
-};
+const priceHistoryConverter = createConverter<PriceHistory>();
 
-const eventConverter: FirestoreDataConverter<ScheduleEvent> = {
-  toFirestore: (event) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = event;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as ScheduleEvent;
-  },
-};
+const eventConverter = createConverter<ScheduleEvent>();
 
-const clientPackageConverter: FirestoreDataConverter<ClientPackage> = {
-  toFirestore: (pkg) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = pkg;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "recoveryzone",
-      ...data,
-    } as unknown as ClientPackage;
-  },
-};
+const clientPackageConverter = createConverter<ClientPackage>("recoveryzone");
 
-const reservationConverter: FirestoreDataConverter<Reservation> = {
-  toFirestore: (res) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = res;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as Reservation;
-  },
-};
+const reservationConverter = createConverter<Reservation>();
 
-const blockedSlotConverter: FirestoreDataConverter<BlockedSlot> = {
-  toFirestore: (slot) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = slot;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as BlockedSlot;
-  },
-};
+const blockedSlotConverter = createConverter<BlockedSlot>();
 
-const signedDeclarationConverter: FirestoreDataConverter<SignedDeclaration> = {
-  toFirestore: (decl) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...data } = decl;
-    return { ...data, siteId: getSiteConfig().id };
-  },
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      siteId: data.siteId || "bkgalabovo",
-      ...data,
-    } as unknown as SignedDeclaration;
-  },
-};
+const signedDeclarationConverter = createConverter<SignedDeclaration>();
 
 // --- Collection Getters (Raw) ---
 
@@ -392,45 +190,29 @@ const getSignedDeclarationsCollection = () =>
 
 // --- Tenant-Aware Query Getters ---
 
-export const getMembersQuery = () => {
-  const siteConfig = getSiteConfig();
-  return query(getMembersCollection(), where("siteId", "==", siteConfig.id));
-};
+function createSiteQuery<T, D extends DocumentData>(
+  collectionRef: CollectionReference<T, D>,
+  defaultSiteId?: string
+): Query<T, D> {
+  return query(
+    collectionRef,
+    where("siteId", "==", defaultSiteId || getSiteConfig().id)
+  );
+}
 
-export const getSalesQuery = () => {
-  const siteConfig = getSiteConfig();
+export const getMembersQuery = () => createSiteQuery(getMembersCollection());
 
-  return query(getSalesCollection(), where("siteId", "==", siteConfig.id));
-};
+export const getSalesQuery = () => createSiteQuery(getSalesCollection());
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getClubServicesQuery = () => {
-  const siteConfig = getSiteConfig();
+const getClubServicesQuery = () => createSiteQuery(getClubServicesCollection());
 
-  return query(
-    getClubServicesCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+export const getProductsQuery = () => createSiteQuery(getProductsCollection());
 
-export const getProductsQuery = () => {
-  const siteConfig = getSiteConfig();
-  return query(getProductsCollection(), where("siteId", "==", siteConfig.id));
-};
+export const getInventoryEventsQuery = () =>
+  createSiteQuery(getInventoryEventsCollection());
 
-export const getInventoryEventsQuery = () => {
-  const siteConfig = getSiteConfig();
-  return query(
-    getInventoryEventsCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
-
-export const getEventsQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(getEventsCollection(), where("siteId", "==", siteConfig.id));
-};
+export const getEventsQuery = () => createSiteQuery(getEventsCollection());
 
 /** Returns only events for today (midnight to 23:59:59).
  *  Used for the priority (fast) load in useEvents. */
@@ -485,54 +267,26 @@ export const getPastEventsQuery = () => {
   );
 };
 
-export const getTournamentsQuery = () => {
-  const siteConfig = getSiteConfig();
+export const getTournamentsQuery = () =>
+  createSiteQuery(getTournamentsCollection());
 
-  return query(
-    getTournamentsCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+export const getTournamentEntriesQuery = () =>
+  createSiteQuery(getTournamentEntriesCollection());
 
-export const getTournamentEntriesQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(
-    getTournamentEntriesCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
-
-export const getTournamentMatchesQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(
-    getTournamentMatchesCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+export const getTournamentMatchesQuery = () =>
+  createSiteQuery(getTournamentMatchesCollection());
 
 // Pricing Collections
 export const getPricesCollection = () =>
   collection(getDb(), "prices").withConverter(priceConverter);
 
-export const getPricesQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(getPricesCollection(), where("siteId", "==", siteConfig.id));
-};
+export const getPricesQuery = () => createSiteQuery(getPricesCollection());
 
 export const getPriceHistoryCollection = () =>
   collection(getDb(), "priceHistory").withConverter(priceHistoryConverter);
 
-export const getPriceHistoryQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(
-    getPriceHistoryCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+export const getPriceHistoryQuery = () =>
+  createSiteQuery(getPriceHistoryCollection());
 
 // Recovery Zone Sessions
 const getSessionsCollection = () =>
@@ -557,12 +311,8 @@ export const getClientPackagesQuery = (memberId?: string) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getGeneralServicesQuery = () => {
-  return query(
-    getGeneralServicesCollection(),
-    where("siteId", "==", getSiteConfig().id)
-  );
-};
+const getGeneralServicesQuery = () =>
+  createSiteQuery(getGeneralServicesCollection());
 
 // ================= MEMBER ASSESSMENTS =================
 export const getMemberAssessmentsCollection = () =>
@@ -570,32 +320,14 @@ export const getMemberAssessmentsCollection = () =>
     memberAssessmentConverter
   );
 
-export const getMemberAssessmentsQuery = () => {
-  return query(
-    getMemberAssessmentsCollection(),
-    where("siteId", "==", getSiteConfig().id)
-  );
-};
+export const getMemberAssessmentsQuery = () =>
+  createSiteQuery(getMemberAssessmentsCollection());
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getReservationsQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(
-    getReservationsCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+const getReservationsQuery = () => createSiteQuery(getReservationsCollection());
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getBlockedSlotsQuery = () => {
-  const siteConfig = getSiteConfig();
-
-  return query(
-    getBlockedSlotsCollection(),
-    where("siteId", "==", siteConfig.id)
-  );
-};
+const getBlockedSlotsQuery = () => createSiteQuery(getBlockedSlotsCollection());
 
 export const getSignedDeclarationsQuery = (memberId?: string) => {
   let q = query(getSignedDeclarationsCollection());

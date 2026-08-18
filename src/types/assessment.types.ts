@@ -1,11 +1,5 @@
 export type AssessmentAgeGroup =
-  | "U9"
-  | "U11"
-  | "U13"
-  | "U15"
-  | "U17"
-  | "U19"
-  | "Мъже и Жени";
+  "U9" | "U11" | "U13" | "U15" | "U17" | "U19" | "Мъже и Жени";
 
 export type BadmintonTest = {
   id: string;
