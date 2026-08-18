@@ -325,7 +325,7 @@ export const UnifiedWizardStep1 = () => {
                       type="button"
                       onClick={() => {
                         setSelectedMember(member);
-                        setIsGuestSale(member.isGuest || false);
+                        setIsGuestSale(clientTypeTab === "guest");
                       }}
                       className={buttonClass}
                     >

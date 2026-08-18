@@ -142,10 +142,16 @@ export const MemberForm = ({
     // Determine primary memberType for backward compatibility
     if (data.isClubMember) {
       data.memberType = "regular";
+      data.isGuest = false;
+      data.isRecoveryMember = false;
     } else if (data.isRecoveryMember) {
       data.memberType = "recovery";
+      data.isGuest = false;
+      data.isClubMember = false;
     } else if (data.isGuest) {
       data.memberType = "guest";
+      data.isClubMember = false;
+      data.isRecoveryMember = false;
     }
 
     await onSave(data);

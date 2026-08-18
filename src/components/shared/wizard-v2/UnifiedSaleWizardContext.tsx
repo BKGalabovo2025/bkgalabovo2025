@@ -274,7 +274,9 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
   }, [familyMembers]);
 
   const clientDisplayName = useMemo(() => {
-    if (isGuestSale) return "Външен клиент";
+    if (isGuestSale && !selectedMember) return "Външен клиент";
+    if (isGuestSale && selectedMember)
+      return `${selectedMember.firstName} ${selectedMember.lastName}`;
     if (isFamilySubscription && familyMembers.length > 0) {
       return familyMembers
         .map((m) => `${m?.firstName} ${m?.lastName}`)
@@ -396,10 +398,24 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
       );
   }, [memberEvents, targetMemberIds]);
 
-  const filteredMembers = members.filter((m) => {
-    const fullName = `${m.firstName} ${m.lastName}`.toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase());
-  });
+  const filteredMembers = useMemo(() => {
+    return members.filter((m) => {
+      const fullName = `${m.firstName || ""} ${m.lastName || ""}`.toLowerCase();
+      const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+
+      const isGuestMember =
+        m.memberType === "guest" ||
+        (m.memberType !== "regular" &&
+          m.memberType !== "recovery" &&
+          m.isGuest);
+
+      if (clientTypeTab === "guest") {
+        return matchesSearch && isGuestMember;
+      } else {
+        return matchesSearch && !isGuestMember;
+      }
+    });
+  }, [members, searchTerm, clientTypeTab]);
 
   const handleNextStep = () => {
     if (step === 1) {
@@ -536,9 +552,16 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
 
     const customPrice = parseFloat(price);
     const qty = getSaleQuantity();
-    const clientName = isGuestSale
-      ? "Външен клиент"
-      : familyMembers.map((m) => `${m!.firstName} ${m!.lastName}`).join(", ");
+    let clientName = "Външен клиент";
+    if (selectedMember) {
+      if (isFamilySubscription) {
+        clientName = familyMembers
+          .map((m) => `${m!.firstName} ${m!.lastName}`)
+          .join(", ");
+      } else {
+        clientName = `${selectedMember.firstName} ${selectedMember.lastName}`;
+      }
+    }
 
     const selectedLabels = monthlyAttendance
       .filter((m) => selectedMonthKeys.includes(m.monthKey))
@@ -549,7 +572,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
 
     const baseSaleData: Record<string, unknown> = {
       siteId: activeBranch || "bkgalabovo",
-      memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
+      memberId: selectedMember ? selectedMember.id : "GUEST_EXTERNAL",
       clientName: clientName,
       saleDate: saleDate,
       items: [
@@ -596,7 +619,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
       if (mode === "product") {
         result = await createSaleAction(idToken, {
           siteId: activeBranch || "bkgalabovo",
-          memberId: isGuestSale ? "GUEST_EXTERNAL" : selectedMember!.id,
+          memberId: selectedMember ? selectedMember.id : "GUEST_EXTERNAL",
           clientName: clientName,
           items: [
             {
