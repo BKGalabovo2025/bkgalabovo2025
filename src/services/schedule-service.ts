@@ -30,7 +30,11 @@ export const docToScheduleEvent = (
         saleId: item.saleId,
         // Camp-specific fields
         campDepositPaid: item.campDepositPaid,
+        campDepositSaleId: item.campDepositSaleId,
         campRemainderPaid: item.campRemainderPaid,
+        campRemainderSaleId: item.campRemainderSaleId,
+        campInsurancePaid: item.campInsurancePaid,
+        campInsuranceSaleId: item.campInsuranceSaleId,
         campPriceOverride: item.campPriceOverride,
         campMedicalProvided: item.campMedicalProvided,
         campRoom: item.campRoom,
@@ -63,6 +67,7 @@ export const docToScheduleEvent = (
       : [],
     isCancelled: !!data.isCancelled,
     totalCampPrice: data.totalCampPrice,
+    campInsurancePrice: data.campInsurancePrice,
   };
 };
 
