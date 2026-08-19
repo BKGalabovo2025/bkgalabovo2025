@@ -615,11 +615,28 @@ function CatalogCard({
                     const pricePart = showPrice
                       ? " (" + item.price.toFixed(2) + " EUR)"
                       : "";
+                    const isCourtRental =
+                      tab === "general" &&
+                      ((item.name || "")
+                        .toLowerCase()
+                        .includes("наем на корт") ||
+                        (item.name || "")
+                          .toLowerCase()
+                          .includes("court rental"));
+                    const isProductOrStringing =
+                      tab === "products" ||
+                      (tab === "general" && !isCourtRental);
+
+                    const trailingText = isProductOrStringing
+                      ? "Моля, кажете ми каква е цената и как мога да поръчам."
+                      : "Моля, свържете се с мен за уточняване на час.";
+
                     const waMsg = encodeURIComponent(
                       "Здравейте, интересувам се от: " +
                         item.name +
                         pricePart +
-                        ". Моля, свържете се с мен за уточняване на час."
+                        ". " +
+                        trailingText
                     );
                     const btnText = showPrice
                       ? t("Запиши се / Заяви", "Book / Request", lang)
